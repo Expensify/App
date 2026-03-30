@@ -283,6 +283,7 @@ function IOURequestStepAmount({
                         draftTransactionIDs,
                         isSelfTourViewed,
                         personalDetails,
+                        formatPhoneNumber,
                     });
                     return;
                 }
@@ -312,6 +313,7 @@ function IOURequestStepAmount({
                         betas,
                         draftTransactionIDs,
                         isSelfTourViewed,
+                        formatPhoneNumber,
                     });
                     return;
                 }
@@ -406,6 +408,7 @@ function IOURequestStepAmount({
         }
 
         updateMoneyRequestAmountAndCurrency({
+            formatPhoneNumber,
             transactionID,
             transactionThreadReport: report,
             parentReport,

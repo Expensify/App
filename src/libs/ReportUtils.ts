@@ -753,6 +753,7 @@ type BaseOptimisticMoneyRequestEntities = {
     linkedTrackedExpenseReportAction?: ReportAction;
     optimisticCreatedReportActionID?: string;
     reportActionID?: string;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 type OptimisticMoneyRequestEntities = BaseOptimisticMoneyRequestEntities & {shouldGenerateTransactionThreadReport?: boolean};
@@ -5704,7 +5705,7 @@ function parseReportActionHtmlToText(
         if (match[1] !== childReportID) {
             // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
             // eslint-disable-next-line @typescript-eslint/no-use-before-define, @typescript-eslint/no-deprecated
-            reportIDToName[match[1]] = getReportName({report: getReportOrDraftReport(match[1]), conciergeReportID}) ?? '';
+            reportIDToName[match[1]] = getReportName({report: getReportOrDraftReport(match[1]), conciergeReportID, formatPhoneNumber}) ?? '';
         }
     }
 
@@ -5791,7 +5792,7 @@ function getReportActionMessage({
         return getReimbursementDeQueuedOrCanceledActionMessage(translate, reportAction, getReportOrDraftReport(reportID, reports), formatPhoneNumber);
     }
 
-    return parseReportActionHtmlToText(reportAction, reportID, conciergeReportID, childReportID);
+    return parseReportActionHtmlToText(reportAction, reportID, conciergeReportID, formatPhoneNumber, childReportID);
 }
 
 /**
@@ -5834,7 +5835,7 @@ function getReportName(reportNameInformation: GetReportNameParams): string {
         const {originalID} = getOriginalMessage(parentReportAction) ?? {};
         const originalReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalID}`];
         // eslint-disable-next-line @typescript-eslint/no-deprecated -- temporarily disabling rule for deprecated functions out of issue scope
-        const reportName = getReportName({report: originalReport});
+        const reportName = getReportName({report: originalReport, formatPhoneNumber});
         // eslint-disable-next-line @typescript-eslint/no-deprecated -- temporarily disabling rule for deprecated functions out of issue scope
         return getCreatedReportForUnapprovedTransactionsMessage(originalID, reportName, !!parentReportAction.isOriginalReportDeleted, translateLocal);
     }
@@ -6036,6 +6037,7 @@ function getSearchReportName(props: GetReportNameParams): string {
                     transactions: props.transactions,
                     isReportArchived: props.isReportArchived,
                     reports: props.reports,
+                    formatPhoneNumber: props.formatPhoneNumber,
                 });
             }
 
@@ -6056,6 +6058,7 @@ function getSearchReportName(props: GetReportNameParams): string {
         transactions: props.transactions,
         isReportArchived: props.isReportArchived,
         reports: props.reports,
+        formatPhoneNumber: props.formatPhoneNumber,
     });
 }
 
@@ -6195,7 +6198,7 @@ function getParentNavigationSubtitle(
         const invoiceReceiverPolicyID = parentReport?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS ? parentReport.invoiceReceiver.policyID : undefined;
         const invoiceReceiverPolicy = invoiceReceiverPolicyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`] : undefined;
         const isCurrentUserReceiver = isCurrentUserInvoiceReceiver(parentReport);
-        const invoicePayerName = getInvoicePayerName(parentReport, invoiceReceiverPolicy);
+        const invoicePayerName = getInvoicePayerName(parentReport, formatPhoneNumber, invoiceReceiverPolicy);
 
         let reportName = senderWorkspaceName;
         if (!isCurrentUserReceiver && invoicePayerName) {
@@ -6215,7 +6218,7 @@ function getParentNavigationSubtitle(
     return {
         // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        reportName: getReportName({report: parentReport, reportAttributes, conciergeReportID}),
+        reportName: getReportName({report: parentReport, reportAttributes, conciergeReportID, formatPhoneNumber}),
         workspaceName: getPolicyName({report: parentReport, policy, returnEmptyIfNotFound: true}),
     };
 }
@@ -6978,7 +6981,7 @@ function getDeletedTransactionMessage(translate: LocalizedTranslate, action: Rep
 }
 
 // TODO: conciergeReportID will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66411
-function getMovedTransactionMessage(translate: LocalizedTranslate, action: ReportAction, conciergeReportID?: string) {
+function getMovedTransactionMessage(translate: LocalizedTranslate, action: ReportAction, formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], conciergeReportID?: string) {
     const movedTransactionOriginalMessage = getOriginalMessage(action) ?? {};
     const {toReportID, fromReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
 
@@ -6989,7 +6992,7 @@ function getMovedTransactionMessage(translate: LocalizedTranslate, action: Repor
 
     // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const reportName = Parser.htmlToText(getReportName({report, conciergeReportID}) ?? report?.reportName ?? '');
+    const reportName = Parser.htmlToText(getReportName({report, conciergeReportID, formatPhoneNumber}) ?? report?.reportName ?? '');
     const reportUrl = getReportURLForCurrentContext(report?.reportID);
     if (typeof fromReportID === 'undefined') {
         return translate('iou.movedTransactionTo', reportUrl, reportName);
@@ -6997,7 +7000,7 @@ function getMovedTransactionMessage(translate: LocalizedTranslate, action: Repor
     return translate('iou.movedTransactionFrom', reportUrl, reportName);
 }
 
-function getUnreportedTransactionMessage(translate: LocalizedTranslate, action: ReportAction) {
+function getUnreportedTransactionMessage(translate: LocalizedTranslate, action: ReportAction, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) {
     const movedTransactionOriginalMessage = getOriginalMessage(action) ?? {};
     const {fromReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
 
@@ -7005,7 +7008,7 @@ function getUnreportedTransactionMessage(translate: LocalizedTranslate, action: 
 
     // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const reportName = Parser.htmlToText(getReportName({report: fromReport}) ?? fromReport?.reportName ?? '');
+    const reportName = Parser.htmlToText(getReportName({report: fromReport, formatPhoneNumber}) ?? fromReport?.reportName ?? '');
 
     let reportUrl = getReportURLForCurrentContext(fromReportID);
 
@@ -7576,13 +7579,14 @@ function buildOptimisticSubmittedReportAction(
 function buildOptimisticReportPreview(
     chatReport: OnyxInputOrEntry<Report>,
     iouReport: Report,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     comment = '',
     transaction: OnyxInputOrEntry<Transaction> = null,
     childReportID?: string,
     reportActionID?: string,
 ): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW> {
     const hasReceipt = hasReceiptTransactionUtils(transaction);
-    const message = getReportPreviewMessage(iouReport);
+    const message = getReportPreviewMessage(iouReport, formatPhoneNumber);
     const created = DateUtils.getDBTime();
     const reportActorAccountID = (isInvoiceReport(iouReport) || isExpenseReport(iouReport) ? iouReport?.ownerAccountID : iouReport?.managerID) ?? -1;
     const delegateAccountDetails = getPersonalDetailByEmail(delegateEmail);
@@ -7753,6 +7757,7 @@ function buildOptimisticDetachReceipt(reportID: string | undefined, transactionI
 function updateReportPreview(
     iouReport: OnyxEntry<Report>,
     reportPreviewAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     isPayRequest = false,
     comment = '',
     transaction?: OnyxEntry<Transaction>,
@@ -7771,7 +7776,7 @@ function updateReportPreview(
         }
     }
 
-    const message = getReportPreviewMessage(iouReport, reportPreviewAction);
+    const message = getReportPreviewMessage(iouReport, formatPhoneNumber, reportPreviewAction);
     const originalMessage = getOriginalMessage(reportPreviewAction);
     return {
         ...reportPreviewAction,
@@ -8823,6 +8828,7 @@ function buildOptimisticMoneyRequestEntities({
     optimisticCreatedReportActionID,
     shouldGenerateTransactionThreadReport = true,
     reportActionID,
+    formatPhoneNumber,
 }: OptimisticMoneyRequestEntities): [
     OptimisticCreatedReportAction,
     OptimisticCreatedReportAction,
@@ -8852,6 +8858,7 @@ function buildOptimisticMoneyRequestEntities({
         created: iouActionCreationTime,
         linkedExpenseReportAction: linkedTrackedExpenseReportAction,
         reportActionID,
+        formatPhoneNumber,
     });
 
     // Create optimistic transactionThread and the `CREATED` action for it, if existingTransactionThreadReportID is undefined
@@ -12824,12 +12831,12 @@ function isWaitingForSubmissionFromCurrentUser(chatReport: OnyxEntry<Report>, po
     return chatReport?.isOwnPolicyExpenseChat && !policy?.harvesting?.enabled;
 }
 
-function getChatListItemReportName(action: ReportAction & {reportName?: string}, report: Report | undefined): string {
+function getChatListItemReportName(action: ReportAction & {reportName?: string}, report: Report | undefined, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']): string {
     if (report && isInvoiceReport(report)) {
         const properInvoiceReport = report;
         properInvoiceReport.chatReportID = report.parentReportID;
 
-        return getInvoiceReportName(properInvoiceReport);
+        return getInvoiceReportName(properInvoiceReport, formatPhoneNumber);
     }
 
     if (action?.reportName) {
@@ -12839,12 +12846,12 @@ function getChatListItemReportName(action: ReportAction & {reportName?: string},
     if (report?.reportID) {
         // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return getReportName({report: getReport(report?.reportID, allReports)});
+        return getReportName({report: getReport(report?.reportID, allReports), formatPhoneNumber});
     }
 
     // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return getReportName({report});
+    return getReportName({report, formatPhoneNumber});
 }
 
 /**

@@ -71,7 +71,7 @@ function ExpenseReportListItemRow({
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const policy = usePolicy(item.policyID);
@@ -240,7 +240,7 @@ function ExpenseReportListItemRow({
         const isInMobileSelectionMode = shouldUseNarrowLayout && !!canSelectMultiple;
 
         // Compute accessible group label (user name, subtitle, report title, status, amount)
-        const parentNavigationSubtitleData = getParentNavigationSubtitle(item, policy, conciergeReportID);
+        const parentNavigationSubtitleData = getParentNavigationSubtitle(item, policy, conciergeReportID, formatPhoneNumber);
         const subtitleLabel = translate('threads.parentNavigationSummary', parentNavigationSubtitleData);
         const statusLabel = getReportStatusTranslation({stateNum: item.stateNum, statusNum: item.statusNum, translate});
         const amountLabel = convertToDisplayString(totalDisplaySpend, currency);

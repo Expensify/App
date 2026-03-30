@@ -5,6 +5,7 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 import AnimatedSettlementButton from '@components/SettlementButton/AnimatedSettlementButton';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
@@ -54,6 +55,7 @@ function PayActionButton({
     reportPreviewAction,
 }: PayActionButtonProps) {
     const {isOffline} = useNetwork();
+    const {formatPhoneNumber} = useLocalize();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserDetails.accountID;
     const currentUserEmail = currentUserDetails.email ?? '';
@@ -115,6 +117,7 @@ function PayActionButton({
                 ownerBillingGraceEndPeriod,
                 full: true,
                 onApproved: startApprovedAnimation,
+                formatPhoneNumber,
             });
         }
     };
@@ -145,6 +148,7 @@ function PayActionButton({
                     activePolicy,
                     betas,
                     isSelfTourViewed,
+                    formatPhoneNumber,
                 });
             } else {
                 payMoneyRequest({
@@ -162,6 +166,7 @@ function PayActionButton({
                     amountOwed,
                     ownerBillingGraceEndPeriod,
                     onPaid: startAnimation,
+                    formatPhoneNumber,
                 });
             }
         }

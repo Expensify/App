@@ -310,7 +310,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
     });
     const draftTransactionIDs = Object.keys(transactionDrafts ?? {});
 
-    const {translate, localeCompare, toLocaleDigit} = useLocalize();
+    const {translate, localeCompare, toLocaleDigit, formatPhoneNumber} = useLocalize();
     const {isProduction} = useEnvironment();
     const encryptedAuthToken = session?.encryptedAuthToken ?? '';
 
@@ -736,6 +736,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                     activePolicy,
                     betas,
                     isSelfTourViewed,
+                    formatPhoneNumber,
                 });
                 if (isFromSelectionMode) {
                     clearSelectedTransactions(true);
@@ -765,6 +766,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                         }
                         startAnimation();
                     },
+                    formatPhoneNumber,
                 });
                 if (currentSearchQueryJSON && !isOffline) {
                     search({
@@ -807,6 +809,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
             clearSelectedTransactions,
             amountOwed,
             ownerBillingGraceEndPeriod,
+            formatPhoneNumber,
         ],
     );
 
@@ -847,6 +850,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                         }
                         startApprovedAnimation();
                     },
+                    formatPhoneNumber,
                 });
                 if (skipAnimation) {
                     clearSelectedTransactions(true);
@@ -870,6 +874,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
             amountOwed,
             clearSelectedTransactions,
             ownerBillingGraceEndPeriod,
+            formatPhoneNumber,
         ],
     );
 
@@ -903,6 +908,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                         startSubmittingAnimation();
                     },
                     ownerBillingGraceEndPeriod,
+                    formatPhoneNumber,
                 });
                 if (currentSearchQueryJSON && !isOffline) {
                     search({
@@ -940,6 +946,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
             clearSelectedTransactions,
             confirmPendingRTERAndProceed,
             ownerBillingGraceEndPeriod,
+            formatPhoneNumber,
         ],
     );
 
@@ -1752,6 +1759,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                         userBillingGraceEndPeriods,
                         amountOwed,
                         ownerBillingGraceEndPeriod,
+                        formatPhoneNumber,
                     });
                 });
             },
@@ -1786,11 +1794,11 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                     if (result.action !== ModalActions.CONFIRM) {
                         return;
                     }
-                    unapproveExpenseReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep);
+                    unapproveExpenseReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, formatPhoneNumber);
                     return;
                 }
 
-                unapproveExpenseReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep);
+                unapproveExpenseReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, formatPhoneNumber);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT]: {
@@ -1810,7 +1818,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                 if (result.action !== ModalActions.CONFIRM || !chatReport) {
                     return;
                 }
-                cancelPayment(moneyRequestReport, chatReport, policy, isASAPSubmitBetaEnabled, accountID, email ?? '', hasViolations);
+                cancelPayment(moneyRequestReport, chatReport, policy, isASAPSubmitBetaEnabled, accountID, email ?? '', hasViolations, formatPhoneNumber);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.HOLD]: {
@@ -2113,10 +2121,10 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                     if (result.action !== ModalActions.CONFIRM) {
                         return;
                     }
-                    retractReport(moneyRequestReport, chatReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep);
+                    retractReport(moneyRequestReport, chatReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, formatPhoneNumber);
                     return;
                 }
-                retractReport(moneyRequestReport, chatReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep);
+                retractReport(moneyRequestReport, chatReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, formatPhoneNumber);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.REOPEN]: {
@@ -2137,10 +2145,10 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                     if (result.action !== ModalActions.CONFIRM) {
                         return;
                     }
-                    reopenReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, chatReport);
+                    reopenReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, chatReport, formatPhoneNumber);
                     return;
                 }
-                reopenReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, chatReport);
+                reopenReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, chatReport, formatPhoneNumber);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.REJECT]: {
@@ -2360,6 +2368,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                 userBillingGraceEndPeriods,
                 amountOwed,
                 ownerBillingGraceEndPeriod,
+                formatPhoneNumber,
             });
         },
         [
@@ -2378,6 +2387,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
             userBillingGraceEndPeriods,
             amountOwed,
             ownerBillingGraceEndPeriod,
+            formatPhoneNumber,
         ],
     );
 

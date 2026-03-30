@@ -1038,7 +1038,17 @@ function Search({
             if (isTransactionItem && !item?.reportAction?.childReportID) {
                 // If the report is unreported (self DM), we want to open the track expense thread instead of a report with an ID of 0
                 const shouldOpenTransactionThread = !isOneTransactionReport(item.report) || item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-                createAndOpenSearchTransactionThread(item, introSelected, backTo, email ?? '', accountID, item?.reportAction?.childReportID, undefined, shouldOpenTransactionThread);
+                createAndOpenSearchTransactionThread(
+                    item,
+                    introSelected,
+                    backTo,
+                    email ?? '',
+                    accountID,
+                    formatPhoneNumber,
+                    item?.reportAction?.childReportID,
+                    undefined,
+                    shouldOpenTransactionThread,
+                );
                 if (shouldOpenTransactionThread) {
                     return;
                 }
@@ -1091,12 +1101,13 @@ function Search({
                             backTo,
                             email ?? '',
                             accountID,
+                            formatPhoneNumber,
                             firstTransaction?.reportAction?.childReportID,
                             transactionPreviewData,
                             false,
                         );
                     } else {
-                        setOptimisticDataForTransactionThreadPreview(firstTransaction, transactionPreviewData, firstTransaction?.reportAction?.childReportID);
+                        setOptimisticDataForTransactionThreadPreview(firstTransaction, transactionPreviewData, formatPhoneNumber, firstTransaction?.reportAction?.childReportID);
                     }
                 }
 
@@ -1129,7 +1140,7 @@ function Search({
             markReportIDAsExpense(reportID);
 
             if (isTransactionItem && transactionPreviewData) {
-                setOptimisticDataForTransactionThreadPreview(transactionItem, transactionPreviewData, transactionItem?.reportAction?.childReportID);
+                setOptimisticDataForTransactionThreadPreview(transactionItem, transactionPreviewData, formatPhoneNumber, transactionItem?.reportAction?.childReportID);
             }
 
             requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
@@ -1145,6 +1156,7 @@ function Search({
             introSelected,
             email,
             accountID,
+            formatPhoneNumber,
         ],
     );
 

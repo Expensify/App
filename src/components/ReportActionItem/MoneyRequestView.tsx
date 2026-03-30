@@ -175,7 +175,7 @@ function MoneyRequestView({
     const StyleUtils = useStyleUtils();
     const {isOffline} = useNetwork();
     const {environmentURL} = useEnvironment();
-    const {translate, toLocaleDigit} = useLocalize();
+    const {translate, toLocaleDigit, formatPhoneNumber} = useLocalize();
     const {getCurrencySymbol} = useCurrencyListActions();
     const {getReportRHPActiveRoute} = useActiveRoute();
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
@@ -487,6 +487,7 @@ function MoneyRequestView({
             return;
         }
         updateMoneyRequestBillable({
+            formatPhoneNumber,
             transactionID: transaction.transactionID,
             transactionThreadReport,
             parentReport,
@@ -507,6 +508,7 @@ function MoneyRequestView({
             return;
         }
         updateMoneyRequestReimbursable({
+            formatPhoneNumber,
             transactionID: transaction.transactionID,
             transactionThreadReport,
             parentReport,

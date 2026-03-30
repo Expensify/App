@@ -27,7 +27,7 @@ type MovedTransactionActionProps = {
 };
 
 function MovedTransactionAction({action, emptyHTML, childReport, originalReport}: MovedTransactionActionProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const movedTransactionOriginalMessage = getOriginalMessage(action);
     const toReportID = movedTransactionOriginalMessage?.toReportID;
     const fromReportID = movedTransactionOriginalMessage?.fromReportID;
@@ -46,7 +46,7 @@ function MovedTransactionAction({action, emptyHTML, childReport, originalReport}
         return emptyHTML;
     }
 
-    const message = getMovedTransactionMessage(translate, action);
+    const message = getMovedTransactionMessage(translate, action, formatPhoneNumber);
 
     if (hasReasoning(action)) {
         return (

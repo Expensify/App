@@ -71,7 +71,7 @@ function ProcessMoneyReportHoldMenu({
     startAnimation,
     hasNonHeldExpenses,
 }: ProcessMoneyReportHoldMenuProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const isApprove = requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE;
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -115,6 +115,7 @@ function ProcessMoneyReportHoldMenu({
                 ownerBillingGraceEndPeriod,
                 full,
                 onApproved: startAnimation,
+                formatPhoneNumber,
             });
         } else if (chatReport && paymentType) {
             payMoneyRequest({
@@ -134,6 +135,7 @@ function ProcessMoneyReportHoldMenu({
                 ownerBillingGraceEndPeriod,
                 methodID,
                 onPaid: startAnimation,
+                formatPhoneNumber,
             });
         }
         onClose();

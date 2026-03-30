@@ -46,7 +46,7 @@ function IOURequestStepDate({
     report,
 }: IOURequestStepDateProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const policy = usePolicy(report?.policyID);
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactionID ? [transactionID] : []);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
@@ -95,6 +95,7 @@ function IOURequestStepDate({
 
         if (isEditing) {
             updateMoneyRequestDate({
+                formatPhoneNumber,
                 transactionID,
                 transactionThreadReport: report,
                 parentReport,

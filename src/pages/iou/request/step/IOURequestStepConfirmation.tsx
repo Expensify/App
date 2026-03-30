@@ -817,6 +817,7 @@ function IOURequestStepConfirmation({
                     isSelfTourViewed,
                     betas,
                     personalDetails,
+                    formatPhoneNumber,
                 });
                 existingIOUReport = iouReport;
             }
@@ -859,6 +860,7 @@ function IOURequestStepConfirmation({
             personalDetails,
             isGPSDistanceRequest,
             draftTransactionIDs,
+            formatPhoneNumber,
         ],
     );
 
@@ -1028,6 +1030,7 @@ function IOURequestStepConfirmation({
                     betas,
                     draftTransactionIDs,
                     isSelfTourViewed,
+                    formatPhoneNumber,
                 });
             }
         },
@@ -1059,6 +1062,7 @@ function IOURequestStepConfirmation({
             betas,
             draftTransactionIDs,
             isSelfTourViewed,
+            formatPhoneNumber,
         ],
     );
 
@@ -1114,6 +1118,7 @@ function IOURequestStepConfirmation({
                 personalDetails,
                 recentWaypoints,
                 betas,
+                formatPhoneNumber,
             });
         },
         [
@@ -1145,6 +1150,7 @@ function IOURequestStepConfirmation({
             personalDetails,
             recentWaypoints,
             betas,
+            formatPhoneNumber,
         ],
     );
 

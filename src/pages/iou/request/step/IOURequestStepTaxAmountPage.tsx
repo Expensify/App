@@ -62,7 +62,7 @@ function IOURequestStepTaxAmountPage({
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
 
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const textInput = useRef<BaseTextInputRef | null>(null);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplitBill = isEditing && iouType === CONST.IOU.TYPE.SPLIT;
@@ -110,6 +110,7 @@ function IOURequestStepTaxAmountPage({
                 return;
             }
             updateMoneyRequestTaxAmount({
+                formatPhoneNumber,
                 transactionID,
                 transactionThreadReport: report,
                 parentReport,

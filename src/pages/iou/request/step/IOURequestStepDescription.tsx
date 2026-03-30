@@ -61,7 +61,7 @@ function IOURequestStepDescription({
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
 
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {inputCallbackRef, inputRef} = useAutoFocusInput(true);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
@@ -160,6 +160,7 @@ function IOURequestStepDescription({
 
         if (action === CONST.IOU.ACTION.EDIT) {
             updateMoneyRequestDescription({
+                formatPhoneNumber,
                 transactionID: transaction?.transactionID,
                 transactionThreadReport: report,
                 parentReport,

@@ -53,7 +53,7 @@ function IOURequestStepCategory({
     transaction,
 }: IOURequestStepCategoryProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['EmptyStateExpenses']);
     const requestType = getRequestType(transaction);
     const isPerDiemRequest = requestType === CONST.IOU.REQUEST_TYPE.PER_DIEM;
@@ -138,6 +138,7 @@ function IOURequestStepCategory({
 
             if (isEditing && report) {
                 updateMoneyRequestCategory({
+                    formatPhoneNumber,
                     transactionID: transaction.transactionID,
                     transactionThreadReport: report,
                     parentReport,

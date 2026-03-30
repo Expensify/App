@@ -176,6 +176,7 @@ function SubmitDetailsPage({
                 betas,
                 draftTransactionIDs,
                 isSelfTourViewed,
+                formatPhoneNumber,
             });
         } else {
             const existingTransactionID = getExistingTransactionID(transaction.linkedTrackedExpenseReportAction);
@@ -219,6 +220,7 @@ function SubmitDetailsPage({
                 isSelfTourViewed,
                 betas,
                 personalDetails,
+                formatPhoneNumber,
             });
         }
     };

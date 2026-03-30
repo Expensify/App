@@ -20,7 +20,7 @@ type ApproveActionButtonProps = {
 };
 
 function ApproveActionButton({iouReportID, startApprovedAnimation, onHoldMenuOpen, shouldShowPayButton}: ApproveActionButtonProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserDetails.accountID;
     const currentUserEmail = currentUserDetails.email ?? '';
@@ -61,6 +61,7 @@ function ApproveActionButton({iouReportID, startApprovedAnimation, onHoldMenuOpe
                 ownerBillingGraceEndPeriod,
                 full: true,
                 onApproved: startApprovedAnimation,
+                formatPhoneNumber,
             });
         }
     };

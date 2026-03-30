@@ -49,7 +49,7 @@ function IOURequestStepMerchant({
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {inputCallbackRef, inputRef} = useAutoFocusInput();
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     useRestartOnReceiptFailure(transaction, reportID, iouType, action);
@@ -126,6 +126,7 @@ function IOURequestStepMerchant({
         setMoneyRequestMerchant(transactionID, newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, !isEditing, hasReceipt(transaction));
         if (isEditing) {
             updateMoneyRequestMerchant({
+                formatPhoneNumber,
                 transactionID,
                 transactionThreadReport: report,
                 parentReport,

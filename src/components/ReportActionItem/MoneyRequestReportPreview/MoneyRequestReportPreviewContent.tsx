@@ -210,7 +210,7 @@ function MoneyRequestReportPreviewContent({
         if (isPolicyExpenseChat || isTripRoom) {
             payerOrApproverName = getPolicyName({report: chatReport, policy});
         } else if (isInvoiceRoom) {
-            payerOrApproverName = getInvoicePayerName(chatReport, invoiceReceiverPolicy, invoiceReceiverPersonalDetail);
+            payerOrApproverName = getInvoicePayerName(chatReport, formatPhoneNumber, invoiceReceiverPolicy, invoiceReceiverPersonalDetail);
         } else {
             payerOrApproverName = getDisplayNameForParticipant({
                 accountID: managerID,

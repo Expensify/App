@@ -5,7 +5,7 @@ import type {Merge, ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import getBankIcon from '@components/Icon/BankIcons';
 import type {ContinueActionParams} from '@components/KYCWall/types';
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {BankAccountMenuItem} from '@components/Search/types';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
@@ -47,6 +47,7 @@ type SelectPaymentTypeParams = {
     userBillingGraceEndPeriods: OnyxCollection<BillingGraceEndPeriod>;
     amountOwed: OnyxEntry<number>;
     ownerBillingGraceEndPeriod: OnyxEntry<number>;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 type BusinessBankAccountOption = {
@@ -233,6 +234,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         userBillingGraceEndPeriods,
         amountOwed,
         ownerBillingGraceEndPeriod,
+        formatPhoneNumber,
     } = params;
     if (policy && shouldRestrictUserBillableActions(policy.id, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods, amountOwed)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
@@ -265,6 +267,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
                 amountOwed,
                 ownerBillingGraceEndPeriod,
                 full: true,
+                formatPhoneNumber,
             });
         }
         return;

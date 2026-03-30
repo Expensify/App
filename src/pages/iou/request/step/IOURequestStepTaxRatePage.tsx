@@ -45,7 +45,7 @@ function IOURequestStepTaxRatePage({
     transaction,
     report,
 }: IOURequestStepTaxRatePageProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const {policy} = usePolicyForTransaction({transaction, reportPolicyID: report?.policyID, action, iouType});
 
@@ -78,6 +78,7 @@ function IOURequestStepTaxRatePage({
 
     const updateTaxRates = (taxes: TaxRatesOption, shouldClearTax?: boolean) => {
         const updateTaxRateParams = {
+            formatPhoneNumber,
             transactionID: currentTransaction?.transactionID,
             transactionThreadReport: report,
             parentReport,

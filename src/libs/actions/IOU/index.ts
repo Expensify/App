@@ -335,6 +335,7 @@ type PayInvoiceArgs = {
     activePolicy?: OnyxTypes.Policy;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isSelfTourViewed: boolean | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 type RejectMoneyRequestData = {
@@ -541,6 +542,7 @@ type RequestMoneyInformation = {
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     shouldDeferAutoSubmit?: boolean;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 type MoneyRequestInformationParams = {
@@ -656,6 +658,7 @@ type CreateDistanceRequestInformation = {
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     optimisticReportPreviewActionID?: string;
     shouldDeferAutoSubmit?: boolean;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 type CreateSplitsTransactionParams = Omit<BaseTransactionParams, 'customUnitRateID'> & {
@@ -715,6 +718,7 @@ type TrackExpenseAccountantParams = {
 };
 
 type CreateTrackExpenseParams = {
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     report: OnyxEntry<OnyxTypes.Report>;
     isDraftPolicy: boolean;
     action?: IOUAction;
@@ -783,6 +787,7 @@ type GetTrackExpenseInformationParams = {
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isSelfTourViewed: boolean;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 let allPersonalDetails: OnyxTypes.PersonalDetailsList = {};
@@ -887,6 +892,7 @@ type PayMoneyRequestFunctionParams = {
     ownerBillingGraceEndPeriod?: OnyxEntry<number>;
     methodID?: number;
     onPaid?: () => void;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 type ApproveMoneyRequestFunctionParams = {
@@ -903,6 +909,7 @@ type ApproveMoneyRequestFunctionParams = {
     full?: boolean;
     onApproved?: () => void;
     ownerBillingGraceEndPeriod: OnyxEntry<number>;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 type SubmitReportFunctionParams = {
@@ -917,6 +924,7 @@ type SubmitReportFunctionParams = {
     amountOwed: OnyxEntry<number>;
     onSubmitted?: () => void;
     ownerBillingGraceEndPeriod: OnyxEntry<number>;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 let allTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
@@ -1814,6 +1822,7 @@ function getReceiptError(
 }
 
 type BuildOnyxDataForTestDriveIOUParams = {
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     transaction: OnyxTypes.Transaction;
     iouOptimisticParams: MoneyRequestOptimisticParams['iou'];
     chatOptimisticParams: MoneyRequestOptimisticParams['chat'];
@@ -1837,6 +1846,7 @@ function buildOnyxDataForTestDriveIOU(
         iouReportID: testDriveIOUParams.iouOptimisticParams.report.reportID,
         transactionID: testDriveIOUParams.transaction.transactionID,
         reportActionID: testDriveIOUParams.iouOptimisticParams.action.reportActionID,
+        formatPhoneNumber: testDriveIOUParams.formatPhoneNumber,
     });
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const text = Localize.translateLocal('testDrive.employeeInviteMessage', personalDetailsList?.[userAccountID]?.firstName ?? '');
@@ -2111,6 +2121,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             successData: testDriveSuccessData = [],
             failureData: testDriveFailureData = [],
         } = buildOnyxDataForTestDriveIOU({
+            formatPhoneNumber,
             transaction,
             iouOptimisticParams: iou,
             chatOptimisticParams: chat,
@@ -2137,6 +2148,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             iouReportID: iou.report.reportID,
             transactionID: transaction.transactionID,
             reportActionID: iou.action.reportActionID,
+            formatPhoneNumber,
         });
         iouAction = optimisticIOUReportAction;
         iouReport = {
@@ -2524,6 +2536,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             currentUserEmailParam,
             hasViolations,
             isASAPSubmitBetaEnabled,
+            formatPhoneNumber,
         });
         onyxData.optimisticData?.push(violationsOnyxData, {
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iou.report.reportID}`,
@@ -2539,6 +2552,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                 currentUserEmailParam,
                 hasViolations,
                 isASAPSubmitBetaEnabled,
+                formatPhoneNumber,
             }),
         });
         onyxData.optimisticData?.push({
@@ -3519,14 +3533,15 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             linkedTrackedExpenseReportAction,
             shouldGenerateTransactionThreadReport,
             reportActionID: currentReportActionID,
+            formatPhoneNumber,
         });
 
     let reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : getReportPreviewAction(chatReport.reportID, iouReport.reportID);
 
     if (reportPreviewAction) {
-        reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, false, comment, optimisticTransaction);
+        reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, formatPhoneNumber, false, comment, optimisticTransaction);
     } else {
-        reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, comment, optimisticTransaction, undefined, optimisticReportPreviewActionID);
+        reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, formatPhoneNumber, comment, optimisticTransaction, undefined, optimisticReportPreviewActionID);
         chatReport.lastVisibleActionCreated = reportPreviewAction.created;
 
         // Generated ReportPreview action is a parent report action of the iou report.
@@ -3562,6 +3577,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         currentUserEmailParam,
         hasViolations,
         isASAPSubmitBetaEnabled,
+        formatPhoneNumber,
     });
 
     const optimisticNextStep = buildOptimisticNextStep({
@@ -3572,6 +3588,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         currentUserEmailParam,
         hasViolations,
         isASAPSubmitBetaEnabled,
+        formatPhoneNumber,
     });
 
     // STEP 5: Build Onyx Data
@@ -3687,6 +3704,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         quickAction,
         betas,
         isSelfTourViewed,
+        formatPhoneNumber,
     } = params;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy} = policyParams;
@@ -3955,6 +3973,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         isPersonalTrackingExpense: !shouldUseMoneyReport,
         existingTransactionThreadReportID: linkedTrackedExpenseReportAction?.childReportID,
         linkedTrackedExpenseReportAction,
+        formatPhoneNumber,
     });
 
     let reportPreviewAction: OnyxInputValue<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>> = null;
@@ -3962,9 +3981,9 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : getReportPreviewAction(chatReport.reportID, iouReport.reportID);
 
         if (reportPreviewAction) {
-            reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, false, comment, optimisticTransaction);
+            reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, formatPhoneNumber, false, comment, optimisticTransaction);
         } else {
-            reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, comment, optimisticTransaction);
+            reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, formatPhoneNumber, comment, optimisticTransaction);
             // Generated ReportPreview action is a parent report action of the iou report.
             // We are setting the iou report's parentReportActionID to display subtitle correctly in IOU page when offline.
             iouReport.parentReportActionID = reportPreviewAction.reportActionID;
@@ -4045,6 +4064,7 @@ function calculateDiffAmount(
 }
 
 type GetUpdateMoneyRequestParamsType = {
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     transactionID: string | undefined;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     transactionChanges: TransactionChanges;
@@ -4082,6 +4102,7 @@ type UpdateMoneyRequestDataKeys =
 
 function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): UpdateMoneyRequestData<UpdateMoneyRequestDataKeys> {
     const {
+        formatPhoneNumber,
         transactionID,
         transactionThreadReport,
         transactionChanges,
@@ -4599,6 +4620,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
                 hasViolations,
                 isASAPSubmitBetaEnabled,
                 policy,
+                formatPhoneNumber,
             });
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -4614,6 +4636,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
                     hasViolations,
                     isASAPSubmitBetaEnabled,
                     policy,
+                    formatPhoneNumber,
                 }),
             });
             optimisticData.push({
@@ -4851,6 +4874,7 @@ function getUpdateTrackExpenseParams(
 }
 
 type UpdateMoneyRequestDateParams = {
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     transactionID: string;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
@@ -4868,6 +4892,7 @@ type UpdateMoneyRequestDateParams = {
 
 /** Updates the created date of an expense */
 function updateMoneyRequestDate({
+    formatPhoneNumber,
     transactionID,
     transactionThreadReport,
     parentReport,
@@ -4891,6 +4916,7 @@ function updateMoneyRequestDate({
         data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy);
     } else {
         data = getUpdateMoneyRequestParams({
+            formatPhoneNumber,
             transactionID,
             transactionThreadReport,
             iouReport: parentReport,
@@ -4911,6 +4937,7 @@ function updateMoneyRequestDate({
 
 /** Updates the billable field of an expense */
 function updateMoneyRequestBillable({
+    formatPhoneNumber,
     transactionID,
     transactionThreadReport,
     parentReport,
@@ -4923,6 +4950,7 @@ function updateMoneyRequestBillable({
     isASAPSubmitBetaEnabled,
     parentReportNextStep,
 }: {
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     transactionID: string | undefined;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
@@ -4942,6 +4970,7 @@ function updateMoneyRequestBillable({
         billable: value,
     };
     const {params, onyxData} = getUpdateMoneyRequestParams({
+        formatPhoneNumber,
         transactionID,
         transactionThreadReport,
         iouReport: parentReport,
@@ -4958,6 +4987,7 @@ function updateMoneyRequestBillable({
 }
 
 function updateMoneyRequestReimbursable({
+    formatPhoneNumber,
     transactionID,
     transactionThreadReport,
     parentReport,
@@ -4970,6 +5000,7 @@ function updateMoneyRequestReimbursable({
     isASAPSubmitBetaEnabled,
     parentReportNextStep,
 }: {
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     transactionID: string | undefined;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
@@ -4989,6 +5020,7 @@ function updateMoneyRequestReimbursable({
         reimbursable: value,
     };
     const {params, onyxData} = getUpdateMoneyRequestParams({
+        formatPhoneNumber,
         transactionID,
         transactionThreadReport,
         iouReport: parentReport,
@@ -5006,6 +5038,7 @@ function updateMoneyRequestReimbursable({
 
 /** Updates the merchant field of an expense */
 function updateMoneyRequestMerchant({
+    formatPhoneNumber,
     transactionID,
     transactionThreadReport,
     parentReport,
@@ -5018,6 +5051,7 @@ function updateMoneyRequestMerchant({
     isASAPSubmitBetaEnabled,
     parentReportNextStep,
 }: {
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     transactionID: string;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
@@ -5039,6 +5073,7 @@ function updateMoneyRequestMerchant({
         data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy);
     } else {
         data = getUpdateMoneyRequestParams({
+            formatPhoneNumber,
             transactionID,
             transactionThreadReport,
             iouReport: parentReport,
@@ -5058,6 +5093,7 @@ function updateMoneyRequestMerchant({
 
 /** Updates the attendees list of an expense */
 function updateMoneyRequestAttendees({
+    formatPhoneNumber,
     transactionID,
     transactionThreadReport,
     parentReport,
@@ -5071,6 +5107,7 @@ function updateMoneyRequestAttendees({
     isASAPSubmitBetaEnabled,
     parentReportNextStep,
 }: {
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     transactionID: string;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
@@ -5088,6 +5125,7 @@ function updateMoneyRequestAttendees({
         attendees,
     };
     const data = getUpdateMoneyRequestParams({
+        formatPhoneNumber,
         transactionID,
         transactionThreadReport,
         iouReport: parentReport,
@@ -5106,6 +5144,7 @@ function updateMoneyRequestAttendees({
 }
 
 type UpdateMoneyRequestTagParams = {
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     transactionID: string;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
@@ -5123,6 +5162,7 @@ type UpdateMoneyRequestTagParams = {
 
 /** Updates the tag of an expense */
 function updateMoneyRequestTag({
+    formatPhoneNumber,
     transactionID,
     transactionThreadReport,
     parentReport,
@@ -5141,6 +5181,7 @@ function updateMoneyRequestTag({
         tag,
     };
     const {params, onyxData} = getUpdateMoneyRequestParams({
+        formatPhoneNumber,
         transactionID,
         transactionThreadReport,
         iouReport: parentReport,
@@ -5160,6 +5201,7 @@ function updateMoneyRequestTag({
 
 /** Updates the created tax amount of an expense */
 function updateMoneyRequestTaxAmount({
+    formatPhoneNumber,
     transactionID,
     transactionThreadReport,
     parentReport,
@@ -5172,6 +5214,7 @@ function updateMoneyRequestTaxAmount({
     isASAPSubmitBetaEnabled,
     parentReportNextStep,
 }: {
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     transactionID: string;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
@@ -5188,6 +5231,7 @@ function updateMoneyRequestTaxAmount({
         taxAmount,
     };
     const {params, onyxData} = getUpdateMoneyRequestParams({
+        formatPhoneNumber,
         transactionID,
         transactionThreadReport,
         iouReport: parentReport,
@@ -5204,6 +5248,7 @@ function updateMoneyRequestTaxAmount({
 }
 
 type UpdateMoneyRequestTaxRateParams = {
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     transactionID: string | undefined;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
@@ -5221,6 +5266,7 @@ type UpdateMoneyRequestTaxRateParams = {
 
 /** Updates the created tax rate of an expense */
 function updateMoneyRequestTaxRate({
+    formatPhoneNumber,
     transactionID,
     transactionThreadReport,
     parentReport,
@@ -5241,6 +5287,7 @@ function updateMoneyRequestTaxRate({
         taxValue,
     };
     const {params, onyxData} = getUpdateMoneyRequestParams({
+        formatPhoneNumber,
         transactionID,
         transactionThreadReport,
         iouReport: parentReport,
@@ -5258,6 +5305,7 @@ function updateMoneyRequestTaxRate({
 }
 
 type UpdateMoneyRequestDistanceParams = {
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     transactionID: string | undefined;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
@@ -5279,6 +5327,7 @@ type UpdateMoneyRequestDistanceParams = {
 
 /** Updates the waypoints of a distance expense */
 function updateMoneyRequestDistance({
+    formatPhoneNumber,
     transactionID,
     transactionThreadReport,
     parentReport,
@@ -5312,6 +5361,7 @@ function updateMoneyRequestDistance({
         data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy);
     } else {
         data = getUpdateMoneyRequestParams({
+            formatPhoneNumber,
             transactionID,
             transactionThreadReport,
             iouReport: parentReport,
@@ -5381,6 +5431,7 @@ function updateMoneyRequestDistance({
 
 /** Updates the category of an expense */
 function updateMoneyRequestCategory({
+    formatPhoneNumber,
     transactionID,
     transactionThreadReport,
     parentReport,
@@ -5395,6 +5446,7 @@ function updateMoneyRequestCategory({
     hash,
     parentReportNextStep,
 }: {
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     transactionID: string;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
@@ -5414,6 +5466,7 @@ function updateMoneyRequestCategory({
     };
 
     const {params, onyxData} = getUpdateMoneyRequestParams({
+        formatPhoneNumber,
         transactionID,
         transactionThreadReport,
         iouReport: parentReport,
@@ -5433,6 +5486,7 @@ function updateMoneyRequestCategory({
 
 /** Updates the description of an expense */
 function updateMoneyRequestDescription({
+    formatPhoneNumber,
     transactionID,
     transactionThreadReport,
     parentReport,
@@ -5445,6 +5499,7 @@ function updateMoneyRequestDescription({
     isASAPSubmitBetaEnabled,
     parentReportNextStep,
 }: {
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     transactionID: string;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
@@ -5467,6 +5522,7 @@ function updateMoneyRequestDescription({
         data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy);
     } else {
         data = getUpdateMoneyRequestParams({
+            formatPhoneNumber,
             transactionID,
             transactionThreadReport,
             iouReport: parentReport,
@@ -5487,6 +5543,7 @@ function updateMoneyRequestDescription({
 
 /** Updates the distance rate of an expense */
 function updateMoneyRequestDistanceRate({
+    formatPhoneNumber,
     transactionID,
     transactionThreadReport,
     parentReport,
@@ -5501,6 +5558,7 @@ function updateMoneyRequestDistanceRate({
     updatedTaxCode,
     parentReportNextStep,
 }: {
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     transactionID: string;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
@@ -5538,6 +5596,7 @@ function updateMoneyRequestDistanceRate({
         data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy);
     } else {
         data = getUpdateMoneyRequestParams({
+            formatPhoneNumber,
             transactionID,
             transactionThreadReport,
             iouReport: parentReport,
@@ -5956,6 +6015,7 @@ function convertBulkTrackedExpensesToIOU({
     quickAction,
     personalDetails,
     betas,
+    formatPhoneNumber,
 }: {
     transactions: OnyxTypes.Transaction[];
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -5968,6 +6028,7 @@ function convertBulkTrackedExpensesToIOU({
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 }) {
     const iouReportID = iouReport?.reportID;
 
@@ -6085,6 +6146,7 @@ function convertBulkTrackedExpensesToIOU({
             policyRecentlyUsedCurrencies,
             personalDetails,
             betas,
+            formatPhoneNumber,
         });
 
         const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
@@ -6339,6 +6401,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         betas,
         personalDetails,
         shouldDeferAutoSubmit,
+        formatPhoneNumber,
     } = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
     const parsedComment = getParsedComment(transactionParams.comment ?? '');
@@ -6434,6 +6497,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         policyRecentlyUsedCurrencies,
         betas,
         personalDetails,
+        formatPhoneNumber,
     });
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
 
@@ -6648,6 +6712,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         betas,
         draftTransactionIDs = [],
         isSelfTourViewed,
+        formatPhoneNumber,
     } = params;
     const {participant, payeeAccountID, payeeEmail} = participantParams;
     const {policy, policyCategories, policyTagList} = policyData;
@@ -6788,6 +6853,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         quickAction,
         betas,
         isSelfTourViewed,
+        formatPhoneNumber,
     }) ?? {};
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport?.reportID;
     const onyxData: TrackedExpenseParams['onyxData'] = trackExpenseInformationOnyxData;
@@ -6865,6 +6931,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 transactionParams,
                 policyParams,
                 createdWorkspaceParams,
+                formatPhoneNumber,
             };
 
             categorizeTrackedExpense(trackedExpenseParams);
@@ -6916,6 +6983,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 policyParams,
                 createdWorkspaceParams,
                 accountantParams,
+                formatPhoneNumber,
             };
             shareTrackedExpense(trackedExpenseParams);
             break;
@@ -7145,6 +7213,7 @@ function createSplitsAndOnyxData({
         participants,
         transactionID: splitTransaction.transactionID,
         isOwnPolicyExpenseChat,
+        formatPhoneNumber,
     });
 
     splitChatReport.lastReadTime = DateUtils.getDBTime();
@@ -7454,6 +7523,7 @@ function createSplitsAndOnyxData({
                 payeeEmail: currentUserEmailForIOUSplit,
                 participants: [participant],
                 transactionID: oneOnOneTransaction.transactionID,
+                formatPhoneNumber,
             });
 
         // Add optimistic personal details for new participants
@@ -7477,9 +7547,9 @@ function createSplitsAndOnyxData({
 
         let oneOnOneReportPreviewAction = getReportPreviewAction(oneOnOneChatReport.reportID, oneOnOneIOUReport.reportID);
         if (oneOnOneReportPreviewAction) {
-            oneOnOneReportPreviewAction = updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction);
+            oneOnOneReportPreviewAction = updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction, formatPhoneNumber);
         } else {
-            oneOnOneReportPreviewAction = buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport);
+            oneOnOneReportPreviewAction = buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport, formatPhoneNumber);
         }
 
         const optimisticPolicyRecentlyUsedCategories = isPolicyExpenseChat ? mergePolicyRecentlyUsedCategories(category, policyRecentlyUsedCategories) : [];
@@ -7503,6 +7573,7 @@ function createSplitsAndOnyxData({
             successData: oneOnOneSuccessData,
             failureData: oneOnOneFailureData,
         } = buildOnyxDataForMoneyRequest({
+            formatPhoneNumber,
             isNewChatReport: isNewOneOnOneChatReport,
             shouldCreateNewMoneyRequestReport: shouldCreateNewOneOnOneIOUReport,
             isOneOnOneSplit: true,
@@ -7614,6 +7685,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         betas,
         optimisticReportPreviewActionID,
         shouldDeferAutoSubmit,
+        formatPhoneNumber,
     } = distanceRequestInformation;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
     const parsedComment = getParsedComment(transactionParams.comment);
@@ -7695,6 +7767,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             policyRecentlyUsedCurrencies,
             betas,
             personalDetails,
+            formatPhoneNumber,
         });
         onyxData = splitOnyxData;
 
@@ -7784,6 +7857,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             personalDetails,
             betas,
             optimisticReportPreviewActionID,
+            formatPhoneNumber,
         });
 
         onyxData = moneyRequestOnyxData;
@@ -7888,6 +7962,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
 }
 
 type UpdateMoneyRequestAmountAndCurrencyParams = {
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     transactionID: string;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
@@ -7911,6 +7986,7 @@ type UpdateMoneyRequestAmountAndCurrencyParams = {
 
 /** Updates the amount and currency fields of an expense */
 function updateMoneyRequestAmountAndCurrency({
+    formatPhoneNumber,
     transactionID,
     transactionThreadReport,
     parentReport,
@@ -7945,6 +8021,7 @@ function updateMoneyRequestAmountAndCurrency({
         data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy);
     } else {
         data = getUpdateMoneyRequestParams({
+            formatPhoneNumber,
             transactionID,
             transactionThreadReport,
             iouReport: parentReport,
@@ -9030,6 +9107,7 @@ function getReportFromHoldRequestsOnyxData({
     createdTimestamp,
     betas,
     isApprovalFlow = false,
+    formatPhoneNumber,
 }: {
     chatReport: OnyxTypes.Report;
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -9038,6 +9116,7 @@ function getReportFromHoldRequestsOnyxData({
     createdTimestamp?: string;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isApprovalFlow?: boolean;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 }): {
     optimisticHoldReportID: string;
     optimisticHoldActionID: string;
@@ -9093,6 +9172,7 @@ function getReportFromHoldRequestsOnyxData({
     const optimisticExpenseReportPreview = buildOptimisticReportPreview(
         chatReport,
         optimisticExpenseReport,
+        formatPhoneNumber,
         '',
         firstHoldTransaction,
         optimisticExpenseReport.reportID,
@@ -9360,6 +9440,7 @@ function getPayMoneyRequestParams({
     iouReportCurrentNextStepDeprecated,
     betas,
     isSelfTourViewed,
+    formatPhoneNumber,
 }: {
     initialChatReport: OnyxTypes.Report;
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -9379,6 +9460,7 @@ function getPayMoneyRequestParams({
     iouReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     isSelfTourViewed: boolean | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 }): PayMoneyRequestData {
     const isInvoiceReport = isInvoiceReportReportUtils(iouReport);
     let payerPolicyID = activePolicy?.id;
@@ -9459,6 +9541,7 @@ function getPayMoneyRequestParams({
         isSettlingUp: true,
         payAsBusiness,
         bankAccountID,
+        formatPhoneNumber,
     });
 
     // In some instances, the report preview action might not be available to the payer (only whispered to the requestor)
@@ -9466,7 +9549,7 @@ function getPayMoneyRequestParams({
     let optimisticReportPreviewAction = null;
     const reportPreviewAction = getReportPreviewAction(chatReport.reportID, iouReport?.reportID);
     if (reportPreviewAction) {
-        optimisticReportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, true);
+        optimisticReportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, formatPhoneNumber, true);
     }
     let currentNextStepDeprecated = null;
     let optimisticNextStepDeprecated = null;
@@ -9475,8 +9558,8 @@ function getPayMoneyRequestParams({
         currentNextStepDeprecated = iouReportCurrentNextStepDeprecated ?? null;
         // buildOptimisticNextStep is used in parallel
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        optimisticNextStepDeprecated = buildNextStepNew({report: iouReport, predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED});
-        optimisticNextStep = buildOptimisticNextStep({report: iouReport, predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED});
+        optimisticNextStepDeprecated = buildNextStepNew({report: iouReport, predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED, formatPhoneNumber});
+        optimisticNextStep = buildOptimisticNextStep({report: iouReport, predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED, formatPhoneNumber});
     }
 
     const optimisticChatReport = {
@@ -9680,7 +9763,7 @@ function getPayMoneyRequestParams({
     let optimisticHoldActionID;
     let optimisticHoldReportExpenseActionIDs;
     if (!full) {
-        const holdReportOnyxData = getReportFromHoldRequestsOnyxData({chatReport, iouReport, recipient, policy: reportPolicy, betas});
+        const holdReportOnyxData = getReportFromHoldRequestsOnyxData({chatReport, iouReport, recipient, policy: reportPolicy, betas, formatPhoneNumber});
 
         onyxData.optimisticData?.push(...holdReportOnyxData.optimisticData);
         onyxData.successData?.push(...holdReportOnyxData.successData);
@@ -9932,6 +10015,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         full,
         onApproved,
         ownerBillingGraceEndPeriod,
+        formatPhoneNumber,
     } = params;
     if (!expenseReport) {
         return;
@@ -9970,6 +10054,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
               hasViolations,
               isASAPSubmitBetaEnabled,
               predictedNextStatus,
+              formatPhoneNumber,
           });
     const optimisticNextStep = isDEWPolicy
         ? null
@@ -9981,6 +10066,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
               hasViolations,
               isASAPSubmitBetaEnabled,
               predictedNextStatus,
+              formatPhoneNumber,
           });
     const chatReport = getReportOrDraftReport(expenseReport.chatReportID);
 
@@ -10221,6 +10307,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
             createdTimestamp: originalCreated,
             isApprovalFlow: true,
             betas,
+            formatPhoneNumber,
         });
 
         optimisticData.push(...holdReportOnyxData.optimisticData);
@@ -10302,6 +10389,7 @@ function reopenReport(
     isASAPSubmitBetaEnabled: boolean,
     expenseReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
     chatReport: OnyxEntry<OnyxTypes.Report>,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ) {
     if (!expenseReport) {
         return;
@@ -10322,6 +10410,7 @@ function reopenReport(
         hasViolations,
         isASAPSubmitBetaEnabled,
         isReopen: true,
+        formatPhoneNumber,
     });
     const optimisticNextStep = buildOptimisticNextStep({
         report: expenseReport,
@@ -10332,6 +10421,7 @@ function reopenReport(
         hasViolations,
         isASAPSubmitBetaEnabled,
         isReopen: true,
+        formatPhoneNumber,
     });
     const optimisticReportActionsData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
         onyxMethod: Onyx.METHOD.MERGE,
@@ -10485,6 +10575,7 @@ function retractReport(
     hasViolations: boolean,
     isASAPSubmitBetaEnabled: boolean,
     expenseReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ) {
     if (!expenseReport) {
         return;
@@ -10504,6 +10595,7 @@ function retractReport(
         currentUserEmailParam,
         hasViolations,
         isASAPSubmitBetaEnabled,
+        formatPhoneNumber,
     });
     const optimisticNextStep = buildOptimisticNextStep({
         report: expenseReport,
@@ -10513,6 +10605,7 @@ function retractReport(
         currentUserEmailParam,
         hasViolations,
         isASAPSubmitBetaEnabled,
+        formatPhoneNumber,
     });
     const optimisticReportActionsData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
         onyxMethod: Onyx.METHOD.MERGE,
@@ -10658,6 +10751,7 @@ function unapproveExpenseReport(
     hasViolations: boolean,
     isASAPSubmitBetaEnabled: boolean,
     expenseReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ) {
     if (isEmptyObject(expenseReport)) {
         return;
@@ -10677,6 +10771,7 @@ function unapproveExpenseReport(
         isASAPSubmitBetaEnabled,
         shouldFixViolations: false,
         isUnapprove: true,
+        formatPhoneNumber,
     });
     const optimisticNextStep = buildOptimisticNextStep({
         report: expenseReport,
@@ -10688,6 +10783,7 @@ function unapproveExpenseReport(
         isASAPSubmitBetaEnabled,
         shouldFixViolations: false,
         isUnapprove: true,
+        formatPhoneNumber,
     });
 
     const optimisticReportActionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
@@ -10825,6 +10921,7 @@ function submitReport({
     amountOwed,
     onSubmitted,
     ownerBillingGraceEndPeriod,
+    formatPhoneNumber,
 }: SubmitReportFunctionParams) {
     if (!expenseReport) {
         return;
@@ -10862,6 +10959,7 @@ function submitReport({
               hasViolations,
               isASAPSubmitBetaEnabled,
               isUnapprove: true,
+              formatPhoneNumber,
           });
     const optimisticNextStep = isDEWPolicy
         ? null
@@ -10874,6 +10972,7 @@ function submitReport({
               hasViolations,
               isASAPSubmitBetaEnabled,
               isUnapprove: true,
+              formatPhoneNumber,
           });
     const approvalChain = getApprovalChain(policy, expenseReport);
     const managerID = getAccountIDsByLogins(approvalChain).at(0);
@@ -11098,6 +11197,7 @@ function cancelPayment(
     currentUserAccountIDParam: number,
     currentUserEmailParam: string,
     hasViolations: boolean,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ) {
     if (isEmptyObject(expenseReport)) {
         return;
@@ -11124,6 +11224,7 @@ function cancelPayment(
         currentUserEmailParam,
         hasViolations,
         isASAPSubmitBetaEnabled,
+        formatPhoneNumber,
     });
     const optimisticNextStep = buildOptimisticNextStep({
         report: expenseReport,
@@ -11133,6 +11234,7 @@ function cancelPayment(
         currentUserEmailParam,
         hasViolations,
         isASAPSubmitBetaEnabled,
+        formatPhoneNumber,
     });
     const iouReportActions = getAllReportActions(chatReport.iouReportID);
     const expenseReportActions = getAllReportActions(expenseReport.reportID);
@@ -11225,6 +11327,7 @@ function cancelPayment(
                     buildOptimisticNextStep({
                         report: expenseReport,
                         predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                        formatPhoneNumber,
                     }) ?? null,
                 pendingFields: {
                     nextStep: null,
@@ -11282,6 +11385,7 @@ function cancelPayment(
         value: buildNextStepNew({
             report: expenseReport,
             predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            formatPhoneNumber,
         }),
     });
 
@@ -11366,6 +11470,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         ownerBillingGraceEndPeriod,
         methodID,
         onPaid,
+        formatPhoneNumber,
     } = params;
     if (chatReport.policyID && shouldRestrictUserBillableActions(chatReport.policyID, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods, amountOwed)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(chatReport.policyID));
@@ -11390,6 +11495,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         betas,
         isSelfTourViewed,
         bankAccountID: paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
+        formatPhoneNumber,
     });
 
     // For now, we need to call the PayMoneyRequestWithWallet API since PayMoneyRequest was not updated to work with
@@ -11418,6 +11524,7 @@ function payInvoice({
     invoiceReportCurrentNextStepDeprecated,
     betas,
     isSelfTourViewed,
+    formatPhoneNumber,
 }: PayInvoiceArgs) {
     const recipient = {accountID: invoiceReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
     const {
@@ -11450,6 +11557,7 @@ function payInvoice({
         introSelected,
         betas,
         isSelfTourViewed,
+        formatPhoneNumber,
     });
 
     const paymentSelected = paymentMethodType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
@@ -12123,6 +12231,7 @@ function prepareRejectMoneyRequestData(
     policy: OnyxEntry<OnyxTypes.Policy>,
     currentUserAccountIDParam: number,
     betas: OnyxEntry<OnyxTypes.Beta[]>,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     options?: {sharedRejectedToReportID?: string},
     shouldUseBulkAction?: boolean,
 ): RejectMoneyRequestData | undefined {
@@ -12381,6 +12490,7 @@ function prepareRejectMoneyRequestData(
                 transactionID: transaction.transactionID,
                 existingTransactionThreadReportID: childReportID,
                 shouldGenerateTransactionThreadReport: false,
+                formatPhoneNumber,
             });
             createdIOUReportActionID = iouAction.reportActionID;
 
@@ -12472,9 +12582,10 @@ function prepareRejectMoneyRequestData(
                 transactionID: transaction.transactionID,
                 existingTransactionThreadReportID: childReportID,
                 shouldGenerateTransactionThreadReport: false,
+                formatPhoneNumber,
             });
 
-            reportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, newExpenseReport, undefined, transaction, undefined);
+            reportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, newExpenseReport, formatPhoneNumber, undefined, transaction, undefined);
             movedTransactionAction = buildOptimisticMovedTransactionAction(childReportID, newExpenseReport.reportID);
             createdIOUReportActionID = iouAction.reportActionID;
             expenseMovedReportActionID = movedTransactionAction.reportActionID;
@@ -12887,9 +12998,10 @@ function rejectMoneyRequest(
     policy: OnyxEntry<OnyxTypes.Policy>,
     currentUserAccountIDParam: number,
     betas: OnyxEntry<OnyxTypes.Beta[]>,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     options?: {sharedRejectedToReportID?: string},
 ): Route | undefined {
-    const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, policy, currentUserAccountIDParam, betas, options);
+    const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, policy, currentUserAccountIDParam, betas, formatPhoneNumber, options);
     if (!data) {
         return;
     }
@@ -12978,8 +13090,9 @@ function assignReportToMe(
     hasViolations: boolean,
     isASAPSubmitBetaEnabled: boolean,
     reportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ) {
-    const takeControlReportAction = buildOptimisticChangeApproverReportAction(accountID, accountID);
+    const takeControlReportAction = buildOptimisticChangeApproverReportAction(accountID, accountID, formatPhoneNumber);
 
     // buildOptimisticNextStep is used in parallel
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -12994,6 +13107,7 @@ function assignReportToMe(
         hasViolations,
         isASAPSubmitBetaEnabled,
         bypassNextApproverID: accountID,
+        formatPhoneNumber,
     });
     const optimisticNextStep = buildOptimisticNextStep({
         report: {...report, managerID: accountID},
@@ -13006,6 +13120,7 @@ function assignReportToMe(
         hasViolations,
         isASAPSubmitBetaEnabled,
         bypassNextApproverID: accountID,
+        formatPhoneNumber,
     });
 
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.NEXT_STEP> = {
@@ -13094,8 +13209,9 @@ function addReportApprover(
     hasViolations: boolean,
     isASAPSubmitBetaEnabled: boolean,
     reportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ) {
-    const takeControlReportAction = buildOptimisticChangeApproverReportAction(newApproverAccountID, accountID);
+    const takeControlReportAction = buildOptimisticChangeApproverReportAction(newApproverAccountID, accountID, formatPhoneNumber);
 
     // buildOptimisticNextStep is used in parallel
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -13110,6 +13226,7 @@ function addReportApprover(
         hasViolations,
         isASAPSubmitBetaEnabled,
         bypassNextApproverID: newApproverAccountID,
+        formatPhoneNumber,
     });
     const optimisticNextStep = buildOptimisticNextStep({
         report: {...report, managerID: newApproverAccountID},
@@ -13122,6 +13239,7 @@ function addReportApprover(
         hasViolations,
         isASAPSubmitBetaEnabled,
         bypassNextApproverID: newApproverAccountID,
+        formatPhoneNumber,
     });
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.NEXT_STEP> = {
         optimisticData: [

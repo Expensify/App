@@ -5,6 +5,7 @@ import type {OptionList} from '@libs/OptionsListUtils/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Beta from '@src/types/onyx/Beta';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import usePrivateIsArchivedMap from './usePrivateIsArchivedMap';
 import useReportAttributes from './useReportAttributes';
@@ -78,6 +79,7 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
 
     const privateIsArchivedMap = usePrivateIsArchivedMap();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {formatPhoneNumber} = useLocalize();
 
     const totalReports = allReports ? Object.keys(allReports).length : 0;
 
@@ -85,12 +87,21 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
     const options: OptionList | null = useMemo(
         () =>
             enabled && allReports && allPersonalDetails
-                ? createFilteredOptionList(allPersonalDetails, allReports, currentUserPersonalDetails.accountID, reportAttributesDerived, privateIsArchivedMap, allPolicies, {
-                      maxRecentReports: reportsLimit,
-                      includeP2P,
-                      searchTerm,
-                      betas,
-                  })
+                ? createFilteredOptionList(
+                      allPersonalDetails,
+                      allReports,
+                      currentUserPersonalDetails.accountID,
+                      reportAttributesDerived,
+                      privateIsArchivedMap,
+                      allPolicies,
+                      formatPhoneNumber,
+                      {
+                          maxRecentReports: reportsLimit,
+                          includeP2P,
+                          searchTerm,
+                          betas,
+                      },
+                  )
                 : null,
         [
             enabled,
@@ -100,6 +111,7 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
             reportAttributesDerived,
             privateIsArchivedMap,
             allPolicies,
+            formatPhoneNumber,
             reportsLimit,
             includeP2P,
             searchTerm,

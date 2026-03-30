@@ -68,7 +68,7 @@ function IOURequestStepTag({
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['EmptyStateExpenses']);
     const {currentSearchHash} = useSearchStateContext();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     useRestartOnReceiptFailure(transaction, reportIDFromRoute, iouType, action);
 
     const tagListIndex = Number(rawTagIndex);
@@ -141,6 +141,7 @@ function IOURequestStepTag({
 
         if (isEditing) {
             updateMoneyRequestTag({
+                formatPhoneNumber,
                 transactionID,
                 transactionThreadReport: report,
                 parentReport,

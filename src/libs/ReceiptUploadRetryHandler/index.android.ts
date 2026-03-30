@@ -1,8 +1,14 @@
 import RNFS from 'react-native-fs';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 import handleFileRetry from './handleFileRetry';
 
-export default function handleRetryPress(message: ReceiptError, dismissError: () => void, setShouldShowErrorModal: (value: boolean) => void) {
+export default function handleRetryPress(
+    message: ReceiptError,
+    dismissError: () => void,
+    setShouldShowErrorModal: (value: boolean) => void,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+) {
     if (!message.source) {
         return;
     }
@@ -13,7 +19,7 @@ export default function handleRetryPress(message: ReceiptError, dismissError: ()
             const file = new File([fileContent], message.filename, {type: 'image/jpeg'});
             file.uri = message.source;
             file.source = message.source;
-            handleFileRetry(message, file, dismissError, setShouldShowErrorModal);
+            handleFileRetry(message, file, dismissError, setShouldShowErrorModal, formatPhoneNumber);
         })
         .catch(() => {
             setShouldShowErrorModal(true);

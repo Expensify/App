@@ -19,11 +19,11 @@ function UnreportedTransactionAction({action}: UnreportedTransactionActionProps)
     const unreportedTransactionOriginalMessage = getOriginalMessage(action);
     const fromReportID = unreportedTransactionOriginalMessage?.fromReportID;
 
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const [fromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`);
 
     const isPendingDelete = fromReport?.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    const unreportedTransactionMessage = getUnreportedTransactionMessage(translate, action);
+    const unreportedTransactionMessage = getUnreportedTransactionMessage(translate, action, formatPhoneNumber);
     const htmlContent = isPendingDelete
         ? `<del><comment><muted-text>${Parser.htmlToText(unreportedTransactionMessage)}</muted-text></comment></del>`
         : `<comment><muted-text>${unreportedTransactionMessage}</muted-text></comment>`;

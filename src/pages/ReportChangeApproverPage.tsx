@@ -40,7 +40,7 @@ type ReportChangeApproverPageProps = WithReportOrNotFoundProps & PlatformStackSc
 
 function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportChangeApproverPageProps) {
     const reportID = report?.reportID;
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
     const currentUserDetails = useCurrentUserPersonalDetails();
@@ -74,9 +74,9 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
             Navigation.navigate(ROUTES.REPORT_CHANGE_APPROVER_ADD_APPROVER.getRoute(report.reportID));
             return;
         }
-        assignReportToMe(report, currentUserDetails.accountID, currentUserDetails.email ?? '', policy, hasViolations, isASAPSubmitBetaEnabled, reportNextStep);
+        assignReportToMe(report, currentUserDetails.accountID, currentUserDetails.email ?? '', policy, hasViolations, isASAPSubmitBetaEnabled, reportNextStep, formatPhoneNumber);
         Navigation.dismissToPreviousRHP();
-    }, [selectedApproverType, report, currentUserDetails.accountID, currentUserDetails.email, policy, hasViolations, isASAPSubmitBetaEnabled, reportNextStep]);
+    }, [selectedApproverType, report, currentUserDetails.accountID, currentUserDetails.email, policy, hasViolations, isASAPSubmitBetaEnabled, reportNextStep, formatPhoneNumber]);
 
     const approverTypes = useMemo(() => {
         const data: Array<ListItem<ApproverType>> = [

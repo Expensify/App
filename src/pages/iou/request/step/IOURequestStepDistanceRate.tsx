@@ -67,7 +67,7 @@ function IOURequestStepDistanceRate({
     const policy: OnyxEntry<OnyxTypes.Policy> = policyReal ?? policyDraft;
 
     const styles = useThemeStyles();
-    const {translate, toLocaleDigit, localeCompare} = useLocalize();
+    const {translate, toLocaleDigit, localeCompare, formatPhoneNumber} = useLocalize();
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && isEditing;
     const currentTransaction = isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction;
@@ -164,6 +164,7 @@ function IOURequestStepDistanceRate({
 
             if (isEditing && transaction?.transactionID) {
                 updateMoneyRequestDistanceRate({
+                    formatPhoneNumber,
                     transactionID: transaction.transactionID,
                     transactionThreadReport: report,
                     parentReport,

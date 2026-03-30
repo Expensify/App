@@ -2093,7 +2093,7 @@ function getTaskSections(
                 const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${parentReport.policyID}`];
                 const isParentReportArchived = archivedReportsIDList?.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${parentReport?.reportID}`);
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
-                const parentReportName = getReportName({report: parentReport, policy, isReportArchived: isParentReportArchived, conciergeReportID});
+                const parentReportName = getReportName({report: parentReport, policy, isReportArchived: isParentReportArchived, conciergeReportID, formatPhoneNumber});
                 const icons = getIcons(parentReport, formatPhoneNumber, personalDetails, null, '', -1, policy, undefined, isParentReportArchived);
                 const parentReportIcon = icons?.at(0);
 
@@ -2117,6 +2117,7 @@ function createAndOpenSearchTransactionThread(
     backTo: string,
     currentUserLogin: string,
     currentUserAccountID: number,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     IOUTransactionID?: string,
     transactionPreviewData?: TransactionPreviewData,
     shouldNavigate = true,
@@ -2128,7 +2129,7 @@ function createAndOpenSearchTransactionThread(
     const previewData = transactionPreviewData
         ? {...transactionPreviewData, hasTransactionThreadReport: true}
         : {hasTransaction: false, hasParentReport: false, hasParentReportAction: false, hasTransactionThreadReport: true};
-    setOptimisticDataForTransactionThreadPreview(item, previewData, IOUTransactionID);
+    setOptimisticDataForTransactionThreadPreview(item, previewData, formatPhoneNumber, IOUTransactionID);
 
     const hasActualTransactionThread = iouReportAction?.childReportID && iouReportAction?.childReportID !== CONST.FAKE_REPORT_ID;
     let transactionThreadReport;
@@ -2180,7 +2181,11 @@ function createAndOpenSearchTransactionThread(
  *
  * Do not use directly, use only via `getSections()` facade.
  */
-function getReportActionsSections(data: OnyxTypes.SearchResults['data'], visibleReportActionsData?: OnyxTypes.VisibleReportActionsDerivedValue): [ReportActionListItemType[], number] {
+function getReportActionsSections(
+    data: OnyxTypes.SearchResults['data'],
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    visibleReportActionsData?: OnyxTypes.VisibleReportActionsDerivedValue,
+): [ReportActionListItemType[], number] {
     const reportActionItems: ReportActionListItemType[] = [];
 
     const transactions = Object.keys(data)
@@ -2232,7 +2237,16 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data'], visible
                     reportID,
                     from,
                     // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    reportName: getSearchReportName({report, policy, personalDetails: data.personalDetailsList, transactions, invoiceReceiverPolicy, reports, isReportArchived}),
+                    reportName: getSearchReportName({
+                        report,
+                        policy,
+                        personalDetails: data.personalDetailsList,
+                        transactions,
+                        invoiceReceiverPolicy,
+                        reports,
+                        isReportArchived,
+                        formatPhoneNumber,
+                    }),
                     formattedFrom: from?.displayName ?? from?.login ?? '',
                     date: reportAction.created,
                     keyForList: reportAction.reportActionID,
@@ -2962,7 +2976,7 @@ function getSections({
     onyxPersonalDetailsList,
 }: GetSectionsParams) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
-        return getReportActionsSections(data, visibleReportActionsData);
+        return getReportActionsSections(data, formatPhoneNumber, visibleReportActionsData);
     }
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
         return getTaskSections(data, formatPhoneNumber, conciergeReportID, archivedReportsIDList);
