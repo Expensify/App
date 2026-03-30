@@ -7464,8 +7464,10 @@ function buildOptimisticTransactionAction(
     transactionThreadReportID: string | undefined,
     originalReportID: string,
 ): ReportAction {
-    const isFromPersonalSpace = originalReportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-    const reportName = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`]?.reportName ?? '';
+    const selfDMReportID = findSelfDMReportID();
+    const isFromPersonalSpace = originalReportID === CONST.REPORT.UNREPORTED_REPORT_ID || originalReportID === selfDMReportID;
+    const fromReportID = isFromPersonalSpace ? CONST.REPORT.UNREPORTED_REPORT_ID : originalReportID;
+    const reportName = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${isFromPersonalSpace ? selfDMReportID : originalReportID}`]?.reportName ?? '';
     const url = isFromPersonalSpace ? getReportURLForCurrentContext(findSelfDMReportID()) : getReportURLForCurrentContext(originalReportID);
     const [actionText, messageHtml] = [`moved this expense from ${reportName}`, `moved this expense from <a href='${url}' target='_blank' rel='noreferrer noopener'>${reportName}</a>`];
 
@@ -7475,7 +7477,7 @@ function buildOptimisticTransactionAction(
         actorAccountID: deprecatedCurrentUserAccountID,
         avatar: getCurrentUserAvatar(),
         created: DateUtils.getDBTime(),
-        originalMessage: {fromReportID: originalReportID},
+        originalMessage: {fromReportID},
         message: [
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
