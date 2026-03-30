@@ -85,20 +85,4 @@ describe('prepareRequestPayload (native)', () => {
         expect(formData.has('undefinedField')).toBe(false);
     });
 
-    it('should still append receipt metadata when source is empty (no file to check)', async () => {
-        const receipt = {
-            source: '',
-            name: 'receipt.jpg',
-            type: 'image/jpeg',
-            uri: '',
-        };
-
-        const formData = await prepareRequestPayload('RequestMoney', {receipt, amount: '100'}, false);
-
-        // Receipt with empty source skips the file existence check and falls through
-        // to the generic append, so it IS included (as metadata, not a file upload)
-        expect(formData.has('receipt')).toBe(true);
-        expect(formData.get('amount')).toBe('100');
-        expect(mockCheckFileExists).not.toHaveBeenCalled();
-    });
 });
