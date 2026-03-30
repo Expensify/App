@@ -6275,13 +6275,13 @@ describe('actions/Report', () => {
         });
 
         it('should return undefined when no valid report is provided', () => {
-            const result = Report.createTransactionThreadReport(TEST_INTRO_SELECTED, TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID, undefined, undefined);
+            const result = Report.createTransactionThreadReport(TEST_INTRO_SELECTED, TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID, undefined, undefined, undefined);
             expect(result).toBeUndefined();
         });
 
         it('should return undefined when report has no reportID', () => {
             const reportWithoutID = {} as OnyxTypes.Report;
-            const result = Report.createTransactionThreadReport(TEST_INTRO_SELECTED, TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID, reportWithoutID, undefined);
+            const result = Report.createTransactionThreadReport(TEST_INTRO_SELECTED, TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID, undefined, reportWithoutID, undefined);
             expect(result).toBeUndefined();
         });
 
@@ -6301,7 +6301,7 @@ describe('actions/Report', () => {
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
             };
 
-            const result = Report.createTransactionThreadReport(TEST_INTRO_SELECTED, TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID, parentReport, reportAction);
+            const result = Report.createTransactionThreadReport(TEST_INTRO_SELECTED, TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID, undefined, parentReport, reportAction);
 
             expect(result).toBeDefined();
             expect(result?.reportID).toBeDefined();
@@ -6330,7 +6330,7 @@ describe('actions/Report', () => {
             };
 
             // Should not throw when called with introSelected and return a valid thread report
-            const result = Report.createTransactionThreadReport(introSelected, TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID, parentReport, reportAction);
+            const result = Report.createTransactionThreadReport(introSelected, TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID, undefined, parentReport, reportAction);
             expect(result).toBeDefined();
             expect(result?.reportID).toBeDefined();
             expect(result?.parentReportID).toBe(parentReport.reportID);
@@ -6353,7 +6353,7 @@ describe('actions/Report', () => {
             };
 
             // Should work fine with undefined introSelected - it's OnyxEntry<IntroSelected> which allows undefined
-            const result = Report.createTransactionThreadReport(undefined, TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID, parentReport, reportAction);
+            const result = Report.createTransactionThreadReport(undefined, TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID, undefined, parentReport, reportAction);
             expect(result).toBeDefined();
             expect(result?.reportID).toBeDefined();
         });
@@ -6382,10 +6382,33 @@ describe('actions/Report', () => {
                 },
             ];
 
-            const result = Report.createTransactionThreadReport(TEST_INTRO_SELECTED, TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID, parentReport, reportAction, transaction, violations);
+            const result = Report.createTransactionThreadReport(TEST_INTRO_SELECTED, TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID, undefined, parentReport, reportAction, transaction, violations);
             expect(result).toBeDefined();
             expect(result?.reportID).toBeDefined();
             expect(result?.parentReportID).toBe(parentReport.reportID);
+        });
+
+        it('should pass betas through to openReport', async () => {
+            const parentReport: OnyxTypes.Report = {
+                ...createRandomReport(500, undefined),
+                reportID: '500',
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`, parentReport);
+            await waitForBatchedUpdates();
+
+            const reportAction: OnyxTypes.ReportAction = {
+                ...createRandomReportAction(5),
+                reportActionID: 'action-5',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            };
+
+            const testBetas = [CONST.BETAS.ALL];
+            Report.createTransactionThreadReport(TEST_INTRO_SELECTED, TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID, testBetas, parentReport, reportAction);
+            await waitForBatchedUpdates();
+
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
         });
     });
 });

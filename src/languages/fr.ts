@@ -2949,13 +2949,8 @@ ${amount} pour ${merchant} - ${date}`,
                         4. Recherchez ${integrationName}.
                         5. Cliquez sur *Connecter*.
 
-${
-    integrationName && CONST.connectionsVideoPaths[integrationName]
-        ? `[Accéder à la comptabilité](${workspaceAccountingLink}).
-
-                        ![Se connecter à ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
-        : `[Accéder à la comptabilité](${workspaceAccountingLink}).`
-}`),
+                        [Accéder à la comptabilité](${workspaceAccountingLink}).
+                    `),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `Connectez [vos cartes d’entreprise](${corporateCardLink})`,
@@ -3380,6 +3375,11 @@ ${
         confirmationStepHeader: 'Vérifiez vos informations.',
         confirmationStepSubHeader: 'Vérifiez attentivement les détails ci-dessous et cochez la case des conditions pour confirmer.',
         toGetStarted: 'Ajoutez un compte bancaire personnel pour recevoir des remboursements, payer des factures ou activer le Portefeuille Expensify.',
+        updatePersonalInfo: 'Mettre à jour le compte bancaire',
+        updatePersonalInfoFailure: 'Impossible de mettre à jour les informations du compte bancaire. Veuillez réessayer plus tard.',
+        updateSuccessTitle: 'Compte bancaire mis à jour !',
+        updateSuccessHeader: 'Compte bancaire mis à jour',
+        updateSuccessMessage: 'Félicitations, votre compte bancaire est configuré et prêt à recevoir des remboursements.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Saisissez le mot de passe Expensify',
@@ -5037,6 +5037,9 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
         companyCards: {
             addCards: 'Ajouter des cartes',
             selectCards: 'Sélectionner des cartes',
+            fromOtherWorkspaces: "D'autres espaces de travail",
+            addWorkEmail: 'Ajoutez votre adresse e-mail professionnelle',
+            addWorkEmailDescription: "Veuillez ajouter votre e-mail professionnel pour utiliser les flux existants d'autres espaces de travail.",
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Impossible de charger les flux de cartes',
                 workspaceFeedsCouldNotBeLoadedMessage:
@@ -7374,6 +7377,9 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         topMerchants: 'Commerçants principaux',
         groupedExpenses: 'dépenses groupées',
         bulkActions: {
+            editMultiple: 'Modifier plusieurs',
+            editMultipleTitle: 'Modifier plusieurs dépenses',
+            editMultipleDescription: 'Les modifications seront appliquées à toutes les dépenses sélectionnées et remplaceront toutes les valeurs précédemment définies.',
             approve: 'Approuver',
             pay: 'Payer',
             delete: 'Supprimer',

@@ -270,6 +270,9 @@ type PureReportActionItemProps = {
     /** Model of onboarding selected */
     introSelected?: OnyxEntry<OnyxTypes.IntroSelected>;
 
+    /** Beta features list */
+    betas?: OnyxEntry<OnyxTypes.Beta[]>;
+
     /** All transaction draft IDs */
     draftTransactionIDs: string[] | undefined;
 
@@ -484,6 +487,7 @@ const isEmptyHTML = <T extends React.JSX.Element>({props: {html}}: T): boolean =
 function PureReportActionItem({
     personalPolicyID,
     introSelected,
+    betas,
     draftTransactionIDs,
     action,
     report,
@@ -581,7 +585,7 @@ function PureReportActionItem({
     const isReportArchived = useReportIsArchived(reportID);
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const isHarvestCreatedExpenseReport = isHarvestCreatedExpenseReportUtils(reportNameValuePairsOrigin, reportNameValuePairsOriginalID);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Eye'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Eye']);
     const {environmentURL} = useEnvironment();
 
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(action.childReportID)}`);
@@ -1216,6 +1220,7 @@ function PureReportActionItem({
                                             introSelected,
                                             personalDetail.email ?? '',
                                             personalDetail.accountID,
+                                            betas,
                                             iouReport,
                                             action,
                                         );
@@ -2211,6 +2216,7 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         prevProps.parentReport?.reportID === nextProps.parentReport?.reportID &&
         deepEqual(prevProps.personalDetails, nextProps.personalDetails) &&
         deepEqual(prevProps.introSelected, nextProps.introSelected) &&
+        deepEqual(prevProps.betas, nextProps.betas) &&
         deepEqual(prevProps.blockedFromConcierge, nextProps.blockedFromConcierge) &&
         prevProps.originalReportID === nextProps.originalReportID &&
         deepEqual(prevProps.originalReport?.participants, nextProps.originalReport?.participants) &&

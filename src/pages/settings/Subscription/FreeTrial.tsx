@@ -32,7 +32,7 @@ function FreeTrial({badgeStyles, pressable = false, addSpacing = false, success 
 
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Star'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Star']);
 
     const freeTrialText = privateSubscription || isOffline ? getFreeTrialText(translate, policies, introSelected, firstDayFreeTrial, lastDayFreeTrial) : undefined;
 

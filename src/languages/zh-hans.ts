@@ -2863,13 +2863,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                         4. 找到 ${integrationName}。
                         5. 点击 *Connect*。
 
-${
-    integrationName && CONST.connectionsVideoPaths[integrationName]
-        ? `[带我去会计页面](${workspaceAccountingLink}).
-
-                        ![连接到 ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
-        : `[带我前往会计页面](${workspaceAccountingLink})。`
-}`),
+                        [带我前往会计页面](${workspaceAccountingLink})。
+                    `),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `连接[您的公司卡](${corporateCardLink})`,
@@ -3281,6 +3276,11 @@ ${
         confirmationStepHeader: '请检查您的信息。',
         confirmationStepSubHeader: '请仔细核对以下详细信息，并勾选条款复选框以确认。',
         toGetStarted: '添加个人银行账户以接收报销、支付发票或启用 Expensify 钱包。',
+        updatePersonalInfo: '更新银行账户',
+        updatePersonalInfoFailure: '无法更新银行账户信息。请稍后重试。',
+        updateSuccessTitle: '银行账户已更新！',
+        updateSuccessHeader: '银行账户已更新',
+        updateSuccessMessage: '恭喜，您的银行账户已设置完成，可以开始接收报销款了。',
     },
     addPersonalBankAccountPage: {
         enterPassword: '输入 Expensify 密码',
@@ -4887,6 +4887,9 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
         companyCards: {
             addCards: '添加卡片',
             selectCards: '选择卡片',
+            fromOtherWorkspaces: '来自其他工作区',
+            addWorkEmail: '添加您的工作邮箱',
+            addWorkEmailDescription: '请添加您的工作邮箱以使用其他工作区的现有流水。',
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: '无法加载卡片流水',
                 workspaceFeedsCouldNotBeLoadedMessage: '加载工作区卡片动态时发生错误。请重试或联系管理员。',
@@ -7128,6 +7131,9 @@ ${reportName}
         topMerchants: '热门商家',
         groupedExpenses: '已分组的报销费用',
         bulkActions: {
+            editMultiple: '批量编辑',
+            editMultipleTitle: '编辑多个费用',
+            editMultipleDescription: '更改将应用于所有选定的费用，并将覆盖之前设置的任何值。',
             approve: '批准',
             pay: '支付',
             delete: '删除',

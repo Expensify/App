@@ -2860,13 +2860,8 @@ ${amount} para ${merchant} - ${date}`,
                         4. Busca ${integrationName}.
                         5. Haz clic en *Conectar*.
 
-                        ${
-                            integrationName && CONST.connectionsVideoPaths[integrationName]
-                                ? `[Ir a contabilidad](${workspaceAccountingLink}).
-
-                        ![Conéctate a ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
-                                : `[Ir a contabilidad](${workspaceAccountingLink}).`
-                        }`),
+                        [Ir a contabilidad](${workspaceAccountingLink}).
+                    `),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `Conecta [tu tarjeta corporativa](${corporateCardLink})`,
@@ -3301,6 +3296,11 @@ ${amount} para ${merchant} - ${date}`,
         confirmationStepHeader: 'Verifica tu información.',
         confirmationStepSubHeader: 'Verifica dos veces los detalles a continuación y marca la casilla de términos para confirmar.',
         toGetStarted: 'Agrega una cuenta bancaria personal para recibir reembolsos, pagar facturas o habilitar la Cartera de Expensify.',
+        updatePersonalInfo: 'Actualizar cuenta bancaria',
+        updatePersonalInfoFailure: 'No se pudo actualizar la información de la cuenta bancaria. Por favor, inténtalo de nuevo más tarde.',
+        updateSuccessTitle: '¡Cuenta bancaria actualizada!',
+        updateSuccessHeader: 'Cuenta bancaria actualizada',
+        updateSuccessMessage: 'Enhorabuena, tu cuenta bancaria está configurada y lista para recibir reembolsos.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Escribe tu contraseña de Expensify',
@@ -4929,6 +4929,9 @@ ${amount} para ${merchant} - ${date}`,
         companyCards: {
             addCards: 'Añadir tarjetas',
             selectCards: 'Seleccionar tarjetas',
+            fromOtherWorkspaces: 'De otros espacios de trabajo',
+            addWorkEmail: 'Añade tu correo electrónico de trabajo',
+            addWorkEmailDescription: 'Por favor, añade tu correo de trabajo para poder usar los feeds existentes de otros espacios de trabajo.',
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Error al cargar las fuentes de tarjetas del espacio de trabajo',
                 workspaceFeedsCouldNotBeLoadedMessage:
@@ -7249,6 +7252,9 @@ ${amount} para ${merchant} - ${date}`,
         deleteSavedSearchConfirm: '¿Estás seguro de que quieres eliminar esta búsqueda?',
         groupedExpenses: 'gastos agrupados',
         bulkActions: {
+            editMultiple: 'Editar múltiples',
+            editMultipleTitle: 'Editar múltiples gastos',
+            editMultipleDescription: 'Los cambios se aplicarán a todos los gastos seleccionados y anularán cualquier valor previamente establecido.',
             approve: 'Aprobar',
             pay: 'Pagar',
             delete: 'Eliminar',

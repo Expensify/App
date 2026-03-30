@@ -2942,13 +2942,8 @@ ${amount} für ${merchant} – ${date}`,
                         4. Suche nach ${integrationName}.
                         5. Klicke auf *Connect*.
 
-${
-    integrationName && CONST.connectionsVideoPaths[integrationName]
-        ? `[Zum Bereich Buchhaltung](${workspaceAccountingLink}).
-
-                        ![Mit ${integrationName} verbinden](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
-        : `[Zur Buchhaltung](${workspaceAccountingLink}).`
-}`),
+                        [Zur Buchhaltung](${workspaceAccountingLink}).
+                    `),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `[Geschäftskarten verbinden](${corporateCardLink})`,
@@ -3370,6 +3365,11 @@ ${
         confirmationStepHeader: 'Überprüfe deine Angaben.',
         confirmationStepSubHeader: 'Prüfen Sie die untenstehenden Angaben sorgfältig und aktivieren Sie das Kontrollkästchen für die Bedingungen, um zu bestätigen.',
         toGetStarted: 'Fügen Sie ein persönliches Bankkonto hinzu, um Erstattungen zu erhalten, Rechnungen zu bezahlen oder die Expensify Wallet zu aktivieren.',
+        updatePersonalInfo: 'Bankkonto aktualisieren',
+        updatePersonalInfoFailure: 'Die Bankkontoinformationen konnten nicht aktualisiert werden. Bitte versuchen Sie es später erneut.',
+        updateSuccessTitle: 'Bankkonto aktualisiert!',
+        updateSuccessHeader: 'Bankkonto aktualisiert',
+        updateSuccessMessage: 'Glückwunsch, dein Bankkonto ist eingerichtet und bereit, Rückerstattungen zu empfangen.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Expensify-Passwort eingeben',
@@ -5026,6 +5026,9 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
         companyCards: {
             addCards: 'Karten hinzufügen',
             selectCards: 'Karten auswählen',
+            fromOtherWorkspaces: 'Aus anderen Workspaces',
+            addWorkEmail: 'Fügen Sie Ihre Arbeits-E-Mail hinzu',
+            addWorkEmailDescription: 'Bitte fügen Sie Ihre Arbeits-E-Mail hinzu, um vorhandene Feeds aus anderen Workspaces zu nutzen.',
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Kartendaten konnten nicht geladen werden',
                 workspaceFeedsCouldNotBeLoadedMessage:
@@ -7350,6 +7353,9 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
         topMerchants: 'Top-Händler',
         groupedExpenses: 'gruppierte Ausgaben',
         bulkActions: {
+            editMultiple: 'Mehrere bearbeiten',
+            editMultipleTitle: 'Mehrere Ausgaben bearbeiten',
+            editMultipleDescription: 'Änderungen werden für alle ausgewählten Ausgaben festgelegt und überschreiben alle zuvor festgelegten Werte.',
             approve: 'Genehmigen',
             pay: 'Bezahlen',
             delete: 'Löschen',
