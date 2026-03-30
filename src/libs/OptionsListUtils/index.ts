@@ -2464,7 +2464,7 @@ function getValidOptions(
         reportAttributesDerived,
         sortedActions,
         ...config
-    }: GetOptionsConfig = {sortedActions: undefined},
+    }: GetOptionsConfig = {},
 ): Options {
     const restrictedLogins = getRestrictedLogins(config, options, canShowManagerMcTest, nvpDismissedProductTraining);
 
