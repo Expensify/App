@@ -74,7 +74,7 @@ function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunn
                 .withCallback(stretchOutY),
         [buttonDuration, stretchOutY],
     );
-    const icons = useMemoizedLazyExpensifyIcons(['Send'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Send']);
     const icon = isAnimationRunning ? icons.Send : null;
 
     useEffect(() => {

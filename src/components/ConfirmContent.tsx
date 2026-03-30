@@ -142,7 +142,7 @@ function ConfirmContent({
     const {translate} = useLocalize();
     const theme = useTheme();
     const {isOffline} = useNetwork();
-    const icons = useMemoizedLazyExpensifyIcons(['Close'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Close']);
 
     const isCentered = shouldCenterContent;
 
