@@ -712,6 +712,7 @@ describe('PureReportActionItem', () => {
                                     draftTransactionIDs={[]}
                                     userBillingGraceEndPeriods={undefined}
                                     policy={policy}
+                                    currentUserEmail={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>

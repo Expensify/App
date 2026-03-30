@@ -822,8 +822,8 @@ function computeReportName({
     const fromMovedReportPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${movedFromReport?.policyID}`];
     const toMovedReportPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${movedToReport?.policyID}`];
 
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const parentReportActionBasedName = computeReportNameBasedOnReportAction(
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         translateLocal,
         parentReportAction,
         report,
