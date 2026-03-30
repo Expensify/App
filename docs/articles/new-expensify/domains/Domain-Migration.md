@@ -65,7 +65,8 @@ Yes. If done correctly, members keep their full expense history, reports, and ap
 
 ## Do I need to verify the new domain before migrating?
 
-No. It is actually preferred that you do not add or verify the new domain in Expensify.
+- If you are migrating your domain automatically with assistance from Concierge, you will not need to verify the new domain. It is preferred that you do not add or verify the new domain in Expensify.
+- If you are migrating your domain manually, you will need to verify the new domain.
 
 ## What happens to the Expensify Card during Domain Migration?
 
