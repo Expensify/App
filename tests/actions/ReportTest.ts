@@ -574,7 +574,7 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 // Then the report will be unread
-                expect(ReportUtils.isUnread(report, undefined, undefined, undefined)).toBe(true);
+                expect(ReportUtils.isUnread(report, undefined, undefined, reportActions)).toBe(true);
 
                 // And show a green dot for unread mentions in the LHN
                 expect(ReportUtils.isUnreadWithMention(report)).toBe(true);
@@ -588,7 +588,7 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 // The report will be read
-                expect(ReportUtils.isUnread(report, undefined, undefined, undefined)).toBe(false);
+                expect(ReportUtils.isUnread(report, undefined, undefined, reportActions)).toBe(false);
                 expect(toZonedTime(report?.lastReadTime ?? '', UTC).getTime()).toBeGreaterThanOrEqual(toZonedTime(currentTime, UTC).getTime());
 
                 // And no longer show the green dot for unread mentions in the LHN
@@ -600,7 +600,7 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 // Then the report will be unread and show the green dot for unread mentions in LHN
-                expect(ReportUtils.isUnread(report, undefined, undefined, undefined)).toBe(true);
+                expect(ReportUtils.isUnread(report, undefined, undefined, reportActions)).toBe(true);
                 expect(ReportUtils.isUnreadWithMention(report)).toBe(true);
                 expect(report?.lastReadTime).toBe(DateUtils.subtractMillisecondsFromDateTime(reportActionCreatedDate, 1));
 
@@ -619,7 +619,7 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 // The report will be read, the green dot for unread mentions will go away, and the lastReadTime updated
-                expect(ReportUtils.isUnread(report, undefined, undefined, undefined)).toBe(false);
+                expect(ReportUtils.isUnread(report, undefined, undefined, reportActions)).toBe(false);
                 expect(ReportUtils.isUnreadWithMention(report)).toBe(false);
                 expect(toZonedTime(report?.lastReadTime ?? '', UTC).getTime()).toBeGreaterThanOrEqual(toZonedTime(currentTime, UTC).getTime());
                 expect(report?.lastMessageText).toBe('Current User Comment 1');
@@ -638,7 +638,7 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 // The report will be read and the lastReadTime updated
-                expect(ReportUtils.isUnread(report, undefined, undefined, undefined)).toBe(false);
+                expect(ReportUtils.isUnread(report, undefined, undefined, reportActions)).toBe(false);
                 expect(toZonedTime(report?.lastReadTime ?? '', UTC).getTime()).toBeGreaterThanOrEqual(toZonedTime(currentTime, UTC).getTime());
                 expect(report?.lastMessageText).toBe('Current User Comment 2');
 
@@ -656,7 +656,7 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 // The report will be read and the lastReadTime updated
-                expect(ReportUtils.isUnread(report, undefined, undefined, undefined)).toBe(false);
+                expect(ReportUtils.isUnread(report, undefined, undefined, reportActions)).toBe(false);
                 expect(toZonedTime(report?.lastReadTime ?? '', UTC).getTime()).toBeGreaterThanOrEqual(toZonedTime(currentTime, UTC).getTime());
                 expect(report?.lastMessageText).toBe('Current User Comment 3');
 
@@ -749,7 +749,7 @@ describe('actions/Report', () => {
             .then(() => {
                 // Then no change will occur
                 expect(report?.lastReadTime).toBe(reportActionCreatedDate);
-                expect(ReportUtils.isUnread(report, undefined, undefined, undefined)).toBe(false);
+                expect(ReportUtils.isUnread(report, undefined, undefined, reportActions)).toBe(false);
 
                 // When the user manually marks a message as "unread"
                 Report.markCommentAsUnread(REPORT_ID, reportActions, reportActions[400], USER_1_ACCOUNT_ID);
@@ -757,7 +757,7 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 // Then we should expect the report to be to be unread
-                expect(ReportUtils.isUnread(report, undefined, undefined, undefined)).toBe(true);
+                expect(ReportUtils.isUnread(report, undefined, undefined, reportActions)).toBe(true);
                 expect(report?.lastReadTime).toBe(DateUtils.subtractMillisecondsFromDateTime(reportActions[400].created, 1));
 
                 rerender(report);
@@ -766,7 +766,34 @@ describe('actions/Report', () => {
                 return waitForBatchedUpdates();
             })
             .then(() => {
-                // Mark action 100 (other user) as deleted so latestReportActionFromOtherUsers is null and report is considered read (lastReadTime >= lastVisibleActionCreated)
+                const lastVisibleActionCreated = reportActions[300].created;
+                const newerOtherUserActionCreated = DateUtils.getDBTime();
+
+                // Make report read by lastVisibleActionCreated, but keep a newer action from another user.
+                return Promise.all([
+                    Onyx.merge(
+                        `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}` as const,
+                        {
+                            lastMessageText: 'Current User Comment 2',
+                            lastVisibleActionCreated,
+                            lastReadTime: lastVisibleActionCreated,
+                        } as Partial<OnyxTypes.Report>,
+                    ),
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}` as const, {
+                        100: {
+                            ...reportActions['100'],
+                            created: newerOtherUserActionCreated,
+                            message: [{type: 'COMMENT', html: 'Other user comment', text: 'Other user comment'}],
+                        } as OnyxTypes.ReportAction,
+                    }),
+                ]);
+            })
+            .then(() => waitForBatchedUpdates())
+            .then(() => {
+                // IOU report should be unread when latest visible action is from current user, but a newer other-user action exists.
+                expect(ReportUtils.isUnread(report, undefined, undefined, reportActions)).toBe(true);
+
+                // Mark action 100 (other user) as deleted so latestReportActionFromOtherUsers is null.
                 const deletedMessage = [{type: 'COMMENT' as const, html: '', text: '', deleted: 'true' as const}];
                 return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}` as const, {
                     100: {
@@ -777,12 +804,11 @@ describe('actions/Report', () => {
             })
             .then(() => waitForBatchedUpdates())
             .then(() => {
-                // Ensure report has expected lastMessageText after deleting 400 (in case derived state didn't update)
+                // With all other-user actions deleted, report should be read when lastReadTime >= lastVisibleActionCreated.
                 return Onyx.merge(
                     `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}` as const,
                     {
-                        lastMessageText: 'Current User Comment 2',
-                        lastReadTime: DateUtils.getDBTime(),
+                        lastReadTime: report?.lastVisibleActionCreated,
                     } as Partial<OnyxTypes.Report>,
                 );
             })
@@ -790,7 +816,7 @@ describe('actions/Report', () => {
             .then(() => getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}` as const))
             .then((currentReport) => {
                 report = currentReport ?? report;
-                expect(ReportUtils.isUnread(report, undefined, undefined, undefined)).toBe(false);
+                expect(ReportUtils.isUnread(report, undefined, undefined, reportActions)).toBe(false);
                 expect(report?.lastMessageText).toBe('Current User Comment 2');
             });
         waitForBatchedUpdates(); // flushing onyx.set as it will be batched
