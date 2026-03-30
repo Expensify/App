@@ -2,6 +2,7 @@ import React, {useCallback, useMemo} from 'react';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReimbursementAccountSubmit from '@hooks/useReimbursementAccountSubmit';
 import useSubPage from '@hooks/useSubPage';
 import type {SubPageProps} from '@hooks/useSubPage/types';
 import Navigation from '@libs/Navigation/Navigation';
@@ -41,6 +42,7 @@ function CompleteVerification({onBackButtonPress, onSubmit, backTo}: CompleteVer
     const values = useMemo(() => getSubStepValues(COMPLETE_VERIFICATION_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
     const policyID = reimbursementAccount?.achData?.policyID;
     const bankAccountID = getBankAccountIDAsNumber(reimbursementAccount?.achData);
+    const markSubmitting = useReimbursementAccountSubmit(onSubmit);
 
     const submit = useCallback(() => {
         acceptACHContractForBankAccount(
@@ -53,8 +55,8 @@ function CompleteVerification({onBackButtonPress, onSubmit, backTo}: CompleteVer
             policyID,
             policyID ? lastPaymentMethod?.[policyID] : undefined,
         );
-        onSubmit?.();
-    }, [bankAccountID, values.isAuthorizedToUseBankAccount, values.certifyTrueInformation, values.acceptTermsAndConditions, policyID, lastPaymentMethod, onSubmit]);
+        markSubmitting();
+    }, [bankAccountID, values.isAuthorizedToUseBankAccount, values.certifyTrueInformation, values.acceptTermsAndConditions, policyID, lastPaymentMethod, markSubmitting]);
 
     const buildRoute = useCallback(
         (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: PAGE_NAMES.ACH_CONTRACT, subPage: pageName, action, backTo}),

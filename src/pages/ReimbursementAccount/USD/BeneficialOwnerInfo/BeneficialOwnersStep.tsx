@@ -4,6 +4,7 @@ import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import YesNoStep from '@components/SubStepForms/YesNoStep';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReimbursementAccountSubmit from '@hooks/useReimbursementAccountSubmit';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {getBankAccountIDAsNumber} from '@libs/ReimbursementAccountUtils';
@@ -47,11 +48,12 @@ function BeneficialOwnersStep({onBackButtonPress, onSubmit, currentSubPage, poli
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const companyName = reimbursementAccount?.achData?.companyName ?? '';
+    const markSubmitting = useReimbursementAccountSubmit(onSubmit);
 
     // Read state from Onyx draft so it survives URL-based navigation (component remounts)
     const isUserUBO = reimbursementAccount?.achData?.ownsMoreThan25Percent ?? reimbursementAccountDraft?.ownsMoreThan25Percent ?? false;
     const beneficialOwners = reimbursementAccount?.achData?.beneficialOwners;
-    const isAnyoneElseUBO = beneficialOwners?.length ? true : reimbursementAccountDraft?.hasOtherBeneficialOwners ?? false;
+    const isAnyoneElseUBO = beneficialOwners?.length ? true : (reimbursementAccountDraft?.hasOtherBeneficialOwners ?? false);
     const beneficialOwnerKeys: string[] = reimbursementAccountDraft?.beneficialOwnerKeys ?? reimbursementAccount?.achData?.beneficialOwnerKeys ?? [];
     const beneficialOwnerBeingModifiedID = reimbursementAccountDraft?.ownerBeingModifiedID ?? '';
     const isEditingCreatedBeneficialOwner = reimbursementAccountDraft?.isEditingCreatedOwner ?? false;
@@ -101,7 +103,7 @@ function BeneficialOwnersStep({onBackButtonPress, onSubmit, currentSubPage, poli
             },
             policyID,
         );
-        onSubmit?.();
+        markSubmitting();
     };
 
     const addBeneficialOwner = (beneficialOwnerID: string) => {

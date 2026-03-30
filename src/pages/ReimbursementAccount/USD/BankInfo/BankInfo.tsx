@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useRef} from 'react';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useReimbursementAccountSubmit from '@hooks/useReimbursementAccountSubmit';
 import useSubPage from '@hooks/useSubPage';
 import type {SubPageProps} from '@hooks/useSubPage/types';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
@@ -44,6 +45,7 @@ function BankInfo({onBackButtonPress, onSubmit, policyID, backTo}: BankInfoProps
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const [plaidLinkToken] = useOnyx(ONYXKEYS.PLAID_LINK_TOKEN);
     const {translate} = useLocalize();
+    const markSubmitting = useReimbursementAccountSubmit(onSubmit);
 
     const redirectedFromPlaidToManualRef = useRef(false);
     const values = getSubStepValues(BANK_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount ?? {});
@@ -87,7 +89,7 @@ function BankInfo({onBackButtonPress, onSubmit, policyID, backTo}: BankInfoProps
                 policyID,
             );
         }
-        onSubmit?.();
+        markSubmitting();
     };
 
     const pages = setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID ? plaidPages : manualPages;
