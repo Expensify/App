@@ -10,7 +10,7 @@ import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBa
 import ReportActionItemMessageWithExplain from '@pages/inbox/report/ReportActionItemMessageWithExplain';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, ReportAction} from '@src/types/onyx';
+import type {Report, ReportAction} from '@src/types/onyx';
 
 type MovedTransactionActionProps = {
     /** The moved transaction action data */
@@ -24,12 +24,9 @@ type MovedTransactionActionProps = {
 
     /** Original report from which the given reportAction is first created */
     originalReport: OnyxEntry<Report>;
-
-    /** The policy of the action item */
-    policy: OnyxEntry<Policy>;
 };
 
-function MovedTransactionAction({action, emptyHTML, childReport, originalReport, policy}: MovedTransactionActionProps) {
+function MovedTransactionAction({action, emptyHTML, childReport, originalReport}: MovedTransactionActionProps) {
     const {translate} = useLocalize();
     const movedTransactionOriginalMessage = getOriginalMessage(action);
     const toReportID = movedTransactionOriginalMessage?.toReportID;
@@ -37,6 +34,8 @@ function MovedTransactionAction({action, emptyHTML, childReport, originalReport,
 
     const [toReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${toReportID}`);
     const [fromReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`);
+    const [fromReportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${fromReport?.policyID}`);
+    const [toReportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${toReport?.policyID}`);
 
     const isPendingDelete = fromReport?.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     // When the transaction is moved from personal space (unreported), fromReportID will be "0" which doesn't exist in allReports
@@ -49,7 +48,7 @@ function MovedTransactionAction({action, emptyHTML, childReport, originalReport,
         return emptyHTML;
     }
 
-    const message = getMovedTransactionMessage(translate, action, policy);
+    const message = getMovedTransactionMessage(translate, action, fromReportPolicy, toReportPolicy);
 
     if (hasReasoning(action)) {
         return (

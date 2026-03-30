@@ -4100,7 +4100,7 @@ describe('OptionsListUtils', () => {
 
                 currentUserLogin: CURRENT_USER_EMAIL,
             });
-            expect(lastMessage).toBe(Parser.htmlToText(getMovedTransactionMessage(translateLocal, movedTransactionAction, undefined)));
+            expect(lastMessage).toBe(Parser.htmlToText(getMovedTransactionMessage(translateLocal, movedTransactionAction, undefined, undefined)));
         });
         it('MOVED_TRANSACTION action with policy uses policy for report name', async () => {
             const mockIsSearchTopmostFullScreenRoute = jest.mocked(isSearchTopmostFullScreenRoute);
@@ -4156,7 +4156,7 @@ describe('OptionsListUtils', () => {
                 isReportArchived: false,
                 currentUserLogin: CURRENT_USER_EMAIL,
             });
-            expect(lastMessage).toBe(Parser.htmlToText(getMovedTransactionMessage(translateLocal, movedTransactionActionWithPolicy, policy)));
+            expect(lastMessage).toBe(Parser.htmlToText(getMovedTransactionMessage(translateLocal, movedTransactionActionWithPolicy, policy, undefined)));
         });
         describe('SUBMITTED action', () => {
             it('should return automatic submitted message if submitted via harvesting', async () => {
