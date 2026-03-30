@@ -244,6 +244,7 @@ function useReceiptScan({
         PDFValidationComponent,
         ErrorModal,
         setTestReceiptAndNavigate,
+        draftTransactionIDs,
     };
 }
 

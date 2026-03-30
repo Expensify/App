@@ -10,7 +10,6 @@ import type {ReceiptFile, UseMobileReceiptScanParams} from '@pages/iou/request/s
 import {removeDraftTransactionsByIDs, removeTransactionReceipt} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 
 /**
  * Extends useReceiptScan with mobile-only logic: multi-scan, haptic feedback, and blink animation.
@@ -25,6 +24,7 @@ function useMobileReceiptScan({
     shouldSkipConfirmation,
     setStartLocationPermissionFlow,
     setIsMultiScanEnabled,
+    draftTransactionIDs,
 }: UseMobileReceiptScanParams) {
     const [shouldStartLocationPermissionFlow] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, {
         selector: shouldStartLocationPermissionFlowSelector,
@@ -32,7 +32,6 @@ function useMobileReceiptScan({
     const optimisticTransactions = useTransactionDraftValues();
 
     const [dismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
-    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [shouldShowMultiScanEducationalPopup, setShouldShowMultiScanEducationalPopup] = useState(false);
 
     const canUseMultiScan = isStartingScan && iouType !== CONST.IOU.TYPE.SPLIT;

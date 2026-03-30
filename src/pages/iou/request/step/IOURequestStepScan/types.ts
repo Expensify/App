@@ -78,6 +78,9 @@ type UseMobileReceiptScanParams = {
 
     /** Callback to update multi-scan enabled state in parent */
     setIsMultiScanEnabled: ((value: boolean) => void) | undefined;
+
+    /** Draft transaction IDs */
+    draftTransactionIDs: string[];
 };
 
 type IOURequestStepScanProps = WithCurrentUserPersonalDetailsProps &

@@ -37,6 +37,7 @@ function createDefaultParams(): UseMobileReceiptScanParams {
         shouldSkipConfirmation: false,
         setStartLocationPermissionFlow: jest.fn(),
         setIsMultiScanEnabled: jest.fn(),
+        draftTransactionIDs: [],
     };
 }
 

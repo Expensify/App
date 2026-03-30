@@ -288,6 +288,7 @@ function IOURequestStepScan({
         PDFValidationComponent,
         ErrorModal,
         setTestReceiptAndNavigate,
+        draftTransactionIDs,
     } = useReceiptScan({
         report,
         reportID,
@@ -315,6 +316,7 @@ function IOURequestStepScan({
             shouldSkipConfirmation,
             setStartLocationPermissionFlow,
             setIsMultiScanEnabled,
+            draftTransactionIDs,
         });
 
     const maybeCancelShutterSpan = useCallback(() => {
