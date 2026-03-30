@@ -174,7 +174,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             styles.activeComponentBG,
             reports,
             personalDetails,
-            currentUserAccountID,
             privateIsArchivedMap,
             policies,
         ],
