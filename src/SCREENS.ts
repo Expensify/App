@@ -330,6 +330,7 @@ const SCREENS = {
         CREATE: 'Money_Request_Create',
         HOLD: 'Money_Request_Hold_Reason',
         REJECT: 'Money_Request_Reject_Reason',
+        REPORT_REJECT: 'Money_Request_Report_Reject',
         STEP_CONFIRMATION: 'Money_Request_Step_Confirmation',
         STEP_CONFIRMATION_VERIFY_ACCOUNT: 'Money_Request_Step_Confirmation_Verify_Account',
         START: 'Money_Request_Start',
@@ -448,7 +449,7 @@ const SCREENS = {
 
     REPORT_SETTINGS: {
         ROOT: 'Report_Settings_Root',
-        NAME: 'Report_Settings_Name',
+        DYNAMIC_SETTINGS_NAME: 'Dynamic_Report_Settings_Name',
         NOTIFICATION_PREFERENCES: 'Report_Settings_Notification_Preferences',
         DYNAMIC_SETTINGS_WRITE_CAPABILITY: 'Dynamic_Report_Settings_Write_Capability',
         VISIBILITY: 'Report_Settings_Visibility',
@@ -664,6 +665,8 @@ const SCREENS = {
         COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE: 'Workspace_CompanyCards_Settings_Statement_Close_Date',
         COMPANY_CARD_DETAILS: 'Workspace_CompanyCard_Details',
         COMPANY_CARD_EDIT_CARD_NAME: 'Workspace_CompanyCard_Edit_Card_Name',
+        COMPANY_CARD_ADD_WORK_EMAIL: 'Workspace_CompanyCard_Add_Work_Email',
+        COMPANY_CARD_VERIFY_WORK_EMAIL: 'Workspace_CompanyCard_Verify_Work_Email',
         COMPANY_CARD_EDIT_TRANSACTION_START_DATE: 'Workspace_CompanyCard_Edit_Transaction_Start_Date',
         COMPANY_CARD_EXPORT: 'Workspace_CompanyCard_Export',
         EXPENSIFY_CARD: 'Workspace_ExpensifyCard',

@@ -26,8 +26,8 @@ function SearchMoneyRequestReportEmptyState({report, policy, onLayout}: {report:
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['FolderWithPapersAndWatch'] as const);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location', 'Plus'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['FolderWithPapersAndWatch']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location', 'Plus']);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const reportId = report.reportID;

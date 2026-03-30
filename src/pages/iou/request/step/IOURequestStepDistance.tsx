@@ -28,7 +28,7 @@ import useSelfDMReport from '@hooks/useSelfDMReport';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaypointItems from '@hooks/useWaypointItems';
-import {getIOURequestPolicyID, setMoneyRequestAmount, updateMoneyRequestDistance} from '@libs/actions/IOU';
+import {setMoneyRequestAmount, updateMoneyRequestDistance} from '@libs/actions/IOU';
 import {handleMoneyRequestStepDistanceNavigation} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction, setSplitShares} from '@libs/actions/IOU/Split';
 import {init, stop} from '@libs/actions/MapboxToken';
@@ -41,7 +41,6 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getPolicy} from '@libs/PolicyUtils';
 import {isArchivedReport, isPolicyExpenseChat as isPolicyExpenseChatUtil} from '@libs/ReportUtils';
 import {getDistanceInMeters, getRateID, getRequestType, hasRoute, isCustomUnitRateIDForP2P, isWaypointNullIsland} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -80,7 +79,6 @@ function IOURequestStepDistance({
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
     const isArchived = isArchivedReport(reportNameValuePairs);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
@@ -184,17 +182,10 @@ function IOURequestStepDistance({
         (participants: Participant[]) => {
             // Get policy report based on transaction participants
             const isPolicyExpenseChat = participants?.some((participant) => participant.isPolicyExpenseChat);
-            const selectedReportID = participants?.length === 1 ? (participants.at(0)?.reportID ?? reportID) : reportID;
-            const policyReport = participants.at(0) ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`] : report;
-
-            const IOUpolicyID = getIOURequestPolicyID(transaction, policyReport);
-            // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const IOUpolicy = getPolicy(report?.policyID ?? IOUpolicyID);
             const policyCurrency = policy?.outputCurrency ?? personalPolicy?.outputCurrency ?? CONST.CURRENCY.USD;
 
-            const mileageRates = DistanceRequestUtils.getMileageRates(IOUpolicy);
-            const defaultMileageRate = DistanceRequestUtils.getDefaultMileageRate(IOUpolicy);
+            const mileageRates = DistanceRequestUtils.getMileageRates(policy);
+            const defaultMileageRate = DistanceRequestUtils.getDefaultMileageRate(policy);
             const mileageRate: MileageRate | undefined = isCustomUnitRateIDForP2P(transaction)
                 ? DistanceRequestUtils.getRateForP2P(policyCurrency, transaction)
                 : // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -211,7 +202,7 @@ function IOURequestStepDistance({
                 setSplitShares(transaction, amount, currency ?? '', participantAccountIDs ?? []);
             }
         },
-        [report, allReports, transaction, transactionID, isSplitRequest, policy?.outputCurrency, reportID, customUnitRateID, personalPolicy?.outputCurrency],
+        [policy, personalPolicy?.outputCurrency, transaction, customUnitRateID, transactionID, isSplitRequest],
     );
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace

@@ -16,7 +16,7 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['PendingTravel'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['PendingTravel']);
 
     return (
         <FeatureList

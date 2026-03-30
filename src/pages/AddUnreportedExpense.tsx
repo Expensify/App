@@ -42,7 +42,7 @@ type AddUnreportedExpensePageType = PlatformStackScreenProps<AddUnreportedExpens
 
 function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const {translate} = useLocalize();
-    const illustrations = useMemoizedLazyIllustrations(['FolderWithPapersAndWatch'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['FolderWithPapersAndWatch']);
     const [errorMessage, setErrorMessage] = useState<string>('');
     const [offset, setOffset] = useState(0);
     const {isOffline} = useNetwork();

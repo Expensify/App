@@ -153,7 +153,7 @@ function DebugReportPage({
         ];
     }, [report, transactionViolations, isReportArchived, chatReport, reportActions, transactions, reportAttributes?.reportErrors, betas, priorityMode, draftComment, translate]);
 
-    const icons = useMemoizedLazyExpensifyIcons(['Eye'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Eye']);
 
     const DebugDetailsTab = useCallback(
         () => (
