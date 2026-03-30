@@ -1607,6 +1607,18 @@ const translations = {
                 markedAsResolved: 'marked the rejection reason as resolved',
             },
         },
+        rejectReport: {
+            title: 'Reject report',
+            description: 'Explain why you will not approve this report:',
+            rejectReason: 'Rejection reason',
+            selectTarget: 'Choose the member to reject this report back to for review:',
+            lastApprover: 'Last approver',
+            submitter: 'Submitter',
+            rejectedReportMessage: 'This report was rejected.',
+            rejectedNextStep: 'This report was rejected. Waiting on you to fix the issues and manually resubmit.',
+            selectMemberError: 'Select a member to reject this report back to.',
+            couldNotReject: 'The report could not be rejected. Please try again.',
+        },
         moveExpenses: 'Move to report',
         moveExpensesError: "You can't move per diem expenses to reports on other workspaces, because the per diem rates may differ between workspaces.",
         changeApprover: {
@@ -1848,6 +1860,18 @@ const translations = {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (_: NextStepParams) =>
                 `Oops! Looks like you're submitting to <strong>yourself</strong>. Approving your own reports is <strong>forbidden</strong> by your workspace. Please submit this report to someone else or contact your admin to change the person you submit to.`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: ({actor, actorType}: NextStepParams) => {
+                // All ACTOR_TYPE enum values are explicitly handled
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `This report was rejected. Waiting on <strong>you</strong> to fix the issues and manually resubmit.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `This report was rejected. Waiting on <strong>${actor}</strong> to fix the issues and manually resubmit.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `This report was rejected. Waiting on an admin to fix the issues and manually resubmit.`;
+                }
+            },
         },
         eta: {
             [CONST.NEXT_STEP.ETA_KEY.SHORTLY]: 'shortly',
