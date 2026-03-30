@@ -1,4 +1,4 @@
-import {useRef, useState} from 'react';
+import {useCallback, useMemo, useRef, useState} from 'react';
 import {DeviceEventEmitter} from 'react-native';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
@@ -159,33 +159,49 @@ function useSelectedTransactionsActions({
     const {translate, localeCompare} = useLocalize();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
 
-    const selectedTransactionsForDuplicate: Record<string, {reportID?: string}> = {};
-    for (const id of selectedTransactionIDs) {
-        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`];
-        selectedTransactionsForDuplicate[id] = {reportID: transaction?.reportID};
-    }
+    const selectedTransactionsForDuplicate = useMemo(() => {
+        const map: Record<string, {reportID?: string}> = {};
+        for (const id of selectedTransactionIDs) {
+            const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`];
+            map[id] = {reportID: transaction?.reportID};
+        }
+        return map;
+    }, [selectedTransactionIDs, allTransactions]);
 
-    const activePolicyExpenseChat = getPolicyExpenseChat(currentUserAccountID, defaultExpensePolicy?.id);
+    const activePolicyExpenseChat = useMemo(() => getPolicyExpenseChat(currentUserAccountID, defaultExpensePolicy?.id), [currentUserAccountID, defaultExpensePolicy?.id]);
 
-    const shouldShow = shouldShowBulkDuplicateOption({
-        selectedTransactionsKeys: selectedTransactionIDs,
-        selectedTransactions: selectedTransactionsForDuplicate,
-        allTransactions,
-        allReports,
-        allTransactionViolations,
-        allReportNameValuePairs,
-        defaultExpensePolicyID: defaultExpensePolicy?.id,
-        activePolicyExpenseChat,
-        typeExpenseReport: false,
-        searchData: undefined,
-    });
-
-    const isDuplicateOptionVisible = !isProduction && shouldShow;
+    const isDuplicateOptionVisible = useMemo(
+        () =>
+            !isProduction &&
+            shouldShowBulkDuplicateOption({
+                selectedTransactionsKeys: selectedTransactionIDs,
+                selectedTransactions: selectedTransactionsForDuplicate,
+                allTransactions,
+                allReports,
+                allTransactionViolations,
+                allReportNameValuePairs,
+                defaultExpensePolicyID: defaultExpensePolicy?.id,
+                activePolicyExpenseChat,
+                typeExpenseReport: false,
+                searchData: undefined,
+            }),
+        [
+            isProduction,
+            selectedTransactionIDs,
+            selectedTransactionsForDuplicate,
+            allTransactions,
+            allReports,
+            allTransactionViolations,
+            allReportNameValuePairs,
+            defaultExpensePolicy?.id,
+            activePolicyExpenseChat,
+        ],
+    );
 
     const duplicateHandlerRef = useRef<() => void>(() => {});
-    const setDuplicateHandler = (handler: () => void) => {
+    const setDuplicateHandler = useCallback((handler: () => void) => {
         duplicateHandlerRef.current = handler;
-    };
+    }, []);
     const invokeDuplicateHandler = () => {
         duplicateHandlerRef.current();
     };
