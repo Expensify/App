@@ -15861,5 +15861,4 @@ describe('actions/IOU', () => {
             expect(updatedTransaction?.comment?.customUnit?.quantity).toBe(100);
         });
     });
-
 });
