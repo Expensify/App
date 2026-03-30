@@ -1,11 +1,11 @@
 import React from 'react';
 import {useCurrencyListActions, useCurrencyListState} from '@components/CurrencyListContextProvider';
+import {filterGroupCurrencySelector} from '@components/Search/selectors/Search';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getGroupCurrencyOptions} from '@libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {filterGroupCurrencySelector} from '../selectors/Search';
 import SingleSelectPopup from './SingleSelectPopup';
 import type {SingleSelectItem} from './SingleSelectPopup';
 

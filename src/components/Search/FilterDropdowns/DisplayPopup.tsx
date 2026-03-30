@@ -87,7 +87,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                         onPress={() => setSelectedDisplayFilter(CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY)}
                     />
                 )}
-                {groupBy && (
+                {!!groupBy && (
                     <MenuItemWithTopDescription
                         shouldShowRightIcon
                         description={translate('common.groupCurrency')}
