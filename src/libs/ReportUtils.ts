@@ -6466,7 +6466,13 @@ function buildOptimisticAddCommentReportAction({
     };
 }
 
-function buildConciergeGreetingReportAction(reportID: string, greetingText: string, created: string): ReportAction {
+type BuildConciergeGreetingReportActionParams = {
+    reportID: string | undefined;
+    greetingText: string;
+    created: string;
+};
+
+function buildConciergeGreetingReportAction({reportID, greetingText, created}: BuildConciergeGreetingReportActionParams): ReportAction {
     return {
         reportActionID: String(CONST.CONCIERGE_GREETING_ACTION_ID),
         reportID,
