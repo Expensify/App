@@ -7584,6 +7584,8 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
     chronos: {
         oooEventSummaryFullDay: (summary: string, dayCount: number, date: string) => `${summary} por ${dayCount} ${dayCount === 1 ? 'dia' : 'dias'} até ${date}`,
         oooEventSummaryPartialDay: (summary: string, timePeriod: string, date: string) => `${summary} de ${timePeriod} em ${date}`,
+        startTimer: 'Iniciar cronômetro',
+        stopTimer: 'Parar cronômetro',
     },
     footer: {
         features: 'Recursos',

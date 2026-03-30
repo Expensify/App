@@ -985,10 +985,49 @@ function canActionsBeGrouped(currentAction?: ReportAction, adjacentAction?: Repo
 
     return currentActionActorAccountID === adjacentActionActorAccountID;
 }
+
+const CHRONOS_TIMER_COMMAND_STOP_REGEX = /stop(?:ped|ping)?(?:\snow)?/i;
+const CHRONOS_TIMER_COMMAND_START_REGEX = /start(?:ed|ing)?(?:\snow)?/i;
+
+/**
+ * Returns `'start'`, `'stop'`, or `null` for plain text using the same patterns as grouped Chronos timer messages.
+ * Stop is matched before start when both could apply to one string.
+ */
+function isChronosStartOrStopMessage(text: string): 'start' | 'stop' | null {
+    if (CHRONOS_TIMER_COMMAND_STOP_REGEX.test(text)) {
+        return 'stop';
+    }
+    if (CHRONOS_TIMER_COMMAND_START_REGEX.test(text)) {
+        return 'start';
+    }
+    return null;
+}
+
 function isChronosAutomaticTimerAction(reportAction: OnyxInputOrEntry<ReportAction>, isChronosReport: boolean): boolean {
-    const isAutomaticStartTimerAction = () => /start(?:ed|ing)?(?:\snow)?/i.test(getReportActionText(reportAction));
-    const isAutomaticStopTimerAction = () => /stop(?:ped|ping)?(?:\snow)?/i.test(getReportActionText(reportAction));
-    return isChronosReport && (isAutomaticStartTimerAction() || isAutomaticStopTimerAction());
+    return isChronosReport && isChronosStartOrStopMessage(getReportActionText(reportAction)) !== null;
+}
+
+/**
+ * From visible report actions sorted newest-first, returns the latest ADD_COMMENT from the current user that looks like a Chronos timer command.
+ */
+function getLatestUserChronosTimerCommand(sortedVisibleReportActionsDesc: ReportAction[], currentUserAccountID: number): 'start' | 'stop' | null {
+    for (const action of sortedVisibleReportActionsDesc) {
+        if (action.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) {
+            continue;
+        }
+        if (action.actorAccountID !== currentUserAccountID) {
+            continue;
+        }
+        const kind = isChronosStartOrStopMessage(getReportActionText(action));
+        if (kind !== null) {
+            return kind;
+        }
+    }
+    return null;
+}
+
+function isChronosTimerRunningFromVisibleActions(sortedVisibleReportActionsDesc: ReportAction[], currentUserAccountID: number): boolean {
+    return getLatestUserChronosTimerCommand(sortedVisibleReportActionsDesc, currentUserAccountID) === 'start';
 }
 
 /**
@@ -4469,6 +4508,7 @@ export {
     getLastVisibleActionIncludingTransactionThread,
     getLastVisibleMessage,
     getLatestReportActionFromOnyxData,
+    getLatestUserChronosTimerCommand,
     getLinkedTransactionID,
     getMarkedReimbursedMessage,
     getMemberChangeMessageFragment,
@@ -4519,6 +4559,8 @@ export {
     isIOURequestReportAction,
     isNewerReportAction,
     isChronosOOOListAction,
+    isChronosStartOrStopMessage,
+    isChronosTimerRunningFromVisibleActions,
     isClosedAction,
     isConsecutiveActionMadeByPreviousActor,
     isConsecutiveChronosAutomaticTimerAction,

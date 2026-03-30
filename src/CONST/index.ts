@@ -8649,6 +8649,7 @@ const CONST = {
         },
         HEADER_VIEW: {
             BACK_BUTTON: 'HeaderView-BackButton',
+            CHRONOS_TIMER_BUTTON: 'HeaderView-ChronosTimerButton',
             DETAILS_BUTTON: 'HeaderView-DetailsButton',
         },
         SEARCH: {

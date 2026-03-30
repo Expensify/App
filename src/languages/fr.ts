@@ -7650,6 +7650,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
     chronos: {
         oooEventSummaryFullDay: (summary: string, dayCount: number, date: string) => `${summary} pour ${dayCount} ${dayCount === 1 ? 'jour' : 'jours'} jusqu’au ${date}`,
         oooEventSummaryPartialDay: (summary: string, timePeriod: string, date: string) => `${summary} du ${timePeriod} le ${date}`,
+        startTimer: 'Démarrer le minuteur',
+        stopTimer: 'Arrêter le minuteur',
     },
     footer: {
         features: 'Fonctionnalités',

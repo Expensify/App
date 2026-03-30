@@ -7614,6 +7614,8 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
     chronos: {
         oooEventSummaryFullDay: (summary: string, dayCount: number, date: string) => `${summary} per ${dayCount} ${dayCount === 1 ? 'giorno' : 'giorni'} fino al ${date}`,
         oooEventSummaryPartialDay: (summary: string, timePeriod: string, date: string) => `${summary} dal ${timePeriod} del ${date}`,
+        startTimer: 'Avvia timer',
+        stopTimer: 'Ferma timer',
     },
     footer: {
         features: 'Funzionalità',

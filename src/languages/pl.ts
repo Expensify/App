@@ -7580,6 +7580,8 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
     chronos: {
         oooEventSummaryFullDay: (summary: string, dayCount: number, date: string) => `${summary} za ${dayCount} ${dayCount === 1 ? 'dzień' : 'dni'} do ${date}`,
         oooEventSummaryPartialDay: (summary: string, timePeriod: string, date: string) => `${summary} z ${timePeriod} z dnia ${date}`,
+        startTimer: 'Uruchom timer',
+        stopTimer: 'Zatrzymaj timer',
     },
     footer: {
         features: 'Funkcje',
