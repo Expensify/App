@@ -18,7 +18,7 @@ import {exportTravelInvoiceStatementCSV, getTravelInvoiceStatementPDF} from '@li
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getRangeBoundariesFromFormValue, isSearchDatePreset} from '@libs/SearchQueryUtils';
+import {isSearchDatePreset} from '@libs/SearchQueryUtils';
 import {getDateRangeForPreset} from '@libs/SearchUIUtils';
 import {downloadTravelInvoiceStatementPDF} from '@libs/TravelInvoicingUtils';
 import CONFIG from '@src/CONFIG';
@@ -53,14 +53,8 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
             [CONST.SEARCH.DATE_MODIFIERS.ON]: CONST.SEARCH.DATE_PRESETS.THIS_MONTH,
             [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: undefined,
             [CONST.SEARCH.DATE_MODIFIERS.AFTER]: undefined,
-            [CONST.SEARCH.DATE_MODIFIERS.RANGE]: undefined,
         };
     }
-
-    const getSelectedRangeBoundaries = (valuesToRead?: SearchDateValues) => {
-        const values = valuesToRead ?? dateFilterBaseRef.current?.getDateValues();
-        return getRangeBoundariesFromFormValue(values?.[CONST.SEARCH.DATE_MODIFIERS.RANGE]);
-    };
 
     /**
      * Checks whether the user has a complete date selection.
@@ -79,11 +73,6 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
             return true;
         }
 
-        const {from: rangeStart, to: rangeEnd} = getSelectedRangeBoundaries(values);
-        if (rangeStart && rangeEnd) {
-            return true;
-        }
-
         // Both after and before must be set for a complete range
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- We intentionally use logical OR (||) instead of ?? because these values are strings and we want to treat empty strings as "not set" (i.e., falsy).
         return !!(values[CONST.SEARCH.DATE_MODIFIERS.AFTER] && values[CONST.SEARCH.DATE_MODIFIERS.BEFORE]);
@@ -96,11 +85,6 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
         const values = valuesToValidate ?? dateFilterBaseRef.current?.getDateValues();
         const dateAfter = values?.[CONST.SEARCH.DATE_MODIFIERS.AFTER];
         const dateBefore = values?.[CONST.SEARCH.DATE_MODIFIERS.BEFORE];
-        const {from: rangeStart, to: rangeEnd} = getSelectedRangeBoundaries(values);
-
-        if (rangeStart && rangeEnd && rangeStart > rangeEnd) {
-            return true;
-        }
 
         if (dateAfter && dateBefore && dateAfter > dateBefore) {
             return true;
@@ -133,7 +117,6 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
         const dateOn = values?.[CONST.SEARCH.DATE_MODIFIERS.ON];
         const dateAfter = values?.[CONST.SEARCH.DATE_MODIFIERS.AFTER];
         const dateBefore = values?.[CONST.SEARCH.DATE_MODIFIERS.BEFORE];
-        const {from: rangeStart, to: rangeEnd} = getSelectedRangeBoundaries(values);
 
         if (dateOn) {
             if (isSearchDatePreset(dateOn)) {
@@ -142,10 +125,6 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
             }
             // Specific date "On" -> startDate = endDate
             return {startDate: dateOn, endDate: dateOn};
-        }
-
-        if (rangeStart && rangeEnd) {
-            return {startDate: rangeStart, endDate: rangeEnd};
         }
 
         if (dateAfter && dateBefore) {
@@ -186,7 +165,7 @@ function WorkspaceTravelInvoicingExportPage({route}: WorkspaceTravelInvoicingExp
 
         setIsDownloading(true);
         getTravelInvoiceStatementPDF(policyID, startDate, endDate);
-    }, [getDateRange, hasDateSelected, isDateRangeInvalid, isGenerating, policyID, translate]);
+    }, [isGenerating, policyID, getDateRange, translate]);
 
     useEffect(() => {
         if (!prevIsGenerating || isGenerating) {

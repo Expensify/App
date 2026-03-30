@@ -5,6 +5,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {SearchDateValues} from '@components/Search/FilterComponents/DatePresetFilterBase';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/DropdownButton';
+import GroupByPopup from '@components/Search/FilterDropdowns/GroupByPopup';
 import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import MultiSelectPopup from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
@@ -28,11 +29,12 @@ import {updateAdvancedFilters} from '@libs/actions/Search';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {buildFilterQueryWithSortDefaults, getDateRangeDisplayValueFromFormValue, isFilterSupported, isSearchDatePreset} from '@libs/SearchQueryUtils';
+import {buildFilterQueryWithSortDefaults, isFilterSupported, isSearchDatePreset} from '@libs/SearchQueryUtils';
 import {
     filterValidHasValues,
     getFeedOptions,
     getGroupByOptions,
+    getGroupBySections,
     getGroupCurrencyOptions,
     getHasOptions,
     getStatusOptions,
@@ -46,7 +48,7 @@ import ROUTES from '@src/ROUTES';
 import {hasMultipleOutputCurrenciesSelector} from '@src/selectors/Policy';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS, {AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
-import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
+import type {HasFilterValue, IsFilterValue, SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {Policy} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
@@ -121,7 +123,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     const filterFormValues = useFilterFormValues(queryJSON);
     useSearchFilterSync(filterFormValues);
     const {shouldUseNarrowLayout, isLargeScreenWidth} = useResponsiveLayout();
-    const {selectedTransactions, shouldShowFiltersBarLoading, currentSearchResults} = useSearchStateContext();
+    const {selectedTransactions, shouldShowActionsBarLoading: shouldShowFiltersBarLoading, currentSearchResults} = useSearchStateContext();
     const {currencyList} = useCurrencyListState();
     const {getCurrencySymbol} = useCurrencyListActions();
 
@@ -165,6 +167,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     const type = typeOptions.find((option) => option.value === unsafeType) ?? null;
 
     const groupByOptions = getGroupByOptions(translate);
+    const groupBySections = getGroupBySections(translate);
     const groupBy = groupByOptions.find((option) => option.value === unsafeGroupBy) ?? null;
 
     const viewOptions = getViewOptions(translate);
@@ -190,12 +193,11 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     const isOptions = Object.values(CONST.SEARCH.IS_VALUES).map((value) => ({text: translate(`common.${value}`), value}));
     const is = isFilterValues ? isOptions.filter((option) => isFilterValues.includes(option.value)) : [];
 
-    const createDateDisplayValue = (filterValues: {on?: string; after?: string; before?: string; range?: string}): [SearchDateValues, string[]] => {
+    const createDateDisplayValue = (filterValues: {on?: string; after?: string; before?: string}): [SearchDateValues, string[]] => {
         const value: SearchDateValues = {
             [CONST.SEARCH.DATE_MODIFIERS.ON]: filterValues.on,
             [CONST.SEARCH.DATE_MODIFIERS.AFTER]: filterValues.after,
             [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: filterValues.before,
-            [CONST.SEARCH.DATE_MODIFIERS.RANGE]: filterValues.range,
         };
 
         const displayText: string[] = [];
@@ -208,12 +210,6 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
         if (value.Before) {
             displayText.push(`${translate('common.before')} ${DateUtils.formatToReadableString(value.Before)}`);
         }
-        if (value.Range) {
-            const rangeDisplay = getDateRangeDisplayValueFromFormValue(value.Range, undefined, undefined, true);
-            if (rangeDisplay) {
-                displayText.push(rangeDisplay);
-            }
-        }
 
         return [value, displayText];
     };
@@ -222,21 +218,18 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
         on: searchAdvancedFiltersForm.dateOn,
         after: searchAdvancedFiltersForm.dateAfter,
         before: searchAdvancedFiltersForm.dateBefore,
-        range: searchAdvancedFiltersForm.dateRange,
     });
 
     const [posted, displayPosted] = createDateDisplayValue({
         on: searchAdvancedFiltersForm.postedOn,
         after: searchAdvancedFiltersForm.postedAfter,
         before: searchAdvancedFiltersForm.postedBefore,
-        range: searchAdvancedFiltersForm.postedRange,
     });
 
     const [withdrawn, displayWithdrawn] = createDateDisplayValue({
         on: searchAdvancedFiltersForm.withdrawnOn,
         after: searchAdvancedFiltersForm.withdrawnAfter,
         before: searchAdvancedFiltersForm.withdrawnBefore,
-        range: searchAdvancedFiltersForm.withdrawnRange,
     });
 
     const withdrawalTypeOptions = getWithdrawalTypeOptions(translate);
@@ -293,9 +286,9 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     );
 
     const groupByComponent = ({closeOverlay}: PopoverComponentProps) => (
-        <SingleSelectPopup
-            label={translate('search.groupBy')}
-            items={groupByOptions}
+        <GroupByPopup
+            label={translate('search.display.groupBy')}
+            sections={groupBySections}
             value={groupBy}
             closeOverlay={closeOverlay}
             onChange={(item) => {
@@ -347,7 +340,6 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     const datePickerComponent = (props: PopoverComponentProps) => (
         <DatePickerFilterPopup
             closeOverlay={props.closeOverlay}
-            setPopoverWidth={props.setPopoverWidth}
             filterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}
             value={date}
             translationKey="common.date"
@@ -358,7 +350,6 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     const postedPickerComponent = (props: PopoverComponentProps) => (
         <DatePickerFilterPopup
             closeOverlay={props.closeOverlay}
-            setPopoverWidth={props.setPopoverWidth}
             filterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED}
             value={posted}
             translationKey="search.filters.posted"
@@ -369,7 +360,6 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     const withdrawnPickerComponent = (props: PopoverComponentProps) => (
         <DatePickerFilterPopup
             closeOverlay={props.closeOverlay}
-            setPopoverWidth={props.setPopoverWidth}
             filterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN}
             value={withdrawn}
             translationKey="search.filters.withdrawn"
@@ -401,7 +391,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
         />
     );
 
-    const updateHasFilterForm = (selectedItems: Array<MultiSelectItem<string>>) => {
+    const updateHasFilterForm = (selectedItems: Array<MultiSelectItem<HasFilterValue>>) => {
         updateFilterForm({has: selectedItems.map((item) => item.value)});
     };
     const hasComponent = (props: PopoverComponentProps) => (
@@ -414,7 +404,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
         />
     );
 
-    const updateIsFilterForm = (selectedItems: Array<MultiSelectItem<string>>) => {
+    const updateIsFilterForm = (selectedItems: Array<MultiSelectItem<IsFilterValue>>) => {
         updateFilterForm({is: selectedItems.map((item) => item.value)});
     };
     const isComponent = (props: PopoverComponentProps) => (
@@ -462,11 +452,9 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     const shouldDisplayGroupCurrencyFilter = shouldDisplayGroupByFilter && hasMultipleOutputCurrency;
     const shouldDisplayFeedFilter = feedOptions.length > 1 && !!searchAdvancedFiltersForm.feed;
     const shouldDisplayPostedFilter =
-        !!searchAdvancedFiltersForm.feed &&
-        (!!searchAdvancedFiltersForm.postedOn || !!searchAdvancedFiltersForm.postedAfter || !!searchAdvancedFiltersForm.postedBefore || !!searchAdvancedFiltersForm.postedRange);
+        !!searchAdvancedFiltersForm.feed && (!!searchAdvancedFiltersForm.postedOn || !!searchAdvancedFiltersForm.postedAfter || !!searchAdvancedFiltersForm.postedBefore);
     const shouldDisplayWithdrawalTypeFilter = !!searchAdvancedFiltersForm.withdrawalType;
-    const shouldDisplayWithdrawnFilter =
-        !!searchAdvancedFiltersForm.withdrawnOn || !!searchAdvancedFiltersForm.withdrawnAfter || !!searchAdvancedFiltersForm.withdrawnBefore || !!searchAdvancedFiltersForm.withdrawnRange;
+    const shouldDisplayWithdrawnFilter = !!searchAdvancedFiltersForm.withdrawnOn || !!searchAdvancedFiltersForm.withdrawnAfter || !!searchAdvancedFiltersForm.withdrawnBefore;
 
     const filters: FilterItem[] = [
         {
@@ -479,7 +467,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
         ...(shouldDisplayGroupByFilter
             ? [
                   {
-                      label: translate('search.groupBy'),
+                      label: translate('search.display.groupBy'),
                       PopoverComponent: groupByComponent,
                       value: groupBy?.text ?? null,
                       filterKey: FILTER_KEYS.GROUP_BY,
@@ -627,12 +615,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
         return hiddenFilters.filter((key) => {
             const dateFilterKey = DATE_FILTER_KEYS.find((dateKey) => key === dateKey);
             if (dateFilterKey) {
-                return (
-                    filterFormValues[`${dateFilterKey}On`] ??
-                    filterFormValues[`${dateFilterKey}After`] ??
-                    filterFormValues[`${dateFilterKey}Before`] ??
-                    filterFormValues[`${dateFilterKey}Range`]
-                );
+                return filterFormValues[`${dateFilterKey}On`] ?? filterFormValues[`${dateFilterKey}After`] ?? filterFormValues[`${dateFilterKey}Before`];
             }
 
             if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD) {
