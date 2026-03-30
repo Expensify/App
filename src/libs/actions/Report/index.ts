@@ -219,6 +219,7 @@ import type {CurrentUserPersonalDetails, Timezone} from '@src/types/onyx/Persona
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {NotificationPreference, Participants, Participant as ReportParticipant, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
 import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
+import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {Dimensions} from '@src/types/utils/Layout';
@@ -3573,25 +3574,33 @@ function buildNewReportOptimisticData(
 
     const currentSearchQueryJSON = getCurrentSearchQueryJSON();
     if (currentSearchQueryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+        // Initializing as an empty typed object to allow dynamic key assignment resolves TypeScript type inference issue
+        const optimisticSnapshotData: SearchResultDataType = {};
+        optimisticSnapshotData[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] = optimisticReportData;
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}` as const,
             value: {
-                data: {[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: optimisticReportData},
+                data: optimisticSnapshotData,
             },
         });
     } else if (currentSearchQueryJSON?.type === CONST.SEARCH.DATA_TYPES.CHAT) {
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+        // Building this object sequentially resolves TypeScript type inference issues
+        const optimisticSnapshotData: SearchResultDataType = {};
+
+        optimisticSnapshotData[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport?.reportID}`] = {
+            [reportPreviewReportActionID]: {...optimisticReportPreview, reportID: parentReport?.reportID},
+        };
+        if (parentReport) {
+            optimisticSnapshotData[`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`] = parentReport;
+        }
+        optimisticSnapshotData[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] = optimisticReportData;
+
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}` as const,
             value: {
-                data: {
-                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport?.reportID}`]: {[reportPreviewReportActionID]: {...optimisticReportPreview, reportID: parentReport?.reportID}},
-                    [`${ONYXKEYS.COLLECTION.REPORT}${parentReport?.reportID}`]: parentReport,
-                    [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: optimisticReportData,
-                },
+                data: optimisticSnapshotData,
             },
         });
     }
@@ -3605,8 +3614,7 @@ function buildNewReportOptimisticData(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-            value: {[reportActionID]: {errorFields: {createReport: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage')}}},
+            value: {[reportActionID]: {errors: {createReport: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage')}}},
         },
 
         {
@@ -3635,8 +3643,6 @@ function buildNewReportOptimisticData(
             value: {
                 [reportActionID]: {
                     pendingAction: null,
-                    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-                    errorFields: null,
                 },
             },
         },
@@ -3646,8 +3652,6 @@ function buildNewReportOptimisticData(
             value: {
                 [reportPreviewReportActionID]: {
                     pendingAction: null,
-                    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-                    errorFields: null,
                 },
             },
         },
@@ -4848,11 +4852,10 @@ function flagComment(reportAction: OnyxEntry<ReportAction>, severity: string, or
     ];
 
     if (shouldHideMessage) {
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`,
-            value: originalReport,
+            value: originalReport ?? null,
         });
     }
 
@@ -5641,11 +5644,11 @@ function deleteAppReport({
 
     // Update search results to mark report as deleted when called from search
     if (hash) {
+        // Initializing as an empty typed object to allow dynamic key assignment resolves TypeScript type inference issue
+        const optimisticSnapshotData: SearchResultDataType = {};
+        optimisticSnapshotData[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] = {...report, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
         Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, {
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-            data: {
-                [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
-            },
+            data: optimisticSnapshotData,
         });
     }
 
@@ -5923,11 +5926,10 @@ function deleteAppReport({
         value: null,
     });
 
-    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
     failureData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-        value: reportActionsForReport,
+        value: reportActionsForReport ?? null,
     });
 
     // 7. Mark the iouReport as being deleted and then delete it
@@ -6421,12 +6423,11 @@ function dismissChangePolicyModal() {
             value: {
                 [CONST.CHANGE_POLICY_TRAINING_MODAL]: {
                     timestamp: DateUtils.getDBTime(date.valueOf()),
-                    dismissedMethod: 'click',
+                    dismissedMethod: 'click' as const,
                 },
             },
         },
     ];
-    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
     API.write(WRITE_COMMANDS.DISMISS_PRODUCT_TRAINING, {name: CONST.CHANGE_POLICY_TRAINING_MODAL, dismissedMethod: 'click'}, {optimisticData});
 }
 
@@ -6650,11 +6651,10 @@ function buildOptimisticChangePolicyData(
             },
         });
 
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`,
-            value: reportNextStep,
+            value: reportNextStep ?? null,
         });
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -6746,11 +6746,10 @@ function buildOptimisticChangePolicyData(
                 lastVisibleActionCreated,
             },
         });
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${oldWorkspaceChatReportID}`,
-            value: parentReport,
+            value: parentReport ?? null,
         });
     }
 
@@ -6841,12 +6840,14 @@ function buildOptimisticChangePolicyData(
 
     // Search data might not have the new policy data so we should add it optimistically.
     if (policy && currentSearchQueryJSON) {
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+        // Initializing as an empty typed object to allow dynamic key assignment resolves TypeScript type inference issue
+        const optimisticSnapshotData: SearchResultDataType = {};
+        optimisticSnapshotData[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`] = policy;
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}` as const,
             value: {
-                data: {[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy},
+                data: optimisticSnapshotData,
             },
         });
     }

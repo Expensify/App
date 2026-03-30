@@ -4,7 +4,7 @@ import {renderHook, waitFor} from '@testing-library/react-native';
 import {format} from 'date-fns';
 import {deepEqual} from 'fast-equals';
 import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry, OnyxInputValue, OnyxKey, OnyxMultiSetInput} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxInputValue, OnyxKey, OnyxMergeCollectionInput, OnyxMultiSetInput} from 'react-native-onyx';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {SearchQueryJSON, SearchStatus} from '@components/Search/types';
 import useOnyx from '@hooks/useOnyx';
@@ -5102,17 +5102,13 @@ describe('actions/IOU', () => {
                 (item) => item[julesChatCreatedAction.reportActionID].reportID,
             );
 
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-            return Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, {
-                ...reportCollectionDataSet,
-            })
+            return Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reportCollectionDataSet as OnyxMergeCollectionInput<typeof ONYXKEYS.COLLECTION.REPORT>)
                 .then(() =>
-                    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                     Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
                         ...carlosActionsCollectionDataSet,
                         ...julesCreatedActionsCollectionDataSet,
                         ...julesActionsCollectionDataSet,
-                    }),
+                    } as OnyxMergeCollectionInput<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>),
                 )
                 .then(() => Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${julesExistingTransaction?.transactionID}`, julesExistingTransaction))
                 .then(() => {
@@ -12265,10 +12261,9 @@ describe('actions/IOU', () => {
 
             // Given a snapshot of the transaction
             await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}`, {
-                // @ts-expect-error: Allow partial record in snapshot update
                 data: {
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
-                },
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const]: transaction,
+                } as Record<`${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`, Transaction>,
             });
             await waitForBatchedUpdates();
 
@@ -12379,10 +12374,9 @@ describe('actions/IOU', () => {
 
             // Given a snapshot of the transaction
             await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}`, {
-                // @ts-expect-error: Allow partial record in snapshot update
                 data: {
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
-                },
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const]: transaction,
+                } as Record<`${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`, Transaction>,
             });
             await waitForBatchedUpdates();
 

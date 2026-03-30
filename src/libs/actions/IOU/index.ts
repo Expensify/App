@@ -214,6 +214,7 @@ import {
     hasSmartScanFailedWithMissingFields,
     hasSubmissionBlockingViolations,
     isCustomUnitRateIDForP2P,
+    isDistanceExpenseType,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isDuplicate,
     isFetchingWaypointsFromServer,
@@ -240,6 +241,7 @@ import type {BuildPolicyDataKeys} from '@userActions/Policy/Policy';
 import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
 import type {GuidedSetupData} from '@userActions/Report';
 import {buildInviteToRoomOnyxData, completeOnboarding, notifyNewAction, optimisticReportLastData} from '@userActions/Report';
+import {resolveDetachReceiptConflicts} from '@userActions/RequestConflictUtils';
 import {mergeTransactionIdsHighlightOnSearchRoute, sanitizeWaypointsForAPI, stringifyWaypointsForAPI} from '@userActions/Transaction';
 import {getRemoveDraftTransactionsByIDsData, removeDraftTransaction, removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
@@ -262,11 +264,10 @@ import type RecentlyUsedTags from '@src/types/onyx/RecentlyUsedTags';
 import type {ReportNextStep} from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
-import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import type {SearchDataTypes, SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type {Comment, Receipt, ReceiptSource, Routes, SplitShares, TransactionChanges, TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {resolveDetachReceiptConflicts} from '../RequestConflictUtils';
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
@@ -2150,8 +2151,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING}`,
-                // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-                value: {[CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP]: DateUtils.getDBTime(date.valueOf())},
+                value: {[CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP]: {timestamp: DateUtils.getDBTime(date.valueOf())}},
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -4556,24 +4556,25 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             value: currentTransactionViolations,
         });
         if (hash) {
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+            // Initializing as an empty typed object to allow dynamic key assignment resolves TypeScript type inference issue
+            const optimisticSnapshotData: SearchResultDataType = {};
+            optimisticSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] = Array.isArray(violationsOnyxData.value) ? violationsOnyxData.value : [];
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
                 value: {
-                    data: {
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`]: violationsOnyxData.value,
-                    },
+                    data: optimisticSnapshotData,
                 },
             });
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+
+            // Initializing as an empty typed object to allow dynamic key assignment resolves TypeScript type inference issue
+            const failureSnapshotData: SearchResultDataType = {};
+            failureSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] = currentTransactionViolations;
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
                 value: {
-                    data: {
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`]: currentTransactionViolations,
-                    },
+                    data: failureSnapshotData,
                 },
             });
         }
@@ -6800,12 +6801,11 @@ function trackExpense(params: CreateTrackExpenseParams) {
     const isDistanceRequest =
         isMapDistanceRequest(transaction) || isManualDistanceRequestTransactionUtils(transaction) || isOdometerDistanceRequestTransactionUtils(transaction) || isGPSDistanceRequest;
 
-    if (isDistanceRequest) {
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+    if (isDistanceRequest && transaction && isDistanceExpenseType(transaction.iouRequestType)) {
         onyxData?.optimisticData?.push({
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE,
-            value: transaction?.iouRequestType,
+            value: transaction.iouRequestType,
         });
     }
 
@@ -7786,16 +7786,10 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
 
         const isGPSDistanceRequest = transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_GPS;
 
-        if (
-            transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP ||
-            isGPSDistanceRequest ||
-            isManualDistanceRequest ||
-            transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER
-        ) {
+        if (isDistanceExpenseType(transaction.iouRequestType)) {
             onyxData?.optimisticData?.push({
                 onyxMethod: Onyx.METHOD.SET,
                 key: ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE,
-                // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                 value: transaction.iouRequestType,
             });
         }
@@ -8326,19 +8320,21 @@ function cleanUpMoneyRequest(
             value: updatedReportAction,
         });
     }
-    onyxUpdates.push(
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-        {
+    if (updatedIOUReport && iouReport?.reportID) {
+        onyxUpdates.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
             value: updatedIOUReport,
-        },
-        {
+        });
+    }
+
+    if (chatReport?.reportID) {
+        onyxUpdates.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
             value: getOutstandingChildRequest(updatedIOUReport),
-        },
-    );
+        });
+    }
 
     if (!shouldDeleteIOUReport && updatedReportPreviewAction.childMoneyRequestCount === 0) {
         onyxUpdates.push({
@@ -8627,11 +8623,10 @@ function deleteMoneyRequest({
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
             value: updatedReportAction,
         },
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
-            value: updatedIOUReport,
+            value: updatedIOUReport ?? null,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -8777,17 +8772,16 @@ function deleteMoneyRequest({
                 },
             },
         },
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         shouldDeleteIOUReport
             ? {
                   onyxMethod: Onyx.METHOD.SET,
                   key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
-                  value: iouReport,
+                  value: iouReport ?? null,
               }
             : {
                   onyxMethod: Onyx.METHOD.MERGE,
                   key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
-                  value: iouReport,
+                  value: iouReport ?? null,
               },
     );
 
@@ -11695,29 +11689,29 @@ function replaceReceipt({transactionID, file, source, state, transactionPolicy, 
         });
     }
     if (currentSearchQueryJSON?.hash) {
+        // Initializing as an empty typed object to allow dynamic key assignment resolves TypeScript type inference issue
+        const optimisticSnapshotData: NullishDeep<SearchResultDataType> = {};
+        optimisticSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = {
+            receipt: receiptOptimistic,
+        };
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}`,
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             value: {
-                data: {
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
-                        receipt: receiptOptimistic,
-                    },
-                },
+                data: optimisticSnapshotData,
             },
         });
 
+        // Initializing as an empty typed object to allow dynamic key assignment resolves TypeScript type inference issue
+        const failureSnapshotData: NullishDeep<SearchResultDataType> = {};
+        failureSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = {
+            receipt: !isEmptyObject(oldReceipt) ? oldReceipt : null,
+        };
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}`,
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             value: {
-                data: {
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
-                        receipt: !isEmptyObject(oldReceipt) ? oldReceipt : null,
-                    },
-                },
+                data: failureSnapshotData,
             },
         });
     }
@@ -12003,39 +11997,47 @@ function getSearchOnyxUpdate({
                     },
                 });
             }
-            const snapshotData = {
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
-                    [toAccountID]: {
-                        accountID: toAccountID,
-                        displayName: participant?.displayName,
-                        login: participant?.login,
-                    },
-                    [fromAccountID]: {
-                        accountID: fromAccountID,
-                        avatar: deprecatedCurrentUserPersonalDetails?.avatar,
-                        displayName: deprecatedCurrentUserPersonalDetails?.displayName,
-                        login: deprecatedCurrentUserPersonalDetails?.login,
-                    },
+            // Building this object sequentially resolves TypeScript type inference issues
+            const optimisticSnapshotData: SearchResultDataType = {};
+
+            optimisticSnapshotData[ONYXKEYS.PERSONAL_DETAILS_LIST] = {
+                [toAccountID]: {
+                    accountID: toAccountID,
+                    displayName: participant?.displayName,
+                    login: participant?.login,
                 },
-                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: {
+                [fromAccountID]: {
                     accountID: fromAccountID,
-                    managerID: toAccountID,
-                    ...(transactionThreadReportID && {transactionThreadReportID}),
-                    ...(isFromOneTransactionReport && {isFromOneTransactionReport}),
-                    ...transaction,
+                    avatar: deprecatedCurrentUserPersonalDetails?.avatar,
+                    displayName: deprecatedCurrentUserPersonalDetails?.displayName,
+                    login: deprecatedCurrentUserPersonalDetails?.login,
                 },
-                ...(policy && {[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy}),
-                ...(iouReport && {[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]: iouReport}),
-                ...(iouReport && iouAction && {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`]: {[iouAction.reportActionID]: iouAction}}),
             };
+
+            optimisticSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = {
+                ...(transactionThreadReportID && {transactionThreadReportID}),
+                ...(isFromOneTransactionReport && {isFromOneTransactionReport}),
+                ...transaction,
+            };
+
+            if (policy) {
+                optimisticSnapshotData[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`] = policy;
+            }
+
+            if (iouReport) {
+                optimisticSnapshotData[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`] = iouReport;
+            }
+
+            if (iouReport && iouAction) {
+                optimisticSnapshotData[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`] = {[iouAction.reportActionID]: iouAction};
+            }
 
             const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}` as const,
                     value: {
-                        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-                        data: snapshotData,
+                        data: optimisticSnapshotData,
                     },
                 },
             ];
@@ -12068,8 +12070,7 @@ function getSearchOnyxUpdate({
                                 hasResults: true,
                                 isLoading: false,
                             },
-                            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-                            data: snapshotData,
+                            data: optimisticSnapshotData,
                         },
                     });
                 }
@@ -12508,7 +12509,6 @@ function prepareRejectMoneyRequestData(
                     onyxMethod: Onyx.METHOD.SET,
                     key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${rejectedToReportID}`,
                     value: {
-                        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                         parentReportID: report?.chatReportID,
                     },
                 },
@@ -12906,11 +12906,10 @@ function markRejectViolationAsResolved(transactionID: string, reportID?: string)
 
     // Build optimistic data
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-            value: updatedViolations,
+            value: updatedViolations ?? null,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -12934,11 +12933,10 @@ function markRejectViolationAsResolved(transactionID: string, reportID?: string)
     ];
 
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-            value: currentViolations,
+            value: currentViolations ?? null,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
