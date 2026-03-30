@@ -76,7 +76,7 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
     const allPersonalDetails = usePersonalDetails();
     const isScreenFocusedRef = useIsFocusedRef();
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
-    const [sortedActions] = useOnyx(ONYXKEYS.DERIVED.SORTED_REPORT_ACTIONS, {selector: sortedActionsSelector});
+    const [sortedActions] = useOnyx(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS, {selector: sortedActionsSelector});
 
     const {
         options: listOptions,
