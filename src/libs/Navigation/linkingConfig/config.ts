@@ -2025,14 +2025,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.DEBUG_REPORT_ACTION_CREATE.route,
                             exact: true,
                         },
-                        [SCREENS.DEBUG.DETAILS_CONSTANT_PICKER_PAGE]: {
-                            path: ROUTES.DETAILS_CONSTANT_PICKER_PAGE.route,
-                            exact: true,
-                        },
-                        [SCREENS.DEBUG.DETAILS_DATE_TIME_PICKER_PAGE]: {
-                            path: ROUTES.DETAILS_DATE_TIME_PICKER_PAGE.route,
-                            exact: true,
-                        },
+                        [SCREENS.DEBUG.DYNAMIC_DETAILS_CONSTANT_PICKER_PAGE]: DYNAMIC_ROUTES.DETAILS_CONSTANT_PICKER.path,
+                        [SCREENS.DEBUG.DYNAMIC_DETAILS_DATE_TIME_PICKER_PAGE]: DYNAMIC_ROUTES.DETAILS_DATE_TIME_PICKER.path,
                         [SCREENS.DEBUG.TRANSACTION]: {
                             path: ROUTES.DEBUG_TRANSACTION.route,
                             exact: true,
@@ -2170,6 +2164,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.SETTINGS.ABOUT]: {
                     path: ROUTES.SETTINGS_ABOUT,
+                    exact: true,
+                },
+                [SCREENS.SETTINGS.HELP]: {
+                    path: ROUTES.SETTINGS_HELP,
                     exact: true,
                 },
                 [SCREENS.SETTINGS.TROUBLESHOOT]: {
