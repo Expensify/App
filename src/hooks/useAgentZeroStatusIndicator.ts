@@ -71,15 +71,7 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
     const newestReportActionRef = useRef<NewestReportAction | undefined>(newestReportAction);
     useEffect(() => {
         newestReportActionRef.current = newestReportAction;
-
-        // Immediately clear the indicator when a Concierge response arrives while processing.
-        // This eliminates the 30s delay waiting for the next poll cycle to detect it.
-        // The Onyx subscription fires as soon as getNewerActions merges new actions.
-        if (newestReportAction?.actorAccountID === CONST.ACCOUNT_ID.CONCIERGE && (serverLabel || optimisticStartTime)) {
-            clearAgentZeroProcessingIndicator(reportID);
-            clearPolling();
-        }
-    }, [newestReportAction, serverLabel, optimisticStartTime, reportID, clearPolling]);
+    }, [newestReportAction]);
 
     const [optimisticStartTime, setOptimisticStartTime] = useState<number | null>(null);
     const [displayedLabel, setDisplayedLabel] = useState<string>('');
@@ -305,6 +297,16 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
         setOptimisticStartTime(Date.now());
         startPolling();
     }, [isAgentZeroChat, startPolling]);
+
+    // Immediately clear the indicator when a Concierge response arrives while processing.
+    // This eliminates the 30s delay waiting for the next poll cycle to detect it.
+    // Placed after all dependencies (clearPolling, optimisticStartTime) are defined.
+    useEffect(() => {
+        if (newestReportAction?.actorAccountID === CONST.ACCOUNT_ID.CONCIERGE && (serverLabel || optimisticStartTime)) {
+            clearAgentZeroProcessingIndicator(reportID);
+            clearPolling();
+        }
+    }, [newestReportAction, serverLabel, optimisticStartTime, reportID, clearPolling]);
 
     const isProcessing = isAgentZeroChat && !isOffline && (!!serverLabel || !!optimisticStartTime);
 
