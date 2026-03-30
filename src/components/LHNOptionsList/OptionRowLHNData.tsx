@@ -102,11 +102,22 @@ function OptionRowLHNData({
         return getLastVisibleActionIncludingTransactionThread(reportID, canUserPerformWrite, actionsCollection, visibleReportActionsData, oneTransactionThreadReportID);
     }, [reportID, canUserPerformWrite, reportActions, transactionThreadReportActions, visibleReportActionsData, oneTransactionThreadReportID]);
 
+    // When lastAction is already a REPORT_PREVIEW, getIOUReportIDOfLastAction extracts the IOU report ID directly.
+    // When lastAction is an IOU CREATE from a one-transaction thread, getLastMessageTextForReport internally
+    // swaps it to the parent's REPORT_PREVIEW, so we fall back to fullReport.iouReportID which points to the
+    // same expense report.
     const iouReportIDOfLastAction = useMemo(
-        () => getIOUReportIDOfLastAction(fullReport, (reportNameValuePairsEntry ?? reportNameValuePairs)?.private_isArchived, visibleReportActionsData, lastAction),
+        () =>
+            getIOUReportIDOfLastAction(fullReport, (reportNameValuePairsEntry ?? reportNameValuePairs)?.private_isArchived, visibleReportActionsData, lastAction) ?? fullReport?.iouReportID,
         [fullReport, reportNameValuePairsEntry, reportNameValuePairs, visibleReportActionsData, lastAction],
     );
     const [iouReportReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReportIDOfLastAction)}`);
+
+    const iouReportAttributesSelector = useCallback(
+        (data: ReportAttributesDerivedValue | undefined) => (iouReportIDOfLastAction ? data?.reports?.[iouReportIDOfLastAction] : undefined),
+        [iouReportIDOfLastAction],
+    );
+    const [iouReportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: iouReportAttributesSelector});
 
     const lastReportActionTransactionID = isMoneyRequestAction(lastAction) ? (getOriginalMessage(lastAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID;
     const [lastReportActionTransaction] = useOnyx(
@@ -149,11 +160,18 @@ function OptionRowLHNData({
     });
 
     const reportAttributesDerived = useMemo(() => {
-        if (!reportAttributes) {
+        if (!reportAttributes && !iouReportAttributes) {
             return undefined;
         }
-        return {[reportID]: reportAttributes} as ReportAttributesDerivedValue['reports'];
-    }, [reportID, reportAttributes]);
+        const result: ReportAttributesDerivedValue['reports'] = {};
+        if (reportAttributes) {
+            result[reportID] = reportAttributes;
+        }
+        if (iouReportIDOfLastAction && iouReportAttributes) {
+            result[iouReportIDOfLastAction] = iouReportAttributes;
+        }
+        return result;
+    }, [reportID, reportAttributes, iouReportIDOfLastAction, iouReportAttributes]);
 
     const optionItem = useMemo(
         () =>
