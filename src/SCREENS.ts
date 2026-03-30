@@ -802,6 +802,7 @@ const SCREENS = {
         RULES_CUSTOM: 'Rules_Custom',
         RULES_PROHIBITED_DEFAULT: 'Rules_Prohibited_Default',
         RULES_MERCHANT_NEW: 'Rules_Merchant_New',
+        RULES_SPEND_NEW: 'Rules_Spend_New',
         RULES_MERCHANT_MERCHANT_TO_MATCH: 'Rules_Merchant_Merchant_To_Match',
         RULES_MERCHANT_MATCH_TYPE: 'Rules_Merchant_Match_Type',
         RULES_MERCHANT_MERCHANT: 'Rules_Merchant_Merchant',
