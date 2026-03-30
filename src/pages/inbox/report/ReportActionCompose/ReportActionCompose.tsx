@@ -157,20 +157,33 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
 
     const {reportActions: unfilteredReportActions} = usePaginatedReportActions(report?.reportID);
-    const filteredReportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
+    const filteredReportActions = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
 
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
     const allReportTransactions = useReportTransactionsCollection(reportID);
-    const reportTransactions = getAllNonDeletedTransactions(allReportTransactions, filteredReportActions, isOffline, true);
-    const visibleTransactions = reportTransactions?.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-    const reportTransactionIDs = visibleTransactions?.map((t) => t.transactionID);
-    const isSentMoneyReport = filteredReportActions.some((action) => isSentMoneyReportAction(action));
-    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, filteredReportActions, isOffline, reportTransactionIDs);
+    const reportTransactions = useMemo(
+        () => getAllNonDeletedTransactions(allReportTransactions, filteredReportActions, isOffline, true),
+        [allReportTransactions, filteredReportActions, isOffline],
+    );
+    const visibleTransactions = useMemo(
+        () => reportTransactions?.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
+        [reportTransactions, isOffline],
+    );
+    const reportTransactionIDs = useMemo(() => visibleTransactions?.map((t) => t.transactionID), [visibleTransactions]);
+    const isSentMoneyReport = useMemo(() => filteredReportActions.some((action) => isSentMoneyReportAction(action)), [filteredReportActions]);
+    const transactionThreadReportID = useMemo(
+        () => getOneTransactionThreadReportID(report, chatReport, filteredReportActions, isOffline, reportTransactionIDs),
+        [report, chatReport, filteredReportActions, isOffline, reportTransactionIDs],
+    );
     const effectiveTransactionThreadReportID = isSentMoneyReport ? undefined : transactionThreadReportID;
 
     const parentReportAction = useParentReportAction(report);
-    const [transactionThreadReportActions = {} as OnyxTypes.ReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${effectiveTransactionThreadReportID}`);
-    const combinedReportActions = getCombinedReportActions(filteredReportActions, effectiveTransactionThreadReportID ?? null, Object.values(transactionThreadReportActions));
+    const [transactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${effectiveTransactionThreadReportID}`);
+    const transactionThreadReportActionsArray = useMemo(() => (transactionThreadReportActions ? Object.values(transactionThreadReportActions) : []), [transactionThreadReportActions]);
+    const combinedReportActions = useMemo(
+        () => getCombinedReportActions(filteredReportActions, effectiveTransactionThreadReportID ?? null, transactionThreadReportActionsArray),
+        [filteredReportActions, effectiveTransactionThreadReportID, transactionThreadReportActionsArray],
+    );
 
     const route = useRoute();
     const isOnSearchMoneyRequestReport = route.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT || route.name === SCREENS.RIGHT_MODAL.EXPENSE_REPORT;
@@ -182,7 +195,10 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
     // because ReportActionsView merges thread comments into the visible list, and up-arrow-to-edit
     // should be able to reach those comments.
     const actionsForLastEditable = isOnSearchMoneyRequestReport ? filteredReportActions : combinedReportActions;
-    const lastReportAction = [...actionsForLastEditable, parentReportAction].find((action) => canEditReportAction(action) && !isMoneyRequestAction(action));
+    const lastReportAction = useMemo(
+        () => [...actionsForLastEditable, parentReportAction].find((action) => canEditReportAction(action) && !isMoneyRequestAction(action)),
+        [actionsForLastEditable, parentReportAction],
+    );
 
     const {reportPendingAction: pendingAction} = getReportOfflinePendingActionAndErrors(report);
 
