@@ -13253,7 +13253,6 @@ describe('actions/IOU', () => {
                 betas: undefined,
             });
 
-
             // Then: buildOptimisticModifiedExpenseReportAction should receive the transaction's own policy,
             // not the shared bulk-edit policy. This matters because getUpdatedMoneyRequestReportData
             // (called after) uses the same policy for maybeUpdateReportNameForFormulaTitle.
