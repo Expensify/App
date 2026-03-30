@@ -21,7 +21,6 @@ import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useRestoreScrollOnFocus from '@hooks/useRestoreScrollOnFocus';
 import useScrollToEndOnNewMessageReceived from '@hooks/useScrollToEndOnNewMessageReceived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -473,8 +472,6 @@ function ReportActionsList({
         prevHandleReportChangeMarkAsRead.current = handleReportChangeMarkAsRead;
         prevHandleAppVisibilityMarkAsRead.current = handleAppVisibilityMarkAsRead;
     }, [handleReportChangeMarkAsRead, handleAppVisibilityMarkAsRead]);
-
-    useRestoreScrollOnFocus(isFocused, scrollOffsetRef, reportScrollManager.scrollToBottom, linkedReportActionID);
 
     useEffect(() => {
         if (linkedReportActionID) {

@@ -34,7 +34,6 @@ import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
-import useRestoreScrollOnFocus from '@hooks/useRestoreScrollOnFocus';
 import useScrollToEndOnNewMessageReceived from '@hooks/useScrollToEndOnNewMessageReceived';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -577,8 +576,6 @@ function MoneyRequestReportActionsList({
         },
         hasOnceLoadedReportActions: !!reportMetadata?.hasOnceLoadedReportActions,
     });
-
-    useRestoreScrollOnFocus(isFocused, scrollingVerticalBottomOffset, reportScrollManager.scrollToEnd, linkedReportActionID);
 
     useScrollToEndOnNewMessageReceived({
         sizeChangeType: 'grewFromReportActions',
