@@ -7898,11 +7898,6 @@ const CONST = {
             AFTER: 'After',
             BEFORE: 'Before',
         },
-        DATE_FILTER_SUB_PAGE: {
-            ON: 'on',
-            AFTER: 'after',
-            BEFORE: 'before',
-        },
         AMOUNT_MODIFIERS: {
             LESS_THAN: 'LessThan',
             GREATER_THAN: 'GreaterThan',
