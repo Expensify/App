@@ -3,6 +3,7 @@ import type {OnyxMultiSetInput} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import usePolicyIndicatorChecks from '@hooks/usePolicyIndicatorChecks';
 import CONST from '@src/CONST';
+import initOnyxDerivedValues from '@src/libs/actions/OnyxDerived';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -20,6 +21,7 @@ describe('usePolicyIndicatorChecks', () => {
         Onyx.init({
             keys: ONYXKEYS,
         });
+        initOnyxDerivedValues();
     });
 
     describe('policy error statuses', () => {
@@ -185,6 +187,34 @@ describe('usePolicyIndicatorChecks', () => {
 
             expect(result.current.policyStatus).toBe(CONST.INDICATOR_STATUS.HAS_UBER_CREDENTIALS_ERROR);
             expect(result.current.policyIDWithErrors).toBe(WORKSPACE.policyID);
+        });
+
+        it('returns HAS_POLICY_ADMIN_CARD_FEED_ERRORS when admin has card feed errors', async () => {
+            await act(async () => {
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {email: userID},
+                    [`${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE.policyID}` as const]: {
+                        id: WORKSPACE.policyID,
+                        name: WORKSPACE.policyName,
+                        owner: userID,
+                        role: 'admin',
+                        workspaceAccountID: WORKSPACE.workspaceAccountID,
+                    },
+                    [ONYXKEYS.CARD_LIST]: {
+                        card1: {
+                            bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
+                            fundID: String(WORKSPACE.workspaceAccountID),
+                            lastScrapeResult: 403,
+                        },
+                    },
+                } as unknown as OnyxMultiSetInput);
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            const {result} = renderHook(() => usePolicyIndicatorChecks());
+            await waitForBatchedUpdatesWithAct();
+
+            expect(result.current.policyStatus).toBe(CONST.INDICATOR_STATUS.HAS_POLICY_ADMIN_CARD_FEED_ERRORS);
         });
     });
 

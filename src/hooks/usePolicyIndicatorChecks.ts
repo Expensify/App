@@ -17,14 +17,9 @@ type PolicyIndicatorChecksResult = {
 
 function usePolicyIndicatorChecks(): PolicyIndicatorChecksResult {
     const [allConnectionSyncProgresses] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS);
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allDomainErrors] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN_ERRORS);
 
-    const {policiesWithCardFeedErrors, isPolicyAdmin} = usePoliciesWithCardFeedErrors();
-
-    // If a policy was just deleted from Onyx, then Onyx will pass a null value to the props, and
-    // those should be cleaned out before doing any error checking
-    const cleanPolicies = Object.values(policies ?? {}).filter((policy) => policy?.id);
+    const {cleanPolicies, policiesWithCardFeedErrors, isPolicyAdmin} = usePoliciesWithCardFeedErrors();
 
     const policyChecks: Partial<Record<IndicatorStatus, Policy | undefined>> = {
         [CONST.INDICATOR_STATUS.HAS_POLICY_ERRORS]: cleanPolicies.find(shouldShowPolicyError),

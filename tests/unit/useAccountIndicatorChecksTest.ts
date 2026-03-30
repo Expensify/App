@@ -173,6 +173,27 @@ describe('useAccountIndicatorChecks', () => {
             expect(result.current.accountStatus).toBe(CONST.INDICATOR_STATUS.HAS_PHONE_NUMBER_ERROR);
         });
 
+        it('returns HAS_SUBSCRIPTION_ERRORS when subscription has billing dispute', async () => {
+            await act(async () => {
+                await Onyx.multiSet({
+                    [ONYXKEYS.USER_WALLET]: {},
+                    [ONYXKEYS.BANK_ACCOUNT_LIST]: {},
+                    [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {},
+                    [ONYXKEYS.LOGIN_LIST]: {},
+                    [ONYXKEYS.WALLET_TERMS]: {},
+                    [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
+                    [ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING]: 1,
+                    [ONYXKEYS.SESSION]: {email: userID},
+                } as unknown as OnyxMultiSetInput);
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            const {result} = renderHook(() => useAccountIndicatorChecks());
+            await waitForBatchedUpdatesWithAct();
+
+            expect(result.current.accountStatus).toBe(CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_ERRORS);
+        });
+
         it('returns HAS_EMPLOYEE_CARD_FEED_ERRORS for non-admin with broken card connection', async () => {
             await act(async () => {
                 await Onyx.multiSet({
@@ -182,6 +203,7 @@ describe('useAccountIndicatorChecks', () => {
                     [ONYXKEYS.LOGIN_LIST]: {},
                     [ONYXKEYS.WALLET_TERMS]: {},
                     [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
+                    [ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING]: 0,
                     [ONYXKEYS.CARD_LIST]: {
                         card1: {
                             bank: cardFeed.feedName,
@@ -232,6 +254,73 @@ describe('useAccountIndicatorChecks', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(result.current.infoStatus).toBe(CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO);
+        });
+
+        it('returns HAS_PENDING_CARD_INFO when card has pending action', async () => {
+            await act(async () => {
+                await Onyx.multiSet({
+                    [ONYXKEYS.LOGIN_LIST]: {},
+                    [ONYXKEYS.CARD_LIST]: {
+                        card1: {
+                            cardID: 'card1',
+                            bank: CONST.EXPENSIFY_CARD.BANK,
+                            nameValuePairs: {isVirtual: false},
+                            state: CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED,
+                        },
+                    },
+                    [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
+                    [ONYXKEYS.SESSION]: {email: userID},
+                } as unknown as OnyxMultiSetInput);
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            const {result} = renderHook(() => useAccountIndicatorChecks());
+            await waitForBatchedUpdatesWithAct();
+
+            expect(result.current.infoStatus).toBe(CONST.INDICATOR_STATUS.HAS_PENDING_CARD_INFO);
+        });
+
+        it('returns HAS_SUBSCRIPTION_INFO when retry billing was successful', async () => {
+            await act(async () => {
+                await Onyx.multiSet({
+                    [ONYXKEYS.LOGIN_LIST]: {},
+                    [ONYXKEYS.CARD_LIST]: {},
+                    [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
+                    [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL]: true,
+                    [ONYXKEYS.SESSION]: {email: userID},
+                } as unknown as OnyxMultiSetInput);
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            const {result} = renderHook(() => useAccountIndicatorChecks());
+            await waitForBatchedUpdatesWithAct();
+
+            expect(result.current.infoStatus).toBe(CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_INFO);
+        });
+
+        it('returns HAS_PARTIALLY_SETUP_BANK_ACCOUNT_INFO when bank account is partially setup', async () => {
+            await act(async () => {
+                await Onyx.multiSet({
+                    [ONYXKEYS.LOGIN_LIST]: {},
+                    [ONYXKEYS.CARD_LIST]: {},
+                    [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {},
+                    [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL]: false,
+                    [ONYXKEYS.BANK_ACCOUNT_LIST]: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        12345: {
+                            methodID: 12345,
+                            accountData: {state: CONST.BANK_ACCOUNT.STATE.SETUP},
+                        },
+                    },
+                    [ONYXKEYS.SESSION]: {email: userID},
+                } as unknown as OnyxMultiSetInput);
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            const {result} = renderHook(() => useAccountIndicatorChecks());
+            await waitForBatchedUpdatesWithAct();
+
+            expect(result.current.infoStatus).toBe(CONST.INDICATOR_STATUS.HAS_PARTIALLY_SETUP_BANK_ACCOUNT_INFO);
         });
     });
 
