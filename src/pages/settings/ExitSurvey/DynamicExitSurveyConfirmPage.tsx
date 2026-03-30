@@ -27,7 +27,7 @@ import ExitSurveyOffline from './ExitSurveyOffline';
 
 const exitResponseSelector = (value: OnyxEntry<ExitSurveyResponseForm>) => value?.[RESPONSE_INPUT_IDS.RESPONSE];
 
-function ExitSurveyConfirmPage() {
+function DynamicExitSurveyConfirmPage() {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
@@ -42,7 +42,7 @@ function ExitSurveyConfirmPage() {
 
     return (
         <ScreenWrapper
-            testID="ExitSurveyConfirmPage"
+            testID="DynamicExitSurveyConfirmPage"
             shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
@@ -84,4 +84,4 @@ function ExitSurveyConfirmPage() {
     );
 }
 
-export default ExitSurveyConfirmPage;
+export default DynamicExitSurveyConfirmPage;

@@ -32,7 +32,7 @@ import ExitSurveyOffline from './ExitSurveyOffline';
 
 const draftResponseSelector = (value: OnyxEntry<ExitSurveyResponseForm>) => value?.[INPUT_IDS.RESPONSE];
 
-function ExitSurveyReasonPage() {
+function DynamicExitSurveyReasonPage() {
     const {isOffline} = useNetwork();
     const [draftResponse = ''] = useOnyx(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM_DRAFT, {selector: draftResponseSelector});
     const {translate} = useLocalize();
@@ -68,7 +68,7 @@ function ExitSurveyReasonPage() {
     );
 
     return (
-        <ScreenWrapper testID="ExitSurveyReasonPage">
+        <ScreenWrapper testID="DynamicExitSurveyReasonPage">
             <HeaderWithBackButton
                 title={translate('exitSurvey.header')}
                 onBackButtonPress={() => Navigation.goBack()}
@@ -117,4 +117,4 @@ function ExitSurveyReasonPage() {
     );
 }
 
-export default ExitSurveyReasonPage;
+export default DynamicExitSurveyReasonPage;
