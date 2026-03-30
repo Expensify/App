@@ -248,6 +248,7 @@ function useSelectionModeReportActions({
                 reportActions,
                 reportMetadata,
                 isChatReportArchived,
+                invoiceReceiverPolicy,
             }),
         [
             report,
@@ -262,6 +263,7 @@ function useSelectionModeReportActions({
             isChatReportArchived,
             currentUserEmail,
             currentUserAccountID,
+            invoiceReceiverPolicy,
         ],
     );
 
@@ -445,6 +447,7 @@ function useSelectionModeReportActions({
             } else if (isAnyTransactionOnHold) {
                 setSelectedVBBAToPayFromHoldMenu(type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined);
                 if (getPlatform() === CONST.PLATFORM.IOS) {
+                    // On iOS, opening the hold menu immediately can conflict with the popover dismiss animation, so we defer it.
                     // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => setIsHoldMenuVisible(true));
                 } else {
@@ -548,6 +551,8 @@ function useSelectionModeReportActions({
             if (checkForNecessaryAction()) {
                 return;
             }
+            // This callback fires via onSubItemSelected before the popover closes. Defer heavy payment
+            // work so the dropdown dismiss animation completes first, avoiding perceived UI lag.
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 selectPaymentType({
