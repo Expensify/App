@@ -2930,13 +2930,8 @@ ${amount} voor ${merchant} - ${date}`,
                         4. Zoek ${integrationName}.
                         5. Klik op *Connect*.
 
-${
-    integrationName && CONST.connectionsVideoPaths[integrationName]
-        ? `[Breng me naar de boekhouding](${workspaceAccountingLink}).
-
-                        ![Verbinden met ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
-        : `[Breng me naar boekhouding](${workspaceAccountingLink}).`
-}`),
+                        [Breng me naar boekhouding](${workspaceAccountingLink}).
+                    `),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `Verbind [je zakelijke kaarten](${corporateCardLink})`,
@@ -3353,6 +3348,11 @@ ${
         confirmationStepHeader: 'Controleer je gegevens.',
         confirmationStepSubHeader: 'Controleer de onderstaande gegevens goed en vink het vakje met de voorwaarden aan om te bevestigen.',
         toGetStarted: 'Voeg een persoonlijke bankrekening toe om terugbetalingen te ontvangen, facturen te betalen of de Expensify Wallet in te schakelen.',
+        updatePersonalInfo: 'Bankrekening bijwerken',
+        updatePersonalInfoFailure: 'Kan de bankrekeninggegevens niet bijwerken. Probeer het later opnieuw.',
+        updateSuccessTitle: 'Bankrekening bijgewerkt!',
+        updateSuccessHeader: 'Bankrekening bijgewerkt',
+        updateSuccessMessage: 'Gefeliciteerd, je bankrekening is ingesteld en klaar om terugbetalingen te ontvangen.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Voer Expensify-wachtwoord in',
@@ -4999,6 +4999,9 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
         companyCards: {
             addCards: 'Kaarten toevoegen',
             selectCards: 'Kaarten selecteren',
+            fromOtherWorkspaces: 'Uit andere workspaces',
+            addWorkEmail: 'Voeg je werkmail toe',
+            addWorkEmailDescription: 'Voeg je werkmail toe om bestaande feeds van andere workspaces te gebruiken.',
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Kaartfeeds konden niet worden geladen',
                 workspaceFeedsCouldNotBeLoadedMessage: 'Er is een fout opgetreden bij het laden van workspacekaartfeeds. Probeer het opnieuw of neem contact op met je beheerder.',
@@ -7312,6 +7315,9 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
         topMerchants: 'Topverkopers',
         groupedExpenses: 'gegroepeerde uitgaven',
         bulkActions: {
+            editMultiple: 'Meerdere bewerken',
+            editMultipleTitle: 'Meerdere uitgaven bewerken',
+            editMultipleDescription: 'Wijzigingen worden toegepast op alle geselecteerde uitgaven en overschrijven eerder ingestelde waarden.',
             approve: 'Goedkeuren',
             pay: 'Betalen',
             delete: 'Verwijderen',

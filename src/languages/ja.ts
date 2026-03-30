@@ -2906,13 +2906,8 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                         4. ${integrationName} を探します。
                         5.「*接続*」をクリックします。
 
-${
-    integrationName && CONST.connectionsVideoPaths[integrationName]
-        ? `[会計画面へ移動](${workspaceAccountingLink})。
-
-                        ![${integrationName} に接続](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
-        : `[経理画面に移動](${workspaceAccountingLink})。`
-}`),
+                        [経理画面に移動](${workspaceAccountingLink})。
+                    `),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `[法人カード](${corporateCardLink})を連携`,
@@ -3328,6 +3323,11 @@ ${
         confirmationStepHeader: '情報を確認してください。',
         confirmationStepSubHeader: '下記の詳細を再確認し、利用規約のチェックボックスをオンにして確定してください。',
         toGetStarted: '個人の銀行口座を追加して、経費精算の受け取りや請求書の支払い、Expensifyウォレットの有効化を行いましょう。',
+        updatePersonalInfo: '銀行口座を更新',
+        updatePersonalInfoFailure: '銀行口座情報を更新できませんでした。後でもう一度お試しください。',
+        updateSuccessTitle: '銀行口座が更新されました！',
+        updateSuccessHeader: '銀行口座が更新されました',
+        updateSuccessMessage: 'おめでとうございます。銀行口座の設定が完了し、精算の受け取りができるようになりました。',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Expensify のパスワードを入力',
@@ -4962,6 +4962,9 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
         companyCards: {
             addCards: 'カードを追加',
             selectCards: 'カードを選択',
+            fromOtherWorkspaces: '他のワークスペースから',
+            addWorkEmail: 'あなたの勤務用メールアドレスを追加',
+            addWorkEmailDescription: '他のワークスペースの既存フィードを使用するには、勤務用メールアドレスを追加してください。',
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'カードフィードを読み込めませんでした',
                 workspaceFeedsCouldNotBeLoadedMessage: 'ワークスペースカードフィードの読み込み中にエラーが発生しました。もう一度お試しいただくか、管理者にお問い合わせください。',
@@ -7248,6 +7251,9 @@ ${reportName}
         topMerchants: '上位加盟店',
         groupedExpenses: 'グループ化された経費',
         bulkActions: {
+            editMultiple: '複数を編集',
+            editMultipleTitle: '複数の経費を編集',
+            editMultipleDescription: '変更は選択したすべての経費に適用され、以前に設定された値は上書きされます。',
             approve: '承認',
             pay: '支払う',
             delete: '削除',

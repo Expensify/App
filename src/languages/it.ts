@@ -2932,13 +2932,8 @@ ${amount} per ${merchant} - ${date}`,
                         4. Trova ${integrationName}.
                         5. Fai clic su *Connetti*.
 
-${
-    integrationName && CONST.connectionsVideoPaths[integrationName]
-        ? `[Portami alla contabilità](${workspaceAccountingLink}).
-
-                        ![Connetti a ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
-        : `[Portami alla contabilità](${workspaceAccountingLink}).`
-}`),
+                        [Portami alla contabilità](${workspaceAccountingLink}).
+                    `),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `Collega [le tue carte aziendali](${corporateCardLink})`,
@@ -3356,6 +3351,11 @@ ${
         confirmationStepHeader: 'Controlla le tue informazioni.',
         confirmationStepSubHeader: 'Controlla attentamente i dettagli qui sotto e seleziona la casella delle condizioni per confermare.',
         toGetStarted: 'Aggiungi un conto bancario personale per ricevere rimborsi, pagare fatture o attivare l’Expensify Wallet.',
+        updatePersonalInfo: 'Aggiorna conto bancario',
+        updatePersonalInfoFailure: 'Impossibile aggiornare le informazioni del conto bancario. Riprova più tardi.',
+        updateSuccessTitle: 'Conto bancario aggiornato!',
+        updateSuccessHeader: 'Conto bancario aggiornato',
+        updateSuccessMessage: 'Complimenti, il tuo conto bancario è configurato e pronto a ricevere rimborsi.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Inserisci la password di Expensify',
@@ -5007,6 +5007,9 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
         companyCards: {
             addCards: 'Aggiungi carte',
             selectCards: 'Seleziona carte',
+            fromOtherWorkspaces: 'Da altri spazi di lavoro',
+            addWorkEmail: 'Aggiungi la tua email di lavoro',
+            addWorkEmailDescription: 'Aggiungi la tua email di lavoro per utilizzare i feed esistenti di altri spazi di lavoro.',
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Impossibile caricare i feed della carta',
                 workspaceFeedsCouldNotBeLoadedMessage:
@@ -7334,6 +7337,9 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
         topMerchants: 'Commercianti principali',
         groupedExpenses: 'spese raggruppate',
         bulkActions: {
+            editMultiple: 'Modifica multipli',
+            editMultipleTitle: 'Modifica più spese',
+            editMultipleDescription: 'Le modifiche verranno applicate a tutte le spese selezionate e sostituiranno i valori precedentemente impostati.',
             approve: 'Approva',
             pay: 'Paga',
             delete: 'Elimina',

@@ -69,7 +69,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
         'Send',
         'ThumbsUp',
         'CheckCircle',
-    ] as const);
+    ]);
 
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
 
