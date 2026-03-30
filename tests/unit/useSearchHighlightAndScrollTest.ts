@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {renderHook} from '@testing-library/react-native';
+import {act, renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import type {UseSearchHighlightAndScroll} from '@hooks/useSearchHighlightAndScroll';
@@ -265,15 +265,8 @@ describe('useSearchHighlightAndScroll', () => {
         expect(result.current.newSearchResultKeys?.size).toBe(2);
     });
 
-    it('should return new search result keys for manually highlighted expenses', async () => {
-        const spyOnMergeTransactionIdsHighlightOnSearchRoute = jest
-            .spyOn(require('@libs/actions/Transaction'), 'mergeTransactionIdsHighlightOnSearchRoute')
-            .mockImplementationOnce(jest.fn());
-        // We need to mock requestAnimationFrame to mimic long Onyx merge overhead
-        jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback: FrameRequestCallback) => {
-            callback(performance.now());
-            return 0;
-        });
+    it('should return new search result keys for manually highlighted expenses and clean up when item is found', async () => {
+        const spyOnMergeTransactionIdsHighlightOnSearchRoute = jest.spyOn(require('@libs/actions/Transaction'), 'mergeTransactionIdsHighlightOnSearchRoute').mockImplementation(jest.fn());
 
         await Onyx.merge(ONYXKEYS.TRANSACTION_IDS_HIGHLIGHT_ON_SEARCH_ROUTE, {[baseProps.queryJSON.type]: {'3': true}});
 
@@ -332,12 +325,18 @@ describe('useSearchHighlightAndScroll', () => {
         expect(result.current.newSearchResultKeys?.size).toBe(1);
         expect([...(result.current.newSearchResultKeys ?? new Set())]).toContain('transactions_3');
 
-        // Wait 1s for the timer in useSearchHighlightAndScroll to complete.
-        await new Promise((resolve) => {
-            setTimeout(resolve, 1000);
+        // Cleanup should NOT happen on a timer — only once handleSelectionListScroll confirms the item is present.
+        expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).not.toHaveBeenCalledWith(baseProps.queryJSON.type, {'3': false});
+
+        // Simulate the list calling back with data that contains the highlighted item.
+        const mockRef = {scrollToIndex: jest.fn()} as unknown as Parameters<typeof result.current.handleSelectionListScroll>[1];
+        const listData = [{transactionID: '3'}] as unknown as Parameters<typeof result.current.handleSelectionListScroll>[0];
+        act(() => {
+            result.current.handleSelectionListScroll(listData, mockRef);
         });
 
-        expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledTimes(1);
+        // State should now be cleared and the Onyx flag should be set to false.
+        expect(result.current.newSearchResultKeys).toBeNull();
         expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledWith(baseProps.queryJSON.type, {'3': false});
     });
 

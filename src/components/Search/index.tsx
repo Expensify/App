@@ -1346,6 +1346,16 @@ function Search({
         flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
     }, [handleSelectionListScroll, stableSortedData]);
 
+    // When newSearchResultKeys becomes available after the initial layout has already fired
+    // (the common case on slow devices: skeleton onLayout fires before API data arrives),
+    // attempt the scroll immediately rather than waiting for the next layout event.
+    useEffect(() => {
+        if (!newSearchResultKeys || !hasHadFirstLayout.current) {
+            return;
+        }
+        handleSelectionListScroll(stableSortedData, searchListRef.current);
+    }, [newSearchResultKeys, handleSelectionListScroll, stableSortedData]);
+
     // Must be a ref, not state: cancelNavigationSpans is called during render
     // (inside conditional returns), so using setState would trigger infinite re-renders.
     const didBailToFallbackState = useRef(false);
