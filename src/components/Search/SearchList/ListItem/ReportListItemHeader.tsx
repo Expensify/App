@@ -59,12 +59,6 @@ type ReportListItemHeaderProps<TItem extends ListItem> = {
     /** Whether the item is hovered */
     isHovered?: boolean;
 
-    /** Callback to fire when DEW modal should be opened */
-    onDEWModalOpen?: () => void;
-
-    /** Whether the DEW beta flag is enabled */
-    isDEWBetaEnabled?: boolean;
-
     /** The last payment method used per policy */
     lastPaymentMethod?: OnyxEntry<LastPaymentMethod>;
 
@@ -214,8 +208,6 @@ function ReportListItemHeader<TItem extends ListItem>({
     onDownArrowClick,
     isExpanded,
     isHovered,
-    onDEWModalOpen,
-    isDEWBetaEnabled,
     lastPaymentMethod,
     personalPolicyID,
 }: ReportListItemHeaderProps<TItem>) {
@@ -235,6 +227,7 @@ function ReportListItemHeader<TItem extends ListItem>({
     }, [snapshot, reportItem.policyID]);
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const avatarBorderColor =
         StyleUtils.getItemBackgroundColorStyle(!!reportItem.isSelected, !!isFocused || !!isHovered, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ??
         theme.highlightBG;
@@ -249,11 +242,10 @@ function ReportListItemHeader<TItem extends ListItem>({
             lastPaymentMethod,
             userBillingGraceEndPeriods,
             currentSearchKey,
-            onDEWModalOpen,
-            isDEWBetaEnabled,
             isDelegateAccessRestricted,
             onDelegateAccessRestricted: showDelegateNoAccessModal,
             personalPolicyID,
+            ownerBillingGraceEndPeriod,
         });
     };
     return !isLargeScreenWidth ? (
