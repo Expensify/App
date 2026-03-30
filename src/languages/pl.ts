@@ -7160,6 +7160,17 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             approvedReimbursedClosedSpend,
         }: UpdatedPolicyBudgetNotificationParams) =>
             `Uwaga! Ta przestrzeń robocza ma ${budgetFrequency} budżet w wysokości „${budgetAmount}” dla ${budgetTypeForNotificationMessage} „${budgetName}”. Obecnie wykorzystano ${approvedReimbursedClosedSpend}, co przekracza ${thresholdPercentage}% budżetu. Dodatkowo ${awaitingApprovalSpend} czeka na zatwierdzenie, a ${unsubmittedSpend} nie zostało jeszcze przesłane, co daje łącznie ${totalSpend}. ${summaryLink ? `<a href="${summaryLink}">Oto raport</a> ze wszystkimi tymi wydatkami do Twoich dokumentów!` : ''}`,
+        addedCardFeed: (feedName: string) => `dodano strumień karty „${feedName}”`,
+        removedCardFeed: (feedName: string) => `usunięto kanał karty „${feedName}”`,
+        renamedCardFeed: (newName: string, oldName: string) => `zmieniono nazwę kanału karty na „${newName}” (wcześniej „${oldName}”)`,
+        assignedCompanyCard: (email: string, feedName: string, cardLastFour: string) =>
+            `przypisano użytkownikowi ${email} ${feedName ? `„${feedName}" ` : ''}firmową kartę kończącą się na ${cardLastFour}`,
+        unassignedCompanyCard: (email: string, feedName: string, cardLastFour: string) =>
+            `nieprzypisana ${feedName ? `„${feedName}" ` : ''}firmowa karta ${email} kończąca się na ${cardLastFour}`,
+        updatedCardFeedLiability: (feedName: string, enabled: boolean) =>
+            `${enabled ? 'włączone' : 'wyłączone'} posiadaczy karty może usuwać transakcje z karty dla kanału kart „${feedName}”`,
+        updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
+            `zmienił dzień zakończenia okresu rozliczeniowego dla źródła karty „${feedName}”${newValue ? ` na „${newValue}”` : ''}${previousValue ? ` (wcześniej „${previousValue}”)` : ''}`,
         addedReportField: ({fieldType, fieldName, defaultValue}: AddedOrDeletedPolicyReportFieldParams) =>
             `dodano pole raportu typu ${fieldType} „${fieldName}”${defaultValue ? ` z domyślną wartością „${defaultValue}”` : ''}`,
     },

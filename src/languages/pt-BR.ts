@@ -7162,6 +7162,16 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             approvedReimbursedClosedSpend,
         }: UpdatedPolicyBudgetNotificationParams) =>
             `Atenção! Este workspace tem um orçamento ${budgetFrequency} de "${budgetAmount}" para o(a) ${budgetTypeForNotificationMessage} "${budgetName}". No momento você está em ${approvedReimbursedClosedSpend}, o que está acima de ${thresholdPercentage}% do orçamento. Há também ${awaitingApprovalSpend} aguardando aprovação e ${unsubmittedSpend} que ainda não foi enviado, totalizando ${totalSpend}. ${summaryLink ? `<a href="${summaryLink}">Aqui está um relatório</a> com todas essas despesas para o seu controle!` : ''}`,
+        addedCardFeed: (feedName: string) => `adicionou o feed de cartão "${feedName}"`,
+        removedCardFeed: (feedName: string) => `removeu o feed de cartão "${feedName}"`,
+        renamedCardFeed: (newName: string, oldName: string) => `renomeou o feed de cartão para "${newName}" (antes "${oldName}")`,
+        assignedCompanyCard: (email: string, feedName: string, cardLastFour: string) => `atribuiu ${email} ${feedName ? `"${feedName}" ` : ''}cartão empresarial com final ${cardLastFour}`,
+        unassignedCompanyCard: (email: string, feedName: string, cardLastFour: string) =>
+            `cartão corporativo ${feedName ? `"${feedName}" ` : ''}${email} não atribuído com final ${cardLastFour}`,
+        updatedCardFeedLiability: (feedName: string, enabled: boolean) =>
+            `${enabled ? 'ativado' : 'desativado'} titulares de cartão para excluir transações de cartão para o feed de cartão "${feedName}"`,
+        updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
+            `changed card feed "${feedName}" statement period end day${newValue ? ` para "${newValue}"` : ''}${previousValue ? `(antes " ${previousValue}")` : ''}`,
         addedReportField: ({fieldType, fieldName, defaultValue}: AddedOrDeletedPolicyReportFieldParams) =>
             `adicionou o campo de relatório ${fieldType} "${fieldName}"${defaultValue ? ` com valor padrão "${defaultValue}"` : ''}`,
     },

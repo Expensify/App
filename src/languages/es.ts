@@ -6793,6 +6793,17 @@ ${amount} para ${merchant} - ${date}`,
             }`;
         },
         deleteReportField: ({fieldType, fieldName}: {fieldType: string; fieldName?: string}) => `eliminó el campo de informe ${fieldType} "${fieldName}"`,
+        addedCardFeed: (feedName: string) => `añadió la fuente de tarjetas "${feedName}"`,
+        removedCardFeed: (feedName: string) => `eliminó la fuente de tarjetas "${feedName}"`,
+        renamedCardFeed: (newName: string, oldName: string) => `renombró la fuente de tarjetas a "${newName}" (previamente "${oldName}")`,
+        assignedCompanyCard: (email: string, feedName: string, cardLastFour: string) =>
+            `asignó la tarjeta de empresa ${feedName ? `"${feedName}" ` : ''}que termina en ${cardLastFour} a ${email}`,
+        unassignedCompanyCard: (email: string, feedName: string, cardLastFour: string) =>
+            `desasignó la tarjeta de empresa ${feedName ? `"${feedName}" ` : ''}que termina en ${cardLastFour} de ${email}`,
+        updatedCardFeedLiability: (feedName: string, enabled: boolean) =>
+            `${enabled ? 'habilitó' : 'deshabilitó'} que los titulares de tarjetas eliminen transacciones de la fuente de tarjetas "${feedName}"`,
+        updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
+            `cambió el día de cierre del período de estado de cuenta de la fuente de tarjetas "${feedName}"${newValue ? ` a "${newValue}"` : ''}${previousValue ? ` (previamente "${previousValue}")` : ''}`,
         preventSelfApproval: ({oldValue, newValue}) =>
             `actualizó "Evitar la autoaprobación" a "${newValue === 'true' ? 'Habilitada' : 'Deshabilitada'}" (previamente "${oldValue === 'true' ? 'Habilitada' : 'Deshabilitada'}")`,
         setReceiptRequiredAmount: (newValue) => `estableció el importe requerido del recibo en "${newValue}"`,

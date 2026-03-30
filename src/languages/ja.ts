@@ -7107,6 +7107,15 @@ ${reportName}
             approvedReimbursedClosedSpend,
         }: UpdatedPolicyBudgetNotificationParams) =>
             `お知らせです！このワークスペースには、${budgetTypeForNotificationMessage}「${budgetName}」に対して、${budgetFrequency}の予算額「${budgetAmount}」が設定されています。現在の金額は${approvedReimbursedClosedSpend}で、予算の${thresholdPercentage}%を超えています。さらに承認待ちの金額が${awaitingApprovalSpend}あり、まだ提出されていない金額が${unsubmittedSpend}あるため、合計は${totalSpend}になります。${summaryLink ? `<a href="${summaryLink}">こちらがレポートです</a>。これらすべての経費が記録用にまとめられています！` : ''}`,
+        addedCardFeed: (feedName: string) => `カードフィード「${feedName}」を追加しました`,
+        removedCardFeed: (feedName: string) => `カードフィード「${feedName}」を削除しました`,
+        renamedCardFeed: (newName: string, oldName: string) => `カードフィードの名前を「${newName}」に変更しました（以前は「${oldName}」）`,
+        assignedCompanyCard: (email: string, feedName: string, cardLastFour: string) =>
+            `${email} さんに下4桁が ${cardLastFour} の${feedName ? `「${feedName}」` : ''}会社カードを割り当てました`,
+        unassignedCompanyCard: (email: string, feedName: string, cardLastFour: string) => `${email} の未割り当て${feedName ? `「${feedName}」` : ''}会社カード（下4桁 ${cardLastFour}）`,
+        updatedCardFeedLiability: (feedName: string, enabled: boolean) => `カードフィード「${feedName}」のカード取引を削除できるカード保有者の数：${enabled ? '有効' : '無効'}`,
+        updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
+            `カード明細フィード「${feedName}」の利用明細期間の終了日を変更しました${newValue ? ` を「${newValue}」に` : ''}${previousValue ? ` （以前の値：「${previousValue}」）` : ''}`,
         addedReportField: ({fieldType, fieldName, defaultValue}: AddedOrDeletedPolicyReportFieldParams) =>
             `${fieldType}レポートフィールド「${fieldName}」を追加しました${defaultValue ? ` デフォルト値「${defaultValue}」付き` : ''}`,
     },
