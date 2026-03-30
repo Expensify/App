@@ -370,7 +370,7 @@ function Button({
             >
                 {shouldBlendOpacity && <View style={[StyleSheet.absoluteFill, buttonBlendForegroundStyle]} />}
                 <ButtonContext.Provider value={contextValue}>
-                    <View style={[styles.justifyContentBetween, styles.flexRow, contentContainerStyle, styles.mw100, styles.alignItemsCenter, styles.flexShrink1]}>{children}</View>
+                    <View style={[styles.flexRow, styles.alignItemsCenter, contentContainerStyle, styles.mw100]}>{children}</View>
                 </ButtonContext.Provider>
                 {isLoading && (
                     <ActivityIndicator

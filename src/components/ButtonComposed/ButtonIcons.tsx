@@ -26,7 +26,7 @@ function ButtonIconBase({src, style, hoverFill, fill}: ButtonIconProps) {
     const theme = useTheme();
     const {isHovered, variant, size} = useButtonContext();
 
-    const defaultFill = variant === 'success' || variant === 'danger' ? theme.textLight : theme.icon;
+    const defaultFill = variant === 'success' || variant === 'danger' ? theme.textLight : theme.buttonIcon;
     const propsFill = isHovered ? hoverFill : fill;
     return (
         <View style={style}>
@@ -50,7 +50,12 @@ function ButtonIconLeft({src, style, hoverFill, fill}: ButtonIconProps) {
     return (
         <ButtonIconBase
             {...{src, hoverFill, fill}}
-            style={[size === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL ? styles.mr1 : styles.mr2, !hasText && styles.mr0, style, isLoading && styles.opacity0]}
+            style={[
+                size === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL || size === CONST.DROPDOWN_BUTTON_SIZE.SMALL ? styles.mr1 : styles.mr2,
+                !hasText && styles.mr0,
+                style,
+                isLoading && styles.opacity0,
+            ]}
         />
     );
 }
@@ -62,7 +67,7 @@ function ButtonIconRight({src, style, hoverFill, fill}: ButtonIconProps) {
     return (
         <ButtonIconBase
             {...{src, hoverFill, fill}}
-            style={[styles.justifyContentCenter, size === CONST.DROPDOWN_BUTTON_SIZE.LARGE ? styles.ml2 : styles.ml1, style]}
+            style={[styles.flex1, styles.alignItemsEnd, size === CONST.DROPDOWN_BUTTON_SIZE.LARGE ? styles.ml2 : styles.ml1, style]}
         />
     );
 }

@@ -35,6 +35,7 @@ function ButtonText({children, numberOfLines = 1, style, hoverStyle}: ButtonText
                 isLoading && styles.opacity0,
                 styles.pointerEventsNone,
                 styles.buttonText,
+                styles.flexShrink1,
                 size === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL && styles.buttonExtraSmallText,
                 size === CONST.DROPDOWN_BUTTON_SIZE.SMALL && styles.buttonSmallText,
                 size === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM && styles.buttonMediumText,
