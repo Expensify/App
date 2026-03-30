@@ -206,7 +206,6 @@ import type {
     Report as ReportType,
     Transaction,
 } from '@src/types/onyx';
-import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import KeyboardUtils from '@src/utils/keyboard';
 import type {ContextMenuAnchor} from './ReportActionContextMenu';
@@ -313,49 +312,45 @@ type ContextMenuActionWithContent = {
 
 type ContextMenuActionWithIcon = WithSentryLabel & {
     textTranslateKey: TranslationPaths;
-    icon:
-        | IconAsset
-        | Extract<
-              ExpensifyIconName,
-              | 'Download'
-              | 'ThreeDots'
-              | 'ChatBubbleReply'
-              | 'ChatBubbleUnread'
-              | 'Mail'
-              | 'Pencil'
-              | 'Stopwatch'
-              | 'Bell'
-              | 'Copy'
-              | 'LinkCopy'
-              | 'Pin'
-              | 'Flag'
-              | 'Bug'
-              | 'Trashcan'
-              | 'Exit'
-              | 'Concierge'
-          >;
+    icon: Extract<
+        ExpensifyIconName,
+        | 'Download'
+        | 'ThreeDots'
+        | 'ChatBubbleReply'
+        | 'ChatBubbleUnread'
+        | 'Mail'
+        | 'Pencil'
+        | 'Stopwatch'
+        | 'Bell'
+        | 'Copy'
+        | 'LinkCopy'
+        | 'Pin'
+        | 'Flag'
+        | 'Bug'
+        | 'Trashcan'
+        | 'Exit'
+        | 'Concierge'
+    >;
     successTextTranslateKey?: TranslationPaths;
-    successIcon?:
-        | IconAsset
-        | Extract<
-              ExpensifyIconName,
-              | 'Download'
-              | 'ChatBubbleReply'
-              | 'ChatBubbleUnread'
-              | 'Checkmark'
-              | 'Mail'
-              | 'Pencil'
-              | 'Stopwatch'
-              | 'Bell'
-              | 'Copy'
-              | 'LinkCopy'
-              | 'Pin'
-              | 'Flag'
-              | 'Bug'
-              | 'Trashcan'
-              | 'ThreeDots'
-              | 'Concierge'
-          >;
+    successIcon?: Extract<
+        ExpensifyIconName,
+        | 'Download'
+        | 'ChatBubbleReply'
+        | 'ChatBubbleUnread'
+        | 'Checkmark'
+        | 'Mail'
+        | 'Pencil'
+        | 'Stopwatch'
+        | 'Bell'
+        | 'Copy'
+        | 'LinkCopy'
+        | 'Pin'
+        | 'Flag'
+        | 'Bug'
+        | 'Trashcan'
+        | 'ThreeDots'
+        | 'Concierge'
+    >;
     onPress: OnPress;
     getDescription: GetDescription;
 };
