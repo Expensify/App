@@ -25,6 +25,7 @@ import {getCleanedTagName, isPolicyAdmin} from '@libs/PolicyUtils';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import stripFollowupListFromHtml from '@libs/ReportActionFollowupUtils/stripFollowupListFromHtml';
 import {
+    getActionableCard3DSTransactionApprovalMessage,
     getActionableCardFraudAlertMessage,
     getActionableMentionWhisperMessage,
     getAddedApprovalRuleMessage,
@@ -43,7 +44,9 @@ import {
     getDeletedApprovalRuleMessage,
     getDeletedBudgetMessage,
     getDismissedViolationMessageText,
+    getDynamicExternalWorkflowApproveFailedActionMessage,
     getDynamicExternalWorkflowRoutedMessage,
+    getDynamicExternalWorkflowSubmitFailedActionMessage,
     getExportIntegrationMessageHTML,
     getForeignCurrencyDefaultTaxUpdateMessage,
     getForwardsToUpdateMessage,
@@ -125,6 +128,8 @@ import {
     isCreatedAction,
     isCreatedTaskReportAction,
     isDeletedAction as isDeletedActionReportActionsUtils,
+    isDynamicExternalWorkflowApproveFailedAction,
+    isDynamicExternalWorkflowSubmitFailedAction,
     isMarkAsClosedAction,
     isMemberChangeAction,
     isMessageDeleted,
@@ -201,7 +206,6 @@ import type {
     Report as ReportType,
     Transaction,
 } from '@src/types/onyx';
-import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import KeyboardUtils from '@src/utils/keyboard';
 import type {ContextMenuAnchor} from './ReportActionContextMenu';
@@ -286,6 +290,7 @@ type ContextMenuActionPayload = {
     translate: LocalizedTranslate;
     harvestReport?: OnyxEntry<ReportType>;
     introSelected: OnyxEntry<IntroSelected>;
+    isSelfTourViewed: boolean | undefined;
     betas: OnyxEntry<Beta[]>;
     isDelegateAccessRestricted?: boolean;
     showDelegateNoAccessModal?: () => void;
@@ -307,49 +312,45 @@ type ContextMenuActionWithContent = {
 
 type ContextMenuActionWithIcon = WithSentryLabel & {
     textTranslateKey: TranslationPaths;
-    icon:
-        | IconAsset
-        | Extract<
-              ExpensifyIconName,
-              | 'Download'
-              | 'ThreeDots'
-              | 'ChatBubbleReply'
-              | 'ChatBubbleUnread'
-              | 'Mail'
-              | 'Pencil'
-              | 'Stopwatch'
-              | 'Bell'
-              | 'Copy'
-              | 'LinkCopy'
-              | 'Pin'
-              | 'Flag'
-              | 'Bug'
-              | 'Trashcan'
-              | 'Exit'
-              | 'Concierge'
-          >;
+    icon: Extract<
+        ExpensifyIconName,
+        | 'Download'
+        | 'ThreeDots'
+        | 'ChatBubbleReply'
+        | 'ChatBubbleUnread'
+        | 'Mail'
+        | 'Pencil'
+        | 'Stopwatch'
+        | 'Bell'
+        | 'Copy'
+        | 'LinkCopy'
+        | 'Pin'
+        | 'Flag'
+        | 'Bug'
+        | 'Trashcan'
+        | 'Exit'
+        | 'Concierge'
+    >;
     successTextTranslateKey?: TranslationPaths;
-    successIcon?:
-        | IconAsset
-        | Extract<
-              ExpensifyIconName,
-              | 'Download'
-              | 'ChatBubbleReply'
-              | 'ChatBubbleUnread'
-              | 'Checkmark'
-              | 'Mail'
-              | 'Pencil'
-              | 'Stopwatch'
-              | 'Bell'
-              | 'Copy'
-              | 'LinkCopy'
-              | 'Pin'
-              | 'Flag'
-              | 'Bug'
-              | 'Trashcan'
-              | 'ThreeDots'
-              | 'Concierge'
-          >;
+    successIcon?: Extract<
+        ExpensifyIconName,
+        | 'Download'
+        | 'ChatBubbleReply'
+        | 'ChatBubbleUnread'
+        | 'Checkmark'
+        | 'Mail'
+        | 'Pencil'
+        | 'Stopwatch'
+        | 'Bell'
+        | 'Copy'
+        | 'LinkCopy'
+        | 'Pin'
+        | 'Flag'
+        | 'Bug'
+        | 'Trashcan'
+        | 'ThreeDots'
+        | 'Concierge'
+    >;
     onPress: OnPress;
     getDescription: GetDescription;
 };
@@ -628,18 +629,36 @@ const ContextMenuActions: ContextMenuAction[] = [
                 (shouldDisplayThreadReplies || (!isDeletedAction && !isArchivedRoom))
             );
         },
-        onPress: (closePopover, {reportAction, currentUserAccountID, originalReport, introSelected, betas}) => {
+        onPress: (closePopover, {reportAction, currentUserAccountID, originalReport, introSelected, isSelfTourViewed, betas}) => {
             const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
             if (closePopover) {
                 hideContextMenu(false, () => {
                     ReportActionComposeFocusManager.focus();
-                    toggleSubscribeToChildReport(reportAction?.childReportID, currentUserAccountID, reportAction, originalReport, introSelected, betas, childReportNotificationPreference);
+                    toggleSubscribeToChildReport(
+                        reportAction?.childReportID,
+                        currentUserAccountID,
+                        reportAction,
+                        originalReport,
+                        introSelected,
+                        isSelfTourViewed,
+                        betas,
+                        childReportNotificationPreference,
+                    );
                 });
                 return;
             }
 
             ReportActionComposeFocusManager.focus();
-            toggleSubscribeToChildReport(reportAction?.childReportID, currentUserAccountID, reportAction, originalReport, introSelected, betas, childReportNotificationPreference);
+            toggleSubscribeToChildReport(
+                reportAction?.childReportID,
+                currentUserAccountID,
+                reportAction,
+                originalReport,
+                introSelected,
+                isSelfTourViewed,
+                betas,
+                childReportNotificationPreference,
+            );
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.JOIN_THREAD,
@@ -667,18 +686,36 @@ const ContextMenuActions: ContextMenuAction[] = [
                 (shouldDisplayThreadReplies || (!isDeletedAction && !isArchivedRoom))
             );
         },
-        onPress: (closePopover, {reportAction, currentUserAccountID, originalReport, introSelected, betas}) => {
+        onPress: (closePopover, {reportAction, currentUserAccountID, originalReport, introSelected, isSelfTourViewed, betas}) => {
             const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
             if (closePopover) {
                 hideContextMenu(false, () => {
                     ReportActionComposeFocusManager.focus();
-                    toggleSubscribeToChildReport(reportAction?.childReportID, currentUserAccountID, reportAction, originalReport, introSelected, betas, childReportNotificationPreference);
+                    toggleSubscribeToChildReport(
+                        reportAction?.childReportID,
+                        currentUserAccountID,
+                        reportAction,
+                        originalReport,
+                        introSelected,
+                        isSelfTourViewed,
+                        betas,
+                        childReportNotificationPreference,
+                    );
                 });
                 return;
             }
 
             ReportActionComposeFocusManager.focus();
-            toggleSubscribeToChildReport(reportAction?.childReportID, currentUserAccountID, reportAction, originalReport, introSelected, betas, childReportNotificationPreference);
+            toggleSubscribeToChildReport(
+                reportAction?.childReportID,
+                currentUserAccountID,
+                reportAction,
+                originalReport,
+                introSelected,
+                isSelfTourViewed,
+                betas,
+                childReportNotificationPreference,
+            );
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.LEAVE_THREAD,
@@ -1053,6 +1090,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(getMovedActionMessage(translate, reportAction, originalReport));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT)) {
                     setClipboardMessage(getActionableCardFraudAlertMessage(translate, reportAction, getLocalDateFromDatetime));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_3DS_TRANSACTION_APPROVAL)) {
+                    setClipboardMessage(getActionableCard3DSTransactionApprovalMessage(translate, reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY) {
                     const displayMessage = getPolicyChangeMessage(translate, reportAction);
                     Clipboard.setString(displayMessage);
@@ -1081,6 +1120,10 @@ const ContextMenuActions: ContextMenuAction[] = [
                         translate,
                     );
                     setClipboardMessage(displayMessage);
+                } else if (isDynamicExternalWorkflowSubmitFailedAction(reportAction)) {
+                    setClipboardMessage(getDynamicExternalWorkflowSubmitFailedActionMessage(translate, reportAction));
+                } else if (isDynamicExternalWorkflowApproveFailedAction(reportAction)) {
+                    setClipboardMessage(getDynamicExternalWorkflowApproveFailedActionMessage(translate, reportAction));
                 } else if (content) {
                     setClipboardMessage(
                         content.replaceAll(/(<mention-user>)(.*?)(<\/mention-user>)/gi, (match, openTag: string, innerContent: string, closeTag: string): string => {
