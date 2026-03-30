@@ -3,7 +3,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import VerifyAccountPageBase from '@pages/settings/VerifyAccountPageBase';
-import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
@@ -15,7 +14,6 @@ function ReimbursementAccountVerifyAccountPage({route}: ReimbursementAccountVeri
         <VerifyAccountPageBase
             navigateBackTo={ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID, backTo})}
             handleClose={() => {
-                // TODO: check if it's not breaking
                 Navigation.goBack(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID, backTo}), {compareParams: false});
             }}
         />
