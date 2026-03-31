@@ -1,5 +1,5 @@
 import type {NavigationState} from '@react-navigation/native';
-import type {TabNavigatorParamList, NavigationPartialRoute} from '@libs/Navigation/types';
+import type {NavigationPartialRoute, TabNavigatorParamList} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 
 type RootTabState = {

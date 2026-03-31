@@ -221,7 +221,11 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
     }
 
     const {action: minimalAction} = getMinimalAction(action, navigation.getRootState());
-    if (action.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE && action.payload.name === NAVIGATORS.TAB_NAVIGATOR && !isFullScreenName(minimalAction.payload?.name as string)) {
+    if (
+        action.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE &&
+        action.payload.name === NAVIGATORS.TAB_NAVIGATOR &&
+        !isFullScreenName((minimalAction.payload as {name?: string} | undefined)?.name)
+    ) {
         minimalAction.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
     }
     navigation.dispatch(minimalAction);

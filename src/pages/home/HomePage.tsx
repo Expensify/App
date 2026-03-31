@@ -71,7 +71,7 @@ function HomePage() {
                         </View>
                         <View style={styles.homePageRightColumn(shouldUseNarrowLayout)}>
                             <FreeTrialSection />
-                                <UpcomingTravelSection />
+                            <UpcomingTravelSection />
                             <AssignedCardsSection />
                             <AnnouncementSection />
                         </View>

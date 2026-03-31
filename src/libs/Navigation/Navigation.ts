@@ -527,17 +527,19 @@ function popToSidebar() {
 
     // Split navigators can be nested inside TAB_NAVIGATOR → WORKSPACE_NAVIGATOR.
     // Drill through the nesting to find the actual split navigator.
-    let activeRoute = currentRoute;
+    // Drill through TAB_NAVIGATOR → WORKSPACE_NAVIGATOR to find the active split navigator.
+    let activeRoute = currentRoute as typeof currentRoute | undefined;
     if (currentRoute.name === NAVIGATORS.TAB_NAVIGATOR) {
-        const activeTab = currentRoute.state?.routes?.[currentRoute.state?.index ?? 0];
+        const tabRoutes = currentRoute.state?.routes;
+        const activeTab = tabRoutes?.[currentRoute.state?.index ?? 0];
         if (activeTab?.name === NAVIGATORS.WORKSPACE_NAVIGATOR) {
-            activeRoute = activeTab.state?.routes?.at(-1);
+            activeRoute = activeTab.state?.routes?.at(-1) as typeof currentRoute | undefined;
         } else {
-            activeRoute = activeTab;
+            activeRoute = activeTab as typeof currentRoute | undefined;
         }
     }
 
-    if (!isSplitNavigatorName(activeRoute?.name)) {
+    if (!activeRoute || !isSplitNavigatorName(activeRoute.name)) {
         Log.hmmm('[popToSidebar] must be invoked only from SplitNavigator');
         return;
     }
