@@ -21,7 +21,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import createPressHandler from './createPressHandler';
 import type {ProductTrainingTooltipName} from './TOOLTIPS';
 import TOOLTIPS from './TOOLTIPS';
 
@@ -295,8 +294,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                             shouldUseAutoHitSlop
                             accessibilityLabel={translate('common.noThanks')}
                             role={CONST.ROLE.BUTTON}
-                            // eslint-disable-next-line react/jsx-props-no-spreading
-                            {...createPressHandler(() => hideTooltip(true))}
+                            onPress={() => hideTooltip(true)}
                         >
                             <Icon
                                 src={expensifyIcons.Close}
@@ -313,14 +311,12 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                             success
                             text={translate('productTrainingTooltip.scanTestTooltip.tryItOut')}
                             style={[styles.flex1]}
-                            // eslint-disable-next-line react/jsx-props-no-spreading
-                            {...createPressHandler(config.onConfirm)}
+                            onPress={config.onConfirm}
                         />
                         <Button
                             text={translate('common.noThanks')}
                             style={[styles.flex1]}
-                            // eslint-disable-next-line react/jsx-props-no-spreading
-                            {...createPressHandler(config.onDismiss)}
+                            onPress={config.onDismiss}
                         />
                     </View>
                 )}
