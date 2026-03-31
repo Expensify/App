@@ -61,7 +61,7 @@ function RemoveHoldPrimaryAction({reportID, chatReportID}: SimpleActionProps) {
 
                 if (IOUActions.length) {
                     for (const action of IOUActions) {
-                        changeMoneyRequestHoldStatus(action, getLinkedIOUTransaction(action, transactions));
+                        changeMoneyRequestHoldStatus(action, getLinkedIOUTransaction(action, transactions), isOffline);
                     }
                     return;
                 }
@@ -70,7 +70,7 @@ function RemoveHoldPrimaryAction({reportID, chatReportID}: SimpleActionProps) {
                 if (!moneyRequestAction) {
                     return;
                 }
-                changeMoneyRequestHoldStatus(moneyRequestAction, getLinkedIOUTransaction(moneyRequestAction, transactions));
+                changeMoneyRequestHoldStatus(moneyRequestAction, getLinkedIOUTransaction(moneyRequestAction, transactions), isOffline);
             }}
         />
     );

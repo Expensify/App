@@ -26,6 +26,7 @@ function ReviewDuplicatesPrimaryAction({reportID, chatReportID}: SimpleActionPro
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
 
     const {reportActions: unfilteredReportActions} = usePaginatedReportActions(moneyRequestReport?.reportID);
@@ -63,7 +64,7 @@ function ReviewDuplicatesPrimaryAction({reportID, chatReportID}: SimpleActionPro
                         } else {
                             const transactionID = duplicateTransaction.transactionID;
                             const iouAction = getIOUActionForReportID(moneyRequestReport?.reportID, transactionID);
-                            const createdTransactionThreadReport = createTransactionThreadReport(introSelected, email ?? '', accountID, moneyRequestReport, iouAction);
+                            const createdTransactionThreadReport = createTransactionThreadReport(introSelected, email ?? '', accountID, betas, moneyRequestReport, iouAction);
                             threadID = createdTransactionThreadReport?.reportID;
                         }
                     }

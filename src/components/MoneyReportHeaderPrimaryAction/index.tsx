@@ -24,8 +24,7 @@ function MoneyReportHeaderPrimaryAction({
     onHoldMenuOpen,
     onExportModalOpen,
 }: MoneyReportHeaderPrimaryActionProps) {
-
-    if(!primaryAction) {
+    if (!primaryAction) {
         return null;
     }
 
