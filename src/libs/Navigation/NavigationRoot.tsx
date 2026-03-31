@@ -206,9 +206,8 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
     }, [shouldUseNarrowLayout]);
 
     useEffect(() => {
-        // After logout, we reset the navigation state to a single route to prevent stale auth state from leaking.
-        // TAB_NAVIGATOR (or REPORTS_SPLIT_NAVIGATOR) persists between auth and public screens,
-        // so we explicitly clear params for these shared navigators.
+        // Since the NAVIGATORS.REPORTS_SPLIT_NAVIGATOR url is "/" and it has to be used as an URL for SignInPage,
+        // this navigator should be the only one in the navigation state after logout.
         const hasUserLoggedOut = !authenticated && !!previousAuthenticated;
         if (!hasUserLoggedOut || !navigationRef.isReady()) {
             return;
@@ -220,13 +219,19 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             return;
         }
 
-        // After logout, reset to TAB_NAVIGATOR (a valid root-level route in AuthScreens)
-        // with cleared params and state. When PublicScreens mounts in the next render cycle,
-        // React Navigation detects TAB_NAVIGATOR doesn't exist in the new navigator
-        // and falls back to the initial route (SCREENS.HOME / SignInPage).
+        // REPORTS_SPLIT_NAVIGATOR will persist after user logout, because it is used both for logged-in and logged-out users
+        // That's why for ReportsSplit we need to explicitly clear params when resetting navigation state,
+        // However in case other routes (related to login/logout) appear in nav state, then we want to preserve params for those
+        const isReportSplitNavigatorMounted = lastRoute.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR;
         navigationRef.reset({
+            ...rootState,
             index: 0,
-            routes: [{name: NAVIGATORS.TAB_NAVIGATOR}],
+            routes: [
+                {
+                    ...lastRoute,
+                    params: isReportSplitNavigatorMounted ? undefined : lastRoute.params,
+                },
+            ],
         });
     }, [authenticated, previousAuthenticated]);
 
