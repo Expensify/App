@@ -76,7 +76,11 @@ function SpendRuleMerchantsPage({route}: SpendRuleMerchantsPageProps) {
                         merchantNames.map((merchantName, index) => (
                             <MenuItemWithTopDescription
                                 key={`${merchantName}-${merchantMatchTypes.at(index) ?? ''}`}
-                                description={merchantMatchTypes.at(index) === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO ? translate('workspace.rules.spendRules.merchantExactlyMatches') : translate('workspace.rules.spendRules.merchantContains')}
+                                description={
+                                    merchantMatchTypes.at(index) === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO
+                                        ? translate('workspace.rules.spendRules.merchantExactlyMatches')
+                                        : translate('workspace.rules.spendRules.merchantContains')
+                                }
                                 onPress={() => Navigation.navigate(ROUTES.RULES_SPEND_MERCHANT_EDIT.getRoute(policyID, String(index)))}
                                 shouldShowRightIcon
                                 title={merchantName}
