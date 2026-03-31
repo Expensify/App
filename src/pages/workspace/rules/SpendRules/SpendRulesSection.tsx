@@ -59,20 +59,6 @@ function SpendRulesSection() {
 
     const menuItemBody = (
         <View>
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.mb2]}>
-                <Icon
-                    src={expensifyIcons.Lock}
-                    width={variables.iconSizeSmall}
-                    height={variables.iconSizeSmall}
-                    fill={theme.icon}
-                />
-                <Text
-                    style={[styles.flex1, styles.textLabelSupporting, styles.fontSizeLabel]}
-                    numberOfLines={2}
-                >
-                    {descriptionLabel}
-                </Text>
-            </View>
             <View style={[styles.flexRow, styles.gap2, styles.alignItemsStart]}>
                 <Badge
                     text={blockLabel}
@@ -86,6 +72,20 @@ function SpendRulesSection() {
                     ellipsizeMode="tail"
                 >
                     {defaultRuleTitle}
+                </Text>
+            </View>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.mt2]}>
+                <Icon
+                    src={expensifyIcons.Lock}
+                    width={variables.iconSizeSmall}
+                    height={variables.iconSizeSmall}
+                    fill={theme.icon}
+                />
+                <Text
+                    style={[styles.flex1, styles.textLabelSupporting, styles.fontSizeLabel]}
+                    numberOfLines={2}
+                >
+                    {descriptionLabel}
                 </Text>
             </View>
         </View>
