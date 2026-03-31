@@ -41,6 +41,13 @@ function FABPopoverMenu({isVisible, onClose, onItemSelected, anchorRef, animatio
     const {windowHeight} = useWindowDimensions();
     const anchorPosition = styles.createMenuPositionSidebar(windowHeight);
 
+    // Keep children mounted during the close animation so the fade-out is visible.
+    // Mount when isVisible becomes true; unmount only after the modal hide animation completes.
+    const [shouldRenderChildren, setShouldRenderChildren] = useState(isVisible);
+    if (isVisible && !shouldRenderChildren) {
+        setShouldRenderChildren(true);
+    }
+
     const [registeredSet, setRegisteredSet] = useState<ReadonlySet<string>>(new Set());
 
     const registeredItems = FAB_ITEM_ORDER.filter((id) => registeredSet.has(id));
@@ -117,6 +124,7 @@ function FABPopoverMenu({isVisible, onClose, onItemSelected, anchorRef, animatio
                 animationOut="fadeOut"
                 animationInTiming={animationInTiming}
                 animationOutTiming={animationOutTiming}
+                onModalHide={() => setShouldRenderChildren(false)}
                 disableAnimation={false}
                 shouldHandleNavigationBack
                 innerContainerStyle={styles.pv0}
@@ -126,7 +134,7 @@ function FABPopoverMenu({isVisible, onClose, onItemSelected, anchorRef, animatio
                     shouldReturnFocus
                 >
                     <View style={shouldUseNarrowLayout ? styles.flexGrow1 : [styles.createMenuContainer, styles.pv0, styles.flex1]}>
-                        <View style={styles.pv4}>{isVisible ? children : null}</View>
+                        <View style={styles.pv4}>{shouldRenderChildren ? children : null}</View>
                     </View>
                 </FocusTrapForModal>
             </PopoverWithMeasuredContent>
