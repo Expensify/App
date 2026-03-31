@@ -433,6 +433,12 @@ function MoneyRequestReportActionsList({
     // where the previous one left off, until the cursor stops advancing (gap filled).
     const prevBackfillCursorRef = useRef<string | undefined>(undefined);
     const isBackfillingRef = useRef(false);
+    const prevBackfillReportIDRef = useRef(reportID);
+    if (prevBackfillReportIDRef.current !== reportID) {
+        prevBackfillReportIDRef.current = reportID;
+        prevBackfillCursorRef.current = undefined;
+        isBackfillingRef.current = false;
+    }
     useEffect(() => {
         if (!hasFinishedInitialLoad || isOffline || hasNewerActions || reportMetadata?.isLoadingNewerReportActions || reportMetadata?.isLoadingOlderReportActions) {
             return;
