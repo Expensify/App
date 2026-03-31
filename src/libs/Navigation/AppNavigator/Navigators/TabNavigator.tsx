@@ -102,7 +102,7 @@ function withSuspense<P extends Record<string, unknown>>(LazyComponent: React.La
             <Suspense
                 fallback={
                     <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.appBG]}>
-                        <FullScreenLoadingIndicator />
+                        <FullScreenLoadingIndicator reasonAttributes={{context: 'TabNavigator'}} />
                     </View>
                 }
             >
