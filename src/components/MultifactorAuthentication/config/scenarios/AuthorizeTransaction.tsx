@@ -6,8 +6,8 @@ import {
     DefaultServerFailureScreen,
     NoEligibleMethodsFailureScreen,
     OutOfTimeFailureScreen,
-    UnsupportedDeviceFailureScreen,
 } from '@components/MultifactorAuthentication/components/OutcomeScreen/FailureScreen/defaultScreens';
+import UnsupportedDeviceFailureScreen from '@components/MultifactorAuthentication/components/OutcomeScreen/FailureScreen/UnsupportedDeviceFailureScreen';
 import DefaultSuccessScreen from '@components/MultifactorAuthentication/components/OutcomeScreen/SuccessScreen/defaultScreens';
 import type {
     MultifactorAuthenticationScenario,
@@ -163,8 +163,12 @@ export default {
 
         // Client-side errors (not returned by the backend API)
         [CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.REQUESTED_TRANSACTION_UNAVAILABLE]: <AlreadyReviewedFailureScreen />,
-        [CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.NO_ELIGIBLE_METHODS]: <NoEligibleMethodsFailureScreen headerTitle="multifactorAuthentication.reviewTransaction.transactionFailed" />,
-        [CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.UNSUPPORTED_DEVICE]: <UnsupportedDeviceFailureScreen headerTitle="multifactorAuthentication.reviewTransaction.transactionFailed" />,
+        [CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.NO_AUTHENTICATION_METHODS_ENROLLED]: (
+            <NoEligibleMethodsFailureScreen headerTitle="multifactorAuthentication.reviewTransaction.transactionFailed" />
+        ),
+        [CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.AUTHENTICATION_TYPE_NOT_SUPPORTED]: (
+            <UnsupportedDeviceFailureScreen headerTitle="multifactorAuthentication.reviewTransaction.transactionFailed" />
+        ),
     },
     modals: {
         cancelConfirmation: AuthorizeTransactionCancelConfirmModal,

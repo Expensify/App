@@ -263,6 +263,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             lastUsedPaymentMethods: lastPaymentMethod,
             localeCompare,
             personalPolicyID,
+            currentUserAccountID: accountID,
         });
         if (isOffline) {
             setIsDeleteModalOpen(false);
