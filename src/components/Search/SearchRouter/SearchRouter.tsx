@@ -111,7 +111,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 }
 
                 const reportPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-                const option = createOptionFromReport(report, personalDetails, currentUserAccountID, contextualReportIsArchived, reportPolicy, undefined, {showPersonalDetails: true});
+                const option = createOptionFromReport(report, personalDetails, contextualReportIsArchived, reportPolicy, undefined, {showPersonalDetails: true});
                 reportForContextualSearch = option;
             }
 
@@ -173,7 +173,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             styles.activeComponentBG,
             reports,
             personalDetails,
-            currentUserAccountID,
             contextualReportIsArchived,
             policies,
         ],
