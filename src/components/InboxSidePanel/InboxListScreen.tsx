@@ -13,7 +13,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import {useInboxPanelActions} from './InboxPanelContext';
+import {useInboxPanelActions, useInboxPanelState} from './InboxPanelContext';
 
 type InboxStackParamList = {
     InboxList: undefined;
@@ -26,8 +26,9 @@ function InboxListScreen() {
     const {translate} = useLocalize();
     const navigation = useNavigation<StackNavigationProp<InboxStackParamList>>();
     const {orderedReports} = useSidebarOrderedReportsState('InboxSidePanel');
-    const {registerPanelNavigation, closePanel} = useInboxPanelActions();
-    const icons = useMemoizedLazyExpensifyIcons(['Close']);
+    const {registerPanelNavigation, closePanel, toggleFloating} = useInboxPanelActions();
+    const {isFloating} = useInboxPanelState();
+    const icons = useMemoizedLazyExpensifyIcons(['Close', 'Expand', 'ArrowCollapse']);
 
     // Register this screen's navigation so external callers (e.g. the main LHN)
     // can open a report inside the panel by calling navigateToReport().
@@ -54,6 +55,17 @@ function InboxListScreen() {
                 shouldDisplaySearch={false}
                 shouldDisplayHelpButton={false}
             >
+                <PressableWithoutFeedback
+                    onPress={toggleFloating}
+                    role={CONST.ROLE.BUTTON}
+                    accessibilityLabel={isFloating ? translate('reportActionCompose.collapse') : translate('reportActionCompose.expand')}
+                    style={[styles.touchableButtonImage]}
+                >
+                    <Icon
+                        src={isFloating ? icons.ArrowCollapse : icons.Expand}
+                        fill={theme.icon}
+                    />
+                </PressableWithoutFeedback>
                 <PressableWithoutFeedback
                     onPress={closePanel}
                     role={CONST.ROLE.BUTTON}

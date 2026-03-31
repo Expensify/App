@@ -49,8 +49,8 @@ const useRootNavigatorScreenOptions = () => {
     // Raw viewport width needed to compute the panel offset for position:fixed cards,
     // which are relative to the viewport and ignore the flex container.
     const {width: rawViewportWidth} = useRawWindowDimensions();
-    const {isOpen: isPanelOpen} = useInboxPanelState();
-    const panelWidth = isPanelOpen ? rawViewportWidth * 0.2 : 0;
+    const {isOpen: isPanelOpen, isFloating: isPanelFloating} = useInboxPanelState();
+    const panelWidth = isPanelOpen && !isPanelFloating ? rawViewportWidth * 0.2 : 0;
 
     return {
         rightModalNavigator: {

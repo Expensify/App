@@ -3,36 +3,41 @@ import type {ReactNode} from 'react';
 
 type InboxPanelStateContextValue = {
     isOpen: boolean;
+    isFloating: boolean;
 };
 
 type InboxPanelActionsContextValue = {
     openPanel: () => void;
     closePanel: () => void;
     togglePanel: () => void;
+    toggleFloating: () => void;
     /** Register a callback that navigates within the panel's stack to the given reportID. */
     registerPanelNavigation: (fn: (reportID: string) => void) => void;
     /** Navigate to a report inside the panel (and open the panel if closed). */
     navigateToReport: (reportID: string) => void;
 };
 
-const InboxPanelStateContext = createContext<InboxPanelStateContextValue>({isOpen: false});
+const InboxPanelStateContext = createContext<InboxPanelStateContextValue>({isOpen: false, isFloating: false});
 
 const InboxPanelActionsContext = createContext<InboxPanelActionsContextValue>({
     openPanel: () => {},
     closePanel: () => {},
     togglePanel: () => {},
+    toggleFloating: () => {},
     registerPanelNavigation: () => {},
     navigateToReport: () => {},
 });
 
 function InboxPanelProvider({children}: {children: ReactNode}) {
     const [isOpen, setIsOpen] = useState(false);
+    const [isFloating, setIsFloating] = useState(false);
     const panelNavigateRef = useRef<((reportID: string) => void) | null>(null);
     const pendingReportIDRef = useRef<string | null>(null);
 
     const openPanel = useCallback(() => setIsOpen(true), []);
     const closePanel = useCallback(() => setIsOpen(false), []);
     const togglePanel = useCallback(() => setIsOpen((prev) => !prev), []);
+    const toggleFloating = useCallback(() => setIsFloating((prev) => !prev), []);
 
     const registerPanelNavigation = useCallback((fn: (reportID: string) => void) => {
         panelNavigateRef.current = fn;
@@ -51,10 +56,10 @@ function InboxPanelProvider({children}: {children: ReactNode}) {
         }
     }, []);
 
-    const stateValue = useMemo(() => ({isOpen}), [isOpen]);
+    const stateValue = useMemo(() => ({isOpen, isFloating}), [isOpen, isFloating]);
     const actionsValue = useMemo(
-        () => ({openPanel, closePanel, togglePanel, registerPanelNavigation, navigateToReport}),
-        [openPanel, closePanel, togglePanel, registerPanelNavigation, navigateToReport],
+        () => ({openPanel, closePanel, togglePanel, toggleFloating, registerPanelNavigation, navigateToReport}),
+        [openPanel, closePanel, togglePanel, toggleFloating, registerPanelNavigation, navigateToReport],
     );
 
     return (

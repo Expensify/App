@@ -1,10 +1,9 @@
 import {PortalProvider} from '@gorhom/portal';
 import * as Sentry from '@sentry/react-native';
 import React, {useCallback, useEffect, useState} from 'react';
-import {LogBox, View} from 'react-native';
-import type {LayoutChangeEvent} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
-import {useWindowDimensions as useRawWindowDimensions} from 'react-native';
+import {LogBox, useWindowDimensions as useRawWindowDimensions, View} from 'react-native';
+import type {LayoutChangeEvent} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {PickerStateProvider} from 'react-native-picker-select';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -80,8 +79,12 @@ const PANEL_ANIMATION_DURATION = 300;
 
 const StrictModeWrapper = CONFIG.USE_REACT_STRICT_MODE_IN_DEV ? React.StrictMode : ({children}: {children: React.ReactElement}) => children;
 
+const FLOATING_PANEL_WIDTH = 300;
+const FLOATING_PANEL_HEIGHT = 500;
+const FLOATING_PANEL_MARGIN = 20;
+
 function MainContent() {
-    const {isOpen} = useInboxPanelState();
+    const {isOpen, isFloating} = useInboxPanelState();
     const {width: rawWindowWidth} = useRawWindowDimensions();
     const panelWidth = rawWindowWidth * 0.2;
 
@@ -96,14 +99,21 @@ function MainContent() {
     const panelContainerWidthSV = useSharedValue(0);
     const panelTranslateX = useSharedValue(panelWidth);
 
+    // Docked panel animation — only active when not floating.
     useEffect(() => {
+        if (isFloating) {
+            // Collapse docked panel immediately when switching to floating.
+            panelContainerWidthSV.value = 0;
+            panelTranslateX.value = panelWidthSV.value;
+            return;
+        }
         const pw = rawWindowWidth * 0.2;
         panelWidthSV.value = pw;
         panelContainerWidthSV.value = withTiming(isOpen ? pw : 0, {duration: PANEL_ANIMATION_DURATION});
         panelTranslateX.value = withTiming(isOpen ? 0 : pw, {duration: PANEL_ANIMATION_DURATION});
         // SharedValue refs are stable — intentionally omitted from deps
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isOpen, rawWindowWidth]);
+    }, [isOpen, isFloating, rawWindowWidth]);
 
     // Panel outer container grows in the flex row, pushing the main content narrower.
     const panelContainerStyle = useAnimatedStyle(() => ({
@@ -120,13 +130,16 @@ function MainContent() {
         borderLeftColor: '#e5e5e5',
     }));
 
+    // When floating, main content always takes the full viewport width.
+    const effectiveWidth = isFloating ? rawWindowWidth : mainContentWidth;
+
     return (
         <View style={{flex: 1, flexDirection: 'row'}}>
             {/* EffectiveWidthContext provides the measured container width to every
                 child that calls useWindowDimensions, so layout-critical screens
                 (search, workspaces, settings, etc.) size themselves to the space
                 actually available rather than the raw viewport. */}
-            <EffectiveWidthContext.Provider value={mainContentWidth}>
+            <EffectiveWidthContext.Provider value={effectiveWidth}>
                 <View
                     style={fill}
                     onLayout={onMainContentLayout}
@@ -138,11 +151,38 @@ function MainContent() {
                     </ErrorBoundary>
                 </View>
             </EffectiveWidthContext.Provider>
-            <Animated.View style={panelContainerStyle}>
-                <Animated.View style={panelInnerStyle}>
-                    <InboxSidePanel />
+            {/* Docked panel — hidden when floating */}
+            {!isFloating && (
+                <Animated.View style={panelContainerStyle}>
+                    <Animated.View style={panelInnerStyle}>
+                        <InboxSidePanel />
+                    </Animated.View>
                 </Animated.View>
-            </Animated.View>
+            )}
+            {/* Floating panel — fixed bottom-right overlay */}
+            {isFloating && isOpen && (
+                <View
+                    style={{
+                        // position: 'fixed' is valid on RN web and keeps the panel
+                        // in the viewport corner regardless of scroll position.
+                        position: 'fixed' as 'absolute',
+                        bottom: FLOATING_PANEL_MARGIN,
+                        right: FLOATING_PANEL_MARGIN,
+                        width: FLOATING_PANEL_WIDTH,
+                        height: FLOATING_PANEL_HEIGHT,
+                        borderRadius: 12,
+                        overflow: 'hidden',
+                        borderWidth: 1,
+                        borderColor: '#e5e5e5',
+                        shadowColor: '#000',
+                        shadowOffset: {width: 0, height: 8},
+                        shadowOpacity: 0.15,
+                        shadowRadius: 24,
+                    }}
+                >
+                    <InboxSidePanel />
+                </View>
+            )}
         </View>
     );
 }
