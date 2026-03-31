@@ -135,12 +135,13 @@ function useWebCamera({onUnmount}: UseWebCameraOptions = {}) {
 
     useEffect(
         () => () => {
+            onUnmount?.();
             if (!getScreenshotTimeoutRef.current) {
                 return;
             }
             clearTimeout(getScreenshotTimeoutRef.current);
         },
-        [],
+        [onUnmount],
     );
 
     const setupCameraPermissionsAndCapabilities = useCallback((stream: MediaStream) => {

@@ -294,7 +294,7 @@ function MobileWebCameraView({
                                 ) : null}
                                 <Animated.View
                                     pointerEvents="none"
-                                    style={[StyleSheet.absoluteFillObject, styles.backgroundWhite, blinkStyle, styles.zIndex10]}
+                                    style={[StyleSheet.absoluteFill, styles.backgroundWhite, blinkStyle, styles.zIndex10]}
                                 />
                             </View>
                         )}
