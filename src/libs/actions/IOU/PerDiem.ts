@@ -55,11 +55,11 @@ import {
     dismissModalAndOpenReportInInboxTab,
     getAllPersonalDetails,
     getAllReports,
+    getAllTransactions,
     getCurrentUserEmail,
     getPolicyTags,
     getReportPreviewAction,
     getUserAccountID,
-    handleNavigateAfterExpenseCreate,
     highlightTransactionOnSearchRouteIfNeeded,
     mergePolicyRecentlyUsedCategories,
     mergePolicyRecentlyUsedCurrencies,
@@ -248,7 +248,6 @@ type PerDiemExpenseInformation = {
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     customUnitPolicyID?: string;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
-    shouldHandleNavigation?: boolean;
     shouldPlaySound?: boolean;
     optimisticReportPreviewActionID?: string;
     shouldDeferAutoSubmit?: boolean;
@@ -905,12 +904,10 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         betas,
         customUnitPolicyID,
         personalDetails,
-        shouldHandleNavigation = true,
         shouldPlaySound: shouldPlaySoundParam = true,
         optimisticReportPreviewActionID,
         shouldDeferAutoSubmit,
     } = submitPerDiemExpenseInformation;
-    const {payeeAccountID} = participantParams;
     const {currency, comment = '', category, tag, created, customUnit, attendees, isFromGlobalCreate} = transactionParams;
 
     if (
@@ -1003,7 +1000,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         playSound(SOUNDS.DONE);
     }
 
-    const shouldDeferWrite = shouldHandleNavigation && isFromGlobalCreate && !isReportTopmostSplitNavigator();
+    const shouldDeferWrite = isFromGlobalCreate && !isReportTopmostSplitNavigator();
     const apiWrite = () => {
         API.write(WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST, parameters, onyxData);
     };
@@ -1021,13 +1018,13 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
 
     highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transaction.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
 
-    handleNavigateAfterExpenseCreate({activeReportID, transactionID: transaction.transactionID, isFromGlobalCreate, shouldHandleNavigation});
+    const hasMultipleTransactions = Object.values(getAllTransactions()).filter((t) => t?.reportID === activeReportID).length > 0;
 
     if (activeReportID) {
-        notifyNewAction(activeReportID, undefined, payeeAccountID === currentUserAccountIDParam);
+        notifyNewAction(activeReportID, undefined, participantParams.payeeAccountID === currentUserAccountIDParam);
     }
 
-    return {iouReport};
+    return {iouReport, activeReportID, hasMultipleTransactions};
 }
 
 /**

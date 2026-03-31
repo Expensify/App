@@ -518,6 +518,8 @@ function sendMoneyElsewhere(
     API.write(WRITE_COMMANDS.SEND_MONEY_ELSEWHERE, params, {optimisticData, successData, failureData});
 
     notifyNewAction(params.chatReportID, undefined, true);
+
+    return {chatReportID: params.chatReportID};
 }
 
 /**
@@ -564,6 +566,8 @@ function sendMoneyWithWallet(
     API.write(WRITE_COMMANDS.SEND_MONEY_WITH_WALLET, params, {optimisticData, successData, failureData});
 
     notifyNewAction(params.chatReportID, undefined, true);
+
+    return {chatReportID: params.chatReportID};
 }
 
 export {sendMoneyElsewhere, sendMoneyWithWallet};

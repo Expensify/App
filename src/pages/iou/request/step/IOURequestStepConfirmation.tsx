@@ -53,6 +53,7 @@ import {
 } from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import dismissModalAndOpenReportInInboxTabHelper from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
+import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
@@ -882,7 +883,7 @@ function IOURequestStepConfirmation({
                     quickAction,
                 });
             } else {
-                submitPerDiemExpenseIOUActions({
+                const result = submitPerDiemExpenseIOUActions({
                     report,
                     participantParams: {
                         payeeEmail: currentUserPersonalDetails.login,
@@ -920,6 +921,14 @@ function IOURequestStepConfirmation({
                     betas,
                     personalDetails,
                 });
+                if (result) {
+                    navigateAfterExpenseCreate({
+                        activeReportID: result.activeReportID,
+                        transactionID: transaction.transactionID,
+                        isFromGlobalCreate: transaction.isFromFloatingActionButton ?? transaction.isFromGlobalCreate,
+                        hasMultipleTransactions: result.hasMultipleTransactions,
+                    });
+                }
             }
         },
         [
@@ -1461,7 +1470,7 @@ function IOURequestStepConfirmation({
 
             if (paymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
                 setIsConfirmed(true);
-                sendMoneyElsewhere(
+                const {chatReportID} = sendMoneyElsewhere(
                     report,
                     quickAction,
                     transaction.amount,
@@ -1473,13 +1482,13 @@ function IOURequestStepConfirmation({
                     transaction.merchant,
                     receiptFiles[transaction.transactionID],
                 );
-                dismissModalAndOpenReportInInboxTabHelper(report?.reportID, undefined, false);
+                dismissModalAndOpenReportInInboxTabHelper(chatReportID, undefined, false);
                 return;
             }
 
             if (paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
                 setIsConfirmed(true);
-                sendMoneyWithWallet(
+                const {chatReportID} = sendMoneyWithWallet(
                     report,
                     quickAction,
                     transaction.amount,
@@ -1491,7 +1500,7 @@ function IOURequestStepConfirmation({
                     transaction.merchant,
                     receiptFiles[transaction.transactionID],
                 );
-                dismissModalAndOpenReportInInboxTabHelper(report?.reportID, undefined, false);
+                dismissModalAndOpenReportInInboxTabHelper(chatReportID, undefined, false);
             }
         },
         [

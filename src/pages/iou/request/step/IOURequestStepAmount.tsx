@@ -246,12 +246,12 @@ function IOURequestStepAmount({
                 });
                 if (iouType === CONST.IOU.TYPE.PAY || iouType === CONST.IOU.TYPE.SEND) {
                     if (paymentMethod && paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-                        sendMoneyWithWallet(report, quickAction, backendAmount, selectedCurrency, '', currentUserAccountIDParam, participants.at(0) ?? {});
-                        dismissModalAndOpenReportInInboxTabHelper(report?.reportID, undefined, false);
+                        const {chatReportID} = sendMoneyWithWallet(report, quickAction, backendAmount, selectedCurrency, '', currentUserAccountIDParam, participants.at(0) ?? {});
+                        dismissModalAndOpenReportInInboxTabHelper(chatReportID, undefined, false);
                         return;
                     }
-                    sendMoneyElsewhere(report, quickAction, backendAmount, selectedCurrency, '', currentUserAccountIDParam, participants.at(0) ?? {});
-                    dismissModalAndOpenReportInInboxTabHelper(report?.reportID, undefined, false);
+                    const {chatReportID} = sendMoneyElsewhere(report, quickAction, backendAmount, selectedCurrency, '', currentUserAccountIDParam, participants.at(0) ?? {});
+                    dismissModalAndOpenReportInInboxTabHelper(chatReportID, undefined, false);
                     return;
                 }
                 if (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.REQUEST) {
