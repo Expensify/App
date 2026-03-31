@@ -1226,7 +1226,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
     }, [connectedIntegration, exportModalStatus, moneyRequestReport?.reportID]);
 
     const getAmount = (actionType: ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS>) => ({
-        formattedAmount: getTotalAmountForIOUReportPreviewButton(moneyRequestReport, policy, actionType),
+        formattedAmount: getTotalAmountForIOUReportPreviewButton(moneyRequestReport, policy, actionType, nonPendingDeleteTransactions),
     });
 
     const {formattedAmount: totalAmount} = getAmount(CONST.REPORT.PRIMARY_ACTIONS.PAY);
