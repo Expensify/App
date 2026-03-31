@@ -76,7 +76,7 @@ function SpendRulesSection() {
             <View style={[styles.flexRow, styles.gap2, styles.alignItemsStart]}>
                 <Badge
                     text={blockLabel}
-                    badgeStyles={[styles.ml0, styles.mt0Half]}
+                    badgeStyles={[styles.ml0]}
                     error
                     isCondensed
                 />
