@@ -165,7 +165,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                 return undefined;
             }
 
-            return Object.values(allPolicies ?? {}).find((policy) => policy?.workspaceAccountID === workspaceAccountID);
+            return Object.values(allPolicies ?? {}).find((policy) => policy?.policyAccountID === workspaceAccountID);
         },
         [currentCard?.fundID],
     );

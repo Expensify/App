@@ -48,7 +48,7 @@ function useAssignCard({feedName, policyID, setShouldShowOfflineModal}: UseAssig
     const {translate} = useLocalize();
 
     const policy = usePolicy(policyID);
-    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const companyCards = getCompanyFeeds(cardFeeds);
     const selectedFeedData = feedName && companyCards[feedName];
