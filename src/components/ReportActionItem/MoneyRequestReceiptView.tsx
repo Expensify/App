@@ -566,7 +566,7 @@ function MoneyRequestReceiptView({
                                                         src={lazyIcons.ReceiptPlus}
                                                         height={variables.iconSizeSmall}
                                                         width={variables.iconSizeSmall}
-                                                        fill={theme.icon}
+                                                        fill={theme.iconStrong}
                                                     />
                                                 </PressableWithoutFeedback>
                                             </Tooltip>
@@ -589,7 +589,7 @@ function MoneyRequestReceiptView({
                                                 src={lazyIcons.Expand}
                                                 height={variables.iconSizeSmall}
                                                 width={variables.iconSizeSmall}
-                                                fill={theme.icon}
+                                                fill={theme.iconStrong}
                                             />
                                         </PressableWithoutFocus>
                                     </Tooltip>
