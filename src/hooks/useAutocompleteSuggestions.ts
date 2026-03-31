@@ -20,7 +20,7 @@ import {getUserFriendlyKey, getUserFriendlyValue} from '@libs/SearchQueryUtils';
 import {getDatePresets, getHasOptions} from '@libs/SearchUIUtils';
 import CONST, {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, CardFeeds, CardList, DismissedProductTraining, PersonalDetailsList, Policy} from '@src/types/onyx';
+import type {Beta, CardFeeds, CardList, DismissedProductTraining, PersonalDetailsList, Policy, ReportAction} from '@src/types/onyx';
 import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import {useCurrencyListState} from './useCurrencyList';
@@ -47,6 +47,7 @@ type UseAutocompleteSuggestionsParams = {
     loginList: OnyxEntry<Record<string, unknown>>;
     policies: NonNullable<OnyxCollection<Policy>>;
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
+    sortedActions?: Record<string, ReportAction[]>;
     currentUserAccountID: number;
     currentUserEmail: string;
     personalDetails: OnyxEntry<PersonalDetailsList>;
@@ -93,6 +94,7 @@ function useAutocompleteSuggestions({
     loginList,
     policies,
     visibleReportActionsData,
+    sortedActions,
     currentUserAccountID,
     currentUserEmail,
     personalDetails,
@@ -232,6 +234,7 @@ function useAutocompleteSuggestions({
                 currentUserAccountID,
                 currentUserEmail,
                 personalDetails,
+                sortedActions,
             }).personalDetails.filter((participant) => participant.text && !alreadyAutocompletedKeys.has(participant.text.toLowerCase()));
 
             return participants.map((participant) => ({
@@ -268,6 +271,7 @@ function useAutocompleteSuggestions({
                 currentUserAccountID,
                 currentUserEmail,
                 personalDetails,
+                sortedActions,
             }).recentReports.filter((chat) => {
                 if (!chat.text) {
                     return false;

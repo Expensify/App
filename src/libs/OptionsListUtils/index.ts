@@ -436,7 +436,6 @@ function getAlternateText(
     option: OptionData,
     {showChatPreviewLine = false, forcePolicyNamePreview = false}: PreviewConfig,
     isReportArchived: boolean | undefined,
-    currentUserAccountID: number,
     // We'll make it required in the next PR. Ref: https://github.com/Expensify/App/issues/66415
     policy?: OnyxEntry<Policy>,
     lastActorDetails: Partial<PersonalDetails> | null = {},
@@ -444,6 +443,7 @@ function getAlternateText(
     translate?: LocalizedTranslate,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     policyTags?: OnyxEntry<PolicyTagLists>,
+    sortedActions?: Record<string, ReportAction[]>,
 ) {
     const report = getReportOrDraftReport(option.reportID);
     const isAdminRoom = reportUtilsIsAdminRoom(report);
@@ -463,6 +463,7 @@ function getAlternateText(
             visibleReportActionsDataParam: visibleReportActionsData,
             reportAttributesDerived,
             policyTags,
+            sortedActions,
         });
     const reportPrefix = getReportSubtitlePrefix(report);
     const formattedLastMessageTextWithPrefix = reportPrefix + formattedLastMessageText;
@@ -615,6 +616,8 @@ function getLastMessageTextForReport({
     policyTags,
     currentUserLogin,
     conciergeReportID,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    sortedActions = deprecatedAllSortedReportActions,
 }: {
     translate: LocalizedTranslate;
     report: OnyxEntry<Report>;
@@ -632,6 +635,7 @@ function getLastMessageTextForReport({
     currentUserLogin?: string;
     // TODO: conciergeReportID will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66411
     conciergeReportID?: string;
+    sortedActions?: Record<string, ReportAction[]>;
 }): string {
     const reportID = report?.reportID;
     const canUserPerformWrite = canUserPerformWriteAction(report, isReportArchived);
@@ -702,8 +706,7 @@ function getLastMessageTextForReport({
         const iouReportID = iouReport?.reportID;
         const reportCache = iouReportID ? visibleReportActionsDataParam?.[iouReportID] : undefined;
         const visibleReportActionsForIOUReport = reportCache && Object.keys(reportCache).length > 0 ? visibleReportActionsDataParam : undefined;
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const iouReportActions = iouReportID ? deprecatedAllSortedReportActions[iouReportID] : undefined;
+        const iouReportActions = iouReportID ? sortedActions?.[iouReportID] : undefined;
         const canPerformWrite = canUserPerformWriteAction(report, isReportArchived);
         const lastIOUMoneyReportAction =
             iouReportID && iouReportActions
@@ -990,6 +993,7 @@ type CreateOptionParams = {
     translate?: LocalizedTranslate;
     // TODO: conciergeReportID will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66411
     conciergeReportID?: string;
+    sortedActions?: Record<string, ReportAction[]>;
 };
 
 /**
@@ -999,7 +1003,6 @@ function createOption({
     accountIDs,
     personalDetails,
     report,
-    currentUserAccountID,
     privateIsArchived,
     policy,
     config,
@@ -1008,6 +1011,7 @@ function createOption({
     visibleReportActionsData = {},
     translate,
     conciergeReportID,
+    sortedActions,
 }: CreateOptionParams): SearchOptionData {
     const {showChatPreviewLine = false, forcePolicyNamePreview = false, showPersonalDetails = false, selected, isSelected, isDisabled} = config ?? {};
 
@@ -1091,6 +1095,7 @@ function createOption({
             reportAttributesDerived,
             policyTags,
             conciergeReportID,
+            sortedActions,
         });
         result.alternateText =
             showPersonalDetails && personalDetail?.login
@@ -1099,13 +1104,13 @@ function createOption({
                       result,
                       {showChatPreviewLine, forcePolicyNamePreview},
                       !!result.private_isArchived,
-                      currentUserAccountID,
                       policy,
                       lastActorDetails,
                       visibleReportActionsData,
                       translateFn,
                       reportAttributesDerived,
                       policyTags,
+                      sortedActions,
                   );
 
         const computedReportName = getReportName(report, reportAttributesDerived);
@@ -1680,12 +1685,25 @@ function createOptionFromReport(
     config?: PreviewConfig,
     policyTags?: OnyxEntry<PolicyTagLists>,
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
+    sortedActions?: Record<string, ReportAction[]>,
 ) {
     const accountIDs = getParticipantsAccountIDsForDisplay(report);
 
     return {
         item: report,
-        ...createOption({accountIDs, personalDetails, report, currentUserAccountID, privateIsArchived, policy, config, reportAttributesDerived, policyTags, visibleReportActionsData}),
+        ...createOption({
+            accountIDs,
+            personalDetails,
+            report,
+            currentUserAccountID,
+            privateIsArchived,
+            policy,
+            config,
+            reportAttributesDerived,
+            policyTags,
+            visibleReportActionsData,
+            sortedActions,
+        }),
     };
 }
 
@@ -2341,13 +2359,13 @@ function prepareReportOptionsForDisplay(
             option,
             {showChatPreviewLine, forcePolicyNamePreview},
             !!option.private_isArchived,
-            currentUserAccountID,
             policy,
             null,
             visibleReportActionsData,
             undefined,
             reportAttributesDerived,
             reportPolicyTags,
+            sortedActions,
         );
         const isSelected = isReportSelected(option, selectedOptions);
 
@@ -2768,6 +2786,7 @@ type SearchOptionsConfig = {
     personalDetails?: OnyxEntry<PersonalDetailsList>;
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     allPolicyTags?: OnyxCollection<PolicyTagLists>;
+    sortedActions?: Record<string, ReportAction[]>;
 };
 
 /**
@@ -2796,6 +2815,7 @@ function getSearchOptions({
     reportAttributesDerived,
     personalDetails,
     allPolicyTags,
+    sortedActions,
 }: SearchOptionsConfig): Options {
     const optionList = getValidOptions(options, policyCollection, draftComments, nvpDismissedProductTraining, loginList, currentUserAccountID, currentUserEmail, {
         betas,
@@ -2822,6 +2842,7 @@ function getSearchOptions({
         visibleReportActionsData,
         reportAttributesDerived,
         allPolicyTags,
+        sortedActions,
     });
 
     return optionList;

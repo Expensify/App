@@ -1,3 +1,4 @@
+import {sortedActionsSelector} from '@selectors/SortedReportActions';
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -66,6 +67,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
     const personalDetails = usePersonalDetails();
     const prevPersonalDetails = usePrevious(personalDetails);
     const privateIsArchivedMap = usePrivateIsArchivedMap();
+    const [sortedActions] = useOnyx(ONYXKEYS.DERIVED.SORTED_REPORT_ACTIONS, {selector: sortedActionsSelector});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const hasInitialData = useMemo(() => Object.keys(personalDetails ?? {}).length > 0, [personalDetails]);
@@ -243,9 +245,20 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
 
                 const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
                 const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-                const newReportOption = createOptionFromReport(report, personalDetails, currentUserAccountID, privateIsArchived, policy, reportAttributes?.reports, {
-                    showPersonalDetails: true,
-                });
+                const newReportOption = createOptionFromReport(
+                    report,
+                    personalDetails,
+                    currentUserAccountID,
+                    privateIsArchived,
+                    policy,
+                    reportAttributes?.reports,
+                    {
+                        showPersonalDetails: true,
+                    },
+                    undefined,
+                    undefined,
+                    sortedActions,
+                );
                 const replaceIndex = options.reports.findIndex((option) => option.reportID === report.reportID);
                 newReportOptions.push({
                     newReportOption,
