@@ -25,13 +25,14 @@ function updateDocumentTitle() {
     // This setTimeout is required because due to how react rendering messes with the DOM, the document title can't be modified synchronously, and we must wait until all JS is done
     // running before setting the title.
     setTimeout(() => {
-        // There is a Chrome browser bug that causes the title to revert back to the previous when we are navigating back. Setting the title to an empty string
-        // seems to improve this issue.
-        document.title = '';
-
         // Use page-specific title if available, otherwise use the default SITE_TITLE
         const baseTitle = currentPageTitle || CONFIG.SITE_TITLE;
-        document.title = hasUnread ? `(${unreadTotalCount}) ${baseTitle}` : baseTitle;
+        const newTitle = hasUnread ? `(${unreadTotalCount}) ${baseTitle}` : baseTitle;
+
+        // Only update if the title actually changed to avoid flicker during navigation
+        if (document.title !== newTitle) {
+            document.title = newTitle;
+        }
 
         const favicon = document.getElementById('favicon');
         if (favicon instanceof HTMLLinkElement) {
@@ -49,6 +50,9 @@ const updateUnread: UpdateUnread = (totalCount) => {
 };
 
 window.addEventListener('popstate', () => {
+    // Workaround for Chrome bug: briefly clear title on back navigation
+    // so the browser doesn't show the stale title from history
+    document.title = '';
     updateUnread(unreadTotalCount);
 });
 
