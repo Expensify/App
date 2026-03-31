@@ -576,7 +576,7 @@ index 60e23b2..6c63789 100644
 
 +  +measureAsyncOnUI: (
 +    nativeElementReference: mixed,
-+    callback: MeasureInWindowOnSuccessCallback,
++    callback: MeasureOnSuccessCallback,
 +  ) => void;
 +
    /**
