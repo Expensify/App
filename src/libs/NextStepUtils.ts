@@ -70,12 +70,7 @@ function buildNextStepMessage(nextStep: ReportNextStep, translate: LocaleContext
 }
 
 function doesReportContainTransactions(report: OnyxEntry<Report>): boolean {
-    return (
-        (report?.transactionCount ?? 0) > 0 ||
-        (report?.total !== 0 && report?.total !== undefined) ||
-        (report?.unheldTotal !== 0 && report?.unheldTotal !== undefined) ||
-        (report?.unheldNonReimbursableTotal !== 0 && report?.unheldNonReimbursableTotal !== undefined)
-    );
+    return (report?.transactionCount ?? 0) > 0;
 }
 
 function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep | null {
