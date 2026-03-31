@@ -57,6 +57,9 @@ type ReportMetadata = {
 
     /** The newest report action ID from the last pagination response (excludes Pusher-delivered actions) */
     newestFetchedReportActionID?: string;
+
+    /** The oldest report action ID from the last pagination response, used as advancing cursor for backfill */
+    oldestFetchedReportActionID?: string;
 };
 
 export default ReportMetadata;

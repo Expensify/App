@@ -55,6 +55,7 @@ import {
     isCurrentActionUnread,
     isDeletedParentAction,
     isIOUActionMatchingTransactionList,
+    isMoneyRequestAction,
     isReportActionVisible,
     wasMessageReceivedWhileOffline,
 } from '@libs/ReportActionsUtils';
@@ -72,7 +73,7 @@ import {getUnreadMarkerReportAction} from '@pages/inbox/report/shouldDisplayNewM
 import useReportUnreadMessageScrollTracking from '@pages/inbox/report/useReportUnreadMessageScrollTracking';
 import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 import variables from '@styles/variables';
-import {openReport, readNewestAction, subscribeToNewActionEvent} from '@userActions/Report';
+import {getOlderActions, openReport, readNewestAction, subscribeToNewActionEvent} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -420,6 +421,50 @@ function MoneyRequestReportActionsList({
             loadNewerChats(false);
         }
     }, [hasFinishedInitialLoad, reportActions.length, hasNewerActions, isOffline, reportMetadata?.isLoadingNewerReportActions, reportMetadata?.newestFetchedReportActionID, loadNewerChats]);
+
+    // Backfill loop: the backend prioritizes IOU actions in OpenReport/GetNewerActions for money
+    // request reports, which can leave non-IOU chat messages in a gap between the IOU-biased cursor
+    // and older messages. After auto-pagination finishes, walk backwards from the IOU cursor using
+    // getOlderActions. Each response advances oldestFetchedReportActionID so the next call picks up
+    // where the previous one left off, until the cursor stops advancing (gap filled).
+    const prevBackfillCursorRef = useRef<string | undefined>(undefined);
+    const isBackfillingRef = useRef(false);
+    useEffect(() => {
+        if (!hasFinishedInitialLoad || isOffline || hasNewerActions || reportMetadata?.isLoadingNewerReportActions || reportMetadata?.isLoadingOlderReportActions) {
+            return;
+        }
+
+        if (!isBackfillingRef.current) {
+            const hasIOUActions = reportActions.some((action) => isMoneyRequestAction(action));
+            if (!hasIOUActions || reportActions.length < 50 || !reportMetadata?.newestFetchedReportActionID) {
+                return;
+            }
+        }
+
+        const cursor = isBackfillingRef.current ? reportMetadata?.oldestFetchedReportActionID : reportMetadata?.newestFetchedReportActionID;
+        if (!cursor) {
+            return;
+        }
+
+        if (prevBackfillCursorRef.current === cursor) {
+            return;
+        }
+
+        isBackfillingRef.current = true;
+        prevBackfillCursorRef.current = cursor;
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        InteractionManager.runAfterInteractions(() => requestAnimationFrame(() => getOlderActions(reportID, cursor)));
+    }, [
+        hasFinishedInitialLoad,
+        isOffline,
+        hasNewerActions,
+        reportMetadata?.isLoadingNewerReportActions,
+        reportMetadata?.isLoadingOlderReportActions,
+        reportMetadata?.newestFetchedReportActionID,
+        reportMetadata?.oldestFetchedReportActionID,
+        reportActions,
+        reportID,
+    ]);
 
     const onStartReached = useCallback(() => {
         if (!isSearchTopmostFullScreenRoute()) {

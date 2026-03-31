@@ -139,14 +139,18 @@ const Pagination: Middleware = (requestResponse, request) => {
             value: mergedPages,
         });
 
-        // Store the newest action ID from this pagination response
+        // Store the newest and oldest action IDs from this pagination response
         if (resourceCollectionKey === ONYXKEYS.COLLECTION.REPORT_ACTIONS) {
             const newestFetchedID = newPage.find((id) => id !== CONST.PAGINATION_START_ID && id !== CONST.PAGINATION_END_ID);
+            const oldestFetchedID = newPage.findLast((id) => id !== CONST.PAGINATION_START_ID && id !== CONST.PAGINATION_END_ID);
             if (newestFetchedID) {
                 (response.onyxData as AnyOnyxUpdate[]).push({
                     key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${resourceID}`,
                     onyxMethod: Onyx.METHOD.MERGE,
-                    value: {newestFetchedReportActionID: newestFetchedID},
+                    value: {
+                        newestFetchedReportActionID: newestFetchedID,
+                        ...(oldestFetchedID ? {oldestFetchedReportActionID: oldestFetchedID} : {}),
+                    },
                 });
             }
         }
