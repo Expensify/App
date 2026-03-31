@@ -173,7 +173,6 @@ function useOptions(reportAttributesDerived: ReportAttributesDerivedValue['repor
                           personalDetails: allPersonalDetails,
                           loginList,
                           currentUserEmail: personalData.email ?? '',
-                          currentUserAccountID: personalData.accountID,
                       });
                   if (participantOption) {
                       result.push({
