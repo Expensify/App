@@ -49,7 +49,7 @@ function ClaimOfferPage({route, policy}: ClaimOfferPageProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {startIntegrationFlow} = useAccountingActions();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['TreasureChestGreenWithSparkle'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['TreasureChestGreenWithSparkle']);
     const integrations = policy?.receiptPartners;
     const {isUberConnected} = useGetReceiptPartnersIntegrationData(policyID);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
