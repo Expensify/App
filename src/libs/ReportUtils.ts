@@ -3777,7 +3777,7 @@ function getIconsForIOUReport(report: OnyxInputOrEntry<Report>, personalDetails:
     const managerDetails = report?.managerID ? personalDetails?.[report.managerID] : undefined;
     const ownerDetails = report?.ownerAccountID ? personalDetails?.[report.ownerAccountID] : undefined;
     const managerIcon = {
-        source: managerDetails?.avatar ?? FallbackAvatar,
+        source: managerDetails?.avatar ?? getDefaultAvatarURL({accountID: report?.managerID}),
         id: report?.managerID,
         type: CONST.ICON_TYPE_AVATAR,
         name: managerDetails?.displayName ?? '',
@@ -3785,7 +3785,7 @@ function getIconsForIOUReport(report: OnyxInputOrEntry<Report>, personalDetails:
     };
     const ownerIcon = {
         id: report?.ownerAccountID,
-        source: ownerDetails?.avatar ?? FallbackAvatar,
+        source: ownerDetails?.avatar ?? getDefaultAvatarURL({accountID: report?.ownerAccountID}),
         type: CONST.ICON_TYPE_AVATAR,
         name: ownerDetails?.displayName ?? '',
         fallbackIcon: ownerDetails?.fallbackIcon,
