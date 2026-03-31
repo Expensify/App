@@ -118,9 +118,10 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
             renderTitle={renderTitle}
             subtitle={translate('workspace.rules.merchantRules.subtitle')}
             subtitleMuted
+            childrenStyles={[styles.gap3]}
         >
             {hasRules && (
-                <View style={[styles.mt3]}>
+                <View style={[styles.mt3, styles.gap3]}>
                     {sortedRules.map((rule) => {
                         const merchantName = rule.filters?.right ?? '';
                         const isExactMatch = rule.filters?.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO;
@@ -136,7 +137,7 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
                                     <MenuItemWithTopDescription
                                         description={matchDescription}
                                         title={ruleDescription}
-                                        wrapperStyle={[styles.borderedContentCard, styles.mt3, styles.ph4, styles.pv4]}
+                                        wrapperStyle={[styles.borderedContentCard, styles.ph4, styles.pv4]}
                                         descriptionTextStyle={[styles.textNormalThemeText]}
                                         titleStyle={[styles.textLabelSupporting, styles.fontSizeLabel]}
                                         shouldShowRightIcon
