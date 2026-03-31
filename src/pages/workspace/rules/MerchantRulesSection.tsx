@@ -121,7 +121,7 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
             childrenStyles={[styles.gap3]}
         >
             {hasRules && (
-                <View style={[styles.mt3, styles.gap3]}>
+                <View style={[styles.mt3, styles.gap2]}>
                     {sortedRules.map((rule) => {
                         const merchantName = rule.filters?.right ?? '';
                         const isExactMatch = rule.filters?.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO;
