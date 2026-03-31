@@ -242,4 +242,51 @@ describe('PersistedRequests persistence guarantees', () => {
             setMock.mockRestore();
         }
     });
+
+    it('Follower tab should reconcile processed requests from leader via cross-tab callback', async () => {
+        PersistedRequests.clear();
+        await waitForBatchedUpdates();
+        expect(PersistedRequests.getAll()).toHaveLength(0);
+
+        const requestA: Request<'reportMetadata_1' | 'reportMetadata_2'> = {
+            command: 'CommandA',
+            successData: [{key: 'reportMetadata_1', onyxMethod: 'merge', value: {}}],
+            failureData: [{key: 'reportMetadata_2', onyxMethod: 'merge', value: {}}],
+            requestID: 20,
+        };
+        const requestB: Request<'reportMetadata_3' | 'reportMetadata_4'> = {
+            command: 'CommandB',
+            successData: [{key: 'reportMetadata_3', onyxMethod: 'merge', value: {}}],
+            failureData: [{key: 'reportMetadata_4', onyxMethod: 'merge', value: {}}],
+            requestID: 21,
+        };
+
+        PersistedRequests.save(requestA);
+        PersistedRequests.save(requestB);
+        await waitForBatchedUpdates();
+        expect(PersistedRequests.getAll()).toHaveLength(2);
+
+        // Simulate a cross-tab callback: leader processed requestA and removed it.
+        // After waitForBatchedUpdates, pendingOnyxWrites is 0, so the callback
+        // will reconcile deletions (requestA no longer on disk → removed from memory).
+        await Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, [requestB]);
+        await waitForBatchedUpdates();
+
+        // The follower should have reconciled: requestA removed from memory
+        expect(PersistedRequests.getAll()).toHaveLength(1);
+        expect(PersistedRequests.getAll().at(0)).toEqual(requestB);
+
+        // Save a new request — it should NOT re-add requestA to disk
+        const requestC: Request<'reportMetadata_5' | 'reportMetadata_6'> = {
+            command: 'CommandC',
+            successData: [{key: 'reportMetadata_5', onyxMethod: 'merge', value: {}}],
+            failureData: [{key: 'reportMetadata_6', onyxMethod: 'merge', value: {}}],
+            requestID: 22,
+        };
+        PersistedRequests.save(requestC);
+        await waitForBatchedUpdates();
+
+        expect(PersistedRequests.getAll()).toHaveLength(2);
+        expect(PersistedRequests.getAll().map((r) => r.command)).toEqual(['CommandB', 'CommandC']);
+    });
 });
