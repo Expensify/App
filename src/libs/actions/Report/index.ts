@@ -2095,7 +2095,6 @@ function createChildReport(
     });
 
     const childReportID = childReport?.reportID ?? parentReportAction.childReportID;
-
     if (!childReportID) {
         // When creating a new thread, the thread creator should never see the Join button.
         // Override their notification preference to ALWAYS regardless of who authored the parent message.
