@@ -67,7 +67,9 @@ function useReceiptScan({
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
-    const [isMultiScanEnabled, setIsMultiScanEnabled] = useState((transactions ?? []).length > 1);
+    const [userSelectedMultiScanEnabled, setUserSelectedMultiScanEnabled] = useState<boolean>();
+    const isMultiScanEnabled = userSelectedMultiScanEnabled ?? (transactions ?? []).length > 1;
+    const setIsMultiScanEnabled = setUserSelectedMultiScanEnabled;
     const isStartingScan = action === CONST.IOU.ACTION.CREATE;
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;

@@ -338,7 +338,7 @@ function IOURequestStartPage({
                                     {() => (
                                         <TabScreenWithFocusTrapWrapper>
                                             <IOURequestStepScan
-                                                key={selectedTab ?? CONST.TAB_REQUEST.SCAN}
+                                                key={selectedTab === CONST.TAB_REQUEST.SCAN ? CONST.TAB_REQUEST.SCAN : 'non-scan'}
                                                 route={route}
                                                 navigation={navigation}
                                                 onLayout={(setTestReceiptAndNavigate) => {
