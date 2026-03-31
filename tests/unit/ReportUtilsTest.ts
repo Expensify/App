@@ -74,6 +74,7 @@ import {
     getAvailableReportFields,
     getBillableAndTaxTotal,
     getChatByParticipants,
+    getChatListItemReportName,
     getChatRoomSubtitle,
     getDefaultWorkspaceAvatar,
     getDisplayNameForParticipant,
@@ -4857,10 +4858,10 @@ describe('ReportUtils', () => {
             const unholdRequestSpy = jest.spyOn(HoldUtils, 'unholdRequest').mockImplementation(() => undefined);
 
             // When changeMoneyRequestHoldStatus is called
-            changeMoneyRequestHoldStatus(reportAction, iouTransaction);
+            changeMoneyRequestHoldStatus(reportAction, iouTransaction, false);
 
             // Then unholdRequest should be called with the correct parameters and navigation should not be called
-            expect(unholdRequestSpy).toHaveBeenCalledWith(transactionID, childReportID, expect.objectContaining({id: policyID}));
+            expect(unholdRequestSpy).toHaveBeenCalledWith(transactionID, childReportID, expect.objectContaining({id: policyID}), false);
             expect(Navigation.navigate).not.toHaveBeenCalled();
         });
 
@@ -4902,7 +4903,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             // When changeMoneyRequestHoldStatus is called
-            changeMoneyRequestHoldStatus(reportAction, iouTransaction);
+            changeMoneyRequestHoldStatus(reportAction, iouTransaction, false);
 
             // Then navigation should be called with the correct parameters
             expect(Navigation.navigate).toHaveBeenCalledWith(
@@ -15090,6 +15091,65 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('getChatListItemReportName', () => {
+        const conciergeReportID = 'concierge-report-123';
+
+        beforeEach(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdates();
+        });
+
+        it('should return CONCIERGE_DISPLAY_NAME when conciergeReportID matches report ID', async () => {
+            const conciergeReport: Report = {
+                reportID: conciergeReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`, conciergeReport);
+            await waitForBatchedUpdates();
+
+            const action = {...createRandomReportAction(1)};
+            const result = getChatListItemReportName(action, conciergeReport, conciergeReportID);
+            expect(result).toBe(CONST.CONCIERGE_DISPLAY_NAME);
+        });
+
+        it('should not return CONCIERGE_DISPLAY_NAME when conciergeReportID does not match report ID', async () => {
+            const regularReport: Report = {
+                reportID: 'regular-report-456',
+                type: CONST.REPORT.TYPE.CHAT,
+                reportName: 'Regular Chat',
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${regularReport.reportID}`, regularReport);
+            await waitForBatchedUpdates();
+
+            const action = {...createRandomReportAction(2)};
+            const result = getChatListItemReportName(action, regularReport, conciergeReportID);
+            expect(result).not.toBe(CONST.CONCIERGE_DISPLAY_NAME);
+        });
+
+        it('should return action.reportName when set, regardless of conciergeReportID', () => {
+            const conciergeReport: Report = {
+                reportID: conciergeReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            const action = {...createRandomReportAction(3), reportName: 'Custom Action Name'};
+            const result = getChatListItemReportName(action, conciergeReport, conciergeReportID);
+            expect(result).toBe('Custom Action Name');
+        });
+
+        it('should use Onyx-connected conciergeReportID when explicit parameter is undefined', async () => {
+            const conciergeReport: Report = {
+                reportID: conciergeReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, conciergeReportID);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`, conciergeReport);
+            await waitForBatchedUpdates();
+
+            const action = {...createRandomReportAction(4)};
+            const result = getChatListItemReportName(action, conciergeReport, undefined);
+            expect(result).toBe(CONST.CONCIERGE_DISPLAY_NAME);
+        });
+    });
     describe('buildOptimisticApprovedReportAction', () => {
         it('should set actorAccountID to the provided currentUserAccountID', () => {
             const customAccountID = 99;
