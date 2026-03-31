@@ -1728,7 +1728,7 @@ function setMoneyRequestOdometerImage(transaction: OnyxEntry<OnyxTypes.Transacti
                   type: file.type,
                   size: file.size,
               };
-    const transactionID = transaction?.transactionID ;
+    const transactionID = transaction?.transactionID;
     const existingImage = transaction?.comment?.[imageKey];
     revokeOdometerImageUri(existingImage, normalizedFile);
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
