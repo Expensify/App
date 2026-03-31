@@ -1,19 +1,13 @@
 import {deepEqual} from 'fast-equals';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 import type {RenderItemParams} from 'react-native-draggable-flatlist/lib/typescript/types';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import Button from '@components/Button';
-import DistanceRequestFooter from '@components/DistanceRequest/DistanceRequestFooter';
 import DistanceRequestRenderItem from '@components/DistanceRequest/DistanceRequestRenderItem';
-import DotIndicatorMessage from '@components/DotIndicatorMessage';
-import DraggableList from '@components/DraggableList';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
@@ -33,7 +27,6 @@ import usePrevious from '@hooks/usePrevious';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
-import useThemeStyles from '@hooks/useThemeStyles';
 import useWaypointItems from '@hooks/useWaypointItems';
 import {setMoneyRequestAmount, setMoneyRequestDistance, updateMoneyRequestDistance} from '@libs/actions/IOU';
 import {handleMoneyRequestStepDistanceNavigation} from '@libs/actions/IOU/MoneyRequest';
@@ -53,7 +46,6 @@ import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Nav
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {isArchivedReport, isPolicyExpenseChat as isPolicyExpenseChatUtil} from '@libs/ReportUtils';
 import {getDistanceInMeters, getRateID, getRequestType, hasRoute, isCustomUnitRateIDForP2P, isWaypointNullIsland} from '@libs/TransactionUtils';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -67,6 +59,8 @@ import type {Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type TransactionStateType from '@src/types/utils/TransactionStateType';
+import DistanceManualTabContent from './DistanceManualTabContent';
+import DistanceMapTabContent from './DistanceMapTabContent';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -86,7 +80,6 @@ function IOURequestStepDistance({
     transaction,
     currentUserPersonalDetails,
 }: IOURequestStepDistanceProps) {
-    const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
@@ -207,11 +200,16 @@ function IOURequestStepDistance({
         [distanceInMeters, distanceUnit],
     );
 
-    // For the manual distance input, prefer quantity (the user's manually edited value) over
-    // routes.route0.distance (the route-calculated value). This ensures that after a manual edit,
-    // re-opening the distance editor shows the manually entered value, not the route distance.
-    const quantity = currentTransaction?.comment?.customUnit?.quantity;
-    const manualInputDistance = useMemo(() => (quantity ? roundToTwoDecimalPlaces(quantity) : currentDistance), [quantity, currentDistance]);
+    // Sync the manual tab input when the route recalculates (e.g. after waypoint edits on the map tab).
+    // We track routes.route0.distance so this only fires on route changes, not on manual distance edits.
+    const routeDistance = currentTransaction?.routes?.route0?.distance;
+    useEffect(() => {
+        if (routeDistance == null || !distanceUnit) {
+            return;
+        }
+        const routeDistanceInUnit = roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(routeDistance, distanceUnit));
+        manualNumberFormRef.current?.updateNumber(routeDistanceInUnit.toString());
+    }, [routeDistance, distanceUnit]);
 
     // Sets `amount` and `split` share data before moving to the next step to avoid briefly showing `0.00` as the split share for participants
     const setDistanceRequestData = useCallback(
@@ -322,7 +320,8 @@ function IOURequestStepDistance({
         // goBack() without a route to first navigate within the tab navigator
         // (e.g. manual tab → map tab) instead of exiting the screen.
         // Provide an explicit fallback route to bypass the tab navigator.
-        const fallbackRoute = backTo ?? (isEditing ? ROUTES.REPORT_WITH_ID.getRoute(report?.reportID ?? reportID) : undefined);
+        const resolvedReportID = report?.reportID ?? reportID;
+        const fallbackRoute = backTo ?? (isEditing && resolvedReportID ? ROUTES.REPORT_WITH_ID.getRoute(resolvedReportID) : undefined);
         Navigation.goBack(fallbackRoute);
     }, [backTo, isEditing, report?.reportID, reportID]);
 
@@ -421,7 +420,7 @@ function IOURequestStepDistance({
         ownerBillingGraceEndPeriod,
     ]);
 
-    const getError = () => {
+    const getError = useCallback(() => {
         // Get route error if available else show the invalid number of waypoints error.
         if (hasRouteError) {
             return getLatestErrorField(currentTransaction, 'route');
@@ -436,7 +435,7 @@ function IOURequestStepDistance({
             return {atLeastTwoDifferentWaypointsError: translate('iou.error.atLeastTwoDifferentWaypoints')} as Errors;
         }
         return {};
-    };
+    }, [hasRouteError, currentTransaction, isWaypointsNullIslandError, translate, duplicateWaypointsError, atLeastTwoDifferentWaypointsError]);
 
     type DataParams = {
         data: string[];
@@ -510,7 +509,8 @@ function IOURequestStepDistance({
                 // When waypoints change, include the route-calculated distance so the server
                 // updates quantity to match the new route instead of keeping the old value.
                 const routeDistanceInMeters = transaction?.routes?.route0?.distance;
-                const routeDistanceInUnit = routeDistanceInMeters ? roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(routeDistanceInMeters, distanceUnit)) : undefined;
+                const routeDistanceInUnit =
+                    routeDistanceInMeters != null ? roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(routeDistanceInMeters, distanceUnit)) : undefined;
 
                 updateMoneyRequestDistance({
                     transactionID: transaction?.transactionID,
@@ -581,14 +581,14 @@ function IOURequestStepDistance({
         const distanceAsFloat = roundToTwoDecimalPlaces(parseFloat(value));
 
         if (isEditingSplit && transaction) {
-            setMoneyRequestDistance(transactionID, distanceAsFloat, shouldUseTransactionDraft(action), distanceUnit);
+            setMoneyRequestDistance(transactionID, distanceAsFloat, shouldUseTransactionDraft(action, iouType), distanceUnit);
             setDraftSplitTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, splitDraftTransaction, {distance: distanceAsFloat}, policy);
             navigateBack();
             return;
         }
 
         const transactionDistanceUnit = currentTransaction?.comment?.customUnit?.distanceUnit;
-        const isDistanceChanged = manualInputDistance !== distanceAsFloat;
+        const isDistanceChanged = currentDistance !== distanceAsFloat;
         const isDistanceUnitChanged = transactionDistanceUnit && transactionDistanceUnit !== distanceUnit;
 
         // Check if waypoints were edited on the map tab before the user switched to manual.
@@ -628,6 +628,7 @@ function IOURequestStepDistance({
         distanceRate,
         transactionID,
         action,
+        iouType,
         distanceUnit,
         isEditingSplit,
         transaction,
@@ -635,7 +636,7 @@ function IOURequestStepDistance({
         splitDraftTransaction,
         policy,
         navigateBack,
-        manualInputDistance,
+        currentDistance,
         waypoints,
         transactionBackup,
         report,
@@ -664,84 +665,78 @@ function IOURequestStepDistance({
         [isLoadingRoute, navigateToWaypointEditPage, waypoints, getWaypointKey],
     );
 
-    const mapTabContent = (
-        <>
-            <View style={styles.flex1}>
-                <DraggableList
-                    data={waypointItems}
-                    keyExtractor={extractKey}
-                    onDragEnd={updateWaypoints}
-                    ref={scrollViewRef}
+    const handleManualInputChange = useCallback(() => {
+        if (!manualFormError) {
+            return;
+        }
+        setManualFormError('');
+    }, [manualFormError]);
+
+    const renderMapTab = useCallback(
+        () => (
+            <TabScreenWithFocusTrapWrapper>
+                <DistanceMapTabContent
+                    waypointItems={waypointItems}
+                    waypoints={waypoints}
+                    extractKey={extractKey}
+                    updateWaypoints={updateWaypoints}
+                    scrollViewRef={scrollViewRef}
                     renderItem={renderItem}
-                    ListFooterComponent={
-                        <DistanceRequestFooter
-                            waypoints={waypoints}
-                            navigateToWaypointEditPage={navigateToWaypointEditPage}
-                            transaction={transaction}
-                            policy={policy}
-                        />
-                    }
+                    navigateToWaypointEditPage={navigateToWaypointEditPage}
+                    transaction={transaction}
+                    policy={policy}
+                    shouldShowAtLeastTwoDifferentWaypointsError={shouldShowAtLeastTwoDifferentWaypointsError}
+                    atLeastTwoDifferentWaypointsError={atLeastTwoDifferentWaypointsError}
+                    duplicateWaypointsError={duplicateWaypointsError}
+                    hasRouteError={hasRouteError}
+                    getError={getError}
+                    submitWaypoints={submitWaypoints}
+                    buttonText={buttonText}
+                    isOffline={isOffline}
+                    isLoadingRoute={isLoadingRoute}
+                    shouldFetchRoute={shouldFetchRoute}
+                    isLoading={isLoading}
                 />
-            </View>
-            <View style={[styles.w100, styles.pt2]}>
-                {((shouldShowAtLeastTwoDifferentWaypointsError && atLeastTwoDifferentWaypointsError) || duplicateWaypointsError || hasRouteError) && (
-                    <DotIndicatorMessage
-                        style={[styles.mh4, styles.mv3]}
-                        messages={getError()}
-                        type="error"
-                    />
-                )}
-                <Button
-                    success
-                    allowBubble
-                    pressOnEnter
-                    large
-                    style={[styles.w100, styles.mb5, styles.ph5, styles.flexShrink0]}
-                    onPress={submitWaypoints}
-                    text={buttonText}
-                    isLoading={!isOffline && (isLoadingRoute || shouldFetchRoute || isLoading)}
-                    sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.DISTANCE_NEXT_BUTTON}
-                />
-            </View>
-        </>
+            </TabScreenWithFocusTrapWrapper>
+        ),
+        [
+            waypointItems,
+            waypoints,
+            extractKey,
+            updateWaypoints,
+            renderItem,
+            navigateToWaypointEditPage,
+            transaction,
+            policy,
+            shouldShowAtLeastTwoDifferentWaypointsError,
+            atLeastTwoDifferentWaypointsError,
+            duplicateWaypointsError,
+            hasRouteError,
+            getError,
+            submitWaypoints,
+            buttonText,
+            isOffline,
+            isLoadingRoute,
+            shouldFetchRoute,
+            isLoading,
+        ],
     );
 
-    const manualTabContent = (
-        <NumberWithSymbolForm
-            key={manualInputDistance}
-            ref={manualTextInputRef}
-            numberFormRef={manualNumberFormRef}
-            value={manualInputDistance?.toString()}
-            onInputChange={() => {
-                if (!manualFormError) {
-                    return;
-                }
-                setManualFormError('');
-            }}
-            decimals={CONST.DISTANCE_DECIMAL_PLACES}
-            symbol={distanceUnit}
-            symbolPosition={CONST.TEXT_INPUT_SYMBOL_POSITION.SUFFIX}
-            isSymbolPressable={false}
-            symbolTextStyle={styles.textSupporting}
-            style={styles.iouAmountTextInput}
-            containerStyle={styles.iouAmountTextInputContainer}
-            autoGrowExtraSpace={variables.w80}
-            touchableInputWrapperStyle={styles.heightUndefined}
-            errorText={manualFormError}
-            accessibilityLabel={`${translate('common.distance')} (${translate(`common.${distanceUnit}`)})`}
-            footer={
-                <Button
-                    success
-                    allowBubble={false}
-                    pressOnEnter
-                    large
-                    style={[styles.w100, styles.mt5]}
-                    onPress={submitManualDistance}
-                    text={translate('common.save')}
-                    sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.DISTANCE_NEXT_BUTTON}
+    const renderManualTab = useCallback(
+        () => (
+            <TabScreenWithFocusTrapWrapper>
+                <DistanceManualTabContent
+                    currentDistance={currentDistance}
+                    distanceUnit={distanceUnit}
+                    onSubmit={submitManualDistance}
+                    manualFormError={manualFormError}
+                    onInputChange={handleManualInputChange}
+                    manualTextInputRef={manualTextInputRef}
+                    manualNumberFormRef={manualNumberFormRef}
                 />
-            }
-        />
+            </TabScreenWithFocusTrapWrapper>
+        ),
+        [currentDistance, distanceUnit, submitManualDistance, manualFormError, handleManualInputChange],
     );
 
     if (isEditing) {
@@ -761,8 +756,8 @@ function IOURequestStepDistance({
                         defaultSelectedTab={CONST.TAB_REQUEST.DISTANCE_MAP}
                         tabBar={TabSelector}
                     >
-                        <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_MAP}>{() => <TabScreenWithFocusTrapWrapper>{mapTabContent}</TabScreenWithFocusTrapWrapper>}</TopTab.Screen>
-                        <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_MANUAL}>{() => <TabScreenWithFocusTrapWrapper>{manualTabContent}</TabScreenWithFocusTrapWrapper>}</TopTab.Screen>
+                        <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_MAP}>{renderMapTab}</TopTab.Screen>
+                        <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_MANUAL}>{renderManualTab}</TopTab.Screen>
                     </OnyxTabNavigator>
                 </FullPageNotFoundView>
             </ScreenWrapper>
@@ -777,7 +772,28 @@ function IOURequestStepDistance({
             shouldShowNotFoundPage={shouldShowNotFoundPage}
             shouldShowWrapper={!isCreatingNewRequest}
         >
-            {mapTabContent}
+            <DistanceMapTabContent
+                waypointItems={waypointItems}
+                waypoints={waypoints}
+                extractKey={extractKey}
+                updateWaypoints={updateWaypoints}
+                scrollViewRef={scrollViewRef}
+                renderItem={renderItem}
+                navigateToWaypointEditPage={navigateToWaypointEditPage}
+                transaction={transaction}
+                policy={policy}
+                shouldShowAtLeastTwoDifferentWaypointsError={shouldShowAtLeastTwoDifferentWaypointsError}
+                atLeastTwoDifferentWaypointsError={atLeastTwoDifferentWaypointsError}
+                duplicateWaypointsError={duplicateWaypointsError}
+                hasRouteError={hasRouteError}
+                getError={getError}
+                submitWaypoints={submitWaypoints}
+                buttonText={buttonText}
+                isOffline={isOffline}
+                isLoadingRoute={isLoadingRoute}
+                shouldFetchRoute={shouldFetchRoute}
+                isLoading={isLoading}
+            />
         </StepScreenWrapper>
     );
 }
