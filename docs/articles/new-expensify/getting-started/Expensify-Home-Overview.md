@@ -73,7 +73,7 @@ If there’s nothing that needs action, the **For you** section may appear empty
 
 The **Spend over time** section displays a line chart showing your workspace spending trends over time.
 
-This section is available to Workspace Admins, auditors, and approvers on paid workspaces that have transaction data. Click **View** to open the full **Spend over time** chart on the Search page.
+This section is available to Workspace Admins, Auditors, and Approvers on paid workspaces that have transaction data. Click **View** to open the full **Spend over time** chart on the Search page.
 
 If you don't hold one of these roles or your workspace has no transactions yet, this section won't appear.
 
