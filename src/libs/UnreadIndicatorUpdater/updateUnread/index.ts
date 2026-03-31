@@ -6,6 +6,7 @@ import type UpdateUnread from './types';
 
 let unreadTotalCount = 0;
 let currentPageTitle = '';
+let pendingTitleUpdate: ReturnType<typeof setTimeout> | null = null;
 
 /**
  * Set the current page-specific title (called by useDocumentTitle hook)
@@ -18,13 +19,25 @@ function setPageTitle(title: string) {
 }
 
 /**
- * Update the actual document title and favicon
+ * Update the actual document title and favicon.
+ *
+ * Debounced so that only the last call in a burst (popstate + navigation
+ * state listener + useFocusEffect) actually runs.  This prevents the
+ * visible blank-title flash that occurred when multiple calls each
+ * executed `document.title = ''` followed by the real title in separate
+ * setTimeout(0) callbacks.
  */
 function updateDocumentTitle() {
-    const hasUnread = unreadTotalCount !== 0;
+    if (pendingTitleUpdate !== null) {
+        clearTimeout(pendingTitleUpdate);
+    }
+
     // This setTimeout is required because due to how react rendering messes with the DOM, the document title can't be modified synchronously, and we must wait until all JS is done
     // running before setting the title.
-    setTimeout(() => {
+    pendingTitleUpdate = setTimeout(() => {
+        pendingTitleUpdate = null;
+        const hasUnread = unreadTotalCount !== 0;
+
         // There is a Chrome browser bug that causes the title to revert back to the previous when we are navigating back. Setting the title to an empty string
         // seems to improve this issue.
         document.title = '';
