@@ -8,6 +8,7 @@ import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
 import {contextMenuRef} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
@@ -51,6 +52,7 @@ type AddReactionBubbleProps = {
 
 function AddReactionBubble({onSelectEmoji, reportAction, onPressOpenPicker, onWillShowPicker = () => {}, isContextMenu = false, setIsEmojiPickerActive}: AddReactionBubbleProps) {
     const icons = useMemoizedLazyExpensifyIcons(['AddReaction']);
+    const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const ref = useRef<View | HTMLDivElement>(null);
@@ -121,7 +123,7 @@ function AddReactionBubble({onSelectEmoji, reportAction, onPressOpenPicker, onWi
                                 src={icons.AddReaction}
                                 width={isContextMenu ? variables.iconSizeNormal : variables.iconSizeSmall}
                                 height={isContextMenu ? variables.iconSizeNormal : variables.iconSizeSmall}
-                                fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
+                                fill={hovered || pressed ? StyleUtils.getIconFillColor(getButtonState(hovered, pressed)) : theme.iconStrong}
                             />
                         </View>
                     </>
