@@ -44,8 +44,8 @@ index 1dbf9c5..f0e0a00 100644
 +  UIView<RCTComponentViewProtocol> *view = [self->_componentViewRegistry findComponentViewWithTag:reactTag];
 +  if (!view) {
 +    // this view was probably collapsed out
-+    RCTLogWarn(@"measure cannot find view with tag #%@", reactTag);
-+    callback({});
++    RCTLogWarn(@"measure cannot find view with tag #%ld", (long)reactTag);
++    callback(folly::dynamic::array(0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
 +    return;
 +  }
 +
@@ -381,7 +381,7 @@ diff --git a/node_modules/react-native/ReactCommon/react/nativemodule/dom/Native
 index 75cbcff..43b0582 100644
 --- a/node_modules/react-native/ReactCommon/react/nativemodule/dom/NativeDOM.cpp
 +++ b/node_modules/react-native/ReactCommon/react/nativemodule/dom/NativeDOM.cpp
-@@ -466,6 +466,30 @@ void NativeDOM::measureLayout(
+@@ -466,6 +466,34 @@ void NativeDOM::measureLayout(
    onSuccess(rect.x, rect.y, rect.width, rect.height);
  }
 
@@ -396,6 +396,10 @@ index 75cbcff..43b0582 100644
 +  }
 +
 +  std::function<void(folly::dynamic)> jsCallback = [callback](const folly::dynamic& args) {
++    if (!args.isArray() || args.size() < 6) {
++        callback.call(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
++        return;
++    }
 +    // TODO: can we make the rest accept an AsyncFunction directly?
 +    callback.call(
 +        args.at(0).getDouble(),
