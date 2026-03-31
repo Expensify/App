@@ -653,14 +653,14 @@ function MenuItem({
         title ? {} : StyleUtils.getFontSizeStyle(variables.fontSizeNormal),
         title ? styles.textLineHeightNormal : StyleUtils.getLineHeightStyle(variables.fontSizeNormalHeight),
         (descriptionTextStyle as TextStyle) || styles.breakWord,
-        descriptionAddon ? styles.ml2 : {},
+        !descriptionAddon && icon && !Array.isArray(icon) ? styles.ml3 : {},
         isDeleted ? styles.offlineFeedbackDeleted : {},
     ]);
 
     const descriptionContainerStyle = StyleUtils.combineStyles<ViewStyle>([
         styles.flexRow,
         styles.alignItemsCenter,
-        !descriptionAddon && icon && !Array.isArray(icon) ? styles.ml3 : {},
+        descriptionAddon && icon && !Array.isArray(icon) ? styles.ml3 : {},
         title ? descriptionVerticalMargin : {},
     ]);
 
