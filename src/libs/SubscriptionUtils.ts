@@ -635,4 +635,4 @@ export {
     hasInsufficientFundsError,
 };
 
-export type {SubscriptionPlanIllustrations};
+export type {DiscountInfo, SubscriptionPlanIllustrations};

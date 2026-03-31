@@ -960,15 +960,6 @@ const translations: TranslationDeepObject<typeof en> = {
         forYou: 'Dla ciebie',
         timeSensitiveSection: {
             title: 'Wymaga szybkiej reakcji',
-            cta: 'Roszczenie',
-            offer50off: {
-                title: 'Otrzymaj 50% zniżki na pierwszy rok!',
-                subtitle: ({formattedTime}: {formattedTime: string}) => `Pozostało ${formattedTime}`,
-            },
-            offer25off: {
-                title: 'Uzyskaj 25% zniżki na pierwszy rok!',
-                subtitle: ({days}: {days: number}) => `Pozostało ${days} ${days === 1 ? 'dzień' : 'dni'}`,
-            },
             addShippingAddress: {title: 'Potrzebujemy Twojego adresu wysyłki', subtitle: 'Podaj adres, na który mamy wysłać twoją Kartę Expensify.', cta: 'Dodaj adres'},
             addPaymentCard: {title: 'Dodaj kartę płatniczą, żeby dalej korzystać z Expensify', subtitle: 'Konto > Subskrypcja', cta: 'Dodaj'},
             activateCard: {title: 'Aktywuj swoją Kartę Expensify', subtitle: 'Zatwierdź swoją kartę i zacznij wydawać.', cta: 'Aktywuj'},
@@ -1055,6 +1046,19 @@ const translations: TranslationDeepObject<typeof en> = {
             inOneWeek: 'Za 1 tydzień',
             inDays: () => ({one: 'Za 1 dzień', other: (count: number) => `Za ${count} dni`}),
             today: 'Dzisiaj',
+        },
+        freeTrialSection: {
+            title: ({days}: {days: number}) => `Darmowy okres próbny: pozostało ${days} ${days === 1 ? 'dzień' : 'dni'}!`,
+            offer50Body: 'Zyskaj 50% zniżki na pierwszy rok!',
+            offer25Body: 'Uzyskaj 25% zniżki na pierwszy rok!',
+            addCardBody: 'Nie czekaj! Dodaj teraz swoją kartę płatniczą.',
+            ctaClaim: 'Roszczenie',
+            ctaAdd: 'Dodaj kartę',
+            timeRemaining: ({formattedTime}: {formattedTime: string}) => `Pozostały czas: ${formattedTime}`,
+            timeRemainingDays: () => ({
+                one: 'Pozostały czas: 1 dzień',
+                other: (pluralCount: number) => `Pozostały czas: ${pluralCount} dni`,
+            }),
         },
     },
     allSettingsScreen: {

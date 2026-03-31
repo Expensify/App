@@ -988,16 +988,7 @@ const translations = {
         forYou: 'For you',
         timeSensitiveSection: {
             title: 'Time sensitive',
-            cta: 'Claim',
             ctaFix: 'Fix',
-            offer50off: {
-                title: 'Get 50% off your first year!',
-                subtitle: ({formattedTime}: {formattedTime: string}) => `${formattedTime} remaining`,
-            },
-            offer25off: {
-                title: 'Get 25% off your first year!',
-                subtitle: ({days}: {days: number}) => `${days} ${days === 1 ? 'day' : 'days'} remaining`,
-            },
             fixCompanyCardConnection: {
                 title: ({feedName}: {feedName: string}) => (feedName ? `Fix ${feedName} company card connection` : 'Fix company card connection'),
                 defaultSubtitle: 'Workspace',
@@ -1042,6 +1033,19 @@ const translations = {
                 title: "We couldn't bill your card on file",
                 subtitle: 'Subscription',
             },
+        },
+        freeTrialSection: {
+            title: ({days}: {days: number}) => `Free trial: ${days} ${days === 1 ? 'day' : 'days'} left!`,
+            offer50Body: 'Get 50% off your first year!',
+            offer25Body: 'Get 25% off your first year!',
+            addCardBody: "Don't wait! Add your payment card now.",
+            ctaClaim: 'Claim',
+            ctaAdd: 'Add card',
+            timeRemaining: ({formattedTime}: {formattedTime: string}) => `Time remaining: ${formattedTime}`,
+            timeRemainingDays: () => ({
+                one: 'Time remaining: 1 day',
+                other: (pluralCount: number) => `Time remaining: ${pluralCount} days`,
+            }),
         },
         assignedCards: 'Your Expensify Cards',
         assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} remaining`,
