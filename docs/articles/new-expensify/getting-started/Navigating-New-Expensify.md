@@ -98,7 +98,7 @@ From Account, you can manage:
  - **Security** to manage security options and Copilot delegated access
 
 You can also access: 
- - **Help** to browse Expensify's help site
+ - **Help** to access help and support resources, including a link to the help site
  - **What's new** to view product updates
  - **About** to see app details
  - **Troubleshoot** to run diagnostics or switch to Expensify Classic
