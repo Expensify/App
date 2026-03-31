@@ -130,9 +130,9 @@ describe('actions/SendInvoice', () => {
 
         const baseSenderPolicyID = baseParticipants.find((p) => p.isSender)?.policyID;
 
-        let baseParticipantsPolicyTags: PolicyTagLists;
+        let baseSenderPolicyTags: PolicyTagLists;
         beforeEach(async () => {
-            baseParticipantsPolicyTags = (await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${baseSenderPolicyID}`)) ?? {};
+            baseSenderPolicyTags = (await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${baseSenderPolicyID}`)) ?? {};
         });
 
         const baseTransaction = {
@@ -162,7 +162,7 @@ describe('actions/SendInvoice', () => {
                 companyName: undefined,
                 companyWebsite: undefined,
                 policyRecentlyUsedCategories: existingRecentlyUsedCategories,
-                participantsPolicyTags: baseParticipantsPolicyTags,
+                senderPolicyTags: baseSenderPolicyTags,
             });
 
             // Then: Verify optimistic data is generated when policyRecentlyUsedCategories are provided
@@ -187,7 +187,7 @@ describe('actions/SendInvoice', () => {
                 companyName: undefined,
                 companyWebsite: undefined,
                 policyRecentlyUsedCategories: undefined,
-                participantsPolicyTags: baseParticipantsPolicyTags,
+                senderPolicyTags: baseSenderPolicyTags,
             });
 
             expect(result.onyxData.optimisticData).toBeDefined();
@@ -238,7 +238,7 @@ describe('actions/SendInvoice', () => {
                 companyName: 'Test Company Inc.',
                 companyWebsite: 'https://testcompany.com',
                 policyRecentlyUsedCategories: ['Services', 'Consulting'],
-                participantsPolicyTags: mockPolicyTagList as PolicyTagLists,
+                senderPolicyTags: mockPolicyTagList as PolicyTagLists,
             });
 
             // Then: Verify the result structure and key values
@@ -315,7 +315,7 @@ describe('actions/SendInvoice', () => {
                 companyName: 'Client Company Ltd.',
                 companyWebsite: 'https://clientcompany.com',
                 policyRecentlyUsedCategories: [],
-                participantsPolicyTags: baseParticipantsPolicyTags,
+                senderPolicyTags: baseSenderPolicyTags,
             });
 
             // Then: Verify the result uses existing chat report
@@ -351,7 +351,7 @@ describe('actions/SendInvoice', () => {
                 companyName: undefined,
                 companyWebsite: undefined,
                 policyRecentlyUsedCategories: [],
-                participantsPolicyTags: baseParticipantsPolicyTags,
+                senderPolicyTags: baseSenderPolicyTags,
             });
 
             // Then: Verify receipt handling
@@ -400,7 +400,7 @@ describe('actions/SendInvoice', () => {
                 companyName: undefined,
                 companyWebsite: undefined,
                 policyRecentlyUsedCategories: [],
-                participantsPolicyTags: baseParticipantsPolicyTags,
+                senderPolicyTags: baseSenderPolicyTags,
             });
 
             // Then: Verify function handles missing data gracefully
@@ -430,7 +430,7 @@ describe('actions/SendInvoice', () => {
                 companyName: undefined,
                 companyWebsite: undefined,
                 policyRecentlyUsedCategories: [],
-                participantsPolicyTags: baseParticipantsPolicyTags,
+                senderPolicyTags: baseSenderPolicyTags,
             });
 
             expect(result.invoiceRoom).toBeDefined();
@@ -482,7 +482,7 @@ describe('actions/SendInvoice', () => {
                 companyName: undefined,
                 companyWebsite: undefined,
                 policyRecentlyUsedCategories: [],
-                participantsPolicyTags: baseParticipantsPolicyTags,
+                senderPolicyTags: baseSenderPolicyTags,
             });
 
             expect(result.invoiceRoom).toBeDefined();
@@ -490,7 +490,7 @@ describe('actions/SendInvoice', () => {
             expect(result.invoiceRoom.reportID).not.toBe(preGeneratedReportID);
         });
 
-        it('should build optimistic recently used tags from participantsPolicyTags', async () => {
+        it('should build optimistic recently used tags from senderPolicyTags', async () => {
             // Given: A transaction with a tag and policy tags seeded in Onyx
             const policyID = 'workspace_tags_test';
             const tagListName = 'Department';
@@ -509,7 +509,7 @@ describe('actions/SendInvoice', () => {
             });
             await waitForBatchedUpdates();
 
-            const participantsPolicyTags = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
+            const senderPolicyTags = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
 
             const policyRecentlyUsedTags: RecentlyUsedTags = {
                 [tagListName]: ['Marketing'],
@@ -529,13 +529,13 @@ describe('actions/SendInvoice', () => {
                 ],
             };
 
-            // When: Call getSendInvoiceInformation with participantsPolicyTags read from Onyx
+            // When: Call getSendInvoiceInformation with senderPolicyTags read from Onyx
             const result = getSendInvoiceInformation({
                 transaction: mockTransaction as OnyxEntry<Transaction>,
                 currentUserAccountID: 123,
                 policyRecentlyUsedCurrencies: [],
                 policyRecentlyUsedTags,
-                participantsPolicyTags: participantsPolicyTags ?? {},
+                senderPolicyTags: senderPolicyTags ?? {},
             });
 
             // Then: optimisticData should contain a POLICY_RECENTLY_USED_TAGS update with the transaction tag prepended
@@ -562,7 +562,7 @@ describe('actions/SendInvoice', () => {
             });
             await waitForBatchedUpdates();
 
-            const participantsPolicyTags = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
+            const senderPolicyTags = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
 
             const mockTransaction = {
                 transactionID: 'transaction_no_tags',
@@ -582,7 +582,7 @@ describe('actions/SendInvoice', () => {
                 transaction: mockTransaction as OnyxEntry<Transaction>,
                 currentUserAccountID: 123,
                 policyRecentlyUsedCurrencies: [],
-                participantsPolicyTags: participantsPolicyTags ?? {},
+                senderPolicyTags: senderPolicyTags ?? {},
             });
 
             // Then: No POLICY_RECENTLY_USED_TAGS update should be in optimisticData
