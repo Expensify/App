@@ -1,7 +1,6 @@
 import {findFocusedRoute, getPathFromState as RNGetPathFromState} from '@react-navigation/native';
 import type {NavigationState, PartialState} from '@react-navigation/routers';
-import {linkingConfig} from '@libs/Navigation/linkingConfig';
-import {normalizedConfigs} from '@libs/Navigation/linkingConfig/config';
+import {config, normalizedConfigs} from '@libs/Navigation/linkingConfig/config';
 import type {DynamicRouteSuffix} from '@src/ROUTES';
 import type {Screen} from '@src/SCREENS';
 import getDynamicRouteQueryParams from './dynamicRoutesUtils/getDynamicRouteQueryParams';
@@ -154,7 +153,7 @@ function getPathFromStateWithDynamicRoute(state: State): string {
     const suffixPattern = normalizedConfigs[screenName as Screen]?.path;
 
     if (!suffixPattern) {
-        return RNGetPathFromState(state, linkingConfig.config);
+        return RNGetPathFromState(state, config);
     }
 
     const actualSuffix = buildSuffixFromPattern(suffixPattern, focusedRoute?.params as Record<string, unknown> | undefined);
@@ -186,7 +185,7 @@ function getPathFromState(state: State): string {
         return focusedRoute?.path ?? getPathFromStateWithDynamicRoute(state);
     }
 
-    return RNGetPathFromState(state, linkingConfig.config);
+    return RNGetPathFromState(state, config);
 }
 
 export default getPathFromState;
