@@ -93,6 +93,7 @@ function IOURequestStepDistanceMap({
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
@@ -332,6 +333,7 @@ function IOURequestStepDistanceMap({
             draftTransactionIDs,
             isSelfTourViewed: !!isSelfTourViewed,
             amountOwed,
+            userBillingGraceEndPeriods,
             ownerBillingGraceEndPeriod,
         });
     }, [
@@ -370,6 +372,7 @@ function IOURequestStepDistanceMap({
         draftTransactionIDs,
         isSelfTourViewed,
         amountOwed,
+        userBillingGraceEndPeriods,
         ownerBillingGraceEndPeriod,
     ]);
 
@@ -454,7 +457,7 @@ function IOURequestStepDistanceMap({
             }
             if (transaction?.transactionID && report?.reportID) {
                 updateMoneyRequestDistance({
-                    transactionID: transaction?.transactionID,
+                    transaction,
                     transactionThreadReport: report,
                     parentReport,
                     waypoints,
