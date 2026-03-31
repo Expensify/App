@@ -181,7 +181,7 @@ function TransactionListItem<TItem extends ListItem>({
             <PressableWithFeedback
                 ref={pressableRef}
                 onLongPress={() => onLongPressRow?.(item)}
-                onPress={isDeletedTransaction ? undefined : () => onSelectRow(item, transactionPreviewData)}
+                onPress={isDeletedTransaction && !canSelectMultiple ? undefined : () => onSelectRow(item, transactionPreviewData)}
                 disabled={isDisabled && !item.isSelected}
                 accessibilityLabel={item.text ?? ''}
                 role={isDeletedTransaction ? getButtonRole(true) : 'none'}
