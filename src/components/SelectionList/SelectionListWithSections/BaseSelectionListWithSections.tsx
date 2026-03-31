@@ -363,6 +363,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         titleNumberOfLines={titleNumberOfLines}
                         shouldUseDefaultRightHandSideComponent={shouldUseDefaultRightHandSideComponent}
                         shouldDisableHoverStyle={shouldDisableHoverStyle}
+                        shouldPreventEnterKeySubmit={!disableKeyboardShortcuts}
                     />
                 );
             }

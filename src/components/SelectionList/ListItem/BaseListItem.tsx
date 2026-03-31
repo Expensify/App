@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import {getButtonRole} from '@components/Button/utils';
 import Icon from '@components/Icon';
@@ -103,6 +103,19 @@ function BaseListItem<TItem extends ListItem>({
 
     // Sync focus on an item
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
+
+    const handleKeyDown = useCallback(
+        (event: React.KeyboardEvent) => {
+            if (shouldPreventEnterKeySubmit || event.key !== CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey || event.shiftKey || item.isInteractive === false) {
+                return;
+            }
+
+            event.preventDefault();
+            onSelectRow(item);
+        },
+        [shouldPreventEnterKeySubmit, onSelectRow, item],
+    );
+
     const handleMouseLeave = (e: React.MouseEvent<Element, MouseEvent>) => {
         bind.onMouseLeave();
         e.stopPropagation();
@@ -191,6 +204,9 @@ function BaseListItem<TItem extends ListItem>({
                 {...accessibleAndAccessibilityLabel}
                 accessibilityState={accessibilityState}
                 onMouseLeave={handleMouseLeave}
+                // When the list-level Enter shortcut is disabled (disableKeyboardShortcuts), items with role="option"
+                // won't natively fire click on Enter, so we handle it manually via onKeyDown.
+                onKeyDown={!shouldPreventEnterKeySubmit ? handleKeyDown : undefined}
                 wrapperStyle={pressableWrapperStyle}
                 testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}`}
             >

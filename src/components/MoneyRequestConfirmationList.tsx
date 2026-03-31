@@ -1396,6 +1396,7 @@ function MoneyRequestConfirmationList({
                 footerContent={footerContent}
                 listFooterContent={listFooterContent}
                 style={selectionListStyle}
+                disableKeyboardShortcuts
             />
         </MouseProvider>
     );
