@@ -1,11 +1,12 @@
 import React from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
+import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import {useMemoizedLazyIllustrations, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -19,7 +20,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {SpendRuleMerchant} from '@src/types/form/SpendRuleForm';
-import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 
 type SpendRuleMerchantsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_SPEND_MERCHANTS>;
 
@@ -50,9 +50,7 @@ function SpendRuleMerchantsPage({route}: SpendRuleMerchantsPageProps) {
     const goBack = () => Navigation.goBack(ROUTES.RULES_SPEND_NEW.getRoute(policyID));
 
     const addMerchant = () => {
-        const nextMerchants = [...merchants, {name: '', matchType: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS}];
-        updateDraftSpendRule({merchants: nextMerchants});
-        Navigation.navigate(ROUTES.RULES_SPEND_MERCHANT_EDIT.getRoute(policyID, String(merchants.length)));
+        Navigation.navigate(ROUTES.RULES_SPEND_MERCHANT_EDIT.getRoute(policyID, ROUTES.NEW));
     };
 
     const handleSaveRule = () => {
@@ -76,47 +74,45 @@ function SpendRuleMerchantsPage({route}: SpendRuleMerchantsPageProps) {
                     title={translate('common.merchant')}
                     onBackButtonPress={goBack}
                 />
-                    <ScrollView contentContainerStyle={[styles.flexGrow1]}>
-                        <MenuItem
-                            title={translate('workspace.rules.spendRules.addMerchant')}
-                            icon={expensifyIcons.Plus}
-                            iconHeight={20}
-                            iconWidth={20}            
-                            titleStyle={styles.textStrong}
-                            onPress={addMerchant}
-                            style={[]}
-                        />
-                        {merchants.length > 0 ? 
-                            merchants.map((merchant, index) => (
-                                <MenuItemWithTopDescription
-                                    key={`${merchant.name}-${merchant.matchType}`}
-                                    description={getMatchTypeDescription(merchant, translate)}
-                                    onPress={() => Navigation.navigate(ROUTES.RULES_SPEND_MERCHANT_EDIT.getRoute(policyID, String(index)))}
-                                    shouldShowRightIcon
-                                    title={merchant.name}
-                                    titleStyle={styles.flex1}
-                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
-                                />
-                            ))
-                        : 
-                            <BlockingView
-                                icon={illustrations.EmptyStateExpenses}
-                                title={emptyStateTitle}
-                                subtitle={emptyStateSubtitle}
-                                titleStyles={[styles.mb2]}
-                                subtitleStyle={[styles.textSupportingNormal]}
-                                // containerStyle={styles.pb10}
-                            />
-                        }
-                    </ScrollView>
-                    <FormAlertWithSubmitButton
-                        buttonText={translate('common.save')}
-                        containerStyles={[styles.m4, styles.mb5]}
-                        isAlertVisible={false}
-                        onSubmit={handleSaveRule}
-                        enabledWhenOffline
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_SAVE}
+                <ScrollView contentContainerStyle={[styles.flexGrow1]}>
+                    <MenuItem
+                        title={translate('workspace.rules.spendRules.addMerchant')}
+                        icon={expensifyIcons.Plus}
+                        iconHeight={20}
+                        iconWidth={20}
+                        titleStyle={styles.textStrong}
+                        onPress={addMerchant}
                     />
+                    {merchants.length > 0 ? (
+                        merchants.map((merchant, index) => (
+                            <MenuItemWithTopDescription
+                                key={`${merchant.name}-${merchant.matchType}`}
+                                description={getMatchTypeDescription(merchant, translate)}
+                                onPress={() => Navigation.navigate(ROUTES.RULES_SPEND_MERCHANT_EDIT.getRoute(policyID, String(index)))}
+                                shouldShowRightIcon
+                                title={merchant.name}
+                                titleStyle={styles.flex1}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
+                            />
+                        ))
+                    ) : (
+                        <BlockingView
+                            icon={illustrations.EmptyStateExpenses}
+                            title={emptyStateTitle}
+                            subtitle={emptyStateSubtitle}
+                            titleStyles={[styles.mb2]}
+                            subtitleStyle={[styles.textSupportingNormal]}
+                        />
+                    )}
+                </ScrollView>
+                <FormAlertWithSubmitButton
+                    buttonText={translate('common.save')}
+                    containerStyles={[styles.m4, styles.mb5]}
+                    isAlertVisible={false}
+                    onSubmit={handleSaveRule}
+                    enabledWhenOffline
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_SAVE}
+                />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

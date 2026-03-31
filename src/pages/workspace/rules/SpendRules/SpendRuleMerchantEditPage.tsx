@@ -1,9 +1,13 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
+import SelectionList from '@components/SelectionList';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import type {ListItem} from '@components/SelectionList/ListItem/types';
+import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -21,12 +25,9 @@ import type {SpendRuleMerchant} from '@src/types/form/SpendRuleForm';
 
 type SpendRuleMerchantEditPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_SPEND_MERCHANT_EDIT>;
 
-function getMatchTypeLabel(matchType: SpendRuleMerchant['matchType'], translate: ReturnType<typeof useLocalize>['translate']) {
-    if (matchType === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
-        return translate('workspace.rules.spendRules.matchTypeExact');
-    }
-    return translate('workspace.rules.spendRules.matchTypeContains');
-}
+type MatchTypeItem = ListItem & {
+    value: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
+};
 
 function SpendRuleMerchantEditPage({route}: SpendRuleMerchantEditPageProps) {
     const {policyID, merchantIndex} = route.params;
@@ -35,33 +36,60 @@ function SpendRuleMerchantEditPage({route}: SpendRuleMerchantEditPageProps) {
     const [spendRuleForm] = useOnyx(ONYXKEYS.FORMS.SPEND_RULE_FORM);
 
     const merchants = spendRuleForm?.merchants ?? [];
-    const index = Number(merchantIndex);
-    const existingMerchant = merchants.at(index);
+    const isNew = merchantIndex === ROUTES.NEW;
+    const index = isNew ? -1 : Number(merchantIndex);
+    const existingMerchant = isNew ? undefined : merchants.at(index);
 
     const [merchantName, setMerchantName] = useState(existingMerchant?.name ?? '');
+    const [matchType, setMatchType] = useState<ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>>(existingMerchant?.matchType ?? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
 
-    const matchType = existingMerchant?.matchType ?? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS;
-
-    const goBack = (shouldRemoveIfEmpty = true) => {
-        const currentMerchant = merchants.at(index);
-        if (shouldRemoveIfEmpty && currentMerchant && !currentMerchant.name.trim()) {
-            const nextMerchants = merchants.filter((_, idx) => idx !== index);
-            updateDraftSpendRule({merchants: nextMerchants});
-        }
+    const goBack = () => {
         Navigation.goBack(ROUTES.RULES_SPEND_MERCHANTS.getRoute(policyID));
     };
 
     const handleSave = () => {
-        const trimmed = merchantName.trim();
-        if (!trimmed) {
-            goBack(true);
+        const trimmedMerchantName = merchantName.trim();
+        if (!trimmedMerchantName) {
+            goBack();
             return;
         }
 
-        const nextMerchant: SpendRuleMerchant = {name: trimmed, matchType};
-        const nextMerchants = merchants.map((m, idx) => (idx === index ? nextMerchant : m));
-        updateDraftSpendRule({merchants: nextMerchants});
-        goBack(false);
+        const currentMerchant: SpendRuleMerchant = {name: trimmedMerchantName, matchType};
+        const currentMerchants = isNew ? [...merchants, currentMerchant] : merchants.map((m, idx) => (idx === index ? currentMerchant : m));
+        updateDraftSpendRule({merchants: currentMerchants});
+        goBack();
+    };
+
+    const matchTypeItems: MatchTypeItem[] = [
+        {
+            value: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
+            keyForList: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
+            text: translate('workspace.rules.spendRules.matchTypeContains'),
+            isSelected: matchType === CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
+        },
+        {
+            value: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+            keyForList: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+            text: translate('workspace.rules.spendRules.matchTypeExact'),
+            isSelected: matchType === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+        },
+    ];
+
+    const onSelectMatchType = (item: MatchTypeItem) => {
+        const nextMatchType = item.value;
+        setMatchType(nextMatchType);
+
+        if (isNew) {
+            return;
+        }
+
+        const current = merchants.at(index);
+        if (!current) {
+            return;
+        }
+
+        const currentMerchants = merchants.map((m, idx) => (idx === index ? {...current, matchType: nextMatchType} : m));
+        updateDraftSpendRule({merchants: currentMerchants});
     };
 
     return (
@@ -78,7 +106,7 @@ function SpendRuleMerchantEditPage({route}: SpendRuleMerchantEditPageProps) {
             >
                 <HeaderWithBackButton
                     title={translate('common.merchant')}
-                    onBackButtonPress={() => goBack(true)}
+                    onBackButtonPress={goBack}
                 />
                 <View style={[styles.flex1, styles.mt5]}>
                     <TextInput
@@ -88,11 +116,14 @@ function SpendRuleMerchantEditPage({route}: SpendRuleMerchantEditPageProps) {
                         accessibilityLabel={translate('common.merchant')}
                         containerStyles={[styles.ph5, styles.mb5]}
                     />
-                    <MenuItemWithTopDescription
-                        description={translate('workspace.rules.spendRules.matchType')}
-                        title={getMatchTypeLabel(matchType, translate)}
-                        shouldShowRightIcon
-                        onPress={() => Navigation.navigate(ROUTES.RULES_SPEND_MERCHANT_MATCH_TYPE.getRoute(policyID, merchantIndex))}
+                    <View style={[styles.ph5, styles.pb2]}>
+                        <Text style={[styles.textLabelSupporting]}>{translate('workspace.rules.spendRules.matchType')}</Text>
+                    </View>
+                    <SelectionList
+                        shouldSingleExecuteRowSelect
+                        data={matchTypeItems}
+                        ListItem={SingleSelectListItem}
+                        onSelectRow={onSelectMatchType}
                     />
                 </View>
                 <FormAlertWithSubmitButton

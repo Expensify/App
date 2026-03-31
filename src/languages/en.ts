@@ -6718,7 +6718,7 @@ const translations = {
                 addMerchantToAllowSpend: 'Add a merchant to allow spend',
                 matchType: 'Match type',
                 matchTypeContains: 'Contains',
-                matchTypeExact: 'Exactly matches',
+                matchTypeExact: 'Matches exactly',
                 merchantsMoreCount: ({summary, count}: {summary: string; count: number}) => `${summary} +${count} more`,
             },
         },

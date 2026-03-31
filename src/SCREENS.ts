@@ -834,7 +834,6 @@ const SCREENS = {
         RULES_MERCHANT_EDIT: 'Rules_Merchant_Edit',
         RULES_SPEND_MERCHANTS: 'Rules_Spend_Merchants',
         RULES_SPEND_MERCHANT_EDIT: 'Rules_Spend_Merchant_Edit',
-        RULES_SPEND_MERCHANT_MATCH_TYPE: 'Rules_Spend_Merchant_Match_Type',
         PER_DIEM: 'Per_Diem',
         PER_DIEM_IMPORT: 'Per_Diem_Import',
         PER_DIEM_IMPORTED: 'Per_Diem_Imported',
