@@ -91,13 +91,16 @@ function MoneyReportHeaderStatusBarSection({reportID, statusBarType}: MoneyRepor
     }
 
     if (statusBarType === CONST.REPORT.STATUS_BAR_TYPE.BROKEN_CONNECTION) {
+        const transactionID = transactions.at(0)?.transactionID;
+        if (!transactionID) {
+            return null;
+        }
         return (
             <MoneyRequestHeaderStatusBar
                 icon={getStatusIcon(expensifyIcons.Hourglass)}
                 description={
                     <BrokenConnectionDescription
-                        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                        transactionID={transactions.at(0)!.transactionID}
+                        transactionID={transactionID}
                         report={moneyRequestReport}
                         policy={policy}
                     />
