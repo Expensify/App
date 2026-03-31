@@ -7076,14 +7076,14 @@ describe('OptionsListUtils', () => {
             expect(result).toBeDefined();
         });
 
-        it('should handle searchTerm filtering', () => {
-            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, CURRENT_USER_ACCOUNT_ID, undefined, {}, undefined, {searchTerm: 'Spider'});
+        it('should handle isSearching filtering', () => {
+            const result = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, CURRENT_USER_ACCOUNT_ID, undefined, {}, undefined, {isSearching: true});
 
             expect(result).toBeDefined();
             expect(result.reports.length).toBe(Object.keys(REPORTS).length);
         });
 
-        it('should return all reports when searchTerm is provided (isSearching is true)', () => {
+        it('should return all reports when isSearching is true', () => {
             const result = createFilteredOptionList(
                 PERSONAL_DETAILS,
                 REPORTS,
@@ -7092,7 +7092,7 @@ describe('OptionsListUtils', () => {
                 {},
                 {},
                 {
-                    searchTerm: 'Report',
+                    isSearching: true,
                     maxRecentReports: 2,
                 },
             );
