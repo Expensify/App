@@ -1142,6 +1142,7 @@ const translations: TranslationDeepObject<typeof en> = {
         flash: 'flits',
         multiScan: 'meerscannen',
         shutter: 'sluiter',
+        flipCamera: 'camera wisselen',
         gallery: 'galerij',
         deleteReceipt: 'Bon verwijderen',
         deleteConfirmation: 'Weet je zeker dat je deze bon wilt verwijderen?',
@@ -3348,6 +3349,11 @@ ${amount} voor ${merchant} - ${date}`,
         confirmationStepHeader: 'Controleer je gegevens.',
         confirmationStepSubHeader: 'Controleer de onderstaande gegevens goed en vink het vakje met de voorwaarden aan om te bevestigen.',
         toGetStarted: 'Voeg een persoonlijke bankrekening toe om terugbetalingen te ontvangen, facturen te betalen of de Expensify Wallet in te schakelen.',
+        updatePersonalInfo: 'Bankrekening bijwerken',
+        updatePersonalInfoFailure: 'Kan de bankrekeninggegevens niet bijwerken. Probeer het later opnieuw.',
+        updateSuccessTitle: 'Bankrekening bijgewerkt!',
+        updateSuccessHeader: 'Bankrekening bijgewerkt',
+        updateSuccessMessage: 'Gefeliciteerd, je bankrekening is ingesteld en klaar om terugbetalingen te ontvangen.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Voer Expensify-wachtwoord in',
@@ -7165,6 +7171,17 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             approvedReimbursedClosedSpend,
         }: UpdatedPolicyBudgetNotificationParams) =>
             `Let op! Deze workspace heeft een ${budgetFrequency}-budget van ‘${budgetAmount}’ voor de ${budgetTypeForNotificationMessage} ‘${budgetName}’. Je zit nu op ${approvedReimbursedClosedSpend}, wat meer is dan ${thresholdPercentage}% van het budget. Er staat ook nog ${awaitingApprovalSpend} in afwachting van goedkeuring en ${unsubmittedSpend} is nog niet ingediend, voor een totaal van ${totalSpend}. ${summaryLink ? `<a href="${summaryLink}">Hier is een rapport</a> met al die onkosten voor je administratie!` : ''}`,
+        addedCardFeed: (feedName: string) => `kaartfeed ‘${feedName}’ toegevoegd`,
+        removedCardFeed: (feedName: string) => `kaartfeed "${feedName}" verwijderd`,
+        renamedCardFeed: (newName: string, oldName: string) => `kaartfeed hernoemd naar ‘${newName}’ (voorheen ‘${oldName}’)`,
+        assignedCompanyCard: (email: string, feedName: string, cardLastFour: string) =>
+            `heeft ${feedName ? `"${feedName}" ` : ''}bedrijfskaart eindigend op ${cardLastFour} toegewezen aan ${email}`,
+        unassignedCompanyCard: (email: string, feedName: string, cardLastFour: string) =>
+            `niet-toegewezen ${feedName ? `"${feedName}" ` : ''}bedrijfskaart van ${email} eindigend op ${cardLastFour}`,
+        updatedCardFeedLiability: (feedName: string, enabled: boolean) =>
+            `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} kaarthouders om kaarttransacties te verwijderen voor kaartfeed "${feedName}"`,
+        updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
+            `heeft de einddag van de afrekenperiode van kaartfeed "${feedName}" gewijzigd${newValue ? ` naar "${newValue}"` : ''}${previousValue ? ` (voorheen "${previousValue}")` : ''}`,
         addedReportField: ({fieldType, fieldName, defaultValue}: AddedOrDeletedPolicyReportFieldParams) =>
             `heeft ${fieldType}-rapportveld "${fieldName}" toegevoegd${defaultValue ? ` met standaardwaarde "${defaultValue}"` : ''}`,
     },
@@ -7310,6 +7327,9 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
         topMerchants: 'Topverkopers',
         groupedExpenses: 'gegroepeerde uitgaven',
         bulkActions: {
+            editMultiple: 'Meerdere bewerken',
+            editMultipleTitle: 'Meerdere uitgaven bewerken',
+            editMultipleDescription: 'Wijzigingen worden toegepast op alle geselecteerde uitgaven en overschrijven eerder ingestelde waarden.',
             approve: 'Goedkeuren',
             pay: 'Betalen',
             delete: 'Verwijderen',
