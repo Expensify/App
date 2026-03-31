@@ -29,7 +29,7 @@ function ReferralProgramCTA({referralContentType, style, onDismiss}: ReferralPro
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isDismissed, setAsDismissed} = useDismissedReferralBanners({referralContentType});
-    const icons = useMemoizedLazyExpensifyIcons(['Close'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Close']);
 
     const handleDismissCallToAction = () => {
         setAsDismissed();
