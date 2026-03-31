@@ -22,6 +22,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {SpendRuleMerchant} from '@src/types/form/SpendRuleForm';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 
 type SpendRuleMerchantEditPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_SPEND_MERCHANT_EDIT>;
 
@@ -33,6 +34,7 @@ function SpendRuleMerchantEditPage({route}: SpendRuleMerchantEditPageProps) {
     const {policyID, merchantIndex} = route.params;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {inputCallbackRef} = useAutoFocusInput();
     const [spendRuleForm] = useOnyx(ONYXKEYS.FORMS.SPEND_RULE_FORM);
 
     const merchants = spendRuleForm?.merchants ?? [];
@@ -112,15 +114,15 @@ function SpendRuleMerchantEditPage({route}: SpendRuleMerchantEditPageProps) {
                     title={translate('common.merchant')}
                     onBackButtonPress={goBack}
                 />
-                <View style={[styles.flex1, styles.mt3]}>
+                <View style={[styles.flex1, styles.mt5]}>
                     <TextInput
                         value={merchantName}
                         onChangeText={setMerchantName}
                         label={translate('common.merchant')}
                         accessibilityLabel={translate('common.merchant')}
-                        containerStyles={[styles.ph5]}
+                        containerStyles={[styles.ph5, styles.mb5]}
                     />
-                    <View style={[styles.ph5, styles.pb2, styles.mt6]}>
+                    <View style={[styles.ph5, styles.pb2]}>
                         <Text style={[styles.textLabelSupporting]}>{translate('workspace.rules.spendRules.matchType')}</Text>
                     </View>
                     <SelectionList
