@@ -24,6 +24,27 @@ function isDynamicRouteScreen(screenName: Screen): boolean {
 }
 
 /**
+ * Resolves a single path segment: if it's a `:param` placeholder, replaces it
+ * with the URL-encoded value from `params`; otherwise returns the segment as-is.
+ * Returns an empty string when a param value is missing or not a string/number.
+ *
+ * @private - Internal helper. Do not export or use outside this file.
+ */
+function resolveSegment(segment: string, params: Record<string, unknown> | undefined): string {
+    if (segment.startsWith(':')) {
+        const paramName = segment.endsWith('?') ? segment.slice(1, -1) : segment.slice(1);
+        const value = params?.[paramName];
+
+        if (typeof value === 'string' || typeof value === 'number') {
+            return encodeURIComponent(String(value));
+        }
+
+        return '';
+    }
+    return segment;
+}
+
+/**
  * Builds a concrete URL suffix from a dynamic route pattern by replacing `:param`
  * placeholders with actual values and appending configured query parameters.
  *
@@ -36,17 +57,8 @@ function isDynamicRouteScreen(screenName: Screen): boolean {
 function buildSuffixFromPattern(pattern: string, params: Record<string, unknown> | undefined): string {
     const pathPart = pattern
         .split('/')
-        .map((segment) => {
-            if (segment.startsWith(':')) {
-                const paramName = segment.endsWith('?') ? segment.slice(1, -1) : segment.slice(1);
-                const value = params?.[paramName];
-                if (typeof value === 'string' || typeof value === 'number') {
-                    return encodeURIComponent(String(value));
-                }
-                return '';
-            }
-            return segment;
-        })
+        .map((segment) => resolveSegment(segment, params))
+        // filter(Boolean) is used to remove empty segments
         .filter(Boolean)
         .join('/');
 
@@ -112,7 +124,7 @@ function popFocusedRoute(state: State): State | undefined {
  *
  * @private - Internal helper. Do not export or use outside this file.
  */
-function getPathForDynamicRoute(state: State): string {
+function getPathFromStateWithDynamicRoute(state: State): string {
     const focusedRoute = findFocusedRoute(state);
     const screenName = focusedRoute?.name ?? '';
     const suffixPattern = normalizedConfigs[screenName as Screen]?.path;
@@ -147,10 +159,7 @@ function getPathFromState(state: State): string {
     const screenName = focusedRoute?.name ?? '';
 
     if (isDynamicRouteScreen(screenName as Screen)) {
-        if (focusedRoute?.path) {
-            return focusedRoute.path;
-        }
-        return getPathForDynamicRoute(state);
+        return focusedRoute?.path ?? getPathFromStateWithDynamicRoute(state);
     }
 
     return RNGetPathFromState(state, linkingConfig.config);
