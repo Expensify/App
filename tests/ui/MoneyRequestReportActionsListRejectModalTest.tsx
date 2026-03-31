@@ -1,3 +1,4 @@
+import type * as CoreNavigation from '@react-navigation/core';
 import * as NativeNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
@@ -27,6 +28,11 @@ jest.mock('@react-navigation/native', () => ({
     useRoute: () => ({
         params: {},
     }),
+}));
+
+jest.mock('@react-navigation/core', () => ({
+    ...jest.requireActual<typeof CoreNavigation>('@react-navigation/core'),
+    useNavigation: jest.fn(() => ({getState: jest.fn(() => undefined)})),
 }));
 
 jest.mock('@hooks/useRootNavigationState', () => jest.fn((selector: (state: undefined) => unknown) => selector(undefined)));
