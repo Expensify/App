@@ -6,7 +6,7 @@ import lodashOrderBy from 'lodash/orderBy';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {SetNonNullable} from 'type-fest';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
+import FallbackAvatar from '@assets/images/avatars/fallback-avatar.svg';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
 import {getEnabledCategoriesCount} from '@libs/CategoryUtils';
@@ -38,6 +38,8 @@ import {
 } from '@libs/PolicyUtils';
 import {
     getActionableMentionWhisperMessage,
+    getAddedCardFeedMessage,
+    getAssignedCompanyCardMessage,
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
     getChangedApproverActionMessage,
@@ -61,7 +63,9 @@ import {
     getOriginalMessage,
     getPolicyChangeLogMaxExpenseAgeMessage,
     getPolicyChangeLogMaxExpenseAmountMessage,
+    getRemovedCardFeedMessage,
     getRenamedAction,
+    getRenamedCardFeedMessage,
     getReportActionActorAccountID,
     getReportActionHtml,
     getReportActionMessageText,
@@ -69,7 +73,10 @@ import {
     getRoomChangeLogMessage,
     getSortedReportActions,
     getTravelUpdateMessage,
+    getUnassignedCompanyCardMessage,
     getUpdateACHAccountMessage,
+    getUpdatedCardFeedLiabilityMessage,
+    getUpdatedCardFeedStatementPeriodMessage,
     getUpdateRoomDescriptionMessage,
     getWorkspaceFeatureEnabledMessage,
     getWorkspaceTaxUpdateMessage,
@@ -215,13 +222,13 @@ Onyx.connect({
     },
 });
 
-/** @deprecated Use sortedReportActionsData from ONYXKEYS.DERIVED.SORTED_REPORT_ACTIONS instead. Will be removed once all flows are migrated. */
+/** @deprecated Use sortedReportActionsData from ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS instead. Will be removed once all flows are migrated. */
 const deprecatedLastReportActions: ReportActions = {};
-/** @deprecated Use sortedReportActionsData from ONYXKEYS.DERIVED.SORTED_REPORT_ACTIONS instead. Will be removed once all flows are migrated. */
+/** @deprecated Use sortedReportActionsData from ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS instead. Will be removed once all flows are migrated. */
 const deprecatedAllSortedReportActions: Record<string, ReportAction[]> = {};
-/** @deprecated Use sortedReportActionsData from ONYXKEYS.DERIVED.SORTED_REPORT_ACTIONS instead. Will be removed once all flows are migrated. */
+/** @deprecated Use sortedReportActionsData from ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS instead. Will be removed once all flows are migrated. */
 const deprecatedCachedOneTransactionThreadReportIDs: Record<string, string | undefined> = {};
-/** @deprecated Use sortedReportActionsData from ONYXKEYS.DERIVED.SORTED_REPORT_ACTIONS instead. Will be removed once all flows are migrated. */
+/** @deprecated Use sortedReportActionsData from ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS instead. Will be removed once all flows are migrated. */
 let deprecatedAllReportActions: OnyxCollection<ReportActions>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
@@ -884,6 +891,27 @@ function getLastMessageTextForReport({
     }
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FOREIGN_CURRENCY_DEFAULT_TAX)) {
         lastMessageTextFromReport = getForeignCurrencyDefaultTaxUpdateMessage(translate, lastReportAction);
+    }
+    if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CARD_FEED)) {
+        lastMessageTextFromReport = getAddedCardFeedMessage(translate, lastReportAction);
+    }
+    if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CARD_FEED)) {
+        lastMessageTextFromReport = getRemovedCardFeedMessage(translate, lastReportAction);
+    }
+    if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.RENAME_CARD_FEED)) {
+        lastMessageTextFromReport = getRenamedCardFeedMessage(translate, lastReportAction);
+    }
+    if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ASSIGN_COMPANY_CARD)) {
+        lastMessageTextFromReport = getAssignedCompanyCardMessage(translate, lastReportAction);
+    }
+    if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UNASSIGN_COMPANY_CARD)) {
+        lastMessageTextFromReport = getUnassignedCompanyCardMessage(translate, lastReportAction);
+    }
+    if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_LIABILITY)) {
+        lastMessageTextFromReport = getUpdatedCardFeedLiabilityMessage(translate, lastReportAction);
+    }
+    if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_STATEMENT_PERIOD)) {
+        lastMessageTextFromReport = getUpdatedCardFeedStatementPeriodMessage(translate, lastReportAction);
     }
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FEATURE_ENABLED)) {
         lastMessageTextFromReport = getWorkspaceFeatureEnabledMessage(translate, lastReportAction);
@@ -3494,7 +3522,6 @@ export type {
     Option,
     OptionList,
     OptionTree,
-    OptionWithKey,
     Options,
     OrderOptionsConfig,
     OrderReportOptionsConfig,

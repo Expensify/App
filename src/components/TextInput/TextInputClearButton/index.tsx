@@ -19,7 +19,7 @@ function TextInputClearButton({style, onPressButton, sentryLabel}: TextInputClea
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Clear'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Clear']);
     return (
         <Tooltip text={translate('common.clear')}>
             <PressableWithoutFeedback

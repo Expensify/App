@@ -7,7 +7,7 @@ import getBankIcon from '@components/Icon/BankIcons';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -58,7 +58,7 @@ function ChooseTransferAccountPage() {
     };
 
     const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const icons = useMemoizedLazyExpensifyIcons(['Plus'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Plus']);
     const selectedAccountID = walletTransfer?.selectedAccountID;
     const bankAccountOptions = useMemo(() => {
         const options = Object.values(bankAccountsList ?? {}).map((bankAccount, index): BankAccountListItem => {
@@ -110,7 +110,7 @@ function ChooseTransferAccountPage() {
 
             <SelectionList
                 data={bankAccountOptions}
-                ListItem={SingleSelectListItem}
+                ListItem={RadioListItem}
                 onSelectRow={(value) => {
                     const accountType = value?.bankAccount?.accountType;
                     const accountData = value?.bankAccount?.accountData;

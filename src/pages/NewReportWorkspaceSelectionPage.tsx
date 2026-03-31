@@ -183,7 +183,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
             return;
         }
 
-        if (shouldRestrictUserBillableActions(policy.policyID, userBillingGracePeriods, undefined, ownerBillingGraceEndPeriod)) {
+        if (shouldRestrictUserBillableActions(policy.policyID, ownerBillingGraceEndPeriod, userBillingGracePeriods)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.policyID));
             return;
         }
@@ -283,7 +283,6 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                                 onSelectRow={selectPolicy}
                                 textInputOptions={textInputOptions}
                                 shouldShowLoadingPlaceholder={fetchStatus.status === 'loading' || !didScreenTransitionEnd}
-                                shouldShowRadioButton
                             />
                         </>
                     )}
