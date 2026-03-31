@@ -3,8 +3,8 @@ import type {NavigationState, PartialState} from '@react-navigation/routers';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
 import {normalizedConfigs} from '@libs/Navigation/linkingConfig/config';
 import type {DynamicRouteSuffix} from '@src/ROUTES';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Screen} from '@src/SCREENS';
+import getDynamicRouteQueryParams from './dynamicRoutesUtils/getDynamicRouteQueryParams';
 import {dynamicRoutePaths} from './dynamicRoutesUtils/isDynamicRouteSuffix';
 import splitPathAndQuery from './dynamicRoutesUtils/splitPathAndQuery';
 
@@ -23,24 +23,15 @@ function isDynamicRouteScreen(screenName: Screen): boolean {
     return dynamicRoutePaths.has(screenPath as DynamicRouteSuffix);
 }
 
-function findQueryParamsForPattern(pattern: string): readonly string[] | undefined {
-    for (const entry of Object.values(DYNAMIC_ROUTES)) {
-        if (entry.path === pattern && 'queryParams' in entry) {
-            return entry.queryParams as readonly string[];
-        }
-    }
-    return undefined;
-}
-
 /**
- * Reconstructs the actual URL suffix from a dynamic route pattern and route params.
- * Fills :param placeholders with values from params, and appends query params
- * based on the DYNAMIC_ROUTES[].queryParams config.
+ * Builds a concrete URL suffix from a dynamic route pattern by replacing `:param`
+ * placeholders with actual values and appending configured query parameters.
  *
- * Example: pattern 'flag/:reportID/:reportActionID' + params {reportID: '456', reportActionID: 'abc'}
- *          --> 'flag/456/abc'
- * Example: pattern 'country' + params {country: 'US'} + queryParams config ['country']
- *          --> 'country?country=US'
+ * @param pattern - The route path pattern (e.g., 'flag/:reportID/:reportActionID' or 'country')
+ * @param params - Route params to fill placeholders and query values from
+ * @returns The resolved suffix string (e.g., 'flag/456/abc' or 'country?country=US')
+ *
+ * @private - Internal helper. Do not export or use outside this file.
  */
 function buildSuffixFromPattern(pattern: string, params: Record<string, unknown> | undefined): string {
     const pathPart = pattern
@@ -56,9 +47,10 @@ function buildSuffixFromPattern(pattern: string, params: Record<string, unknown>
             }
             return segment;
         })
+        .filter(Boolean)
         .join('/');
 
-    const queryParamKeys = findQueryParamsForPattern(pattern);
+    const queryParamKeys = getDynamicRouteQueryParams(pattern);
     if (queryParamKeys && queryParamKeys.length > 0 && params) {
         const queryParts: string[] = [];
         for (const key of queryParamKeys) {
@@ -76,10 +68,13 @@ function buildSuffixFromPattern(pattern: string, params: Record<string, unknown>
 }
 
 /**
- * Removes the deepest focused route from the state tree.
- * Descends through routes[index] at each level until reaching a leaf route,
- * then removes it. If removing the route empties the navigator, cascades
- * removal upward by returning undefined to the parent.
+ * Pops the deepest focused route from a navigation state tree.
+ * Returns the reduced state, or undefined if the tree becomes empty.
+ *
+ * @param state - The navigation state tree to pop from
+ * @returns The reduced state, or undefined if the tree becomes empty
+ *
+ * @private - Internal helper. Do not export or use outside this file.
  */
 function popFocusedRoute(state: State): State | undefined {
     const index = state.index ?? state.routes.length - 1;
@@ -109,10 +104,13 @@ function popFocusedRoute(state: State): State | undefined {
 }
 
 /**
- * Fallback path builder for dynamic route screens that lack a `path` property.
- * Peels off the dynamic suffix from the focused route, pops it from the state,
- * and recursively calls getPathFromState on the reduced state. This naturally
- * handles stacked dynamic routes (each recursion peels off one suffix).
+ * Builds a URL path for a dynamic route screen that has no `path` in state.
+ * Recursively peels off dynamic suffixes and resolves the base path underneath.
+ *
+ * @param state - The navigation state tree to build the path from
+ * @returns The resolved path for the focused dynamic route screen
+ *
+ * @private - Internal helper. Do not export or use outside this file.
  */
 function getPathForDynamicRoute(state: State): string {
     const focusedRoute = findFocusedRoute(state);
