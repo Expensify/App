@@ -133,7 +133,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [retryBillingFailed] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED);
     const [billingStatus] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_STATUS);
     const [amountOwed = 0] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const network = useNetwork();
     const theme = useTheme();
@@ -294,7 +294,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     fundList,
                     billingStatus,
                     amountOwed,
-                    ownerBillingGraceEndPeriod,
+                    ownerBillingGracePeriodEnd,
                 )
                     ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                     : undefined,

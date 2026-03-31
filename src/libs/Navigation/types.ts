@@ -1205,10 +1205,7 @@ type SettingsNavigatorParamList = {
         /** Reason for replacing the card */
         reason: ReplacementReason;
     };
-    [SCREENS.KEYBOARD_SHORTCUTS]: {
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo: Routes;
-    };
+    [SCREENS.SETTINGS.DYNAMIC_KEYBOARD_SHORTCUTS]: undefined;
     [SCREENS.SETTINGS.EXIT_SURVEY.REASON]: {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo: Routes;
@@ -2665,6 +2662,15 @@ type WorkspaceSplitNavigatorParamList = {
         policyID: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
+    };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_IMPORT_SPREADSHEET]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_IMPORTED]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_LAYOUT_NAME]: {
+        policyID: string;
     };
     [SCREENS.WORKSPACE.PER_DIEM]: {
         policyID: string;
