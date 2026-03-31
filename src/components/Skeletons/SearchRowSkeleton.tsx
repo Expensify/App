@@ -1,5 +1,5 @@
 import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import {Circle} from 'react-native-svg';
 import SkeletonRect from '@components/SkeletonRect';
@@ -18,6 +18,7 @@ type SearchRowSkeletonProps = {
     gradientOpacityEnabled?: boolean;
     containerStyle?: StyleProp<ViewStyle>;
     reasonAttributes: SkeletonSpanReasonAttributes;
+    onLayout?: (event: LayoutChangeEvent) => void;
 };
 
 const barHeight = 8;
@@ -36,7 +37,7 @@ const centralPanePadding = 40;
 // 80 is the width of the button on the right side
 const rightButtonWidth = 80;
 
-function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEnabled = false, containerStyle, reasonAttributes}: SearchRowSkeletonProps) {
+function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEnabled = false, containerStyle, reasonAttributes, onLayout}: SearchRowSkeletonProps) {
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout, isLargeScreenWidth} = useResponsiveLayout();
@@ -50,6 +51,7 @@ function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacity
                     itemViewStyle={[styles.highlightBG, styles.mb2, styles.br3, styles.ml5]}
                     gradientOpacityEnabled={gradientOpacityEnabled}
                     shouldAnimate={shouldAnimate}
+                    onLayout={onLayout}
                     fixedNumItems={fixedNumItems}
                     renderSkeletonItem={() => (
                         <>
@@ -120,6 +122,7 @@ function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacity
                 shouldAnimate={shouldAnimate}
                 fixedNumItems={fixedNumItems}
                 gradientOpacityEnabled={gradientOpacityEnabled}
+                onLayout={onLayout}
                 itemViewStyle={[styles.highlightBG, styles.mb2, styles.br3, styles.ml5]}
                 renderSkeletonItem={() => (
                     <>
