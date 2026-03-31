@@ -36,6 +36,7 @@ import {
     buildOptimisticCancelPaymentReportAction,
     buildOptimisticCardAssignedReportAction,
     buildOptimisticChatReport,
+    buildOptimisticClosedReportAction,
     buildOptimisticCreatedReportAction,
     buildOptimisticCreatedReportForUnapprovedAction,
     buildOptimisticEmptyReport,
@@ -73,6 +74,7 @@ import {
     getAvailableReportFields,
     getBillableAndTaxTotal,
     getChatByParticipants,
+    getChatListItemReportName,
     getChatRoomSubtitle,
     getDefaultWorkspaceAvatar,
     getDisplayNameForParticipant,
@@ -4844,10 +4846,10 @@ describe('ReportUtils', () => {
             const unholdRequestSpy = jest.spyOn(HoldUtils, 'unholdRequest').mockImplementation(() => undefined);
 
             // When changeMoneyRequestHoldStatus is called
-            changeMoneyRequestHoldStatus(reportAction, iouTransaction);
+            changeMoneyRequestHoldStatus(reportAction, iouTransaction, false);
 
             // Then unholdRequest should be called with the correct parameters and navigation should not be called
-            expect(unholdRequestSpy).toHaveBeenCalledWith(transactionID, childReportID, expect.objectContaining({id: policyID}));
+            expect(unholdRequestSpy).toHaveBeenCalledWith(transactionID, childReportID, expect.objectContaining({id: policyID}), false);
             expect(Navigation.navigate).not.toHaveBeenCalled();
         });
 
@@ -4889,7 +4891,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             // When changeMoneyRequestHoldStatus is called
-            changeMoneyRequestHoldStatus(reportAction, iouTransaction);
+            changeMoneyRequestHoldStatus(reportAction, iouTransaction, false);
 
             // Then navigation should be called with the correct parameters
             expect(Navigation.navigate).toHaveBeenCalledWith(
@@ -14401,6 +14403,7 @@ describe('ReportUtils', () => {
         const mockIcons = {
             Location: jest.fn() as unknown as IconAsset,
             ReceiptPlus: jest.fn() as unknown as IconAsset,
+            Plus: jest.fn() as unknown as IconAsset,
         };
         const mockIouReportID = '12345';
 
@@ -14881,7 +14884,7 @@ describe('ReportUtils', () => {
 
     describe('getAddExpenseDropdownOptions', () => {
         const mockTranslate: LocaleContextProps['translate'] = (path, ...params) => translate(CONST.LOCALES.EN, path, ...params);
-        const mockIcons = {Location: jest.fn(), ReceiptPlus: jest.fn()} as unknown as Record<'Location' | 'ReceiptPlus', IconAsset>;
+        const mockIcons = {Location: jest.fn(), ReceiptPlus: jest.fn(), Plus: jest.fn()} as unknown as Record<'Location' | 'ReceiptPlus' | 'Plus', IconAsset>;
         const policyID = '5001';
         const iouReportID = 'reportABC';
         const ownerAccountID = 999;
@@ -15076,6 +15079,65 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('getChatListItemReportName', () => {
+        const conciergeReportID = 'concierge-report-123';
+
+        beforeEach(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdates();
+        });
+
+        it('should return CONCIERGE_DISPLAY_NAME when conciergeReportID matches report ID', async () => {
+            const conciergeReport: Report = {
+                reportID: conciergeReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`, conciergeReport);
+            await waitForBatchedUpdates();
+
+            const action = {...createRandomReportAction(1)};
+            const result = getChatListItemReportName(action, conciergeReport, conciergeReportID);
+            expect(result).toBe(CONST.CONCIERGE_DISPLAY_NAME);
+        });
+
+        it('should not return CONCIERGE_DISPLAY_NAME when conciergeReportID does not match report ID', async () => {
+            const regularReport: Report = {
+                reportID: 'regular-report-456',
+                type: CONST.REPORT.TYPE.CHAT,
+                reportName: 'Regular Chat',
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${regularReport.reportID}`, regularReport);
+            await waitForBatchedUpdates();
+
+            const action = {...createRandomReportAction(2)};
+            const result = getChatListItemReportName(action, regularReport, conciergeReportID);
+            expect(result).not.toBe(CONST.CONCIERGE_DISPLAY_NAME);
+        });
+
+        it('should return action.reportName when set, regardless of conciergeReportID', () => {
+            const conciergeReport: Report = {
+                reportID: conciergeReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            const action = {...createRandomReportAction(3), reportName: 'Custom Action Name'};
+            const result = getChatListItemReportName(action, conciergeReport, conciergeReportID);
+            expect(result).toBe('Custom Action Name');
+        });
+
+        it('should use Onyx-connected conciergeReportID when explicit parameter is undefined', async () => {
+            const conciergeReport: Report = {
+                reportID: conciergeReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, conciergeReportID);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`, conciergeReport);
+            await waitForBatchedUpdates();
+
+            const action = {...createRandomReportAction(4)};
+            const result = getChatListItemReportName(action, conciergeReport, undefined);
+            expect(result).toBe(CONST.CONCIERGE_DISPLAY_NAME);
+        });
+    });
     describe('buildOptimisticApprovedReportAction', () => {
         it('should set actorAccountID to the provided currentUserAccountID', () => {
             const customAccountID = 99;
@@ -15183,6 +15245,72 @@ describe('ReportUtils', () => {
 
         it('should generate a non-empty reportActionID', () => {
             const action = buildOptimisticCardAssignedReportAction(10, currentUserAccountID);
+
+            expect(action.reportActionID).toBeTruthy();
+        });
+    });
+
+    describe('buildOptimisticClosedReportAction', () => {
+        it('should set actorAccountID to the provided currentUserAccountID', () => {
+            const customAccountID = 99;
+            const action = buildOptimisticClosedReportAction('user@example.com', 'Test Policy', customAccountID);
+
+            expect(action.actorAccountID).toBe(customAccountID);
+        });
+
+        it('should set actionName to CLOSED', () => {
+            const action = buildOptimisticClosedReportAction('user@example.com', 'Test Policy', currentUserAccountID);
+
+            expect(action.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.CLOSED);
+        });
+
+        it('should set originalMessage with the provided policyName and default reason', () => {
+            const policyName = 'My Workspace';
+            const action = buildOptimisticClosedReportAction('user@example.com', policyName, currentUserAccountID);
+
+            expect(getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CLOSED>)).toMatchObject({
+                policyName,
+                reason: CONST.REPORT.ARCHIVE_REASON.DEFAULT,
+            });
+        });
+
+        it('should set originalMessage with the provided reason when specified', () => {
+            const policyName = 'My Workspace';
+            const reason = CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED;
+            const action = buildOptimisticClosedReportAction('user@example.com', policyName, currentUserAccountID, reason);
+
+            expect(getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CLOSED>)).toMatchObject({
+                policyName,
+                reason,
+            });
+        });
+
+        it('should set message with the emailClosingReport as the first text', () => {
+            const emailClosingReport = 'admin@company.com';
+            const action = buildOptimisticClosedReportAction(emailClosingReport, 'Test Policy', currentUserAccountID);
+            const messages = action.message as Array<{type: string; style: string; text: string}>;
+
+            expect(messages.at(0)).toMatchObject({
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'strong',
+                text: emailClosingReport,
+            });
+        });
+
+        it('should set pendingAction to ADD', () => {
+            const action = buildOptimisticClosedReportAction('user@example.com', 'Test Policy', currentUserAccountID);
+
+            expect(action.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+        });
+
+        it('should set shouldShow to true', () => {
+            const action = buildOptimisticClosedReportAction('user@example.com', 'Test Policy', currentUserAccountID);
+
+            expect(action.shouldShow).toBe(true);
+        });
+
+        it('should generate a non-empty reportActionID', () => {
+            const action = buildOptimisticClosedReportAction('user@example.com', 'Test Policy', currentUserAccountID);
 
             expect(action.reportActionID).toBeTruthy();
         });

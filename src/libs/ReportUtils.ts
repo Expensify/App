@@ -14,9 +14,8 @@ import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-nat
 import Onyx from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
 import type {SetRequired, TupleToUnion, ValueOf} from 'type-fest';
+import FallbackAvatar from '@assets/images/avatars/fallback-avatar.svg';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-// eslint-disable-next-line no-restricted-imports
-import {FallbackAvatar, Plus} from '@components/Icon/Expensicons';
 import * as defaultGroupAvatars from '@components/Icon/GroupDefaultAvatars';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
@@ -56,6 +55,7 @@ import type {
     ReportMetadata,
     ReportNameValuePairs,
     ReportViolationName,
+    SearchResults,
     Task,
     Transaction,
     TransactionViolation,
@@ -2992,7 +2992,7 @@ function shouldCurrentUserSubmitReport(iouReport: OnyxEntry<Report>, chatReport:
  */
 type GetAddExpenseDropdownOptionsParams = {
     translate: LocalizedTranslate;
-    icons: Record<'Location' | 'ReceiptPlus', IconAsset>;
+    icons: Record<'Location' | 'ReceiptPlus' | 'Plus', IconAsset>;
     iouReportID: string | undefined;
     policy: OnyxEntry<Policy>;
     userBillingGraceEndPeriods: OnyxCollection<BillingGraceEndPeriod>;
@@ -3021,7 +3021,7 @@ function getAddExpenseDropdownOptions({
         {
             value: CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE,
             text: translate('iou.createExpense'),
-            icon: Plus,
+            icon: icons.Plus,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_CREATE,
             onSelected: () => {
                 if (!iouReportID) {
@@ -3030,7 +3030,7 @@ function getAddExpenseDropdownOptions({
                 if (
                     policy &&
                     policy.type !== CONST.POLICY.TYPE.PERSONAL &&
-                    shouldRestrictUserBillableActions(policy.id, userBillingGraceEndPeriods, amountOwed, ownerBillingGraceEndPeriod)
+                    shouldRestrictUserBillableActions(policy.id, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods, amountOwed)
                 ) {
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
@@ -3047,7 +3047,7 @@ function getAddExpenseDropdownOptions({
                 if (!iouReportID) {
                     return;
                 }
-                if (policy && shouldRestrictUserBillableActions(policy.id, userBillingGraceEndPeriods, amountOwed, ownerBillingGraceEndPeriod)) {
+                if (policy && shouldRestrictUserBillableActions(policy.id, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods, amountOwed)) {
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
@@ -3060,7 +3060,7 @@ function getAddExpenseDropdownOptions({
             icon: icons.ReceiptPlus,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_UNREPORTED,
             onSelected: () => {
-                if (policy && shouldRestrictUserBillableActions(policy.id, userBillingGraceEndPeriods, amountOwed, ownerBillingGraceEndPeriod)) {
+                if (policy && shouldRestrictUserBillableActions(policy.id, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods, amountOwed)) {
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
@@ -4091,10 +4091,10 @@ function getReimbursementDeQueuedOrCanceledActionMessage(
  * Builds an optimistic REIMBURSEMENT_DEQUEUED report action with a randomly generated reportActionID.
  *
  */
-function buildOptimisticChangeFieldAction(reportField: PolicyReportField, previousReportField: PolicyReportField): OptimisticChangeFieldAction {
+function buildOptimisticChangeFieldAction(reportField: PolicyReportField, previousReportField: PolicyReportField, currentUserAccountID: number): OptimisticChangeFieldAction {
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD,
-        actorAccountID: deprecatedCurrentUserAccountID,
+        actorAccountID: currentUserAccountID,
         message: [
             {
                 type: 'TEXT',
@@ -4848,6 +4848,71 @@ function canEditReportPolicy(report: OnyxEntry<Report>, reportPolicy: OnyxEntry<
 }
 
 /**
+ * Checks if the user can edit multiple transactions
+ */
+function canEditMultipleTransactions(
+    selectedTransactions: Transaction[],
+    reportActions: OnyxCollection<ReportActions>,
+    reports: OnyxCollection<Report>,
+    policies: OnyxCollection<Policy>,
+    areReportsSelected = false,
+    searchSnapshotData?: SearchResults['data'],
+): boolean {
+    if (areReportsSelected) {
+        return false;
+    }
+
+    if (selectedTransactions.length < 2) {
+        return false;
+    }
+
+    for (const transaction of selectedTransactions) {
+        const isUnreportedExpense = !transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+        if (isUnreportedExpense) {
+            continue;
+        }
+
+        // Do not allow editing split expenses in bulk
+        if (transaction.comment?.source === CONST.IOU.TYPE.SPLIT || transaction.comment?.splits) {
+            return false;
+        }
+
+        const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}` as const;
+        const actionsForReport = {...(searchSnapshotData?.[reportActionsKey] ?? {}), ...(reportActions?.[reportActionsKey] ?? {})};
+        const reportAction = getIOUActionForTransactionID(Object.values(actionsForReport), transaction.transactionID);
+        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}` as const;
+        const report = reports?.[reportKey] ?? (searchSnapshotData?.[reportKey] as OnyxEntry<Report>);
+        const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
+
+        const isApproved = isReportApproved({report});
+
+        if (isApproved || isSettled(report)) {
+            return false;
+        }
+
+        const fieldsToCheck = [
+            CONST.EDIT_REQUEST_FIELD.AMOUNT,
+            CONST.EDIT_REQUEST_FIELD.MERCHANT,
+            CONST.EDIT_REQUEST_FIELD.CATEGORY,
+            CONST.EDIT_REQUEST_FIELD.TAG,
+            CONST.EDIT_REQUEST_FIELD.DESCRIPTION,
+            CONST.EDIT_REQUEST_FIELD.DATE,
+            CONST.EDIT_REQUEST_FIELD.BILLABLE,
+            CONST.EDIT_REQUEST_FIELD.REIMBURSABLE,
+            CONST.EDIT_REQUEST_FIELD.TAX_RATE,
+        ];
+
+        const isTransactionEditable = fieldsToCheck.some((field) => canEditFieldOfMoneyRequest({reportAction, fieldToEdit: field, transaction, report, policy}));
+
+        if (!isTransactionEditable) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/**
  * Checks if the current user can edit the provided property of an expense
  *
  */
@@ -4881,6 +4946,7 @@ function canEditFieldOfMoneyRequest({
         CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE,
         CONST.EDIT_REQUEST_FIELD.REIMBURSABLE,
         CONST.EDIT_REQUEST_FIELD.REPORT,
+        CONST.EDIT_REQUEST_FIELD.BILLABLE,
     ];
 
     if (!isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction, isChatReportArchived, report, policy, transaction)) {
@@ -4894,6 +4960,10 @@ function canEditFieldOfMoneyRequest({
 
     const iouMessage = getOriginalMessage(reportAction);
     const moneyRequestReport = report ?? (iouMessage?.IOUReportID ? (getReport(iouMessage?.IOUReportID, allReports) ?? ({} as Report)) : ({} as Report));
+
+    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.BILLABLE && isInvoiceReport(moneyRequestReport) && isReportApproved({report: moneyRequestReport})) {
+        return false;
+    }
 
     if (isSettled(String(moneyRequestReport.reportID)) || isReportIDApproved(String(moneyRequestReport.reportID))) {
         return false;
@@ -5092,7 +5162,7 @@ function canHoldUnholdReportAction(
     return {canHoldRequest, canUnholdRequest};
 }
 
-const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>, iouTransaction: OnyxEntry<Transaction>): void => {
+const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>, iouTransaction: OnyxEntry<Transaction>, isOffline: boolean): void => {
     if (!isMoneyRequestAction(reportAction)) {
         return;
     }
@@ -5115,7 +5185,7 @@ const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>, iou
 
     if (isOnHold) {
         if (reportAction.childReportID) {
-            unholdRequest(transactionID, reportAction.childReportID, policy);
+            unholdRequest(transactionID, reportAction.childReportID, policy, isOffline);
         } else {
             Log.warn('Missing reportAction.childReportID during money request unhold');
         }
@@ -6467,7 +6537,13 @@ function buildOptimisticAddCommentReportAction({
     };
 }
 
-function buildConciergeGreetingReportAction(reportID: string, greetingText: string, created: string): ReportAction {
+type BuildConciergeGreetingReportActionParams = {
+    reportID: string | undefined;
+    greetingText: string;
+    created: string;
+};
+
+function buildConciergeGreetingReportAction({reportID, greetingText, created}: BuildConciergeGreetingReportActionParams): ReportAction {
     return {
         reportActionID: String(CONST.CONCIERGE_GREETING_ACTION_ID),
         reportID,
@@ -6488,13 +6564,18 @@ function buildConciergeGreetingReportAction(reportID: string, greetingText: stri
  * @param type - The type of action in the child report
  */
 
-function updateOptimisticParentReportAction(parentReportAction: OnyxEntry<ReportAction>, lastVisibleActionCreated: string, type: string, deleteBy = 1): UpdateOptimisticParentReportAction {
+function updateOptimisticParentReportAction(
+    parentReportAction: OnyxEntry<ReportAction>,
+    lastVisibleActionCreated: string,
+    type: string,
+    actionCount = 1,
+): UpdateOptimisticParentReportAction {
     let childVisibleActionCount = parentReportAction?.childVisibleActionCount ?? 0;
     let childCommenterCount = parentReportAction?.childCommenterCount ?? 0;
     let childOldestFourAccountIDs = parentReportAction?.childOldestFourAccountIDs;
 
     if (type === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-        childVisibleActionCount += 1;
+        childVisibleActionCount += actionCount;
         const oldestFourAccountIDs = childOldestFourAccountIDs ? childOldestFourAccountIDs.split(',') : [];
         if (oldestFourAccountIDs.length < 4) {
             const index = oldestFourAccountIDs.findIndex((accountID) => accountID === deprecatedCurrentUserAccountID?.toString());
@@ -6506,7 +6587,7 @@ function updateOptimisticParentReportAction(parentReportAction: OnyxEntry<Report
         childOldestFourAccountIDs = oldestFourAccountIDs.join(',');
     } else if (type === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
         if (childVisibleActionCount > 0) {
-            childVisibleActionCount -= deleteBy;
+            childVisibleActionCount -= actionCount;
         }
 
         if (childVisibleActionCount === 0) {
@@ -7400,7 +7481,7 @@ function buildOptimisticMovedReportAction(
  * Builds an optimistic CHANGE_POLICY report action with a randomly generated reportActionID.
  * This action is used when we change the workspace of a report.
  */
-function buildOptimisticChangePolicyReportAction(fromPolicyID: string | undefined, toPolicyID: string, automaticAction = false): ReportAction {
+function buildOptimisticChangePolicyReportAction(fromPolicyID: string | undefined, toPolicyID: string, currentUserAccountID: number, automaticAction = false): ReportAction {
     const originalMessage = {
         fromPolicy: fromPolicyID,
         toPolicy: toPolicyID,
@@ -7431,7 +7512,7 @@ function buildOptimisticChangePolicyReportAction(fromPolicyID: string | undefine
 
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY,
-        actorAccountID: deprecatedCurrentUserAccountID,
+        actorAccountID: currentUserAccountID,
         avatar: getCurrentUserAvatar(),
         created: DateUtils.getDBTime(),
         originalMessage,
@@ -7454,8 +7535,10 @@ function buildOptimisticTransactionAction(
     transactionThreadReportID: string | undefined,
     originalReportID: string,
 ): ReportAction {
-    const isFromPersonalSpace = originalReportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-    const reportName = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`]?.reportName ?? '';
+    const selfDMReportID = findSelfDMReportID();
+    const isFromPersonalSpace = originalReportID === CONST.REPORT.UNREPORTED_REPORT_ID || originalReportID === selfDMReportID;
+    const fromReportID = isFromPersonalSpace ? CONST.REPORT.UNREPORTED_REPORT_ID : originalReportID;
+    const reportName = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${isFromPersonalSpace ? selfDMReportID : originalReportID}`]?.reportName ?? '';
     const url = isFromPersonalSpace ? getReportURLForCurrentContext(findSelfDMReportID()) : getReportURLForCurrentContext(originalReportID);
     const [actionText, messageHtml] = [`moved this expense from ${reportName}`, `moved this expense from <a href='${url}' target='_blank' rel='noreferrer noopener'>${reportName}</a>`];
 
@@ -7465,7 +7548,7 @@ function buildOptimisticTransactionAction(
         actorAccountID: deprecatedCurrentUserAccountID,
         avatar: getCurrentUserAvatar(),
         created: DateUtils.getDBTime(),
-        originalMessage: {fromReportID: originalReportID},
+        originalMessage: {fromReportID},
         message: [
             {
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
@@ -8302,14 +8385,14 @@ function buildOptimisticCardAssignedReportAction(assigneeAccountID: number, curr
     };
 }
 
-function buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID: number): OptimisticEditedTaskReportAction {
+function buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID: number, currentUserAccountID: number): OptimisticEditedTaskReportAction {
     const delegateAccountDetails = getPersonalDetailByEmail(delegateEmail);
 
     return {
         reportActionID: rand64(),
         actionName: CONST.REPORT.ACTIONS.TYPE.TASK_EDITED,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        actorAccountID: deprecatedCurrentUserAccountID,
+        actorAccountID: currentUserAccountID,
         message: [
             {
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
@@ -8340,11 +8423,12 @@ function buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID: numbe
 function buildOptimisticClosedReportAction(
     emailClosingReport: string,
     policyName: string,
+    currentUserAccountID: number,
     reason: ValueOf<typeof CONST.REPORT.ARCHIVE_REASON> = CONST.REPORT.ARCHIVE_REASON.DEFAULT,
 ): OptimisticClosedReportAction {
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.CLOSED,
-        actorAccountID: deprecatedCurrentUserAccountID,
+        actorAccountID: currentUserAccountID,
         automatic: false,
         avatar: getCurrentUserAvatar(),
         created: DateUtils.getDBTime(),
@@ -11426,7 +11510,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     }
 
     if (actionName === CONST.IOU.ACTION.CATEGORIZE) {
-        if (activePolicy && shouldRestrictUserBillableActions(activePolicy.id, userBillingGraceEndPeriods, amountOwed, ownerBillingGraceEndPeriod)) {
+        if (activePolicy && shouldRestrictUserBillableActions(activePolicy.id, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods, amountOwed)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(activePolicy.id));
             return;
         }
@@ -12802,7 +12886,7 @@ function isWaitingForSubmissionFromCurrentUser(chatReport: OnyxEntry<Report>, po
     return chatReport?.isOwnPolicyExpenseChat && !policy?.harvesting?.enabled;
 }
 
-function getChatListItemReportName(action: ReportAction & {reportName?: string}, report: Report | undefined): string {
+function getChatListItemReportName(action: ReportAction & {reportName?: string}, report: Report | undefined, conciergeReportID: string | undefined): string {
     if (report && isInvoiceReport(report)) {
         const properInvoiceReport = report;
         properInvoiceReport.chatReportID = report.parentReportID;
@@ -12817,12 +12901,12 @@ function getChatListItemReportName(action: ReportAction & {reportName?: string},
     if (report?.reportID) {
         // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return getReportName({report: getReport(report?.reportID, allReports)});
+        return getReportName({report: getReport(report?.reportID, allReports), conciergeReportID});
     }
 
     // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return getReportName({report});
+    return getReportName({report, conciergeReportID});
 }
 
 /**
@@ -13018,6 +13102,79 @@ function buildOptimisticRejectReportActionComment(comment: string, created = Dat
         ],
         automatic: false,
         avatar: getCurrentUserAvatar(),
+        created,
+        shouldShow: true,
+    };
+}
+
+/**
+ * Builds an optimistic report action for report-level rejection.
+ * Uses REJECTED when rejecting to a previous approver, REJECTEDTOSUBMITTER when rejecting to the submitter.
+ */
+function buildOptimisticReportLevelRejectAction(
+    isRejectToSubmitter: boolean,
+    actorAccountID: number | undefined,
+    currentUserDisplayName: string | undefined,
+    currentUserAvatarSource: AvatarSource | undefined,
+    created = DateUtils.getDBTime(),
+): OptimisticRejectReportAction {
+    return {
+        reportActionID: rand64(),
+        actionName: isRejectToSubmitter ? CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER : CONST.REPORT.ACTIONS.TYPE.REJECTED,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        actorAccountID,
+        message: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'normal',
+                text: 'rejected',
+            },
+        ],
+        person: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'strong',
+                text: currentUserDisplayName,
+            },
+        ],
+        automatic: false,
+        avatar: currentUserAvatarSource,
+        created,
+        shouldShow: true,
+    };
+}
+
+/**
+ * Builds an optimistic ADDCOMMENT action for the required rejection reason on report-level reject.
+ */
+function buildOptimisticReportLevelRejectCommentAction(
+    comment: string,
+    actorAccountID: number | undefined,
+    currentUserDisplayName: string | undefined,
+    currentUserAvatarSource: AvatarSource | undefined,
+    created = DateUtils.getDBTime(),
+): OptimisticRejectReportAction {
+    return {
+        reportActionID: rand64(),
+        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        actorAccountID,
+        message: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                text: comment,
+                html: comment,
+            },
+        ],
+        person: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'strong',
+                text: currentUserDisplayName,
+            },
+        ],
+        automatic: false,
+        avatar: currentUserAvatarSource,
         created,
         shouldShow: true,
     };
@@ -13328,6 +13485,8 @@ export {
     buildOptimisticDetachReceipt,
     buildOptimisticRejectReportAction,
     buildOptimisticRejectReportActionComment,
+    buildOptimisticReportLevelRejectAction,
+    buildOptimisticReportLevelRejectCommentAction,
     buildOptimisticMarkedAsResolvedReportAction,
     buildParticipantsFromAccountIDs,
     buildOptimisticChangeApproverReportAction,
@@ -13346,6 +13505,7 @@ export {
     canHoldUnholdReportAction,
     canEditReportPolicy,
     canEditFieldOfMoneyRequest,
+    canEditMultipleTransactions,
     canEditMoneyRequest,
     canEditReportAction,
     canEditReportDescription,

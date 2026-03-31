@@ -793,7 +793,10 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
 
     const limitValue = limit ?? options?.limit;
     if (limitValue) {
-        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT}:${sanitizeSearchValue(limitValue.toString())}`);
+        const num = Number(limitValue);
+        if (Number.isInteger(num) && num > 0) {
+            filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT}:${num}`);
+        }
     }
 
     return filtersString.filter(Boolean).join(' ').trim();
@@ -1734,6 +1737,49 @@ function buildOptimisticSnapshotData(type: SearchDataTypes, data: Record<string,
     };
 }
 
+/**
+ * Set of filter keys that represent free-text fields where the default `:` (eq) operator
+ * should be treated as a substring/partial match (`contains`) when querying the backend.
+ * This allows searches like `merchant:coffee` to match "Coffee shop".
+ */
+const TEXT_SEARCH_FIELDS = new Set<string>([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION]);
+
+/**
+ * Recursively traverses a search AST and replaces the `eq` operator with `contains`
+ * for free-text filter fields (merchant, description). This enables partial/substring
+ * matching on the backend for text searches while preserving the user-facing `:` syntax.
+ */
+function applyContainsOperatorToTextFields(node: ASTNode): ASTNode {
+    if (typeof node.left === 'string' && TEXT_SEARCH_FIELDS.has(node.left) && node.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
+        return {...node, operator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS};
+    }
+
+    return {
+        ...node,
+        left: typeof node.left === 'object' && node.left ? applyContainsOperatorToTextFields(node.left) : node.left,
+        right: typeof node.right === 'object' && !Array.isArray(node.right) && node.right ? applyContainsOperatorToTextFields(node.right) : node.right,
+    };
+}
+
+/**
+ * Serializes a query object to a JSON string for backend commands (Search, export, CSV).
+ * Applies text-field operator normalization (`eq` → `contains`) for `merchant` and `description`
+ * so all backend commands use consistent partial-match semantics — matching what the search view shows.
+ * Do NOT use for saving/persisting query definitions (e.g. saveSearch), where the original operators must be preserved.
+ */
+function serializeQueryJSONForBackend<T extends {filters?: ASTNode | null; rawFilterList?: RawQueryFilter[]}>(queryData: T): string {
+    const normalizedFilters = queryData.filters ? applyContainsOperatorToTextFields(queryData.filters) : queryData.filters;
+    const normalizedRawFilterList = queryData.rawFilterList
+        ? queryData.rawFilterList.map((filter) => {
+              if (TEXT_SEARCH_FIELDS.has(filter.key) && filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
+                  return {...filter, operator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS};
+              }
+              return filter;
+          })
+        : queryData.rawFilterList;
+    return JSON.stringify({...queryData, filters: normalizedFilters, rawFilterList: normalizedRawFilterList});
+}
+
 export {
     isSearchDatePreset,
     isFilterSupported,
@@ -1762,4 +1808,6 @@ export {
     shouldResetSortForViewChange,
     buildFilterQueryWithSortDefaults,
     buildOptimisticSnapshotData,
+    applyContainsOperatorToTextFields,
+    serializeQueryJSONForBackend,
 };
