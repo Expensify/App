@@ -11,6 +11,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import type {GettingStartedItem} from './hooks/useGettingStartedItems';
 
 type GettingStartedRowProps = {
@@ -32,6 +33,7 @@ function GettingStartedRow({item}: GettingStartedRowProps) {
         <PressableWithoutFeedback
             onPress={navigateToItem}
             accessibilityLabel={item.label}
+            sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.GETTING_STARTED_ROW}
         >
             {({hovered}) => (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, shouldUseNarrowLayout ? styles.ph5 : styles.ph8, styles.pv3, hovered && styles.hoveredComponentBG]}>
