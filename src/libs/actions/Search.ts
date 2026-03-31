@@ -501,6 +501,7 @@ function search({
     isOffline = false,
     isLoading,
     shouldUpdateLastSearchParams = true,
+    skipWaitForWrites = false,
 }: {
     queryJSON: SearchQueryJSON;
     searchKey: SearchKey | undefined;
@@ -510,6 +511,14 @@ function search({
     isOffline?: boolean;
     isLoading: boolean;
     shouldUpdateLastSearchParams?: boolean;
+    /**
+     * When true, fires the search API immediately without waiting for pending
+     * writes in the sequential queue. Use for the post-expense-creation flow
+     * where the expense write is deferred and search snapshot data lives in
+     * separate Onyx keys, so there is no risk of the response overwriting
+     * optimistic write data.
+     */
+    skipWaitForWrites?: boolean;
 }) {
     if (isLoading || shouldPreventSearchAPI) {
         return;
@@ -542,9 +551,9 @@ function search({
         });
     }
 
-    return waitForWrites(READ_COMMANDS.SEARCH).then(() => {
+    const fireRequest = () =>
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        return API.makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData})
+        API.makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData})
             .then((result) => {
                 if (shouldUpdateLastSearchParams) {
                     const response = result?.onyxData?.[0]?.value as OnyxSearchResponse;
@@ -580,7 +589,12 @@ function search({
             .finally(() => {
                 inFlightSearchRequests.delete(dedupeKey);
             });
-    });
+
+    if (skipWaitForWrites) {
+        return fireRequest();
+    }
+
+    return waitForWrites(READ_COMMANDS.SEARCH).then(fireRequest);
 }
 
 function submitMoneyRequestOnSearch(hash: number, reportList: Report[], policy: Policy[], currentSearchKey?: SearchKey) {
