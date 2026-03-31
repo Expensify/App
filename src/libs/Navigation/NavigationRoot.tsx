@@ -220,20 +220,13 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             return;
         }
 
-        // REPORTS_SPLIT_NAVIGATOR will persist after user logout, because it is used both for logged-in and logged-out users.
-        // That's why we need to explicitly clear params when resetting navigation state.
-        // The reports split can be either at root level or nested inside ROOT_TAB_NAVIGATOR.
-        const isReportSplitNavigatorMounted =
-            lastRoute.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR || (lastRoute.name === NAVIGATORS.ROOT_TAB_NAVIGATOR && getActiveTabName(lastRoute) === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
+        // After logout, reset to ROOT_TAB_NAVIGATOR (a valid root-level route in AuthScreens)
+        // with cleared params and state. When PublicScreens mounts in the next render cycle,
+        // React Navigation detects ROOT_TAB_NAVIGATOR doesn't exist in the new navigator
+        // and falls back to the initial route (SCREENS.HOME / SignInPage).
         navigationRef.reset({
-            ...rootState,
             index: 0,
-            routes: [
-                {
-                    ...lastRoute,
-                    params: isReportSplitNavigatorMounted ? undefined : lastRoute.params,
-                },
-            ],
+            routes: [{name: NAVIGATORS.ROOT_TAB_NAVIGATOR}],
         });
     }, [authenticated, previousAuthenticated]);
 

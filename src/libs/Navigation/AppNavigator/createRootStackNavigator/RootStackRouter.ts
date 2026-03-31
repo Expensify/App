@@ -163,7 +163,7 @@ function RootStackRouter(options: RootStackNavigatorRouterOptions) {
             // When navigating to a specific workspace from WorkspaceListPage there should be entering animation for its sidebar (only case where we want animation for sidebar)
             // That's why we have a separate handler for opening it called handleOpenWorkspaceSplitAction
             // options for WorkspaceSplitNavigator can be found in AuthScreens.tsx > getWorkspaceSplitNavigatorOptions
-            if (isPushAction(action) && isFullScreenName(action.payload.name) && action.payload.name !== NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
+            if (isPushAction(action) && isFullScreenName(action.payload.name) && action.payload.name !== NAVIGATORS.WORKSPACE_NAVIGATOR) {
                 return handlePushFullscreenAction(state, action, configOptions, stackRouter);
             }
 

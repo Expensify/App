@@ -17,7 +17,7 @@ function getShouldHidePreloadedRoutes(route?: NavigationRoute) {
 
     // Swiping back should work in any navigator except full screen navigators.
     // This only does not apply to the WorkspaceSplitNavigator and DomainSplitNavigator as they have sidebar screens where users can swipe back to navigate to the workspace list.
-    if (!isFullScreenName(route.name) || route.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR || route.name === NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR) {
+    if (!isFullScreenName(route.name) || route.name === NAVIGATORS.WORKSPACE_NAVIGATOR) {
         return true;
     }
 

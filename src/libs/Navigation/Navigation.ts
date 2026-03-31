@@ -525,8 +525,17 @@ function popToSidebar() {
         return;
     }
 
-    // WorkspaceSplitNavigator and DomainSplitNavigator are nested inside WorkspaceNavigator.
-    const activeRoute = currentRoute.name === NAVIGATORS.WORKSPACE_NAVIGATOR ? currentRoute.state?.routes.at(-1) : currentRoute;
+    // Split navigators can be nested inside ROOT_TAB_NAVIGATOR → WORKSPACE_NAVIGATOR.
+    // Drill through the nesting to find the actual split navigator.
+    let activeRoute = currentRoute;
+    if (currentRoute.name === NAVIGATORS.ROOT_TAB_NAVIGATOR) {
+        const activeTab = currentRoute.state?.routes?.[currentRoute.state?.index ?? 0];
+        if (activeTab?.name === NAVIGATORS.WORKSPACE_NAVIGATOR) {
+            activeRoute = activeTab.state?.routes?.at(-1);
+        } else {
+            activeRoute = activeTab;
+        }
+    }
 
     if (!isSplitNavigatorName(activeRoute?.name)) {
         Log.hmmm('[popToSidebar] must be invoked only from SplitNavigator');
