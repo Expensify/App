@@ -328,7 +328,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             .catch(() => {
                 setIsRotating(false);
             });
-    }, [transaction?.transactionID, isDraftTransaction, isOdometerImage, imageType, sourceUri, isImage, receiptFilename, fileName, fileType, policyCategories, transaction?.receipt, policy]);
+    }, [transaction, sourceUri, isImage, fileName, fileType, receiptFilename, isOdometerImage, isDraftTransaction, imageType, policyCategories, policy]);
 
     const shouldShowRotateAndCropReceiptButton = useMemo(
         () =>
@@ -414,21 +414,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             .catch(() => {
                 setIsCropSaving(false);
             });
-    }, [
-        transaction?.transactionID,
-        isDraftTransaction,
-        isOdometerImage,
-        imageType,
-        sourceUri,
-        isImage,
-        cropRect,
-        receiptFilename,
-        fileName,
-        fileType,
-        policyCategories,
-        policy,
-        exitCropMode,
-    ]);
+    }, [transaction, sourceUri, isImage, cropRect, fileName, fileType, exitCropMode, receiptFilename, isOdometerImage, isDraftTransaction, imageType, policyCategories, policy]);
 
     const threeDotsMenuItems: ThreeDotsMenuItemFactory = useCallback(
         ({file, source: innerSource, isLocalSource}) => {
