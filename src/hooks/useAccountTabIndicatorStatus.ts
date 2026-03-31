@@ -1,5 +1,5 @@
-import useNavigationTabBarIndicatorChecks from './useNavigationTabBarIndicatorChecks';
-import type {IndicatorStatus} from './useNavigationTabBarIndicatorChecks';
+import type IndicatorStatus from '@src/types/utils/IndicatorStatus';
+import useAccountIndicatorChecks from './useAccountIndicatorChecks';
 import useTheme from './useTheme';
 
 type AccountTabIndicatorStatusResult = {
@@ -10,7 +10,7 @@ type AccountTabIndicatorStatusResult = {
 function useAccountTabIndicatorStatus(): AccountTabIndicatorStatusResult {
     const theme = useTheme();
 
-    const {accountStatus, infoStatus} = useNavigationTabBarIndicatorChecks();
+    const {accountStatus, infoStatus} = useAccountIndicatorChecks();
 
     const status = accountStatus ?? infoStatus;
     const indicatorColor = accountStatus ? theme.danger : theme.success;

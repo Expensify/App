@@ -120,6 +120,8 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         !isEmptyObject(cardFeeds) || !isEmptyObject(cardsList) || ((policy?.areExpensifyCardsEnabled || policy?.areCompanyCardsEnabled) && policy?.workspaceAccountID);
 
+    const hasExpensifyCard = !!policy?.areExpensifyCardsEnabled && !isEmptyObject(cardsList);
+
     const formattedAddress = !isEmptyObject(policy) && !isEmptyObject(policy.address) ? formatAddressToString(policy.address) : '';
 
     const {reportsToArchive, transactionViolations} = useTransactionViolationOfWorkspace(policyID);
@@ -244,6 +246,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
     const dropdownMenuRef = useRef<{setIsMenuVisible: (visible: boolean) => void} | null>(null);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const hasDeleteWorkspaceExpensifyCardsError = !!hasExpensifyCard && !!isOffline;
 
     const confirmDelete = () => {
         if (!policyID || !policyName) {
@@ -263,10 +266,16 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             lastUsedPaymentMethods: lastPaymentMethod,
             localeCompare,
             personalPolicyID,
+            hasDeleteWorkspaceExpensifyCardsError,
             currentUserAccountID: accountID,
         });
         if (isOffline) {
             setIsDeleteModalOpen(false);
+
+            if (hasDeleteWorkspaceExpensifyCardsError) {
+                return;
+            }
+
             goBackFromInvalidPolicy();
         }
     };
@@ -298,11 +307,20 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         setPrevDeleteState({isFocused, isPendingDelete});
         if (isFocused && prevDeleteState.isPendingDelete && !isPendingDelete) {
             if (!policyLastErrorMessage) {
+                if (isOffline && hasExpensifyCard) {
+                    return;
+                }
+
                 goBackFromInvalidPolicy();
             } else {
                 setIsDeleteModalOpen(false);
                 setIsDeleteWorkspaceErrorModalOpen(true);
             }
+        }
+
+        if (isOffline && policyLastErrorMessage && hasExpensifyCard) {
+            setIsDeleteModalOpen(false);
+            setIsDeleteWorkspaceErrorModalOpen(true);
         }
     }
 
