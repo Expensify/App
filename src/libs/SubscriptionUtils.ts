@@ -66,13 +66,6 @@ Onyx.connect({
     callback: (value) => (privateAmountOwed = value),
 });
 
-let deprecatedUserBillingGraceEndPeriods: OnyxCollection<BillingGraceEndPeriod>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END,
-    callback: (value) => (deprecatedUserBillingGraceEndPeriods = value),
-    waitForCollectionCallback: true,
-});
-
 let deprecatedAllPolicies: OnyxCollection<Policy>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
@@ -465,7 +458,7 @@ function doesUserHavePaymentCardAdded(userBillingFundID: number | undefined): bo
 function shouldRestrictUserBillableActions(
     policyID: string,
     ownerBillingGraceEndPeriod: OnyxEntry<number>,
-    userBillingGraceEndPeriods: OnyxCollection<BillingGraceEndPeriod> = deprecatedUserBillingGraceEndPeriods,
+    userBillingGraceEndPeriods: OnyxCollection<BillingGraceEndPeriod>,
     amountOwed: OnyxEntry<number> = privateAmountOwed,
 ): boolean {
     const currentDate = new Date();
@@ -642,4 +635,4 @@ export {
     hasInsufficientFundsError,
 };
 
-export type {SubscriptionPlanIllustrations};
+export type {DiscountInfo, SubscriptionPlanIllustrations};
