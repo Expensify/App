@@ -1,6 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
 import {useEffect} from 'react';
-import {DeviceEventEmitter} from 'react-native';
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import useBankAccountUnlockEffect from '@hooks/useBankAccountUnlockEffect';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
@@ -21,7 +20,6 @@ type ReportLifecycleHandlerProps = {
  * Component that does not render anything. Handles screen lifecycle side effects:
  * - Hide emoji picker when screen loses focus
  * - Clear notifications when report is opened/re-focused
- * - DeviceEventEmitter listener for switchToPreExistingReport
  * - Telemetry span cancellation on unmount
  * - Bank account unlock effect
  */
@@ -43,13 +41,9 @@ function ReportLifecycleHandler({reportID}: ReportLifecycleHandlerProps) {
         hideEmojiPicker(true);
     }, [prevIsFocused, isFocused]);
 
-    // DeviceEventEmitter listener + telemetry cleanup
+    // Telemetry cleanup
     useEffect(() => {
-        const skipOpenReportListener = DeviceEventEmitter.addListener(`switchToPreExistingReport_${onyxReportID}`, () => {});
-
         return () => {
-            skipOpenReportListener.remove();
-
             // Cancel telemetry span when user leaves the screen before full report data is loaded
             cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${onyxReportID}`);
 
