@@ -7,6 +7,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import {isMobile as isMobileBrowser, isMobileWebKit} from '@libs/Browser';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import EffectiveWidthContext from './EffectiveWidthContext';
 import type WindowDimensions from './types';
 
 const initialViewportHeight = window.visualViewport?.height ?? window.innerHeight;
@@ -28,7 +29,12 @@ export default function (useCachedViewportHeight = false): WindowDimensions {
 
     const isCachedViewportHeight = useCachedViewportHeight && isMobileWebKit();
     const cachedViewportHeightWithKeyboardRef = useRef(initialViewportHeight);
-    const {width: windowWidth, height: windowHeight} = useWindowDimensions();
+    const {width: rawWindowWidth, height: windowHeight} = useWindowDimensions();
+    // If a measured container width has been provided via EffectiveWidthContext
+    // (set by the main app container in App.tsx), use that instead of the raw
+    // viewport width so all screens lay out within the actual available space.
+    const effectiveWidth = useContext(EffectiveWidthContext);
+    const windowWidth = effectiveWidth ?? rawWindowWidth;
 
     // These are the same as the ones in useResponsiveLayout, but we need to redefine them here to avoid cyclic dependency.
     // When the soft keyboard opens on mWeb, the window height changes. Use static screen height instead to get real screenHeight.

@@ -1,9 +1,13 @@
 import {PortalProvider} from '@gorhom/portal';
 import * as Sentry from '@sentry/react-native';
-import React from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {LogBox, View} from 'react-native';
+import type {LayoutChangeEvent} from 'react-native';
+// eslint-disable-next-line no-restricted-imports
+import {useWindowDimensions as useRawWindowDimensions} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {PickerStateProvider} from 'react-native-picker-select';
+import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import '../wdyr';
 import {ActionSheetAwareScrollViewProvider} from './components/ActionSheetAwareScrollView';
@@ -19,6 +23,7 @@ import FullScreenBlockingViewContextProvider from './components/FullScreenBlocki
 import FullScreenLoaderContextProvider from './components/FullScreenLoaderContext';
 import HTMLEngineProvider from './components/HTMLEngineProvider';
 import InboxSidePanel from './components/InboxSidePanel';
+import {InboxPanelProvider, useInboxPanelState} from './components/InboxSidePanel/InboxPanelContext';
 import InitialURLContextProvider from './components/InitialURLContextProvider';
 import {InputBlurContextProvider} from './components/InputBlurContext';
 import {KeyboardDismissibleFlatListContextProvider} from './components/KeyboardDismissibleFlatList/KeyboardDismissibleFlatListContext';
@@ -49,6 +54,7 @@ import CONST from './CONST';
 import Expensify from './Expensify';
 import {CurrentReportIDContextProvider} from './hooks/useCurrentReportID';
 import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
+import EffectiveWidthContext from './hooks/useWindowDimensions/EffectiveWidthContext';
 import HybridAppHandler from './HybridAppHandler';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import './libs/HybridApp';
@@ -70,7 +76,76 @@ LogBox.ignoreLogs([
 
 const fill = {flex: 1};
 
+const PANEL_ANIMATION_DURATION = 300;
+
 const StrictModeWrapper = CONFIG.USE_REACT_STRICT_MODE_IN_DEV ? React.StrictMode : ({children}: {children: React.ReactElement}) => children;
+
+function MainContent() {
+    const {isOpen} = useInboxPanelState();
+    const {width: rawWindowWidth} = useRawWindowDimensions();
+    const panelWidth = rawWindowWidth * 0.2;
+
+    // Measured width of the main content container, provided to all children via
+    // EffectiveWidthContext so useWindowDimensions returns the true available width.
+    const [mainContentWidth, setMainContentWidth] = useState(rawWindowWidth);
+    const onMainContentLayout = useCallback((e: LayoutChangeEvent) => {
+        setMainContentWidth(e.nativeEvent.layout.width);
+    }, []);
+
+    const panelWidthSV = useSharedValue(panelWidth);
+    const panelContainerWidthSV = useSharedValue(0);
+    const panelTranslateX = useSharedValue(panelWidth);
+
+    useEffect(() => {
+        const pw = rawWindowWidth * 0.2;
+        panelWidthSV.value = pw;
+        panelContainerWidthSV.value = withTiming(isOpen ? pw : 0, {duration: PANEL_ANIMATION_DURATION});
+        panelTranslateX.value = withTiming(isOpen ? 0 : pw, {duration: PANEL_ANIMATION_DURATION});
+        // SharedValue refs are stable — intentionally omitted from deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isOpen, rawWindowWidth]);
+
+    // Panel outer container grows in the flex row, pushing the main content narrower.
+    const panelContainerStyle = useAnimatedStyle(() => ({
+        width: panelContainerWidthSV.value,
+        overflow: 'hidden',
+    }));
+
+    // Panel inner stays at full panel width and slides in on x-axis — no text reflow.
+    const panelInnerStyle = useAnimatedStyle(() => ({
+        width: panelWidthSV.value,
+        flex: 1,
+        transform: [{translateX: panelTranslateX.value}],
+        borderLeftWidth: 1,
+        borderLeftColor: '#e5e5e5',
+    }));
+
+    return (
+        <View style={{flex: 1, flexDirection: 'row'}}>
+            {/* EffectiveWidthContext provides the measured container width to every
+                child that calls useWindowDimensions, so layout-critical screens
+                (search, workspaces, settings, etc.) size themselves to the space
+                actually available rather than the raw viewport. */}
+            <EffectiveWidthContext.Provider value={mainContentWidth}>
+                <View
+                    style={fill}
+                    onLayout={onMainContentLayout}
+                >
+                    <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
+                        <ColorSchemeWrapper>
+                            <Expensify />
+                        </ColorSchemeWrapper>
+                    </ErrorBoundary>
+                </View>
+            </EffectiveWidthContext.Provider>
+            <Animated.View style={panelContainerStyle}>
+                <Animated.View style={panelInnerStyle}>
+                    <InboxSidePanel />
+                </Animated.View>
+            </Animated.View>
+        </View>
+    );
+}
 
 function App() {
     useDefaultDragAndDrop();
@@ -136,21 +211,11 @@ function App() {
                                         TravelCVVContextProvider,
                                         KYCWallContextProvider,
                                         WideRHPContextProvider,
+                                        InboxPanelProvider,
                                     ]}
                                 >
                                     <CustomStatusBarAndBackground />
-                                    <View style={{flex: 1, flexDirection: 'row'}}>
-                                        <View style={{flex: 4}}>
-                                            <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
-                                                <ColorSchemeWrapper>
-                                                    <Expensify />
-                                                </ColorSchemeWrapper>
-                                            </ErrorBoundary>
-                                        </View>
-                                        <View style={{flex: 1, borderLeftWidth: 1, borderLeftColor: '#e5e5e5'}}>
-                                            <InboxSidePanel />
-                                        </View>
-                                    </View>
+                                    <MainContent />
                                     <NavigationBar />
                                 </ComposeProviders>
                             </View>

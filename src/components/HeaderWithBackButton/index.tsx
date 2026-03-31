@@ -6,10 +6,11 @@ import Avatar from '@components/Avatar';
 import AvatarWithDisplayName from '@components/AvatarWithDisplayName';
 import Header from '@components/Header';
 import Icon from '@components/Icon';
+import {useInboxPanelActions} from '@components/InboxSidePanel/InboxPanelContext';
 import PinButton from '@components/PinButton';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
-import SidePanelButton from '@components/SidePanel/SidePanelButton';
+import Text from '@components/Text';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import Tooltip from '@components/Tooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -70,8 +71,8 @@ function HeaderWithBackButton({
     shouldOverlayDots = false,
     shouldOverlay = false,
     shouldNavigateToTopMostReport = false,
-    shouldDisplayHelpButton = false,
     shouldDisplaySearchRouter = false,
+    shouldDisplayHelpButton = false,
     progressBarPercentage,
     style,
     subTitleLink = '',
@@ -84,6 +85,7 @@ function HeaderWithBackButton({
     const StyleUtils = useStyleUtils();
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
+    const {togglePanel} = useInboxPanelActions();
 
     const downloadReasonAttributes = useMemo<SkeletonSpanReasonAttributes>(
         () => ({
@@ -358,7 +360,14 @@ function HeaderWithBackButton({
                     )}
                 </View>
                 {shouldDisplaySearchRouter && <SearchButton />}
-                {shouldDisplayHelpButton && <SidePanelButton />}
+                {shouldDisplayHelpButton && (
+                    <PressableWithoutFeedback
+                        accessibilityLabel="Toggle chat panel"
+                        onPress={togglePanel}
+                    >
+                        <Text style={[styles.textBlue, styles.ml2]}>Chat</Text>
+                    </PressableWithoutFeedback>
+                )}
             </View>
         </View>
     );
