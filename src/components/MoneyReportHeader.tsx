@@ -3,7 +3,6 @@ import {isUserValidatedSelector} from '@selectors/Account';
 import {shouldFailAllRequestsSelector} from '@selectors/Network';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
-import {getArchiveReason} from '@selectors/Report';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import truncate from 'lodash/truncate';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
@@ -22,6 +21,7 @@ import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAct
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
+import useMoneyReportHeaderStatusBar from '@hooks/useMoneyReportHeaderStatusBar';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
@@ -51,7 +51,6 @@ import {createTransactionThreadReport, deleteAppReport, downloadReportPDF, expor
 import {getExportTemplates, queueExportSearchWithTemplate, search} from '@libs/actions/Search';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import {setNameValuePair} from '@libs/actions/User';
-import {isPersonalCard} from '@libs/CardUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
 import {getExistingTransactionID} from '@libs/IOUUtils';
@@ -82,7 +81,7 @@ import {
     hasRequestFromCurrentAccount,
     isMoneyRequestAction,
 } from '@libs/ReportActionsUtils';
-import {getAllExpensesToHoldIfApplicable, getReportPrimaryAction, isMarkAsResolvedAction} from '@libs/ReportPrimaryActionUtils';
+import {getAllExpensesToHoldIfApplicable, getReportPrimaryAction} from '@libs/ReportPrimaryActionUtils';
 import {getSecondaryExportReportActions, getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
 import {
     canEditFieldOfMoneyRequest,
@@ -98,7 +97,6 @@ import {
     getNonHeldAndFullAmount,
     getPolicyExpenseChat,
     getReasonAndReportActionThatRequiresAttention,
-    getTransactionsWithReceipts,
     hasHeldExpenses as hasHeldExpensesReportUtils,
     hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils,
     hasUpdatedTotal,
@@ -111,7 +109,6 @@ import {
     isIOUReport as isIOUReportUtil,
     isOpenExpenseReport,
     isOpenReport,
-    isProcessingReport,
     isReportOwner,
     isSelfDM,
     navigateOnDeleteExpense,
@@ -123,24 +120,18 @@ import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {
-    allHavePendingRTERViolation,
     getChildTransactions,
     getOriginalTransactionWithSplitInfo,
     hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils,
     hasCustomUnitOutOfPolicyViolation as hasCustomUnitOutOfPolicyViolationTransactionUtils,
-    hasDuplicateTransactions,
     isDistanceRequest,
     isDuplicate,
     isExpensifyCardTransaction,
-    isPayAtEndExpense as isPayAtEndExpenseTransactionUtils,
     isPending,
     isPerDiemRequest,
-    isScanning,
     isTransactionPendingDelete,
-    shouldShowBrokenConnectionViolationForMultipleTransactions,
 } from '@libs/TransactionUtils';
 import type {ExportType} from '@pages/inbox/report/ReportDetailsExportPage';
-import variables from '@styles/variables';
 import {
     approveMoneyRequest,
     canApproveIOU,
@@ -165,10 +156,8 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
-import type IconAsset from '@src/types/utils/IconAsset';
 import ActivityIndicator from './ActivityIndicator';
 import AnimatedSubmitButton from './AnimatedSubmitButton';
-import BrokenConnectionDescription from './BrokenConnectionDescription';
 import Button from './Button';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {ButtonWithDropdownMenuRef, DropdownOption} from './ButtonWithDropdownMenu/types';
@@ -187,9 +176,8 @@ import Modal from './Modal';
 import {ModalActions} from './Modal/Global/ModalContext';
 import MoneyReportHeaderKYCDropdown from './MoneyReportHeaderKYCDropdown';
 import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
+import MoneyReportHeaderStatusBarSection from './MoneyReportHeaderStatusBarSection';
 import MoneyReportHeaderStatusBarSkeleton from './MoneyReportHeaderStatusBarSkeleton';
-import type {MoneyRequestHeaderStatusBarProps} from './MoneyRequestHeaderStatusBar';
-import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import MoneyRequestReportNavigation from './MoneyRequestReportView/MoneyRequestReportNavigation';
 import {usePersonalDetails} from './OnyxListItemProvider';
 import type {PopoverMenuItem} from './PopoverMenu';
@@ -266,15 +254,10 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         'Building',
         'Buildings',
         'Plus',
-        'Hourglass',
         'Cash',
-        'Box',
         'Stopwatch',
-        'Flag',
-        'CreditCardHourglass',
         'Send',
         'Clear',
-        'ReceiptScan',
         'ThumbsUp',
         'CircularArrowBackwards',
         'ArrowSplit',
@@ -391,7 +374,6 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
     const [originalIOUTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(currentTransaction?.comment?.originalTransactionID)}`);
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const isDEWPolicy = hasDynamicExternalWorkflow(policy);
@@ -443,7 +425,6 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
     const policyType = policy?.type;
     const connectedIntegration = getValidConnectedIntegration(policy);
     const connectedIntegrationFallback = getConnectedIntegration(policy);
-    const hasScanningReceipt = getTransactionsWithReceipts(moneyRequestReport?.reportID).some((t) => isScanning(t));
     const hasOnlyPendingTransactions = useMemo(() => {
         return !!transactions && transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
     }, [transactions]);
@@ -472,22 +453,13 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         return translate('reportDetailsPage.successPDF');
     }, [reportPDFFilename, hasFinishedPDFDownload, translate]);
 
-    // Check if there is pending rter violation in all transactionViolations with given transactionIDs.
-    // wrapped in useMemo to avoid unnecessary re-renders and for better performance (array operation inside of function)
-    const hasAllPendingRTERViolations = useMemo(
-        () => allHavePendingRTERViolation(transactions, violations, email ?? '', accountID, moneyRequestReport, policy),
-        [transactions, violations, email, accountID, moneyRequestReport, policy],
-    );
     // Check if any transactions have pending RTER violations (for showing the submit confirmation modal)
     const hasAnyPendingRTERViolation = useMemo(
         () => hasAnyPendingRTERViolationTransactionUtils(transactions, allTransactionViolations, email ?? '', accountID, moneyRequestReport, policy),
         [transactions, allTransactionViolations, email, accountID, moneyRequestReport, policy],
     );
 
-    // Check if user should see broken connection violation warning.
-    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactions, moneyRequestReport, policy, violations, email ?? '', accountID);
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(moneyRequestReport?.reportID);
-    const isPayAtEndExpense = isPayAtEndExpenseTransactionUtils(transaction);
     const isArchivedReport = useReportIsArchived(moneyRequestReport?.reportID);
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
 
@@ -514,8 +486,6 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
 
         return canMoveExpense && canUserPerformWriteAction;
     }, [nonPendingDeleteTransactions, reportActions, isChatReportArchived, outstandingReportsByPolicyID, moneyRequestReport]);
-
-    const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`, {selector: getArchiveReason});
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${moneyRequestReport?.reportID}`);
     const getCanIOUBePaid = useCallback(
@@ -635,17 +605,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
 
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
 
-    const hasDuplicates = hasDuplicateTransactions(email ?? '', accountID, moneyRequestReport, policy, allTransactionViolations);
-    const shouldShowMarkAsResolved = isMarkAsResolvedAction(moneyRequestReport, transactionViolations);
-    const shouldShowStatusBar =
-        hasAllPendingRTERViolations ||
-        shouldShowBrokenConnectionViolation ||
-        hasOnlyHeldExpenses ||
-        hasScanningReceipt ||
-        isPayAtEndExpense ||
-        hasOnlyPendingTransactions ||
-        hasDuplicates ||
-        shouldShowMarkAsResolved;
+    const {shouldShowStatusBar, statusBarType} = useMoneyReportHeaderStatusBar(reportIDProp, moneyRequestReport?.chatReportID);
 
     let optimisticNextStep = getReportNextStep(nextStep, moneyRequestReport, transactions, policy, allTransactionViolations, email ?? '', accountID);
 
@@ -1018,94 +978,6 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         ],
     );
 
-    const getStatusIcon: (src: IconAsset) => React.ReactNode = (src) => (
-        <Icon
-            src={src}
-            height={variables.iconSizeSmall}
-            width={variables.iconSizeSmall}
-            fill={theme.icon}
-        />
-    );
-
-    const getStatusBarProps: () => MoneyRequestHeaderStatusBarProps | undefined = () => {
-        if (shouldShowMarkAsResolved) {
-            return {
-                icon: getStatusIcon(expensifyIcons.Hourglass),
-                description: translate('iou.reject.rejectedStatus'),
-            };
-        }
-
-        if (isPayAtEndExpense) {
-            if (!isArchivedReport) {
-                return {
-                    icon: getStatusIcon(expensifyIcons.Hourglass),
-                    description: translate('iou.bookingPendingDescription'),
-                };
-            }
-            if (isArchivedReport && archiveReason === CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED) {
-                return {
-                    icon: getStatusIcon(expensifyIcons.Box),
-                    description: translate('iou.bookingArchivedDescription'),
-                };
-            }
-        }
-
-        if (hasOnlyHeldExpenses) {
-            return {
-                icon: getStatusIcon(expensifyIcons.Stopwatch),
-                description: translate(transactions.length > 1 ? 'iou.expensesOnHold' : 'iou.expenseOnHold'),
-            };
-        }
-
-        if (hasDuplicates) {
-            return {
-                icon: getStatusIcon(expensifyIcons.Flag),
-                description: translate('iou.duplicateTransaction', isProcessingReport(moneyRequestReport)),
-            };
-        }
-
-        // Show the broken connection violation message only if it's part of transactionViolations (i.e., visible to the user).
-        // This prevents displaying an empty message.
-        if (!!transaction?.transactionID && !!transactionViolations.length && shouldShowBrokenConnectionViolation) {
-            const brokenConnectionError = transactionViolations?.find((violation) => violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION);
-            const cardID = brokenConnectionError?.data?.cardID;
-            const card = cardID ? cardList?.[cardID] : undefined;
-            const isBrokenPersonalCard = isPersonalCard(card);
-
-            if (isBrokenPersonalCard && brokenConnectionError) {
-                return undefined;
-            }
-            return {
-                icon: getStatusIcon(expensifyIcons.Hourglass),
-                description: (
-                    <BrokenConnectionDescription
-                        transactionID={transaction?.transactionID}
-                        report={moneyRequestReport}
-                        policy={policy}
-                    />
-                ),
-            };
-        }
-        if (hasAllPendingRTERViolations) {
-            return {
-                icon: getStatusIcon(expensifyIcons.Hourglass),
-                description: translate('iou.pendingMatchWithCreditCardDescription'),
-            };
-        }
-        if (hasOnlyPendingTransactions) {
-            return {
-                icon: getStatusIcon(expensifyIcons.CreditCardHourglass),
-                description: translate('iou.transactionPendingDescription'),
-            };
-        }
-        if (hasScanningReceipt) {
-            return {
-                icon: getStatusIcon(expensifyIcons.ReceiptScan),
-                description: translate('iou.receiptScanInProgressDescription'),
-            };
-        }
-    };
-
     const getFirstDuplicateThreadID = (transactionsList: OnyxTypes.Transaction[], allReportActions: OnyxTypes.ReportAction[]) => {
         const duplicateTransaction = transactionsList.find((reportTransaction) =>
             isDuplicate(
@@ -1123,8 +995,6 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
 
         return getThreadReportIDsForTransactions(allReportActions, [duplicateTransaction]).at(0);
     };
-
-    const statusBarProps = getStatusBarProps();
 
     const dismissModalAndUpdateUseHold = () => {
         setIsHoldEducationalModalVisible(false);
@@ -2448,7 +2318,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
 
     const showNextStepBar = shouldShowNextStep && !!optimisticNextStep && (('message' in optimisticNextStep && !!optimisticNextStep.message?.length) || 'messageKey' in optimisticNextStep);
     const showNextStepSkeleton = shouldShowNextStep && !optimisticNextStep && !!isLoadingInitialReportActions && !isOffline;
-    const shouldShowMoreContent = showNextStepBar || showNextStepSkeleton || !!statusBarProps || isReportInSearch;
+    const shouldShowMoreContent = showNextStepBar || showNextStepSkeleton || shouldShowStatusBar || isReportInSearch;
 
     const nextStepSkeletonReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'MoneyReportHeader',
@@ -2525,12 +2395,10 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                     <View style={[styles.flexShrink1, styles.flexGrow1, styles.mnw0, styles.flexWrap, styles.justifyContentCenter]}>
                         {showNextStepBar && <MoneyReportHeaderStatusBar nextStep={optimisticNextStep} />}
                         {showNextStepSkeleton && <MoneyReportHeaderStatusBarSkeleton reasonAttributes={nextStepSkeletonReasonAttributes} />}
-                        {!!statusBarProps && (
-                            <MoneyRequestHeaderStatusBar
-                                icon={statusBarProps.icon}
-                                description={statusBarProps.description}
-                            />
-                        )}
+                        <MoneyReportHeaderStatusBarSection
+                            reportID={reportIDProp}
+                            statusBarType={statusBarType}
+                        />
                     </View>
                     {isReportInSearch && (
                         <MoneyRequestReportNavigation
