@@ -271,7 +271,7 @@ describe('GettingStartedSection', () => {
             const row = screen.getByText('homePage.gettingStartedSection.createWorkspace');
             fireEvent.press(row);
 
-            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_INITIAL.getRoute(TEST_POLICY_ID));
+            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_OVERVIEW.getRoute(TEST_POLICY_ID));
         });
 
         it('navigates to workspace accounting when "Connect to [system]" row is pressed', async () => {

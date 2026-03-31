@@ -199,7 +199,7 @@ describe('useGettingStartedItems', () => {
             const {result} = renderHook(() => useGettingStartedItems());
 
             const createWorkspaceItem = result.current.items.find((item) => item.key === 'createWorkspace');
-            expect(createWorkspaceItem?.route).toBe(ROUTES.WORKSPACE_INITIAL.getRoute(POLICY_ID));
+            expect(createWorkspaceItem?.route).toBe(ROUTES.WORKSPACE_OVERVIEW.getRoute(POLICY_ID));
         });
     });
 
