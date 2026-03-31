@@ -1,4 +1,4 @@
-import React, {createContext, useCallback, useContext, useMemo, useState} from 'react';
+import React, {createContext, useCallback, useContext, useMemo, useRef, useState} from 'react';
 import type {ReactNode} from 'react';
 
 type InboxPanelStateContextValue = {
@@ -9,6 +9,10 @@ type InboxPanelActionsContextValue = {
     openPanel: () => void;
     closePanel: () => void;
     togglePanel: () => void;
+    /** Register a callback that navigates within the panel's stack to the given reportID. */
+    registerPanelNavigation: (fn: (reportID: string) => void) => void;
+    /** Navigate to a report inside the panel (and open the panel if closed). */
+    navigateToReport: (reportID: string) => void;
 };
 
 const InboxPanelStateContext = createContext<InboxPanelStateContextValue>({isOpen: false});
@@ -17,17 +21,41 @@ const InboxPanelActionsContext = createContext<InboxPanelActionsContextValue>({
     openPanel: () => {},
     closePanel: () => {},
     togglePanel: () => {},
+    registerPanelNavigation: () => {},
+    navigateToReport: () => {},
 });
 
 function InboxPanelProvider({children}: {children: ReactNode}) {
     const [isOpen, setIsOpen] = useState(false);
+    const panelNavigateRef = useRef<((reportID: string) => void) | null>(null);
+    const pendingReportIDRef = useRef<string | null>(null);
 
     const openPanel = useCallback(() => setIsOpen(true), []);
     const closePanel = useCallback(() => setIsOpen(false), []);
     const togglePanel = useCallback(() => setIsOpen((prev) => !prev), []);
 
+    const registerPanelNavigation = useCallback((fn: (reportID: string) => void) => {
+        panelNavigateRef.current = fn;
+        if (pendingReportIDRef.current) {
+            fn(pendingReportIDRef.current);
+            pendingReportIDRef.current = null;
+        }
+    }, []);
+
+    const navigateToReport = useCallback((reportID: string) => {
+        setIsOpen(true);
+        if (panelNavigateRef.current) {
+            panelNavigateRef.current(reportID);
+        } else {
+            pendingReportIDRef.current = reportID;
+        }
+    }, []);
+
     const stateValue = useMemo(() => ({isOpen}), [isOpen]);
-    const actionsValue = useMemo(() => ({openPanel, closePanel, togglePanel}), [openPanel, closePanel, togglePanel]);
+    const actionsValue = useMemo(
+        () => ({openPanel, closePanel, togglePanel, registerPanelNavigation, navigateToReport}),
+        [openPanel, closePanel, togglePanel, registerPanelNavigation, navigateToReport],
+    );
 
     return (
         <InboxPanelStateContext.Provider value={stateValue}>

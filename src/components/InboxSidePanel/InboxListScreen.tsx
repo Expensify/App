@@ -1,6 +1,6 @@
 import {useNavigation} from '@react-navigation/native';
 import type {StackNavigationProp} from '@react-navigation/stack';
-import React, {useCallback} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import LHNOptionsList from '@components/LHNOptionsList/LHNOptionsList';
 import TopBarWithLoadingBar from '@components/Navigation/TopBarWithLoadingBar';
@@ -9,6 +9,7 @@ import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
+import {useInboxPanelActions} from './InboxPanelContext';
 
 type InboxStackParamList = {
     InboxList: undefined;
@@ -20,6 +21,15 @@ function InboxListScreen() {
     const {translate} = useLocalize();
     const navigation = useNavigation<StackNavigationProp<InboxStackParamList>>();
     const {orderedReports} = useSidebarOrderedReportsState('InboxSidePanel');
+    const {registerPanelNavigation} = useInboxPanelActions();
+
+    // Register this screen's navigation so external callers (e.g. the main LHN)
+    // can open a report inside the panel by calling navigateToReport().
+    useEffect(() => {
+        registerPanelNavigation((reportID: string) => {
+            navigation.navigate('InboxReport', {reportID});
+        });
+    }, [navigation, registerPanelNavigation]);
 
     const onSelectRow = useCallback(
         (option: OptionData) => {

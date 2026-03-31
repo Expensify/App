@@ -3,6 +3,7 @@ import {StyleSheet, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
+import {useInboxPanelActions, useInboxPanelState} from '@components/InboxSidePanel/InboxPanelContext';
 import LHNOptionsList from '@components/LHNOptionsList/LHNOptionsList';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
@@ -40,6 +41,8 @@ function SidebarLinks({insets, optionListItems, priorityMode = CONST.PRIORITY_MO
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
+    const {isOpen: isPanelOpen} = useInboxPanelState();
+    const {navigateToReport} = useInboxPanelActions();
 
     useConfirmReadyToOpenApp();
 
@@ -53,6 +56,14 @@ function SidebarLinks({insets, optionListItems, priorityMode = CONST.PRIORITY_MO
      */
     const showReportPage = useCallback(
         (option: Report & Pick<OptionData, 'actionTargetReportActionID'>) => {
+            // When the inbox panel is open, open the report inside the panel instead.
+            if (isPanelOpen) {
+                if (option.reportID) {
+                    navigateToReport(option.reportID);
+                }
+                return;
+            }
+
             // Prevent opening Report page when clicking LHN row quickly after clicking FAB icon
             // or when clicking the active LHN row on large screens
             // or when continuously clicking different LHNs, only apply to small screen
@@ -73,7 +84,7 @@ function SidebarLinks({insets, optionListItems, priorityMode = CONST.PRIORITY_MO
             }
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(option.reportID));
         },
-        [shouldUseNarrowLayout, isActiveReport],
+        [shouldUseNarrowLayout, isActiveReport, isPanelOpen, navigateToReport],
     );
 
     const viewMode = priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT;
