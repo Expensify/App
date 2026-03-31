@@ -156,7 +156,7 @@ index 6199a2c..18e848f 100644
 +          );
 +
 +          if (!result) {
-+            // TODO: add error handling callback
++            callback.invoke(0, 0, 0, 0, 0, 0);
 +            return;
 +          }
 +
