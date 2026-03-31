@@ -218,7 +218,6 @@ function AddCardPage({route}: AddCardPageProps) {
                             buttonText={translate('common.save')}
                             isAlertVisible={false}
                             onSubmit={handleSave}
-                            isDisabled={selectedCardIDs.length === 0}
                             enabledWhenOffline
                             containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
                         />
