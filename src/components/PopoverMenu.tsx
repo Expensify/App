@@ -319,6 +319,7 @@ function BasePopoverMenu({
     const prevMenuItems = usePrevious(menuItems);
     const {
         firstItemRef: firstMenuItemRef,
+        handleFirstItemFocus,
         handleModalShow,
         shouldEnableBottomDockedDismissAccessibility,
     } = useBottomDockedDismissAccessibility({
@@ -326,6 +327,7 @@ function BasePopoverMenu({
         shouldActivate: isSmallScreenWidth,
         animationDelayMs: (animationInDelay ?? 0) + animationInTiming,
         onModalShow,
+        shouldConfirmFirstItemFocus: true,
     });
 
     const selectItem = (index: number, event?: GestureResponderEvent | KeyboardEvent) => {
@@ -431,6 +433,9 @@ function BasePopoverMenu({
                     shouldShowRightIcon={!!item.rightIcon}
                     brickRoadIndicator={item.brickRoadIndicator}
                     onFocus={() => {
+                        if (menuIndex === 0) {
+                            handleFirstItemFocus();
+                        }
                         if (!shouldUpdateFocusedIndex) {
                             return;
                         }

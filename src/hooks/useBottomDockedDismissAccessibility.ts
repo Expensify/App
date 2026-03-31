@@ -19,6 +19,7 @@ type UseBottomDockedDismissAccessibilityParams = {
 
 type UseBottomDockedDismissAccessibilityResult = {
     firstItemRef: RefObject<RNView | null>;
+    handleFirstItemFocus: () => void;
     handleModalShow: () => void;
     shouldEnableBottomDockedDismissAccessibility?: boolean;
 };
@@ -240,8 +241,17 @@ function useBottomDockedDismissAccessibility({
         return () => cancelAnimationFrame(animationFrame);
     }, [focusedIndex, isVisible, markFirstMenuItemFocused, shouldConfirmFirstItemFocus, shouldDeferDismissButtonAccessibility]);
 
+    const handleFirstItemFocus = useCallback(() => {
+        if (hasFocusedFirstItemOnCurrentOpenRef.current) {
+            return;
+        }
+
+        markFirstMenuItemFocused();
+    }, [markFirstMenuItemFocused]);
+
     return {
         firstItemRef,
+        handleFirstItemFocus,
         handleModalShow,
         shouldEnableBottomDockedDismissAccessibility: shouldDeferDismissButtonAccessibility ? shouldEnableBottomDockedDismissAccessibility : undefined,
     };
