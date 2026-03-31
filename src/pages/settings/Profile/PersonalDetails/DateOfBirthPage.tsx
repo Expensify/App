@@ -33,7 +33,7 @@ function DateOfBirthPage() {
             const requiredFields = ['dob' as const];
             const errors = getFieldRequiredErrors(values, requiredFields, translate);
 
-            const minimumAge = CONST.DATE_BIRTH.MIN_AGE;
+            const minimumAge = CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT;
             const maximumAge = CONST.DATE_BIRTH.MAX_AGE;
             const dateError = getAgeRequirementError(translate, values.dob ?? '', minimumAge, maximumAge);
 
@@ -77,7 +77,7 @@ function DateOfBirthPage() {
                             label={translate('common.date')}
                             defaultValue={privatePersonalDetails?.dob ?? ''}
                             minDate={subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE)}
-                            maxDate={subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE)}
+                            maxDate={subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT)}
                             autoFocus
                             autoComplete="birthdate-full"
                         />
