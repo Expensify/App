@@ -17,7 +17,7 @@ import {ProductTrainingContextProvider} from '@components/ProductTrainingContext
 import {SearchContextProvider} from '@components/Search/SearchContext';
 import {SearchRouterContextProvider} from '@components/Search/SearchRouter/SearchRouterContext';
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
-import SupportalPermissionDeniedModalProvider from '@components/SupportalPermissionDeniedModalProvider';
+import SupportalPermissionDeniedModal from '@components/SupportalPermissionDeniedModal';
 import FullScreenContextProvider from '@components/VideoPlayerContexts/FullScreenContextProvider';
 import {PlaybackContextProvider} from '@components/VideoPlayerContexts/PlaybackContext';
 import {VideoPopoverMenuContextProvider} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
@@ -159,9 +159,9 @@ function AuthScreens() {
     return (
         <>
             <AuthScreensInitHandler />
-            <KeyboardShortcutsHandler />
             <ThreeDSAuthHandler />
             <UserStatusHandler />
+            <SupportalPermissionDeniedModal />
             <DelegatorConnectGuard>
                 <ComposeProviders
                     components={[
@@ -183,9 +183,9 @@ function AuthScreens() {
                         SearchContextProvider,
                         LockedAccountModalProvider,
                         DelegateNoAccessModalProvider,
-                        SupportalPermissionDeniedModalProvider,
                     ]}
                 >
+                    <KeyboardShortcutsHandler />
                     <RootStack.Navigator
                         persistentScreens={[
                             NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
