@@ -598,9 +598,9 @@ function getSendInvoiceInformation({
     companyWebsite,
     policyRecentlyUsedCategories,
     policyRecentlyUsedTags,
-    participantsPolicyTags,
-}: SendInvoiceOptions & {participantsPolicyTags: OnyxTypes.PolicyTagLists}): SendInvoiceInformation {
-    const {amount = 0, currency = '', created = '', merchant = '', category = '', tag = '', taxCode = '', taxAmount = 0, billable, comment, participants} = transaction ?? {};
+    senderPolicyTags,
+}: SendInvoiceOptions & {senderPolicyTags: OnyxTypes.PolicyTagLists}): SendInvoiceInformation {
+    const {amount = 0, currency = '', created = '', merchant = '', category = '', tag = '', taxCode = '', taxAmount = 0, taxValue, billable, comment, participants} = transaction ?? {};
     const trimmedComment = (comment?.comment ?? '').trim();
     const senderWorkspaceID = participants?.find((participant) => participant?.isSender)?.policyID;
     const receiverParticipant: Participant | InvoiceReceiver | undefined =
@@ -647,6 +647,7 @@ function getSendInvoiceInformation({
             tag,
             taxCode,
             taxAmount,
+            taxValue,
             billable,
             reimbursable: true,
         },
@@ -654,7 +655,7 @@ function getSendInvoiceInformation({
 
     const optimisticPolicyRecentlyUsedCategories = mergePolicyRecentlyUsedCategories(category, policyRecentlyUsedCategories);
     const optimisticPolicyRecentlyUsedTags = buildOptimisticPolicyRecentlyUsedTags({
-        policyTags: participantsPolicyTags,
+        policyTags: senderPolicyTags,
         policyRecentlyUsedTags,
         transactionTags: tag,
     });
@@ -743,8 +744,9 @@ function sendInvoice({
     policyRecentlyUsedTags,
     isFromGlobalCreate,
 }: SendInvoiceOptions) {
+    // TODO: remove `allPolicyTags` from this file https://github.com/Expensify/App/issues/80048
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const participantsPolicyTags = getPolicyTagsData(transaction?.participants?.find((p) => p?.isSender)?.policyID) ?? {};
+    const senderPolicyTags = getPolicyTagsData(transaction?.participants?.find((p) => p?.isSender)?.policyID) ?? {};
 
     const parsedComment = getParsedComment(transaction?.comment?.comment?.trim() ?? '');
     if (transaction?.comment) {
@@ -778,7 +780,7 @@ function sendInvoice({
         companyWebsite,
         policyRecentlyUsedCategories,
         policyRecentlyUsedTags,
-        participantsPolicyTags,
+        senderPolicyTags,
     });
 
     const parameters: SendInvoiceParams = {
