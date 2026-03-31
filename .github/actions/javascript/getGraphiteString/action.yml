@@ -9,5 +9,5 @@ outputs:
   GRAPHITE_STRING:
     description: String with reassure data which can be directly sent to the graphite server
 runs:
-  using: 'node20'
+  using: 'node24'
   main: './index.js'
