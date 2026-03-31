@@ -3,6 +3,7 @@ import {useCallback, useEffect, useRef, useState} from 'react';
 import type {RefObject} from 'react';
 import type {TextInput} from 'react-native';
 import {InteractionManager} from 'react-native';
+import Accessibility from '@libs/Accessibility';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import {moveSelectionToEnd, scrollToBottom} from '@libs/InputUtils';
 import isWindowReadyToFocus from '@libs/isWindowReadyToFocus';
@@ -19,24 +20,12 @@ type UseAutoFocusInput = {
     inputRef: RefObject<TextInput | null>;
 };
 
-function shouldPreserveExistingFocus(target: TextInput | null): boolean {
-    if (typeof document === 'undefined') {
-        return false;
-    }
-
-    const activeElement = document.activeElement;
-    if (!activeElement || activeElement === document.body || activeElement === document.documentElement) {
-        return false;
-    }
-
-    return !target?.isFocused?.();
-}
-
 export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInput {
     const [isInputInitialized, setIsInputInitialized] = useState(false);
     const [isScreenTransitionEnded, setIsScreenTransitionEnded] = useState(false);
     const [modal] = useOnyx(ONYXKEYS.MODAL);
     const isPopoverVisible = modal?.willAlertModalBecomeVisible && modal?.isPopover;
+    const isScreenReaderEnabled = Accessibility.useScreenReaderStatus();
 
     const {splashScreenState} = useSplashScreenState();
     const navigation = useNavigation<PlatformStackNavigationProp<RootNavigatorParamList>>();
@@ -53,33 +42,22 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
     }, []);
 
     useEffect(() => {
-        if (!isScreenTransitionEnded || !isInputInitialized || !inputRef.current || splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN || isPopoverVisible) {
+        if (isScreenReaderEnabled || !isScreenTransitionEnded || !isInputInitialized || !inputRef.current || splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN || isPopoverVisible) {
             return;
         }
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         const focusTaskHandle = InteractionManager.runAfterInteractions(() => {
-            const currentInput = inputRef.current;
-            if (shouldPreserveExistingFocus(currentInput)) {
-                setIsScreenTransitionEnded(false);
-                return;
+            if (inputRef.current && isMultiline) {
+                moveSelectionToEnd(inputRef.current);
             }
-
-            if (currentInput && isMultiline) {
-                moveSelectionToEnd(currentInput);
-            }
-            isWindowReadyToFocus().then(() => {
-                if (shouldPreserveExistingFocus(inputRef.current)) {
-                    return;
-                }
-                inputRef.current?.focus();
-            });
+            isWindowReadyToFocus().then(() => inputRef.current?.focus());
             setIsScreenTransitionEnded(false);
         });
 
         return () => {
             focusTaskHandle.cancel();
         };
-    }, [isMultiline, isScreenTransitionEnded, isInputInitialized, splashScreenState, isPopoverVisible]);
+    }, [isScreenReaderEnabled, isMultiline, isScreenTransitionEnded, isInputInitialized, splashScreenState, isPopoverVisible]);
 
     useFocusEffect(
         useCallback(() => {

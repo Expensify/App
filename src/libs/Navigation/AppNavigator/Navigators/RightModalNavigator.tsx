@@ -49,7 +49,7 @@ const Stack = createPlatformStackNavigator<RightModalNavigatorParamList, string>
 const singleRHPWidth = variables.sideBarWidth;
 const getWideRHPWidth = (windowWidth: number) => variables.sideBarWidth + calculateReceiptPaneRHPWidth(windowWidth);
 
-function MissingPersonalDetailsWithPinContext(props: Record<string, unknown>) {
+function MissingPersonalDetailsWithPINContext(props: Record<string, unknown>) {
     return (
         <PINContextProvider>
             <ModalStackNavigators.MissingPersonalDetailsModalStackNavigator
@@ -201,10 +201,6 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             screenListeners={screenListeners}
                             id={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
                         >
-                            <Stack.Screen
-                                name={SCREENS.RIGHT_MODAL.SEARCH_ROUTER}
-                                component={ModalStackNavigators.SearchRouterModalStackNavigator}
-                            />
                             <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.SETTINGS}
                                 component={ModalStackNavigators.SettingsModalStackNavigator}
@@ -378,7 +374,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             />
                             <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.MISSING_PERSONAL_DETAILS}
-                                component={MissingPersonalDetailsWithPinContext}
+                                component={MissingPersonalDetailsWithPINContext}
                             />
                             <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.ADD_UNREPORTED_EXPENSE}

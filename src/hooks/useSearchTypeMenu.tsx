@@ -10,7 +10,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {buildSearchQueryJSON, buildUserReadableQueryString} from '@libs/SearchQueryUtils';
 import type {SavedSearchMenuItem} from '@libs/SearchUIUtils';
-import {createBaseSavedSearchMenuItem, getItemBadgeText, getOverflowMenu as getOverflowMenuUtil} from '@libs/SearchUIUtils';
+import {createBaseSavedSearchMenuItem, doesSearchItemMatchSort, getItemBadgeText, getOverflowMenu as getOverflowMenuUtil} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -23,6 +23,7 @@ import useFeedKeysWithAssignedCards from './useFeedKeysWithAssignedCards';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
+import useReportAttributes from './useReportAttributes';
 import useSearchTypeMenuSections from './useSearchTypeMenuSections';
 import useSingleExecution from './useSingleExecution';
 import useTheme from './useTheme';
@@ -45,7 +46,6 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
     const taxRates = getAllTaxRates(allPolicies);
     const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [reportCounts = CONST.EMPTY_TODOS_REPORT_COUNTS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosReportCountsSelector});
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
@@ -64,12 +64,18 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
         'Bank',
         'User',
         'Folder',
-    ] as const);
+        'Trashcan',
+        'Document',
+        'Send',
+        'ThumbsUp',
+        'CheckCircle',
+    ]);
 
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
 
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
+    const reportAttributes = useReportAttributes();
     const flattenedMenuItems = useMemo(() => typeMenuSections.flatMap((section) => section.menuItems), [typeMenuSections]);
 
     // this is a performance fix, rendering popover menu takes a lot of time and we don't need this component initially, that's why we postpone rendering it until everything else is rendered
@@ -116,7 +122,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
                     autoCompleteWithSpace: false,
                     translate,
                     feedKeysWithCards,
-                    conciergeReportID,
+                    reportAttributes,
                 });
             }
 
@@ -166,21 +172,25 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
         taxRates,
         personalAndWorkspaceCards,
         allFeeds,
-        feedKeysWithCards,
         allPolicies,
         currentUserAccountID,
         translate,
-        conciergeReportID,
+        feedKeysWithCards,
+        reportAttributes,
     ]);
 
     const activeItemIndex = useMemo(() => {
-        // If we have a suggested search, then none of the menu items are active
         if (isSavedSearchActive) {
             return -1;
         }
 
-        return flattenedMenuItems.findIndex((item) => item.similarSearchHash === similarSearchHash);
-    }, [similarSearchHash, isSavedSearchActive, flattenedMenuItems]);
+        return flattenedMenuItems.findIndex((item) => {
+            if (item.similarSearchHash !== similarSearchHash) {
+                return false;
+            }
+            return doesSearchItemMatchSort(item.key, item.searchQueryJSON?.sortBy, item.searchQueryJSON?.sortOrder, queryJSON.sortBy, queryJSON.sortOrder);
+        });
+    }, [similarSearchHash, isSavedSearchActive, flattenedMenuItems, queryJSON.sortBy, queryJSON.sortOrder]);
 
     const popoverMenuItems = useMemo(() => {
         return typeMenuSections
@@ -203,14 +213,13 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
                         const previousItemCount = typeMenuSections.slice(0, sectionIndex).reduce((acc, sec) => acc + sec.menuItems.length, 0);
                         const flattenedIndex = previousItemCount + itemIndex;
                         const isSelected = flattenedIndex === activeItemIndex;
-                        const icon = typeof item.icon === 'string' ? expensifyIcons[item.icon] : item.icon;
 
                         sectionItems.push({
                             badgeText: getItemBadgeText(item.key, reportCounts),
                             isBadgeSuccess: true,
                             text: translate(item.translationPath),
                             isSelected,
-                            icon,
+                            icon: expensifyIcons[item.icon],
                             success: isSelected,
                             containerStyle: isSelected ? [{backgroundColor: theme.border}] : undefined,
                             shouldCallAfterModalHide: true,
