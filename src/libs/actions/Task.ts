@@ -717,7 +717,7 @@ function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task
     API.write(WRITE_COMMANDS.EDIT_TASK, parameters, {optimisticData, successData, failureData});
 }
 
-// eslint-disable-next-line @typescript-eslint/max-params -- Adding delegateEmail param incrementally; full restructure tracked in https://github.com/Expensify/App/issues/66417
+// eslint-disable-next-line @typescript-eslint/max-params -- Will be refactored in next PR; full restructure tracked in https://github.com/Expensify/App/issues/66417
 function editTaskAssignee(
     report: OnyxTypes.Report,
     parentReport: OnyxEntry<OnyxTypes.Report>,

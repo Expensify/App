@@ -176,6 +176,7 @@ function TaskAssigneeSelectorModal() {
                     currentUserEmail,
                     currentUserPersonalDetails.accountID,
                     hasOutstandingChildTask,
+                    delegateEmail,
                     option?.accountID,
                     assigneeChatReport,
                     isOptimisticReport,
