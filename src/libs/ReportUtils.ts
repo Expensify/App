@@ -3598,7 +3598,7 @@ function getParticipantIcon(accountID: number | undefined, personalDetails: Onyx
 
     return {
         id: accountID,
-        source: details?.avatar ?? FallbackAvatar,
+        source: details?.avatar ?? getDefaultAvatarURL({accountID}),
         type: CONST.ICON_TYPE_AVATAR,
         name: displayName,
         fallbackIcon: details?.fallbackIcon,
