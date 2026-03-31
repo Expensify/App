@@ -25,7 +25,7 @@ const ITEM_ID = CONST.FAB_MENU_ITEM_IDS.NEW_WORKSPACE;
 function NewWorkspaceMenuItem() {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const icons = useMemoizedLazyExpensifyIcons(['NewWorkspace'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['NewWorkspace']);
     const {isOffline} = useNetwork();
     const [isLoading = false] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});

@@ -462,11 +462,11 @@ In all cases, the rule applies to: **new components**, **new features added to e
 - The optional prop is used for logic beyond just conditional rendering (e.g., computing derived values, passed to callbacks, used in multiple places within the component)
 - The component is a thin wrapper around a platform primitive (e.g., wrapping `TextInput`, `ScrollView`, `Pressable`) — these naturally pass through configuration props
 - Items come from **runtime data** (API responses, user-generated content, Onyx collections) — dynamic data must be mapped
-- The array is used with **list components** (e.g., `FlatList`, `SectionList`, or custom wrappers) — these require data arrays by design
+- The array is used with **list components** (e.g., `FlatList`, or custom wrappers) — these require data arrays by design
 - Items are truly **homogeneous** (same shape, same behavior, only values differ) and the count is **unbounded** (e.g., list of chat messages, search results)
 - The array is a **framework requirement** (e.g., React Navigation screen config, form validation rules)
 - The `ReactNode` prop is `children` itself — `children` is the foundation of composition, not configuration
-- The render function is a **list component callback** (`renderItem` on `FlatList`, `SectionList`, `DraggableList`) — these are framework requirements
+- The render function is a **list component callback** (`renderItem` on `FlatList`, `DraggableList`) — these are framework requirements
 - The render function receives **per-item runtime data** from a dynamic collection (e.g., `renderSuggestionMenuItem(item, index)`) — this is list-style rendering, not slot configuration
 
 **Search Patterns** (hints for reviewers):

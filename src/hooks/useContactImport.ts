@@ -38,15 +38,14 @@ function useContactImport(): UseContactImportResult {
     const personalDetails = usePersonalDetails();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
-    const currentUserAccountID = currentUserPersonalDetails.accountID;
 
     const importAndSaveContacts = useCallback(() => {
         contactImport().then(({contactList, permissionStatus}: ContactImportResult) => {
             setContactPermissionState(permissionStatus);
-            const usersFromContact = getContacts(contactList, localeCompare, countryCode, loginList, currentUserEmail, currentUserAccountID, personalDetails);
+            const usersFromContact = getContacts(contactList, localeCompare, countryCode, loginList, currentUserEmail, personalDetails);
             setContacts(usersFromContact);
         });
-    }, [localeCompare, countryCode, loginList, currentUserEmail, currentUserAccountID, personalDetails]);
+    }, [localeCompare, countryCode, loginList, currentUserEmail, personalDetails]);
 
     useContactPermissions({
         importAndSaveContacts,
