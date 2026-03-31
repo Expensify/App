@@ -1,14 +1,12 @@
 import type {CommonActions, RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
 import {StackActions} from '@react-navigation/native';
 import type {ParamListBase, Router} from '@react-navigation/routers';
-import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
-import {isFullScreenName, isSplitNavigatorName} from '@libs/Navigation/helpers/isNavigatorName';
+import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import isSideModalNavigator from '@libs/Navigation/helpers/isSideModalNavigator';
 import shouldStripRHPOnFullscreenPush from '@libs/Navigation/helpers/shouldStripRHPOnFullscreenPush';
-import {getTabScreenParam} from '@libs/Navigation/helpers/tabNavigatorUtils';
-import {SIDEBAR_TO_SPLIT, SPLIT_TO_SIDEBAR} from '@libs/Navigation/linkingConfig/RELATIONS';
+import {SIDEBAR_TO_SPLIT} from '@libs/Navigation/linkingConfig/RELATIONS';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
@@ -146,20 +144,6 @@ function handleOpenDomainSplitAction(
     });
 }
 
-/**
- * Filters preloaded routes when navigating to a central screen of a split navigator on narrow layout.
- * This removes the sidebar screen from the state so only the central screen is shown.
- */
-function getStateWithFilteredPreloadedRoutes(state: StackNavigationState<ParamListBase>, navigatorName: string, targetScreen?: string) {
-    const shouldFilterPreloadedRoutes =
-        getIsNarrowLayout() &&
-        isSplitNavigatorName(navigatorName) &&
-        targetScreen !== SPLIT_TO_SIDEBAR[navigatorName] &&
-        state.preloadedRoutes?.some((preloadedRoute) => preloadedRoute.name === navigatorName);
-
-    return shouldFilterPreloadedRoutes ? {...state, preloadedRoutes: state.preloadedRoutes.filter((preloadedRoute) => preloadedRoute.name !== navigatorName)} : state;
-}
-
 function handlePushFullscreenAction(
     state: StackNavigationState<ParamListBase>,
     action: PushActionType,
@@ -172,26 +156,9 @@ function handlePushFullscreenAction(
     const lastRoute = state.routes.at(-1);
 
     // On native, strip the RHP before pushing to prevent react-native-screens from freezing it.
-    const stateWithoutModal =
+    const adjustedState =
         shouldStripRHPOnFullscreenPush && isSideModalNavigator(lastRoute?.name) ? {...state, routes: state.routes.slice(0, -1), index: state.index !== 0 ? state.index - 1 : 0} : state;
 
-    // When pushing TAB_NAVIGATOR, the inner split name is in targetScreen
-    const innerSplitName = navigatorName === NAVIGATORS.TAB_NAVIGATOR ? targetScreen : navigatorName;
-
-    // If we navigate to the central screen of the split navigator, we need to filter this navigator from preloadedRoutes to remove a sidebar screen from the state
-    const shouldFilterPreloadedRoutes =
-        getIsNarrowLayout() &&
-        innerSplitName &&
-        isSplitNavigatorName(innerSplitName) &&
-        targetScreen !== SPLIT_TO_SIDEBAR[innerSplitName] &&
-        stateWithoutModal.preloadedRoutes?.some((preloadedRoute) => preloadedRoute.name === innerSplitName || getTabScreenParam(preloadedRoute) === innerSplitName);
-
-    const adjustedState = shouldFilterPreloadedRoutes
-        ? {
-              ...stateWithoutModal,
-              preloadedRoutes: stateWithoutModal.preloadedRoutes.filter((preloadedRoute) => preloadedRoute.name !== innerSplitName && getTabScreenParam(preloadedRoute) !== innerSplitName),
-          }
-        : stateWithoutModal;
     const stateWithNavigator = stackRouter.getStateForAction(adjustedState, action, configOptions);
 
     if (!stateWithNavigator) {
@@ -215,10 +182,7 @@ function handleReplaceReportsSplitNavigatorAction(
     configOptions: RouterConfigOptions,
     stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
 ) {
-    const targetScreen = action.payload?.params && 'screen' in action.payload.params ? (action.payload?.params?.screen as string) : undefined;
-    const navigatorName = action.payload.name;
-    const adjustedState = getStateWithFilteredPreloadedRoutes(state, navigatorName, targetScreen);
-    const stateWithReportsSplitNavigator = stackRouter.getStateForAction(adjustedState, action, configOptions);
+    const stateWithReportsSplitNavigator = stackRouter.getStateForAction(state, action, configOptions);
 
     if (!stateWithReportsSplitNavigator) {
         Log.hmmm('[handleReplaceReportsSplitNavigatorAction] ReportsSplitNavigator has not been found in the navigation state.');
