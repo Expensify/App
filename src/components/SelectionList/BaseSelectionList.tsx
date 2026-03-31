@@ -349,6 +349,7 @@ function BaseSelectionList<TItem extends ListItem>({
                 shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
                 shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
+                shouldPreventEnterKeySubmit={!disableKeyboardShortcuts}
                 rightHandSideComponent={rightHandSideComponent}
                 isMultilineSupported={isRowMultilineSupported}
                 isAlternateTextMultilineSupported={(alternateNumberOfSupportedLines ?? 0) > 1}

@@ -350,6 +350,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
                         onDismissError={onDismissError}
                         shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
+                        shouldPreventEnterKeySubmit={!disableKeyboardShortcuts}
                         rightHandSideComponent={rightHandSideComponent}
                         setFocusedIndex={setFocusedIndex}
                         singleExecution={singleExecution}
