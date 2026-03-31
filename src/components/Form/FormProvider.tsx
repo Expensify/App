@@ -7,11 +7,13 @@ import type {ValueOf} from 'type-fest';
 import {useInputBlurActions} from '@components/InputBlurContext';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import {getIsRestoringKeyboardFocus} from '@components/TextInput';
+import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useDebounceNonReactive from '@hooks/useDebounceNonReactive';
 import useIsFocusedRef from '@hooks/useIsFocusedRef';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {isSafari} from '@libs/Browser';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import {prepareValues} from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
 import {clearErrorFields, clearErrors, setDraftValues, setErrors as setFormErrors} from '@userActions/FormActions';
@@ -110,6 +112,9 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
      */
     keyboardSubmitBehavior?: ValueOf<typeof CONST.KEYBOARD_SUBMIT_BEHAVIOR>;
 
+    /** Callback fired synchronously when the user presses submit, before validation runs */
+    onBeforeSubmit?: () => void;
+
     /** Reference to the outer element */
     ref?: ForwardedRef<FormRef>;
 };
@@ -128,7 +133,9 @@ function FormProvider({
     shouldRenderFooterAboveSubmit = false,
     shouldUseStrictHtmlTagValidation = false,
     shouldPreventDefaultFocusOnPressSubmit = false,
+    shouldHideFixErrorsAlert = false,
     keyboardSubmitBehavior = CONST.KEYBOARD_SUBMIT_BEHAVIOR.DISMISS_THEN_SUBMIT,
+    onBeforeSubmit,
     ref,
     ...rest
 }: FormProviderProps) {
@@ -149,8 +156,25 @@ function FormProvider({
     }
 
     const [errors, setErrors] = useState<GenericFormInputErrors>({});
+    const [errorAnnouncementKey, setErrorAnnouncementKey] = useState(0);
     const hasServerError = useMemo(() => !!formState && !isEmptyObject(formState?.errors), [formState]);
     const {setIsBlurred} = useInputBlurActions();
+
+    const errorMessage = formState ? getLatestErrorMessage(formState) : undefined;
+    const isGeneralAlertVisible = ((!isEmptyObject(errors) || !isEmptyObject(formState?.errorFields)) && !shouldHideFixErrorsAlert) || !!errorMessage;
+    const firstFieldErrorMessage = useMemo(() => {
+        for (const errorMsg of Object.values(errors)) {
+            if (errorMsg) {
+                return errorMsg;
+            }
+        }
+        return '';
+    }, [errors]);
+
+    useAccessibilityAnnouncement(firstFieldErrorMessage, !isGeneralAlertVisible && !!firstFieldErrorMessage && errorAnnouncementKey > 1, {
+        shouldAnnounceOnNative: true,
+        announcementKey: errorAnnouncementKey,
+    });
 
     const onValidate = useCallback(
         (values: FormOnyxValues, shouldClearServerError = true) => {
@@ -250,6 +274,8 @@ function FormProvider({
                 return;
             }
 
+            onBeforeSubmit?.();
+
             // Prepare values before submitting
             const trimmedStringValues = shouldTrimValues ? prepareValues(inputValues) : inputValues;
 
@@ -264,6 +290,7 @@ function FormProvider({
 
             // Validate form and return early if any errors are found
             if (!isEmptyObject(onValidate(trimmedStringValues))) {
+                setErrorAnnouncementKey((prev) => prev + 1);
                 return;
             }
 
@@ -279,7 +306,19 @@ function FormProvider({
             } else {
                 onSubmit(trimmedStringValues);
             }
-        }, [enabledWhenOffline, formState?.isLoading, inputValues, isLoading, network?.isOffline, onSubmit, onValidate, shouldTrimValues, hasServerError, keyboardSubmitBehavior]),
+        }, [
+            enabledWhenOffline,
+            formState?.isLoading,
+            inputValues,
+            isLoading,
+            network?.isOffline,
+            onSubmit,
+            onValidate,
+            shouldTrimValues,
+            hasServerError,
+            keyboardSubmitBehavior,
+            onBeforeSubmit,
+        ]),
         1000,
         {leading: true, trailing: false},
     );
@@ -481,7 +520,17 @@ function FormProvider({
             isFocusedRef,
         ],
     );
-    const value = useMemo(() => ({registerInput}), [registerInput]);
+    const fallbackAnnouncementMessage = !isGeneralAlertVisible ? firstFieldErrorMessage : '';
+    const getErrorAnnouncementKey = useCallback(() => errorAnnouncementKey, [errorAnnouncementKey]);
+    const getFallbackAnnouncementMessage = useCallback(() => fallbackAnnouncementMessage, [fallbackAnnouncementMessage]);
+    const value = useMemo(() => ({registerInput, getErrorAnnouncementKey, getFallbackAnnouncementMessage}), [registerInput, getErrorAnnouncementKey, getFallbackAnnouncementMessage]);
+
+    const submitAndAnnounce = useCallback(() => {
+        if (hasServerError) {
+            setErrorAnnouncementKey((prev) => prev + 1);
+        }
+        submit();
+    }, [hasServerError, submit]);
 
     return (
         <FormContext.Provider value={value}>
@@ -489,11 +538,12 @@ function FormProvider({
             <FormWrapper
                 {...rest}
                 formID={formID}
-                onSubmit={submit}
+                onSubmit={submitAndAnnounce}
                 inputRefs={inputRefs}
                 errors={errors}
                 isLoading={isLoading}
                 enabledWhenOffline={enabledWhenOffline}
+                shouldHideFixErrorsAlert={shouldHideFixErrorsAlert}
                 shouldRenderFooterAboveSubmit={shouldRenderFooterAboveSubmit}
                 shouldPreventDefaultFocusOnPressSubmit={shouldPreventDefaultFocusOnPressSubmit}
                 ref={formWrapperRef}

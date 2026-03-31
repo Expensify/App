@@ -1,4 +1,5 @@
-import type {Chunk, Compiler} from 'webpack';
+import path from 'path';
+import type {Chunk, Compiler, NormalModule} from 'webpack';
 import webpack from 'webpack';
 // @libs alias is not available in Node.js/Storybook context — use relative path instead
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
@@ -37,6 +38,9 @@ function createTimingRuntimeModule(): webpack.RuntimeModule {
  */
 class ModuleInitTimingPlugin {
     apply(compiler: Compiler): void {
+        if (compiler.isChild()) {
+            return;
+        }
         compiler.hooks.compilation.tap(PLUGIN_NAME, (compilation) => {
             // Ensure webpack generates the __webpack_require__.i interception
             // mechanism for every chunk that has a runtime.
@@ -48,6 +52,29 @@ class ModuleInitTimingPlugin {
             compilation.hooks.runtimeRequirementInTree.for(webpack.RuntimeGlobals.interceptModuleExecution).tap(PLUGIN_NAME, (chunk: Chunk) => {
                 compilation.addRuntimeModule(chunk, createTimingRuntimeModule());
             });
+        });
+
+        // Emit module-names.json once per build (after all compilations are sealed).
+        // Using compiler.hooks.emit rather than compilation.hooks.processAssets avoids
+        // conflicts when multiple compilation rounds run in the same build (e.g. Sentry plugin).
+        compiler.hooks.emit.tap(PLUGIN_NAME, (compilation) => {
+            const names: Record<string, string> = {};
+            for (const module of compilation.modules) {
+                const id = compilation.chunkGraph.getModuleId(module);
+                if (id === null) {
+                    continue;
+                }
+                const resource = 'resource' in module ? (module as NormalModule).resource : undefined;
+                if (!resource) {
+                    continue;
+                }
+                const relativePath = `./${path.relative(compiler.context, resource).replaceAll('\\', '/')}`;
+                names[String(id)] = relativePath;
+            }
+            if (Object.keys(names).length > 0) {
+                // eslint-disable-next-line no-param-reassign
+                compilation.assets['module-names.json'] = new webpack.sources.RawSource(JSON.stringify(names));
+            }
         });
     }
 }
