@@ -74,7 +74,7 @@ jobs:
     steps:
       - name: Comment on deferred PR
         run: |
-          gh pr comment ${{ needs.chooseDeployActions.outputs.MERGED_PR }} --body "$(cat <<'EOF'
+          gh pr comment ${{ needs.chooseDeployActions.outputs.MERGED_PR }} --repo ${{ github.repository }} --body "$(cat <<'EOF'
           :hand: This PR was not deployed to staging yet because QA is ongoing. It will be automatically deployed to staging after the next production release.
           EOF
           )"
