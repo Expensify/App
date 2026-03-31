@@ -43,10 +43,9 @@ type MobileWebCameraViewProps = {
     iouType: IOUType;
     currentUserPersonalDetails: CurrentUserPersonalDetails;
     reportID: string;
-    isMultiScanEnabled?: boolean;
-    isStartingScan?: boolean;
+    isStartingScan: boolean;
     updateScanAndNavigate: (file: FileObject, source: string) => void;
-    setIsMultiScanEnabled?: (value: boolean) => void;
+    setIsMultiScanEnabled: (value: boolean) => void;
     PDFValidationComponent: React.ReactNode;
     shouldAcceptMultipleFiles: boolean;
     receiptFiles: ReceiptFile[];
@@ -56,9 +55,10 @@ type MobileWebCameraViewProps = {
     navigateToConfirmationStep: (files: ReceiptFile[], locationPermissionGranted?: boolean, isTestTransaction?: boolean) => void;
     shouldSkipConfirmation: boolean;
     setStartLocationPermissionFlow: (value: boolean) => void;
-    onLayout?: () => void;
     onBackButtonPress: () => void;
     shouldShowWrapper: boolean;
+    isMultiScanEnabled?: boolean;
+    onLayout?: () => void;
 };
 
 /**
@@ -103,7 +103,6 @@ function MobileWebCameraView({
     iouType,
     currentUserPersonalDetails,
     reportID,
-    isMultiScanEnabled = false,
     isStartingScan,
     updateScanAndNavigate,
     setIsMultiScanEnabled,
@@ -116,9 +115,10 @@ function MobileWebCameraView({
     navigateToConfirmationStep,
     shouldSkipConfirmation,
     setStartLocationPermissionFlow,
-    onLayout,
     onBackButtonPress,
     shouldShowWrapper,
+    isMultiScanEnabled = false,
+    onLayout,
 }: MobileWebCameraViewProps) {
     const {blinkStyle, canUseMultiScan, shouldShowMultiScanEducationalPopup, showBlink, toggleMultiScan, dismissMultiScanEducationalPopup, submitReceipts, submitMultiScanReceipts} =
         useMobileReceiptScan({
