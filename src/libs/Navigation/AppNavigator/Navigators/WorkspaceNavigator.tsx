@@ -3,13 +3,11 @@
  */
 import React from 'react';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useThemeStyles from '@hooks/useThemeStyles';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {RootTabNavigatorParamList, WorkspaceNavigatorParamList} from '@libs/Navigation/types';
 import createWorkspaceNavigator from '@navigation/AppNavigator/createWorkspaceNavigator';
 import WorkspacesListPage from '@pages/workspace/WorkspacesListPage';
-import variables from '@styles/variables';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import DomainSplitNavigator from './DomainSplitNavigator';
@@ -21,7 +19,6 @@ function WorkspaceNavigator({route}: PlatformStackScreenProps<RootTabNavigatorPa
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     // On narrow layout, use slide animation and enable swipe-back gesture on native platforms from WorkspaceInitialPage and DomainInitialPage.
     const splitNavigatorOptions = shouldUseNarrowLayout ? {animation: Animations.SLIDE_FROM_RIGHT, gestureEnabled: true} : {animation: Animations.NONE};
-    const styles = useThemeStyles();
 
     return (
         <Stack.Navigator
@@ -34,11 +31,6 @@ function WorkspaceNavigator({route}: PlatformStackScreenProps<RootTabNavigatorPa
             <Stack.Screen
                 name={SCREENS.WORKSPACES_LIST}
                 component={WorkspacesListPage}
-                options={{
-                    web: {
-                        cardStyle: [!shouldUseNarrowLayout ? {paddingLeft: variables.navigationTabBarSize} : styles.h100],
-                    },
-                }}
             />
             <Stack.Screen
                 name={NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR}
