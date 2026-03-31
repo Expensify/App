@@ -1143,6 +1143,7 @@ const translations: TranslationDeepObject<typeof en> = {
         flash: 'flash',
         multiScan: 'scansione multipla',
         shutter: 'otturatore',
+        flipCamera: 'cambia fotocamera',
         gallery: 'galleria',
         deleteReceipt: 'Elimina ricevuta',
         deleteConfirmation: 'Sei sicuro di voler eliminare questa ricevuta?',
@@ -3351,6 +3352,11 @@ ${amount} per ${merchant} - ${date}`,
         confirmationStepHeader: 'Controlla le tue informazioni.',
         confirmationStepSubHeader: 'Controlla attentamente i dettagli qui sotto e seleziona la casella delle condizioni per confermare.',
         toGetStarted: 'Aggiungi un conto bancario personale per ricevere rimborsi, pagare fatture o attivare l’Expensify Wallet.',
+        updatePersonalInfo: 'Aggiorna conto bancario',
+        updatePersonalInfoFailure: 'Impossibile aggiornare le informazioni del conto bancario. Riprova più tardi.',
+        updateSuccessTitle: 'Conto bancario aggiornato!',
+        updateSuccessHeader: 'Conto bancario aggiornato',
+        updateSuccessMessage: 'Complimenti, il tuo conto bancario è configurato e pronto a ricevere rimborsi.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Inserisci la password di Expensify',
@@ -5002,6 +5008,9 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
         companyCards: {
             addCards: 'Aggiungi carte',
             selectCards: 'Seleziona carte',
+            fromOtherWorkspaces: 'Da altri spazi di lavoro',
+            addWorkEmail: 'Aggiungi la tua email di lavoro',
+            addWorkEmailDescription: 'Aggiungi la tua email di lavoro per utilizzare i feed esistenti di altri spazi di lavoro.',
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Impossibile caricare i feed della carta',
                 workspaceFeedsCouldNotBeLoadedMessage:
@@ -7183,6 +7192,17 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             approvedReimbursedClosedSpend,
         }: UpdatedPolicyBudgetNotificationParams) =>
             `Attenzione! Questo spazio di lavoro ha un budget ${budgetFrequency} di "${budgetAmount}" per il ${budgetTypeForNotificationMessage} "${budgetName}". Al momento sei a ${approvedReimbursedClosedSpend}, che supera il ${thresholdPercentage}% del budget. Ci sono anche ${awaitingApprovalSpend} in attesa di approvazione e ${unsubmittedSpend} non ancora inviati, per un totale di ${totalSpend}. ${summaryLink ? `<a href="${summaryLink}">Ecco un resoconto</a> con tutte quelle spese per i tuoi archivi!` : ''}`,
+        addedCardFeed: (feedName: string) => `ha aggiunto il feed della carta "${feedName}"`,
+        removedCardFeed: (feedName: string) => `ha rimosso il feed carta "${feedName}"`,
+        renamedCardFeed: (newName: string, oldName: string) => `ha rinominato il feed della carta in "${newName}" (precedentemente "${oldName}")`,
+        assignedCompanyCard: (email: string, feedName: string, cardLastFour: string) =>
+            `ha assegnato ${email} ${feedName ? `"${feedName}" ` : ''}carta aziendale terminante in ${cardLastFour}`,
+        unassignedCompanyCard: (email: string, feedName: string, cardLastFour: string) =>
+            `carta aziendale ${feedName ? `"${feedName}" ` : ''}non assegnata ${email} che termina con ${cardLastFour}`,
+        updatedCardFeedLiability: (feedName: string, enabled: boolean) =>
+            `${enabled ? 'abilitato' : 'disabilitato'} titolari di carta per eliminare le transazioni della carta per il flusso di carte "${feedName}"`,
+        updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
+            `ha modificato il giorno di fine periodo dell’estratto conto del flusso carta "${feedName}"${newValue ? ` a "${newValue}"` : ''}${previousValue ? ` (in precedenza "${previousValue}")` : ''}`,
         addedReportField: ({fieldType, fieldName, defaultValue}: AddedOrDeletedPolicyReportFieldParams) =>
             `aggiunto campo di report ${fieldType} "${fieldName}"${defaultValue ? ` con valore predefinito "${defaultValue}"` : ''}`,
     },
@@ -7329,6 +7349,9 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
         topMerchants: 'Commercianti principali',
         groupedExpenses: 'spese raggruppate',
         bulkActions: {
+            editMultiple: 'Modifica multipli',
+            editMultipleTitle: 'Modifica più spese',
+            editMultipleDescription: 'Le modifiche verranno applicate a tutte le spese selezionate e sostituiranno i valori precedentemente impostati.',
             approve: 'Approva',
             pay: 'Paga',
             delete: 'Elimina',
