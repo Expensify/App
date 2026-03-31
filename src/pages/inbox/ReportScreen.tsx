@@ -5,7 +5,7 @@ import type {ViewStyle} from 'react-native';
 // We use Animated for all functionality related to wide RHP to make it easier
 // to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
 // eslint-disable-next-line no-restricted-imports
-import {Animated, DeviceEventEmitter, InteractionManager, View} from 'react-native';
+import {Animated, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
@@ -20,8 +20,6 @@ import ScrollView from '@components/ScrollView';
 import useShowWideRHPVersion from '@components/WideRHPContextProvider/useShowWideRHPVersion';
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
 import useActionListContextValue from '@hooks/useActionListContextValue';
-import useAppFocusEvent from '@hooks/useAppFocusEvent';
-import useBankAccountUnlockEffect from '@hooks/useBankAccountUnlockEffect';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
@@ -41,13 +39,11 @@ import useSidePanelActions from '@hooks/useSidePanelActions';
 import useSubmitToDestinationVisible from '@hooks/useSubmitToDestinationVisible';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
-import {hideEmojiPicker} from '@libs/actions/EmojiPickerAction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
 import {getAllNonDeletedTransactions, shouldDisplayReportTableView, shouldWaitForTransactions as shouldWaitForTransactionsUtil} from '@libs/MoneyRequestReportUtils';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import clearReportNotifications from '@libs/Notification/clearReportNotifications';
 import {
     getFilteredReportActionsForReportView,
     getIOUActionForReportID,
@@ -78,7 +74,6 @@ import {
     isTaskReport,
     isValidReportIDFromPath,
 } from '@libs/ReportUtils';
-import {cancelSpan, cancelSpansByPrefix} from '@libs/telemetry/activeSpans';
 import {getParentReportActionDeletionStatus} from '@libs/TransactionNavigationUtils';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
 import {setShouldShowComposeInput} from '@userActions/Composer';
@@ -107,6 +102,7 @@ import useReportWasDeleted from './hooks/useReportWasDeleted';
 import ReactionListWrapper from './ReactionListWrapper';
 import ReportActionsView from './report/ReportActionsView';
 import ReportFooter from './report/ReportFooter';
+import ReportLifecycleHandler from './ReportLifecycleHandler';
 import ReportRouteParamHandler from './ReportRouteParamHandler';
 import {ActionListContext} from './ReportScreenContext';
 
@@ -154,7 +150,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const isFocused = useIsFocused();
     const prevIsFocused = usePrevious(isFocused);
     const [firstRender, setFirstRender] = useState(true);
-    const isSkippingOpenReport = useRef(false);
     const hasCreatedLegacyThreadRef = useRef(false);
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
@@ -305,15 +300,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const newTransactions = useNewTransactions(reportMetadata?.hasOnceLoadedReportActions, reportTransactions);
 
     const {closeSidePanel} = useSidePanelActions();
-
-    useBankAccountUnlockEffect(report);
-
-    useEffect(() => {
-        if (!prevIsFocused || isFocused) {
-            return;
-        }
-        hideEmojiPicker(true);
-    }, [prevIsFocused, isFocused]);
 
     const backTo = route?.params?.backTo as string;
     const onBackButtonPress = useCallback(
@@ -610,38 +596,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         }
         updateLastVisitTime(reportID);
     }, [reportID, isFocused, isInSidePanel]);
-
-    useEffect(() => {
-        const skipOpenReportListener = DeviceEventEmitter.addListener(`switchToPreExistingReport_${reportID}`, ({preexistingReportID}: {preexistingReportID: string}) => {
-            if (!preexistingReportID) {
-                return;
-            }
-            isSkippingOpenReport.current = true;
-        });
-
-        return () => {
-            skipOpenReportListener.remove();
-
-            // We need to cancel telemetry span when user leaves the screen before full report data is loaded
-            cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`);
-
-            // Cancel any pending send-message spans to prevent orphaned spans when navigating away
-            cancelSpansByPrefix(CONST.TELEMETRY.SPAN_SEND_MESSAGE);
-        };
-    }, [reportID]);
-
-    // Clear notifications for the current report when it's opened and re-focused
-    const clearNotifications = useCallback(() => {
-        // Check if this is the top-most ReportScreen since the Navigator preserves multiple at a time
-        if (!isTopMostReportId) {
-            return;
-        }
-
-        clearReportNotifications(reportID);
-    }, [reportID, isTopMostReportId]);
-
-    useEffect(clearNotifications, [clearNotifications]);
-    useAppFocusEvent(clearNotifications);
 
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -1023,6 +977,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                             shouldDisplaySearchRouter
                         >
                             <DragAndDropProvider isDisabled={isEditingDisabled}>
+                                <ReportLifecycleHandler reportIDFromRoute={reportIDFromRoute} />
                                 <OfflineWithFeedback
                                     pendingAction={reportPendingAction ?? report?.pendingFields?.reimbursed}
                                     errors={reportErrors}
