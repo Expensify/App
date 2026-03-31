@@ -300,7 +300,7 @@ function getMoneyRequestParticipantOptions(
         return participantAccountID
             ? getParticipantsOption(participant, personalDetails)
             : // TODO: We'll pass the conciergeReportID in the next PR. Refactor issue: https://github.com/Expensify/App/issues/66411
-              getReportOption(participant, privateIsArchived, policy, currentUserAccountID, personalDetails, undefined, reportAttributesDerived);
+              getReportOption(participant, privateIsArchived, policy, personalDetails, undefined, reportAttributesDerived);
     });
 }
 
