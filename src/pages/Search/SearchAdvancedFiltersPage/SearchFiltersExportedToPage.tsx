@@ -163,6 +163,8 @@ function SearchFiltersExportedToPage() {
 
     const onSaveSelection = (values: string[]) => updateAdvancedFilters({exportedTo: values});
 
+    console.log(exportedToPickerOptions);
+
     return (
         <ScreenWrapper
             testID="SearchFiltersExportedToPage"

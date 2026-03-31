@@ -7862,6 +7862,14 @@ const CONST = {
             COLUMNS: 'columns',
             LIMIT: 'limit',
         },
+        EXPORTED_TO_VALUES: {
+            XERO: 'xero',
+            INTACCT: 'intacct',
+            NETSUITE: 'netsuite',
+            QUICKBOOKS_ONLINE: 'qbo',
+            QUICKBOOKS_DESKTOP: 'qbd',
+            FINANCIAL_FORCE: 'financial-force',
+        },
         get SEARCH_USER_FRIENDLY_VALUES_MAP() {
             return {
                 [this.TRANSACTION_TYPE.PER_DIEM]: 'per-diem',
