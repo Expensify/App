@@ -1,7 +1,7 @@
 ---
 title: Create an Expense
 description: Learn how to create and submit expenses in Expensify using SmartScan, manual entry, distance tracking, or time expenses.
-keywords: [create expense, submit expense, SmartScan, manual expense, distance expense, time expense, create time expense, log time, track hours, expense report, submit to workspace, submit to individual, split expense, scan receipts, bulk upload]
+keywords: [create expense, submit expense, SmartScan, manual expense, distance expense, time expense, create time expense, log time, track hours, expense report, submit to workspace, submit to individual, split expense, scan receipts, bulk upload, GPS, GPS tracking, GPS mileage, Proofpoint, email forwarding, receipt forwarding]
 internalScope: Audience is submitters, approvers, and Workspace Admins. Covers how to create and submit expenses to a workspace or individual using SmartScan, manual entry, distance tracking, or Time expenses. Does not cover credit card import or Time Tracking
 ---
 
@@ -28,13 +28,13 @@ You can create an expense by scanning a receipt, entering details manually, or t
 ## How to use SmartScan to create an expense
 
 **On mobile:**
-1. Tap the green **camera** icon and snap a photo of a receipt or upload one from your device's gallery.
+1. Tap the **camera** icon and snap a photo of a receipt or upload one from your device's gallery.
 2. Enter the workspace or recipient’s email/phone number.
 3. Add details like description, category, tags, and tax.
 4. Tap **Create expense**.
 
 **On web:**
-1. Click the green **scan** button.
+1. In the navigation tabs on the left, click the green **Scan** icon. 
 2. Drag and drop the receipt file to the page or click **Choose files** to upload.
 3. Enter the workspace or recipient’s email/phone number.
 4. Add details like description, category, tags, and tax.
@@ -42,12 +42,14 @@ You can create an expense by scanning a receipt, entering details manually, or t
 
 **Other SmartScan methods:**
 
-- Forward your digital receipts to receipts@expensify.com.
+- Forward your digital receipts to [receipts@expensify.com](mailto:receipts@expensify.com).
 - Text a receipt photo to 47777 (US numbers only). Make sure you [add your phone number as a contact method to Expensify](https://new.expensify.com/settings/profile/contact-methods).
+
+**Note:** Having trouble forwarding receipts? See [Why can't I forward receipts to receipts@expensify.com?](#why-cant-i-forward-receipts-to-receiptsexpensifycom) in the FAQ below.
 
 ---
 
-## How to manually create an expense
+## How to manually create a cash expense
 
 1. Click the **➕ Create** button.
 2. Select **Create Expense** then **Manual**.
@@ -58,9 +60,7 @@ You can create an expense by scanning a receipt, entering details manually, or t
 
 ---
 
-## How to create a distance expense
-
-To create a distance expense: 
+## How to create a Distance expense from a map (Web and Mobile)
 
 1. Click the **➕ Create** button.
 2. Select **Track distance**.
@@ -69,6 +69,18 @@ To create a distance expense:
 5. Click **Next**.
 6. Choose the recipient and add expense details like description, category, tags, tax, date, and set whether the expense is reimbursable.
 7. Click **Create expense**.
+
+## How to create a Distance expense from a GPS (Mobile only)
+
+1. Tap the **➕ Create** button.
+2. Select **Track distance**.
+3. Select **GPS** and tap **Start**.
+4. Drive to your destination — tracking runs in the background.
+5. Tap **Stop** when you arrive and confirm by selecting **Stop GPS tracking**.
+6. Review the route summary, then tap **Next**.
+7. Review the expense details, then tap **Create expense**.
+
+For more details on all distance methods including manual entry, see [Distance Expenses](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Distance-Expenses).
 
 ---
 
@@ -102,10 +114,11 @@ The total amount will be calculated automatically using the hourly rate set for 
 
 ## How to bulk upload multiple receipts (web only)
 
-1. On the web, go to the **Reports** page.
+1. On the web, go to the **Reports** page or the **Home** page. 
 2. Drag up to 30 PDF or image files (under 10MB each) into Expensify.
 3. Follow the prompts to assign workspaces, recipients, and coding.
 4. Once the expenses are ready, click **Create expenses**. 
+
 
 ---
 
@@ -168,6 +181,10 @@ Expensify uses AI to detect suspicious or non-human receipts:
 - **Prohibited expenses** – If a receipt violates workspace rules, it will be flagged as soon as it's submitted.
 
 This feature helps prevent policy violations and ensures accurate expense tracking from the moment of upload.
+
+## Why can't I forward receipts to receipts@expensify.com?
+
+If your company uses **Proofpoint Hosted Email Security**, you may be unable to forward receipts to receipts@expensify.com. This is caused by an issue on Proofpoint's side. Contact Proofpoint for resolution. In the meantime, you can upload receipts in the Expensify app or on the web, or text a receipt photo to 47777 (US numbers only) after [adding your phone number as a contact method](https://new.expensify.com/settings/profile/contact-methods).
 
 ## Can I attach multiple receipts to one expense?
 

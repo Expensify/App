@@ -32,8 +32,8 @@ jobs:
     continue-on-error: true
     steps:
       - name: Checkout
-        # v4
-        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+        # v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           fetch-depth: 0
 
@@ -54,6 +54,9 @@ jobs:
       
       - name: Enforce iframe and Cloudflare CDN usage
         run: ./.github/scripts/enforceVideoFormats.sh
+
+      - name: Generate allowed URLs whitelist for AI search
+        run: npx ts-node .github/scripts/generateAllowedUrls.ts
 
       - name: Build with Jekyll
         uses: actions/jekyll-build-pages@0143c158f4fa0c5dcd99499a5d00859d79f70b0e

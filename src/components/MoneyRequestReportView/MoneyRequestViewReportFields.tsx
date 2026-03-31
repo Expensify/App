@@ -1,9 +1,9 @@
 import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearReportFieldKeyErrors} from '@libs/actions/Report';
 import {resolveReportFieldValue} from '@libs/Formula';
@@ -22,7 +22,6 @@ import {
 } from '@libs/ReportUtils';
 import type {ThemeStyles} from '@styles/index';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyReportField, Report, ReportViolationName} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -81,8 +80,6 @@ function ReportFieldView(reportField: EnrichedPolicyReportField, report: OnyxEnt
 function MoneyRequestViewReportFields({report, policy, isCombinedReport = false, pendingAction}: MoneyRequestViewReportFieldsProps) {
     const styles = useThemeStyles();
 
-    const [violations] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${report?.reportID}`, {canBeMissing: true});
-
     const sortedPolicyReportFields = useMemo<EnrichedPolicyReportField[]>((): EnrichedPolicyReportField[] => {
         const {fieldValues, fieldsByName} = getReportFieldMaps(report, policy?.fieldList ?? {});
         const fields = Object.values(fieldsByName);
@@ -97,7 +94,7 @@ function MoneyRequestViewReportFields({report, policy, isCombinedReport = false,
                 const isDeletedFormulaField = field.type === CONST.REPORT_FIELD_TYPES.FORMULA && field.deletable;
                 const fieldKey = getReportFieldKey(field.fieldID);
 
-                const violation = isFieldDisabled ? undefined : getFieldViolation(violations, field);
+                const violation = isFieldDisabled ? undefined : getFieldViolation(field);
                 const violationTranslation = getFieldViolationTranslation(field, violation);
 
                 return {
@@ -109,7 +106,7 @@ function MoneyRequestViewReportFields({report, policy, isCombinedReport = false,
                     violationTranslation,
                 };
             });
-    }, [policy, report, violations]);
+    }, [policy, report]);
 
     const enabledReportFields = sortedPolicyReportFields.filter(
         (reportField) => !isReportFieldDisabled(report, reportField, policy) || reportField.type === CONST.REPORT_FIELD_TYPES.FORMULA,
@@ -120,11 +117,16 @@ function MoneyRequestViewReportFields({report, policy, isCombinedReport = false,
 
     const shouldDisplayReportFields = (isPaidGroupPolicyExpenseReport || isInvoiceReport) && !!policy?.areReportFieldsEnabled && (!isOnlyTitleFieldEnabled || !isCombinedReport);
 
+    if (!shouldDisplayReportFields || !sortedPolicyReportFields.length) {
+        return null;
+    }
+
     return (
-        shouldDisplayReportFields &&
-        sortedPolicyReportFields.map((reportField) => {
-            return ReportFieldView(reportField, report, styles, pendingAction);
-        })
+        <View style={styles.mb3}>
+            {sortedPolicyReportFields.map((reportField) => {
+                return ReportFieldView(reportField, report, styles, pendingAction);
+            })}
+        </View>
     );
 }
 

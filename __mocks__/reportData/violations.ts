@@ -28,6 +28,7 @@ const receiptErrorsR14932: ReceiptErrors = {
         source: CONST.POLICY.ID_FAKE,
         filename: CONST.POLICY.ID_FAKE,
         action: CONST.POLICY.ID_FAKE,
+        error: CONST.IOU.RECEIPT_ERROR,
         retryParams: {
             transactionID: RECEIPT_ERRORS_TRANSACTION_ID_R14932,
             source: CONST.POLICY.ID_FAKE,

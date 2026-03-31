@@ -1,5 +1,5 @@
 import React from 'react';
-import TextWithIconCell from '@components/SelectionListWithSections/Search/TextWithIconCell';
+import TextWithIconCell from '@components/Search/SearchList/ListItem/TextWithIconCell';
 import TextWithTooltip from '@components/TextWithTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -23,7 +23,8 @@ function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem
         <TextWithTooltip
             shouldShowTooltip={shouldShowTooltip}
             text={categoryForDisplay}
-            style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre, styles.justifyContentCenter]}
+            numberOfLines={2}
+            style={[styles.lineHeightLarge, styles.preWrap, styles.justifyContentCenter]}
         />
     );
 }

@@ -1,3 +1,4 @@
+import {isUserValidatedSelector} from '@selectors/Account';
 import React from 'react';
 import {View} from 'react-native';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
@@ -7,6 +8,7 @@ import Text from '@components/Text';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useOtherFeedsForFeedSelector from '@hooks/useOtherFeedsForFeedSelector';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -30,13 +32,22 @@ function WorkspaceCompanyCardPageEmptyState({policyID, shouldShowGBDisclaimer}: 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isActingAsDelegate} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const [allWorkspaceCards] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
+    const [allWorkspaceCards] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
 
     const policy = usePolicy(policyID);
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const shouldShowExpensifyCardPromotionBanner = !hasIssuedExpensifyCard(workspaceAccountID, allWorkspaceCards);
+    const otherFeeds = useOtherFeedsForFeedSelector(policyID);
 
-    const illustrations = useMemoizedLazyIllustrations(['CreditCardsNew', 'HandCard', 'MagnifyingGlassMoney', 'CompanyCardsEmptyState']);
+    const illustrations = useMemoizedLazyIllustrations([
+        'CreditCardsNew',
+        'HandCard',
+        'MagnifyingGlassMoney',
+        'CompanyCardsEmptyStateUSCA',
+        'CompanyCardsEmptyStateUKEU',
+        'CompanyCardsEmptyStateGeneric',
+    ]);
 
     const features = [
         {
@@ -61,12 +72,34 @@ function WorkspaceCompanyCardPageEmptyState({policyID, shouldShowGBDisclaimer}: 
             translationKey: feature.translationKey,
         }));
 
+    const getCompanyCardIllustration = () => {
+        const currency = policy?.outputCurrency ?? '';
+
+        if (currency === CONST.CURRENCY.USD || currency === CONST.CURRENCY.CAD) {
+            return illustrations.CompanyCardsEmptyStateUSCA;
+        }
+
+        if (currency === CONST.CURRENCY.GBP || currency === CONST.CURRENCY.EUR) {
+            return illustrations.CompanyCardsEmptyStateUKEU;
+        }
+
+        return illustrations.CompanyCardsEmptyStateGeneric;
+    };
+
     const handleCtaPress = () => {
         if (!policy?.id) {
             return;
         }
         if (isActingAsDelegate) {
             showDelegateNoAccessModal();
+            return;
+        }
+        if (!isUserValidated) {
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_VERIFY_ACCOUNT.getRoute(policy.id));
+            return;
+        }
+        if (otherFeeds.length > 0) {
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policy.id));
             return;
         }
         clearAddNewCardFlow();
@@ -83,10 +116,10 @@ function WorkspaceCompanyCardPageEmptyState({policyID, shouldShowGBDisclaimer}: 
                 ctaText={translate('workspace.companyCards.addCards')}
                 ctaAccessibilityLabel={translate('workspace.companyCards.addCards')}
                 onCtaPress={handleCtaPress}
-                illustrationBackgroundColor={colors.blue700}
-                illustration={illustrations.CompanyCardsEmptyState}
-                illustrationStyle={styles.emptyStateCardIllustration}
-                illustrationContainerStyle={[styles.emptyStateCardIllustrationContainer, styles.justifyContentStart]}
+                illustrationBackgroundColor={colors.blue800}
+                illustration={getCompanyCardIllustration()}
+                illustrationStyle={styles.getEmptyStateCompanyCardsIllustration(shouldUseNarrowLayout)}
+                illustrationContainerStyle={styles.getEmptyStateCompanyCardsIllustrationContainer(shouldUseNarrowLayout)}
                 titleStyles={styles.textHeadlineH1}
                 isButtonDisabled={workspaceAccountID === CONST.DEFAULT_NUMBER_ID}
             />

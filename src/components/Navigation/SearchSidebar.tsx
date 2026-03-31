@@ -1,15 +1,14 @@
 import type {ParamListBase} from '@react-navigation/native';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import {useSearchContext} from '@components/Search/SearchContext';
+import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
+import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
-import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
-import SearchTypeMenu from '@pages/Search/SearchTypeMenu';
+import SearchTypeMenuWide from '@pages/Search/SearchTypeMenuWide';
 import SCREENS from '@src/SCREENS';
 import NavigationTabBar from './NavigationTabBar';
 import NAVIGATION_TABS from './NavigationTabBar/NAVIGATION_TABS';
@@ -23,13 +22,12 @@ function SearchSidebar({state}: SearchSidebarProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
+    const shouldShowLoadingBarForReports = useLoadingBarVisibility();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const route = state.routes.at(-1);
-    const params = route?.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT] | undefined;
-    const {lastSearchType, setLastSearchType, currentSearchResults} = useSearchContext();
-
-    const queryJSON = params?.q ? buildSearchQueryJSON(params.q, params.rawQuery) : undefined;
+    const {lastSearchType, currentSearchResults, currentSearchQueryJSON} = useSearchStateContext();
+    const {setLastSearchType} = useSearchActionsContext();
 
     const searchType = currentSearchResults?.search?.type;
     const isSearchLoading = currentSearchResults?.search?.isLoading;
@@ -40,7 +38,7 @@ function SearchSidebar({state}: SearchSidebarProps) {
         }
 
         setLastSearchType(searchType);
-    }, [lastSearchType, queryJSON, setLastSearchType, searchType]);
+    }, [lastSearchType, setLastSearchType, searchType]);
 
     const shouldShowLoadingState = route?.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT ? false : !isOffline && !!isSearchLoading;
 
@@ -52,12 +50,12 @@ function SearchSidebar({state}: SearchSidebarProps) {
         <View style={styles.searchSidebar}>
             <View style={styles.flex1}>
                 <TopBar
-                    shouldShowLoadingBar={shouldShowLoadingState}
+                    shouldShowLoadingBar={shouldShowLoadingState || shouldShowLoadingBarForReports}
                     breadcrumbLabel={translate('common.reports')}
                     shouldDisplaySearch={false}
                     shouldDisplayHelpButton={false}
                 />
-                <SearchTypeMenu queryJSON={queryJSON} />
+                <SearchTypeMenuWide queryJSON={currentSearchQueryJSON} />
             </View>
             <NavigationTabBar selectedTab={NAVIGATION_TABS.SEARCH} />
         </View>

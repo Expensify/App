@@ -1,20 +1,31 @@
+import type {OnyxEntry} from 'react-native-onyx';
 import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID} from '@libs/ReportUtils';
+import type {IntroSelected} from '@userActions/Report';
 import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
+import type {Beta} from '@src/types/onyx';
 
 /**
  * Handles navigation for wallet statement actions
  */
-function handleWalletStatementNavigation(conciergeReportID: string | undefined, type?: string, url?: string): void {
+function handleWalletStatementNavigation(
+    conciergeReportID: string | undefined,
+    introSelected: OnyxEntry<IntroSelected>,
+    currentUserAccountID: number | undefined,
+    betas: OnyxEntry<Beta[]>,
+    type?: string,
+    url?: string,
+): void {
     if (!type || (type !== CONST.WALLET.WEB_MESSAGE_TYPE.STATEMENT && type !== CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE)) {
         return;
     }
 
     if (type === CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE) {
-        navigateToConciergeChat(conciergeReportID);
+        // TODO: We'll pass isSelfTourViewed in the next PR. Refactor issue: https://github.com/Expensify/App/issues/66424
+        navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, undefined, betas);
         return;
     }
 

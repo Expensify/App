@@ -1,7 +1,7 @@
 import {renderHook, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
-import useMappedPolicies from '@hooks/useMappedPolicies';
 import type {OnyxEntry} from 'react-native-onyx';
+import useMappedPolicies from '@hooks/useMappedPolicies';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
@@ -34,8 +34,8 @@ describe('useMappedPolicies', () => {
 
         await waitFor(() => {
             const [policies] = result.current;
-            expect(policies[`${ONYXKEYS.COLLECTION.POLICY}1`]).toBe('Alpha');
-            expect(policies[`${ONYXKEYS.COLLECTION.POLICY}2`]).toBe('Beta');
+            expect(policies?.[`${ONYXKEYS.COLLECTION.POLICY}1`]).toBe('Alpha');
+            expect(policies?.[`${ONYXKEYS.COLLECTION.POLICY}2`]).toBe('Beta');
         });
     });
 
@@ -64,13 +64,13 @@ describe('useMappedPolicies', () => {
         const {result} = renderHook(() => useMappedPolicies(nameMapper));
 
         await waitFor(() => {
-            expect(result.current[0][`${ONYXKEYS.COLLECTION.POLICY}1`]).toBe('Original');
+            expect(result.current[0]?.[`${ONYXKEYS.COLLECTION.POLICY}1`]).toBe('Original');
         });
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {name: 'Updated'});
 
         await waitFor(() => {
-            expect(result.current[0][`${ONYXKEYS.COLLECTION.POLICY}1`]).toBe('Updated');
+            expect(result.current[0]?.[`${ONYXKEYS.COLLECTION.POLICY}1`]).toBe('Updated');
         });
     });
 
@@ -81,7 +81,7 @@ describe('useMappedPolicies', () => {
         const {result} = renderHook(() => useMappedPolicies(multiFieldMapper));
 
         await waitFor(() => {
-            const mapped = result.current[0][`${ONYXKEYS.COLLECTION.POLICY}1`];
+            const mapped = result.current[0]?.[`${ONYXKEYS.COLLECTION.POLICY}1`];
             expect(mapped).toEqual({name: 'Workspace', type: CONST.POLICY.TYPE.TEAM});
         });
     });

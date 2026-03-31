@@ -19,6 +19,7 @@ let shouldForceOffline = false;
 const ABORT_COMMANDS = {
     All: 'All',
     [READ_COMMANDS.SEARCH_FOR_REPORTS]: READ_COMMANDS.SEARCH_FOR_REPORTS,
+    [READ_COMMANDS.SEARCH_FOR_USERS]: READ_COMMANDS.SEARCH_FOR_USERS,
 } as const;
 
 type AbortCommand = keyof typeof ABORT_COMMANDS;
@@ -39,6 +40,7 @@ Onyx.connectWithoutView({
 const abortControllerMap = new Map<AbortCommand, AbortController>();
 abortControllerMap.set(ABORT_COMMANDS.All, new AbortController());
 abortControllerMap.set(ABORT_COMMANDS.SearchForReports, new AbortController());
+abortControllerMap.set(ABORT_COMMANDS.SearchForUsers, new AbortController());
 
 /**
  * The API commands that require the skew calculation

@@ -12,7 +12,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateBulkEditDraftTransaction} from '@libs/actions/IOU';
 import Navigation from '@libs/Navigation/Navigation';
-import {isValidInputLength} from '@libs/ValidationUtils';
+import {isInvalidMerchantValue, isValidInputLength} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/SearchEditMultipleMerchantForm';
@@ -21,7 +21,7 @@ function SearchEditMultipleMerchantPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
-    const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}`, {canBeMissing: true});
+    const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}`);
 
     const currentMerchant = draftTransaction?.merchant ?? '';
 
@@ -29,7 +29,10 @@ function SearchEditMultipleMerchantPage() {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.SEARCH_EDIT_MULTIPLE_MERCHANT_FORM> = {};
         const {isValid, byteLength} = isValidInputLength(value.merchant ?? '', CONST.MERCHANT_NAME_MAX_BYTES);
 
-        if (!isValid) {
+        const trimmedMerchant = (value.merchant ?? '').trim();
+        if (trimmedMerchant && isInvalidMerchantValue(trimmedMerchant)) {
+            errors.merchant = translate('iou.error.invalidMerchant');
+        } else if (!isValid) {
             errors.merchant = translate('common.error.characterLimitExceedCounter', byteLength, CONST.MERCHANT_NAME_MAX_BYTES);
         }
 
@@ -46,7 +49,7 @@ function SearchEditMultipleMerchantPage() {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+            includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
             testID="SearchEditMultipleMerchantPage"
         >

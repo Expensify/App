@@ -4,10 +4,10 @@ import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import {SearchContext} from '@components/Search/SearchContext';
-import type {SearchColumnType} from '@components/Search/types';
-import MerchantListItemHeader from '@components/SelectionListWithSections/Search/MerchantListItemHeader';
-import type {TransactionMerchantGroupListItemType} from '@components/SelectionListWithSections/types';
+import {SearchActionsContext, SearchStateContext} from '@components/Search/SearchContext';
+import MerchantListItemHeader from '@components/Search/SearchList/ListItem/MerchantListItemHeader';
+import type {TransactionMerchantGroupListItemType} from '@components/Search/SearchList/ListItem/types';
+import type {SearchActionsContextValue, SearchColumnType, SearchStateContextValue} from '@components/Search/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -20,12 +20,13 @@ jest.mock('@libs/Navigation/Navigation');
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 const mockedUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
 
-// Mock search context with all required SearchContextProps fields
-const mockSearchContext = {
+// Mock search context with all required SearchContextStateValue and SearchContextActionsValue fields
+const mockSearchStateContext = {
     currentSearchHash: 12345,
     currentSearchKey: undefined,
     currentSearchQueryJSON: undefined,
     currentSearchResults: undefined,
+    currentSelectedTransactionReportID: undefined,
     selectedReports: [],
     selectedTransactionIDs: [],
     selectedTransactions: {},
@@ -34,20 +35,24 @@ const mockSearchContext = {
     shouldResetSearchQuery: false,
     lastSearchType: undefined,
     areAllMatchingItemsSelected: false,
-    showSelectAllMatchingItems: false,
-    shouldShowFiltersBarLoading: false,
+    shouldShowSelectAllMatchingItems: false,
+    shouldShowActionsBarLoading: false,
     shouldUseLiveData: false,
+    currentSimilarSearchHash: -1,
+    suggestedSearches: {} as SearchStateContextValue['suggestedSearches'],
+} satisfies SearchStateContextValue;
+
+const mockSearchActionsContext = {
     setLastSearchType: jest.fn(),
-    setCurrentSearchHashAndKey: jest.fn(),
-    setCurrentSearchQueryJSON: jest.fn(),
+    setCurrentSelectedTransactionReportID: jest.fn(),
     setSelectedTransactions: jest.fn(),
     removeTransaction: jest.fn(),
     clearSelectedTransactions: jest.fn(),
-    setShouldShowFiltersBarLoading: jest.fn(),
-    shouldShowSelectAllMatchingItems: jest.fn(),
+    setShouldShowActionsBarLoading: jest.fn(),
+    setShouldShowSelectAllMatchingItems: jest.fn(),
     selectAllMatchingItems: jest.fn(),
     setShouldResetSearchQuery: jest.fn(),
-};
+} satisfies SearchActionsContextValue;
 
 const createMerchantListItem = (merchant: string, options: Partial<TransactionMerchantGroupListItemType> = {}): TransactionMerchantGroupListItemType => ({
     merchant,
@@ -78,19 +83,21 @@ const renderMerchantListItemHeader = (
 ) => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            <SearchContext.Provider value={mockSearchContext}>
-                <MerchantListItemHeader
-                    merchant={merchantItem}
-                    onCheckboxPress={props.onCheckboxPress ?? jest.fn()}
-                    isDisabled={props.isDisabled ?? false}
-                    canSelectMultiple={props.canSelectMultiple ?? false}
-                    isSelectAllChecked={props.isSelectAllChecked ?? false}
-                    isIndeterminate={props.isIndeterminate ?? false}
-                    onDownArrowClick={props.onDownArrowClick}
-                    isExpanded={props.isExpanded ?? false}
-                    columns={props.columns ?? [CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT, CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES, CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]}
-                />
-            </SearchContext.Provider>
+            <SearchStateContext.Provider value={mockSearchStateContext}>
+                <SearchActionsContext.Provider value={mockSearchActionsContext}>
+                    <MerchantListItemHeader
+                        merchant={merchantItem}
+                        onCheckboxPress={props.onCheckboxPress ?? jest.fn()}
+                        isDisabled={props.isDisabled ?? false}
+                        canSelectMultiple={props.canSelectMultiple ?? false}
+                        isSelectAllChecked={props.isSelectAllChecked ?? false}
+                        isIndeterminate={props.isIndeterminate ?? false}
+                        onDownArrowClick={props.onDownArrowClick}
+                        isExpanded={props.isExpanded ?? false}
+                        columns={props.columns ?? [CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT, CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES, CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]}
+                    />
+                </SearchActionsContext.Provider>
+            </SearchStateContext.Provider>
         </ComposeProviders>,
     );
 };

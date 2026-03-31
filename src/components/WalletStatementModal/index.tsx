@@ -8,24 +8,26 @@ import type {WalletStatementMessage, WalletStatementProps} from './types';
 import handleWalletStatementNavigation from './walletNavigationUtils';
 
 function WalletStatementModal({statementPageURL}: WalletStatementProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const styles = useThemeStyles();
     const [isLoading, setIsLoading] = useState(true);
     const authToken = session?.authToken ?? null;
 
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     /**
      * Handles in-app navigation for iframe links
      */
     const navigate = (event: MessageEvent<WalletStatementMessage>) => {
         const {data} = event;
         const {type, url} = data || {};
-        handleWalletStatementNavigation(conciergeReportID, type, url);
+        handleWalletStatementNavigation(conciergeReportID, introSelected, session?.accountID, betas, type, url);
     };
 
     return (
         <>
-            {isLoading && <FullScreenLoadingIndicator />}
+            {isLoading && <FullScreenLoadingIndicator reasonAttributes={{context: 'WalletStatementModal'}} />}
             <View style={[styles.flex1]}>
                 <iframe
                     src={`${statementPageURL}&authToken=${authToken}`}

@@ -9,15 +9,26 @@ on:
     paths-ignore: ['docs/articles/**/*.md', 'docs/redirects.csv', 'docs/assets/images/**']
 
 jobs:
+  validate:
+    uses: ./.github/workflows/contributorValidationGate.yml
+    with:
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+      AUTHOR_ASSOCIATION: ${{ github.event.pull_request.author_association }}
+
   # Note: PHP specifically looks for the name of this job, "checklist", so if the name of the job is changed,
   # then you also need to go into PHP and update the name of this job in the GH_JOB_NAME_CHECKLIST constant
   checklist:
+    needs: [validate]
     runs-on: blacksmith-2vcpu-ubuntu-2404
-    if: github.actor != 'OSBotify' && github.actor != 'imgbot[bot]'
+    if: |
+      needs.validate.outputs.IS_AUTHORIZED == 'true'
+      && github.actor != 'OSBotify'
+      && github.actor != 'imgbot[bot]'
     steps:
       - name: Checkout
-        # v4
-        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+        # v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
 
       - name: authorChecklist.ts
         uses: ./.github/actions/javascript/authorChecklist

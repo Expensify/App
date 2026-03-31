@@ -1,12 +1,12 @@
-import React, {useCallback, useContext, useMemo} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
-import ConfirmModal from '@components/ConfirmModal';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import FeatureList from '@components/FeatureList';
 import type {FeatureListItem} from '@components/FeatureList';
-import {LockedAccountContext} from '@components/LockedAccountModalProvider';
+import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import Text from '@components/Text';
-import useDismissModalForUSD from '@hooks/useDismissModalForUSD';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -40,20 +40,31 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
     const styles = useThemeStyles();
     const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: false});
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
-    const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useDismissModalForUSD(policy?.outputCurrency);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const {showConfirmModal, closeModal} = useConfirmModal();
     const {windowHeight} = useWindowDimensions();
-    const {isActingAsDelegate} = useDelegateNoAccessState();
+    const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
+    const {isAccountLocked} = useLockedAccountState();
+    const {showLockedAccountModal} = useLockedAccountActions();
+
+    // Dismiss the "Update to USD" modal if the currency changes to USD externally (e.g. from another device)
+    const isCurrencyModalOpen = useRef(false);
+    useEffect(() => {
+        if (policy?.outputCurrency !== CONST.CURRENCY.USD || !isCurrencyModalOpen.current) {
+            return;
+        }
+        closeModal();
+        isCurrencyModalOpen.current = false;
+    }, [policy?.outputCurrency, closeModal]);
 
     const isSetupUnfinished = hasInProgressUSDVBBA(reimbursementAccount?.achData);
     const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policy?.id);
 
     const eligibleBankAccounts = isUkEuCurrencySupported ? getEligibleBankAccountsForUkEuCard(bankAccountList, policy?.outputCurrency) : getEligibleBankAccountsForCard(bankAccountList);
 
-    const startFlow = useCallback(() => {
+    const startFlow = () => {
         if (!eligibleBankAccounts.length || isSetupUnfinished) {
             Navigation.navigate(
                 ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({
@@ -65,39 +76,39 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
         } else {
             Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT.getRoute(policy?.id));
         }
-    }, [eligibleBankAccounts.length, isSetupUnfinished, policy?.id]);
+    };
 
-    const expensifyCardFeatures: FeatureListItem[] = useMemo(() => {
-        const features = [
-            {
-                icon: illustrations.MoneyReceipts,
-                translationKey: 'workspace.moreFeatures.expensifyCard.feed.features.cashBack' as const,
-            },
-            {
-                icon: illustrations.CreditCardsNew,
-                translationKey: 'workspace.moreFeatures.expensifyCard.feed.features.unlimited' as const,
-            },
-            {
-                icon: illustrations.MoneyWings,
-                translationKey: 'workspace.moreFeatures.expensifyCard.feed.features.spend' as const,
-            },
-        ];
-        return features
-            .filter((feature) => feature.icon !== null)
-            .map((feature) => ({
-                icon: feature.icon,
-                translationKey: feature.translationKey,
-            }));
-    }, [illustrations.CreditCardsNew, illustrations.MoneyReceipts, illustrations.MoneyWings]);
+    const expensifyCardFeatures: FeatureListItem[] = [
+        {
+            icon: illustrations.MoneyReceipts,
+            translationKey: 'workspace.moreFeatures.expensifyCard.feed.features.cashBack' as const,
+        },
+        {
+            icon: illustrations.CreditCardsNew,
+            translationKey: 'workspace.moreFeatures.expensifyCard.feed.features.unlimited' as const,
+        },
+        {
+            icon: illustrations.MoneyWings,
+            translationKey: 'workspace.moreFeatures.expensifyCard.feed.features.spend' as const,
+        },
+    ];
 
-    const confirmCurrencyChangeAndHideModal = useCallback(() => {
-        if (!policy) {
+    const promptCurrencyChangeAndStartFlow = async () => {
+        isCurrencyModalOpen.current = true;
+        const result = await showConfirmModal({
+            title: translate('workspace.common.expensifyCard'),
+            prompt: translate('workspace.bankAccount.updateCurrencyPrompt'),
+            confirmText: translate('workspace.bankAccount.updateToUSD'),
+            cancelText: translate('common.cancel'),
+            danger: true,
+        });
+        isCurrencyModalOpen.current = false;
+        if (result.action !== ModalActions.CONFIRM || !policy) {
             return;
         }
-        updatePolicyGeneralSettings(policy.id, policy.name, CONST.CURRENCY.USD);
-        setIsCurrencyModalOpen(false);
+        updatePolicyGeneralSettings(policy, policy.name, CONST.CURRENCY.USD);
         startFlow();
-    }, [policy, startFlow, setIsCurrencyModalOpen]);
+    };
 
     return (
         <WorkspacePageWithSections
@@ -117,7 +128,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
                     ctaText={translate(isSetupUnfinished ? 'workspace.expensifyCard.finishSetup' : 'workspace.expensifyCard.issueNewCard')}
                     ctaAccessibilityLabel={translate('workspace.moreFeatures.expensifyCard.feed.ctaTitle')}
                     onCtaPress={() => {
-                        if (isActingAsDelegate) {
+                        if (isDelegateAccessRestricted) {
                             showDelegateNoAccessModal();
                             return;
                         }
@@ -126,7 +137,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
                             return;
                         }
                         if (!(policy?.outputCurrency === CONST.CURRENCY.USD || isUkEuCurrencySupported)) {
-                            setIsCurrencyModalOpen(true);
+                            promptCurrencyChangeAndStartFlow();
                             return;
                         }
                         startFlow();
@@ -135,16 +146,6 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
                     illustration={illustrations.ExpensifyCardIllustration}
                     illustrationStyle={styles.expensifyCardIllustrationContainer}
                     titleStyles={styles.textHeadlineH1}
-                />
-                <ConfirmModal
-                    title={translate('workspace.common.expensifyCard')}
-                    isVisible={isCurrencyModalOpen}
-                    onConfirm={confirmCurrencyChangeAndHideModal}
-                    onCancel={() => setIsCurrencyModalOpen(false)}
-                    prompt={translate('workspace.bankAccount.updateCurrencyPrompt')}
-                    confirmText={translate('workspace.bankAccount.updateToUSD')}
-                    cancelText={translate('common.cancel')}
-                    danger
                 />
             </View>
             <View style={[shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>

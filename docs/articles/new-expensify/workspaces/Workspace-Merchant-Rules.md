@@ -23,22 +23,24 @@ To create a Workspace Merchant Rule:
 6. Enter the merchant name and choose how it should match:
    - **Contains**
    - **Matches exactly**
-7. Select the fields you want the rule to update: 
-   - **Merchant** to update the merchant name. 
-   - **Category** to update the expense category. 
+7. Select the fields you want the rule to update:
+   - **Merchant** to update the merchant name.
+   - **Category** to update the expense category.
    - **Tag** to update the expense tag.
    - **Tax** to update the tax rate (Tax must be enabled on the workspace).
    - **Description** to update the expense description.
    - **Reimbursable** to update whether the expense is reimbursable or non-reimbursable.
    - **Billable** to update whether the expense is billable or non-billable (Billable must be enabled on the workspace).
-8. Select whether the rule should be applied to existing unsubmitted expenses and preview matches (optional). 
+8. Select whether the rule should be applied to existing unsubmitted expenses and preview matches (optional).
 9. Select **Save Rule**
 
-**Note:** Workspace Merchant Rules are only available after **Workspace Rules** are enabled for the workspace. If you don't see the Merchant Rules section, first [enable Workspace Rules](https://help.expensify.com/articles/new-expensify/workspaces/Workspace-Rules#enable-workspace-rules). 
+**Note:** Workspace Merchant Rules are only available after **Workspace Rules** are enabled for the workspace. If you don't see the Merchant Rules section, first [enable Workspace Rules](https://help.expensify.com/articles/new-expensify/workspaces/Workspace-Rules#enable-workspace-rules).
+
+9. Select **Save Rule**.
 
 ---
 
-## When Workspace Merchant Rules apply to expenses 
+## When Workspace Merchant Rules apply to expenses
 
 Workspace Merchant Rules apply under the following conditions:
 
@@ -59,8 +61,8 @@ Use these best practices to ensure predictable results:
 
 **Test Workspace Merchant Rules before rollout**
 
- - Use **Preview matches** during setup.
- - Start with narrow rules and expand as needed.
+- Use **Preview matches** during setup.
+- Start with narrow rules and expand as needed.
 
 ---
 
@@ -71,8 +73,8 @@ Use these best practices to ensure predictable results:
 Use Workspace Merchant Rules to ensure rideshare expenses are always categorized the same way.
 
 Examples:
- - If the merchant contains “Uber", apply Category: Travel, Tag: Ground Transportation, Reimbursable: Yes
- - If the merchant contains “Lyft”, apply Category: Travel, Tag: Ground Transportation, Reimbursable: Yes
+- If the merchant contains "Uber", apply Category: Travel, Tag: Ground Transportation, Reimbursable: Yes
+- If the merchant contains "Lyft", apply Category: Travel, Tag: Ground Transportation, Reimbursable: Yes
 
 This helps keep travel reporting consistent across the workspace.
 
@@ -82,8 +84,8 @@ Use Workspace Merchant Rules to consistently code recurring software and subscri
 
 Examples:
 
- - If the merchant contains “Slack”, apply Category: Software, Reimbursable: No
- - If the merchant contains “Adobe”, apply Category: Software, Reimbursable: No
+- If the merchant contains "Slack", apply Category: Software, Reimbursable: No
+- If the merchant contains "Adobe", apply Category: Software, Reimbursable: No
 
 This is especially useful for marking subscription expenses as non-reimbursable.
 
@@ -93,7 +95,7 @@ Use Workspace Merchant Rules to normalize merchant names that appear with multip
 
 Example:
 
- - If the merchant contains “Starbucks”, apply Merchant: Starbucks, Category: Meals & Entertainment
+- If the merchant contains "Starbucks", apply Merchant: Starbucks, Category: Meals & Entertainment
 
 This improves reporting accuracy and reduces duplicate merchant entries.
 
@@ -103,18 +105,16 @@ Use Workspace Merchant Rules to apply specific categories, tags, or descriptions
 
 Examples:
 
- - If the merchant contains “Staples”, apply Category: Office Supplies, Tag: Office
- - If the merchant contains “Amazon Business”, apply Category: Office Supplies, Tag: Office
+- If the merchant contains "Staples", apply Category: Office Supplies, Tag: Office
+- If the merchant contains "Amazon Business", apply Category: Office Supplies, Tag: Office
 
 This ensures office-related purchases follow company coding standards.
+
+![Image of an expense with Workspace Merchant Rule applied]({{site.url}}/assets/images/ExpensiHelp-MerchantRules-2.png){:width="100%"}
 
 ---
 
 # FAQ
-
-## Who Can Enable Workspace Merchant Rules?
-
-Only **Workspace Admins** on the **Control** plan can create, edit, or delete Workspace Merchant Rules.
 
 ## What fields can Workspace Merchant Rules update?
 
@@ -122,11 +122,11 @@ Workspace Merchant Rules can update expense fields such as the category, tag, re
 
 ## Do Workspace Merchant Rules change how members submit expenses?
 
-No. Employees submit expenses the same way as before. Workspace Merchant Rules run automatically in the background.
+No. Members submit expenses the same way as before. Workspace Merchant Rules run automatically in the background.
 
 ## What happens if a personal expense rule and a Workspace Merchant Rule both apply?
 
-Personal expense rules take precedence over Workspace Merchant Rules. Learn more about [Personal Expense Rules](https://help.expensify.com/articles/new-expensify/settings/Personal-Expense-Rules). 
+Personal expense rules take precedence over Workspace Merchant Rules. Learn more about [Personal Expense Rules](https://help.expensify.com/articles/new-expensify/settings/Personal-Expense-Rules).
 
 ## How can I tell which Workspace Merchant Rule was applied?
 
@@ -143,9 +143,8 @@ The message will explicitly say which fields were changed and that the update ha
 ## Why didn't my Workspace Merchant Rule apply?
 
 Common reasons include:
- - The merchant name didn’t match the rule criteria.
- - The rule is disabled.
- - Another rule matched first.
- - A field was manually set during expense creation.
- - The rule was created after the expense and wasn’t applied retroactively, unless you select "apply to existing expenses" when creating the rule.
-
+- The merchant name didn't match the rule criteria.
+- The rule is disabled.
+- Another rule matched first.
+- A field was manually set during expense creation.
+- The rule was created after the expense and wasn't applied retroactively, unless you select "apply to existing expenses" when creating the rule.

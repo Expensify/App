@@ -120,7 +120,7 @@ Workspace Admins can configure [**Workspace Merchant Rules**](https://help.expen
 
 - Rules apply across all expenses on the workspace.
 - Rules take precedence over learned suggestions.
-- If a category is already set manually, Expensify won’t override it.
+- If a category is already set manually, Expensify won't override it.
 
 ---
 

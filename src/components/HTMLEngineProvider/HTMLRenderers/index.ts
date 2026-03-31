@@ -1,6 +1,7 @@
 import type {CustomTagRendererRecord} from 'react-native-render-html';
 import AccountManagerLinkRenderer from './AccountManagerLinkRenderer';
 import AnchorRenderer from './AnchorRenderer';
+import BulletItemRenderer from './BulletItemRenderer';
 import CodeRenderer from './CodeRenderer';
 import ConciergeLinkRenderer from './ConciergeLinkRenderer';
 import CopyTextRenderer from './CopyTextRenderer';
@@ -15,7 +16,9 @@ import NextStepEmailRenderer from './NextStepEmailRenderer';
 import PreRenderer from './PreRenderer';
 import RBRRenderer from './RBRRenderer';
 import ShortMentionRenderer from './ShortMentionRenderer';
+import SparklesIconRenderer from './SparklesIconRenderer';
 import TaskTitleRenderer from './TaskTitleRenderer';
+import TransactionHistoryLinkRenderer from './TransactionHistoryLinkRenderer';
 import UserDetailsRenderer from './UserDetailsRenderer';
 import VideoRenderer from './VideoRenderer';
 
@@ -33,6 +36,7 @@ const HTMLEngineProviderComponentList: CustomTagRendererRecord = {
     edited: EditedRenderer,
     pre: PreRenderer,
     /* eslint-disable @typescript-eslint/naming-convention */
+    'bullet-item': BulletItemRenderer,
     'task-title': TaskTitleRenderer,
     rbr: RBRRenderer,
     'mention-user': MentionUserRenderer,
@@ -45,7 +49,9 @@ const HTMLEngineProviderComponentList: CustomTagRendererRecord = {
     'next-step-email': NextStepEmailRenderer,
     'deleted-action': DeletedActionRenderer,
     'concierge-link': ConciergeLinkRenderer,
+    'transaction-history-link': TransactionHistoryLinkRenderer,
     'account-manager-link': AccountManagerLinkRenderer,
+    'sparkles-icon': SparklesIconRenderer,
     /* eslint-enable @typescript-eslint/naming-convention */
 };
 

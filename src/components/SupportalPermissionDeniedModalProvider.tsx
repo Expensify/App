@@ -7,11 +7,11 @@ import ConfirmModal from './ConfirmModal';
 
 function SupportalPermissionDeniedModalProvider({children}: React.PropsWithChildren) {
     const {translate} = useLocalize();
-    const [payload] = useOnyx(ONYXKEYS.SUPPORTAL_PERMISSION_DENIED, {canBeMissing: true});
+    const [payload] = useOnyx(ONYXKEYS.SUPPORTAL_PERMISSION_DENIED);
     const isVisible = !!payload;
 
     const title = useMemo(() => translate('supportalNoAccess.title'), [translate]);
-    const prompt = useMemo(() => translate('supportalNoAccess.descriptionWithCommand', {command: payload?.command}), [translate, payload?.command]);
+    const prompt = useMemo(() => translate('supportalNoAccess.descriptionWithCommand', payload?.command), [translate, payload?.command]);
 
     const close = useCallback(() => {
         // Clear the flag so it doesn't re-open

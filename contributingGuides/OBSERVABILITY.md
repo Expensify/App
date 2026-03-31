@@ -18,7 +18,7 @@ When users encounter issues in live sessions that we can't reproduce locally, bu
 ## Tools & implementation
 
 We use **Sentry** for observability across all platforms (Web, iOS, Android) and environments (production, staging, development). Sentry collects traces, spans, and contextual data from user sessions to identify and diagnose issues. For a better understanding of Sentry visit [Sentry docs](https://docs.sentry.io/). 
-For testing Sentry locally remember to set env variable `ENABLE_SENTRY_ON_DEV=true` in your local .env file. 
+For testing Sentry locally, remember to see the section [Debugging Spans](#debugging-spans) below.
 
 ### Working with Spans
 
@@ -62,11 +62,15 @@ cancelSpan(spanId); // Operation abandoned (e.g., user navigated away, component
 
 The difference is that the latter adds a `canceled` attribute to the span indicating that it was canceled.
 
+### Debugging Spans
+
+In development, Sentry is always initialized but does not send data by default. To start sending data to the Sentry dashboard, go to **Account → Troubleshoot** and toggle **Send data to Sentry** ON. To view spans in the DevConsole, toggle **Log Sentry to console** ON.
+
 ### Constants
 
 Defined in `src/CONST/index.ts` under `CONST.TELEMETRY`:
 - Span names: `SPAN_OPEN_REPORT`, `SPAN_SEND_MESSAGE`
-- Tag names: `TAG_ACTIVE_POLICY`, `TAG_AUTHENTICATION_ERROR_TYPE`
+- Tag names: `TAGS.ACTIVE_POLICY`, `TAGS.AUTHENTICATION_ERROR_TYPE`
 - Attribute names: `ATTRIBUTE_REPORT_ID`, `ATTRIBUTE_MESSAGE_LENGTH`
 - Configuration: `CONFIG.SKELETON_MIN_DURATION`
 
@@ -145,7 +149,9 @@ Add span name, tags, and attributes to `src/CONST/index.ts`:
 ```typescript
 TELEMETRY: {
     SPAN_YOUR_OPERATION: 'ManualYourOperation',
-    TAG_YOUR_TAG: 'your_tag',
+    TAGS: {
+        YOUR_TAG: 'your_tag',
+    },
     ATTRIBUTE_YOUR_ATTR: 'your_attr'
 }
 ```
@@ -164,7 +170,7 @@ startSpan(spanId, {
 ```typescript
 const span = getSpan(spanId);
 span?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_YOUR_ATTR, value);
-span?.setTag(CONST.TELEMETRY.TAG_YOUR_TAG, value);
+span?.setTag(CONST.TELEMETRY.TAGS.YOUR_TAG, value);
 ```
 
 #### 5. Finish Span
@@ -181,6 +187,22 @@ Add metrics when:
 - Debugging requires operation visibility
 
 Don't add metrics for:
-- Internal operations invisible to users
+- Internal operations, invisible to users
 - Operations already covered by parent spans
 - Operations too granular to be actionable
+
+## Working with Sentry Dashboard
+
+### Filtering Spans
+
+When debugging our manual spans, always filter out canceled spans to avoid noise. Use the following query (you can copy & paste it into the filter bar):
+
+```
+span.status:ok !has:canceled has:tags[finished_manually,number]
+```
+
+| Filter | Purpose |
+|--------|---------|
+| `span.status:ok` | Only show spans that completed without errors |
+| `!has:canceled` | Exclude spans abandoned mid-flight (e.g. user navigated away) |
+| `has:finished_manually` | Only show spans finished by our instrumentation, not auto-collected ones |
