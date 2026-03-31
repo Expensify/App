@@ -4573,8 +4573,10 @@ describe('ReportActionsUtils', () => {
             expect(isChronosStartOrStopMessage('start now')).toBe(CONST.CHRONOS.TIMER_COMMAND.START);
         });
 
-        it('returns stop before start when both could apply', () => {
-            expect(isChronosStartOrStopMessage('stop then start')).toBe(CONST.CHRONOS.TIMER_COMMAND.STOP);
+        it('returns null when start or stop appears only inside a longer message', () => {
+            expect(isChronosStartOrStopMessage('stop then start')).toBe(null);
+            expect(isChronosStartOrStopMessage('I will start later')).toBe(null);
+            expect(isChronosStartOrStopMessage('please stop by later')).toBe(null);
         });
 
         it('returns null for unrelated text', () => {

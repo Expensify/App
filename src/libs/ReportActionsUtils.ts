@@ -986,16 +986,14 @@ function canActionsBeGrouped(currentAction?: ReportAction, adjacentAction?: Repo
     return currentActionActorAccountID === adjacentActionActorAccountID;
 }
 
-// Word boundaries avoid matching substrings like "kickstart", "nonstop", or "starting" inside longer words.
-const CHRONOS_TIMER_COMMAND_STOP_REGEX = /\bstop(?:ped|ping)?(?:\s+now)?\b/i;
-const CHRONOS_TIMER_COMMAND_START_REGEX = /\bstart(?:ed|ing)?(?:\s+now)?\b/i;
+// The entire trimmed message must be a timer command (not a word embedded in normal chat). Case-insensitive.
+const CHRONOS_TIMER_COMMAND_STOP_REGEX = /^stop(?:ped|ping)?(?:\s+now)?$/i;
+const CHRONOS_TIMER_COMMAND_START_REGEX = /^start(?:ed|ing)?(?:\s+now)?$/i;
 
 type ChronosTimerCommandValue = ValueOf<typeof CONST.CHRONOS.TIMER_COMMAND>;
 
 /**
- * Returns `CONST.CHRONOS.TIMER_COMMAND.START`, `CONST.CHRONOS.TIMER_COMMAND.STOP`, or `null` for plain text using the same patterns as grouped Chronos timer messages.
- * Uses word-boundary matching so arbitrary substrings (e.g. in "kickstart", "nonstop") are not treated as commands.
- * Stop is matched before start when both could apply to one string.
+ * Returns `CONST.CHRONOS.TIMER_COMMAND.START`, `CONST.CHRONOS.TIMER_COMMAND.STOP`, or `null` when the trimmed text is only a Chronos timer command (e.g. "start", "stop now"), not when "start"/"stop" appear inside a sentence.
  */
 function isChronosStartOrStopMessage(text: string): ChronosTimerCommandValue | null {
     const trimmedText = text.trim();
