@@ -85,7 +85,7 @@ function ActionCell({
     }
 
     const shouldUseMarkAsDone = isTrackIntentUser && isSubmitAndClose(actionCellPolicy) && action === CONST.SEARCH.ACTION_TYPES.SUBMIT;
-    const text = shouldUseMarkAsDone ? translate('common.markAsDone') : translate(actionTranslationsMap[action]);
+    const text = shouldUseMarkAsDone ? translate('common.done') : translate(actionTranslationsMap[action]);
 
     return (
         <Button
@@ -99,7 +99,6 @@ function ActionCell({
             isDisabled={isOffline || shouldDisablePointerEvents}
             shouldStayNormalOnDisable={shouldDisablePointerEvents}
             isNested
-            innerStyles={shouldUseMarkAsDone ? [styles.ph2] : undefined}
             sentryLabel={CONST.SENTRY_LABEL.SEARCH.ACTION_CELL_ACTION}
         />
     );
