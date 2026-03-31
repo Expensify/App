@@ -1,6 +1,6 @@
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import type {CustomStateHookProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import ensureExpensifyTabNavigatorRoutes from './ensureExpensifyTabNavigatorRoutes';
+import ensureTabNavigatorRoutes from './ensureTabNavigatorRoutes';
 
 // This is an optimization to keep mounted only last few screens in the stack.
 export default function useCustomRootStackNavigatorState({state}: CustomStateHookProps) {
@@ -15,7 +15,7 @@ export default function useCustomRootStackNavigatorState({state}: CustomStateHoo
         indexToSlice = lastSplitIndex - 1;
     }
     const slicedRoutes = state.routes.slice(indexToSlice, state.routes.length);
-    const routesToRender = ensureExpensifyTabNavigatorRoutes(slicedRoutes, indexToSlice, state.routes);
+    const routesToRender = ensureTabNavigatorRoutes(slicedRoutes, indexToSlice, state.routes);
 
     return {...state, routes: routesToRender, index: routesToRender.length - 1};
 }

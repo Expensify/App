@@ -525,10 +525,10 @@ function popToSidebar() {
         return;
     }
 
-    // Split navigators can be nested inside EXPENSIFY_TAB_NAVIGATOR → WORKSPACE_NAVIGATOR.
+    // Split navigators can be nested inside TAB_NAVIGATOR → WORKSPACE_NAVIGATOR.
     // Drill through the nesting to find the actual split navigator.
     let activeRoute = currentRoute;
-    if (currentRoute.name === NAVIGATORS.EXPENSIFY_TAB_NAVIGATOR) {
+    if (currentRoute.name === NAVIGATORS.TAB_NAVIGATOR) {
         const activeTab = currentRoute.state?.routes?.[currentRoute.state?.index ?? 0];
         if (activeTab?.name === NAVIGATORS.WORKSPACE_NAVIGATOR) {
             activeRoute = activeTab.state?.routes?.at(-1);

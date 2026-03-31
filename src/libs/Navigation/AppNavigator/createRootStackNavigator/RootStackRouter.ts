@@ -2,10 +2,10 @@ import {CommonActions, StackRouter} from '@react-navigation/native';
 import type {RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
 import {createGuardContext, evaluateGuards} from '@libs/Navigation/guards';
-import {getExpensifyTabScreenParam} from '@libs/Navigation/helpers/expensifyTabNavigatorUtils';
 import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import isSideModalNavigator from '@libs/Navigation/helpers/isSideModalNavigator';
+import {getTabScreenParam} from '@libs/Navigation/helpers/tabNavigatorUtils';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -156,10 +156,7 @@ function RootStackRouter(options: RootStackNavigatorRouterOptions) {
                 return handleReplaceFullscreenUnderRHP(state, action, configOptions, stackRouter);
             }
 
-            if (
-                isReplaceAction(action) &&
-                (action.payload.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR || getExpensifyTabScreenParam(action.payload) === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR)
-            ) {
+            if (isReplaceAction(action) && (action.payload.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR || getTabScreenParam(action.payload) === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR)) {
                 return handleReplaceReportsSplitNavigatorAction(state, action, configOptions, stackRouter);
             }
 

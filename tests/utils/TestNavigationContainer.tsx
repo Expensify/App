@@ -1,6 +1,5 @@
-import type {InitialState} from '@react-navigation/native';
 import {NavigationContainer} from '@react-navigation/native';
-import type {NavigatorScreenParams} from '@react-navigation/native';
+import type {InitialState, NavigatorScreenParams} from '@react-navigation/native';
 import React from 'react';
 import createRootStackNavigator from '@libs/Navigation/AppNavigator/createRootStackNavigator';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';

@@ -3,11 +3,11 @@ import {StackActions} from '@react-navigation/native';
 import type {ParamListBase, Router} from '@react-navigation/routers';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
-import {getExpensifyTabScreenParam} from '@libs/Navigation/helpers/expensifyTabNavigatorUtils';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import {isFullScreenName, isSplitNavigatorName} from '@libs/Navigation/helpers/isNavigatorName';
 import isSideModalNavigator from '@libs/Navigation/helpers/isSideModalNavigator';
 import shouldStripRHPOnFullscreenPush from '@libs/Navigation/helpers/shouldStripRHPOnFullscreenPush';
+import {getTabScreenParam} from '@libs/Navigation/helpers/tabNavigatorUtils';
 import {SIDEBAR_TO_SPLIT, SPLIT_TO_SIDEBAR} from '@libs/Navigation/linkingConfig/RELATIONS';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -70,18 +70,18 @@ function prepareStateUnderWorkspaceOrDomainNavigator(
     splitNavigatorName: typeof NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR | typeof NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR,
     splitNavigatorParams: Record<string, unknown>,
 ) {
-    const actionToPushRootTab = StackActions.push(NAVIGATORS.EXPENSIFY_TAB_NAVIGATOR, {screen: NAVIGATORS.WORKSPACE_NAVIGATOR});
+    const actionToPushRootTab = StackActions.push(NAVIGATORS.TAB_NAVIGATOR, {screen: NAVIGATORS.WORKSPACE_NAVIGATOR});
     const stateWithRootTab = stackRouter.getStateForAction(state, actionToPushRootTab, configOptions);
 
     if (!stateWithRootTab) {
-        Log.hmmm('[handleOpenWorkspaceOrDomainSplitAction] ExpensifyTabNavigator has not been found in the navigation state.');
+        Log.hmmm('[handleOpenWorkspaceOrDomainSplitAction] TabNavigator has not been found in the navigation state.');
         return null;
     }
 
     const rehydratedState = stackRouter.getRehydratedState(stateWithRootTab, configOptions);
     const rootTabRoute = rehydratedState.routes.at(-1);
 
-    if (!rootTabRoute || rootTabRoute.name !== NAVIGATORS.EXPENSIFY_TAB_NAVIGATOR) {
+    if (!rootTabRoute || rootTabRoute.name !== NAVIGATORS.TAB_NAVIGATOR) {
         Log.hmmm(`[handleOpenWorkspaceOrDomainSplitAction] ${splitNavigatorName} has not been found in the navigation state.`);
         return null;
     }
@@ -175,8 +175,8 @@ function handlePushFullscreenAction(
     const stateWithoutModal =
         shouldStripRHPOnFullscreenPush && isSideModalNavigator(lastRoute?.name) ? {...state, routes: state.routes.slice(0, -1), index: state.index !== 0 ? state.index - 1 : 0} : state;
 
-    // When pushing EXPENSIFY_TAB_NAVIGATOR, the inner split name is in targetScreen
-    const innerSplitName = navigatorName === NAVIGATORS.EXPENSIFY_TAB_NAVIGATOR ? targetScreen : navigatorName;
+    // When pushing TAB_NAVIGATOR, the inner split name is in targetScreen
+    const innerSplitName = navigatorName === NAVIGATORS.TAB_NAVIGATOR ? targetScreen : navigatorName;
 
     // If we navigate to the central screen of the split navigator, we need to filter this navigator from preloadedRoutes to remove a sidebar screen from the state
     const shouldFilterPreloadedRoutes =
@@ -184,14 +184,12 @@ function handlePushFullscreenAction(
         innerSplitName &&
         isSplitNavigatorName(innerSplitName) &&
         targetScreen !== SPLIT_TO_SIDEBAR[innerSplitName] &&
-        stateWithoutModal.preloadedRoutes?.some((preloadedRoute) => preloadedRoute.name === innerSplitName || getExpensifyTabScreenParam(preloadedRoute) === innerSplitName);
+        stateWithoutModal.preloadedRoutes?.some((preloadedRoute) => preloadedRoute.name === innerSplitName || getTabScreenParam(preloadedRoute) === innerSplitName);
 
     const adjustedState = shouldFilterPreloadedRoutes
         ? {
               ...stateWithoutModal,
-              preloadedRoutes: stateWithoutModal.preloadedRoutes.filter(
-                  (preloadedRoute) => preloadedRoute.name !== innerSplitName && getExpensifyTabScreenParam(preloadedRoute) !== innerSplitName,
-              ),
+              preloadedRoutes: stateWithoutModal.preloadedRoutes.filter((preloadedRoute) => preloadedRoute.name !== innerSplitName && getTabScreenParam(preloadedRoute) !== innerSplitName),
           }
         : stateWithoutModal;
     const stateWithNavigator = stackRouter.getStateForAction(adjustedState, action, configOptions);

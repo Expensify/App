@@ -3,7 +3,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 
 /**
  * Returns the active tab name for a given route.
- * If the route is EXPENSIFY_TAB_NAVIGATOR, it returns the name of the focused tab inside it.
+ * If the route is TAB_NAVIGATOR, it returns the name of the focused tab inside it.
  * Otherwise, it returns the route name itself.
  */
 function getActiveTabName(route: NavigationRoute | undefined): string | undefined {
@@ -11,7 +11,7 @@ function getActiveTabName(route: NavigationRoute | undefined): string | undefine
         return undefined;
     }
 
-    if (route.name === NAVIGATORS.EXPENSIFY_TAB_NAVIGATOR && route.state) {
+    if (route.name === NAVIGATORS.TAB_NAVIGATOR && route.state) {
         const index = route.state.index ?? 0;
         return route.state.routes?.at(index)?.name;
     }

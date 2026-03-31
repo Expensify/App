@@ -19,5 +19,5 @@ export default {
     SEARCH_FULLSCREEN_NAVIGATOR: 'SearchFullscreenNavigator',
     SHARE_MODAL_NAVIGATOR: 'ShareModalNavigator',
     TEST_TOOLS_MODAL_NAVIGATOR: 'TestToolsModalNavigator',
-    EXPENSIFY_TAB_NAVIGATOR: 'ExpensifyTabNavigator',
+    TAB_NAVIGATOR: 'TabNavigator',
 } as const;

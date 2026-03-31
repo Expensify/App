@@ -196,8 +196,8 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         const lastRoute = navigationRef?.getRootState()?.routes?.at(-1);
 
         // Sidebar is a separate screen only in SplitNavigators, so shouldPopToSidebar should only be set when the last route is a SplitNavigator.
-        // When the last route is EXPENSIFY_TAB_NAVIGATOR, check the active tab inside it.
-        const effectiveName = lastRoute?.name === NAVIGATORS.EXPENSIFY_TAB_NAVIGATOR ? getActiveTabName(lastRoute) : lastRoute?.name;
+        // When the last route is TAB_NAVIGATOR, check the active tab inside it.
+        const effectiveName = lastRoute?.name === NAVIGATORS.TAB_NAVIGATOR ? getActiveTabName(lastRoute) : lastRoute?.name;
         if (!isSplitNavigatorName(effectiveName)) {
             return;
         }
@@ -207,7 +207,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
     useEffect(() => {
         // After logout, we reset the navigation state to a single route to prevent stale auth state from leaking.
-        // EXPENSIFY_TAB_NAVIGATOR (or REPORTS_SPLIT_NAVIGATOR) persists between auth and public screens,
+        // TAB_NAVIGATOR (or REPORTS_SPLIT_NAVIGATOR) persists between auth and public screens,
         // so we explicitly clear params for these shared navigators.
         const hasUserLoggedOut = !authenticated && !!previousAuthenticated;
         if (!hasUserLoggedOut || !navigationRef.isReady()) {
@@ -220,13 +220,13 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             return;
         }
 
-        // After logout, reset to EXPENSIFY_TAB_NAVIGATOR (a valid root-level route in AuthScreens)
+        // After logout, reset to TAB_NAVIGATOR (a valid root-level route in AuthScreens)
         // with cleared params and state. When PublicScreens mounts in the next render cycle,
-        // React Navigation detects EXPENSIFY_TAB_NAVIGATOR doesn't exist in the new navigator
+        // React Navigation detects TAB_NAVIGATOR doesn't exist in the new navigator
         // and falls back to the initial route (SCREENS.HOME / SignInPage).
         navigationRef.reset({
             index: 0,
-            routes: [{name: NAVIGATORS.EXPENSIFY_TAB_NAVIGATOR}],
+            routes: [{name: NAVIGATORS.TAB_NAVIGATOR}],
         });
     }, [authenticated, previousAuthenticated]);
 

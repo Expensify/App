@@ -1,7 +1,6 @@
 import {PortalProvider} from '@gorhom/portal';
-import {NavigationContainer} from '@react-navigation/native';
-import type {NavigatorScreenParams} from '@react-navigation/native';
 import type * as reactNavigationNativeImport from '@react-navigation/native';
+import {NavigationContainer} from '@react-navigation/native';
 import {act, render, screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
@@ -33,7 +32,7 @@ jest.mock('@react-navigation/native', () => ({
 type TestNavigationContainerProps = {initialState: reactNavigationNativeImport.InitialState};
 
 type SearchTestRootParamList = {
-    [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: NavigatorScreenParams<SearchFullscreenNavigatorParamList>;
+    [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: reactNavigationNativeImport.NavigatorScreenParams<SearchFullscreenNavigatorParamList>;
 };
 
 const RootStack = createRootStackNavigator<SearchTestRootParamList>();

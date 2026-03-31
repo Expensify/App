@@ -33,10 +33,10 @@ const navigateToWorkspacesPage = ({currentUserLogin, shouldUseNarrowLayout, poli
         return;
     }
 
-    // Check if user is already on a workspace or domain inside WORKSPACE_NAVIGATOR (within ExpensifyTabNavigator)
+    // Check if user is already on a workspace or domain inside WORKSPACE_NAVIGATOR (within TabNavigator)
     const isWorkspaceOrDomainOnTop =
         lastWorkspacesTabNavigatorRoute?.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR || lastWorkspacesTabNavigatorRoute?.name === NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR;
-    const activeTabName = topmostFullScreenRoute.name === NAVIGATORS.EXPENSIFY_TAB_NAVIGATOR ? getActiveTabName(topmostFullScreenRoute as Parameters<typeof getActiveTabName>[0]) : undefined;
+    const activeTabName = topmostFullScreenRoute.name === NAVIGATORS.TAB_NAVIGATOR ? getActiveTabName(topmostFullScreenRoute as Parameters<typeof getActiveTabName>[0]) : undefined;
     if (activeTabName === NAVIGATORS.WORKSPACE_NAVIGATOR && isWorkspaceOrDomainOnTop) {
         // Already inside a workspace or domain: go back to the list.
         Navigation.goBack(ROUTES.WORKSPACES_LIST.route);

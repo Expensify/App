@@ -2880,7 +2880,7 @@ type WorkspaceNavigatorParamList = {
     [NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR]: NavigatorScreenParams<DomainSplitNavigatorParamList>;
 };
 
-type ExpensifyTabNavigatorParamList = {
+type TabNavigatorParamList = {
     [SCREENS.HOME]: undefined;
     [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: NavigatorScreenParams<ReportsSplitNavigatorParamList>;
     [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: NavigatorScreenParams<SearchFullscreenNavigatorParamList>;
@@ -3028,7 +3028,7 @@ type AuthScreensParamList = SharedScreensParamList &
         };
         [SCREENS.NOT_FOUND]: undefined;
         [SCREENS.SEARCH_ROUTER.ROOT]: undefined;
-        [NAVIGATORS.EXPENSIFY_TAB_NAVIGATOR]: NavigatorScreenParams<ExpensifyTabNavigatorParamList>;
+        [NAVIGATORS.TAB_NAVIGATOR]: NavigatorScreenParams<TabNavigatorParamList>;
         [NAVIGATORS.RIGHT_MODAL_NAVIGATOR]: NavigatorScreenParams<RightModalNavigatorParamList>;
         [NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR]: NavigatorScreenParams<OnboardingModalNavigatorParamList>;
         [NAVIGATORS.FEATURE_TRAINING_MODAL_NAVIGATOR]: NavigatorScreenParams<FeatureTrainingNavigatorParamList>;
@@ -3224,7 +3224,7 @@ type SplitNavigatorName = keyof SplitNavigatorParamList;
 
 type SearchFullscreenNavigatorName = typeof NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR;
 
-type FullScreenName = SplitNavigatorName | SearchFullscreenNavigatorName | typeof NAVIGATORS.EXPENSIFY_TAB_NAVIGATOR | typeof SCREENS.HOME | typeof NAVIGATORS.WORKSPACE_NAVIGATOR;
+type FullScreenName = SplitNavigatorName | SearchFullscreenNavigatorName | typeof NAVIGATORS.TAB_NAVIGATOR | typeof SCREENS.HOME | typeof NAVIGATORS.WORKSPACE_NAVIGATOR;
 
 type PublicScreenName =
     | typeof SCREENS.TRANSITION_BETWEEN_APPS
@@ -3258,7 +3258,7 @@ export type {
     DomainCardNavigatorParamList,
     EditRequestNavigatorParamList,
     EnablePaymentsNavigatorParamList,
-    ExpensifyTabNavigatorParamList,
+    TabNavigatorParamList,
     ExplanationModalNavigatorParamList,
     FeatureTrainingNavigatorParamList,
     FlagCommentNavigatorParamList,

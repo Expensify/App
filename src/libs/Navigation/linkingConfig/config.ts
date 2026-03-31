@@ -2173,7 +2173,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
             },
         },
-        [NAVIGATORS.EXPENSIFY_TAB_NAVIGATOR]: {
+        [NAVIGATORS.TAB_NAVIGATOR]: {
             initialRouteName: SCREENS.HOME,
             screens: {
                 [SCREENS.HOME]: {

@@ -5,7 +5,7 @@ import findMatchingDynamicSuffix from '@libs/Navigation/helpers/dynamicRoutesUti
 import {getMatchingFullScreenRoute, isFullScreenName} from '@libs/Navigation/helpers/getAdaptedStateFromPath';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import normalizePath from '@libs/Navigation/helpers/normalizePath';
-import {getExpensifyTabState} from '@libs/Navigation/helpers/expensifyTabNavigatorUtils';
+import {getTabState} from '@libs/Navigation/helpers/tabNavigatorUtils';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
 import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
 import {shallowCompare} from '@libs/ObjectUtils';
@@ -67,14 +67,14 @@ function isNavigatingToReportWithSameReportID(currentRoute: NavigationPartialRou
 }
 
 /**
- * Returns true when both current and target states are within ExpensifyTabNavigator (tab switching).
+ * Returns true when both current and target states are within TabNavigator (tab switching).
  * In this case we must keep NAVIGATE (not PUSH) because tab navigators use jumpTo/navigate.
  */
-function isSwitchingTabsWithinExpensifyTabNavigator(currentState: NavigationState<RootNavigatorParamList>, stateFromPath: PartialState<NavigationState<RootNavigatorParamList>>) {
+function isSwitchingTabsWithinTabNavigator(currentState: NavigationState<RootNavigatorParamList>, stateFromPath: PartialState<NavigationState<RootNavigatorParamList>>) {
     const lastFullScreenRoute = currentState.routes.findLast((route) => isFullScreenName(route.name));
     const targetFullScreenRoute = stateFromPath.routes?.findLast((route) => isFullScreenName(route.name));
 
-    return lastFullScreenRoute?.name === NAVIGATORS.EXPENSIFY_TAB_NAVIGATOR && targetFullScreenRoute?.name === NAVIGATORS.EXPENSIFY_TAB_NAVIGATOR;
+    return lastFullScreenRoute?.name === NAVIGATORS.TAB_NAVIGATOR && targetFullScreenRoute?.name === NAVIGATORS.TAB_NAVIGATOR;
 }
 
 function isRoutePreloaded(currentState: PlatformStackNavigationState<RootNavigatorParamList>, matchingFullScreenRoute: NavigationPartialRoute) {
@@ -98,11 +98,11 @@ function isRoutePreloaded(currentState: PlatformStackNavigationState<RootNavigat
 }
 
 /**
- * For EXPENSIFY_TAB_NAVIGATOR routes, returns the focused (active) tab screen name.
+ * For TAB_NAVIGATOR routes, returns the focused (active) tab screen name.
  * For other routes, returns the last nested route name (original behavior).
  */
 function getActiveScreenInRoute(route: NavigationPartialRoute): string | undefined {
-    const tabState = getExpensifyTabState(route);
+    const tabState = getTabState(route);
     if (tabState) {
         const index = tabState.index ?? 0;
         return tabState.routes?.at(index)?.name;
@@ -119,10 +119,10 @@ function shouldChangeToMatchingFullScreen(
         return true;
     }
 
-    // When both are EXPENSIFY_TAB_NAVIGATOR, compare the active tab inside rather than the last declared route.
+    // When both are TAB_NAVIGATOR, compare the active tab inside rather than the last declared route.
     const lastActiveScreen = getActiveScreenInRoute(lastFullScreenRoute);
     const matchingActiveScreen = getActiveScreenInRoute(matchingFullScreenRoute);
-    if (matchingFullScreenRoute.name === NAVIGATORS.EXPENSIFY_TAB_NAVIGATOR && lastActiveScreen !== matchingActiveScreen) {
+    if (matchingFullScreenRoute.name === NAVIGATORS.TAB_NAVIGATOR && lastActiveScreen !== matchingActiveScreen) {
         return true;
     }
 
@@ -183,18 +183,18 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
         action.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE &&
         !isNavigatingToAttachmentScreen(focusedRouteFromPath?.name) &&
         !isNavigatingToReportWithSameReportID(currentFocusedRoute, focusedRouteFromPath) &&
-        !isSwitchingTabsWithinExpensifyTabNavigator(currentState, stateFromPath) &&
+        !isSwitchingTabsWithinTabNavigator(currentState, stateFromPath) &&
         !findMatchingDynamicSuffix(normalizedPath)
     ) {
         // We want to PUSH by default to add entries to the browser history.
         action.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
     }
 
-    // When something other than EXPENSIFY_TAB_NAVIGATOR is on top of the stack and we're navigating
-    // to EXPENSIFY_TAB_NAVIGATOR, PUSH a new instance above (e.g., above RHP).
+    // When something other than TAB_NAVIGATOR is on top of the stack and we're navigating
+    // to TAB_NAVIGATOR, PUSH a new instance above (e.g., above RHP).
     const currentTopRoute = currentState.routes[currentState.index];
     const typedPayload = (action as {payload: {name?: string; params?: ActionPayloadParams}}).payload;
-    if (currentTopRoute?.name !== NAVIGATORS.EXPENSIFY_TAB_NAVIGATOR && typedPayload.name === NAVIGATORS.EXPENSIFY_TAB_NAVIGATOR) {
+    if (currentTopRoute?.name !== NAVIGATORS.TAB_NAVIGATOR && typedPayload.name === NAVIGATORS.TAB_NAVIGATOR) {
         (action as {type: string}).type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
     }
 
@@ -221,7 +221,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
     }
 
     const {action: minimalAction} = getMinimalAction(action, navigation.getRootState());
-    if (action.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE && action.payload.name === NAVIGATORS.EXPENSIFY_TAB_NAVIGATOR && !isFullScreenName(minimalAction.payload?.name)) {
+    if (action.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE && action.payload.name === NAVIGATORS.TAB_NAVIGATOR && !isFullScreenName(minimalAction.payload?.name as string)) {
         minimalAction.type = CONST.NAVIGATION.ACTION_TYPE.PUSH;
     }
     navigation.dispatch(minimalAction);

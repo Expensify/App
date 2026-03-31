@@ -6,7 +6,7 @@ import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {findFocusedRoute, useNavigation, useNavigationState} from '@react-navigation/native';
 import React, {lazy, Suspense, useEffect, useState} from 'react';
 import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
+import type {TupleToUnion, ValueOf} from 'type-fest';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
@@ -15,11 +15,11 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {ExpensifyTabNavigatorParamList} from '@libs/Navigation/types';
+import type {TabNavigatorParamList} from '@libs/Navigation/types';
 import HomePage from '@pages/home/HomePage';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
-import EXPENSIFY_TAB_SCREENS from './EXPENSIFY_TAB_SCREENS';
+import type TAB_SCREENS from './TAB_SCREENS';
 
 const ROUTE_TO_NAVIGATION_TAB: Record<string, ValueOf<typeof NAVIGATION_TABS>> = {
     [SCREENS.HOME]: NAVIGATION_TABS.HOME,
@@ -34,7 +34,7 @@ const ROUTE_TO_NAVIGATION_TAB: Record<string, ValueOf<typeof NAVIGATION_TABS>> =
  * full BottomTabBarProps) to avoid `descriptors` thrashing memoization.
  * Wrapped in overflow:'visible' so floating buttons (FAB, GPS, Camera) aren't clipped.
  */
-function ExpensifyTabNavigatorBar({tabState}: {tabState: BottomTabBarProps['state']}) {
+function TabNavigatorBar({tabState}: {tabState: BottomTabBarProps['state']}) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {paddingBottom: safeAreaPaddingBottom} = useSafeAreaPaddings(true);
     const styles = useThemeStyles();
@@ -71,7 +71,7 @@ function ExpensifyTabNavigatorBar({tabState}: {tabState: BottomTabBarProps['stat
         // Negative marginTop overlays the tab bar on content (zero flex space) to prevent layout shifts.
         return (
             <View
-                style={[StyleUtils.getExpensifyTabBarNarrowStyle(safeAreaPaddingBottom), isHidden && styles.opacity0]}
+                style={[StyleUtils.getTabBarNarrowStyle(safeAreaPaddingBottom), isHidden && styles.opacity0]}
                 pointerEvents={isHidden ? 'none' : 'auto'}
             >
                 <NavigationTabBar
@@ -89,7 +89,7 @@ function ExpensifyTabNavigatorBar({tabState}: {tabState: BottomTabBarProps['stat
     );
 }
 
-const renderTabBar = ({state}: BottomTabBarProps) => <ExpensifyTabNavigatorBar tabState={state} />;
+const renderTabBar = ({state}: BottomTabBarProps) => <TabNavigatorBar tabState={state} />;
 
 const LazyReportsSplitNavigator = lazy(() => import('./ReportsSplitNavigator'));
 const LazySearchFullscreenNavigator = lazy(() => import('./SearchFullscreenNavigator'));
@@ -120,18 +120,18 @@ const SearchFullscreenNavigatorScreen = withSuspense(LazySearchFullscreenNavigat
 const SettingsSplitNavigatorScreen = withSuspense(LazySettingsSplitNavigator);
 const WorkspaceNavigatorScreen = withSuspense(LazyWorkspaceNavigator);
 
-const Tab = createBottomTabNavigator<ExpensifyTabNavigatorParamList>();
+const Tab = createBottomTabNavigator<TabNavigatorParamList>();
 
-// Compile-time checks: EXPENSIFY_TAB_SCREENS and ExpensifyTabNavigatorParamList must stay in sync.
+// Compile-time checks: TAB_SCREENS and TabNavigatorParamList must stay in sync.
 // If a screen is added to one but not the other, one of these assignments will error.
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const _a: Record<(typeof EXPENSIFY_TAB_SCREENS)[number], true> = {} as Record<keyof ExpensifyTabNavigatorParamList, true>;
+const _a: Record<TupleToUnion<typeof TAB_SCREENS>, true> = {} as Record<keyof TabNavigatorParamList, true>;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const _b: Record<keyof ExpensifyTabNavigatorParamList, true> = {} as Record<(typeof EXPENSIFY_TAB_SCREENS)[number], true>;
+const _b: Record<keyof TabNavigatorParamList, true> = {} as Record<TupleToUnion<typeof TAB_SCREENS>, true>;
 
 /**
  * Root-level tab screens where the swipe-back gesture should be disabled.
- * Swiping from these screens would pop the entire EXPENSIFY_TAB_NAVIGATOR, which feels wrong.
+ * Swiping from these screens would pop the entire TAB_NAVIGATOR, which feels wrong.
  * WORKSPACE.INITIAL is intentionally excluded — swiping back from it returns to the workspace list.
  */
 const TAB_ROOT_SCREENS_WITHOUT_GESTURE = new Set<string>([SCREENS.HOME, SCREENS.INBOX, SCREENS.SEARCH.ROOT, SCREENS.SETTINGS.ROOT]);
@@ -152,7 +152,7 @@ const TAB_SCREEN_OPTIONS_WIDE = {
     tabBarPosition: 'left' as const,
 } as const;
 
-function ExpensifyTabNavigator() {
+function TabNavigator() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const navigation = useNavigation();
     const parentNavigation = navigation.getParent();
@@ -196,4 +196,4 @@ function ExpensifyTabNavigator() {
     );
 }
 
-export default ExpensifyTabNavigator;
+export default TabNavigator;

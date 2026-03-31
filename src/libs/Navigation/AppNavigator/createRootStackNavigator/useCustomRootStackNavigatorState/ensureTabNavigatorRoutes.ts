@@ -2,18 +2,18 @@ import type {NavigationRoute} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 
 /**
- * Ensures the last two EXPENSIFY_TAB_NAVIGATOR instances are always included in the rendered routes,
+ * Ensures the last two TAB_NAVIGATOR instances are always included in the rendered routes,
  * even when routes are sliced for performance optimization.
  * The second-to-last ROOT_TAB holds the previous tab state (e.g., inbox history) and must stay
  * mounted to preserve that state when a newer ROOT_TAB is pushed above (e.g., for workspace
  * navigation from RHP).
  */
-function ensureExpensifyTabNavigatorRoutes(slicedRoutes: NavigationRoute[], indexToSlice: number, allRoutes: NavigationRoute[]): NavigationRoute[] {
+function ensureTabNavigatorRoutes(slicedRoutes: NavigationRoute[], indexToSlice: number, allRoutes: NavigationRoute[]): NavigationRoute[] {
     if (indexToSlice === 0) {
         return slicedRoutes;
     }
 
-    const allRootTabs = allRoutes.filter((route) => route.name === NAVIGATORS.EXPENSIFY_TAB_NAVIGATOR);
+    const allRootTabs = allRoutes.filter((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
     const rootTabsToKeep = allRootTabs.slice(-2);
 
     if (rootTabsToKeep.length === 0) {
@@ -21,7 +21,7 @@ function ensureExpensifyTabNavigatorRoutes(slicedRoutes: NavigationRoute[], inde
     }
 
     // Remove any ROOT_TAB instances that are not in the last two
-    const filteredRoutes = slicedRoutes.filter((route) => route.name !== NAVIGATORS.EXPENSIFY_TAB_NAVIGATOR || rootTabsToKeep.includes(route));
+    const filteredRoutes = slicedRoutes.filter((route) => route.name !== NAVIGATORS.TAB_NAVIGATOR || rootTabsToKeep.includes(route));
 
     // Prepend any of the last two ROOT_TABs that are missing from the sliced routes
     const missingRootTabs = rootTabsToKeep.filter((rt) => !filteredRoutes.includes(rt));
@@ -29,4 +29,4 @@ function ensureExpensifyTabNavigatorRoutes(slicedRoutes: NavigationRoute[], inde
     return [...missingRootTabs, ...filteredRoutes];
 }
 
-export default ensureExpensifyTabNavigatorRoutes;
+export default ensureTabNavigatorRoutes;

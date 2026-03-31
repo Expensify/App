@@ -1,13 +1,8 @@
-import type {ParamListBase, StackNavigationState} from '@react-navigation/native';
+import type {ParamListBase} from '@react-navigation/native';
 import {useEffect} from 'react';
-import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import isRoutePreloaded from '@libs/Navigation/helpers/isRoutePreloaded';
-import {getExpensifyTabScreenParam} from '@libs/Navigation/helpers/expensifyTabNavigatorUtils';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {CustomEffectsHookProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {NavigationPartialRoute} from '@libs/Navigation/types';
-import NAVIGATORS from '@src/NAVIGATORS';
 
 /**
  * This hook resets the navigation root state when changing the layout size, resetting the state calls the getRehydratedState method in CustomFullScreenRouter.tsx.
@@ -17,22 +12,9 @@ import NAVIGATORS from '@src/NAVIGATORS';
  */
 function useNavigationResetOnLayoutChange({navigation}: CustomEffectsHookProps<ParamListBase>) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const previousShouldUseNarrowLayout = usePrevious(shouldUseNarrowLayout);
-    const hasLayoutBeenExpanded = previousShouldUseNarrowLayout && !shouldUseNarrowLayout;
 
     useEffect(() => {
         if (!navigationRef.isReady()) {
-            return;
-        }
-
-        // If the ReportsSplitNavigator has been preloaded on a narrow layout, the Report page won't be displayed on a wide screen.
-        if (hasLayoutBeenExpanded && isRoutePreloaded(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR)) {
-            const currentState = navigation.getState() as StackNavigationState<ParamListBase> & {preloadedRoutes?: NavigationPartialRoute[]};
-            const stateWithoutPreloadedInbox = {
-                ...currentState,
-                preloadedRoutes: currentState.preloadedRoutes?.filter((route: NavigationPartialRoute) => getExpensifyTabScreenParam(route) !== NAVIGATORS.REPORTS_SPLIT_NAVIGATOR),
-            };
-            navigation.reset(stateWithoutPreloadedInbox);
             return;
         }
 

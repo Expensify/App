@@ -25,7 +25,7 @@ const getPathFromState = (state: State): string => {
     const focusedRoute = findFocusedRoute(state);
     const screenName = focusedRoute?.name ?? '';
 
-    // When PublicScreens renders SCREENS.HOME at root level (not nested in ExpensifyTabNavigator),
+    // When PublicScreens renders SCREENS.HOME at root level (not nested in TabNavigator),
     // return '/' so the URL after logout is clean instead of '/Home'.
     if (state.routes?.length === 1 && state.routes[0]?.name === SCREENS.HOME) {
         return '/';
