@@ -17,7 +17,7 @@ function TestDriveMenuItem() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const icons = useMemoizedLazyExpensifyIcons(['Binoculars'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Binoculars']);
     const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const isVisible = !hasSeenTour;
 
