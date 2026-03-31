@@ -784,43 +784,8 @@ function MenuItem({
             >
                 <View>
                     <Hoverable isFocused={isFocused}>
-                        {(isHovered) => (
-                            <PressableWithSecondaryInteraction
-                                onPress={shouldCheckActionAllowedOnPress ? callFunctionIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction}
-                                onPressIn={() => shouldBlockSelection && shouldUseNarrowLayout && canUseTouchScreen() && ControlSelection.block()}
-                                onPressOut={ControlSelection.unblock}
-                                onSecondaryInteraction={copyable && !deviceHasHoverSupport ? secondaryInteraction : onSecondaryInteraction}
-                                wrapperStyle={outerWrapperStyle}
-                                activeOpacity={!interactive ? 1 : variables.pressDimValue}
-                                opacityAnimationDuration={0}
-                                testID={pressableTestID}
-                                style={({pressed}) =>
-                                    [
-                                        containerStyle,
-                                        combinedStyle,
-                                        !interactive && styles.cursorDefault,
-                                        isCompact && styles.alignItemsCenter,
-                                        isCompact && styles.optionRowCompact,
-                                        !shouldRemoveBackground &&
-                                            StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || isHovered, pressed, success, disabled, interactive), true),
-                                        ...(Array.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle]),
-                                        shouldGreyOutWhenDisabled && disabled && styles.buttonOpacityDisabled,
-                                        isHovered && interactive && !focused && !pressed && !shouldRemoveBackground && !shouldRemoveHoverBackground && styles.hoveredComponentBG,
-                                    ] as StyleProp<ViewStyle>
-                                }
-                                disabledStyle={shouldUseDefaultCursorWhenDisabled && [styles.cursorDefault]}
-                                disabled={disabled || isExecuting}
-                                ref={mergeRefs(ref, popoverAnchor)}
-                                role={interactive ? role : undefined}
-                                accessibilityLabel={accessibilityLabelWithContextMenuHint}
-                                accessibilityHint={accessibilityHint}
-                                accessible={shouldBeAccessible}
-                                accessibilityState={role === CONST.ROLE.TAB ? {selected: focused} : undefined}
-                                tabIndex={interactive ? tabIndex : -1}
-                                onFocus={onFocus}
-                                sentryLabel={sentryLabel}
-                            >
-                                {({pressed}) => (
+                        {(isHovered) => {
+                            const renderItemContent = (pressed: boolean) => (
                                     <View style={[styles.flex1]}>
                                         <View style={[styles.flexRow]}>
                                             <View style={[styles.flexColumn, styles.flex1]}>
@@ -1171,9 +1136,71 @@ function MenuItem({
                                             />
                                         )}
                                     </View>
-                                )}
-                            </PressableWithSecondaryInteraction>
-                        )}
+                            );
+
+                            if (!interactive) {
+                                return (
+                                    <View style={outerWrapperStyle}>
+                                        <View
+                                            style={[
+                                                containerStyle,
+                                                combinedStyle,
+                                                styles.cursorDefault,
+                                                isCompact && styles.alignItemsCenter,
+                                                isCompact && styles.optionRowCompact,
+                                                !shouldRemoveBackground &&
+                                                    StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || isHovered, false, success, disabled, interactive), true),
+                                                ...(Array.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle]),
+                                                shouldGreyOutWhenDisabled && disabled && styles.buttonOpacityDisabled,
+                                            ]}
+                                            ref={mergeRefs(ref, popoverAnchor)}
+                                            role={CONST.ROLE.PRESENTATION}
+                                        >
+                                            {renderItemContent(false)}
+                                        </View>
+                                    </View>
+                                );
+                            }
+
+                            return (
+                                <PressableWithSecondaryInteraction
+                                    onPress={shouldCheckActionAllowedOnPress ? callFunctionIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction}
+                                    onPressIn={() => shouldBlockSelection && shouldUseNarrowLayout && canUseTouchScreen() && ControlSelection.block()}
+                                    onPressOut={ControlSelection.unblock}
+                                    onSecondaryInteraction={copyable && !deviceHasHoverSupport ? secondaryInteraction : onSecondaryInteraction}
+                                    wrapperStyle={outerWrapperStyle}
+                                    activeOpacity={variables.pressDimValue}
+                                    opacityAnimationDuration={0}
+                                    testID={pressableTestID}
+                                    style={({pressed}) =>
+                                        [
+                                            containerStyle,
+                                            combinedStyle,
+                                            isCompact && styles.alignItemsCenter,
+                                            isCompact && styles.optionRowCompact,
+                                            !shouldRemoveBackground &&
+                                                StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || isHovered, pressed, success, disabled, interactive), true),
+                                            ...(Array.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle]),
+                                            shouldGreyOutWhenDisabled && disabled && styles.buttonOpacityDisabled,
+                                            isHovered && !focused && !pressed && !shouldRemoveBackground && !shouldRemoveHoverBackground && styles.hoveredComponentBG,
+                                        ] as StyleProp<ViewStyle>
+                                    }
+                                    disabledStyle={shouldUseDefaultCursorWhenDisabled && [styles.cursorDefault]}
+                                    disabled={disabled || isExecuting}
+                                    ref={mergeRefs(ref, popoverAnchor)}
+                                    role={role}
+                                    accessibilityLabel={accessibilityLabelWithContextMenuHint}
+                                    accessibilityHint={accessibilityHint}
+                                    accessible={shouldBeAccessible}
+                                    accessibilityState={role === CONST.ROLE.TAB ? {selected: focused} : undefined}
+                                    tabIndex={tabIndex}
+                                    onFocus={onFocus}
+                                    sentryLabel={sentryLabel}
+                                >
+                                    {({pressed}) => renderItemContent(pressed)}
+                                </PressableWithSecondaryInteraction>
+                            );
+                        }}
                     </Hoverable>
                     {!!helperText &&
                         (shouldParseHelperText ? (
