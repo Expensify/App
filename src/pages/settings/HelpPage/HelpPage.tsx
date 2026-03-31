@@ -14,6 +14,7 @@ import useSidePanelActions from '@hooks/useSidePanelActions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openExternalLink} from '@libs/actions/Link';
 import {navigateToConciergeChat} from '@libs/actions/Report';
+import getPlatform from '@libs/getPlatform';
 import Navigation from '@libs/Navigation/Navigation';
 import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
@@ -32,6 +33,7 @@ function HelpPage() {
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {openSidePanel} = useSidePanelActions();
+    const isWeb = getPlatform() === CONST.PLATFORM.WEB;
 
     const menuItems = [
         {
@@ -40,7 +42,7 @@ function HelpPage() {
             description: translate('initialSettingsPage.helpPage.conciergeChatDescription'),
             icon: icons.ConciergeAvatar,
             iconType: CONST.ICON_TYPE_AVATAR,
-            onPress: () => (shouldUseNarrowLayout ? navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas) : openSidePanel()),
+            onPress: () => (isWeb ? openSidePanel() : navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas)),
             shouldShowRightIcon: true,
             wrapperStyle: [styles.sectionMenuItemTopDescription],
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.CONCIERGE_CHAT,
