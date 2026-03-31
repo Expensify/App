@@ -277,7 +277,7 @@ type PureReportActionItemProps = {
     introSelected?: OnyxEntry<OnyxTypes.IntroSelected>;
 
     /** Beta features list */
-    betas?: OnyxEntry<OnyxTypes.Beta[]>;
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
 
     /** All transaction draft IDs */
     draftTransactionIDs: string[] | undefined;
