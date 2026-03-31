@@ -326,7 +326,7 @@ describe('handleActionButtonPress', () => {
             lastPaymentMethod: mockLastPaymentMethod,
             personalPolicyID: undefined,
             ownerBillingGracePeriodEnd: undefined,
-            userBillingGraceEndPeriods: undefined,
+            userBillingGracePeriodEnds: undefined,
         });
         expect(goToItem).toHaveBeenCalledTimes(1);
     });
@@ -342,7 +342,7 @@ describe('handleActionButtonPress', () => {
             lastPaymentMethod: mockLastPaymentMethod,
             personalPolicyID: undefined,
             ownerBillingGracePeriodEnd: undefined,
-            userBillingGraceEndPeriods: undefined,
+            userBillingGracePeriodEnds: undefined,
         });
         expect(goToItem).toHaveBeenCalledTimes(0);
     });
@@ -363,7 +363,7 @@ describe('handleBulkPayItemSelected', () => {
         isDelegateAccessRestricted: false,
         showDelegateNoAccessModal: jest.fn(),
         confirmPayment: jest.fn(),
-        userBillingGraceEndPeriods: undefined,
+        userBillingGracePeriodEnds: undefined,
         businessBankAccountOptions: undefined,
         ownerBillingGracePeriodEnd: undefined,
     };

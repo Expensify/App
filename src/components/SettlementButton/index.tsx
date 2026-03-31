@@ -124,7 +124,7 @@ function SettlementButton({
     const [lastPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
 
     const lastPaymentMethod = iouReport?.type
@@ -222,7 +222,7 @@ function SettlementButton({
             return true;
         }
 
-        if (policy && shouldRestrictUserBillableActions(policy.id, ownerBillingGracePeriodEnd, userBillingGraceEndPeriods)) {
+        if (policy && shouldRestrictUserBillableActions(policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
             return true;
         }
@@ -234,7 +234,7 @@ function SettlementButton({
         isUserValidated,
         isBankAccountLocked,
         policy,
-        userBillingGraceEndPeriods,
+        userBillingGracePeriodEnds,
         ownerBillingGracePeriodEnd,
         showDelegateNoAccessModal,
         showLockedAccountModal,
@@ -500,7 +500,7 @@ function SettlementButton({
                     isASAPSubmitBetaEnabled,
                     expenseReportCurrentNextStepDeprecated: iouReportNextStep,
                     betas,
-                    userBillingGraceEndPeriods,
+                    userBillingGracePeriodEnds,
                     amountOwed,
                     ownerBillingGracePeriodEnd,
                     full: false,

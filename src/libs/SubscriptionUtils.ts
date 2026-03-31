@@ -465,7 +465,7 @@ function doesUserHavePaymentCardAdded(userBillingFundID: number | undefined): bo
 function shouldRestrictUserBillableActions(
     policyID: string,
     ownerBillingGracePeriodEnd: OnyxEntry<number>,
-    userBillingGraceEndPeriods: OnyxCollection<BillingGraceEndPeriod> = deprecatedUserBillingGraceEndPeriods,
+    userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod> = deprecatedUserBillingGraceEndPeriods,
     amountOwed: OnyxEntry<number> = privateAmountOwed,
 ): boolean {
     const currentDate = new Date();
@@ -475,7 +475,7 @@ function shouldRestrictUserBillableActions(
     // This logic will be executed if the user is a workspace's non-owner (normal user or admin).
     // We should restrict the workspace's non-owner actions if it's member of a workspace where the owner is
     // past due and is past its grace period end.
-    for (const userBillingGraceEndPeriodEntry of Object.entries(userBillingGraceEndPeriods ?? {})) {
+    for (const userBillingGraceEndPeriodEntry of Object.entries(userBillingGracePeriodEnds ?? {})) {
         const [entryKey, userBillingGracePeriodEnd] = userBillingGraceEndPeriodEntry;
 
         if (userBillingGracePeriodEnd && isAfter(currentDate, fromUnixTime(userBillingGracePeriodEnd.value))) {

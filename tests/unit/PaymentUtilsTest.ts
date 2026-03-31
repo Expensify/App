@@ -195,7 +195,7 @@ describe('PaymentUtils', () => {
             iouReport: {reportID: '1'} as Report,
             iouReportNextStep: undefined,
             betas: [],
-            userBillingGraceEndPeriods: undefined,
+            userBillingGracePeriodEnds: undefined,
             amountOwed: 0,
             ownerBillingGracePeriodEnd: undefined,
         };
@@ -229,7 +229,7 @@ describe('PaymentUtils', () => {
 
             selectPaymentType(params);
 
-            expect(mockShouldRestrict).toHaveBeenCalledWith(testPolicyID, 999, params.userBillingGraceEndPeriods, 42);
+            expect(mockShouldRestrict).toHaveBeenCalledWith(testPolicyID, 999, params.userBillingGracePeriodEnds, 42);
         });
 
         it('should trigger KYC flow for EXPENSIFY payment type when user is validated', () => {
@@ -275,7 +275,7 @@ describe('PaymentUtils', () => {
                 isASAPSubmitBetaEnabled: params.isASAPSubmitBetaEnabled,
                 expenseReportCurrentNextStepDeprecated: params.iouReportNextStep,
                 betas: params.betas,
-                userBillingGraceEndPeriods: params.userBillingGraceEndPeriods,
+                userBillingGracePeriodEnds: params.userBillingGracePeriodEnds,
                 amountOwed: 42,
                 ownerBillingGracePeriodEnd: 999,
                 full: true,
@@ -296,7 +296,7 @@ describe('PaymentUtils', () => {
                 isASAPSubmitBetaEnabled: params.isASAPSubmitBetaEnabled,
                 expenseReportCurrentNextStepDeprecated: params.iouReportNextStep,
                 betas: params.betas,
-                userBillingGraceEndPeriods: params.userBillingGraceEndPeriods,
+                userBillingGracePeriodEnds: params.userBillingGracePeriodEnds,
                 amountOwed: undefined,
                 ownerBillingGracePeriodEnd: undefined,
                 full: true,
@@ -325,7 +325,7 @@ describe('PaymentUtils', () => {
 
             selectPaymentType(params);
 
-            expect(mockShouldRestrict).toHaveBeenCalledWith(testPolicyID, params.userBillingGraceEndPeriods, undefined, undefined);
+            expect(mockShouldRestrict).toHaveBeenCalledWith(testPolicyID, params.userBillingGracePeriodEnds, undefined, undefined);
         });
     });
 

@@ -879,7 +879,7 @@ type PayMoneyRequestFunctionParams = {
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
     iouReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     currentUserAccountID: number;
-    userBillingGraceEndPeriods: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
+    userBillingGracePeriodEnds: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
     paymentPolicyID?: string;
     full?: boolean;
     activePolicy?: OnyxEntry<OnyxTypes.Policy>;
@@ -901,7 +901,7 @@ type ApproveMoneyRequestFunctionParams = {
     isASAPSubmitBetaEnabled: boolean;
     expenseReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
-    userBillingGraceEndPeriods: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
+    userBillingGracePeriodEnds: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
     amountOwed: OnyxEntry<number>;
     full?: boolean;
     onApproved?: () => void;
@@ -916,7 +916,7 @@ type SubmitReportFunctionParams = {
     hasViolations: boolean;
     isASAPSubmitBetaEnabled: boolean;
     expenseReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
-    userBillingGraceEndPeriods: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
+    userBillingGracePeriodEnds: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
     amountOwed: OnyxEntry<number>;
     onSubmitted?: () => void;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
@@ -9966,7 +9966,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         isASAPSubmitBetaEnabled,
         expenseReportCurrentNextStepDeprecated,
         betas,
-        userBillingGraceEndPeriods,
+        userBillingGracePeriodEnds,
         amountOwed,
         full,
         onApproved,
@@ -9976,7 +9976,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         return;
     }
 
-    if (expenseReport.policyID && shouldRestrictUserBillableActions(expenseReport.policyID, ownerBillingGracePeriodEnd, userBillingGraceEndPeriods, amountOwed)) {
+    if (expenseReport.policyID && shouldRestrictUserBillableActions(expenseReport.policyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(expenseReport.policyID));
         return;
     }
@@ -10860,7 +10860,7 @@ function submitReport({
     hasViolations,
     isASAPSubmitBetaEnabled,
     expenseReportCurrentNextStepDeprecated,
-    userBillingGraceEndPeriods,
+    userBillingGracePeriodEnds,
     amountOwed,
     onSubmitted,
     ownerBillingGracePeriodEnd,
@@ -10868,7 +10868,7 @@ function submitReport({
     if (!expenseReport) {
         return;
     }
-    if (expenseReport.policyID && shouldRestrictUserBillableActions(expenseReport.policyID, ownerBillingGracePeriodEnd, userBillingGraceEndPeriods, amountOwed)) {
+    if (expenseReport.policyID && shouldRestrictUserBillableActions(expenseReport.policyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(expenseReport.policyID));
         return;
     }
@@ -11395,7 +11395,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         iouReportCurrentNextStepDeprecated,
         currentUserAccountID,
         paymentPolicyID,
-        userBillingGraceEndPeriods,
+        userBillingGracePeriodEnds,
         full = true,
         activePolicy,
         policy,
@@ -11406,7 +11406,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         methodID,
         onPaid,
     } = params;
-    if (chatReport.policyID && shouldRestrictUserBillableActions(chatReport.policyID, ownerBillingGracePeriodEnd, userBillingGraceEndPeriods, amountOwed)) {
+    if (chatReport.policyID && shouldRestrictUserBillableActions(chatReport.policyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(chatReport.policyID));
         return;
     }

@@ -59,7 +59,7 @@ function SearchActionsBarCreateButton() {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
-    const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses();
     const shouldNavigateToUpgradePath = !policyForMovingExpensesID && !shouldSelectPolicy;
     const {showConfirmModal} = useConfirmModal();
@@ -185,7 +185,7 @@ function SearchActionsBarCreateButton() {
                         // No default or restricted with multiple workspaces → workspace selector
                         if (
                             !workspaceIDForReportCreation ||
-                            (shouldRestrictUserBillableActions(workspaceIDForReportCreation, ownerBillingGracePeriodEnd, userBillingGraceEndPeriods) &&
+                            (shouldRestrictUserBillableActions(workspaceIDForReportCreation, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds) &&
                                 groupPoliciesWithChatEnabled.length > 1)
                         ) {
                             Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
@@ -193,7 +193,7 @@ function SearchActionsBarCreateButton() {
                         }
 
                         // Default workspace is not restricted → create report directly
-                        if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation, ownerBillingGracePeriodEnd, userBillingGraceEndPeriods)) {
+                        if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds)) {
                             // Check if empty report confirmation should be shown
                             if (shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy) {
                                 openCreateReportConfirmation();
@@ -218,7 +218,7 @@ function SearchActionsBarCreateButton() {
             defaultChatEnabledPolicyID,
             shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy,
             ownerBillingGracePeriodEnd,
-            userBillingGraceEndPeriods,
+            userBillingGracePeriodEnds,
             openCreateReportConfirmation,
             handleCreateWorkspaceReport,
         ],

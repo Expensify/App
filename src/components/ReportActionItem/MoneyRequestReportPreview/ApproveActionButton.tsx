@@ -31,7 +31,7 @@ function ApproveActionButton({iouReportID, startApprovedAnimation, onHoldMenuOpe
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const activePolicy = usePolicy(activePolicyID);
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
-    const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReportID}`);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
@@ -56,7 +56,7 @@ function ApproveActionButton({iouReportID, startApprovedAnimation, onHoldMenuOpe
                 isASAPSubmitBetaEnabled,
                 expenseReportCurrentNextStepDeprecated: iouReportNextStep,
                 betas,
-                userBillingGraceEndPeriods,
+                userBillingGracePeriodEnds,
                 amountOwed,
                 ownerBillingGracePeriodEnd,
                 full: true,

@@ -651,7 +651,7 @@ describe('actions/IOU', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 draftTransactionIDs: [],
                 activePolicy: undefined,
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 transaction,
             });
@@ -1224,7 +1224,7 @@ describe('actions/IOU', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 draftTransactionIDs: [],
                 activePolicy: undefined,
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 transaction: createdTransaction,
             });
@@ -1866,7 +1866,7 @@ describe('actions/IOU', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 draftTransactionIDs: [existingDraftTransaction1.transactionID, existingDraftTransaction2.transactionID],
                 activePolicy: undefined,
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 transaction: transactionToCategorize,
             });
@@ -1914,7 +1914,7 @@ describe('actions/IOU', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 draftTransactionIDs: [],
                 activePolicy: undefined,
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 transaction: originalTransaction,
             });
@@ -1951,7 +1951,7 @@ describe('actions/IOU', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 draftTransactionIDs: [],
                 activePolicy: undefined,
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 transaction: undefined,
             });
@@ -1984,7 +1984,7 @@ describe('actions/IOU', () => {
                 draftTransactionIDs: [],
                 activePolicy: undefined,
                 transaction,
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
             });
             await waitForBatchedUpdates();
@@ -6615,7 +6615,7 @@ describe('actions/IOU', () => {
                             currentUserAccountID,
                             betas: [CONST.BETAS.ALL],
                             isSelfTourViewed: false,
-                            userBillingGraceEndPeriods: undefined,
+                            userBillingGracePeriodEnds: undefined,
                             amountOwed: 0,
                         });
                     }
@@ -6822,7 +6822,7 @@ describe('actions/IOU', () => {
                             currentUserAccountID: CARLOS_ACCOUNT_ID,
                             betas: [CONST.BETAS.ALL],
                             isSelfTourViewed: false,
-                            userBillingGraceEndPeriods: undefined,
+                            userBillingGracePeriodEnds: undefined,
                             amountOwed: 0,
                         });
                     }
@@ -6983,7 +6983,7 @@ describe('actions/IOU', () => {
                             currentUserAccountID: CARLOS_ACCOUNT_ID,
                             betas: [CONST.BETAS.ALL],
                             isSelfTourViewed: false,
-                            userBillingGraceEndPeriods: undefined,
+                            userBillingGracePeriodEnds: undefined,
                             amountOwed: 0,
                         });
                     }
@@ -7035,7 +7035,7 @@ describe('actions/IOU', () => {
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
             });
 
@@ -7149,7 +7149,7 @@ describe('actions/IOU', () => {
                         full: false,
                         betas: [CONST.BETAS.ALL],
                         isSelfTourViewed: false,
-                        userBillingGraceEndPeriods: undefined,
+                        userBillingGracePeriodEnds: undefined,
                         amountOwed: 0,
                     });
                     return waitForBatchedUpdates();
@@ -7244,7 +7244,7 @@ describe('actions/IOU', () => {
                 policy,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
             });
             await waitForBatchedUpdates();
@@ -7278,7 +7278,7 @@ describe('actions/IOU', () => {
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: true,
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
             });
 
@@ -7325,7 +7325,7 @@ describe('actions/IOU', () => {
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
             });
 
@@ -7392,7 +7392,7 @@ describe('actions/IOU', () => {
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 amountOwed: 100,
                 ownerBillingGracePeriodEnd: pastDate,
             });
@@ -7426,7 +7426,7 @@ describe('actions/IOU', () => {
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
             });
 
@@ -7544,7 +7544,7 @@ describe('actions/IOU', () => {
                             currentUserAccountID: CARLOS_ACCOUNT_ID,
                             betas: [CONST.BETAS.ALL],
                             isSelfTourViewed: false,
-                            userBillingGraceEndPeriods: undefined,
+                            userBillingGracePeriodEnds: undefined,
                             amountOwed: 0,
                         });
                     }
@@ -9581,7 +9581,7 @@ describe('actions/IOU', () => {
                             hasViolations: true,
                             isASAPSubmitBetaEnabled: true,
                             expenseReportCurrentNextStepDeprecated: nextStep,
-                            userBillingGraceEndPeriods: undefined,
+                            userBillingGracePeriodEnds: undefined,
                             amountOwed: 0,
                             ownerBillingGracePeriodEnd: undefined,
                         });
@@ -9879,7 +9879,7 @@ describe('actions/IOU', () => {
                                 hasViolations: true,
                                 isASAPSubmitBetaEnabled: true,
                                 expenseReportCurrentNextStepDeprecated: nextStep,
-                                userBillingGraceEndPeriods: undefined,
+                                userBillingGracePeriodEnds: undefined,
                                 amountOwed: 0,
                                 ownerBillingGracePeriodEnd: undefined,
                             });
@@ -10146,7 +10146,7 @@ describe('actions/IOU', () => {
                                 hasViolations: true,
                                 isASAPSubmitBetaEnabled: true,
                                 expenseReportCurrentNextStepDeprecated: nextStep,
-                                userBillingGraceEndPeriods: undefined,
+                                userBillingGracePeriodEnds: undefined,
                                 amountOwed: 0,
                                 ownerBillingGracePeriodEnd: undefined,
                             });
@@ -10314,7 +10314,7 @@ describe('actions/IOU', () => {
                             hasViolations: true,
                             isASAPSubmitBetaEnabled: true,
                             expenseReportCurrentNextStepDeprecated: undefined,
-                            userBillingGraceEndPeriods: undefined,
+                            userBillingGracePeriodEnds: undefined,
                             amountOwed: 0,
                             ownerBillingGracePeriodEnd: undefined,
                         });
@@ -10385,7 +10385,7 @@ describe('actions/IOU', () => {
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: true,
                 expenseReportCurrentNextStepDeprecated: undefined,
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 amountOwed: 100,
                 ownerBillingGracePeriodEnd: pastDate,
             });
@@ -10494,7 +10494,7 @@ describe('actions/IOU', () => {
                     hasViolations: false,
                     isASAPSubmitBetaEnabled: true,
                     expenseReportCurrentNextStepDeprecated: nextStep,
-                    userBillingGraceEndPeriods: undefined,
+                    userBillingGracePeriodEnds: undefined,
                     amountOwed: 0,
                     ownerBillingGracePeriodEnd,
                 });
@@ -13510,7 +13510,7 @@ describe('actions/IOU', () => {
                     currentUserAccountID: CARLOS_ACCOUNT_ID,
                     betas: [CONST.BETAS.ALL],
                     isSelfTourViewed: false,
-                    userBillingGraceEndPeriods: undefined,
+                    userBillingGracePeriodEnds: undefined,
                     amountOwed: 0,
                 });
             }
@@ -15603,7 +15603,7 @@ describe('actions/IOU', () => {
                 isASAPSubmitBetaEnabled: false,
                 expenseReportCurrentNextStepDeprecated: undefined,
                 betas: [CONST.BETAS.ALL],
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
             });
@@ -15653,7 +15653,7 @@ describe('actions/IOU', () => {
                 isASAPSubmitBetaEnabled: false,
                 expenseReportCurrentNextStepDeprecated: undefined,
                 betas: [CONST.BETAS.ALL],
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
             });
@@ -15699,7 +15699,7 @@ describe('actions/IOU', () => {
                 isASAPSubmitBetaEnabled: false,
                 expenseReportCurrentNextStepDeprecated: undefined,
                 betas: [CONST.BETAS.ALL],
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
             });
@@ -15821,7 +15821,7 @@ describe('actions/IOU', () => {
                 isASAPSubmitBetaEnabled: false,
                 expenseReportCurrentNextStepDeprecated: undefined,
                 betas: [CONST.BETAS.ALL],
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
             });
@@ -15850,7 +15850,7 @@ describe('actions/IOU', () => {
                 isASAPSubmitBetaEnabled: false,
                 expenseReportCurrentNextStepDeprecated: undefined,
                 betas: [CONST.BETAS.ALL],
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
             });
@@ -15877,7 +15877,7 @@ describe('actions/IOU', () => {
                 isASAPSubmitBetaEnabled: false,
                 expenseReportCurrentNextStepDeprecated: undefined,
                 betas: [CONST.BETAS.ALL],
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
             });
@@ -15934,7 +15934,7 @@ describe('actions/IOU', () => {
                 isASAPSubmitBetaEnabled: false,
                 expenseReportCurrentNextStepDeprecated: undefined,
                 betas: [CONST.BETAS.ALL],
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
             });
@@ -16047,7 +16047,7 @@ describe('actions/IOU', () => {
                 isASAPSubmitBetaEnabled: false,
                 expenseReportCurrentNextStepDeprecated: undefined,
                 betas: [CONST.BETAS.ALL],
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 full: false,
                 ownerBillingGracePeriodEnd: undefined,

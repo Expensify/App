@@ -165,7 +165,7 @@ function MoneyRequestReportTransactionList({
     const currentUserDetails = useCurrentUserPersonalDetails();
     const isReportArchived = useReportIsArchived(report?.reportID);
     const shouldShowAddExpenseButton = canAddTransaction(report, isReportArchived) && isCurrentUserSubmitter(report);
-    const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const [reportLayoutGroupBy] = useOnyx(ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY);
@@ -187,13 +187,13 @@ function MoneyRequestReportTransactionList({
                 icons: expensifyIcons,
                 iouReportID: report?.reportID,
                 policy,
-                userBillingGraceEndPeriods,
+                userBillingGracePeriodEnds,
                 draftTransactionIDs,
                 amountOwed,
                 ownerBillingGracePeriodEnd,
                 lastDistanceExpenseType,
             }),
-        [translate, expensifyIcons, report?.reportID, policy, userBillingGraceEndPeriods, amountOwed, lastDistanceExpenseType, ownerBillingGracePeriodEnd, draftTransactionIDs],
+        [translate, expensifyIcons, report?.reportID, policy, userBillingGracePeriodEnds, amountOwed, lastDistanceExpenseType, ownerBillingGracePeriodEnd, draftTransactionIDs],
     );
 
     const hasPendingAction = useMemo(() => {

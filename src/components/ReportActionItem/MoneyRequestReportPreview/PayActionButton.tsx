@@ -69,7 +69,7 @@ function PayActionButton({
     const [invoiceReceiverPolicy] = useOnyx(
         `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`,
     );
-    const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReportID}`);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
@@ -110,7 +110,7 @@ function PayActionButton({
                 isASAPSubmitBetaEnabled,
                 expenseReportCurrentNextStepDeprecated: iouReportNextStep,
                 betas,
-                userBillingGraceEndPeriods,
+                userBillingGracePeriodEnds,
                 amountOwed,
                 ownerBillingGracePeriodEnd,
                 full: true,
@@ -158,7 +158,7 @@ function PayActionButton({
                     policy,
                     betas,
                     isSelfTourViewed,
-                    userBillingGraceEndPeriods,
+                    userBillingGracePeriodEnds,
                     amountOwed,
                     ownerBillingGracePeriodEnd,
                     onPaid: startAnimation,

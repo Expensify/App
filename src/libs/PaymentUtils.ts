@@ -44,7 +44,7 @@ type SelectPaymentTypeParams = {
     iouReport?: OnyxEntry<Report>;
     iouReportNextStep: OnyxEntry<ReportNextStepDeprecated>;
     betas: OnyxEntry<Beta[]>;
-    userBillingGraceEndPeriods: OnyxCollection<BillingGraceEndPeriod>;
+    userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     amountOwed: OnyxEntry<number>;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
 };
@@ -230,11 +230,11 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         iouReport,
         iouReportNextStep,
         betas,
-        userBillingGraceEndPeriods,
+        userBillingGracePeriodEnds,
         amountOwed,
         ownerBillingGracePeriodEnd,
     } = params;
-    if (policy && shouldRestrictUserBillableActions(policy.id, ownerBillingGracePeriodEnd, userBillingGraceEndPeriods, amountOwed)) {
+    if (policy && shouldRestrictUserBillableActions(policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
         return;
     }
@@ -261,7 +261,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
                 isASAPSubmitBetaEnabled,
                 expenseReportCurrentNextStepDeprecated: iouReportNextStep,
                 betas,
-                userBillingGraceEndPeriods,
+                userBillingGracePeriodEnds,
                 amountOwed,
                 ownerBillingGracePeriodEnd,
                 full: true,

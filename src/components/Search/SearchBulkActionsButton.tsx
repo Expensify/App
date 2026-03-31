@@ -44,7 +44,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     const {showLockedAccountModal} = useLockedAccountActions();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
     const activeAdminPolicies = useSortedActiveAdminPolicies();
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
@@ -138,7 +138,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                                         isDelegateAccessRestricted,
                                         showDelegateNoAccessModal,
                                         confirmPayment,
-                                        userBillingGraceEndPeriods,
+                                        userBillingGracePeriodEnds,
                                         amountOwed,
                                         ownerBillingGracePeriodEnd,
                                         setPendingPaymentAdditionalData: (data) => {
@@ -179,7 +179,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                                         isDelegateAccessRestricted,
                                         showDelegateNoAccessModal,
                                         confirmPayment,
-                                        userBillingGraceEndPeriods,
+                                        userBillingGracePeriodEnds,
                                         amountOwed,
                                         ownerBillingGracePeriodEnd,
                                         setPendingPaymentAdditionalData: (data) => {

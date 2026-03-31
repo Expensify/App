@@ -481,7 +481,7 @@ type PureReportActionItemProps = {
     reportMetadata?: OnyxEntry<OnyxTypes.ReportMetadata>;
 
     /** The billing grace end period's shared NVP collection */
-    userBillingGraceEndPeriods: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
+    userBillingGracePeriodEnds: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
 };
 
 // This is equivalent to returning a negative boolean in normal functions, but we can keep the element return type
@@ -552,7 +552,7 @@ function PureReportActionItem({
     reportNameValuePairsOrigin,
     reportNameValuePairsOriginalID,
     reportMetadata,
-    userBillingGraceEndPeriods,
+    userBillingGracePeriodEnds,
 }: PureReportActionItemProps) {
     const isConciergeGreeting = action.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID;
     const shouldDisplayContextMenuValue = shouldDisplayContextMenu && !isConciergeGreeting;
@@ -965,7 +965,7 @@ function PureReportActionItem({
                             introSelected,
                             draftTransactionIDs,
                             activePolicy,
-                            userBillingGraceEndPeriods,
+                            userBillingGracePeriodEnds,
                             amountOwed,
                             ownerBillingGracePeriodEnd,
                             isRestrictedToPreferredPolicy,
@@ -989,7 +989,7 @@ function PureReportActionItem({
                                 introSelected,
                                 draftTransactionIDs,
                                 activePolicy,
-                                userBillingGraceEndPeriods,
+                                userBillingGracePeriodEnds,
                                 amountOwed,
                                 ownerBillingGracePeriodEnd,
                                 transaction: trackExpenseTransaction,
@@ -1007,7 +1007,7 @@ function PureReportActionItem({
                                 introSelected,
                                 draftTransactionIDs,
                                 activePolicy,
-                                userBillingGraceEndPeriods,
+                                userBillingGracePeriodEnds,
                                 amountOwed,
                                 ownerBillingGracePeriodEnd,
                                 transaction: trackExpenseTransaction,
@@ -1156,7 +1156,7 @@ function PureReportActionItem({
         report,
         originalReport,
         personalPolicyID,
-        userBillingGraceEndPeriods,
+        userBillingGracePeriodEnds,
         amountOwed,
         ownerBillingGracePeriodEnd,
         trackExpenseTransaction,
