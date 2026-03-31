@@ -1,5 +1,5 @@
 import React, {memo, useCallback, useContext, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import Animated, {FadeIn, LayoutAnimationConfig, useSharedValue} from 'react-native-reanimated';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -331,7 +331,7 @@ function AttachmentModalBaseContent({
             />
             <View style={[styles.imageModalImageCenterContainer, attachmentViewContainerStyles]}>
                 {isLoading && (
-                    <View style={[styles.fullScreenLoading]}>
+                    <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
                         <ActivityIndicator
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                             testID="attachment-loading-spinner"

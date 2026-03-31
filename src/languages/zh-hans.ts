@@ -1106,6 +1106,7 @@ const translations: TranslationDeepObject<typeof en> = {
         flash: '闪光',
         multiScan: '多重扫描',
         shutter: '快门',
+        flipCamera: '切换摄像头',
         gallery: '图库',
         deleteReceipt: '删除收据',
         deleteConfirmation: '确定要删除这张收据吗？',
@@ -1509,6 +1510,18 @@ const translations: TranslationDeepObject<typeof en> = {
                 markedAsResolved: '已将拒绝原因标记为已解决',
             },
         },
+        rejectReport: {
+            title: '拒绝报表',
+            description: '请说明你为何不会批准此报告：',
+            rejectReason: '拒绝原因',
+            selectTarget: '选择要将此报表退回给哪位成员以供审核：',
+            lastApprover: '最后审批人',
+            submitter: '提交人',
+            rejectedReportMessage: '此报告已被拒绝。',
+            rejectedNextStep: '此报表已被拒绝。等待你修复问题并手动重新提交。',
+            selectMemberError: '选择一位成员将此报表退回给 TA。',
+            couldNotReject: '无法拒绝该报表。请重试。',
+        },
         moveExpenses: '移动到报告',
         moveExpensesError: '您无法将每日津贴报销移动到其他工作区的报表中，因为不同工作区的每日津贴标准可能不同。',
         changeApprover: {
@@ -1642,18 +1655,18 @@ const translations: TranslationDeepObject<typeof en> = {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `正在等待<strong>你</strong>提交报销。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `正在等待 <strong>${actor}</strong> 提交报销。`;
+                        return `正在等待<strong>${actor}</strong>提交报销。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `正在等待管理员提交报销。`;
                 }
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_: NextStepParams) => `无需采取进一步操作！`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_: NextStepParams) => `无需执行其他操作！`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `正在等待<strong>你</strong>添加银行账户。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `正在等待<strong>${actor}</strong>添加银行账户。`;
+                        return `正在等待 <strong>${actor}</strong> 添加银行账户。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `正在等待管理员添加银行账户。`;
                 }
@@ -1661,13 +1674,13 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: ({actor, actorType, eta, etaType}: NextStepParams) => {
                 let formattedETA = '';
                 if (eta) {
-                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` 在每个月的第 ${eta} 天` : ` ${eta}`;
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `在每个月的 ${eta} 日` : ` ${eta}`;
                 }
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `正在等待<strong>你的</strong>报销自动提交${formattedETA}。`;
+                        return `正在等待<strong>你的</strong>报销费用自动提交${formattedETA}。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `正在等待<strong>${actor}</strong>的报销在${formattedETA}自动提交。`;
+                        return `正在等待<strong>${actor}</strong>的报销费用在${formattedETA}自动提交。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `正在等待管理员的报销在${formattedETA}自动提交。`;
                 }
@@ -1675,9 +1688,9 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES]: ({actor, actorType}: NextStepParams) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `正在等待<strong>你</strong>来修复这些问题。`;
+                        return `正在等待<strong>你</strong>来解决这些问题。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `正在等待<strong>${actor}</strong>修复这些问题。`;
+                        return `正在等待 <strong>${actor}</strong> 解决这些问题。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `正在等待管理员修复这些问题。`;
                 }
@@ -1685,9 +1698,9 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: ({actor, actorType}: NextStepParams) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `正在等待<strong>你</strong>批准报销。`;
+                        return `正在等待<strong>你</strong>审批报销。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `正在等待 <strong>${actor}</strong> 批准报销。`;
+                        return `正在等待<strong>${actor}</strong>审批报销。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `正在等待管理员批准报销。`;
                 }
@@ -1695,9 +1708,9 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: ({actor, actorType}: NextStepParams) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `正在等待<strong>您</strong>导出此报表。`;
+                        return `正在等待<strong>你</strong>导出此报表。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `正在等待<strong>${actor}</strong>导出此报表。`;
+                        return `正在等待 <strong>${actor}</strong> 导出此报告。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `正在等待管理员导出此报表。`;
                 }
@@ -1707,7 +1720,7 @@ const translations: TranslationDeepObject<typeof en> = {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `正在等待<strong>你</strong>报销费用。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `正在等待 <strong>${actor}</strong> 支付报销费用。`;
+                        return `正在等待<strong>${actor}</strong>支付报销费用。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `正在等待管理员报销费用。`;
                 }
@@ -1715,7 +1728,7 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `等待<strong>你</strong>完成企业银行账户的设置。`;
+                        return `正在等待<strong>你</strong>完成设置企业银行账户。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `正在等待<strong>${actor}</strong>完成企业银行账户的设置。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
@@ -1725,12 +1738,22 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: ({eta, etaType}: NextStepParams) => {
                 let formattedETA = '';
                 if (eta) {
-                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` 在 ${eta} 前` : ` ${eta}`;
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `于 ${eta} 前` : ` ${eta}`;
                 }
                 return `正在等待付款完成${formattedETA}。`;
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (_: NextStepParams) =>
-                `哎呀！看起来你正在将报销单提交给<strong>自己</strong>。根据你的工作区规定，审批自己的报销单是<strong>禁止的</strong>。请将此报销单提交给其他人，或联系管理员更改你的报销单提交对象。`,
+                `哎呀！看起来你正在将报销单提交给<strong>自己</strong>。根据你的工作区规定，审批自己的报销单是<strong>禁止的</strong>。请将此报销单提交给其他人，或联系管理员更改你提交报销单的审批人。`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: ({actor, actorType}: NextStepParams) => {
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `此报表已被拒绝。正在等待<strong>你</strong>修复问题并手动重新提交。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `此报表已被拒绝。正在等待<strong>${actor}</strong>修复问题并手动重新提交。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `该报表已被拒绝。正在等待管理员修复问题并手动重新提交。`;
+                }
+            },
         },
         eta: {
             [CONST.NEXT_STEP.ETA_KEY.SHORTLY]: '很快',
@@ -2837,13 +2860,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                         4. 找到 ${integrationName}。
                         5. 点击 *Connect*。
 
-${
-    integrationName && CONST.connectionsVideoPaths[integrationName]
-        ? `[带我去会计页面](${workspaceAccountingLink}).
-
-                        ![连接到 ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
-        : `[带我前往会计页面](${workspaceAccountingLink})。`
-}`),
+                        [带我前往会计页面](${workspaceAccountingLink})。
+                    `),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `连接[您的公司卡](${corporateCardLink})`,
@@ -3255,6 +3273,11 @@ ${
         confirmationStepHeader: '请检查您的信息。',
         confirmationStepSubHeader: '请仔细核对以下详细信息，并勾选条款复选框以确认。',
         toGetStarted: '添加个人银行账户以接收报销、支付发票或启用 Expensify 钱包。',
+        updatePersonalInfo: '更新银行账户',
+        updatePersonalInfoFailure: '无法更新银行账户信息。请稍后重试。',
+        updateSuccessTitle: '银行账户已更新！',
+        updateSuccessHeader: '银行账户已更新',
+        updateSuccessMessage: '恭喜，您的银行账户已设置完成，可以开始接收报销款了。',
     },
     addPersonalBankAccountPage: {
         enterPassword: '输入 Expensify 密码',
@@ -4861,6 +4884,9 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
         companyCards: {
             addCards: '添加卡片',
             selectCards: '选择卡片',
+            fromOtherWorkspaces: '来自其他工作区',
+            addWorkEmail: '添加您的工作邮箱',
+            addWorkEmailDescription: '请添加您的工作邮箱以使用其他工作区的现有流水。',
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: '无法加载卡片流水',
                 workspaceFeedsCouldNotBeLoadedMessage: '加载工作区卡片动态时发生错误。请重试或联系管理员。',
@@ -6957,6 +6983,14 @@ ${reportName}
             approvedReimbursedClosedSpend,
         }: UpdatedPolicyBudgetNotificationParams) =>
             `提醒！此工作区的${budgetTypeForNotificationMessage}“${budgetName}”设有${budgetFrequency}预算“${budgetAmount}”。你当前已花费${approvedReimbursedClosedSpend}，已超过预算的${thresholdPercentage}%。另外还有${awaitingApprovalSpend}在等待审批，以及${unsubmittedSpend}尚未提交，总计${totalSpend}。${summaryLink ? `<a href="${summaryLink}">这里有一份报表</a>，包含了所有相关报销记录，供你留档保存！` : ''}`,
+        addedCardFeed: (feedName: string) => `已添加卡片流水“${feedName}”`,
+        removedCardFeed: (feedName: string) => `已移除卡片流水 “${feedName}”`,
+        renamedCardFeed: (newName: string, oldName: string) => `已将卡片流水从“${oldName}”重命名为“${newName}”`,
+        assignedCompanyCard: (email: string, feedName: string, cardLastFour: string) => `已分配以 ${cardLastFour} 结尾的${feedName ? `"${feedName}"` : ''}公司卡给 ${email}`,
+        unassignedCompanyCard: (email: string, feedName: string, cardLastFour: string) => `未分配的 ${email} ${feedName ? `"${feedName}"` : ''}公司卡（末尾为 ${cardLastFour}）`,
+        updatedCardFeedLiability: (feedName: string, enabled: boolean) => `允许 ${enabled ? '已启用' : '已禁用'} 持卡人删除卡片交易（卡片流水来源：“${feedName}”）`,
+        updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
+            `已更改卡片流水“${feedName}”的账单周期截止日${newValue ? ` 为“${newValue}”` : ''}${previousValue ? ` （先前为“${previousValue}”）` : ''}`,
         addedReportField: ({fieldType, fieldName, defaultValue}: AddedOrDeletedPolicyReportFieldParams) =>
             `已添加 ${fieldType} 报告字段“${fieldName}”${defaultValue ? ` 默认值为“${defaultValue}”` : ''}`,
     },
@@ -7102,6 +7136,9 @@ ${reportName}
         topMerchants: '热门商家',
         groupedExpenses: '已分组的报销费用',
         bulkActions: {
+            editMultiple: '批量编辑',
+            editMultipleTitle: '编辑多个费用',
+            editMultipleDescription: '更改将应用于所有选定的费用，并将覆盖之前设置的任何值。',
             approve: '批准',
             pay: '支付',
             delete: '删除',

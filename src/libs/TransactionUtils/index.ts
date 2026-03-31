@@ -898,6 +898,10 @@ function getUpdatedTransaction({
         lodashSet(updatedTransaction, 'comment.odometerEnd', transactionChanges.odometerEnd);
     }
 
+    if (Object.hasOwn(transactionChanges, 'reportID')) {
+        updatedTransaction.reportID = transactionChanges.reportID;
+    }
+
     // For distance split requests, if the amount is changed, we need to update the amount and merchant based on the new distance which we calculate before and save in transactionChanges
     if (isSplitTransaction && isDistanceRequest(transaction) && transactionChanges.amount) {
         const amount = transactionChanges.amount ?? Number(transaction.modifiedAmount) ?? transaction.amount ?? 0;
