@@ -89,30 +89,54 @@ function buildSuffixFromPattern(pattern: string, params: Record<string, unknown>
  * @private - Internal helper. Do not export or use outside this file.
  */
 function popFocusedRoute(state: State): State | undefined {
-    const index = state.index ?? state.routes.length - 1;
-    const focusedRoute = state.routes[index];
+    const ancestors: Array<{state: State; index: number}> = [];
+    let current: State = state;
+    let index = current.index ?? current.routes.length - 1;
+    let focusedRoute = current.routes[index];
 
-    if (!focusedRoute) {
-        return undefined;
+    // Descend to the deepest focused route, recording each ancestor level
+    while (focusedRoute?.state) {
+        ancestors.push({state: current, index});
+        current = focusedRoute.state as State;
+        index = current.index ?? current.routes.length - 1;
+        focusedRoute = current.routes[index];
     }
 
-    if (focusedRoute.state) {
-        const nestedResult = popFocusedRoute(focusedRoute.state as State);
+    // Remove the leaf route or mark the state as empty
+    let result: State | undefined;
+    if (!focusedRoute) {
+        result = undefined;
+    } else if (current.routes.length > 1) {
+        const newRoutes = current.routes.filter((_, i) => i !== index);
+        result = {...current, routes: newRoutes, index: newRoutes.length - 1} as State;
+    } else {
+        result = undefined;
+    }
 
-        if (nestedResult) {
-            const newRoutes = [...state.routes] as typeof state.routes;
-            // @ts-expect-error -- we're rebuilding a structurally identical route with updated nested state
-            newRoutes[index] = {...focusedRoute, state: nestedResult};
-            return {...state, routes: newRoutes, index} as State;
+    // Rebuild the state tree bottom-up, propagating the removal through ancestors
+    for (let i = ancestors.length - 1; i >= 0; i--) {
+        const ancestor = ancestors.at(i);
+        if (!ancestor) {
+            continue;
+        }
+
+        const {state: ancestorState, index: ancestorIndex} = ancestor;
+        const route = ancestorState.routes[ancestorIndex];
+
+        if (result !== undefined) {
+            const newRoutes = [...ancestorState.routes] as typeof ancestorState.routes;
+            // @ts-expect-error -- rebuilding a structurally identical route with updated nested state
+            newRoutes[ancestorIndex] = {...route, state: result};
+            result = {...ancestorState, routes: newRoutes, index: ancestorIndex} as State;
+        } else if (ancestorState.routes.length > 1) {
+            const newRoutes = ancestorState.routes.filter((_, j) => j !== ancestorIndex);
+            result = {...ancestorState, routes: newRoutes, index: newRoutes.length - 1} as State;
+        } else {
+            result = undefined;
         }
     }
 
-    if (state.routes.length > 1) {
-        const newRoutes = state.routes.filter((_, i) => i !== index);
-        return {...state, routes: newRoutes, index: newRoutes.length - 1} as State;
-    }
-
-    return undefined;
+    return result;
 }
 
 /**
