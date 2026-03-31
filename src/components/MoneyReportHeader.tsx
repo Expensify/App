@@ -1577,21 +1577,25 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
     const hasApproveAction = primaryAction === CONST.REPORT.PRIMARY_ACTIONS.APPROVE || secondaryActions.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE);
     const hasPayAction = primaryAction === CONST.REPORT.PRIMARY_ACTIONS.PAY || secondaryActions.includes(CONST.REPORT.SECONDARY_ACTIONS.PAY);
 
-    const checkForNecessaryAction = useCallback(() => {
-        if (isDelegateAccessRestricted) {
-            showDelegateNoAccessModal();
-            return true;
-        }
-        if (isAccountLocked) {
-            showLockedAccountModal();
-            return true;
-        }
-        if (!isUserValidated) {
-            handleUnvalidatedAccount(moneyRequestReport);
-            return true;
-        }
-        return false;
-    }, [isDelegateAccessRestricted, showDelegateNoAccessModal, isAccountLocked, showLockedAccountModal, isUserValidated, moneyRequestReport]);
+    const checkForNecessaryAction = useCallback(
+        (paymentMethodType?: PaymentMethodType) => {
+            if (isDelegateAccessRestricted) {
+                showDelegateNoAccessModal();
+                return true;
+            }
+            if (isAccountLocked) {
+                showLockedAccountModal();
+                return true;
+            }
+            if (!isUserValidated && paymentMethodType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+                handleUnvalidatedAccount(moneyRequestReport);
+                return true;
+            }
+
+            return false;
+        },
+        [isDelegateAccessRestricted, showDelegateNoAccessModal, isAccountLocked, showLockedAccountModal, isUserValidated, moneyRequestReport],
+    );
 
     const selectionModeReportLevelActions = useMemo(() => {
         if (isProduction) {
@@ -2333,7 +2337,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         (fromSelectionMode: boolean) => (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
             if (fromSelectionMode) {
                 isSelectionModePaymentRef.current = true;
-                if (checkForNecessaryAction()) {
+                if (checkForNecessaryAction(iouPaymentType)) {
                     return;
                 }
             }
