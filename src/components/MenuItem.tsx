@@ -1141,6 +1141,7 @@ function MenuItem({
                                             ]}
                                             ref={mergeRefs(ref, popoverAnchor)}
                                             role={CONST.ROLE.PRESENTATION}
+                                            testID={pressableTestID}
                                         >
                                             {renderItemContent(false)}
                                         </View>
