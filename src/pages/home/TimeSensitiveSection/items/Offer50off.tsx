@@ -17,7 +17,7 @@ type Offer50offProps = {
 function Offer50off({firstDayFreeTrial}: Offer50offProps) {
     const theme = useTheme();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['TreasureChest'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['TreasureChest']);
 
     const [discountInfo, setDiscountInfo] = useState(() => getEarlyDiscountInfo(firstDayFreeTrial));
 
