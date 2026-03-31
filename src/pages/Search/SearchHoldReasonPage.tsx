@@ -23,7 +23,7 @@ type SearchHoldReasonPageProps =
     | PlatformStackScreenProps<SearchReportActionsParamList, typeof SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP>;
 
 function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {backTo = '', reportID} = route.params ?? {};
     const {selectedTransactionIDs, selectedTransactions} = useSearchStateContext();
     const {clearSelectedTransactions} = useSearchActionsContext();
@@ -44,20 +44,31 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
                 return;
             }
             if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS) {
-                putTransactionsOnHold(selectedTransactionIDs, comment, reportID, isOffline, ancestors);
+                putTransactionsOnHold(formatPhoneNumber, selectedTransactionIDs, comment, reportID, isOffline, ancestors);
                 clearSelectedTransactions(true);
             } else {
                 const transactionIDs = Object.keys(selectedTransactions);
                 for (const transactionID of transactionIDs) {
                     const transactionThreadReportID = selectedTransactions[transactionID].reportAction?.childReportID;
-                    putOnHold(transactionID, comment, transactionThreadReportID, isOffline, ancestors);
+                    putOnHold(formatPhoneNumber, transactionID, comment, transactionThreadReportID, isOffline, ancestors);
                 }
                 clearSelectedTransactions();
             }
 
             Navigation.goBack();
         },
-        [route.name, selectedTransactionIDs, selectedTransactions, clearSelectedTransactions, reportID, ancestors, isOffline, isDelegateAccessRestricted, showDelegateNoAccessModal],
+        [
+            route.name,
+            selectedTransactionIDs,
+            selectedTransactions,
+            clearSelectedTransactions,
+            reportID,
+            ancestors,
+            isOffline,
+            isDelegateAccessRestricted,
+            showDelegateNoAccessModal,
+            formatPhoneNumber,
+        ],
     );
 
     const validate = useCallback(

@@ -36,7 +36,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 type ConfirmationPageProps = PlatformStackScreenProps<MergeTransactionNavigatorParamList, typeof SCREENS.MERGE_TRANSACTION.CONFIRMATION_PAGE>;
 
 function ConfirmationPage({route}: ConfirmationPageProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const [isMergingExpenses, setIsMergingExpenses] = useState(false);
 
@@ -87,6 +87,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
             currentUserEmailParam,
             isASAPSubmitBetaEnabled,
             selfDMReport,
+            formatPhoneNumber,
         });
 
         const reportIDToDismiss = reportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? reportID : undefined;

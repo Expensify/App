@@ -245,10 +245,28 @@ function IOURequestStepAmount({
                 });
                 if (iouType === CONST.IOU.TYPE.PAY || iouType === CONST.IOU.TYPE.SEND) {
                     if (paymentMethod && paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-                        sendMoneyWithWallet(report, quickAction, backendAmount, selectedCurrency, '', currentUserAccountIDParam, participants.at(0) ?? {});
+                        sendMoneyWithWallet({
+                            formatPhoneNumber,
+                            report,
+                            quickAction,
+                            amount: backendAmount,
+                            currency: selectedCurrency,
+                            comment: '',
+                            currentUserAccountID: currentUserAccountIDParam,
+                            recipient: participants.at(0) ?? {},
+                        });
                         return;
                     }
-                    sendMoneyElsewhere(report, quickAction, backendAmount, selectedCurrency, '', currentUserAccountIDParam, participants.at(0) ?? {});
+                    sendMoneyElsewhere({
+                        formatPhoneNumber,
+                        report,
+                        quickAction,
+                        amount: backendAmount,
+                        currency: selectedCurrency,
+                        comment: '',
+                        currentUserAccountID: currentUserAccountIDParam,
+                        recipient: participants.at(0) ?? {},
+                    });
                     return;
                 }
                 if (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.REQUEST) {

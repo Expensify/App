@@ -127,7 +127,7 @@ function useSelectedTransactionsActions({
 
     const hasTransactionsFromMultipleOwners = hasUnknownOwner ? knownOwnerIDs.size > 0 || selectedTransactionIDs.length > 1 : knownOwnerIDs.size > 1;
 
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -245,7 +245,7 @@ function useSelectedTransactionsActions({
                         if (!action?.childReportID) {
                             continue;
                         }
-                        unholdRequest(transactionID, action?.childReportID, policy);
+                        unholdRequest(formatPhoneNumber, transactionID, action?.childReportID, policy);
                     }
                     clearSelectedTransactions(true);
                 },

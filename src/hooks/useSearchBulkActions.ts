@@ -1062,6 +1062,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             continue;
                         }
                         unholdRequest(
+                            formatPhoneNumber,
                             transactionID,
                             selectedTransactions[transactionID].reportAction?.childReportID,
                             policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedTransactions[transactionID].policyID}`],
@@ -1242,6 +1243,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         userBillingGraceEndPeriods,
         ownerBillingGraceEndPeriod,
         currentSearchKey,
+        formatPhoneNumber,
     ]);
 
     const handleOfflineModalClose = useCallback(() => {

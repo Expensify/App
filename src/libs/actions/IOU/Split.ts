@@ -97,6 +97,7 @@ import type {BuildOnyxDataForMoneyRequestKeys, MoneyRequestInformationParams, On
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
 type UpdateSplitTransactionsParams = {
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     allTransactionsList: OnyxCollection<OnyxTypes.Transaction>;
     allReportsList: OnyxCollection<OnyxTypes.Report>;
     allReportNameValuePairsList: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
@@ -162,6 +163,7 @@ type SplitBillActionsParams = {
  * @param existingSplitChatReportID - Either a group DM or a expense chat
  */
 function splitBill({
+    formatPhoneNumber,
     participants,
     currentUserLogin,
     currentUserAccountID,
@@ -191,6 +193,7 @@ function splitBill({
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
+        formatPhoneNumber,
         participants,
         currentUserLogin,
         currentUserAccountID,
@@ -257,6 +260,7 @@ function splitBill({
  * @param amount - always in the smallest currency unit
  */
 function splitBillAndOpenReport({
+    formatPhoneNumber,
     participants,
     currentUserLogin,
     currentUserAccountID,
@@ -286,6 +290,7 @@ function splitBillAndOpenReport({
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
+        formatPhoneNumber,
         participants,
         currentUserLogin,
         currentUserAccountID,
@@ -412,6 +417,7 @@ function startSplitBill({
         participants,
         transactionID: splitTransaction.transactionID,
         isOwnPolicyExpenseChat,
+        formatPhoneNumber,
     });
 
     splitChatReport.lastReadTime = DateUtils.getDBTime();
@@ -738,6 +744,7 @@ function startSplitBill({
  * @param sessionEmail - email of the current user
  */
 function completeSplitBill(
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     chatReportID: string,
     reportAction: OnyxEntry<OnyxTypes.ReportAction>,
     updatedTransaction: OnyxEntry<OnyxTypes.Transaction>,
@@ -930,6 +937,7 @@ function completeSplitBill(
 
         const [oneOnOneCreatedActionForChat, oneOnOneCreatedActionForIOU, oneOnOneIOUAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =
             buildOptimisticMoneyRequestEntities({
+                formatPhoneNumber,
                 iouReport: oneOnOneIOUReport,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 amount: splitAmount,
@@ -942,9 +950,9 @@ function completeSplitBill(
 
         let oneOnOneReportPreviewAction = getReportPreviewAction(oneOnOneChatReport?.reportID, oneOnOneIOUReport?.reportID);
         if (oneOnOneReportPreviewAction) {
-            oneOnOneReportPreviewAction = updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction);
+            oneOnOneReportPreviewAction = updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction, formatPhoneNumber);
         } else {
-            oneOnOneReportPreviewAction = buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport, '', oneOnOneTransaction);
+            oneOnOneReportPreviewAction = buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport, formatPhoneNumber, '', oneOnOneTransaction);
         }
         const hasViolations = hasViolationsReportUtils(oneOnOneIOUReport.reportID, transactionViolations, sessionAccountID, sessionEmail ?? '');
 
@@ -953,6 +961,7 @@ function completeSplitBill(
             successData: oneOnOneSuccessData = [],
             failureData: oneOnOneFailureData = [],
         } = buildOnyxDataForMoneyRequest({
+            formatPhoneNumber,
             isNewChatReport: isNewOneOnOneChatReport,
             isOneOnOneSplit: true,
             shouldCreateNewMoneyRequestReport: shouldCreateNewOneOnOneIOUReport,
@@ -1042,6 +1051,7 @@ function completeSplitBill(
 }
 
 function updateSplitTransactions({
+    formatPhoneNumber,
     allTransactionsList,
     allReportsList,
     allReportNameValuePairsList,
@@ -1169,6 +1179,7 @@ function updateSplitTransactions({
         const splitExpenseMerchant = splitExpense.merchant ?? '';
 
         const requestMoneyInformation = {
+            formatPhoneNumber,
             participantParams: {
                 participant: participants.at(0) ?? ({} as Participant),
                 payeeEmail: currentUserPersonalDetails?.login ?? '',
@@ -1254,6 +1265,7 @@ function updateSplitTransactions({
             onyxData: moneyRequestInformationOnyxData,
             iouAction,
         } = getMoneyRequestInformation({
+            formatPhoneNumber,
             participantParams,
             parentChatReport,
             policyParams,
@@ -1325,6 +1337,7 @@ function updateSplitTransactions({
                 const transactionThreadReport = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${isReverseSplitOperation ? splitExpense?.reportID : transactionThreadReportID}`];
                 const transactionIOUReport = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${splitExpense?.reportID ?? transactionThreadReport?.parentReportID}`];
                 const {onyxData: moneyRequestParamsOnyxData, params} = getUpdateMoneyRequestParams({
+                    formatPhoneNumber,
                     transactionID: existingTransactionID,
                     transactionThreadReport,
                     iouReport: transactionIOUReport,

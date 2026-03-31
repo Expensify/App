@@ -1608,7 +1608,12 @@ function getTotalFormattedAmount(selectedReports: SelectedReports[], selectedTra
  *
  * Note: we don't create anything new, we just optimistically generate the data that we know will be returned by API.
  */
-function setOptimisticDataForTransactionThreadPreview(item: TransactionListItemType, transactionPreviewData: TransactionPreviewData, IOUTransactionID?: string) {
+function setOptimisticDataForTransactionThreadPreview(
+    item: TransactionListItemType,
+    transactionPreviewData: TransactionPreviewData,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    IOUTransactionID?: string,
+) {
     const {reportID, report, amount, currency, transactionID, created, policyID, from} = item;
     const moneyRequestReportActionID = item?.reportAction?.reportActionID;
     const {hasParentReport, hasParentReportAction, hasTransaction, hasTransactionThreadReport} = transactionPreviewData;
@@ -1637,6 +1642,7 @@ function setOptimisticDataForTransactionThreadPreview(item: TransactionListItemT
             created,
             reportActionID: moneyRequestReportActionID,
             linkedExpenseReportAction: {childReportID: IOUTransactionID} as ReportAction,
+            formatPhoneNumber,
         });
         optimisticIOUAction.pendingAction = undefined;
         optimisticIOUAction.actorAccountID = from?.accountID;

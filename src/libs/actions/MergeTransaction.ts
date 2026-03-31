@@ -195,6 +195,7 @@ function getTransactionsForMerging({
 }
 
 function getOnyxTargetTransactionData({
+    formatPhoneNumber,
     targetTransaction,
     targetTransactionViolations,
     mergeTransaction,
@@ -208,6 +209,7 @@ function getOnyxTargetTransactionData({
     currentUserEmailParam,
     isASAPSubmitBetaEnabled,
 }: {
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     targetTransaction: Transaction;
     targetTransactionViolations: OnyxEntry<TransactionViolations>;
     mergeTransaction: MergeTransaction;
@@ -250,6 +252,7 @@ function getOnyxTargetTransactionData({
         );
     } else {
         data = getUpdateMoneyRequestParams({
+            formatPhoneNumber,
             transactionID: targetTransaction.transactionID,
             transactionThreadReport: targetTransactionThreadReport,
             iouReport: targetTransactionThreadParentReport,
@@ -297,6 +300,7 @@ function getOnyxTargetTransactionData({
 }
 
 type MergeTransactionRequestParams = {
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     mergeTransactionID: string;
     mergeTransaction: MergeTransaction;
     targetTransaction: Transaction;
@@ -317,6 +321,7 @@ type MergeTransactionRequestParams = {
  * Merges two transactions by updating the target transaction with selected fields and deleting the source transaction
  */
 function mergeTransactionRequest({
+    formatPhoneNumber,
     mergeTransactionID,
     mergeTransaction,
     targetTransaction,
@@ -364,6 +369,7 @@ function mergeTransactionRequest({
     };
 
     const onyxTargetTransactionData = getOnyxTargetTransactionData({
+        formatPhoneNumber,
         targetTransaction,
         targetTransactionViolations: allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + targetTransaction.transactionID] ?? [],
         mergeTransaction,

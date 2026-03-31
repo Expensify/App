@@ -2,7 +2,7 @@ import {format} from 'date-fns';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {PartialDeep} from 'type-fest';
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import * as API from '@libs/API';
 import type {MergeDuplicatesParams, ResolveDuplicatesParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -635,6 +635,7 @@ function createExpenseByType({
 }
 
 type DuplicateExpenseTransactionParams = {
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     transaction: OnyxEntry<OnyxTypes.Transaction>;
     optimisticChatReportID: string;
     optimisticIOUReportID: string;
@@ -657,6 +658,7 @@ type DuplicateExpenseTransactionParams = {
 };
 
 function duplicateExpenseTransaction({
+    formatPhoneNumber,
     transaction,
     optimisticChatReportID,
     optimisticIOUReportID,
@@ -689,6 +691,7 @@ function duplicateExpenseTransaction({
     const {transactionParams, waypoints} = buildDuplicateTransactionParams(transaction, transactionDetails);
 
     const params: RequestMoneyInformation = {
+        formatPhoneNumber,
         report: targetReport,
         optimisticChatReportID,
         optimisticCreatedReportActionID: NumberUtils.rand64(),
@@ -777,6 +780,7 @@ function duplicateExpenseTransaction({
 }
 
 type DuplicateReportParams = {
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     sourceReport: OnyxEntry<OnyxTypes.Report>;
     sourceReportTransactions: OnyxTypes.Transaction[];
     sourceReportName: string;
@@ -798,6 +802,7 @@ type DuplicateReportParams = {
 };
 
 function duplicateReport({
+    formatPhoneNumber,
     sourceReport,
     sourceReportTransactions,
     sourceReportName,
@@ -875,6 +880,7 @@ function duplicateReport({
         const {transactionParams, waypoints} = buildDuplicateTransactionParams(transaction, transactionDetails);
 
         const params: RequestMoneyInformation = {
+            formatPhoneNumber,
             report: parentChatReport,
             existingIOUReport: currentIOUReport,
             optimisticReportPreviewActionID: reportPreviewReportActionID,

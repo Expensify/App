@@ -679,7 +679,7 @@ function getSendInvoiceInformation({
     }
 
     // STEP 5: Build optimistic reportActions.
-    const reportPreviewAction = buildOptimisticReportPreview(chatReport, optimisticInvoiceReport, trimmedComment, optimisticTransaction);
+    const reportPreviewAction = buildOptimisticReportPreview(chatReport, optimisticInvoiceReport, formatPhoneNumber, trimmedComment, optimisticTransaction);
     optimisticInvoiceReport.parentReportActionID = reportPreviewAction.reportActionID;
     chatReport.lastVisibleActionCreated = reportPreviewAction.created;
     const [optimisticCreatedActionForChat, optimisticCreatedActionForIOUReport, iouAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =
@@ -692,6 +692,7 @@ function getSendInvoiceInformation({
             payeeEmail: receiver.login ?? '',
             participants: [receiver],
             transactionID: optimisticTransaction.transactionID,
+            formatPhoneNumber,
         });
 
     // STEP 6: Build Onyx Data

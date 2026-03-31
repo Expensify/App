@@ -1,4 +1,5 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
@@ -55,6 +56,7 @@ import {
 import {resetSplitShares, startSplitBill} from './Split';
 
 type CreateTransactionParams = {
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     transactions: Transaction[];
     iouType: string;
     report: OnyxEntry<Report>;
@@ -180,6 +182,7 @@ type MoneyRequestStepDistanceNavigationParams = {
 };
 
 function createTransaction({
+    formatPhoneNumber,
     transactions,
     iouType,
     report,
@@ -214,6 +217,7 @@ function createTransaction({
         receipt.state = CONST.IOU.RECEIPT_STATE.SCAN_READY;
         if (iouType === CONST.IOU.TYPE.TRACK && report) {
             trackExpense({
+                formatPhoneNumber,
                 report,
                 isDraftPolicy: false,
                 participantParams: {
@@ -248,6 +252,7 @@ function createTransaction({
             const existingTransactionDraft = existingTransactionID ? allTransactionDrafts?.[existingTransactionID] : undefined;
 
             requestMoney({
+                formatPhoneNumber,
                 report,
                 betas,
                 participantParams: {
@@ -429,6 +434,7 @@ function handleMoneyRequestStepScanParticipants({
                             long: successData.coords.longitude,
                         };
                         createTransaction({
+                            formatPhoneNumber,
                             transactions,
                             iouType,
                             report,
@@ -459,6 +465,7 @@ function handleMoneyRequestStepScanParticipants({
                         Log.info('[IOURequestStepScan] getCurrentPosition failed', false, errorData);
                         // When there is an error, the money can still be requested, it just won't include the GPS coordinates
                         createTransaction({
+                            formatPhoneNumber,
                             transactions,
                             iouType,
                             report,
@@ -486,6 +493,7 @@ function handleMoneyRequestStepScanParticipants({
                 return;
             }
             createTransaction({
+                formatPhoneNumber,
                 transactions,
                 iouType,
                 report,
@@ -666,6 +674,7 @@ function handleMoneyRequestStepDistanceNavigation({
             setMoneyRequestMerchant(transactionID, merchant, false);
             if (isCreatingTrackExpense && participant) {
                 trackExpense({
+                    formatPhoneNumber,
                     report,
                     isDraftPolicy: false,
                     participantParams: {
@@ -707,6 +716,7 @@ function handleMoneyRequestStepDistanceNavigation({
             }
 
             createDistanceRequest({
+                formatPhoneNumber,
                 report,
                 participants,
                 currentUserLogin,

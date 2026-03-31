@@ -2,6 +2,7 @@ import {Str} from 'expensify-common';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {PaymentMethodType} from '@components/KYCWall/types';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as API from '@libs/API';
 import type {SendMoneyParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -61,6 +62,7 @@ type SendMoneyParamsData = {
  * @param recipient - The user receiving the money
  */
 function getSendMoneyParams({
+    formatPhoneNumber,
     report,
     quickAction,
     amount,
@@ -73,6 +75,7 @@ function getSendMoneyParams({
     merchant,
     receipt,
 }: {
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     report: OnyxEntry<OnyxTypes.Report>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     amount: number;
@@ -138,9 +141,10 @@ function getSendMoneyParams({
             transactionID: optimisticTransaction.transactionID,
             paymentType: paymentMethodType,
             isSendMoneyFlow: true,
+            formatPhoneNumber,
         });
 
-    const reportPreviewAction = buildOptimisticReportPreview(chatReport, optimisticIOUReport);
+    const reportPreviewAction = buildOptimisticReportPreview(chatReport, optimisticIOUReport, formatPhoneNumber);
 
     // Change the method to set for new reports because it doesn't exist yet, is faster,
     // and we need the data to be available when we navigate to the chat page
@@ -479,19 +483,33 @@ function getSendMoneyParams({
  * @param currentUserAccountID - Account ID of the person sending the money
  * @param recipient - The user receiving the money
  */
-function sendMoneyElsewhere(
-    report: OnyxEntry<OnyxTypes.Report>,
-    quickAction: OnyxEntry<OnyxTypes.QuickAction>,
-    amount: number,
-    currency: string,
-    comment: string,
-    currentUserAccountID: number,
-    recipient: Participant,
-    created?: string,
-    merchant?: string,
-    receipt?: Receipt,
-) {
+function sendMoneyElsewhere({
+    formatPhoneNumber,
+    report,
+    quickAction,
+    amount,
+    currency,
+    comment,
+    currentUserAccountID,
+    recipient,
+    created,
+    merchant,
+    receipt,
+}: {
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    report: OnyxEntry<OnyxTypes.Report>;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+    amount: number;
+    currency: string;
+    comment: string;
+    currentUserAccountID: number;
+    recipient: Participant;
+    created?: string;
+    merchant?: string;
+    receipt?: Receipt;
+}) {
     const {params, optimisticData, successData, failureData} = getSendMoneyParams({
+        formatPhoneNumber,
         report,
         quickAction,
         amount,
@@ -526,19 +544,33 @@ function sendMoneyElsewhere(
  * @param currentUserAccountID - Account ID of the person sending the money
  * @param recipient - The user receiving the money
  */
-function sendMoneyWithWallet(
-    report: OnyxEntry<OnyxTypes.Report>,
-    quickAction: OnyxEntry<OnyxTypes.QuickAction>,
-    amount: number,
-    currency: string,
-    comment: string,
-    currentUserAccountID: number,
-    recipient: Participant | OptionData,
-    created?: string,
-    merchant?: string,
-    receipt?: Receipt,
-) {
+function sendMoneyWithWallet({
+    formatPhoneNumber,
+    report,
+    quickAction,
+    amount,
+    currency,
+    comment,
+    currentUserAccountID,
+    recipient,
+    created,
+    merchant,
+    receipt,
+}: {
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    report: OnyxEntry<OnyxTypes.Report>;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+    amount: number;
+    currency: string;
+    comment: string;
+    currentUserAccountID: number;
+    recipient: Participant | OptionData;
+    created?: string;
+    merchant?: string;
+    receipt?: Receipt;
+}) {
     const {params, optimisticData, successData, failureData} = getSendMoneyParams({
+        formatPhoneNumber,
         report,
         quickAction,
         amount,

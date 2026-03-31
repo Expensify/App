@@ -983,6 +983,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                 const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
 
                 duplicateTransactionAction({
+                    formatPhoneNumber,
                     transaction: item,
                     optimisticChatReportID,
                     optimisticIOUReportID,
@@ -1022,6 +1023,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
             personalDetails,
             recentWaypoints,
             targetPolicyTags,
+            formatPhoneNumber,
         ],
     );
 
@@ -1137,7 +1139,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         setIsHoldEducationalModalVisible(false);
         setNameValuePair(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, true, false, !shouldFailAllRequests);
         if (requestParentReportAction) {
-            changeMoneyRequestHoldStatus(requestParentReportAction, transaction);
+            changeMoneyRequestHoldStatus(formatPhoneNumber, requestParentReportAction, transaction);
         }
     };
 
@@ -1145,7 +1147,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD) {
             dismissRejectUseExplanation();
             if (requestParentReportAction) {
-                changeMoneyRequestHoldStatus(requestParentReportAction, transaction);
+                changeMoneyRequestHoldStatus(formatPhoneNumber, requestParentReportAction, transaction);
             }
         } else if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK) {
             dismissRejectUseExplanation();
@@ -1469,7 +1471,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
 
                     if (IOUActions.length) {
                         for (const action of IOUActions) {
-                            changeMoneyRequestHoldStatus(action, getLinkedIOUTransaction(action, transactions));
+                            changeMoneyRequestHoldStatus(formatPhoneNumber, action, getLinkedIOUTransaction(action, transactions));
                         }
                         return;
                     }
@@ -1478,7 +1480,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                     if (!moneyRequestAction) {
                         return;
                     }
-                    changeMoneyRequestHoldStatus(moneyRequestAction, getLinkedIOUTransaction(moneyRequestAction, transactions));
+                    changeMoneyRequestHoldStatus(formatPhoneNumber, moneyRequestAction, getLinkedIOUTransaction(moneyRequestAction, transactions));
                 }}
             />
         ),
@@ -1839,7 +1841,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                 const isDismissed = isReportSubmitter ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
 
                 if (isDismissed || isChatReportDM) {
-                    changeMoneyRequestHoldStatus(requestParentReportAction, transaction);
+                    changeMoneyRequestHoldStatus(formatPhoneNumber, requestParentReportAction, transaction);
                 } else if (isReportSubmitter) {
                     setIsHoldEducationalModalVisible(true);
                 } else {
@@ -1862,7 +1864,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                     return;
                 }
 
-                changeMoneyRequestHoldStatus(requestParentReportAction, transaction);
+                changeMoneyRequestHoldStatus(formatPhoneNumber, requestParentReportAction, transaction);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.SPLIT]: {
@@ -1946,6 +1948,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
                     duplicateReportAction({
+                        formatPhoneNumber,
                         sourceReport: moneyRequestReport,
                         sourceReportTransactions: nonPendingDeleteTransactions,
                         sourceReportName: moneyRequestReport?.reportName ?? '',

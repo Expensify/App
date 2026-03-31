@@ -876,6 +876,7 @@ function IOURequestStepConfirmation({
             }
             if (iouType === CONST.IOU.TYPE.TRACK) {
                 submitPerDiemExpenseForSelfDM({
+                    formatPhoneNumber,
                     selfDMReport,
                     policy,
                     transactionParams: {
@@ -1485,35 +1486,37 @@ function IOURequestStepConfirmation({
 
             if (paymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
                 setIsConfirmed(true);
-                sendMoneyElsewhere(
+                sendMoneyElsewhere({
+                    formatPhoneNumber,
                     report,
                     quickAction,
-                    transaction.amount,
+                    amount: transaction.amount,
                     currency,
-                    trimmedComment,
-                    currentUserPersonalDetails.accountID,
-                    participant,
-                    transaction.created,
-                    transaction.merchant,
-                    receiptFiles[transaction.transactionID],
-                );
+                    comment: trimmedComment,
+                    currentUserAccountID: currentUserPersonalDetails.accountID,
+                    recipient: participant,
+                    created: transaction.created,
+                    merchant: transaction.merchant,
+                    receipt: receiptFiles[transaction.transactionID],
+                });
                 return;
             }
 
             if (paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
                 setIsConfirmed(true);
-                sendMoneyWithWallet(
+                sendMoneyWithWallet({
+                    formatPhoneNumber,
                     report,
                     quickAction,
-                    transaction.amount,
+                    amount: transaction.amount,
                     currency,
-                    trimmedComment,
-                    currentUserPersonalDetails.accountID,
-                    participant,
-                    transaction.created,
-                    transaction.merchant,
-                    receiptFiles[transaction.transactionID],
-                );
+                    comment: trimmedComment,
+                    currentUserAccountID: currentUserPersonalDetails.accountID,
+                    recipient: participant,
+                    created: transaction.created,
+                    merchant: transaction.merchant,
+                    receipt: receiptFiles[transaction.transactionID],
+                });
             }
         },
         [
@@ -1528,6 +1531,7 @@ function IOURequestStepConfirmation({
             currentUserPersonalDetails.accountID,
             receiptFiles,
             quickAction,
+            formatPhoneNumber,
         ],
     );
 
