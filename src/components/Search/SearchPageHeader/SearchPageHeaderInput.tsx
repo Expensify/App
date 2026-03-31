@@ -233,9 +233,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                         const filterKey = item.mapKey.split(':').at(0) as SearchFilterKey | undefined;
                         const parsedNewQuery = parse(newSearchQuery) as {ranges: SearchAutocompleteQueryRange[]};
                         const repeatedRangesCount = parsedNewQuery.ranges.filter((range) => range.key === filterKey && range.value === item.searchQuery).length;
-                        const substitutionMapKey = filterKey
-                            ? getSubstitutionMapKeyWithIndex(filterKey, item.searchQuery, Math.max(0, repeatedRangesCount - 1))
-                            : item.mapKey;
+                        const substitutionMapKey = filterKey ? getSubstitutionMapKeyWithIndex(filterKey, item.searchQuery, Math.max(0, repeatedRangesCount - 1)) : item.mapKey;
                         const substitutions = {...autocompleteSubstitutions, [substitutionMapKey]: item.autocompleteID};
                         setAutocompleteSubstitutions(substitutions);
                     }

@@ -34,8 +34,8 @@ import {getReportAction} from '@libs/ReportActionsUtils';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getTrimmedUserSearchQueryPreservingComma} from '@libs/SearchAutocompleteUtils';
-import {getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
 import {parse} from '@libs/SearchParser/autocompleteParser';
+import {getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
@@ -285,9 +285,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                         const filterKey = item.mapKey.split(':').at(0) as SearchFilterKey | undefined;
                         const parsedNewQuery = parse(newSearchQuery) as {ranges: SearchAutocompleteQueryRange[]};
                         const repeatedRangesCount = parsedNewQuery.ranges.filter((range) => range.key === filterKey && range.value === item.searchQuery).length;
-                        const substitutionMapKey = filterKey
-                            ? getSubstitutionMapKeyWithIndex(filterKey, item.searchQuery, Math.max(0, repeatedRangesCount - 1))
-                            : item.mapKey;
+                        const substitutionMapKey = filterKey ? getSubstitutionMapKeyWithIndex(filterKey, item.searchQuery, Math.max(0, repeatedRangesCount - 1)) : item.mapKey;
                         const substitutions = {...autocompleteSubstitutions, [substitutionMapKey]: item.autocompleteID};
                         setAutocompleteSubstitutions(substitutions);
                     }
