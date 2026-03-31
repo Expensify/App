@@ -2398,6 +2398,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                         <MoneyReportHeaderStatusBarSection
                             reportID={reportIDProp}
                             statusBarType={statusBarType}
+                            iouTransactionID={transaction?.transactionID}
                         />
                     </View>
                     {isReportInSearch && (

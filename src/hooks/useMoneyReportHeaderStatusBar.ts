@@ -128,9 +128,11 @@ function useMoneyReportHeaderStatusBar(reportID: string | undefined, chatReportI
         return undefined;
     };
 
+    const statusBarType = getStatusBarType();
+
     return {
         shouldShowStatusBar,
-        statusBarType: getStatusBarType(),
+        statusBarType,
     };
 }
 

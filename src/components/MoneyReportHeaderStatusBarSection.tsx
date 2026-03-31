@@ -18,9 +18,10 @@ import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 type MoneyReportHeaderStatusBarSectionProps = {
     reportID: string | undefined;
     statusBarType: ValueOf<typeof CONST.REPORT.STATUS_BAR_TYPE> | undefined;
+    iouTransactionID: string | undefined;
 };
 
-function MoneyReportHeaderStatusBarSection({reportID, statusBarType}: MoneyReportHeaderStatusBarSectionProps) {
+function MoneyReportHeaderStatusBarSection({reportID, statusBarType, iouTransactionID}: MoneyReportHeaderStatusBarSectionProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
 
@@ -91,8 +92,7 @@ function MoneyReportHeaderStatusBarSection({reportID, statusBarType}: MoneyRepor
     }
 
     if (statusBarType === CONST.REPORT.STATUS_BAR_TYPE.BROKEN_CONNECTION) {
-        const transactionID = transactions.at(0)?.transactionID;
-        if (!transactionID) {
+        if (!iouTransactionID) {
             return null;
         }
         return (
@@ -100,7 +100,7 @@ function MoneyReportHeaderStatusBarSection({reportID, statusBarType}: MoneyRepor
                 icon={getStatusIcon(expensifyIcons.Hourglass)}
                 description={
                     <BrokenConnectionDescription
-                        transactionID={transactionID}
+                        transactionID={iouTransactionID}
                         report={moneyRequestReport}
                         policy={policy}
                     />
