@@ -30,7 +30,7 @@ Onyx.connect({
  */
 function getCurrencyDecimals(currency: string = CONST.CURRENCY.USD): number {
     const decimals = currencyList?.[currency]?.decimals;
-    return decimals ?? 2;
+    return decimals ?? CONST.DEFAULT_CURRENCY_DECIMALS;
 }
 
 /**

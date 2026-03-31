@@ -37,13 +37,13 @@ function SearchFiltersAmountBase({title, filterKey, testID}: {title: Translation
 
     const equalTo = searchAdvancedFiltersForm?.[equalToKey];
     // We have chose 2 decimals here as this is the limit of decimals we support for expenses.
-    const equalToFormattedAmount = equalTo ? convertToFrontendAmountAsString(Number(equalTo), 2) : undefined;
+    const equalToFormattedAmount = equalTo ? convertToFrontendAmountAsString(Number(equalTo), CONST.DEFAULT_CURRENCY_DECIMALS) : undefined;
     const greaterThan = searchAdvancedFiltersForm?.[greaterThanKey];
     // We have chose 2 decimals here as this is the limit of decimals we support for expenses.
-    const greaterThanFormattedAmount = greaterThan ? convertToFrontendAmountAsString(Number(greaterThan), 2) : undefined;
+    const greaterThanFormattedAmount = greaterThan ? convertToFrontendAmountAsString(Number(greaterThan), CONST.DEFAULT_CURRENCY_DECIMALS) : undefined;
     const lessThan = searchAdvancedFiltersForm?.[lessThanKey];
     // We have chose 2 decimals here as this is the limit of decimals we support for expenses.
-    const lessThanFormattedAmount = lessThan ? convertToFrontendAmountAsString(Number(lessThan), 2) : undefined;
+    const lessThanFormattedAmount = lessThan ? convertToFrontendAmountAsString(Number(lessThan), CONST.DEFAULT_CURRENCY_DECIMALS) : undefined;
 
     const goBack = () => {
         if (selectedModifier) {
