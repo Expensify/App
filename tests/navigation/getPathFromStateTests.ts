@@ -8,6 +8,7 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('@libs/Navigation/linkingConfig/config', () => ({
+    config: {},
     normalizedConfigs: {
         TestDynamicScreen: {
             path: 'test-dynamic',
