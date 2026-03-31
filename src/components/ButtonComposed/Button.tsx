@@ -10,11 +10,11 @@ import type {PressableRef} from '@components/Pressable/GenericPressable/types';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useActiveElementRole from '@hooks/useActiveElementRole';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import HapticFeedback from '@libs/HapticFeedback';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import type {ThemeStyles} from '@styles/index';
 import CONST from '@src/CONST';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import type {ButtonAppearanceProps} from './ButtonContext';
@@ -101,6 +101,8 @@ type ButtonStyleProps = ButtonAppearanceProps & {
 
     /** Should we remove the border radius on a specific side? */
     shouldRemoveBorderRadius?: 'left' | 'right' | 'all';
+
+    buttonContainerPaddingStyles?: StyleProp<ViewStyle>;
 };
 
 type ButtonProps = WithSentryLabel &
@@ -169,6 +171,39 @@ function KeyboardShortcutComponent({
     return null;
 }
 
+function getButtonStyleWithIcon(
+    styles: ThemeStyles,
+    extraSmall: boolean,
+    small: boolean,
+    medium: boolean,
+    large: boolean,
+    hasIcon?: boolean,
+    shouldShowRightIcon?: boolean,
+): ViewStyle | undefined {
+    const useDefaultButtonStyles = !!(hasIcon && shouldShowRightIcon) || !!(!hasIcon && !shouldShowRightIcon);
+    switch (true) {
+        case extraSmall: {
+            const verticalStyle = hasIcon ? styles.pl2 : styles.pr2;
+            return useDefaultButtonStyles ? styles.buttonExtraSmall : {...styles.buttonExtraSmall, ...verticalStyle};
+        }
+        case small: {
+            const verticalStyle = hasIcon ? styles.pl2 : styles.pr2;
+            return useDefaultButtonStyles ? styles.buttonSmall : {...styles.buttonSmall, ...verticalStyle};
+        }
+        case medium: {
+            const verticalStyle = hasIcon ? styles.pl3 : styles.pr3;
+            return useDefaultButtonStyles ? styles.buttonMedium : {...styles.buttonMedium, ...verticalStyle};
+        }
+        case large: {
+            const verticalStyle = hasIcon ? styles.pl4 : styles.pr4;
+            return useDefaultButtonStyles ? styles.buttonLarge : {...styles.buttonLarge, ...verticalStyle};
+        }
+        default: {
+            return undefined;
+        }
+    }
+}
+
 function Button({
     children,
     allowBubble = false,
@@ -202,11 +237,11 @@ function Button({
     shouldStayNormalOnDisable = false,
     sentryLabel,
     ref,
+    buttonContainerPaddingStyles,
 }: ButtonProps) {
     const resolvedSize = size ?? CONST.DROPDOWN_BUTTON_SIZE.MEDIUM;
     const theme = useTheme();
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const [isHovered, setIsHovered] = useState(false);
     const buttonLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'Button',
@@ -252,28 +287,28 @@ function Button({
     const buttonStyles = useMemo<StyleProp<ViewStyle>>(
         () => [
             styles.button,
-            StyleUtils.getButtonStyleWithIcon(
-                styles,
-                size === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL,
-                size === CONST.DROPDOWN_BUTTON_SIZE.SMALL,
-                size === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
-                size === CONST.DROPDOWN_BUTTON_SIZE.LARGE,
-                hasIconLeft,
-                hasText,
-                hasIconRight,
-            ),
+            buttonContainerPaddingStyles ??
+                getButtonStyleWithIcon(
+                    styles,
+                    size === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL,
+                    size === CONST.DROPDOWN_BUTTON_SIZE.SMALL,
+                    size === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
+                    size === CONST.DROPDOWN_BUTTON_SIZE.LARGE,
+                    hasIconLeft,
+                    hasIconRight,
+                ),
             buttonVariantStyles,
             shouldRemoveBorderRadius === 'right' || shouldRemoveBorderRadius === 'all' ? styles.noRightBorderRadius : undefined,
             shouldRemoveBorderRadius === 'left' || shouldRemoveBorderRadius === 'all' ? styles.noLeftBorderRadius : undefined,
             hasText && hasIconRight ? styles.alignItemsStretch : undefined,
             innerStyles,
         ],
-        [styles, buttonVariantStyles, shouldRemoveBorderRadius, innerStyles, hasText, hasIconRight, StyleUtils, size, hasIconLeft],
+        [styles, buttonVariantStyles, shouldRemoveBorderRadius, innerStyles, hasText, hasIconRight, size, hasIconLeft, buttonContainerPaddingStyles],
     );
 
     const buttonContainerStyles = useMemo<StyleProp<ViewStyle>>(
-        () => [buttonStyles, shouldBlendOpacity && styles.buttonBlendContainer],
-        [buttonStyles, shouldBlendOpacity, styles.buttonBlendContainer],
+        () => [buttonStyles, shouldBlendOpacity && styles.buttonBlendContainer, buttonContainerPaddingStyles],
+        [buttonStyles, shouldBlendOpacity, styles.buttonBlendContainer, buttonContainerPaddingStyles],
     );
 
     const buttonBlendForegroundStyle = useMemo<StyleProp<ViewStyle>>(() => {
