@@ -21,6 +21,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {SpendRuleMerchant} from '@src/types/form/SpendRuleForm';
 import SpendRuleRestrictionTypeToggle from './SpendRuleRestrictionTypeToggle';
 
 type SpendRulePageBaseProps = {
@@ -28,6 +29,8 @@ type SpendRulePageBaseProps = {
     titleKey: TranslationPaths;
     testID: string;
 };
+
+const MAX_SUMMARY_CHARS = 74;
 
 function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps) {
     const styles = useThemeStyles();
@@ -55,6 +58,28 @@ function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps)
                   return getCardDescriptionForSearchTable(card, displayName || undefined) || id;
               })
               .join(', ');
+            
+    function getMerchantMenuTitle(merchantsToSummarize: SpendRuleMerchant[] | undefined): string {
+        const normalizedMerchants = (merchantsToSummarize ?? []).map((merchant) => ({...merchant, name: merchant.name.trim()})).filter((merchant) => merchant.name !== '');
+        if (!normalizedMerchants.length) {
+            return '';
+        }
+    
+        let text = '';
+        let shownCount = 0;
+    
+        for (const merchant of normalizedMerchants) {
+            const nextText = text ? `${text}, ${merchant.name}` : merchant.name;
+            if (nextText.length > MAX_SUMMARY_CHARS) {
+                continue;
+            }
+            text = nextText;
+            shownCount++;
+        }
+
+        const hiddenCount = Math.max(normalizedMerchants.length - shownCount, 0);
+        return text && hiddenCount > 0 ? translate('workspace.rules.spendRules.merchantsMoreCount', {summary: text, count: hiddenCount}) : text;
+    }
 
     const handleSaveRule = () => {
         if (!cardIDs?.length) {
@@ -98,6 +123,14 @@ function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps)
                             onSelect={(action) => updateDraftSpendRule({restrictionAction: action})}
                         />
                     </View>
+                    <MenuItemWithTopDescription
+                        description={translate('common.merchant')}
+                        onPress={() => Navigation.navigate(ROUTES.RULES_SPEND_MERCHANTS.getRoute(policyID))}
+                        shouldShowRightIcon
+                        title={getMerchantMenuTitle(spendRuleForm?.merchants)}
+                        titleStyle={styles.flex1}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
+                    />
                 </ScrollView>
                 <FormAlertWithSubmitButton
                     buttonText={translate('workspace.rules.spendRules.saveRule')}

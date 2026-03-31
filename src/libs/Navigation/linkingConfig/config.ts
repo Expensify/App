@@ -1269,6 +1269,15 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.RULES_SPEND_CARD]: {
                             path: ROUTES.RULES_SPEND_CARD.route,
                         },
+                        [SCREENS.WORKSPACE.RULES_SPEND_MERCHANTS]: {
+                            path: ROUTES.RULES_SPEND_MERCHANTS.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_SPEND_MERCHANT_EDIT]: {
+                            path: ROUTES.RULES_SPEND_MERCHANT_EDIT.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_SPEND_MERCHANT_MATCH_TYPE]: {
+                            path: ROUTES.RULES_SPEND_MERCHANT_MATCH_TYPE.route,
+                        },
                         [SCREENS.WORKSPACE.RULES_MERCHANT_MERCHANT_TO_MATCH]: {
                             path: ROUTES.RULES_MERCHANT_MERCHANT_TO_MATCH.route,
                         },
