@@ -35,7 +35,6 @@ function usePaginatedReportActions(reportID: string | undefined, reportActionID?
     const [sortedAllReportActions] = useOnyx(
         `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${nonEmptyStringReportID}`,
         {
-            canEvict: false,
             selector: getSortedAllReportActionsSelector,
         },
         [getSortedAllReportActionsSelector],
