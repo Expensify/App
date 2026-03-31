@@ -990,18 +990,20 @@ function canActionsBeGrouped(currentAction?: ReportAction, adjacentAction?: Repo
 const CHRONOS_TIMER_COMMAND_STOP_REGEX = /\bstop(?:ped|ping)?(?:\s+now)?\b/i;
 const CHRONOS_TIMER_COMMAND_START_REGEX = /\bstart(?:ed|ing)?(?:\s+now)?\b/i;
 
+type ChronosTimerCommandValue = ValueOf<typeof CONST.CHRONOS.TIMER_COMMAND>;
+
 /**
- * Returns `'start'`, `'stop'`, or `null` for plain text using the same patterns as grouped Chronos timer messages.
+ * Returns `CONST.CHRONOS.TIMER_COMMAND.START`, `CONST.CHRONOS.TIMER_COMMAND.STOP`, or `null` for plain text using the same patterns as grouped Chronos timer messages.
  * Uses word-boundary matching so arbitrary substrings (e.g. in "kickstart", "nonstop") are not treated as commands.
  * Stop is matched before start when both could apply to one string.
  */
-function isChronosStartOrStopMessage(text: string): 'start' | 'stop' | null {
+function isChronosStartOrStopMessage(text: string): ChronosTimerCommandValue | null {
     const trimmedText = text.trim();
     if (CHRONOS_TIMER_COMMAND_STOP_REGEX.test(trimmedText)) {
-        return 'stop';
+        return CONST.CHRONOS.TIMER_COMMAND.STOP;
     }
     if (CHRONOS_TIMER_COMMAND_START_REGEX.test(trimmedText)) {
-        return 'start';
+        return CONST.CHRONOS.TIMER_COMMAND.START;
     }
     return null;
 }
@@ -1013,7 +1015,7 @@ function isChronosAutomaticTimerAction(reportAction: OnyxInputOrEntry<ReportActi
 /**
  * From visible report actions sorted newest-first, returns the latest ADD_COMMENT from the current user that looks like a Chronos timer command.
  */
-function getLatestUserChronosTimerCommand(sortedVisibleReportActionsDesc: ReportAction[], currentUserAccountID: number): 'start' | 'stop' | null {
+function getLatestUserChronosTimerCommand(sortedVisibleReportActionsDesc: ReportAction[], currentUserAccountID: number): ChronosTimerCommandValue | null {
     for (const action of sortedVisibleReportActionsDesc) {
         if (action.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) {
             continue;
@@ -1030,7 +1032,7 @@ function getLatestUserChronosTimerCommand(sortedVisibleReportActionsDesc: Report
 }
 
 function isChronosTimerRunningFromVisibleActions(sortedVisibleReportActionsDesc: ReportAction[], currentUserAccountID: number): boolean {
-    return getLatestUserChronosTimerCommand(sortedVisibleReportActionsDesc, currentUserAccountID) === 'start';
+    return getLatestUserChronosTimerCommand(sortedVisibleReportActionsDesc, currentUserAccountID) === CONST.CHRONOS.TIMER_COMMAND.START;
 }
 
 /**

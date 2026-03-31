@@ -16,7 +16,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
-import getEmptyArray from '@src/types/utils/getEmptyArray';
 import Button from './Button';
 
 type ChronosTimerHeaderButtonProps = {
@@ -36,13 +35,7 @@ function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
         reportActionsOnyxKey,
         {
             selector: (reportActions: unknown): boolean => {
-                const sorted = getSortedReportActionsForDisplay(
-                    reportActions as OnyxEntry<ReportActions>,
-                    canPerformWriteAction,
-                    false,
-                    visibleReportActionsData,
-                    report.reportID,
-                );
+                const sorted = getSortedReportActionsForDisplay(reportActions as OnyxEntry<ReportActions>, canPerformWriteAction, false, visibleReportActionsData, report.reportID);
                 return isChronosTimerRunningFromVisibleActions(sorted, currentUserAccountID);
             },
         },
@@ -57,7 +50,7 @@ function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
             report,
             notifyReportID: report.reportID,
             ancestors,
-            text: isTimerRunning ? 'stop' : 'start',
+            text: isTimerRunning ? CONST.CHRONOS.TIMER_COMMAND.STOP : CONST.CHRONOS.TIMER_COMMAND.START,
             timezoneParam: timezoneParam ?? CONST.DEFAULT_TIME_ZONE,
             currentUserAccountID,
             shouldPlaySound: false,

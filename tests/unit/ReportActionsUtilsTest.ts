@@ -4562,19 +4562,19 @@ describe('ReportActionsUtils', () => {
 
     describe('isChronosStartOrStopMessage', () => {
         it('returns stop when stop pattern matches', () => {
-            expect(isChronosStartOrStopMessage('stop')).toBe('stop');
-            expect(isChronosStartOrStopMessage('stopped')).toBe('stop');
-            expect(isChronosStartOrStopMessage('stop now')).toBe('stop');
+            expect(isChronosStartOrStopMessage('stop')).toBe(CONST.CHRONOS.TIMER_COMMAND.STOP);
+            expect(isChronosStartOrStopMessage('stopped')).toBe(CONST.CHRONOS.TIMER_COMMAND.STOP);
+            expect(isChronosStartOrStopMessage('stop now')).toBe(CONST.CHRONOS.TIMER_COMMAND.STOP);
         });
 
         it('returns start when only start pattern matches', () => {
-            expect(isChronosStartOrStopMessage('start')).toBe('start');
-            expect(isChronosStartOrStopMessage('started')).toBe('start');
-            expect(isChronosStartOrStopMessage('start now')).toBe('start');
+            expect(isChronosStartOrStopMessage('start')).toBe(CONST.CHRONOS.TIMER_COMMAND.START);
+            expect(isChronosStartOrStopMessage('started')).toBe(CONST.CHRONOS.TIMER_COMMAND.START);
+            expect(isChronosStartOrStopMessage('start now')).toBe(CONST.CHRONOS.TIMER_COMMAND.START);
         });
 
         it('returns stop before start when both could apply', () => {
-            expect(isChronosStartOrStopMessage('stop then start')).toBe('stop');
+            expect(isChronosStartOrStopMessage('stop then start')).toBe(CONST.CHRONOS.TIMER_COMMAND.STOP);
         });
 
         it('returns null for unrelated text', () => {
@@ -4611,7 +4611,7 @@ describe('ReportActionsUtils', () => {
                 makeUserTimerComment('stop', currentUserAccountID, {reportActionID: '2', created: '2024-01-02 10:00:00.000'}),
                 makeUserTimerComment('start', currentUserAccountID, {reportActionID: '1', created: '2024-01-01 10:00:00.000'}),
             ];
-            expect(getLatestUserChronosTimerCommand(sortedNewestFirst, currentUserAccountID)).toBe('start');
+            expect(getLatestUserChronosTimerCommand(sortedNewestFirst, currentUserAccountID)).toBe(CONST.CHRONOS.TIMER_COMMAND.START);
         });
 
         it('returns stop when the newest timer command is stop', () => {
@@ -4619,7 +4619,7 @@ describe('ReportActionsUtils', () => {
                 makeUserTimerComment('stopped', currentUserAccountID, {reportActionID: '2', created: '2024-01-02 10:00:00.000'}),
                 makeUserTimerComment('start', currentUserAccountID, {reportActionID: '1', created: '2024-01-01 10:00:00.000'}),
             ];
-            expect(getLatestUserChronosTimerCommand(sortedNewestFirst, currentUserAccountID)).toBe('stop');
+            expect(getLatestUserChronosTimerCommand(sortedNewestFirst, currentUserAccountID)).toBe(CONST.CHRONOS.TIMER_COMMAND.STOP);
         });
 
         it('ignores comments from other users', () => {

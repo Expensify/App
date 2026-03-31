@@ -272,6 +272,13 @@ const CONST = {
     MAX_IMAGE_PIXEL_COUNT: 50000000,
     CHUNK_LOAD_ERROR: 'ChunkLoadError',
 
+    CHRONOS: {
+        TIMER_COMMAND: {
+            START: 'start',
+            STOP: 'stop',
+        },
+    },
+
     API_ATTACHMENT_VALIDATIONS: {
         // 24 megabytes in bytes, this is limit set on servers, do not update without wider internal discussion
         MAX_SIZE: 25165824,
