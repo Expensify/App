@@ -127,19 +127,21 @@ function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem}: 
                         </View>
                     )}
 
-                    <Image
-                        source={sourceObject}
-                        style={[styles.w100, {aspectRatio: imageAspectRatio ?? 1}]}
-                        onLoadStart={() => {
-                            if (isLoading) {
-                                return;
-                            }
-                            setIsLoading(true);
-                        }}
-                        onError={handleError}
-                        onLoad={handleLoad}
-                        isAuthTokenRequired
-                    />
+                    <View style={[styles.w100, {aspectRatio: imageAspectRatio ?? 1}]}>
+                        <Image
+                            source={sourceObject}
+                            style={[styles.w100, styles.h100]}
+                            onLoadStart={() => {
+                                if (isLoading) {
+                                    return;
+                                }
+                                setIsLoading(true);
+                            }}
+                            onError={handleError}
+                            onLoad={handleLoad}
+                            isAuthTokenRequired
+                        />
+                    </View>
                 </View>
             ) : (
                 <View style={styles.receiptPreviewEReceiptsContainer}>

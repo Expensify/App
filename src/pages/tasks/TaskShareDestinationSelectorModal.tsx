@@ -52,7 +52,7 @@ function TaskShareDestinationSelectorModal() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
 
     const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, areOptionsInitialized, onListEndReached} = useSearchSelector({
@@ -122,7 +122,7 @@ function TaskShareDestinationSelectorModal() {
                         data={areOptionsInitialized ? data : []}
                         onSelectRow={selectReportHandler}
                         textInputOptions={textInputOptions}
-                        showLoadingPlaceholder={areOptionsInitialized && searchTerm.trim() === '' ? false : !didScreenTransitionEnd}
+                        shouldShowLoadingPlaceholder={areOptionsInitialized && searchTerm.trim() === '' ? false : !didScreenTransitionEnd}
                         isLoadingNewOptions={!!isSearchingForReports}
                         onEndReached={onListEndReached}
                         shouldSingleExecuteRowSelect

@@ -1,5 +1,6 @@
 import React, {useEffect, useRef} from 'react';
 import type {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -17,7 +18,7 @@ import canUseTouchScreen from '@libs/DeviceCapabilities/canUseTouchScreen';
 import {getTransactionPendingAction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {Report} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
 import type {TransactionWithOptionalHighlight} from './MoneyRequestReportTransactionList';
 
 type MoneyRequestReportTransactionItemProps = {
@@ -26,6 +27,9 @@ type MoneyRequestReportTransactionItemProps = {
 
     /** Report to which the transaction belongs */
     report: Report;
+
+    /** Policy to which the transaction belongs */
+    policy: OnyxEntry<Policy>;
 
     /** Whether the mobile selection mode is enabled */
     isSelectionModeEnabled: boolean;
@@ -62,11 +66,15 @@ type MoneyRequestReportTransactionItemProps = {
 
     /** Whether this transaction should be highlighted as newly added */
     shouldBeHighlighted: boolean;
+
+    /** Custom card names mapping cardID to display name */
+    customCardNames?: Record<number, string>;
 };
 
 function MoneyRequestReportTransactionItem({
     transaction,
     report,
+    policy,
     isSelectionModeEnabled,
     toggleTransaction,
     isSelected,
@@ -79,6 +87,7 @@ function MoneyRequestReportTransactionItem({
     scrollToNewTransaction,
     onArrowRightPress,
     shouldBeHighlighted,
+    customCardNames,
 }: MoneyRequestReportTransactionItemProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -139,6 +148,7 @@ function MoneyRequestReportTransactionItem({
                         transactionItem={transaction}
                         violations={filteredViolations}
                         report={report}
+                        policy={policy}
                         isSelected={isSelected}
                         dateColumnSize={dateColumnSize}
                         amountColumnSize={amountColumnSize}
@@ -155,6 +165,7 @@ function MoneyRequestReportTransactionItem({
                         }}
                         onArrowRightPress={() => onArrowRightPress?.(transaction.transactionID)}
                         isHover={hovered}
+                        customCardNames={customCardNames}
                     />
                 )}
             </PressableWithFeedback>

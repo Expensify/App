@@ -29,7 +29,7 @@ import useSearchBackPress from '@hooks/useSearchBackPress';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {removeFromGroupChat, updateGroupChatMemberRoles} from '@libs/actions/Report';
+import {openRoomMembersPage, removeFromGroupChat, updateGroupChatMemberRoles} from '@libs/actions/Report';
 import {clearUserSearchPhrase} from '@libs/actions/RoomMembersUserSearchPhrase';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -39,6 +39,7 @@ import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDe
 import {getReportName} from '@libs/ReportNameUtils';
 import {
     getReportPersonalDetailsParticipants,
+    isAnnounceRoom,
     isArchivedNonExpenseReport,
     isChatRoom,
     isChatThread,
@@ -63,7 +64,7 @@ type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
 type ReportParticipantsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ParticipantsNavigatorParamList, typeof SCREENS.REPORT_PARTICIPANTS.ROOT>;
 function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
     const backTo = route.params.backTo;
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'MakeAdmin', 'Plus', 'RemoveMembers', 'User'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'MakeAdmin', 'Plus', 'RemoveMembers', 'User']);
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const styles = useThemeStyles();
@@ -132,6 +133,15 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
             setSearchValue('');
         }
     }, [isFocused, setSearchValue, shouldShowTextInput, userSearchPhrase]);
+
+    useEffect(() => {
+        if (!isAnnounceRoom(report)) {
+            return;
+        }
+        openRoomMembersPage(report.reportID);
+        // We only want to fetch room members once on mount, not when report changes
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     useSearchBackPress({
         onClearSelection: () => setSelectedMembers([]),

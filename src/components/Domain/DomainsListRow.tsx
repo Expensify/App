@@ -9,6 +9,7 @@ import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
 type DomainsListRowProps = {
@@ -45,7 +46,7 @@ function DomainsListRow({title, isHovered, badgeText, brickRoadIndicator, menuIt
                 <TextWithTooltip
                     text={title}
                     shouldShowTooltip
-                    style={styles.textStrong}
+                    style={[styles.textStrong, styles.flexShrink1]}
                 />
 
                 {!!badgeText && (
@@ -53,7 +54,7 @@ function DomainsListRow({title, isHovered, badgeText, brickRoadIndicator, menuIt
                         <Badge
                             text={badgeText}
                             textStyles={styles.textStrong}
-                            badgeStyles={[styles.alignSelfCenter, styles.badgeBordered]}
+                            badgeStyles={styles.alignSelfCenter}
                         />
                     </View>
                 )}
@@ -86,8 +87,8 @@ function DomainsListRow({title, isHovered, badgeText, brickRoadIndicator, menuIt
                         src={icons.ArrowRight}
                         fill={theme.icon}
                         additionalStyles={[styles.alignSelfCenter, !isHovered && styles.opacitySemiTransparent]}
-                        isButtonIcon
-                        medium
+                        width={variables.iconSizeNormal}
+                        height={variables.iconSizeNormal}
                     />
                 </View>
             </View>

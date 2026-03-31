@@ -1,7 +1,7 @@
 ---
 title: Merge Accounts
 description: Learn how to merge multiple Expensify accounts to consolidate data and simplify logging in.
-keywords: [merge accounts, New Expensify, account consolidation, personal account, company account, merge data]
+keywords: [merge accounts, New Expensify, account consolidation, personal account, company account, merge data, combine accounts, link accounts, two Expensify accounts, consolidate accounts, merge Expensify accounts]
 ---
 
 

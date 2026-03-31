@@ -1,7 +1,7 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
-import type {Card} from '.';
+import type {Card, ReportAction} from '.';
 import type {CardList} from './Card';
 import type {CardFeedWithDomainID, CompanyCardFeedWithNumber} from './CardFeeds';
 import type {Errors} from './OnyxCommon';
@@ -29,6 +29,14 @@ type ReportAttributes = {
      * Whether the report requires attention from current user.
      */
     requiresAttention: boolean;
+    /**
+     * The action badge to display instead of the GBR/RBR dot (e.g. 'submit', 'approve', 'pay').
+     */
+    actionBadge?: ValueOf<typeof CONST.REPORT.ACTION_BADGE>;
+    /**
+     * The reportActionID that the action badge refers to, used for deep linking when the LHN row is pressed.
+     */
+    actionTargetReportActionID?: string;
     /**
      * The errors of the report.
      */
@@ -252,6 +260,18 @@ type TodosDerivedValue = {
 };
 
 /**
+ * The derived value for sorted report actions, last report actions, and cached transaction thread report IDs.
+ */
+type SortedReportActionsDerivedValue = {
+    /** Sorted report actions keyed by report ID */
+    sortedActions: Record<string, ReportAction[]>;
+    /** Last report action for each report, keyed by report ID */
+    lastActions: Record<string, ReportAction>;
+    /** Transaction thread report IDs keyed by parent report action ID */
+    transactionThreadIDs: Record<string, string | undefined>;
+};
+
+/**
  * The derived value for merged personal and workspace card feeds.
  */
 type PersonalAndWorkspaceCardListDerivedValue = CardList;
@@ -264,6 +284,7 @@ export type {
     ReportTransactionsAndViolations,
     OutstandingReportsByPolicyIDDerivedValue,
     VisibleReportActionsDerivedValue,
+    SortedReportActionsDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
     PersonalAndWorkspaceCardListDerivedValue,
     CardFeedErrorsDerivedValue,

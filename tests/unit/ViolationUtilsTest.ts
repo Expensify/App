@@ -4,10 +4,12 @@ import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import {getTransactionViolations, hasWarningTypeViolation, isViolationDismissed} from '@libs/TransactionUtils';
 import ViolationsUtils, {filterReceiptViolations, getIsViolationFixed} from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyTagLists, Report, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 import {translateLocal} from '../utils/TestHelper';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Mock getCurrentUserEmail from Report actions
 const MOCK_CURRENT_USER_EMAIL = 'test@expensify.com';
@@ -648,12 +650,44 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).toEqual(expect.arrayContaining([{...missingTagViolation, showInReview: true, data: {tagName: 'Meals'}}]));
         });
 
-        it('should add a tagOutOfPolicy violation when policy requires tags and tag is not in the policy', () => {
+        it('should not add missingTag or tagOutOfPolicy violations when policy requires tags but no tags are enabled', () => {
             policyTags = {};
+            transaction.tag = undefined;
 
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
 
             expect(result.value).toEqual([]);
+        });
+
+        it('should remove an existing missingTag violation when policy requires tags but no tags are enabled', () => {
+            policyTags = {};
+            transaction.tag = undefined;
+            transactionViolations = [missingTagViolation, {name: 'duplicatedTransaction', type: CONST.VIOLATION_TYPES.VIOLATION}];
+
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+
+            expect(result.value).toEqual([{name: 'duplicatedTransaction', type: CONST.VIOLATION_TYPES.VIOLATION}]);
+        });
+
+        it('should remove existing tagOutOfPolicy when tag is cleared to empty string', () => {
+            transaction.tag = '';
+            transactionViolations = [tagOutOfPolicyViolation, duplicatedTransactionViolation];
+
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+
+            expect(result.value).not.toContainEqual(tagOutOfPolicyViolation);
+            expect(result.value).toContainEqual(duplicatedTransactionViolation);
+            expect(result.value).toContainEqual({...missingTagViolation, showInReview: true, data: {tagName: 'Meals'}});
+        });
+
+        it('should remove existing tagOutOfPolicy when policy requires tags, no tags are enabled, and tag is empty string', () => {
+            policyTags = {};
+            transaction.tag = '';
+            transactionViolations = [tagOutOfPolicyViolation, duplicatedTransactionViolation];
+
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+
+            expect(result.value).toEqual([duplicatedTransactionViolation]);
         });
 
         it('should not add a tag violation when the transaction is scanning', () => {
@@ -697,6 +731,46 @@ describe('getViolationsOnyxData', () => {
 
             expect(result.value).not.toContainEqual(tagOutOfPolicyViolation);
             expect(result.value).not.toContainEqual(missingTagViolation);
+        });
+
+        it('should not add tagOutOfPolicy when transaction has a stale tag and no tags are enabled', () => {
+            policyTags = {
+                Meals: {
+                    name: 'Meals',
+                    required: false,
+                    tags: {
+                        Lunch: {name: 'Lunch', enabled: false},
+                        Dinner: {name: 'Dinner', enabled: false},
+                    },
+                    orderWeight: 1,
+                },
+            };
+            transaction.tag = 'Lunch';
+
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+
+            expect(result.value).not.toContainEqual(tagOutOfPolicyViolation);
+        });
+
+        it('should remove existing tagOutOfPolicy when transaction has a stale tag and no tags are enabled', () => {
+            policyTags = {
+                Meals: {
+                    name: 'Meals',
+                    required: false,
+                    tags: {
+                        Lunch: {name: 'Lunch', enabled: false},
+                        Dinner: {name: 'Dinner', enabled: false},
+                    },
+                    orderWeight: 1,
+                },
+            };
+            transaction.tag = 'Lunch';
+            transactionViolations = [tagOutOfPolicyViolation, duplicatedTransactionViolation];
+
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+
+            expect(result.value).not.toContainEqual(tagOutOfPolicyViolation);
+            expect(result.value).toContainEqual(duplicatedTransactionViolation);
         });
     });
 
@@ -770,12 +844,37 @@ describe('getViolationsOnyxData', () => {
             result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
             expect(result.value).toEqual([]);
         });
-        it('should return tagOutOfPolicy when a tag is not enabled in the policy but is set in the transaction', () => {
+        it('should not return tagOutOfPolicy when the selected tag level has no enabled tags', () => {
             policyTags.Department.tags.Accounting.enabled = false;
             transaction.tag = 'Africa:Accounting:Project1';
+
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+
+            expect(result.value).toEqual([]);
+        });
+
+        it('should return tagOutOfPolicy when selected tag is disabled and another tag in that level is enabled', () => {
+            policyTags.Department.tags.Engineering = {
+                name: 'Engineering',
+                enabled: true,
+            };
+            policyTags.Department.tags.Accounting.enabled = false;
+            transaction.tag = 'Africa:Accounting:Project1';
+
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
             const violation = {...tagOutOfPolicyViolation, data: {tagName: 'Department'}};
+
             expect(result.value).toEqual([violation]);
+        });
+        it('should not return tagOutOfPolicy when no tags are enabled in the policy', () => {
+            policyTags.Department.tags.Accounting.enabled = false;
+            policyTags.Region.tags.Africa.enabled = false;
+            policyTags.Project.tags.Project1.enabled = false;
+            transaction.tag = 'Africa:Accounting:Project1';
+
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+
+            expect(result.value).toEqual([]);
         });
         it('should return missingTag when all dependent tags are enabled in the policy but are not set in the transaction', () => {
             const missingDepartmentTag = {...missingTagViolation, data: {tagName: 'Department'}};
@@ -1288,6 +1387,104 @@ describe('getViolationTranslation', () => {
         });
         expect(ViolationsUtils.getViolationTranslation(brokenCardConnection530Violation, translateLocal)).toBe(brokenCardConnection530ViolationExpected);
     });
+
+    describe('increasedDistance violation', () => {
+        const increasedDistanceViolation: TransactionViolation = {
+            name: CONST.VIOLATIONS.INCREASED_DISTANCE,
+            type: CONST.VIOLATION_TYPES.VIOLATION,
+        };
+
+        const metersToKm = 0.001;
+        const metersToMiles = 0.000621371;
+        const routeDistanceMeters = 16840;
+        const routeDistanceKm = `${(routeDistanceMeters * metersToKm).toFixed(2)} km`;
+        const routeDistanceMi = `${(routeDistanceMeters * metersToMiles).toFixed(2)} mi`;
+
+        beforeEach(() => {
+            IntlStore.load(CONST.LOCALES.EN);
+            return waitForBatchedUpdates();
+        });
+
+        it('should return formatted message with route distance in km', () => {
+            const result = ViolationsUtils.getViolationTranslation(
+                increasedDistanceViolation,
+                translateLocal,
+                true,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                routeDistanceMeters,
+                CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+            );
+            expect(result).toBe(`Distance exceeds the calculated route of ${routeDistanceKm}`);
+        });
+
+        it('should return formatted message with route distance in miles', () => {
+            const result = ViolationsUtils.getViolationTranslation(
+                increasedDistanceViolation,
+                translateLocal,
+                true,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                routeDistanceMeters,
+                CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+            );
+            expect(result).toBe(`Distance exceeds the calculated route of ${routeDistanceMi}`);
+        });
+
+        it('should return fallback message when routeDistanceMeters is zero', () => {
+            const result = ViolationsUtils.getViolationTranslation(
+                increasedDistanceViolation,
+                translateLocal,
+                true,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                0,
+                CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+            );
+            expect(result).toBe('Distance exceeds the calculated route');
+        });
+
+        it('should return fallback message when routeDistanceMeters is undefined', () => {
+            const result = ViolationsUtils.getViolationTranslation(
+                increasedDistanceViolation,
+                translateLocal,
+                true,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+            );
+            expect(result).toBe('Distance exceeds the calculated route');
+        });
+
+        it('should return fallback message when distanceUnit is undefined', () => {
+            const result = ViolationsUtils.getViolationTranslation(
+                increasedDistanceViolation,
+                translateLocal,
+                true,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                routeDistanceMeters,
+                undefined,
+            );
+            expect(result).toBe('Distance exceeds the calculated route');
+        });
+    });
 });
 
 describe('getRBRMessages', () => {
@@ -1586,11 +1783,30 @@ describe('getIsViolationFixed', () => {
             expect(result).toBe(false);
         });
 
-        it('should return false when tag exists but is disabled', () => {
+        it('should return true when tag exists but no tags are enabled', () => {
             const result = getIsViolationFixed('violations.tagOutOfPolicy', {
                 ...defaultParams,
                 tag: 'Lunch',
                 policyTagLists: createPolicyTagList('Lunch', false),
+            });
+            expect(result).toBe(true);
+        });
+
+        it('should return false when tag exists but is disabled while other tags are enabled', () => {
+            const result = getIsViolationFixed('violations.tagOutOfPolicy', {
+                ...defaultParams,
+                tag: 'Lunch',
+                policyTagLists: {
+                    Meals: {
+                        name: 'Meals',
+                        required: true,
+                        orderWeight: 1,
+                        tags: {
+                            Lunch: {name: 'Lunch', enabled: false},
+                            Dinner: {name: 'Dinner', enabled: true},
+                        },
+                    },
+                },
             });
             expect(result).toBe(false);
         });

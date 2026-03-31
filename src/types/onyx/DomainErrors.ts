@@ -13,7 +13,7 @@ type GeneralDomainMemberErrors = {
 /**
  * Errors for domain members
  */
-type DomainMemberErrors = GeneralDomainMemberErrors & {
+type DomainMemberErrors = {
     /**
      * Errors related to a specific domain vacation delegate
      */
@@ -23,7 +23,12 @@ type DomainMemberErrors = GeneralDomainMemberErrors & {
      * Errors related to the list of emails exempt from the 2FA requirement
      */
     twoFactorAuthExemptEmailsError?: OnyxCommon.Errors;
-};
+
+    /**
+     * Errors related to specific domain member lock account status.
+     */
+    lockAccountErrors?: OnyxCommon.Errors;
+} & GeneralDomainMemberErrors;
 
 /**
  * Collection of errors related to domain operations received from the backend
@@ -45,7 +50,7 @@ type DomainErrors = {
     useTechnicalContactBillingCardErrors?: OnyxCommon.Errors;
 
     /**
-     * Errors related to specific domain member, keyed by their accountID. memberErrors are keyed with user email, NOT accountID
+     * Errors related to specific domain member, keyed by their user email, (NOT accountID)
      */
     memberErrors?: Record<string | number, DomainMemberErrors>;
 
