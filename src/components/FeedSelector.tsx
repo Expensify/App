@@ -32,7 +32,7 @@ type Props = {
 function FeedSelector({onFeedSelect, CardFeedIcon, feedName, supportingText, shouldShowRBR = false, isLoading = false}: Props) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
 
     if (isLoading) {
         return <SearchInputSelectionSkeleton reasonAttributes={{context: 'FeedSelector', isLoading}} />;
