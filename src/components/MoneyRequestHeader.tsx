@@ -46,7 +46,6 @@ import {
     isDM,
     isExpenseReport,
     isOpenReport,
-    isReportArchivedByID,
     isSelfDM,
     navigateToDetailsPage,
     rejectMoneyRequestReason,
@@ -200,7 +199,6 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
     const isParentReportArchived = useReportIsArchived(report?.parentReportID);
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(parentReportAction);
     const {archivedReportsIDSet} = useContext(ActionListContext);
-    const isReportArchived = useCallback((targetReportID?: string) => isReportArchivedByID(archivedReportsIDSet, targetReportID), [archivedReportsIDSet]);
 
     const hasPendingRTERViolation = hasPendingRTERViolationTransactionUtils(transactionViolations);
     const hasCustomUnitOutOfPolicyViolation = hasCustomUnitOutOfPolicyViolationTransactionUtils(transactionViolations);
@@ -445,7 +443,7 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
             transactionThreadReport: report,
             outstandingReportsByPolicyID,
             isChatReportArchived: isChatIOUReportArchived,
-            isReportArchived,
+            archivedReportsIDSet,
         });
     }, [
         parentReport,
@@ -458,7 +456,7 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
         accountID,
         outstandingReportsByPolicyID,
         isChatIOUReportArchived,
-        isReportArchived,
+        archivedReportsIDSet,
     ]);
 
     const dismissModalAndUpdateUseHold = () => {

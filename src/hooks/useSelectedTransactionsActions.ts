@@ -22,7 +22,6 @@ import {
     getReportOrDraftReport,
     isInvoiceReport,
     isMoneyRequestReport as isMoneyRequestReportUtils,
-    isReportArchivedByID,
     isTrackExpenseReport,
 } from '@libs/ReportUtils';
 import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
@@ -341,7 +340,7 @@ function useSelectedTransactionsActions({
                 undefined,
                 undefined,
                 undefined,
-                (reportID) => isReportArchivedByID(archivedReportsIDSet, reportID),
+                archivedReportsIDSet,
             );
             return canMoveExpense;
         });

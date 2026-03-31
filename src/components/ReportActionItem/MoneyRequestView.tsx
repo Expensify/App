@@ -72,7 +72,6 @@ import {
     isOpenReport,
     isPaidGroupPolicy,
     isReportApproved,
-    isReportArchivedByID,
     isReportInGroupPolicy,
     isSettled as isSettledReportUtils,
     isTrackExpenseReportNew,
@@ -378,7 +377,7 @@ function MoneyRequestView({
             transaction,
             moneyRequestReport,
             policy,
-            (reportID) => isReportArchivedByID(archivedReportsIDSet, reportID),
+            archivedReportsIDSet,
         ) &&
         (!isPerDiemRequest || canSubmitPerDiemExpenseFromWorkspace(policy) || (isExpenseUnreported && !!perDiemOriginalPolicy));
 

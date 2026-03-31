@@ -2,7 +2,7 @@ import {useCallback, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {canEditMoneyRequest, isReportArchivedByID} from '@libs/ReportUtils';
+import {canEditMoneyRequest} from '@libs/ReportUtils';
 import {areRequiredFieldsEmpty} from '@libs/TransactionUtils';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -64,9 +64,7 @@ const useShowNotFoundPageInIOUStep = (action: IOUAction, iouType: IOUType, repor
         } else if (isSplitExpense) {
             shouldShowNotFoundPage = !canEditSplitExpense;
         } else {
-            shouldShowNotFoundPage =
-                !isMoneyRequestAction(reportAction) ||
-                !canEditMoneyRequest(reportAction, false, iouReport, policy, transaction, (reportID) => isReportArchivedByID(archivedReportsIDSet, reportID));
+            shouldShowNotFoundPage = !isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction, false, iouReport, policy, transaction, archivedReportsIDSet);
         }
     }
 

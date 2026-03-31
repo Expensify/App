@@ -77,6 +77,7 @@ import {
     isSettled,
     isWorkspaceEligibleForReportChange,
 } from './ReportUtils';
+import type {ArchivedReportsIDSet} from './SearchUIUtils';
 import {
     allHavePendingRTERViolation,
     getOriginalTransactionWithSplitInfo,
@@ -855,7 +856,7 @@ function getSecondaryReportActions({
     policies,
     outstandingReportsByPolicyID,
     isChatReportArchived = false,
-    isReportArchived,
+    archivedReportsIDSet,
 }: {
     currentUserLogin: string;
     currentUserAccountID: number;
@@ -873,7 +874,7 @@ function getSecondaryReportActions({
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue;
     canUseNewDotSplits?: boolean;
     isChatReportArchived?: boolean;
-    isReportArchived?: (reportID?: string) => boolean;
+    archivedReportsIDSet?: ArchivedReportsIDSet;
 }): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
 
@@ -996,7 +997,7 @@ function getSecondaryReportActions({
                 undefined,
                 undefined,
                 undefined,
-                isReportArchived,
+                archivedReportsIDSet,
             );
             const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isChatReportArchived);
 
@@ -1058,7 +1059,7 @@ function getSecondaryTransactionThreadActions({
     transactionThreadReport,
     outstandingReportsByPolicyID,
     isChatReportArchived,
-    isReportArchived,
+    archivedReportsIDSet,
 }: {
     currentUserLogin: string;
     currentUserAccountID: number;
@@ -1070,7 +1071,7 @@ function getSecondaryTransactionThreadActions({
     transactionThreadReport?: OnyxEntry<Report>;
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue;
     isChatReportArchived?: boolean;
-    isReportArchived?: (reportID?: string) => boolean;
+    archivedReportsIDSet?: ArchivedReportsIDSet;
 }): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> = [];
 
@@ -1110,7 +1111,7 @@ function getSecondaryTransactionThreadActions({
             undefined,
             undefined,
             undefined,
-            isReportArchived,
+            archivedReportsIDSet,
         ) &&
         canUserPerformWriteActionReportUtils(parentReport, isChatReportArchived)
     ) {

@@ -43,7 +43,7 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isCreatedTaskReportAction} from '@libs/ReportActionsUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
-import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, isOneTransactionReport, isReportArchivedByID, selectFilteredReportActions} from '@libs/ReportUtils';
+import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, isOneTransactionReport, selectFilteredReportActions} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryString, isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
 import {
     createAndOpenSearchTransactionThread,
@@ -64,6 +64,7 @@ import {
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
+import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import {cancelSpan, endSpanWithAttributes, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import markNavigateAfterExpenseCreateEnd from '@libs/telemetry/markNavigateAfterExpenseCreateEnd';
 import {cancelSubmitFollowUpActionSpan, endSubmitFollowUpActionSpan, getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
@@ -109,7 +110,7 @@ function mapTransactionItemToSelectedEntry(
     currentUserLogin: string,
     currentUserAccountID: number,
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
-    isReportArchived?: (reportID?: string) => boolean,
+    archivedReportsIDSet?: ArchivedReportsIDSet,
     allowNegativeAmount = true,
 ): [string, SelectedTransactionInfo] {
     const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy);
@@ -136,7 +137,7 @@ function mapTransactionItemToSelectedEntry(
                 item,
                 item.report,
                 item.policy,
-                isReportArchived,
+                archivedReportsIDSet,
             ),
             action: item.action,
             groupCurrency: item.groupCurrency,
@@ -184,7 +185,7 @@ function prepareTransactionsList(
     currentUserLogin: string,
     currentUserAccountID: number,
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
-    isReportArchived?: (reportID?: string) => boolean,
+    archivedReportsIDSet?: ArchivedReportsIDSet,
 ) {
     if (selectedTransactions[item.keyForList]?.isSelected) {
         const {[item.keyForList]: omittedTransaction, ...transactions} = selectedTransactions;
@@ -199,7 +200,7 @@ function prepareTransactionsList(
         currentUserLogin,
         currentUserAccountID,
         outstandingReportsByPolicyID,
-        isReportArchived,
+        archivedReportsIDSet,
         false,
     );
 
@@ -270,7 +271,6 @@ function Search({
     const {markReportIDAsMultiTransactionExpense, unmarkReportIDAsMultiTransactionExpense} = useWideRHPActions();
 
     const archivedReportsIDSet = useArchivedReportsIDSet();
-    const isReportArchived = useCallback((reportID?: string) => isReportArchivedByID(archivedReportsIDSet, reportID), [archivedReportsIDSet]);
 
     const [exportReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
         canEvict: false,
@@ -743,7 +743,7 @@ function Search({
                             transactionItem,
                             transactionItem.report,
                             transactionItem.policy,
-                            isReportArchived,
+                            archivedReportsIDSet,
                         ),
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID]?.isSelected || isExpenseReportType,
@@ -800,7 +800,7 @@ function Search({
                         transactionItem,
                         transactionItem.report,
                         transactionItem.policy,
-                        isReportArchived,
+                        archivedReportsIDSet,
                     ),
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID].isSelected,
@@ -827,7 +827,7 @@ function Search({
 
         isRefreshingSelection.current = true;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [filteredData, setSelectedTransactions, areAllMatchingItemsSelected, isFocused, outstandingReportsByPolicyID, isExpenseReportType, isReportArchived]);
+    }, [filteredData, setSelectedTransactions, areAllMatchingItemsSelected, isFocused, outstandingReportsByPolicyID, isExpenseReportType, archivedReportsIDSet]);
 
     useEffect(() => {
         if (!isSearchResultsEmpty || prevIsSearchResultEmpty) {
@@ -934,7 +934,7 @@ function Search({
                     email ?? '',
                     accountID,
                     outstandingReportsByPolicyID,
-                    isReportArchived,
+                    archivedReportsIDSet,
                 );
                 setSelectedTransactions(updatedTransactions, filteredData);
                 updateSelectAllMatchingItemsState(updatedTransactions);
@@ -1007,7 +1007,7 @@ function Search({
                                 email ?? '',
                                 accountID,
                                 outstandingReportsByPolicyID,
-                                isReportArchived,
+                                archivedReportsIDSet,
                             );
                         }),
                 ),
@@ -1025,7 +1025,7 @@ function Search({
             accountID,
             outstandingReportsByPolicyID,
             searchResults?.data,
-            isReportArchived,
+            archivedReportsIDSet,
         ],
     );
 
@@ -1278,7 +1278,7 @@ function Search({
                             email ?? '',
                             accountID,
                             outstandingReportsByPolicyID,
-                            isReportArchived,
+                            archivedReportsIDSet,
                         );
                     });
             });
@@ -1298,7 +1298,7 @@ function Search({
                             email ?? '',
                             accountID,
                             outstandingReportsByPolicyID,
-                            isReportArchived,
+                            archivedReportsIDSet,
                         );
                     }),
             );
@@ -1318,7 +1318,7 @@ function Search({
         accountID,
         outstandingReportsByPolicyID,
         searchResults?.data,
-        isReportArchived,
+        archivedReportsIDSet,
     ]);
 
     const onLayout = useCallback(() => {

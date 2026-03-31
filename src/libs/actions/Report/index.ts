@@ -155,7 +155,6 @@ import {
     isIOUReportUsingReport,
     isOpenExpenseReport,
     isProcessingReport,
-    isReportArchivedByID,
     isReportManuallyReimbursed,
     isSelfDM,
     isValidReportIDFromPath,
@@ -4319,8 +4318,7 @@ function navigateToMostRecentReport(
     introSelected: OnyxEntry<IntroSelected>,
     archivedReportsIDSet: ArchivedReportsIDSet = new Set<string>(),
 ) {
-    const isReportArchived = (reportID?: string) => isReportArchivedByID(archivedReportsIDSet, reportID);
-    const lastAccessedReportID = findLastAccessedReport(false, false, currentReport?.reportID, undefined, isReportArchived)?.reportID;
+    const lastAccessedReportID = findLastAccessedReport(false, false, currentReport?.reportID, archivedReportsIDSet)?.reportID;
 
     if (lastAccessedReportID) {
         // Check if route exists for super wide RHP vs regular full screen report
@@ -4345,8 +4343,7 @@ function navigateToMostRecentReport(
 }
 
 function getMostRecentReportID(currentReport: OnyxEntry<Report>, conciergeReportID: string | undefined, archivedReportsIDSet: ArchivedReportsIDSet) {
-    const isReportArchived = (reportID?: string) => isReportArchivedByID(archivedReportsIDSet, reportID);
-    const lastAccessedReportID = findLastAccessedReport(false, false, currentReport?.reportID, undefined, isReportArchived)?.reportID;
+    const lastAccessedReportID = findLastAccessedReport(false, false, currentReport?.reportID, archivedReportsIDSet)?.reportID;
     return lastAccessedReportID ?? conciergeReportID;
 }
 

@@ -30,7 +30,7 @@ import {canSendInvoice, getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import type {ThumbnailAndImageURI} from '@libs/ReceiptUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getReportName} from '@libs/ReportNameUtils';
-import {generateReportID, getDefaultWorkspaceAvatar, getOutstandingReportsForUser, isMoneyRequestReport, isReportArchivedByID, isReportOutstanding} from '@libs/ReportUtils';
+import {generateReportID, getDefaultWorkspaceAvatar, getOutstandingReportsForUser, isMoneyRequestReport, isReportOutstanding} from '@libs/ReportUtils';
 import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import {
@@ -331,7 +331,6 @@ function MoneyRequestConfirmationListFooter({
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const archivedReportsIDSet = useArchivedReportsIDSet();
-    const isReportArchived = useCallback((value?: string) => isReportArchivedByID(archivedReportsIDSet, value), [archivedReportsIDSet]);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
     const {policyForMovingExpensesID, policyForMovingExpenses, shouldSelectPolicy} = usePolicyForMovingExpenses();
 
@@ -372,15 +371,15 @@ function MoneyRequestConfirmationListFooter({
      */
     const transactionReport = transaction?.reportID ? Object.values(allReports ?? {}).find((report) => report?.reportID === transaction.reportID) : undefined;
     const policyID = selectedParticipants?.at(0)?.policyID;
-    const shouldUseTransactionReport = (!!transactionReport && isReportOutstanding(transactionReport, policyID, isReportArchived, false)) || isUnreported;
+    const shouldUseTransactionReport = (!!transactionReport && isReportOutstanding(transactionReport, policyID, archivedReportsIDSet, false)) || isUnreported;
 
     const ownerAccountID = selectedParticipants?.at(0)?.ownerAccountID;
 
     const availableOutstandingReports = useMemo(() => {
-        return getOutstandingReportsForUser(policyID, ownerAccountID, outstandingReportsByPolicyID?.[policyID ?? CONST.DEFAULT_NUMBER_ID] ?? {}, isReportArchived, false).sort((a, b) =>
+        return getOutstandingReportsForUser(policyID, ownerAccountID, outstandingReportsByPolicyID?.[policyID ?? CONST.DEFAULT_NUMBER_ID] ?? {}, archivedReportsIDSet, false).sort((a, b) =>
             localeCompare(a?.reportName?.toLowerCase() ?? '', b?.reportName?.toLowerCase() ?? ''),
         );
-    }, [policyID, ownerAccountID, outstandingReportsByPolicyID, isReportArchived, localeCompare]);
+    }, [policyID, ownerAccountID, outstandingReportsByPolicyID, archivedReportsIDSet, localeCompare]);
 
     const iouReportID = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.iouReportID;
     const outstandingReportID = isPolicyExpenseChat ? (iouReportID ?? availableOutstandingReports.at(0)?.reportID) : reportID;

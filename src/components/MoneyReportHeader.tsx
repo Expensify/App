@@ -110,7 +110,6 @@ import {
     isOpenExpenseReport,
     isOpenReport,
     isProcessingReport,
-    isReportArchivedByID,
     isReportOwner,
     isSelfDM,
     navigateOnDeleteExpense,
@@ -484,7 +483,6 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
     const isArchivedReport = useReportIsArchived(moneyRequestReport?.reportID);
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
     const {archivedReportsIDSet} = useContext(ActionListContext);
-    const isReportArchived = useCallback((reportID?: string) => isReportArchivedByID(archivedReportsIDSet, reportID), [archivedReportsIDSet]);
 
     const canMoveSingleExpense = useMemo(() => {
         if (nonPendingDeleteTransactions.length !== 1) {
@@ -506,13 +504,13 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
             undefined,
             undefined,
             undefined,
-            isReportArchived,
+            archivedReportsIDSet,
         );
 
         const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(moneyRequestReport, isChatReportArchived);
 
         return canMoveExpense && canUserPerformWriteAction;
-    }, [nonPendingDeleteTransactions, reportActions, isChatReportArchived, outstandingReportsByPolicyID, moneyRequestReport, isReportArchived]);
+    }, [nonPendingDeleteTransactions, reportActions, isChatReportArchived, outstandingReportsByPolicyID, moneyRequestReport, archivedReportsIDSet]);
 
     const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`, {selector: getArchiveReason});
 
@@ -1554,7 +1552,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
             policies,
             outstandingReportsByPolicyID,
             isChatReportArchived,
-            isReportArchived,
+            archivedReportsIDSet,
         });
     }, [
         moneyRequestReport,
@@ -1572,7 +1570,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         isChatReportArchived,
         bankAccountList,
         outstandingReportsByPolicyID,
-        isReportArchived,
+        archivedReportsIDSet,
     ]);
 
     const secondaryExportActions = useMemo(() => {
