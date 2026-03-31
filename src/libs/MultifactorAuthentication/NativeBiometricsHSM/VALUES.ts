@@ -62,6 +62,38 @@ const NATIVE_BIOMETRIC_HSM_VALUES = {
             MARQETA_VALUE: MARQETA_VALUES.AUTHENTICATION_METHOD.BIOMETRIC_FACE,
         },
     },
+    /**
+     * Error codes returned by react-native-biometrics.
+     *
+     * signWithOptions resolves with { errorCode?: string }.
+     * createKeys/deleteKeys/getAllKeys reject with Error objects having { code: string, message: string }.
+     */
+    ERROR_CODE: {
+        // User cancellation
+        USER_CANCEL: 'USER_CANCEL', // iOS
+        USER_CANCELED: 'USER_CANCELED', // Android
+
+        // Biometric not available
+        BIOMETRY_NOT_AVAILABLE: 'BIOMETRY_NOT_AVAILABLE', // iOS
+        BIOMETRIC_NOT_AVAILABLE: 'BIOMETRIC_NOT_AVAILABLE', // Android (signWithOptions)
+        BIOMETRIC_UNAVAILABLE: 'BIOMETRIC_UNAVAILABLE', // Android (BiometricPrompt)
+
+        // Lockout
+        BIOMETRY_LOCKOUT: 'BIOMETRY_LOCKOUT', // iOS
+        BIOMETRIC_LOCKOUT: 'BIOMETRIC_LOCKOUT', // Android
+        BIOMETRY_LOCKOUT_PERMANENT: 'BIOMETRY_LOCKOUT_PERMANENT', // iOS
+        BIOMETRIC_LOCKOUT_PERMANENT: 'BIOMETRIC_LOCKOUT_PERMANENT', // Android
+
+        // Signature/key errors
+        SIGNATURE_CREATION_FAILED: 'SIGNATURE_CREATION_FAILED',
+        KEY_NOT_FOUND: 'KEY_NOT_FOUND',
+        CREATE_KEYS_ERROR: 'CREATE_KEYS_ERROR',
+        KEY_ALREADY_EXISTS: 'KEY_ALREADY_EXISTS',
+
+        // System cancel
+        SYSTEM_CANCEL: 'SYSTEM_CANCEL', // iOS
+        SYSTEM_CANCELED: 'SYSTEM_CANCELED', // Android
+    },
 } as const;
 
 export default NATIVE_BIOMETRIC_HSM_VALUES;

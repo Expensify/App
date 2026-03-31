@@ -1,5 +1,6 @@
 import {createKeys, deleteKeys, getAllKeys, InputEncoding, signWithOptions} from '@sbaiahmed1/react-native-biometrics';
 import {useCallback} from 'react';
+import addMFABreadcrumb from '@components/MultifactorAuthentication/observability/breadcrumbs';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import {buildSigningData, getKeyAlias, getSensorResult, mapAuthTypeNumber, mapLibraryError, mapSignErrorCode} from '@libs/MultifactorAuthentication/NativeBiometricsHSM/helpers';
@@ -26,13 +27,18 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
     }, []);
 
     const getLocalCredentialID = useCallback(async () => {
-        const keyAlias = getKeyAlias(accountID);
-        const {keys} = await getAllKeys(keyAlias);
-        const entry = keys.find((k) => k.alias === keyAlias);
-        if (!entry) {
+        try {
+            const keyAlias = getKeyAlias(accountID);
+            const {keys} = await getAllKeys(keyAlias);
+            const entry = keys.find((k) => k.alias === keyAlias);
+            if (!entry) {
+                return undefined;
+            }
+            return Base64URL.base64ToBase64url(entry.publicKey);
+        } catch (e) {
+            addMFABreadcrumb('Failed to get local credential ID', {reason: mapLibraryError(e) ?? VALUES.REASON.HSM.GENERIC}, 'error');
             return undefined;
         }
-        return Base64URL.base64ToBase64url(entry.publicKey);
     }, [accountID]);
 
     const areLocalCredentialsKnownToServer = useCallback(async () => {
@@ -41,8 +47,12 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
     }, [getLocalCredentialID, serverKnownCredentialIDs]);
 
     const deleteLocalKeysForAccount = useCallback(async () => {
-        const keyAlias = getKeyAlias(accountID);
-        await deleteKeys(keyAlias);
+        try {
+            const keyAlias = getKeyAlias(accountID);
+            await deleteKeys(keyAlias);
+        } catch (e) {
+            addMFABreadcrumb('Failed to delete local keys', {reason: mapLibraryError(e) ?? VALUES.REASON.HSM.GENERIC}, 'error');
+        }
     }, [accountID]);
 
     const register = async (onResult: (result: RegisterResult) => Promise<void> | void, registrationChallenge: Parameters<UseBiometricsReturn['register']>[1]) => {
@@ -82,7 +92,7 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
         } catch (e) {
             onResult({
                 success: false,
-                reason: mapLibraryError(e) ?? VALUES.REASON.KEYSTORE.UNABLE_TO_SAVE_KEY,
+                reason: mapLibraryError(e) ?? VALUES.REASON.HSM.KEY_CREATION_FAILED,
             });
         }
     };
@@ -96,6 +106,7 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
             const allowedIDs = challenge.allowCredentials?.map((credential: {id: string; type: string}) => credential.id) ?? [];
 
             if (!credentialID || !allowedIDs.includes(credentialID)) {
+                await deleteLocalKeysForAccount();
                 onResult({success: false, reason: VALUES.REASON.KEYSTORE.REGISTRATION_REQUIRED});
                 return;
             }
@@ -114,7 +125,7 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
             if (!signResult.success || !signResult.signature) {
                 onResult({
                     success: false,
-                    reason: mapSignErrorCode(signResult.errorCode) ?? VALUES.REASON.GENERIC.BAD_REQUEST,
+                    reason: mapSignErrorCode(signResult.errorCode) ?? VALUES.REASON.HSM.GENERIC,
                 });
                 return;
             }
@@ -142,7 +153,7 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
         } catch (e) {
             onResult({
                 success: false,
-                reason: mapLibraryError(e) ?? VALUES.REASON.GENERIC.BAD_REQUEST,
+                reason: mapLibraryError(e) ?? VALUES.REASON.HSM.GENERIC,
             });
         }
     };

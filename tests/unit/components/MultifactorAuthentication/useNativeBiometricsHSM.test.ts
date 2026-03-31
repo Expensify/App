@@ -98,7 +98,7 @@ describe('useNativeBiometricsHSM hook', () => {
             // Then it should report BIOMETRICS as its device verification type so the MFA system can distinguish it from other verification methods
             const {result} = renderHook(() => useNativeBiometricsHSM());
 
-            expect(result.current.deviceVerificationType).toBe(CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS);
+            expect(result.current.deviceVerificationType).toBe(CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRIC_HSM);
         });
     });
 
@@ -391,11 +391,11 @@ describe('useNativeBiometricsHSM hook', () => {
             );
         });
 
-        it('should handle thrown errors', async () => {
-            // Given the biometric library throws an error containing "canceled"
+        it('should handle thrown errors with known error code', async () => {
+            // Given the biometric library throws an error with a USER_CANCEL code property
             // When the authorize flow catches the thrown error
-            // Then onResult should receive a failure with CANCELED reason
-            mockSignWithOptions.mockRejectedValue(new Error('Biometric canceled'));
+            // Then onResult should receive a failure with CANCELED reason based on the exact error code
+            mockSignWithOptions.mockRejectedValue(Object.assign(new Error('User canceled authentication'), {code: 'USER_CANCEL'}));
 
             const {result} = renderHook(() => useNativeBiometricsHSM());
             const onResult = jest.fn();
@@ -407,7 +407,28 @@ describe('useNativeBiometricsHSM hook', () => {
             expect(onResult).toHaveBeenCalledWith(
                 expect.objectContaining({
                     success: false,
-                    reason: VALUES.REASON.EXPO.CANCELED,
+                    reason: VALUES.REASON.HSM.CANCELED,
+                }),
+            );
+        });
+
+        it('should handle thrown errors with unknown error code', async () => {
+            // Given the biometric library throws an error without a recognized code property
+            // When the authorize flow catches the thrown error
+            // Then onResult should receive a failure with GENERIC as the fallback reason
+            mockSignWithOptions.mockRejectedValue(new Error('Unexpected error'));
+
+            const {result} = renderHook(() => useNativeBiometricsHSM());
+            const onResult = jest.fn();
+
+            await act(async () => {
+                await result.current.authorize({challenge: mockChallenge}, onResult);
+            });
+
+            expect(onResult).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    success: false,
+                    reason: VALUES.REASON.HSM.GENERIC,
                 }),
             );
         });

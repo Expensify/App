@@ -62,28 +62,50 @@ function mapAuthTypeNumber(authType?: number): AuthTypeInfo | undefined {
 }
 
 /**
- * Maps library errorCode strings to existing REASON values.
+ * Maps errorCode strings from signWithOptions results to REASON values.
+ * Uses exact error code matching against constants from ERRORS.md.
  */
+const SIGN_ERROR_CODE_MAP: Record<string, MultifactorAuthenticationReason> = {
+    [NATIVE_BIOMETRIC_HSM_VALUES.ERROR_CODE.USER_CANCEL]: VALUES.REASON.HSM.CANCELED,
+    [NATIVE_BIOMETRIC_HSM_VALUES.ERROR_CODE.USER_CANCELED]: VALUES.REASON.HSM.CANCELED,
+    [NATIVE_BIOMETRIC_HSM_VALUES.ERROR_CODE.SYSTEM_CANCEL]: VALUES.REASON.HSM.CANCELED,
+    [NATIVE_BIOMETRIC_HSM_VALUES.ERROR_CODE.SYSTEM_CANCELED]: VALUES.REASON.HSM.CANCELED,
+    [NATIVE_BIOMETRIC_HSM_VALUES.ERROR_CODE.KEY_NOT_FOUND]: VALUES.REASON.HSM.KEY_NOT_FOUND,
+    [NATIVE_BIOMETRIC_HSM_VALUES.ERROR_CODE.BIOMETRY_NOT_AVAILABLE]: VALUES.REASON.HSM.NOT_AVAILABLE,
+    [NATIVE_BIOMETRIC_HSM_VALUES.ERROR_CODE.BIOMETRIC_NOT_AVAILABLE]: VALUES.REASON.HSM.NOT_AVAILABLE,
+    [NATIVE_BIOMETRIC_HSM_VALUES.ERROR_CODE.BIOMETRIC_UNAVAILABLE]: VALUES.REASON.HSM.NOT_AVAILABLE,
+    [NATIVE_BIOMETRIC_HSM_VALUES.ERROR_CODE.BIOMETRY_LOCKOUT]: VALUES.REASON.HSM.LOCKOUT,
+    [NATIVE_BIOMETRIC_HSM_VALUES.ERROR_CODE.BIOMETRIC_LOCKOUT]: VALUES.REASON.HSM.LOCKOUT,
+    [NATIVE_BIOMETRIC_HSM_VALUES.ERROR_CODE.BIOMETRY_LOCKOUT_PERMANENT]: VALUES.REASON.HSM.LOCKOUT_PERMANENT,
+    [NATIVE_BIOMETRIC_HSM_VALUES.ERROR_CODE.BIOMETRIC_LOCKOUT_PERMANENT]: VALUES.REASON.HSM.LOCKOUT_PERMANENT,
+    [NATIVE_BIOMETRIC_HSM_VALUES.ERROR_CODE.SIGNATURE_CREATION_FAILED]: VALUES.REASON.HSM.SIGNATURE_FAILED,
+};
+
 function mapSignErrorCode(errorCode?: string): MultifactorAuthenticationReason | undefined {
     if (!errorCode) {
         return undefined;
     }
-    if (errorCode.toLowerCase().includes('cancel')) {
-        return VALUES.REASON.EXPO.CANCELED;
-    }
-    if (errorCode.toLowerCase().includes('not available')) {
-        return VALUES.REASON.EXPO.NOT_SUPPORTED;
-    }
-    return VALUES.REASON.EXPO.GENERIC;
+    return SIGN_ERROR_CODE_MAP[errorCode] ?? VALUES.REASON.HSM.GENERIC;
 }
+
+/**
+ * Maps errorCode strings from rejected library promises to REASON values.
+ */
+const LIBRARY_ERROR_CODE_MAP: Record<string, MultifactorAuthenticationReason> = {
+    [NATIVE_BIOMETRIC_HSM_VALUES.ERROR_CODE.USER_CANCEL]: VALUES.REASON.HSM.CANCELED,
+    [NATIVE_BIOMETRIC_HSM_VALUES.ERROR_CODE.USER_CANCELED]: VALUES.REASON.HSM.CANCELED,
+    [NATIVE_BIOMETRIC_HSM_VALUES.ERROR_CODE.KEY_NOT_FOUND]: VALUES.REASON.HSM.KEY_NOT_FOUND,
+    [NATIVE_BIOMETRIC_HSM_VALUES.ERROR_CODE.KEY_ALREADY_EXISTS]: VALUES.REASON.HSM.KEY_CREATION_FAILED,
+    [NATIVE_BIOMETRIC_HSM_VALUES.ERROR_CODE.CREATE_KEYS_ERROR]: VALUES.REASON.HSM.KEY_CREATION_FAILED,
+};
 
 /**
  * Maps caught exceptions from the library to REASON values.
  */
-function mapLibraryError(e: unknown): MultifactorAuthenticationReason | undefined {
-    const msg = e instanceof Error ? e.message : String(e);
-    if (msg.toLowerCase().includes('cancel')) {
-        return VALUES.REASON.EXPO.CANCELED;
+function mapLibraryError(error: unknown): MultifactorAuthenticationReason | undefined {
+    const code = error instanceof Error ? (error as Error & {code?: string}).code : undefined;
+    if (code) {
+        return LIBRARY_ERROR_CODE_MAP[code];
     }
     return undefined;
 }
