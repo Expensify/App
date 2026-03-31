@@ -3656,7 +3656,7 @@ function getIconsForExpenseRequest(report: OnyxInputOrEntry<Report>, personalDet
     const workspaceIcon = getWorkspaceIcon(report, policy);
     const actorDetails = parentReportAction?.actorAccountID ? personalDetails?.[parentReportAction.actorAccountID] : undefined;
     const memberIcon = {
-        source: actorDetails?.avatar ?? FallbackAvatar,
+        source: actorDetails?.avatar ?? getDefaultAvatarURL({accountID: parentReportAction?.actorAccountID}),
         id: parentReportAction?.actorAccountID,
         type: CONST.ICON_TYPE_AVATAR,
         name: actorDetails?.displayName ?? '',
