@@ -35,7 +35,7 @@ type ShareBankAccountProps = PlatformStackScreenProps<SettingsNavigatorParamList
 function ShareBankAccount({route}: ShareBankAccountProps) {
     const bankAccountID = route.params?.bankAccountID;
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['ShareBank', 'Telescope'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['ShareBank', 'Telescope']);
 
     const {isOffline} = useNetwork();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);

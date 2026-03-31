@@ -44,7 +44,7 @@ function SelectionListWithModal<TItem extends ListItem>({
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const isFocused = useIsFocused();
-    const icons = useMemoizedLazyExpensifyIcons(['CheckSquare'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['CheckSquare']);
 
     // Filter out the pending delete item without errors when online to prevent making multiple updates to debouncedData which causes the deleted item is shown again
     const filteredData = useMemo(() => {
