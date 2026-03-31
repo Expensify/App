@@ -8,9 +8,9 @@ import type {ValueOf} from 'type-fest';
 import type {AuthTypeInfo, MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/shared/types';
 import VALUES from '@libs/MultifactorAuthentication/VALUES';
 import CONST from '@src/CONST';
-import NATIVE_BIOMETRICS_HSM_VALUES from './VALUES';
+import NATIVE_BIOMETRIC_HSM_VALUES from './VALUES';
 
-type SecureStoreAuthTypeEntry = ValueOf<typeof NATIVE_BIOMETRICS_HSM_VALUES.AUTH_TYPE>;
+type NativeBiometricsHSMTypeEntry = ValueOf<typeof NATIVE_BIOMETRIC_HSM_VALUES.AUTH_TYPE>;
 
 /**
  * Builds the key alias for a given account.
@@ -40,14 +40,14 @@ function getSensorResult(): BiometricSensorInfo {
  * Maps authType number from signWithOptions (with returnAuthType: true) to AuthTypeInfo.
  * Native layer returns: -1=Unknown, 0=None, 1=DeviceCredentials, 2=Biometrics, 3=FaceID, 4=TouchID, 5=OpticID
  */
-const AUTH_TYPE_NUMBER_MAP = new Map<number, SecureStoreAuthTypeEntry>([
-    [-1, NATIVE_BIOMETRICS_HSM_VALUES.AUTH_TYPE.UNKNOWN],
-    [0, NATIVE_BIOMETRICS_HSM_VALUES.AUTH_TYPE.NONE],
-    [1, NATIVE_BIOMETRICS_HSM_VALUES.AUTH_TYPE.CREDENTIALS],
-    [2, NATIVE_BIOMETRICS_HSM_VALUES.AUTH_TYPE.BIOMETRICS],
-    [3, NATIVE_BIOMETRICS_HSM_VALUES.AUTH_TYPE.FACE_ID],
-    [4, NATIVE_BIOMETRICS_HSM_VALUES.AUTH_TYPE.TOUCH_ID],
-    [5, NATIVE_BIOMETRICS_HSM_VALUES.AUTH_TYPE.OPTIC_ID],
+const AUTH_TYPE_NUMBER_MAP = new Map<number, NativeBiometricsHSMTypeEntry>([
+    [-1, NATIVE_BIOMETRIC_HSM_VALUES.AUTH_TYPE.UNKNOWN],
+    [0, NATIVE_BIOMETRIC_HSM_VALUES.AUTH_TYPE.NONE],
+    [1, NATIVE_BIOMETRIC_HSM_VALUES.AUTH_TYPE.CREDENTIALS],
+    [2, NATIVE_BIOMETRIC_HSM_VALUES.AUTH_TYPE.BIOMETRICS],
+    [3, NATIVE_BIOMETRIC_HSM_VALUES.AUTH_TYPE.FACE_ID],
+    [4, NATIVE_BIOMETRIC_HSM_VALUES.AUTH_TYPE.TOUCH_ID],
+    [5, NATIVE_BIOMETRIC_HSM_VALUES.AUTH_TYPE.OPTIC_ID],
 ]);
 
 function mapAuthTypeNumber(authType?: number): AuthTypeInfo | undefined {

@@ -1,6 +1,6 @@
 import {Buffer} from 'buffer';
 import {buildSigningData, getKeyAlias, mapAuthTypeNumber, mapLibraryError, mapSignErrorCode} from '@libs/MultifactorAuthentication/NativeBiometricsHSM/helpers';
-import NATIVE_BIOMETRICS_HSM_VALUES from '@libs/MultifactorAuthentication/NativeBiometricsHSM/VALUES';
+import NATIVE_BIOMETRIC_HSM_VALUES from '@libs/MultifactorAuthentication/NativeBiometricsHSM/VALUES';
 import VALUES from '@libs/MultifactorAuthentication/VALUES';
 
 const mockSha256 = jest.fn();
@@ -49,9 +49,9 @@ describe('NativeBiometricsHSM helpers', () => {
             // Then it should resolve to the Unknown auth type, because the method could not be determined, but the authentication was successful
             const result = mapAuthTypeNumber(-1);
             expect(result).toEqual({
-                code: NATIVE_BIOMETRICS_HSM_VALUES.AUTH_TYPE.UNKNOWN.CODE,
-                name: NATIVE_BIOMETRICS_HSM_VALUES.AUTH_TYPE.UNKNOWN.NAME,
-                marqetaValue: NATIVE_BIOMETRICS_HSM_VALUES.AUTH_TYPE.UNKNOWN.MARQETA_VALUE,
+                code: NATIVE_BIOMETRIC_HSM_VALUES.AUTH_TYPE.UNKNOWN.CODE,
+                name: NATIVE_BIOMETRIC_HSM_VALUES.AUTH_TYPE.UNKNOWN.NAME,
+                marqetaValue: NATIVE_BIOMETRIC_HSM_VALUES.AUTH_TYPE.UNKNOWN.MARQETA_VALUE,
             });
         });
 
