@@ -3,7 +3,7 @@ import React, {useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import FormHelpMessage from '@components/FormHelpMessage';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import Text from '@components/Text';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -160,11 +160,11 @@ function IOURequestStepDistanceRate({
                 return;
             }
 
-            setMoneyRequestDistanceRate(transactionID, customUnitRateID, policy, shouldUseTransactionDraft(action));
+            setMoneyRequestDistanceRate(transaction, customUnitRateID, policy, shouldUseTransactionDraft(action));
 
             if (isEditing && transaction?.transactionID) {
                 updateMoneyRequestDistanceRate({
-                    transactionID: transaction.transactionID,
+                    transaction,
                     transactionThreadReport: report,
                     parentReport,
                     parentReportNextStep,
@@ -204,7 +204,7 @@ function IOURequestStepDistanceRate({
 
             <SelectionList
                 data={options}
-                ListItem={SingleSelectListItem}
+                ListItem={RadioListItem}
                 onSelectRow={({value}) => selectDistanceRate(value ?? '')}
                 shouldSingleExecuteRowSelect
                 initiallyFocusedItemKey={initiallyFocusedOption}
