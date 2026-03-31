@@ -19,7 +19,7 @@ function useMobileReceiptScan({
     initialTransaction,
     iouType,
     isMultiScanEnabled = false,
-    isStartingScan = false,
+    isStartingScan,
     receiptFiles,
     navigateToConfirmationStep,
     shouldSkipConfirmation,
@@ -78,7 +78,7 @@ function useMobileReceiptScan({
         }
         removeTransactionReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
         removeDraftTransactionsByIDs(draftTransactionIDs, true);
-        setIsMultiScanEnabled?.(!isMultiScanEnabled);
+        setIsMultiScanEnabled(!isMultiScanEnabled);
     }
 
     function dismissMultiScanEducationalPopup() {

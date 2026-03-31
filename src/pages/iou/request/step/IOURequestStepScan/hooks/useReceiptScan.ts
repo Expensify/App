@@ -37,8 +37,6 @@ function useReceiptScan({
     currentUserPersonalDetails,
     backTo,
     backToReport,
-    isMultiScanEnabled = false,
-    isStartingScan = false,
     updateScanAndNavigate,
     getSource,
 }: UseReceiptScanParams) {
@@ -69,6 +67,8 @@ function useReceiptScan({
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
+    const [isMultiScanEnabled, setIsMultiScanEnabled] = useState((transactions ?? []).length > 1);
+    const isStartingScan = action === CONST.IOU.ACTION.CREATE;
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isArchived = isArchivedReport(reportNameValuePairs);
@@ -232,6 +232,9 @@ function useReceiptScan({
     });
     return {
         transactions,
+        isMultiScanEnabled,
+        setIsMultiScanEnabled,
+        isStartingScan,
         isEditing,
         isReplacingReceipt,
         shouldAcceptMultipleFiles,
