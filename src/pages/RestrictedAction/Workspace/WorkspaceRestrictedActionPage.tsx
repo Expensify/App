@@ -10,6 +10,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {RestrictedActionParamList} from '@libs/Navigation/types';
 import {isPolicyAdmin, isPolicyOwner, isPolicyUser} from '@libs/PolicyUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -49,7 +50,7 @@ function WorkspaceRestrictedActionPage({
         if (isLoadingSubscriptionData !== false) {
             return;
         }
-        if (!shouldRestrictUserBillableActions(policyID, userBillingGracePeriods, undefined, ownerBillingGraceEndPeriod)) {
+        if (!shouldRestrictUserBillableActions(policyID, ownerBillingGraceEndPeriod, userBillingGracePeriods)) {
             Navigation.goBack();
         }
     }, [policyID, isLoadingSubscriptionData, userBillingGracePeriods, ownerBillingGraceEndPeriod]);
@@ -58,7 +59,12 @@ function WorkspaceRestrictedActionPage({
     // instead of flashing the restriction UI which may no longer apply.
     // Skip the loading indicator when offline since the API call won't go through.
     if (isLoadingSubscriptionData !== false && !isOffline) {
-        return <FullScreenLoadingIndicator style={styles.opacity1} />;
+        return (
+            <FullScreenLoadingIndicator
+                style={styles.opacity1}
+                reasonAttributes={{context: 'WorkspaceRestrictedActionPage', isLoadingSubscriptionData} satisfies SkeletonSpanReasonAttributes}
+            />
+        );
     }
 
     // Workspace Owner

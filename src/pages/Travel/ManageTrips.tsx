@@ -12,8 +12,10 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Accessibility from '@libs/Accessibility';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import colors from '@styles/theme/colors';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
 type ManageTripsProps = {
@@ -26,7 +28,8 @@ function ManageTrips({policyID}: ManageTripsProps) {
     const {translate} = useLocalize();
     const [shouldScrollToBottom, setShouldScrollToBottom] = useState(false);
 
-    const illustrations = useMemoizedLazyIllustrations(['PiggyBank', 'TravelAlerts'] as const);
+    const isReduceMotionEnabled = Accessibility.useReducedMotion();
+    const illustrations = useMemoizedLazyIllustrations(['PiggyBank', 'TravelAlerts', 'EmptyStateTravel']);
 
     const tripsFeatures: FeatureListItem[] = [
         {
@@ -66,8 +69,8 @@ function ManageTrips({policyID}: ManageTripsProps) {
                         menuItems={tripsFeatures}
                         title={translate('travel.title')}
                         subtitle={translate('travel.subtitle')}
-                        illustration={LottieAnimations.TripsEmptyState}
-                        illustrationStyle={[styles.mv4]}
+                        illustration={isReduceMotionEnabled ? illustrations.EmptyStateTravel : LottieAnimations.TripsEmptyState}
+                        illustrationStyle={isReduceMotionEnabled ? [styles.mv4, {width: variables.tripsIllustrationW, height: variables.tripsIllustrationH}] : [styles.mv4]}
                         illustrationBackgroundColor={colors.blue600}
                         titleStyles={styles.textHeadlineH1}
                         contentPaddingOnLargeScreens={styles.p5}

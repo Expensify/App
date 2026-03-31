@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash(gh pr diff:*),Bash(gh pr view:*)
+allowed-tools: Bash(gh pr diff:*),Bash(gh pr view:*),Bash(check-compiler.sh:*)
 description: Review a code contribution pull request
 ---
 
