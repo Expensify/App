@@ -1,7 +1,7 @@
 import type {NavigationState, PartialState, getStateFromPath as RNGetStateFromPath, Route} from '@react-navigation/native';
 import pick from 'lodash/pick';
 import getInitialSplitNavigatorState from '@libs/Navigation/AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
-import ROOT_TAB_SCREENS from '@libs/Navigation/AppNavigator/Navigators/ROOT_TAB_SCREENS';
+import EXPENSIFY_TAB_SCREENS from '@libs/Navigation/AppNavigator/Navigators/EXPENSIFY_TAB_SCREENS';
 import {RHP_TO_DOMAIN, RHP_TO_HOME, RHP_TO_SEARCH, RHP_TO_SETTINGS, RHP_TO_SIDEBAR, RHP_TO_WORKSPACE, RHP_TO_WORKSPACES_LIST} from '@libs/Navigation/linkingConfig/RELATIONS';
 import type {NavigationPartialRoute, RootNavigatorParamList} from '@libs/Navigation/types';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
@@ -29,25 +29,25 @@ type GetAdaptedStateFromPath = (...args: [...Parameters<typeof RNGetStateFromPat
 // The function getPathFromState that we are using in some places isn't working correctly without defined index.
 const getRoutesWithIndex = (routes: NavigationPartialRoute[]): PartialState<NavigationState> => ({routes, index: routes.length - 1});
 
-/** All tab routes derived from the shared ROOT_TAB_SCREENS constant. */
-const ROOT_TAB_NAVIGATOR_ROUTES: NavigationPartialRoute[] = ROOT_TAB_SCREENS.map((name) => ({name}));
+/** All tab routes derived from the shared EXPENSIFY_TAB_SCREENS constant. */
+const EXPENSIFY_TAB_NAVIGATOR_ROUTES: NavigationPartialRoute[] = EXPENSIFY_TAB_SCREENS.map((name) => ({name}));
 
 /**
- * Builds RootTabNavigator state with all tabs and the correct selected tab.
+ * Builds ExpensifyTabNavigator state with all tabs and the correct selected tab.
  * Tab navigators require all routes in the state for proper rendering.
  */
-function getRootTabNavigatorState(selectedTabRoute: NavigationPartialRoute): NavigationPartialRoute {
-    const tabIndex = ROOT_TAB_NAVIGATOR_ROUTES.findIndex((r) => r.name === selectedTabRoute.name);
+function getExpensifyTabNavigatorState(selectedTabRoute: NavigationPartialRoute): NavigationPartialRoute {
+    const tabIndex = EXPENSIFY_TAB_NAVIGATOR_ROUTES.findIndex((r) => r.name === selectedTabRoute.name);
     const index = tabIndex >= 0 ? tabIndex : 0;
 
-    const routes = ROOT_TAB_NAVIGATOR_ROUTES.map((route, i) => {
+    const routes = EXPENSIFY_TAB_NAVIGATOR_ROUTES.map((route, i) => {
         if (i === index && selectedTabRoute.state) {
             return {...route, state: selectedTabRoute.state, params: selectedTabRoute.params};
         }
         return {...route};
     });
 
-    return {name: NAVIGATORS.ROOT_TAB_NAVIGATOR, state: {routes, index}};
+    return {name: NAVIGATORS.EXPENSIFY_TAB_NAVIGATOR, state: {routes, index}};
 }
 
 function isRouteWithBackToParam(route: NavigationPartialRoute): route is Route<string, {backTo: string}> {
@@ -119,18 +119,18 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
             params: Object.keys({...copiedParams, ...queryParam}).length > 0 ? {...copiedParams, ...queryParam} : undefined,
         };
         const searchState = getRoutesWithIndex([searchRoute]);
-        return getRootTabNavigatorState({name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, state: searchState});
+        return getExpensifyTabNavigatorState({name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, state: searchState});
     }
 
     if (RHP_TO_HOME[route.name]) {
         return {
-            ...getRootTabNavigatorState({name: SCREENS.HOME}),
+            ...getExpensifyTabNavigatorState({name: SCREENS.HOME}),
             path: normalizePath(ROUTES.HOME),
         };
     }
 
     if (RHP_TO_WORKSPACES_LIST[route.name]) {
-        return getRootTabNavigatorState({
+        return getExpensifyTabNavigatorState({
             name: NAVIGATORS.WORKSPACE_NAVIGATOR,
             state: getRoutesWithIndex([
                 {
@@ -157,7 +157,7 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
             },
         );
 
-        return getRootTabNavigatorState({
+        return getExpensifyTabNavigatorState({
             name: NAVIGATORS.WORKSPACE_NAVIGATOR,
             state: getRoutesWithIndex([{name: SCREENS.WORKSPACES_LIST}, workspaceSplitRoute]),
         });
@@ -173,7 +173,7 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
                 params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
             },
         );
-        return getRootTabNavigatorState(settingsState);
+        return getExpensifyTabNavigatorState(settingsState);
     }
 
     if (RHP_TO_DOMAIN[route.name]) {
@@ -190,7 +190,7 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
             },
         );
 
-        return getRootTabNavigatorState({
+        return getExpensifyTabNavigatorState({
             name: NAVIGATORS.WORKSPACE_NAVIGATOR,
             state: getRoutesWithIndex([{name: SCREENS.WORKSPACES_LIST}, domainSplitRoute]),
         });
@@ -202,7 +202,7 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
         const splitState = getInitialSplitNavigatorState({
             name: RHP_TO_SIDEBAR[route.name],
         });
-        return getRootTabNavigatorState(splitState);
+        return getExpensifyTabNavigatorState(splitState);
     }
 
     // Handle dynamic routes: find the appropriate full screen route
@@ -253,14 +253,14 @@ function getDefaultFullScreenRoute(route?: NavigationPartialRoute) {
 
         // Only allReports should be checked here
         if (!getReportOrDraftReport(reportID, undefined, undefined, {})) {
-            return getRootTabNavigatorState({name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR});
+            return getExpensifyTabNavigatorState({name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR});
         }
 
         const reportsState = getInitialSplitNavigatorState({name: SCREENS.INBOX}, {name: SCREENS.REPORT, params: {reportID}});
-        return getRootTabNavigatorState(reportsState);
+        return getExpensifyTabNavigatorState(reportsState);
     }
 
-    return getRootTabNavigatorState({name: SCREENS.HOME});
+    return getExpensifyTabNavigatorState({name: SCREENS.HOME});
 }
 
 function getOnboardingAdaptedState(state: PartialState<NavigationState>): PartialState<NavigationState> {
@@ -282,8 +282,8 @@ function getOnboardingAdaptedState(state: PartialState<NavigationState>): Partia
 function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamList>>): GetAdaptedStateReturnType {
     const fullScreenRoute = state.routes.find((route) => isFullScreenName(route.name));
 
-    // If ROOT_TAB_NAVIGATOR contains WORKSPACE_NAVIGATOR, ensure WORKSPACES_LIST is in its nested state
-    if (fullScreenRoute?.name === NAVIGATORS.ROOT_TAB_NAVIGATOR) {
+    // If EXPENSIFY_TAB_NAVIGATOR contains WORKSPACE_NAVIGATOR, ensure WORKSPACES_LIST is in its nested state
+    if (fullScreenRoute?.name === NAVIGATORS.EXPENSIFY_TAB_NAVIGATOR) {
         const tabState = fullScreenRoute.state as PartialState<NavigationState> | undefined;
         const wsNavRoute = tabState?.routes?.find((r) => r.name === NAVIGATORS.WORKSPACE_NAVIGATOR);
         if (wsNavRoute) {
@@ -296,7 +296,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
                 const updatedTabRoutes = tabState!.routes!.map((r) => (r.name === NAVIGATORS.WORKSPACE_NAVIGATOR ? updatedWsNavRoute : r)) as NavigationPartialRoute[];
                 const updatedTabState = {...tabState, routes: updatedTabRoutes};
                 const updatedFullScreenRoute = {...fullScreenRoute, state: updatedTabState};
-                const updatedRoutes = state.routes.map((r) => (r.name === NAVIGATORS.ROOT_TAB_NAVIGATOR ? updatedFullScreenRoute : r)) as NavigationPartialRoute[];
+                const updatedRoutes = state.routes.map((r) => (r.name === NAVIGATORS.EXPENSIFY_TAB_NAVIGATOR ? updatedFullScreenRoute : r)) as NavigationPartialRoute[];
                 return getRoutesWithIndex(updatedRoutes);
             }
         }
@@ -324,13 +324,13 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
                 state: getOnboardingAdaptedState(onboardingNavigator.state),
             };
 
-            return getRoutesWithIndex([getRootTabNavigatorState({name: SCREENS.HOME}), adaptedOnboardingNavigator]);
+            return getRoutesWithIndex([getExpensifyTabNavigatorState({name: SCREENS.HOME}), adaptedOnboardingNavigator]);
         }
 
         const isRightModalNavigator = state.routes.find((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
 
         if (isRightModalNavigator) {
-            return getRoutesWithIndex([getRootTabNavigatorState({name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}), ...state.routes]);
+            return getRoutesWithIndex([getExpensifyTabNavigatorState({name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}), ...state.routes]);
         }
 
         const defaultFullScreenRoute = getDefaultFullScreenRoute(focusedRoute);

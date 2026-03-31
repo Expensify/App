@@ -7,7 +7,7 @@ import useSplitNavigatorScreenOptions from '@libs/Navigation/AppNavigator/useSpl
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {ReportsSplitNavigatorParamList, RootTabNavigatorParamList} from '@libs/Navigation/types';
+import type {ReportsSplitNavigatorParamList, ExpensifyTabNavigatorParamList} from '@libs/Navigation/types';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
@@ -23,7 +23,7 @@ const Split = createSplitNavigator<ReportsSplitNavigatorParamList>();
  * This SplitNavigator includes the HOME screen (<BaseSidebarScreen /> component) with a list of reports as a sidebar screen and the REPORT screen displayed as a central one.
  * There can be multiple report screens in the stack with different report IDs.
  */
-function ReportsSplitNavigator({route}: PlatformStackScreenProps<RootTabNavigatorParamList, typeof NAVIGATORS.REPORTS_SPLIT_NAVIGATOR>) {
+function ReportsSplitNavigator({route}: PlatformStackScreenProps<ExpensifyTabNavigatorParamList, typeof NAVIGATORS.REPORTS_SPLIT_NAVIGATOR>) {
     const {isBetaEnabled} = usePermissions();
     const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions();
     const archivedReportsIdSet = useArchivedReportsIdSet();

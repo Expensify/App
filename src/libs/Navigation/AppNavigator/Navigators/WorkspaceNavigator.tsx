@@ -5,7 +5,7 @@ import React from 'react';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {RootTabNavigatorParamList, WorkspaceNavigatorParamList} from '@libs/Navigation/types';
+import type {ExpensifyTabNavigatorParamList, WorkspaceNavigatorParamList} from '@libs/Navigation/types';
 import createWorkspaceNavigator from '@navigation/AppNavigator/createWorkspaceNavigator';
 import WorkspacesListPage from '@pages/workspace/WorkspacesListPage';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -15,7 +15,7 @@ import WorkspaceSplitNavigator from './WorkspaceSplitNavigator';
 
 const Stack = createWorkspaceNavigator<WorkspaceNavigatorParamList>();
 
-function WorkspaceNavigator({route}: PlatformStackScreenProps<RootTabNavigatorParamList, typeof NAVIGATORS.WORKSPACE_NAVIGATOR>) {
+function WorkspaceNavigator({route}: PlatformStackScreenProps<ExpensifyTabNavigatorParamList, typeof NAVIGATORS.WORKSPACE_NAVIGATOR>) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     // On narrow layout, use slide animation and enable swipe-back gesture on native platforms from WorkspaceInitialPage and DomainInitialPage.
     const splitNavigatorOptions = shouldUseNarrowLayout ? {animation: Animations.SLIDE_FROM_RIGHT, gestureEnabled: true} : {animation: Animations.NONE};

@@ -3,7 +3,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 
 function getTopmostReportsSplitNavigator() {
     const rootState = navigationRef.getRootState();
-    const topmostRootTab = rootState?.routes.findLast((route) => route.name === NAVIGATORS.ROOT_TAB_NAVIGATOR);
+    const topmostRootTab = rootState?.routes.findLast((route) => route.name === NAVIGATORS.EXPENSIFY_TAB_NAVIGATOR);
     const tabState = topmostRootTab?.state;
     return tabState?.routes?.find((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
 }

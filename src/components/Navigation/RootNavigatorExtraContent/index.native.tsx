@@ -1,5 +1,5 @@
 // On mobile platforms, concierge is displayed as a separate page and the tab bar
-// is rendered by the RootTabNavigator, so there is no extra content to show here.
+// is rendered by the ExpensifyTabNavigator, so there is no extra content to show here.
 function RootNavigatorExtraContent() {
     return null;
 }

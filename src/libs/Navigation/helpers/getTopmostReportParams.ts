@@ -22,7 +22,7 @@ function getTopmostReportParams(state: State): ReportsSplitNavigatorParamList[ty
     let topmostReportsSplitNavigator = state.routes?.findLast((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
 
     if (!topmostReportsSplitNavigator) {
-        const rootTab = state.routes?.findLast((route) => route.name === NAVIGATORS.ROOT_TAB_NAVIGATOR);
+        const rootTab = state.routes?.findLast((route) => route.name === NAVIGATORS.EXPENSIFY_TAB_NAVIGATOR);
         topmostReportsSplitNavigator = rootTab?.state?.routes?.findLast((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
     }
 

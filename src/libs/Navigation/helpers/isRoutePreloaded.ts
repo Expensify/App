@@ -1,9 +1,9 @@
 import type {NavigationState} from '@react-navigation/native';
-import {getRootTabScreenParam} from '@libs/Navigation/helpers/rootTabNavigatorUtils';
+import {getExpensifyTabScreenParam} from '@libs/Navigation/helpers/expensifyTabNavigatorUtils';
 import navigationRef from '@libs/Navigation/navigationRef';
-import type {AuthScreensParamList, NavigationPartialRoute, RootTabNavigatorParamList} from '@libs/Navigation/types';
+import type {AuthScreensParamList, NavigationPartialRoute, ExpensifyTabNavigatorParamList} from '@libs/Navigation/types';
 
-export default function isRoutePreloaded(routeName: keyof AuthScreensParamList | keyof RootTabNavigatorParamList) {
+export default function isRoutePreloaded(routeName: keyof AuthScreensParamList | keyof ExpensifyTabNavigatorParamList) {
     if (!navigationRef.isReady()) {
         return false;
     }
@@ -12,6 +12,6 @@ export default function isRoutePreloaded(routeName: keyof AuthScreensParamList |
         if (preloadedRoute.name === routeName) {
             return true;
         }
-        return getRootTabScreenParam(preloadedRoute) === routeName;
+        return getExpensifyTabScreenParam(preloadedRoute) === routeName;
     });
 }

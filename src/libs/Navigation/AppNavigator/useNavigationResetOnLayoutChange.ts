@@ -3,7 +3,7 @@ import {useEffect} from 'react';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import isRoutePreloaded from '@libs/Navigation/helpers/isRoutePreloaded';
-import {getRootTabScreenParam} from '@libs/Navigation/helpers/rootTabNavigatorUtils';
+import {getExpensifyTabScreenParam} from '@libs/Navigation/helpers/expensifyTabNavigatorUtils';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {CustomEffectsHookProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {NavigationPartialRoute} from '@libs/Navigation/types';
@@ -30,7 +30,7 @@ function useNavigationResetOnLayoutChange({navigation}: CustomEffectsHookProps<P
             const currentState = navigation.getState() as StackNavigationState<ParamListBase> & {preloadedRoutes?: NavigationPartialRoute[]};
             const stateWithoutPreloadedInbox = {
                 ...currentState,
-                preloadedRoutes: currentState.preloadedRoutes?.filter((route: NavigationPartialRoute) => getRootTabScreenParam(route) !== NAVIGATORS.REPORTS_SPLIT_NAVIGATOR),
+                preloadedRoutes: currentState.preloadedRoutes?.filter((route: NavigationPartialRoute) => getExpensifyTabScreenParam(route) !== NAVIGATORS.REPORTS_SPLIT_NAVIGATOR),
             };
             navigation.reset(stateWithoutPreloadedInbox);
             return;

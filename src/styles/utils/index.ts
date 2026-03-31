@@ -2231,7 +2231,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         }
     },
 
-    getRootTabBarNarrowStyle: (safeAreaPaddingBottom: number): ViewStyle => ({
+    getExpensifyTabBarNarrowStyle: (safeAreaPaddingBottom: number): ViewStyle => ({
         overflow: 'visible',
         marginTop: -(variables.bottomTabHeight + safeAreaPaddingBottom),
         paddingBottom: safeAreaPaddingBottom,

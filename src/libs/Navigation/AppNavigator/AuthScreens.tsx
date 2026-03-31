@@ -44,12 +44,12 @@ import DelegatorConnectGuard from './DelegatorConnectGate';
 import hideKeyboardOnSwipe from './hideKeyboardOnSwipe';
 import KeyboardShortcutsHandler from './KeyboardShortcutsHandler';
 import {ShareModalStackNavigator} from './ModalStackNavigators';
+import ExpensifyTabNavigator from './Navigators/ExpensifyTabNavigator';
 import ExplanationModalNavigator from './Navigators/ExplanationModalNavigator';
 import FeatureTrainingModalNavigator from './Navigators/FeatureTrainingModalNavigator';
 import MigratedUserWelcomeModalNavigator from './Navigators/MigratedUserWelcomeModalNavigator';
 import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
 import RightModalNavigator from './Navigators/RightModalNavigator';
-import RootTabNavigator from './Navigators/RootTabNavigator';
 import TestDriveModalNavigator from './Navigators/TestDriveModalNavigator';
 import TestToolsModalNavigator from './Navigators/TestToolsModalNavigator';
 import TestDriveDemoNavigator from './TestDriveDemoNavigator';
@@ -120,8 +120,8 @@ function AuthScreens() {
         };
     }, [theme]);
 
-    // Dynamic options for ROOT_TAB_NAVIGATOR: supports entering animation for pushed instances
-    const getRootTabNavigatorOptions = ({route}: {route: RouteProp<AuthScreensParamList>}) => {
+    // Dynamic options for EXPENSIFY_TAB_NAVIGATOR: supports entering animation for pushed instances
+    const getExpensifyTabNavigatorOptions = ({route}: {route: RouteProp<AuthScreensParamList>}) => {
         if (!shouldUseNarrowLayout) {
             return rootNavigatorScreenOptions.fullScreenTabPage;
         }
@@ -156,12 +156,12 @@ function AuthScreens() {
                         SupportalPermissionDeniedModalProvider,
                     ]}
                 >
-                    <RootStack.Navigator persistentScreens={[NAVIGATORS.ROOT_TAB_NAVIGATOR, NAVIGATORS.RIGHT_MODAL_NAVIGATOR, SCREENS.SEARCH.ROOT]}>
-                        {/* ROOT_TAB_NAVIGATOR (containing Home and Workspaces) has to be the first navigator in auth screens. */}
+                    <RootStack.Navigator persistentScreens={[NAVIGATORS.EXPENSIFY_TAB_NAVIGATOR, NAVIGATORS.RIGHT_MODAL_NAVIGATOR, SCREENS.SEARCH.ROOT]}>
+                        {/* EXPENSIFY_TAB_NAVIGATOR (containing Home and Workspaces) has to be the first navigator in auth screens. */}
                         <RootStack.Screen
-                            name={NAVIGATORS.ROOT_TAB_NAVIGATOR}
-                            options={getRootTabNavigatorOptions}
-                            component={RootTabNavigator}
+                            name={NAVIGATORS.EXPENSIFY_TAB_NAVIGATOR}
+                            options={getExpensifyTabNavigatorOptions}
+                            component={ExpensifyTabNavigator}
                         />
                         <RootStack.Screen
                             name={SCREENS.VALIDATE_LOGIN}

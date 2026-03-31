@@ -1,10 +1,10 @@
 import {useCallback} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import {getPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
+import {getExpensifyTabState} from '@libs/Navigation/helpers/expensifyTabNavigatorUtils';
 import {isFullScreenName, isWorkspaceNavigatorRouteName} from '@libs/Navigation/helpers/isNavigatorName';
 import {getWorkspacesTabStateFromSessionStorage} from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
 import navigateToWorkspacesPage from '@libs/Navigation/helpers/navigateToWorkspacesPage';
-import {getRootTabState} from '@libs/Navigation/helpers/rootTabNavigatorUtils';
 import type {DomainSplitNavigatorParamList, WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -28,16 +28,16 @@ function useRestoreWorkspacesTabOnNavigate() {
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
 
     // Find the last route the user had open in the Workspaces tab (workspace, domain, or list).
-    // Priority: live nav state (root level) -> inside RootTabNavigator -> preserved state -> session storage.
+    // Priority: live nav state (root level) -> inside ExpensifyTabNavigator -> preserved state -> session storage.
     const routeState = useRootNavigationState((rootState) => {
         const topmostFullScreenRoute = rootState?.routes?.findLast((route) => isFullScreenName(route.name));
         if (!topmostFullScreenRoute) {
             return {};
         }
 
-        // Look inside RootTabNavigator for WORKSPACE_NAVIGATOR
-        const rootTabRoute = rootState?.routes.findLast((route) => route.name === NAVIGATORS.ROOT_TAB_NAVIGATOR);
-        const rootTabState = getRootTabState(rootTabRoute);
+        // Look inside ExpensifyTabNavigator for WORKSPACE_NAVIGATOR
+        const rootTabRoute = rootState?.routes.findLast((route) => route.name === NAVIGATORS.EXPENSIFY_TAB_NAVIGATOR);
+        const rootTabState = getExpensifyTabState(rootTabRoute);
         const workspaceNavigatorRoute = rootTabState?.routes?.find((route) => route.name === NAVIGATORS.WORKSPACE_NAVIGATOR);
 
         if (workspaceNavigatorRoute) {

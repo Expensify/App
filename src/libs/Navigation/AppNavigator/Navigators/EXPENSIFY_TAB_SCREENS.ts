@@ -1,12 +1,12 @@
 /**
- * Ordered list of screen names registered inside RootTabNavigator.
- * This must match the Tab.Screen order in RootTabNavigator.tsx.
+ * Ordered list of screen names registered inside ExpensifyTabNavigator.
+ * This must match the Tab.Screen order in ExpensifyTabNavigator.tsx.
  * Used by getAdaptedStateFromPath to build complete tab navigator state for deep-links.
  */
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
-const ROOT_TAB_SCREENS = [
+const EXPENSIFY_TAB_SCREENS = [
     SCREENS.HOME,
     NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
     NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
@@ -14,4 +14,4 @@ const ROOT_TAB_SCREENS = [
     NAVIGATORS.WORKSPACE_NAVIGATOR,
 ] as const;
 
-export default ROOT_TAB_SCREENS;
+export default EXPENSIFY_TAB_SCREENS;
