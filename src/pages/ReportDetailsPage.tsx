@@ -25,7 +25,6 @@ import {useSearchActionsContext, useSearchStateContext} from '@components/Search
 import {SUPER_WIDE_RIGHT_MODALS} from '@components/WideRHPContextProvider/WIDE_RIGHT_MODALS';
 import useActivePolicy from '@hooks/useActivePolicy';
 import useAncestors from '@hooks/useAncestors';
-import useArchivedReportsIDSet from '@hooks/useArchivedReportsIDSet';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
@@ -45,6 +44,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportDetailsNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
@@ -127,7 +127,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
@@ -166,8 +166,9 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Users', 'Gear', 'Send', 'Folder', 'UserPlus', 'Pencil', 'Checkmark', 'Building', 'Exit', 'Bug', 'Camera', 'Trashcan']);
     const backTo = route.params.backTo;
 
-    const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
@@ -193,9 +194,9 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const archivedReportsIDSet = useArchivedReportsIDSet();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {showConfirmModal} = useConfirmModal();
     const isPolicyAdmin = useMemo(() => isPolicyAdminUtil(policy), [policy]);
@@ -226,7 +227,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isArchivedRoom = useMemo(() => isArchivedNonExpenseReport(report, isReportArchived), [report, isReportArchived]);
     const shouldDisableRename = useMemo(() => shouldDisableRenameUtil(report, isReportArchived), [report, isReportArchived]);
-    const parentNavigationSubtitleData = getParentNavigationSubtitle(report, conciergeReportID, isParentReportArchived);
+    const parentNavigationSubtitleData = getParentNavigationSubtitle(report, policy, conciergeReportID, isParentReportArchived);
     const base62ReportID = getBase62ReportID(Number(report.reportID));
     const ancestors = useAncestors(report);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
@@ -331,13 +332,13 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
     const leaveChat = useCallback(() => {
         if (isRootGroupChat) {
-            leaveGroupChat(report, quickAction?.chatReportID?.toString() === report.reportID, currentUserPersonalDetails.accountID, conciergeReportID, introSelected, archivedReportsIDSet);
+            leaveGroupChat(report, quickAction?.chatReportID?.toString() === report.reportID, currentUserPersonalDetails.accountID, conciergeReportID, introSelected, betas);
             return;
         }
 
         const isWorkspaceMemberLeavingWorkspaceRoom = isWorkspaceMemberLeavingWorkspaceRoomUtil(report, isPolicyEmployee, isPolicyAdmin);
-        leaveRoom(report, currentUserPersonalDetails.accountID, conciergeReportID, introSelected, isWorkspaceMemberLeavingWorkspaceRoom, archivedReportsIDSet);
-    }, [isRootGroupChat, isPolicyEmployee, isPolicyAdmin, quickAction?.chatReportID, report, currentUserPersonalDetails.accountID, conciergeReportID, introSelected, archivedReportsIDSet]);
+        leaveRoom(report, currentUserPersonalDetails.accountID, conciergeReportID, introSelected, betas, isWorkspaceMemberLeavingWorkspaceRoom);
+    }, [isRootGroupChat, isPolicyEmployee, isPolicyAdmin, quickAction?.chatReportID, report, currentUserPersonalDetails.accountID, conciergeReportID, introSelected, betas]);
 
     const showLastMemberLeavingModal = useCallback(async () => {
         const {action} = await showConfirmModal({
@@ -462,8 +463,9 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                         introSelected,
                         draftTransactionIDs,
                         activePolicy,
-                        userBillingGraceEndPeriods,
+                        userBillingGracePeriodEnds,
                         amountOwed,
+                        ownerBillingGracePeriodEnd,
                         isRestrictedToPreferredPolicy,
                         preferredPolicyID,
                         transaction: iouTransaction,
@@ -485,8 +487,9 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             introSelected,
                             draftTransactionIDs,
                             activePolicy,
-                            userBillingGraceEndPeriods,
+                            userBillingGracePeriodEnds,
                             amountOwed,
+                            ownerBillingGracePeriodEnd,
                             transaction: iouTransaction,
                         });
                     },
@@ -505,8 +508,9 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             introSelected,
                             draftTransactionIDs,
                             activePolicy,
-                            userBillingGraceEndPeriods,
+                            userBillingGracePeriodEnds,
                             amountOwed,
+                            ownerBillingGracePeriodEnd,
                             transaction: iouTransaction,
                         });
                     },
@@ -634,8 +638,9 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         activePolicy,
         parentReport,
         reportActionsForOriginalReportID,
-        userBillingGraceEndPeriods,
+        userBillingGracePeriodEnds,
         amountOwed,
+        ownerBillingGracePeriodEnd,
         iouTransaction,
     ]);
 
@@ -822,7 +827,9 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     furtherDetails={chatRoomSubtitle && !isGroupChat ? additionalRoomDetails : ''}
                     furtherDetailsNumberOfLines={isWorkspaceChat ? 0 : undefined}
                     furtherDetailsStyle={isWorkspaceChat ? [styles.textAlignCenter, styles.breakWord] : undefined}
-                    onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NAME.getRoute(report.reportID, backTo))}
+                    onPress={() => {
+                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_SETTINGS_NAME.path));
+                    }}
                     numberOfLinesTitle={isThread ? 2 : 0}
                     shouldBreakWord
                 />
@@ -883,17 +890,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
     const deleteTransaction = useCallback(() => {
         if (caseID === CASES.DEFAULT) {
-            deleteTask(
-                report,
-                parentReport,
-                isReportArchived,
-                currentUserPersonalDetails.accountID,
-                hasOutstandingChildTask,
-                parentReportAction,
-                archivedReportsIDSet,
-                conciergeReportID,
-                ancestors,
-            );
+            deleteTask(report, parentReport, isReportArchived, currentUserPersonalDetails.accountID, hasOutstandingChildTask, parentReportAction, conciergeReportID, ancestors);
             return;
         }
 
@@ -946,7 +943,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         deleteTransactions,
         currentSearchHash,
         removeTransaction,
-        archivedReportsIDSet,
         conciergeReportID,
     ]);
 

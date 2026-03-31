@@ -13,7 +13,6 @@ import CONST from '@src/CONST';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions, Transaction} from '@src/types/onyx';
-import type ReportViolations from '@src/types/onyx/ReportViolation';
 import createRandomPolicy from '../utils/collections/policies';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -114,12 +113,32 @@ describe('TransactionPreviewUtils', () => {
         it('returns missing field message when appropriate', () => {
             const functionArgs = {
                 ...basicProps,
+                iouReport: {...basicProps.iouReport, type: CONST.REPORT.TYPE.EXPENSE},
                 transaction: {...basicProps.transaction, created: '', amount: 100},
                 originalTransaction: undefined,
                 shouldShowRBR: true,
             };
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
             expect(result.RBRMessage.translationPath).toEqual('iou.missingMerchant');
+        });
+
+        it('returns missing amount message when amount is missing but merchant is present (expense report with field errors)', () => {
+            const functionArgs = {
+                ...basicProps,
+                iouReport: {...basicProps.iouReport, type: CONST.REPORT.TYPE.IOU},
+                transaction: {
+                    ...basicProps.transaction,
+                    amount: undefined,
+                    modifiedAmount: undefined,
+                    merchant: 'Valid Merchant',
+                    created: '2024-01-01',
+                } as unknown as Transaction,
+                violations: [],
+                originalTransaction: undefined,
+                shouldShowRBR: true,
+            };
+            const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
+            expect(result.RBRMessage.translationPath).toEqual('iou.missingAmount');
         });
 
         it('should display showCashOrCard in previewHeaderText', () => {
@@ -512,100 +531,6 @@ describe('TransactionPreviewUtils', () => {
             const functionArgs = {...basicProps, isTransactionOnHold: false};
             const result = createTransactionPreviewConditionals(functionArgs);
             expect(result.shouldShowRBR).toBeFalsy();
-        });
-
-        it('should show RBR when report has violations and user is the report owner', () => {
-            const reportID = basicProps.iouReport.reportID || '1';
-            const iouReport = {
-                ...basicProps.iouReport,
-                reportID,
-                ownerAccountID: currentUserAccountID,
-            };
-
-            const reportViolations: ReportViolations = {
-                fieldRequired: {
-                    field1: {},
-                    field2: {},
-                },
-            } as unknown as ReportViolations;
-
-            const functionArgs = {
-                ...basicProps,
-                iouReport,
-                reportViolations,
-                violations: [],
-                transaction: {...basicProps.transaction, errors: undefined, errorFields: undefined},
-            };
-
-            const result = createTransactionPreviewConditionals(functionArgs);
-            expect(result.shouldShowRBR).toBeTruthy();
-        });
-
-        it('should not show RBR from report violations when user is not the report owner', () => {
-            const reportID = basicProps.iouReport.reportID || '1';
-            const otherUserAccountID = 888;
-            const iouReport = {
-                ...basicProps.iouReport,
-                reportID,
-                ownerAccountID: otherUserAccountID,
-            };
-
-            // First, test without violations
-            const functionArgsWithoutViolations = {
-                ...basicProps,
-                iouReport,
-                reportViolations: undefined,
-                violations: [],
-                transaction: {...basicProps.transaction, errors: undefined, errorFields: undefined},
-            };
-
-            const resultWithoutViolations = createTransactionPreviewConditionals(functionArgsWithoutViolations);
-            const shouldShowRBRWithoutViolations = resultWithoutViolations.shouldShowRBR;
-
-            // Then, test with violations
-            const reportViolations: ReportViolations = {
-                fieldRequired: {
-                    field1: {},
-                },
-            } as unknown as ReportViolations;
-
-            const functionArgsWithViolations = {
-                ...basicProps,
-                iouReport,
-                reportViolations,
-                violations: [],
-                transaction: {...basicProps.transaction, errors: undefined, errorFields: undefined},
-            };
-
-            const resultWithViolations = createTransactionPreviewConditionals(functionArgsWithViolations);
-            // RBR should be the same with or without violations when user is not the owner
-            expect(resultWithViolations.shouldShowRBR).toBe(shouldShowRBRWithoutViolations);
-        });
-
-        it('should show RBR when report has violations even if transaction violations are absent', () => {
-            const reportID = basicProps.iouReport.reportID || '1';
-            const iouReport = {
-                ...basicProps.iouReport,
-                reportID,
-                ownerAccountID: currentUserAccountID,
-            };
-
-            const reportViolations: ReportViolations = {
-                fieldRequired: {
-                    merchant: {},
-                },
-            } as unknown as ReportViolations;
-
-            const functionArgs = {
-                ...basicProps,
-                iouReport,
-                reportViolations,
-                violations: [], // No transaction violations
-                transaction: {...basicProps.transaction, errors: undefined, errorFields: undefined},
-            };
-
-            const result = createTransactionPreviewConditionals(functionArgs);
-            expect(result.shouldShowRBR).toBeTruthy();
         });
 
         it('should show description if no merchant is presented and is not scanning', () => {

@@ -1,10 +1,14 @@
 import {useEffect} from 'react';
 import useShouldShowRequire2FAPage from '@hooks/useShouldShowRequire2FAPage';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import findMatchingDynamicSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/findMatchingDynamicSuffix';
 import Navigation from '@libs/Navigation/Navigation';
 import * as Modal from '@userActions/Modal';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+const KEYBOARD_SHORTCUTS_PATH = DYNAMIC_ROUTES.KEYBOARD_SHORTCUTS.path;
 
 function ShortcutsOverviewHandler() {
     const shouldShowRequire2FAPage = useShouldShowRequire2FAPage();
@@ -19,10 +23,11 @@ function ShortcutsOverviewHandler() {
                         return;
                     }
 
-                    if (Navigation.isActiveRoute(ROUTES.KEYBOARD_SHORTCUTS.getRoute(Navigation.getActiveRoute()))) {
+                    const activeRoute = Navigation.getActiveRoute();
+                    if (findMatchingDynamicSuffix(activeRoute) === KEYBOARD_SHORTCUTS_PATH) {
                         return;
                     }
-                    return Navigation.navigate(ROUTES.KEYBOARD_SHORTCUTS.getRoute(Navigation.getActiveRoute()));
+                    return Navigation.navigate(createDynamicRoute(KEYBOARD_SHORTCUTS_PATH));
                 });
             },
             shortcutConfig.descriptionKey,

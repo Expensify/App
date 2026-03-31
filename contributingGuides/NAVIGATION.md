@@ -710,12 +710,12 @@ Do not use dynamic routes when:
 `DYNAMIC_ROUTES` in `src/ROUTES.ts`: each entry has:
 
 - `path`: The URL suffix (e.g. `'verify-account'`).
-- `entryScreens`: List of screen names that are allowed to have this suffix appended (access control; see [Entry Screens (Access Control)](#entry-screens-access-control)).
+- `entryScreens`: List of screen names that are allowed to have this suffix appended (access control; see [Entry Screens (Access Control)](#entry-screens-access-control)). Use `['*']` to allow all screens.
 
-`createDynamicRoute(suffix)` — [`createDynamicRoute.ts`](src/libs/Navigation/helpers/createDynamicRoute.ts). Accepts a `DynamicRouteSuffix` (from `DYNAMIC_ROUTES`), appends it to the current active route and returns the full route. Use the following when navigating to a dynamic route:
+`createDynamicRoute(suffix)` — [`createDynamicRoute.ts`](src/libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute.ts). Accepts a `DynamicRouteSuffix` (from `DYNAMIC_ROUTES`), appends it to the current active route and returns the full route. Use the following when navigating to a dynamic route:
 
 ```ts
-import createDynamicRoute from '@libs/Navigation/helpers/createDynamicRoute';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
@@ -730,6 +730,24 @@ The `entryScreens` array in `DYNAMIC_ROUTES` defines which base screens are allo
 When parsing a URL, `src/libs/Navigation/helpers/getStateFromPath.ts` resolves the base path (without the dynamic suffix), gets the focused route for that path, and checks whether it is in `entryScreens`. If it is not, the dynamic route state is not built and a warning is logged. This prevents opening e.g. `/some/random/path/verify-account` when that path's screen is not allowed.
 
 When adding or extending a dynamic route, list every screen that should be able to open it (e.g. `SCREENS.SETTINGS.WALLET.ROOT` for Verify Account from Wallet).
+
+#### Wildcard access (`'*'`)
+
+Setting `entryScreens` to `['*']` grants access to the dynamic route from any screen. This bypasses per-screen authorization entirely for that route.
+
+```ts
+KEYBOARD_SHORTCUTS: {
+    path: 'keyboard-shortcuts',
+    entryScreens: ['*'],
+},
+```
+
+> [!CAUTION]
+> **Use `'*'` only when the dynamic route genuinely needs to be reachable from every screen.**
+> If only a subset of screens should access the route, list them explicitly.
+> Overusing `'*'` weakens the access control that `entryScreens` provides
+> and makes it harder to reason about which screens can trigger a given flow.
+> When in doubt, prefer an explicit list.
 
 ### Current limitations (work in progress)
 

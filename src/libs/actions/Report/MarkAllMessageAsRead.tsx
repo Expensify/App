@@ -6,7 +6,7 @@ import type {MarkAllMessagesAsReadParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import NetworkConnection from '@libs/NetworkConnection';
 import {getOneTransactionThreadReportID} from '@libs/ReportActionsUtils';
-import {isReportArchivedByID, isUnread} from '@libs/ReportUtils';
+import {isUnread} from '@libs/ReportUtils';
 import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportActions} from '@src/types/onyx';
@@ -27,7 +27,7 @@ Onyx.connectWithoutView({
     callback: (value) => (allReports = value),
 });
 
-function markAllMessagesAsRead(archivedReportsIDSet: ArchivedReportsIDSet) {
+function markAllMessagesAsRead(archivedReportsIdSet: ArchivedReportsIDSet) {
     if (isAnonymousUser()) {
         return;
     }
@@ -48,8 +48,9 @@ function markAllMessagesAsRead(archivedReportsIDSet: ArchivedReportsIDSet) {
         const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`];
         const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]);
         const oneTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
-        const isArchivedReport = isReportArchivedByID(archivedReportsIDSet, report.reportID);
-        if (!isUnread(report, oneTransactionThreadReport, isArchivedReport)) {
+        const isArchivedReport = archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`);
+        const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`];
+        if (!isUnread(report, oneTransactionThreadReport, isArchivedReport, reportActions)) {
             continue;
         }
 

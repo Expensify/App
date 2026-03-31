@@ -3,8 +3,8 @@ import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import {useSearchActionsContext} from '@components/Search/SearchContext';
-import type {ListItem} from '@components/SelectionListWithSections/types';
-import useArchivedReportsIDSet from '@hooks/useArchivedReportsIDSet';
+import type {ListItem} from '@components/SelectionList/types';
+import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -49,7 +49,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const {backTo, action, iouType, transactionID, reportID: reportIDFromRoute, reportActionID} = route.params;
     const {translate, toLocaleDigit} = useLocalize();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const archivedReportsIDSet = useArchivedReportsIDSet();
+    const archivedReportsIDSet = useArchivedReportsIdSet();
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const transactionReport = Object.values(allReports ?? {}).find((report) => report?.reportID === transaction?.reportID);
     const participantReportID = transaction?.participants?.at(0)?.reportID;
@@ -60,7 +60,8 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
-    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const {removeTransaction, setSelectedTransactions} = useSearchActionsContext();
     const reportOrDraftReport = getReportOrDraftReport(reportIDFromRoute);
@@ -249,7 +250,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
 
         const policyForNewReport = isPerDiemTransaction && perDiemOriginalPolicy ? perDiemOriginalPolicy : policyForMovingExpenses;
         const optimisticReport = createNewReport(ownerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForNewReport, betas, false, shouldDismissEmptyReportsConfirmation);
-        handleRegularReportSelection({value: optimisticReport.reportID}, optimisticReport);
+        handleRegularReportSelection({value: optimisticReport.reportID, keyForList: optimisticReport.reportID}, optimisticReport);
     };
 
     const {handleCreateReport} = useConditionalCreateEmptyReportConfirmation({
@@ -272,7 +273,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute(true, backTo));
             return;
         }
-        if (policyForMovingExpensesID && shouldRestrictUserBillableActions(policyForMovingExpensesID, undefined, undefined, ownerBillingGraceEndPeriod)) {
+        if (policyForMovingExpensesID && shouldRestrictUserBillableActions(policyForMovingExpensesID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyForMovingExpensesID));
             return;
         }

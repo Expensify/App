@@ -40,7 +40,7 @@ import PureReportActionItem from './PureReportActionItem';
 
 type ReportActionItemProps = Omit<
     PureReportActionItemProps,
-    'taskReport' | 'linkedReport' | 'iouReportOfLinkedReport' | 'currentUserAccountID' | 'personalPolicyID' | 'draftTransactionIDs' | 'userBillingGraceEndPeriods'
+    'taskReport' | 'linkedReport' | 'iouReportOfLinkedReport' | 'currentUserAccountID' | 'currentUserEmail' | 'personalPolicyID' | 'draftTransactionIDs' | 'userBillingGracePeriodEnds'
 > & {
     /** Whether to show the draft message or not */
     shouldShowDraftMessage?: boolean;
@@ -94,6 +94,7 @@ function ReportActionItem({
     const policyIDForTags = report?.policyID === CONST.POLICY.OWNER_EMAIL_FAKE && policyForMovingExpensesID ? policyForMovingExpensesID : report?.policyID;
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyIDForTags}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`);
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`);
@@ -113,7 +114,7 @@ function ReportActionItem({
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
-    const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const transactionsOnIOUReport = useReportTransactions(iouReport?.reportID);
     const transactionID = isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID;
 
@@ -135,12 +136,14 @@ function ReportActionItem({
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             introSelected={introSelected}
+            betas={betas}
             draftTransactionIDs={draftTransactionIDs}
             personalPolicyID={personalPolicyID}
             action={action}
             report={report}
             policy={policy}
             currentUserAccountID={currentUserAccountID}
+            currentUserEmail={currentUserEmail}
             draftMessage={draftMessage}
             iouReport={iouReport}
             taskReport={taskReport}
@@ -187,7 +190,7 @@ function ReportActionItem({
             isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
             bankAccountList={bankAccountList}
             reportMetadata={reportMetadata}
-            userBillingGraceEndPeriods={userBillingGraceEndPeriods}
+            userBillingGracePeriodEnds={userBillingGracePeriodEnds}
         />
     );
 }
