@@ -1,7 +1,7 @@
 ---
 title: "How to use search operators in Expensify"
 description: "Learn how to use advanced search filters, comparisons, and groupings to find exactly what you need across expenses, chats, reports, and more."
-keywords: "search operators, filters, search rules, expense search, report search, chat filters, advanced search, group-by, search syntax"
+keywords: "search operators, filters, search rules, expense search, report search, chat filters, advanced search, group-by, view, chart, search syntax"
 ---
 
 <div id="new-expensify" markdown="1">
@@ -101,12 +101,12 @@ type:task assignee:"Charlie Brown" status:outstanding
 
 ---
 
-# Available filters for grouping and currency conversion
+# Available filters for grouping, chart views, and currency conversion
 
-Use `group-by:` to analyze data by dimension, and `group-currency:` to normalize totals.
+Use `group-by:` to analyze data by dimension, `view:` to choose how grouped results are displayed, and `group-currency:` to normalize totals.
 
 ```
-group-by:merchant group-currency:USD
+group-by:category view:bar group-currency:USD
 ```
 
 Supported groupings include:
@@ -122,6 +122,19 @@ Supported groupings include:
 - `group-by:week` - Group by calendar week
 - `group-by:quarter` - Group by fiscal quarter
 - `group-by:year` - Group by calendar year
+
+## How to choose a chart view for grouped results
+
+When using `group-by:`, you can add `view:` to control the visualization type. If you save a grouped search with a specific `view:`, that choice is preserved in the saved search label.
+
+Supported views:
+
+- `view:table` - Display grouped results as a table (default)
+- `view:bar` - Display grouped results as a bar chart
+- `view:pie` - Display grouped results as a pie chart
+- `view:line` - Display grouped results as a line chart
+
+> **Note:** The `view:` operator only applies when `group-by:` is also used. Without `group-by:`, the `view:` value is ignored.
 
 ---
 
