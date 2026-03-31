@@ -1,6 +1,6 @@
 import React from 'react';
 import Icon from '@components/Icon';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {ListItem} from '@components/SelectionList/types';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -29,11 +29,10 @@ type EditReportFieldDropdownPageProps = {
 function EditReportFieldDropdown({onSubmit, fieldKey, fieldValue, fieldOptions}: EditReportFieldDropdownPageProps) {
     const [recentlyUsedReportFields] = useOnyx(ONYXKEYS.RECENTLY_USED_REPORT_FIELDS);
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
+    const theme = useTheme();
     const {translate, localeCompare} = useLocalize();
     const recentlyUsedOptions = recentlyUsedReportFields?.[fieldKey]?.sort(localeCompare) ?? [];
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark'] as const);
-    const theme = useTheme();
-
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
     const itemRightSideComponent = (item: ListItem) => {
         if (item.text === fieldValue) {
             return (
@@ -76,7 +75,7 @@ function EditReportFieldDropdown({onSubmit, fieldKey, fieldValue, fieldOptions}:
     return (
         <SelectionListWithSections
             sections={sections ?? []}
-            ListItem={SingleSelectListItem}
+            ListItem={RadioListItem}
             shouldShowTextInput
             textInputOptions={textInputOptions}
             onSelectRow={(option) => onSubmit({[fieldKey]: !option?.text || fieldValue === option.text ? '' : option.text})}

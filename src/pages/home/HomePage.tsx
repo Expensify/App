@@ -20,6 +20,7 @@ import AnnouncementSection from './AnnouncementSection';
 import AssignedCardsSection from './AssignedCardsSection';
 import DiscoverSection from './DiscoverSection';
 import ForYouSection from './ForYouSection';
+import FreeTrialSection from './FreeTrialSection';
 import GettingStartedSection from './GettingStartedSection';
 import SpendOverTimeSection from './SpendOverTimeSection';
 import TimeSensitiveSection from './TimeSensitiveSection';
@@ -82,6 +83,7 @@ function HomePage() {
                                 <DiscoverSection />
                             </View>
                             <View style={styles.homePageRightColumn(shouldUseNarrowLayout)}>
+                                <FreeTrialSection />
                                 <GettingStartedSection />
                                 <UpcomingTravelSection />
                                 <AssignedCardsSection />
