@@ -41,7 +41,7 @@ function TaskAssigneeSelectorModal() {
     const backTo = route.params?.backTo;
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [task] = useOnyx(ONYXKEYS.TASK);
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
@@ -152,6 +152,7 @@ function TaskAssigneeSelectorModal() {
             ...allPersonalDetails?.[option?.accountID ?? CONST.DEFAULT_NUMBER_ID],
             accountID: option.accountID ?? CONST.DEFAULT_NUMBER_ID,
             login: option.login ?? '',
+            isOptimisticPersonalDetail: !allPersonalDetails?.[option?.accountID ?? CONST.DEFAULT_NUMBER_ID],
         };
 
         // Check to see if we're editing a task and if so, update the assignee
@@ -170,6 +171,7 @@ function TaskAssigneeSelectorModal() {
                     parentReport,
                     currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     option?.login ?? '',
+                    currentUserEmail,
                     currentUserPersonalDetails.accountID,
                     hasOutstandingChildTask,
                     option?.accountID,

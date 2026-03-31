@@ -1,5 +1,6 @@
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import mapValues from 'lodash/mapValues';
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -9,18 +10,22 @@ import Icon from '@components/Icon';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import ReceiptAudit, {ReceiptAuditMessages} from '@components/ReceiptAudit';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
+import Tooltip from '@components/Tooltip';
 import useActiveRoute from '@hooks/useActiveRoute';
 import useAncestors from '@hooks/useAncestors';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
+import useFilesValidation from '@hooks/useFilesValidation';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useHover from '@hooks/useHover';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useOriginalReportID from '@hooks/useOriginalReportID';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -29,7 +34,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import {getBrokenConnectionUrlToFixPersonalCard} from '@libs/CardUtils';
-import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {hasHoverSupport} from '@libs/DeviceCapabilities';
 import {getMicroSecondOnyxErrorWithTranslationKey, isReceiptError} from '@libs/ErrorUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
@@ -66,6 +71,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {isElementHovered, resetButtonHoverState} from './receiptHoverUtils';
 import ReportActionItemImage from './ReportActionItemImage';
 
 type MoneyRequestReceiptViewProps = {
@@ -86,6 +92,9 @@ type MoneyRequestReceiptViewProps = {
 
     /** Whether it's displayed in Wide RHP */
     isDisplayedInWideRHP?: boolean;
+
+    /** Whether the parent component has a pending action */
+    hasParentPendingAction?: boolean;
 };
 
 const receiptImageViolationNames = new Set<OnyxTypes.ViolationName>([
@@ -100,7 +109,15 @@ const receiptImageViolationNames = new Set<OnyxTypes.ViolationName>([
 
 const receiptFieldViolationNames = new Set<OnyxTypes.ViolationName>([CONST.VIOLATIONS.MODIFIED_AMOUNT, CONST.VIOLATIONS.MODIFIED_DATE]);
 
-function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, fillSpace = false, mergeTransactionID, isDisplayedInWideRHP = false}: MoneyRequestReceiptViewProps) {
+function MoneyRequestReceiptView({
+    report,
+    readonly = false,
+    updatedTransaction,
+    fillSpace = false,
+    mergeTransactionID,
+    isDisplayedInWideRHP = false,
+    hasParentPendingAction = false,
+}: MoneyRequestReceiptViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
@@ -114,6 +131,8 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
     });
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
 
     const [isLoading, setIsLoading] = useState(true);
     const parentReportAction = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
@@ -145,20 +164,52 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
     const theme = useTheme();
     const ancestors = useAncestors(report);
     const {hovered, bind: hoverBind} = useHover();
-    const isTouchScreen = canUseTouchScreen();
+    const {isOffline} = useNetwork();
+    const receiptContainerRef = useRef<View | null>(null);
+    const addButtonRef = useRef<View | null>(null);
+    const [isPickerOpen, setIsPickerOpen] = useState(false);
+    const deviceHasHoverSupport = hasHoverSupport();
     const lazyIcons = useMemoizedLazyExpensifyIcons(['Expand', 'ReceiptPlus']);
+
+    // Browsers don't fire mouseenter when an element mounts under the cursor
+    useEffect(() => {
+        if (isLoading) {
+            return;
+        }
+        if (isElementHovered(receiptContainerRef)) {
+            hoverBind.onMouseEnter();
+        }
+    }, [isLoading, hoverBind]);
 
     // Flags for allowing or disallowing editing an expense
     // Used for non-restricted fields such as: description, category, tag, billable, etc...
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isEditable = !!canUserPerformWriteActionReportUtils(report, isReportArchived) && !readonly;
-    const canEdit = isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, isChatReportArchived, moneyRequestReport, policy, transaction) && isEditable;
+    const canEdit = isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, transaction, isChatReportArchived, moneyRequestReport, policy) && isEditable;
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
     const {personalCardsWithBrokenConnection} = useCardFeedErrors();
     const connectionLink = getBrokenConnectionUrlToFixPersonalCard(personalCardsWithBrokenConnection, environmentURL);
 
     const canEditReceipt =
-        isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT, undefined, isChatReportArchived, undefined, transaction, moneyRequestReport, policy);
+        isEditable &&
+        canEditFieldOfMoneyRequest({reportAction: parentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, isChatReportArchived, transaction, report: moneyRequestReport, policy});
+
+    const onAttachmentFilesValidated = (files: FileObject[]) => {
+        if (!report?.reportID) {
+            return;
+        }
+        const notifyReportID = moneyRequestReport?.reportID ? [report.reportID, moneyRequestReport.reportID] : report.reportID;
+        addAttachmentWithComment({
+            report,
+            notifyReportID,
+            ancestors,
+            attachments: files,
+            currentUserAccountID,
+            timezone: currentUserTimezone,
+        });
+    };
+
+    const {validateFiles, PDFValidationComponent, ErrorModal: AttachmentErrorModal} = useFilesValidation(onAttachmentFilesValidated);
 
     const iouType = useMemo(() => {
         if (isTrackExpense) {
@@ -177,13 +228,25 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
     }
     const pendingAction = transaction?.pendingAction;
     // Need to return undefined when we have pendingAction to avoid the duplicate pending action
-    const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => (pendingAction ? undefined : transaction?.pendingFields?.[fieldPath]);
+    const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => {
+        if (hasParentPendingAction) {
+            return undefined;
+        }
+        if (isDisplayedInWideRHP) {
+            return transaction?.pendingFields?.[fieldPath] ?? pendingAction;
+        }
+
+        return pendingAction ? undefined : transaction?.pendingFields?.[fieldPath];
+    };
 
     const transactionToCheck = updatedTransaction ?? transaction;
     const doesTransactionHaveReceipt = !!transactionToCheck?.receipt && !isEmptyObject(transactionToCheck?.receipt);
     // Empty state for invoices should be displayed only in WideRHP
     const shouldShowReceiptEmptyState = (isDisplayedInWideRHP || !isInvoice) && !hasReceipt && !!transactionToCheck && !doesTransactionHaveReceipt;
     const isMarkAsCash = parentReport && currentUserLogin ? isMarkAsCashActionForTransaction(currentUserLogin, parentReport, transactionViolations, policy) : false;
+
+    const routeDistanceMeters = transaction?.comment?.customUnit?.routeDistanceMeters;
+    const distanceUnit = transaction?.comment?.customUnit?.distanceUnit;
 
     const [receiptImageViolations, receiptViolations] = useMemo(() => {
         const imageViolations = [];
@@ -197,7 +260,18 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
             if (isReceiptFieldViolation || isReceiptImageViolation || isRTERViolation) {
                 const cardID = violation.data?.cardID;
                 const card = cardID ? cardList?.[cardID] : undefined;
-                const violationMessage = ViolationsUtils.getViolationTranslation(violation, translate, canEdit, undefined, companyCardPageURL, connectionLink, card, isMarkAsCash);
+                const violationMessage = ViolationsUtils.getViolationTranslation(
+                    violation,
+                    translate,
+                    canEdit,
+                    undefined,
+                    companyCardPageURL,
+                    connectionLink,
+                    card,
+                    isMarkAsCash,
+                    routeDistanceMeters,
+                    distanceUnit,
+                );
                 allViolations.push(violationMessage);
                 if (isReceiptImageViolation || isRTERViolation) {
                     imageViolations.push(violationMessage);
@@ -205,7 +279,7 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
             }
         }
         return [imageViolations, allViolations];
-    }, [transactionViolations, translate, canEdit, companyCardPageURL, connectionLink, cardList, isMarkAsCash]);
+    }, [transactionViolations, translate, canEdit, companyCardPageURL, connectionLink, cardList, isMarkAsCash, routeDistanceMeters, distanceUnit]);
 
     const receiptRequiredViolation = transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
     const itemizedReceiptRequiredViolation = transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
@@ -282,7 +356,7 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
         }
         if (transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
             if (chatReport?.reportID && getCreationReportErrors(chatReport)) {
-                navigateToConciergeChatAndDeleteReport(chatReport.reportID, conciergeReportID, currentUserAccountID, introSelected, true, true);
+                navigateToConciergeChatAndDeleteReport(chatReport.reportID, conciergeReportID, currentUserAccountID, introSelected, isSelfTourViewed, betas, true, true);
                 return;
             }
             if (parentReportAction) {
@@ -319,7 +393,7 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
             if (isInNarrowPaneModal) {
                 Navigation.goBack();
             }
-            navigateToConciergeChatAndDeleteReport(report.reportID, conciergeReportID, currentUserAccountID, introSelected, true, true);
+            navigateToConciergeChatAndDeleteReport(report.reportID, conciergeReportID, currentUserAccountID, introSelected, isSelfTourViewed, betas, true, true);
         }
     };
 
@@ -338,7 +412,8 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
     const isMapDistanceRequest = !!transaction && isDistanceRequest && !isManualDistanceRequest(transaction);
 
     const canShowReceiptActions = hasReceipt && !isLoading && isEditable && !isMapDistanceRequest && !mergeTransactionID;
-
+    const receiptPendingAction = isDistanceRequest ? getPendingFieldAction('waypoints') : getPendingFieldAction('receipt');
+    const isReceiptOfflinePending = isOffline && !!receiptPendingAction;
     const receiptAuditMessagesRow = (
         <View style={[styles.mt3, isEmptyObject(errors) && isDisplayedInWideRHP && styles.mb3]}>
             <ReceiptAuditMessages notes={receiptImageViolations} />
@@ -397,7 +472,8 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
             )}
             {(hasReceipt || !isEmptyObject(errors)) && (
                 <OfflineWithFeedback
-                    pendingAction={isDistanceRequest ? getPendingFieldAction('waypoints') : getPendingFieldAction('receipt')}
+                    shouldDisableOpacity={canShowReceiptActions}
+                    pendingAction={receiptPendingAction}
                     errors={errors}
                     errorRowStyles={[styles.mh4, !shouldShowReceiptEmptyState && styles.mt3]}
                     onClose={() => {
@@ -434,90 +510,91 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
                 >
                     {hasReceipt && (
                         <View
-                            style={[
-                                styles.getMoneyRequestViewImage(showBorderlessLoading),
-                                receiptStyle,
-                                showBorderlessLoading && styles.flex1,
-                                fillSpace && !shouldShowReceiptEmptyState && isMapDistanceRequest && styles.flex1,
-                            ]}
+                            ref={receiptContainerRef}
+                            style={[styles.getMoneyRequestViewImage(showBorderlessLoading), receiptStyle, showBorderlessLoading && styles.flex1]}
                             onMouseEnter={() => !isLoading && hoverBind.onMouseEnter()}
                             onMouseLeave={hoverBind.onMouseLeave}
                         >
-                            <ReportActionItemImage
-                                shouldUseThumbnailImage={!fillSpace}
-                                shouldUseFullHeight={fillSpace}
-                                thumbnail={receiptURIs?.thumbnail}
-                                fileExtension={receiptURIs?.fileExtension}
-                                isThumbnail={receiptURIs?.isThumbnail}
-                                image={receiptURIs?.image}
-                                isLocalFile={receiptURIs?.isLocalFile}
-                                filename={receiptURIs?.filename}
-                                transaction={updatedTransaction ?? transaction}
-                                enablePreviewModal
-                                readonly={readonly || !canEditReceipt}
-                                mergeTransactionID={mergeTransactionID}
-                                report={report}
-                                onLoad={() => setIsLoading(false)}
-                                onLoadFailure={() => setIsLoading(false)}
-                            />
+                            <View style={[styles.flex1, isReceiptOfflinePending && styles.offlineFeedbackPending]}>
+                                <ReportActionItemImage
+                                    shouldUseThumbnailImage={!fillSpace}
+                                    shouldUseFullHeight={fillSpace}
+                                    thumbnail={receiptURIs?.thumbnail}
+                                    fileExtension={receiptURIs?.fileExtension}
+                                    isThumbnail={receiptURIs?.isThumbnail}
+                                    image={receiptURIs?.image}
+                                    isLocalFile={receiptURIs?.isLocalFile}
+                                    filename={receiptURIs?.filename}
+                                    transaction={updatedTransaction ?? transaction}
+                                    enablePreviewModal
+                                    readonly={readonly || !canEditReceipt}
+                                    mergeTransactionID={mergeTransactionID}
+                                    report={report}
+                                    onLoad={() => setIsLoading(false)}
+                                    onLoadFailure={() => setIsLoading(false)}
+                                />
+                            </View>
                             {canShowReceiptActions && (
-                                <View style={[styles.receiptActionButtonsContainer, styles.pointerEventsBoxNone, !hovered && !isTouchScreen && styles.opacity0]}>
-                                    <AttachmentPicker>
+                                <View style={[styles.receiptActionButtonsContainer, styles.pointerEventsBoxNone, !hovered && !isPickerOpen && deviceHasHoverSupport && styles.opacity0]}>
+                                    <AttachmentPicker acceptedFileTypes={[...CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS]}>
                                         {({openPicker}) => (
-                                            <PressableWithoutFeedback
-                                                onPress={() => {
-                                                    openPicker({
-                                                        onPicked: (files) => {
-                                                            if (!report?.reportID) {
-                                                                return;
+                                            <Tooltip text={translate('receipt.addAdditionalReceipt')}>
+                                                <PressableWithoutFeedback
+                                                    ref={addButtonRef}
+                                                    onPress={() => {
+                                                        setIsPickerOpen(true);
+                                                        resetButtonHoverState(addButtonRef);
+                                                        const onPickerClosed = () => {
+                                                            setIsPickerOpen(false);
+                                                            if (isElementHovered(receiptContainerRef)) {
+                                                                hoverBind.onMouseEnter();
                                                             }
-                                                            addAttachmentWithComment({
-                                                                report,
-                                                                notifyReportID: moneyRequestReport?.reportID ?? report.reportID,
-                                                                ancestors,
-                                                                attachments: files,
-                                                                currentUserAccountID,
-                                                                timezone: currentUserTimezone,
-                                                            });
-                                                        },
-                                                    });
-                                                }}
-                                                style={styles.receiptActionButton}
-                                                accessibilityLabel={translate('reportActionCompose.addAttachment')}
-                                                role={CONST.ROLE.BUTTON}
-                                                sentryLabel={CONST.SENTRY_LABEL.RECEIPT.ADD_ATTACHMENT_BUTTON}
-                                            >
-                                                <View style={styles.primaryMediumIcon}>
+                                                        };
+                                                        openPicker({
+                                                            onPicked: (files) => {
+                                                                onPickerClosed();
+                                                                validateFiles(files);
+                                                            },
+                                                            onCanceled: onPickerClosed,
+                                                        });
+                                                    }}
+                                                    style={styles.receiptActionButton}
+                                                    hoverStyle={styles.buttonDefaultHovered}
+                                                    accessibilityLabel={translate('receipt.addAdditionalReceipt')}
+                                                    role={CONST.ROLE.BUTTON}
+                                                    sentryLabel={CONST.SENTRY_LABEL.RECEIPT.ADD_ATTACHMENT_BUTTON}
+                                                >
                                                     <Icon
                                                         src={lazyIcons.ReceiptPlus}
                                                         height={variables.iconSizeSmall}
                                                         width={variables.iconSizeSmall}
                                                         fill={theme.icon}
                                                     />
-                                                </View>
-                                            </PressableWithoutFeedback>
+                                                </PressableWithoutFeedback>
+                                            </Tooltip>
                                         )}
                                     </AttachmentPicker>
-                                    <PressableWithoutFeedback
-                                        onPress={() =>
-                                            Navigation.navigate(
-                                                ROUTES.TRANSACTION_RECEIPT.getRoute(report?.reportID, (updatedTransaction ?? transaction)?.transactionID, readonly || !canEditReceipt),
-                                            )
-                                        }
-                                        style={styles.receiptActionButton}
-                                        accessibilityLabel={translate('accessibilityHints.viewAttachment')}
-                                        role={CONST.ROLE.BUTTON}
-                                        sentryLabel={CONST.SENTRY_LABEL.RECEIPT.ENLARGE_BUTTON}
-                                    >
-                                        <View style={styles.primaryMediumIcon}>
+                                    <Tooltip text={translate('reportActionCompose.expand')}>
+                                        <PressableWithoutFocus
+                                            onPress={() =>
+                                                Navigation.navigate(
+                                                    ROUTES.TRANSACTION_RECEIPT.getRoute(report?.reportID, (updatedTransaction ?? transaction)?.transactionID, readonly || !canEditReceipt),
+                                                )
+                                            }
+                                            style={styles.receiptActionButton}
+                                            hoverStyle={styles.buttonDefaultHovered}
+                                            accessibilityLabel={translate('accessibilityHints.viewAttachment')}
+                                            role={CONST.ROLE.BUTTON}
+                                            sentryLabel={CONST.SENTRY_LABEL.RECEIPT.ENLARGE_BUTTON}
+                                        >
                                             <Icon
                                                 src={lazyIcons.Expand}
                                                 height={variables.iconSizeSmall}
                                                 width={variables.iconSizeSmall}
                                                 fill={theme.icon}
                                             />
-                                        </View>
-                                    </PressableWithoutFeedback>
+                                        </PressableWithoutFocus>
+                                    </Tooltip>
                                 </View>
                             )}
                         </View>
@@ -529,6 +606,8 @@ function MoneyRequestReceiptView({report, readonly = false, updatedTransaction, 
             )}
             {!shouldShowReceiptEmptyState && !hasReceipt && <View style={{marginVertical: 6}} />}
             {!!shouldShowAuditMessage && !hasReceipt && receiptAuditMessagesRow}
+            {AttachmentErrorModal}
+            {PDFValidationComponent}
         </View>
     );
 }
