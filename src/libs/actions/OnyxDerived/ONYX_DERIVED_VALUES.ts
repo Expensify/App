@@ -24,7 +24,7 @@ const ONYX_DERIVED_VALUES = {
     [ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST]: personalAndWorkspaceCardListConfig,
     [ONYXKEYS.DERIVED.CARD_FEED_ERRORS]: cardFeedErrorsConfig,
     [ONYXKEYS.DERIVED.TODOS]: todosConfig,
-    [ONYXKEYS.DERIVED.SORTED_REPORT_ACTIONS]: sortedReportActionsConfig,
+    [ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS]: sortedReportActionsConfig,
 } as const satisfies {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [Key in ValueOf<typeof ONYXKEYS.DERIVED>]: OnyxDerivedValueConfig<Key, any>;
