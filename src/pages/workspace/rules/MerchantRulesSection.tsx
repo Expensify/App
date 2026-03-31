@@ -136,8 +136,8 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
                                     <MenuItemWithTopDescription
                                         description={matchDescription}
                                         title={ruleDescription}
-                                        wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                                        descriptionTextStyle={[styles.textSupportingNormal, styles.textStrong, styles.themeTextColor]}
+                                        wrapperStyle={[styles.borderedContentCard, styles.mt3, styles.ph4, styles.pv4]}
+                                        descriptionTextStyle={[styles.textNormalThemeText]}
                                         titleStyle={[styles.textLabelSupporting, styles.fontSizeLabel]}
                                         shouldShowRightIcon
                                         onPress={() => Navigation.navigate(ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, rule.ruleID))}
