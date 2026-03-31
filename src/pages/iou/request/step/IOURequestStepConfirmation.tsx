@@ -33,6 +33,7 @@ import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionsByID from '@hooks/useTransactionsByID';
 import {completeTestDriveTask} from '@libs/actions/Task';
 import {isMobileSafari} from '@libs/Browser';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
@@ -118,7 +119,6 @@ import type {Receipt} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import useTransactionsByID from '@hooks/useTransactionsByID';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -175,7 +175,10 @@ function IOURequestStepConfirmation({
     // We will use setCurrentTransactionID later to switch between transactions
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [currentTransactionID, setCurrentTransactionID] = useState<string>(initialTransactionID);
-    const currentTransactionIndex = useMemo(() => transactionDrafts.findIndex((transaction) => transaction.transactionID === currentTransactionID), [transactionDrafts, currentTransactionID]);
+    const currentTransactionIndex = useMemo(
+        () => transactionDrafts.findIndex((transaction) => transaction.transactionID === currentTransactionID),
+        [transactionDrafts, currentTransactionID],
+    );
     const [existingTransaction, existingTransactionResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(currentTransactionID)}`);
     const [optimisticTransaction, optimisticTransactionResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(currentTransactionID)}`);
     const isLoadingCurrentTransaction = isLoadingOnyxValue(existingTransactionResult, optimisticTransactionResult);
@@ -803,7 +806,46 @@ function IOURequestStepConfirmation({
                 existingIOUReport = iouReport;
             }
         },
-        [transactionDrafts, receiptFiles, privateIsArchivedMap, transactions, report, currentUserPersonalDetails.login, currentUserPersonalDetails.accountID, currentUserPersonalDetails.email, policy, policyTags, policyCategories, policyRecentlyUsedCategories, policyRecentlyUsedTags, action, isManualDistanceRequest, transactionTaxCode, transactionTaxAmount, transactionTaxValue, isGPSDistanceRequest, customUnitRateID, isTimeRequest, shouldGenerateTransactionThreadReport, backToReport, isASAPSubmitBetaEnabled, transactionViolations, policyRecentlyUsedCurrencies, quickAction, draftTransactionIDs, isSelfTourViewed, betas, personalDetails, viewTourTaskReport, viewTourTaskParentReport, isViewTourTaskParentReportArchived, hasOutstandingChildTask, parentReportAction, translate, toLocaleDigit],
+        [
+            transactionDrafts,
+            receiptFiles,
+            privateIsArchivedMap,
+            transactions,
+            report,
+            currentUserPersonalDetails.login,
+            currentUserPersonalDetails.accountID,
+            currentUserPersonalDetails.email,
+            policy,
+            policyTags,
+            policyCategories,
+            policyRecentlyUsedCategories,
+            policyRecentlyUsedTags,
+            action,
+            isManualDistanceRequest,
+            transactionTaxCode,
+            transactionTaxAmount,
+            transactionTaxValue,
+            isGPSDistanceRequest,
+            customUnitRateID,
+            isTimeRequest,
+            shouldGenerateTransactionThreadReport,
+            backToReport,
+            isASAPSubmitBetaEnabled,
+            transactionViolations,
+            policyRecentlyUsedCurrencies,
+            quickAction,
+            draftTransactionIDs,
+            isSelfTourViewed,
+            betas,
+            personalDetails,
+            viewTourTaskReport,
+            viewTourTaskParentReport,
+            isViewTourTaskParentReportArchived,
+            hasOutstandingChildTask,
+            parentReportAction,
+            translate,
+            toLocaleDigit,
+        ],
     );
 
     const submitPerDiemExpense = useCallback(

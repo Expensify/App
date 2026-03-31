@@ -1729,7 +1729,7 @@ function setMoneyRequestOdometerImage(transaction: OnyxEntry<OnyxTypes.Transacti
                   type: file.type,
                   size: file.size,
               };
-    const transactionID = transaction?.transactionID ;
+    const transactionID = transaction?.transactionID;
     const existingImage = transaction?.comment?.[imageKey];
     revokeOdometerImageUri(existingImage, normalizedFile);
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
@@ -6418,7 +6418,8 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
     const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseIOUUtils(action);
     const existingTransactionID = existingTransactionDraft?.transactionID;
-    const existingTransactionRef = action === CONST.IOU.ACTION.SUBMIT ? existingTransactionDraft : (existingTransaction ?? allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransactionID}`]);
+    const existingTransactionRef =
+        action === CONST.IOU.ACTION.SUBMIT ? existingTransactionDraft : (existingTransaction ?? allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransactionID}`]);
 
     const retryParams = {
         ...requestMoneyInformation,
