@@ -332,7 +332,7 @@ function putTransactionsOnHold(transactionsID: string[], comment: string, report
 /**
  * Remove expense from HOLD
  */
-function unholdRequest(transactionID: string, reportID: string, policy: OnyxEntry<Policy>) {
+function unholdRequest(transactionID: string, reportID: string, policy: OnyxEntry<Policy>, isOffline: boolean) {
     const allTransactions = getAllTransactions();
     const allTransactionViolations = getAllTransactionViolations();
     const allReports = getAllReports();
@@ -526,7 +526,7 @@ function unholdRequest(transactionID: string, reportID: string, policy: OnyxEntr
         {optimisticData, successData, failureData},
     );
 
-    const currentReportID = getDisplayedReportID(reportID);
+    const currentReportID = getDisplayedReportID(reportID, isOffline);
     notifyNewAction(currentReportID, undefined, true);
 }
 
