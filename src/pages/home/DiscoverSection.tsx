@@ -37,6 +37,10 @@ function DiscoverSection() {
     const parentReportAction = useParentReportAction(viewTourTaskReport);
     const [hasSeenTour = true] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
+    if (hasSeenTour) {
+        return null;
+    }
+
     const handlePress = () => {
         Linking.openURL(getTestDriveURL(shouldUseNarrowLayout, introSelected, isCurrentUserPolicyAdmin));
 
