@@ -111,9 +111,9 @@ function NewChatConfirmPage() {
             optimisticReportID.current,
             introSelected,
             isSelfTourViewed,
+            betas,
             newGroupDraft.avatarUri ?? '',
             avatarFile,
-            betas,
         );
     }, [newGroupDraft, avatarFile, personalData.login, introSelected, betas, isSelfTourViewed]);
 

@@ -581,7 +581,7 @@ describe('actions/Report', () => {
 
                 // When the user visits the report
                 currentTime = DateUtils.getDBTime();
-                Report.openReport({reportID: REPORT_ID, introSelected: TEST_INTRO_SELECTED});
+                Report.openReport({reportID: REPORT_ID, introSelected: TEST_INTRO_SELECTED, betas: undefined});
                 Report.readNewestAction(REPORT_ID, true);
                 waitForBatchedUpdates();
                 return waitForBatchedUpdates();
@@ -1127,6 +1127,7 @@ describe('actions/Report', () => {
             Report.openReport({
                 reportID: REPORT_ID,
                 introSelected: TEST_INTRO_SELECTED,
+                betas: undefined,
                 participantLoginList: ['test@user.com'],
                 newReportObject: {
                     reportID: REPORT_ID,
@@ -1183,7 +1184,7 @@ describe('actions/Report', () => {
         const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${TXN_ID}` as const);
         expect(transaction).toBeTruthy();
 
-        Report.openReport({reportID: CHILD_REPORT_ID, introSelected: undefined, transaction: transaction ?? undefined, parentReportID: SELF_DM_ID});
+        Report.openReport({reportID: CHILD_REPORT_ID, introSelected: undefined, betas: undefined, transaction: transaction ?? undefined, parentReportID: SELF_DM_ID});
         await waitForBatchedUpdates();
 
         // Validate the correct Onyx key received the new action and existing one is preserved
@@ -1230,6 +1231,7 @@ describe('actions/Report', () => {
             Report.openReport({
                 reportID,
                 introSelected: TEST_INTRO_SELECTED,
+                betas: undefined,
                 participantLoginList: ['test@user.com'],
                 newReportObject: {
                     reportID: REPORT_ID,
@@ -2143,6 +2145,7 @@ describe('actions/Report', () => {
         Report.openReport({
             reportID: REPORT_ID,
             introSelected: TEST_INTRO_SELECTED,
+            betas: undefined,
             participantLoginList: ['test@user.com'],
             newReportObject: {
                 parentReportID: REPORT_ID,
@@ -3880,7 +3883,7 @@ describe('actions/Report', () => {
             await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, TEST_INTRO_SELECTED);
             await waitForBatchedUpdates();
 
-            Report.openReport({reportID: REPORT_ID, introSelected: TEST_INTRO_SELECTED});
+            Report.openReport({reportID: REPORT_ID, introSelected: TEST_INTRO_SELECTED, betas: undefined});
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
@@ -3891,7 +3894,7 @@ describe('actions/Report', () => {
 
             const REPORT_ID = '2';
 
-            Report.openReport({reportID: REPORT_ID, introSelected: TEST_INTRO_SELECTED});
+            Report.openReport({reportID: REPORT_ID, introSelected: TEST_INTRO_SELECTED, betas: undefined});
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
@@ -3902,7 +3905,7 @@ describe('actions/Report', () => {
 
             const REPORT_ID = '3';
 
-            Report.openReport({reportID: REPORT_ID, introSelected: undefined});
+            Report.openReport({reportID: REPORT_ID, introSelected: undefined, betas: undefined});
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
@@ -5717,7 +5720,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // When create group chat is called
-            Report.navigateToAndCreateGroupChat([TEST_USER_LOGIN, PARTICIPANT_1_LOGIN], GROUP_CHAT_NAME, TEST_USER_LOGIN, GROUP_CHAT_REPORT_ID, TEST_INTRO_SELECTED, false);
+            Report.navigateToAndCreateGroupChat([TEST_USER_LOGIN, PARTICIPANT_1_LOGIN], GROUP_CHAT_NAME, TEST_USER_LOGIN, GROUP_CHAT_REPORT_ID, TEST_INTRO_SELECTED, false, undefined);
             await waitForBatchedUpdates();
 
             // Then it should create a new group chat report in Onyx
@@ -5763,7 +5766,16 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // When create group chat is called with an avatar URI and isSelfTourViewed=true
-            Report.navigateToAndCreateGroupChat([TEST_USER_LOGIN, PARTICIPANT_1_LOGIN], GROUP_CHAT_NAME, TEST_USER_LOGIN, GROUP_CHAT_REPORT_ID, TEST_INTRO_SELECTED, true, AVATAR_URI);
+            Report.navigateToAndCreateGroupChat(
+                [TEST_USER_LOGIN, PARTICIPANT_1_LOGIN],
+                GROUP_CHAT_NAME,
+                TEST_USER_LOGIN,
+                GROUP_CHAT_REPORT_ID,
+                TEST_INTRO_SELECTED,
+                true,
+                undefined,
+                AVATAR_URI,
+            );
             await waitForBatchedUpdates();
 
             // Then it should create a new group chat report with the avatar
@@ -5795,6 +5807,7 @@ describe('actions/Report', () => {
                 GROUP_CHAT_REPORT_ID,
                 {...TEST_INTRO_SELECTED, isInviteOnboardingComplete: true},
                 true,
+                undefined,
             );
             await waitForBatchedUpdates();
 
@@ -5820,6 +5833,7 @@ describe('actions/Report', () => {
                 GROUP_CHAT_REPORT_ID,
                 {choice: CONST.ONBOARDING_CHOICES.ADMIN},
                 false,
+                undefined,
                 undefined,
                 avatarFile,
             );
@@ -5849,6 +5863,7 @@ describe('actions/Report', () => {
                 GROUP_CHAT_REPORT_ID,
                 {choice: CONST.ONBOARDING_CHOICES.ADMIN},
                 false,
+                undefined,
             );
             await waitForBatchedUpdates();
 
