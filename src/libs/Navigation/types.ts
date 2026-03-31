@@ -1480,6 +1480,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.RULES_SPEND_CARD]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.RULES_SPEND_CATEGORY]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.RULES_SPEND_MERCHANTS]: {
         policyID: string;
     };

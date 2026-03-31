@@ -13,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getSpendCardRuleValueJSON, setExpensifyCardRule} from '@libs/actions/Card';
 import {clearDraftSpendRule, updateDraftSpendRule} from '@libs/actions/User';
 import {filterInactiveCards, getCardDescriptionForSearchTable, isCard} from '@libs/CardUtils';
+import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -58,6 +59,8 @@ function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps)
                   return getCardDescriptionForSearchTable(card, displayName || undefined) || id;
               })
               .join(', ');
+
+    const categoriesMenuTitle = (spendRuleForm?.categories ?? []).map((categoryName) => getDecodedCategoryName(categoryName)).join(', ');
 
     function getMerchantMenuTitle(merchantsToSummarize: SpendRuleMerchant[] | undefined): string {
         const normalizedMerchants = (merchantsToSummarize ?? []).map((merchant) => ({...merchant, name: merchant.name.trim()})).filter((merchant) => merchant.name !== '');
@@ -128,6 +131,15 @@ function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps)
                         onPress={() => Navigation.navigate(ROUTES.RULES_SPEND_MERCHANTS.getRoute(policyID))}
                         shouldShowRightIcon
                         title={getMerchantMenuTitle(spendRuleForm?.merchants)}
+                        numberOfLinesTitle={2}
+                        titleStyle={styles.flex1}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
+                    />
+                    <MenuItemWithTopDescription
+                        description={translate('workspace.rules.spendRules.spendCategory')}
+                        onPress={() => Navigation.navigate(ROUTES.RULES_SPEND_CATEGORY.getRoute(policyID))}
+                        shouldShowRightIcon
+                        title={categoriesMenuTitle}
                         numberOfLinesTitle={2}
                         titleStyle={styles.flex1}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}

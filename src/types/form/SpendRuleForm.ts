@@ -17,6 +17,7 @@ type SpendRuleForm = Form<
         [INPUT_IDS.CARD_IDS]: string[];
         [INPUT_IDS.RESTRICTION_ACTION]: ValueOf<typeof CONST.SPEND_CARD_RULE.ACTION>;
         [INPUT_IDS.MERCHANTS]: SpendRuleMerchant[];
+        [INPUT_IDS.CATEGORIES]: string[];
     }
 >;
 

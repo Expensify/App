@@ -6719,6 +6719,7 @@ const translations = {
                 matchType: 'Match type',
                 matchTypeContains: 'Contains',
                 matchTypeExact: 'Matches exactly',
+                spendCategory: 'Spend category',
                 merchantsMoreCount: ({summary, count}: {summary: string; count: number}) => `${summary}, +${count} more`,
             },
         },

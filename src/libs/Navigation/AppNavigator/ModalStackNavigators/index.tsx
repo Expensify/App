@@ -893,6 +893,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.RULES_MERCHANT_NEW]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/AddMerchantRulePage').default,
     [SCREENS.WORKSPACE.RULES_SPEND_NEW]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/SpendRules/AddSpendRulePage').default,
     [SCREENS.WORKSPACE.RULES_SPEND_CARD]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/SpendRules/AddCardPage').default,
+    [SCREENS.WORKSPACE.RULES_SPEND_CATEGORY]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/SpendRules/SpendRuleCategoryPage').default,
     [SCREENS.WORKSPACE.RULES_SPEND_MERCHANTS]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/SpendRules/SpendRuleMerchantsPage').default,
     [SCREENS.WORKSPACE.RULES_SPEND_MERCHANT_EDIT]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/SpendRules/SpendRuleMerchantEditPage').default,
     [SCREENS.WORKSPACE.RULES_MERCHANT_MERCHANT_TO_MATCH]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/MerchantRules/AddMerchantToMatchPage').default,
