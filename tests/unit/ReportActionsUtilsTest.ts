@@ -12,6 +12,8 @@ import CONST from '../../src/CONST';
 import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
 import {
     findLastReportActions,
+    getAddedCardFeedMessage,
+    getAssignedCompanyCardMessage,
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
     getCardIssuedMessage,
@@ -27,11 +29,16 @@ import {
     getPolicyChangeLogMaxExpenseAgeMessage,
     getPolicyChangeLogMaxExpenseAmountMessage,
     getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
+    getRemovedCardFeedMessage,
+    getRenamedCardFeedMessage,
     getReportActionActorAccountID,
     getSendMoneyFlowAction,
     getSortedReportActions,
     getSortedReportActionsForDisplay,
+    getUnassignedCompanyCardMessage,
     getUpdateACHAccountMessage,
+    getUpdatedCardFeedLiabilityMessage,
+    getUpdatedCardFeedStatementPeriodMessage,
     hasNextActionMadeBySameActor,
     hasReasoning,
     isConsecutiveActionMadeByPreviousActor,
@@ -40,9 +47,11 @@ import {
     isNewerReportAction,
     isReportActionVisibleAsLastAction,
     isResolvedActionableWhisper,
+    shouldHideNewMarker,
 } from '../../src/libs/ReportActionsUtils';
 import {buildOptimisticCreatedReportForUnapprovedAction} from '../../src/libs/ReportUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
+import shouldDisplayNewMarkerOnReportAction from '../../src/pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
 import type {Card, OriginalMessageIOU, Report, ReportAction, ReportActions} from '../../src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
@@ -1483,7 +1492,7 @@ describe('ReportActionsUtils', () => {
             const res = ReportActionsUtils.shouldShowAddMissingDetails(CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS, mockPersonalDetail);
             expect(res).toEqual(true);
         });
-        it('should return false if personal detail is completed', () => {
+        it('should still return true when personal detail is completed but has not been confirmed yet', () => {
             const mockPersonalDetail = {
                 addresses: [
                     {
@@ -1498,7 +1507,27 @@ describe('ReportActionsUtils', () => {
                 phoneNumber: '+162992973',
                 dob: '9-9-2000',
             };
-            const res = ReportActionsUtils.shouldShowAddMissingDetails(CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS, mockPersonalDetail);
+            const cardState = CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED;
+            const res = ReportActionsUtils.shouldShowAddMissingDetails(CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS, mockPersonalDetail, cardState);
+            expect(res).toEqual(true);
+        });
+        it('should return false if personal detail is completed and has been confirmed by the user', () => {
+            const mockPersonalDetail = {
+                addresses: [
+                    {
+                        street: '123 Main St',
+                        city: 'New York',
+                        state: 'NY',
+                        postalCode: '10001',
+                    },
+                ],
+                legalFirstName: 'John',
+                legalLastName: 'David',
+                phoneNumber: '+162992973',
+                dob: '9-9-2000',
+            };
+            const cardState = CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED;
+            const res = ReportActionsUtils.shouldShowAddMissingDetails(CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS, mockPersonalDetail, cardState);
             expect(res).toEqual(false);
         });
     });
@@ -3148,6 +3177,149 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('getAddedCardFeedMessage', () => {
+        it('should return translated message when feedName is present', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CARD_FEED,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    feedName: 'Visa Commercial',
+                },
+            } as ReportAction;
+            const result = getAddedCardFeedMessage(translateLocal, action);
+            expect(result).toBe('added card feed "Visa Commercial"');
+        });
+    });
+
+    describe('getRemovedCardFeedMessage', () => {
+        it('should return translated message when feedName is present', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CARD_FEED,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    feedName: 'Amex Corporate',
+                },
+            } as ReportAction;
+            const result = getRemovedCardFeedMessage(translateLocal, action);
+            expect(result).toBe('removed card feed "Amex Corporate"');
+        });
+    });
+
+    describe('getRenamedCardFeedMessage', () => {
+        it('should return translated message when oldName and newName are present', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.RENAME_CARD_FEED,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldName: 'Old Feed Name',
+                    newName: 'New Feed Name',
+                },
+            } as ReportAction;
+            const result = getRenamedCardFeedMessage(translateLocal, action);
+            expect(result).toBe('renamed card feed to "New Feed Name" (previously "Old Feed Name")');
+        });
+    });
+
+    describe('getAssignedCompanyCardMessage', () => {
+        it('should return translated message when email and cardLastFour are present', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ASSIGN_COMPANY_CARD,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    email: 'user@example.com',
+                    feedName: 'US Bank',
+                    cardLastFour: '1234',
+                },
+            } as ReportAction;
+            const result = getAssignedCompanyCardMessage(translateLocal, action);
+            expect(result).toBe('assigned user@example.com "US Bank" company card ending in 1234');
+        });
+    });
+
+    describe('getUnassignedCompanyCardMessage', () => {
+        it('should return translated message when email and cardLastFour are present', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UNASSIGN_COMPANY_CARD,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    email: 'user@example.com',
+                    feedName: 'US Bank',
+                    cardLastFour: '5678',
+                },
+            } as ReportAction;
+            const result = getUnassignedCompanyCardMessage(translateLocal, action);
+            expect(result).toBe('unassigned user@example.com "US Bank" company card ending in 5678');
+        });
+    });
+
+    describe('getUpdatedCardFeedLiabilityMessage', () => {
+        it('should return enabled message when liabilityType is ALLOW', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_LIABILITY,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    feedName: 'Visa Commercial',
+                    liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.ALLOW,
+                },
+            } as ReportAction;
+            const result = getUpdatedCardFeedLiabilityMessage(translateLocal, action);
+            expect(result).toBe('enabled cardholders to delete card transactions for card feed "Visa Commercial"');
+        });
+    });
+
+    describe('getUpdatedCardFeedStatementPeriodMessage', () => {
+        it('should return translated message with numeric day values', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_STATEMENT_PERIOD,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    feedName: 'Visa Commercial',
+                    statementPeriodEndDay: '15',
+                    previousStatementPeriodEndDay: '20',
+                },
+            } as ReportAction;
+            const result = getUpdatedCardFeedStatementPeriodMessage(translateLocal, action);
+            expect(result).toBe('changed card feed "Visa Commercial" statement period end day to "15" (previously "20")');
+        });
+
+        it('should translate LAST_DAY_OF_MONTH value', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_STATEMENT_PERIOD,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    feedName: 'Amex Corporate',
+                    statementPeriodEndDay: CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH,
+                    previousStatementPeriodEndDay: '10',
+                },
+            } as ReportAction;
+            const result = getUpdatedCardFeedStatementPeriodMessage(translateLocal, action);
+            expect(result).toBe('changed card feed "Amex Corporate" statement period end day to "Last day of the month" (previously "10")');
+        });
+
+        it('should translate LAST_BUSINESS_DAY_OF_MONTH value', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_STATEMENT_PERIOD,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    feedName: 'Mastercard',
+                    statementPeriodEndDay: CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_BUSINESS_DAY_OF_MONTH,
+                    previousStatementPeriodEndDay: CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH,
+                },
+            } as ReportAction;
+            const result = getUpdatedCardFeedStatementPeriodMessage(translateLocal, action);
+            expect(result).toBe('changed card feed "Mastercard" statement period end day to "Last business day of the month" (previously "Last day of the month")');
+        });
+    });
+
     describe('getCompanyAddressUpdateMessage', () => {
         it('should return "set" message when setting address for first time', () => {
             const action = {
@@ -4382,6 +4554,126 @@ describe('ReportActionsUtils', () => {
         it('includes pending-delete timer action as previous when offline', () => {
             const actions = [makeChronosAction('started'), makeChronosAction('stopped', {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}), makeChronosAction('started')];
             expect(isConsecutiveChronosAutomaticTimerAction(actions, 0, true, true)).toBe(true);
+        });
+    });
+
+    describe('shouldHideNewMarker', () => {
+        it('returns true when reportAction is undefined', () => {
+            expect(shouldHideNewMarker(undefined, false)).toBe(true);
+        });
+
+        it('returns true when online and reportAction has pendingAction DELETE', () => {
+            const reportAction = getFakeReportAction(1, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+            expect(shouldHideNewMarker(reportAction, false)).toBe(true);
+        });
+
+        it('returns false when offline and reportAction has pendingAction DELETE', () => {
+            const reportAction = getFakeReportAction(1, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+            expect(shouldHideNewMarker(reportAction, true)).toBe(false);
+        });
+
+        it('returns false when online and reportAction has no pendingAction', () => {
+            const reportAction = getFakeReportAction(1, {pendingAction: null});
+            expect(shouldHideNewMarker(reportAction, false)).toBe(false);
+        });
+
+        it('returns false when offline and reportAction has no pendingAction', () => {
+            const reportAction = getFakeReportAction(1, {pendingAction: null});
+            expect(shouldHideNewMarker(reportAction, true)).toBe(false);
+        });
+    });
+
+    describe('shouldDisplayNewMarkerOnReportAction', () => {
+        const unreadMarkerTime = '2023-01-01 10:00:00.000';
+        const currentUserAccountID = 1;
+
+        function makeAction(overrides: Partial<ReportAction> = {}): ReportAction {
+            return getFakeReportAction(2, {
+                actorAccountID: 99,
+                created: '2023-01-01 11:00:00.000',
+                ...overrides,
+            });
+        }
+
+        const baseParams = {
+            nextMessage: undefined,
+            isEarliestReceivedOfflineMessage: false,
+            unreadMarkerTime,
+            currentUserAccountID,
+            prevSortedVisibleReportActionsObjects: {},
+            scrollingVerticalOffset: CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD + 1,
+            prevUnreadMarkerReportActionID: 'some-id',
+        };
+
+        it('returns true when isEarliestReceivedOfflineMessage is true and next message is not unread', () => {
+            const message = makeAction();
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    isEarliestReceivedOfflineMessage: true,
+                    isOffline: false,
+                }),
+            ).toBe(true);
+        });
+
+        it('returns false when online and message has pendingAction DELETE (shouldHideNewMarker = true)', () => {
+            const message = makeAction({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    isOffline: false,
+                }),
+            ).toBe(false);
+        });
+
+        it('returns true when offline and message has pendingAction DELETE (shouldHideNewMarker = false)', () => {
+            const message = makeAction({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    isOffline: true,
+                }),
+            ).toBe(true);
+        });
+
+        it('returns false when message created time is before unreadMarkerTime (message is read)', () => {
+            const message = makeAction({created: '2023-01-01 09:00:00.000'});
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    isOffline: false,
+                }),
+            ).toBe(false);
+        });
+
+        it('returns false when nextMessage is also unread', () => {
+            const message = makeAction({created: '2023-01-01 11:00:00.000'});
+            const nextMessage = makeAction({created: '2023-01-01 11:30:00.000'});
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    nextMessage,
+                    isOffline: false,
+                }),
+            ).toBe(false);
+        });
+
+        it('returns false when message is from current user, is new, and no prevUnreadMarkerReportActionID', () => {
+            const message = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'new-action-id'});
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    prevUnreadMarkerReportActionID: null,
+                    prevSortedVisibleReportActionsObjects: {},
+                    isOffline: false,
+                }),
+            ).toBe(false);
         });
     });
 });
