@@ -137,6 +137,10 @@ type BuildOptimisticTransactionParams = {
     isDemoTransactionParam?: boolean;
 };
 
+function isDeletedTransaction(transaction: {reportID?: string}): boolean {
+    return transaction.reportID === CONST.REPORT.TRASH_REPORT_ID;
+}
+
 function hasDistanceCustomUnit(transaction: OnyxEntry<Transaction> | Partial<Transaction>): boolean {
     return transaction?.comment?.type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && transaction?.comment?.customUnit?.name === CONST.CUSTOM_UNITS.NAME_DISTANCE;
 }
@@ -894,6 +898,10 @@ function getUpdatedTransaction({
         lodashSet(updatedTransaction, 'comment.odometerEnd', transactionChanges.odometerEnd);
     }
 
+    if (Object.hasOwn(transactionChanges, 'reportID')) {
+        updatedTransaction.reportID = transactionChanges.reportID;
+    }
+
     // For distance split requests, if the amount is changed, we need to update the amount and merchant based on the new distance which we calculate before and save in transactionChanges
     if (isSplitTransaction && isDistanceRequest(transaction) && transactionChanges.amount) {
         const amount = transactionChanges.amount ?? Number(transaction.modifiedAmount) ?? transaction.amount ?? 0;
@@ -1294,21 +1302,21 @@ function getTagArrayFromName(tagName: string): string[] {
 }
 
 /**
- * Returns the exchange rate for a transaction, based on its group
+ * Returns the exchange rate for a transaction, based on its group or currencyConversionRate
  */
-function getExchangeRate(transaction: TransactionWithOptionalSearchFields) {
+function getExchangeRate(transaction: TransactionWithOptionalSearchFields, reportCurrency?: string) {
     const fromCurrency = getCurrency(transaction);
-    const toCurrency = transaction.groupCurrency ?? fromCurrency;
+    const toCurrency = transaction.groupCurrency ?? reportCurrency ?? fromCurrency;
 
-    if (!transaction.groupExchangeRate) {
+    if (transaction.groupExchangeRate && Number(transaction.groupExchangeRate) !== 1) {
+        return `${transaction.groupExchangeRate} ${fromCurrency}/${toCurrency}`;
+    }
+
+    if (!transaction.currencyConversionRate || Number(transaction.currencyConversionRate) === 1) {
         return '';
     }
 
-    if (Number(transaction.groupExchangeRate) === 1) {
-        return '';
-    }
-
-    return transaction.groupExchangeRate ? `${transaction.groupExchangeRate} ${fromCurrency}/${toCurrency}` : '';
+    return `${transaction.currencyConversionRate} ${fromCurrency}/${toCurrency}`;
 }
 
 /**
@@ -2997,6 +3005,7 @@ export {
     isDistanceTypeRequest,
     recalculateUnreportedTransactionDetails,
     hasSmartScanFailedWithMissingFields,
+    isDeletedTransaction,
 };
 
 export type {TransactionChanges};

@@ -712,10 +712,10 @@ Do not use dynamic routes when:
 - `path`: The URL suffix (e.g. `'verify-account'`).
 - `entryScreens`: List of screen names that are allowed to have this suffix appended (access control; see [Entry Screens (Access Control)](#entry-screens-access-control)). Use `['*']` to allow all screens.
 
-`createDynamicRoute(suffix)` — [`createDynamicRoute.ts`](src/libs/Navigation/helpers/createDynamicRoute.ts). Accepts a `DynamicRouteSuffix` (from `DYNAMIC_ROUTES`), appends it to the current active route and returns the full route. Use the following when navigating to a dynamic route:
+`createDynamicRoute(suffix)` — [`createDynamicRoute.ts`](src/libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute.ts). Accepts a `DynamicRouteSuffix` (from `DYNAMIC_ROUTES`), appends it to the current active route and returns the full route. Use the following when navigating to a dynamic route:
 
 ```ts
-import createDynamicRoute from '@libs/Navigation/helpers/createDynamicRoute';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
