@@ -149,6 +149,9 @@ type ButtonProps = Partial<ChildrenProps> &
         /** Accessibility label for the component */
         accessibilityLabel?: string;
 
+        /** Accessibility hint for the component */
+        accessibilityHint?: string;
+
         /** The text for the button label */
         text?: string;
 
@@ -284,6 +287,7 @@ function Button({
     id = '',
     testID = undefined,
     accessibilityLabel = '',
+    accessibilityHint = undefined,
     link = false,
     isContentCentered = false,
     isPressOnEnterActive,
@@ -532,6 +536,7 @@ function Button({
                 onHoverIn={!isDisabled || !shouldStayNormalOnDisable ? () => setIsHovered(true) : undefined}
                 onHoverOut={!isDisabled || !shouldStayNormalOnDisable ? () => setIsHovered(false) : undefined}
                 sentryLabel={sentryLabel}
+                accessibilityHint={accessibilityHint}
             >
                 {shouldBlendOpacity && <View style={[StyleSheet.absoluteFill, buttonBlendForegroundStyle]} />}
                 {renderContent()}

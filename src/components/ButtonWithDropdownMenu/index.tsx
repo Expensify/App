@@ -146,6 +146,9 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
     );
     const splitButtonWrapperStyle = isSplitButton ? [styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter] : {};
     const isTextTooLong = customText && customText?.length > 6;
+    const accessibilityExpandState = isMenuVisible ? CONST.ACCESSIBILITY_LABELS.EXPANDED : CONST.ACCESSIBILITY_LABELS.COLLAPSED;
+    const buttonText = customText ?? selectedItem?.text ?? '';
+    const accessibilityLabel = `${accessibilityExpandState}, ${buttonText}`;
 
     const handlePress = useCallback(
         (event?: GestureResponderEvent | KeyboardEvent) => {
@@ -195,6 +198,8 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                         iconRightFill={hasError ? theme.buttonIcon : undefined}
                         iconRightHoverFill={hasError ? theme.buttonIcon : undefined}
                         sentryLabel={sentryLabel}
+                        accessibilityLabel={!isSplitButton ? accessibilityLabel : undefined}
+                        accessibilityHint=""
                     />
 
                     {isSplitButton && (
@@ -213,6 +218,8 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                             innerStyles={[styles.dropDownButtonCartIconContainerPadding, innerStyleDropButton, isButtonSizeSmall && styles.dropDownButtonCartIcon]}
                             enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                             sentryLabel={sentryLabel}
+                            accessibilityLabel={accessibilityLabel}
+                            accessibilityHint=""
                         >
                             <View style={[styles.dropDownButtonCartIconView, innerStyleDropButton]}>
                                 <View style={[success ? styles.buttonSuccessDivider : styles.buttonDivider]} />

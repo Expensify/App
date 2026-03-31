@@ -5984,7 +5984,9 @@ const CONST = {
 
     ACCESSIBILITY_LABELS: {
         COLLAPSE: 'Collapse',
+        COLLAPSED: 'Collapsed',
         EXPAND: 'Expand',
+        EXPANDED: 'Expanded',
         ERROR: 'Error',
     },
 
