@@ -7,9 +7,8 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {TextInputKeyPressEvent} from 'react-native';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
-import {useInboxPanelActions} from '@components/InboxSidePanel/InboxPanelContext';
+import InboxPanelToggleButton from '@components/InboxSidePanel/InboxPanelToggleButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import SearchAutocompleteList from '@components/Search/SearchAutocompleteList';
 import SearchInputSelectionWrapper from '@components/Search/SearchInputSelectionWrapper';
@@ -22,7 +21,6 @@ import {getUpdatedSubstitutionsMap} from '@components/Search/SearchRouter/getUpd
 import {useSearchRouterActions} from '@components/Search/SearchRouter/SearchRouterContext';
 import type {SearchQueryJSON, SearchQueryString} from '@components/Search/types';
 import type {SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
-import Text from '@components/Text';
 import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -60,7 +58,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const {togglePanel} = useInboxPanelActions();
+
     const {shouldUseNarrowLayout: displayNarrowHeader} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass']);
     const personalDetails = usePersonalDetails();
@@ -379,13 +377,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                     )}
                 </View>
             </View>
-            <PressableWithoutFeedback
-                accessibilityLabel="Toggle chat panel"
-                onPress={togglePanel}
-                style={styles.mt1Half}
-            >
-                <Text style={[styles.textBlue]}>Chat</Text>
-            </PressableWithoutFeedback>
+            <InboxPanelToggleButton style={styles.mt1Half} />
         </View>
     );
 }

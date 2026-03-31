@@ -6,11 +6,10 @@ import Avatar from '@components/Avatar';
 import AvatarWithDisplayName from '@components/AvatarWithDisplayName';
 import Header from '@components/Header';
 import Icon from '@components/Icon';
-import {useInboxPanelActions} from '@components/InboxSidePanel/InboxPanelContext';
+import InboxPanelToggleButton from '@components/InboxSidePanel/InboxPanelToggleButton';
 import PinButton from '@components/PinButton';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
-import Text from '@components/Text';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import Tooltip from '@components/Tooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -85,7 +84,6 @@ function HeaderWithBackButton({
     const StyleUtils = useStyleUtils();
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
-    const {togglePanel} = useInboxPanelActions();
 
     const downloadReasonAttributes = useMemo<SkeletonSpanReasonAttributes>(
         () => ({
@@ -360,14 +358,7 @@ function HeaderWithBackButton({
                     )}
                 </View>
                 {shouldDisplaySearchRouter && <SearchButton />}
-                {shouldDisplayHelpButton && (
-                    <PressableWithoutFeedback
-                        accessibilityLabel="Toggle chat panel"
-                        onPress={togglePanel}
-                    >
-                        <Text style={[styles.textBlue, styles.ml2]}>Chat</Text>
-                    </PressableWithoutFeedback>
-                )}
+                {shouldDisplayHelpButton && <InboxPanelToggleButton style={styles.ml2} />}
             </View>
         </View>
     );

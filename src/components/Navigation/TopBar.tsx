@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useInboxPanelActions} from '@components/InboxSidePanel/InboxPanelContext';
+import InboxPanelToggleButton from '@components/InboxSidePanel/InboxPanelToggleButton';
 import LoadingBar from '@components/LoadingBar';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
@@ -32,7 +32,6 @@ function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpB
     const {translate} = useLocalize();
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const isAnonymousUser = isAnonymousUserUtil(session);
-    const {togglePanel} = useInboxPanelActions();
 
     const {wideRHPRouteKeys} = useWideRHPState();
     const isWideRHPVisible = !!wideRHPRouteKeys.length;
@@ -72,14 +71,7 @@ function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpB
                     </PressableWithoutFeedback>
                 )}
                 {displaySearch && <SearchButton />}
-                {shouldDisplayHelpButton && (
-                    <PressableWithoutFeedback
-                        accessibilityLabel="Toggle chat panel"
-                        onPress={togglePanel}
-                    >
-                        <Text style={[styles.textBlue, styles.mr2]}>Chat</Text>
-                    </PressableWithoutFeedback>
-                )}
+                {shouldDisplayHelpButton && <InboxPanelToggleButton style={styles.mr2} />}
             </View>
             <LoadingBar shouldShow={!isWideRHPVisible && !!shouldShowLoadingBar} />
         </View>

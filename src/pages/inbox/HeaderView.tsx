@@ -9,7 +9,7 @@ import CaretWrapper from '@components/CaretWrapper';
 import DisplayNames from '@components/DisplayNames';
 import HeaderLoadingBar from '@components/HeaderLoadingBar';
 import Icon from '@components/Icon';
-import {useInboxPanelActions} from '@components/InboxSidePanel/InboxPanelContext';
+import InboxPanelToggleButton from '@components/InboxSidePanel/InboxPanelToggleButton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import OnboardingHelpDropdownButton from '@components/OnboardingHelpDropdownButton';
 import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
@@ -99,7 +99,6 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const isInSidePanel = useIsInSidePanel();
-    const {togglePanel} = useInboxPanelActions();
     const route = useRoute();
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID) ?? getNonEmptyStringOnyxID(report?.reportID)}`);
     const [grandParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(parentReport?.parentReportID)}`);
@@ -404,14 +403,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                     </Tooltip>
                                 )}
                                 {shouldDisplaySearchRouter && <SearchButton style={styles.ml2} />}
-                                {!isInSidePanel && (
-                                    <PressableWithoutFeedback
-                                        accessibilityLabel="Toggle chat panel"
-                                        onPress={togglePanel}
-                                    >
-                                        <Text style={[styles.textBlue, styles.ml2]}>Chat</Text>
-                                    </PressableWithoutFeedback>
-                                )}
+                                {!isInSidePanel && <InboxPanelToggleButton style={styles.ml2} />}
                             </View>
                         </View>
                     )}
