@@ -17,7 +17,11 @@ import type {GroupedItem, SearchFilterKey, SearchGroupBy} from './types';
 type ChartGroupByConfig = {
     titleIconName: 'Users' | 'CreditCard' | 'Send' | 'Folder' | 'Basket' | 'Tag' | 'Calendar';
     getLabel: (item: GroupedItem) => string;
+
+    /** The search filter key used to detect conflicting filters when a chart data point is clicked. */
     filterKey: SearchFilterKey;
+
+    /** Builds the query string fragment appended to the main query when a chart data point is clicked. */
     getFilterQuery: (item: GroupedItem) => string;
 };
 
