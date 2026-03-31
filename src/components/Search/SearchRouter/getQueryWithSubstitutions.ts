@@ -49,8 +49,11 @@ function getQueryWithSubstitutions(changedQuery: string, substitutions: Substitu
     let lengthDiff = 0;
 
     for (let i = 0; i < searchAutocompleteQueryRanges.length; i++) {
-        const range = searchAutocompleteQueryRanges[i];
-        const index = rangeIndices[i];
+        const range = searchAutocompleteQueryRanges.at(i);
+        const index = rangeIndices.at(i);
+        if (range === undefined || index === undefined) {
+            continue;
+        }
         const itemKey = getSubstitutionMapKeyWithIndex(range.key, range.value, index);
         let substitutionEntry = substitutions[itemKey] ?? (index === 0 ? substitutions[getSubstitutionMapKey(range.key, range.value)] : undefined);
 

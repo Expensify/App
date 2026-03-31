@@ -1,4 +1,4 @@
-import type {SearchAutocompleteQueryRange, SearchFilterKey} from '@components/Search/types';
+import type {SearchAutocompleteQueryRange} from '@components/Search/types';
 import {parse} from '@libs/SearchParser/autocompleteParser';
 import type {SubstitutionMap} from './getQueryWithSubstitutions';
 import {getSubstitutionMapKeyWithIndex} from './getQueryWithSubstitutions';
@@ -34,7 +34,7 @@ function getUpdatedSubstitutionsMap(query: string, substitutions: SubstitutionMa
         const index = keyValueCount.get(baseKey) ?? 0;
         keyValueCount.set(baseKey, index + 1);
 
-        const fullKey = getSubstitutionMapKeyWithIndex(range.key as SearchFilterKey, range.value, index);
+        const fullKey = getSubstitutionMapKeyWithIndex(range.key, range.value, index);
         const value = substitutions[fullKey] ?? (index === 0 ? substitutions[baseKey] : undefined);
         if (value) {
             updatedSubstitutionMap[fullKey] = value;
