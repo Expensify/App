@@ -30,21 +30,27 @@ function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
     const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
 
+    const {accountID: currentUserAccountID, timezone: timezoneParam} = useCurrentUserPersonalDetails();
     const reportActionsOnyxKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}` as OnyxKey;
-    const [sortedVisibleReportActions = getEmptyArray<OnyxTypes.ReportAction>()] = useOnyx<OnyxKey, OnyxTypes.ReportAction[]>(
+    const [isTimerRunning] = useOnyx<OnyxKey, boolean>(
         reportActionsOnyxKey,
         {
-            selector: (reportActions: unknown): OnyxTypes.ReportAction[] =>
-                getSortedReportActionsForDisplay(reportActions as OnyxEntry<ReportActions>, canPerformWriteAction, false, visibleReportActionsData, report.reportID),
+            selector: (reportActions: unknown): boolean => {
+                const sorted = getSortedReportActionsForDisplay(
+                    reportActions as OnyxEntry<ReportActions>,
+                    canPerformWriteAction,
+                    false,
+                    visibleReportActionsData,
+                    report.reportID,
+                );
+                return isChronosTimerRunningFromVisibleActions(sorted, currentUserAccountID);
+            },
         },
-        [canPerformWriteAction, visibleReportActionsData, report.reportID],
+        [canPerformWriteAction, visibleReportActionsData, report.reportID, currentUserAccountID],
     );
 
-    const {accountID: currentUserAccountID, timezone: timezoneParam} = useCurrentUserPersonalDetails();
     const ancestors = useAncestors(report);
     const isInSidePanel = useIsInSidePanel();
-
-    const isTimerRunning = isChronosTimerRunningFromVisibleActions(sortedVisibleReportActions, currentUserAccountID);
 
     function onChronosTimerPress() {
         addComment({
