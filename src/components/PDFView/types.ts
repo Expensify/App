@@ -1,3 +1,4 @@
+import type {RotationDegrees} from 'react-fast-pdf';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 
 type PDFViewProps = {
@@ -30,6 +31,9 @@ type PDFViewProps = {
 
     /** Whether the PDF is used as a chat attachment */
     isUsedAsChatAttachment?: boolean;
+
+    /** Controlled rotation angle for the PDF */
+    rotation?: RotationDegrees;
 };
 
 type PDFViewNativeProps = PDFViewProps & {
