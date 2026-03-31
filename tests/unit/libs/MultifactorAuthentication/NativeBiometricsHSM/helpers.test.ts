@@ -1,9 +1,13 @@
-import {getKeyAlias, mapAuthTypeNumber, mapLibraryError, mapSignErrorCode} from '@libs/MultifactorAuthentication/NativeBiometricsHSM/helpers';
+import {Buffer} from 'buffer';
+import {buildSigningData, getKeyAlias, mapAuthTypeNumber, mapLibraryError, mapSignErrorCode} from '@libs/MultifactorAuthentication/NativeBiometricsHSM/helpers';
 import NATIVE_BIOMETRICS_HSM_VALUES from '@libs/MultifactorAuthentication/NativeBiometricsHSM/VALUES';
 import VALUES from '@libs/MultifactorAuthentication/VALUES';
 
+const mockSha256 = jest.fn();
+
 jest.mock('@sbaiahmed1/react-native-biometrics', () => ({
     isSensorAvailable: jest.fn().mockResolvedValue({available: true, biometryType: 'FaceID', isDeviceSecure: true}),
+    sha256: (...args: unknown[]): Promise<{hash: string}> => mockSha256(...args) as Promise<{hash: string}>,
 }));
 
 describe('NativeBiometricsHSM helpers', () => {
@@ -160,6 +164,84 @@ describe('NativeBiometricsHSM helpers', () => {
             // When mapping the library error
             // Then undefined should be returned because only cancellation errors have special handling in this mapper
             expect(mapLibraryError('timeout')).toBeUndefined();
+        });
+    });
+
+    describe('buildSigningData', () => {
+        const rpId = 'example.com';
+        const challenge = 'test-challenge-123';
+        // 32 bytes of 0xAA, base64-encoded
+        const fakeRpIdHash = Buffer.alloc(32, 0xaa).toString('base64');
+        // 32 bytes of 0xBB, base64-encoded
+        const fakeClientDataHash = Buffer.alloc(32, 0xbb).toString('base64');
+
+        beforeEach(() => {
+            mockSha256.mockReset();
+            mockSha256.mockImplementation((input: string) => {
+                if (input === rpId) {
+                    return Promise.resolve({hash: fakeRpIdHash});
+                }
+                return Promise.resolve({hash: fakeClientDataHash});
+            });
+        });
+
+        it('should return authenticatorData with correct structure (37 bytes: 32 rpIdHash + 1 flags + 4 signCount)', async () => {
+            // Given a valid rpId and challenge
+            // When building signing data
+            // Then authenticatorData should be exactly 37 bytes: rpIdHash(32) || flags(1) || signCount(4)
+            const result = await buildSigningData(rpId, challenge);
+            expect(result.authenticatorData.length).toBe(37);
+        });
+
+        it('should set flags byte to 0x05 (UP | UV)', async () => {
+            // Given a valid rpId and challenge
+            // When building signing data
+            // Then the flags byte (index 32) should be 0x05 to indicate User Present and User Verified
+            const result = await buildSigningData(rpId, challenge);
+            expect(result.authenticatorData[32]).toBe(0x05);
+        });
+
+        it('should set signCount to 4 zero bytes', async () => {
+            // Given a valid rpId and challenge
+            // When building signing data
+            // Then signCount bytes (indices 33-36) should all be zero as we don't track sign counts
+            const result = await buildSigningData(rpId, challenge);
+            expect(result.authenticatorData.slice(33, 37)).toEqual(Buffer.alloc(4));
+        });
+
+        it('should embed rpIdHash as the first 32 bytes of authenticatorData', async () => {
+            // Given a known rpId hash
+            // When building signing data
+            // Then the first 32 bytes of authenticatorData should match the sha256 of rpId
+            const result = await buildSigningData(rpId, challenge);
+            expect(result.authenticatorData.slice(0, 32)).toEqual(Buffer.alloc(32, 0xaa));
+        });
+
+        it('should return clientDataJSON as stringified JSON containing the challenge', async () => {
+            // Given a challenge string
+            // When building signing data
+            // Then clientDataJSON should be a JSON string with the challenge field
+            const result = await buildSigningData(rpId, challenge);
+            expect(result.clientDataJSON).toBe(JSON.stringify({challenge}));
+        });
+
+        it('should return dataToSignB64 as base64 of authenticatorData || clientDataHash', async () => {
+            // Given known hashes for rpId and clientDataJSON
+            // When building signing data
+            // Then dataToSignB64 should be base64(authenticatorData || sha256(clientDataJSON))
+            const result = await buildSigningData(rpId, challenge);
+            const expectedDataToSign = Buffer.concat([result.authenticatorData, Buffer.alloc(32, 0xbb)]);
+            expect(result.dataToSignB64).toBe(expectedDataToSign.toString('base64'));
+        });
+
+        it('should call sha256 with rpId and clientDataJSON', async () => {
+            // Given rpId and challenge inputs
+            // When building signing data
+            // Then sha256 should be called twice: once for rpId and once for the clientDataJSON string
+            await buildSigningData(rpId, challenge);
+            expect(mockSha256).toHaveBeenCalledTimes(2);
+            expect(mockSha256).toHaveBeenCalledWith(rpId);
+            expect(mockSha256).toHaveBeenCalledWith(JSON.stringify({challenge}));
         });
     });
 });

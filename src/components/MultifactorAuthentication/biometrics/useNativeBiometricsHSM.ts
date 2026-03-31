@@ -1,9 +1,8 @@
-import {createKeys, deleteKeys, getAllKeys, InputEncoding, sha256, signWithOptions} from '@sbaiahmed1/react-native-biometrics';
-import {Buffer} from 'buffer';
+import {createKeys, deleteKeys, getAllKeys, InputEncoding, signWithOptions} from '@sbaiahmed1/react-native-biometrics';
 import {useCallback} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import {getKeyAlias, getSensorResult, mapAuthTypeNumber, mapLibraryError, mapSignErrorCode} from '@libs/MultifactorAuthentication/NativeBiometricsHSM/helpers';
+import {buildSigningData, getKeyAlias, getSensorResult, mapAuthTypeNumber, mapLibraryError, mapSignErrorCode} from '@libs/MultifactorAuthentication/NativeBiometricsHSM/helpers';
 import type {NativeBiometricsHSMKeyInfo} from '@libs/MultifactorAuthentication/NativeBiometricsHSM/types';
 import VALUES from '@libs/MultifactorAuthentication/VALUES';
 import CONST from '@src/CONST';
@@ -101,24 +100,7 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
                 return;
             }
 
-            // Build authenticatorData: rpIdHash(32B) || flags(1B) || signCount(4B)
-            const {hash: rpIdHashB64} = await sha256(challenge.rpId);
-            const rpIdHash = Buffer.from(rpIdHashB64, 'base64');
-
-            // UP (0x01) | UV (0x04)
-            const flags = Buffer.from([0x05]);
-            // 4 zero bytes, big-endian
-            const signCount = Buffer.alloc(4);
-
-            const authenticatorData = Buffer.concat([rpIdHash, flags, signCount]);
-
-            // Build dataToSign: authenticatorData || sha256(clientDataJSON)
-            const clientDataJSON = JSON.stringify({challenge: challenge.challenge});
-            const {hash: clientDataHashB64} = await sha256(clientDataJSON);
-            const clientDataHash = Buffer.from(clientDataHashB64, 'base64');
-
-            const dataToSign = Buffer.concat([authenticatorData, clientDataHash]);
-            const dataToSignB64 = dataToSign.toString('base64');
+            const {authenticatorData, clientDataJSON, dataToSignB64} = await buildSigningData(challenge.rpId, challenge.challenge);
 
             // Sign with biometric prompt — signWithOptions
             const signResult = await signWithOptions({

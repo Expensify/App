@@ -2,7 +2,8 @@
  * Helper utilities for native biometrics HSM (react-native-biometrics).
  */
 import type {BiometricSensorInfo} from '@sbaiahmed1/react-native-biometrics';
-import {isSensorAvailable} from '@sbaiahmed1/react-native-biometrics';
+import {isSensorAvailable, sha256} from '@sbaiahmed1/react-native-biometrics';
+import {Buffer} from 'buffer';
 import type {ValueOf} from 'type-fest';
 import type {AuthTypeInfo, MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/shared/types';
 import VALUES from '@libs/MultifactorAuthentication/VALUES';
@@ -87,4 +88,31 @@ function mapLibraryError(e: unknown): MultifactorAuthenticationReason | undefine
     return undefined;
 }
 
-export {getKeyAlias, getSensorResult, mapAuthTypeNumber, mapSignErrorCode, mapLibraryError};
+/**
+ * Builds the WebAuthn-style authenticatorData, clientDataJSON and dataToSign for a challenge.
+ *
+ * authenticatorData = rpIdHash(32B) || flags(1B: UP|UV = 0x05) || signCount(4B: zeros)
+ * dataToSign       = authenticatorData || sha256(clientDataJSON)
+ */
+async function buildSigningData(rpId: string, challenge: string): Promise<{authenticatorData: Buffer; clientDataJSON: string; dataToSignB64: string}> {
+    const {hash: rpIdHashB64} = await sha256(rpId);
+    const rpIdHash = Buffer.from(rpIdHashB64, 'base64');
+
+    // UP (0x01) | UV (0x04)
+    const flags = Buffer.from([0x05]);
+    // 4 zero bytes, big-endian
+    const signCount = Buffer.alloc(4);
+
+    const authenticatorData = Buffer.concat([rpIdHash, flags, signCount]);
+
+    const clientDataJSON = JSON.stringify({challenge});
+    const {hash: clientDataHashB64} = await sha256(clientDataJSON);
+    const clientDataHash = Buffer.from(clientDataHashB64, 'base64');
+
+    const dataToSign = Buffer.concat([authenticatorData, clientDataHash]);
+    const dataToSignB64 = dataToSign.toString('base64');
+
+    return {authenticatorData, clientDataJSON, dataToSignB64};
+}
+
+export {getKeyAlias, getSensorResult, mapAuthTypeNumber, mapSignErrorCode, mapLibraryError, buildSigningData};
