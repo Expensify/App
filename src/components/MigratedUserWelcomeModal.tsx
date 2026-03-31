@@ -11,8 +11,10 @@ import {openExternalLink} from '@libs/actions/Link';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import convertToLTR from '@libs/convertToLTR';
 import Log from '@libs/Log';
+import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import type {FeatureListItem} from './FeatureList';
 import FeatureTrainingModal from './FeatureTrainingModal';
 import Icon from './Icon';
@@ -58,6 +60,7 @@ function MigratedUserWelcomeModal() {
     const onClose = () => {
         Log.hmmm('[MigratedUserWelcomeModal] onClose called, dismissing product training');
         dismissProductTraining(CONST.MIGRATED_USER_WELCOME_MODAL);
+        Navigation.navigate(ROUTES.HOME);
     };
 
     const featureListContent = (
