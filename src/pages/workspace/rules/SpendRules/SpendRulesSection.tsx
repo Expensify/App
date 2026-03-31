@@ -6,16 +6,16 @@ import MenuItem from '@components/MenuItem';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
-import useEnvironment from '@hooks/useEnvironment';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 
 type SpendRulesSectionProps = {
@@ -114,16 +114,18 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
                 onPress={showBuiltInProtectionModal}
                 shouldShowRightIcon
             />
-            {!isProduction && <MenuItem
-                title={translate('workspace.rules.spendRules.addSpendRule')}
-                titleStyle={styles.textStrong}
-                icon={expensifyIcons.Plus}
-                iconHeight={20}
-                iconWidth={20}
-                style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
-                onPress={() => Navigation.navigate(ROUTES.RULES_SPEND_NEW.getRoute(policyID))}
-                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.ADD_SPEND_RULE}
-            />}
+            {!isProduction && (
+                <MenuItem
+                    title={translate('workspace.rules.spendRules.addSpendRule')}
+                    titleStyle={styles.textStrong}
+                    icon={expensifyIcons.Plus}
+                    iconHeight={20}
+                    iconWidth={20}
+                    style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
+                    onPress={() => Navigation.navigate(ROUTES.RULES_SPEND_NEW.getRoute(policyID))}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.ADD_SPEND_RULE}
+                />
+            )}
         </Section>
     );
 }
