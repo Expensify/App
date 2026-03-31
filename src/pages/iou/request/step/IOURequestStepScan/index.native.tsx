@@ -346,7 +346,7 @@ function IOURequestStepScan({
                 showCameraAlert();
                 Log.warn('Error taking photo', error);
             });
-    }
+    };
 
     // Wait for camera permission status to render
     if (cameraPermissionStatus == null) {
