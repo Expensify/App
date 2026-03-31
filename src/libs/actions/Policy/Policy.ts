@@ -382,6 +382,7 @@ type DeleteWorkspaceActionParams = {
     reimbursementAccountError: Errors | undefined;
     lastUsedPaymentMethods?: LastPaymentMethod;
     localeCompare: LocaleContextProps['localeCompare'];
+    currentUserAccountID: number;
 };
 
 /**
@@ -401,6 +402,7 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
         lastUsedPaymentMethods,
         localeCompare,
         personalPolicyID,
+        currentUserAccountID,
     } = params;
 
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
@@ -545,7 +547,7 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
         if (!!ownerAccountID && ownerAccountID !== CONST.POLICY.OWNER_ACCOUNT_ID_FAKE) {
             emailClosingReport = deprecatedAllPersonalDetails?.[ownerAccountID]?.login ?? '';
         }
-        const optimisticClosedReportAction = ReportUtils.buildOptimisticClosedReportAction(emailClosingReport, policyName, CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED);
+        const optimisticClosedReportAction = ReportUtils.buildOptimisticClosedReportAction(emailClosingReport, policyName, currentUserAccountID, CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED);
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
@@ -5144,7 +5146,7 @@ function openPolicyMoreFeaturesPage(policyID: string) {
 }
 
 function openPolicyProfilePage(policyID: string) {
-    const params: OpenPolicyProfilePageParams = {policyID};
+    const params: OpenPolicyProfilePageParams = {policyID, includeAllBankAccounts: true};
 
     API.read(READ_COMMANDS.OPEN_POLICY_PROFILE_PAGE, params);
 }

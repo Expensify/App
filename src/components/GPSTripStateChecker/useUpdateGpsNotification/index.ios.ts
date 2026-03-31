@@ -36,11 +36,12 @@ function useUpdateGpsNotificationOnUnitChange() {
     const {translate} = useLocalize();
 
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
 
     const defaultExpensePolicy = useDefaultExpensePolicy();
-    const shouldUseDefaultExpensePolicy = shouldUseDefaultExpensePolicyUtil(CONST.IOU.TYPE.CREATE, defaultExpensePolicy, amountOwed, ownerBillingGraceEndPeriod);
+    const shouldUseDefaultExpensePolicy = shouldUseDefaultExpensePolicyUtil(CONST.IOU.TYPE.CREATE, defaultExpensePolicy, amountOwed, userBillingGraceEndPeriods, ownerBillingGraceEndPeriod);
 
     const unit = DistanceRequestUtils.getRate({transaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : undefined}).unit;
 
