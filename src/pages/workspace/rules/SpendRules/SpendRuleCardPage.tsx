@@ -41,7 +41,7 @@ type ExpensifyCardListItem = ListItem &
         card: Card;
     };
 
-type AddCardPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_SPEND_CARD>;
+type SpendRuleCardPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_SPEND_CARD>;
 
 function getCardIDsWithSpendRules(cardRules: Record<string, ExpensifyCardRule> | undefined): Set<number> {
     const cardIDs = new Set<number>();
@@ -76,7 +76,7 @@ function getEligibleCards(cardsList: OnyxEntry<WorkspaceCardsList>, expensifyCar
     return Object.values(cards).filter((card: Card) => !cardIDsWithSpendRules.has(card.cardID));
 }
 
-function AddCardPage({route}: AddCardPageProps) {
+function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
     const {policyID} = route.params;
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -175,7 +175,7 @@ function AddCardPage({route}: AddCardPageProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
         >
             <ScreenWrapper
-                testID="AddCardPage"
+                testID="SpendRuleCardPage"
                 shouldEnableMaxHeight
                 offlineIndicatorStyle={styles.mtAuto}
                 includeSafeAreaPaddingBottom
@@ -228,6 +228,6 @@ function AddCardPage({route}: AddCardPageProps) {
     );
 }
 
-AddCardPage.displayName = 'AddCardPage';
+SpendRuleCardPage.displayName = 'SpendRuleCardPage';
 
-export default AddCardPage;
+export default SpendRuleCardPage;
