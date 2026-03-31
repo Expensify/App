@@ -1618,7 +1618,6 @@ const translations: TranslationDeepObject<typeof en> = {
             `nie udało się zatwierdzić przez <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">zasady w przestrzeni roboczej</a>. ${reason}`,
         failedToApproveViaDEW: (reason: string) => `nie udało się zaakceptować. ${reason}`,
         cannotDuplicateDistanceExpense: 'Nie możesz duplikować wydatków za przejazdy między przestrzeniami roboczymi, ponieważ stawki mogą się różnić między poszczególnymi przestrzeniami.',
-        deleted: 'Usunięto',
     },
     transactionMerge: {
         listPage: {
@@ -7355,7 +7354,6 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             unhold: 'Usuń blokadę',
             reject: 'Odrzuć',
             noOptionsAvailable: 'Brak opcji dostępnych dla wybranej grupy wydatków.',
-            undelete: 'Cofnij usunięcie',
         },
         filtersHeader: 'Filtry',
         filters: {
