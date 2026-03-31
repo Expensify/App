@@ -279,7 +279,7 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
     const lastActionCreated = visibleReportActions.at(0)?.created;
     const isNewestAction = (actionCreated: string | undefined, lastVisibleActionCreated: string | undefined) =>
         actionCreated && lastVisibleActionCreated ? actionCreated >= lastVisibleActionCreated : actionCreated === lastVisibleActionCreated;
-    const hasNewestReportAction = isNewestAction(lastActionCreated, report.lastVisibleActionCreated) || isNewestAction(lastActionCreated, transactionThreadReport?.lastVisibleActionCreated);
+    const hasNewestReportAction = isNewestAction(lastActionCreated, report?.lastVisibleActionCreated) || isNewestAction(lastActionCreated, transactionThreadReport?.lastVisibleActionCreated);
 
     const isSingleExpenseReport = reportPreviewAction?.childMoneyRequestCount === 1;
     const isMissingTransactionThreadReportID = !transactionThreadReport?.reportID;
