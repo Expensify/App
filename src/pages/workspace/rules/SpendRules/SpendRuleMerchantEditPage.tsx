@@ -1,7 +1,9 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
+import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -9,6 +11,7 @@ import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelec
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -22,7 +25,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {SpendRuleMerchant} from '@src/types/form/SpendRuleForm';
-import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import INPUT_IDS from '@src/types/form/SpendRuleMerchantForm';
 
 type SpendRuleMerchantEditPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_SPEND_MERCHANT_EDIT>;
 
@@ -49,8 +52,9 @@ function SpendRuleMerchantEditPage({route}: SpendRuleMerchantEditPageProps) {
         Navigation.goBack(ROUTES.RULES_SPEND_MERCHANTS.getRoute(policyID));
     };
 
-    const handleSave = () => {
-        const trimmedMerchantName = merchantName.trim();
+    const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SPEND_RULE_MERCHANT_FORM>) => {
+        const merchantNameValue = values[INPUT_IDS.MERCHANT_NAME] as string | undefined;
+        const trimmedMerchantName = merchantNameValue?.trim() ?? '';
         if (!trimmedMerchantName) {
             if (!isNew) {
                 const updatedMerchants = merchants.filter((_, merchantArrayIndex) => merchantArrayIndex !== index);
@@ -114,14 +118,27 @@ function SpendRuleMerchantEditPage({route}: SpendRuleMerchantEditPageProps) {
                     title={translate('common.merchant')}
                     onBackButtonPress={goBack}
                 />
-                <View style={[styles.flex1, styles.mt5]}>
-                    <TextInput
-                        value={merchantName}
-                        onChangeText={setMerchantName}
-                        label={translate('common.merchant')}
-                        accessibilityLabel={translate('common.merchant')}
-                        containerStyles={[styles.ph5, styles.mb5]}
-                    />
+                <FormProvider
+                    formID={ONYXKEYS.FORMS.SPEND_RULE_MERCHANT_FORM}
+                    submitButtonText={translate('common.save')}
+                    style={[styles.flex1, styles.mt3]}
+                    onSubmit={submit}
+                    enabledWhenOffline
+                    shouldHideFixErrorsAlert
+                >
+                    <View style={[styles.mb5]}>
+                        <InputWrapper
+                            InputComponent={TextInput}
+                            inputID={INPUT_IDS.MERCHANT_NAME}
+                            label={translate('common.merchant')}
+                            accessibilityLabel={translate('common.merchant')}
+                            value={merchantName}
+                            onChangeText={setMerchantName}
+                            ref={inputCallbackRef}
+                            role={CONST.ROLE.PRESENTATION}
+                            containerStyles={[styles.ph5]}
+                        />
+                    </View>
                     <View style={[styles.ph5, styles.pb2]}>
                         <Text style={[styles.textLabelSupporting]}>{translate('workspace.rules.spendRules.matchType')}</Text>
                     </View>
@@ -131,14 +148,7 @@ function SpendRuleMerchantEditPage({route}: SpendRuleMerchantEditPageProps) {
                         ListItem={SingleSelectListItem}
                         onSelectRow={onSelectMatchType}
                     />
-                </View>
-                <FormAlertWithSubmitButton
-                    buttonText={translate('common.save')}
-                    containerStyles={[styles.m4, styles.mb5]}
-                    isAlertVisible={false}
-                    onSubmit={handleSave}
-                    enabledWhenOffline
-                />
+                </FormProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
