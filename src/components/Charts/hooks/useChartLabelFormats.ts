@@ -1,6 +1,7 @@
 import type {SkFont} from '@shopify/react-native-skia';
 import {LABEL_ROTATIONS} from '@components/Charts/constants';
 import type {ChartDataPoint, LabelRotation, UnitPosition, UnitWithFallback} from '@components/Charts/types';
+import {canFontRenderText} from '@components/Charts/utils';
 import useLocalize from '@hooks/useLocalize';
 
 type UseChartLabelFormatsProps = {
@@ -12,15 +13,6 @@ type UseChartLabelFormatsProps = {
     labelRotation?: LabelRotation;
     truncatedLabels?: string[];
 };
-
-/**
- * Checks if all characters in the text can be rendered by the font.
- * Returns true if all glyphs are supported (no glyph ID is 0).
- */
-function canFontRenderText(font: SkFont, text: string): boolean {
-    const glyphIDs = font.getGlyphIDs(text);
-    return glyphIDs.every((id) => id !== 0);
-}
 
 /**
  * Resolves the display unit based on font support.
