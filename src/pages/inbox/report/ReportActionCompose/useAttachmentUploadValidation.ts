@@ -55,6 +55,7 @@ function useAttachmentUploadValidation({
     const {translate} = useLocalize();
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const personalPolicy = usePersonalPolicy();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
@@ -184,7 +185,7 @@ function useAttachmentUploadValidation({
 
     const onReceiptDropped = useCallback(
         (e: DragEvent) => {
-            if (policy && shouldRestrictUserBillableActions(policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds)) {
+            if (policy && shouldRestrictUserBillableActions(policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                 return;
             }
@@ -205,7 +206,7 @@ function useAttachmentUploadValidation({
             attachmentUploadType.current = 'receipt';
             validateFiles(files, items, {isValidatingReceipts: true});
         },
-        [policy, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, shouldAddOrReplaceReceipt, transactionID, validateFiles],
+        [policy, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, shouldAddOrReplaceReceipt, transactionID, validateFiles, amountOwed],
     );
 
     return {
