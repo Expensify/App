@@ -81,7 +81,7 @@ function SpendRulesSection() {
                     isCondensed
                 />
                 <Text
-                    style={[styles.flex1, styles.flexShrink1, styles.textStrong, styles.themeTextColor]}
+                    style={[styles.flex1, styles.flexShrink1, styles.themeTextColor]}
                     numberOfLines={1}
                     ellipsizeMode="tail"
                 >
