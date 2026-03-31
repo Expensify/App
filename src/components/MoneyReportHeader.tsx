@@ -706,6 +706,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
             } else if (isAnyTransactionOnHold) {
                 setSelectedVBBAToPayFromHoldMenu(type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined);
                 if (getPlatform() === CONST.PLATFORM.IOS) {
+                    // InteractionManager delays modal until current interaction completes, preventing visual glitches on iOS
                     // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => setIsHoldMenuVisible(true));
                 } else {
@@ -1367,6 +1368,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                 setPaymentType(payType);
                 setSelectedVBBAToPayFromHoldMenu(payType === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined);
                 if (getPlatform() === CONST.PLATFORM.IOS) {
+                    // InteractionManager delays modal until current interaction completes, preventing visual glitches on iOS
                     // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => setIsHoldMenuVisible(true));
                 } else {
