@@ -67,7 +67,22 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
 
     const menuItemBody = (
         <View>
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.mb2]}>
+            <View style={[styles.flexRow, styles.gap2, styles.alignItemsStart]}>
+                <Badge
+                    text={blockLabel}
+                    badgeStyles={[styles.ml0]}
+                    error
+                    isCondensed
+                />
+                <Text
+                    style={[styles.flex1, styles.flexShrink1, styles.themeTextColor]}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                >
+                    {defaultRuleTitle}
+                </Text>
+            </View>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.mt2]}>
                 <Icon
                     src={expensifyIcons.Lock}
                     width={variables.iconSizeSmall}
@@ -79,21 +94,6 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
                     numberOfLines={2}
                 >
                     {descriptionLabel}
-                </Text>
-            </View>
-            <View style={[styles.flexRow, styles.gap2, styles.alignItemsStart]}>
-                <Badge
-                    text={blockLabel}
-                    badgeStyles={[styles.ml0, styles.mt0Half]}
-                    error
-                    isCondensed
-                />
-                <Text
-                    style={[styles.flex1, styles.flexShrink1, styles.textStrong, styles.themeTextColor]}
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                >
-                    {defaultRuleTitle}
                 </Text>
             </View>
         </View>
