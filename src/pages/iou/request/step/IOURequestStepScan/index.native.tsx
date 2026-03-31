@@ -368,8 +368,8 @@ function IOURequestStepScan({
 
         const path = getReceiptsUploadFolderPath();
 
-        camera?.current
-            ?.takePhoto({
+        camera.current
+            .takePhoto({
                 flash: flash && hasFlash ? 'on' : 'off',
                 enableShutterSound: !isPlatformMuted,
                 path,
@@ -422,7 +422,6 @@ function IOURequestStepScan({
                 showCameraAlert();
                 Log.warn('Error taking photo', error);
             });
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- askForPermissions is not needed
     }, [
         cameraPermissionStatus,
         isMultiScanEnabled,
@@ -437,9 +436,11 @@ function IOURequestStepScan({
         initialTransactionID,
         isEditing,
         receiptFiles,
+        setReceiptFiles,
         submitReceipts,
         updateScanAndNavigate,
         askForPermissions,
+        maybeCancelShutterSpan,
     ]);
 
     const cameraLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
@@ -522,7 +523,7 @@ function IOURequestStepScan({
                                     <Animated.View style={[styles.cameraFocusIndicator, cameraFocusIndicatorAnimatedStyle]} />
                                     <Animated.View
                                         pointerEvents="none"
-                                        style={[StyleSheet.absoluteFillObject, StyleUtils.getBackgroundColorStyle(theme.appBG), blinkStyle, styles.zIndex10]}
+                                        style={[StyleSheet.absoluteFill, StyleUtils.getBackgroundColorStyle(theme.appBG), blinkStyle, styles.zIndex10]}
                                     />
                                 </View>
                             </GestureDetector>
