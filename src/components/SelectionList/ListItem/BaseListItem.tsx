@@ -1,4 +1,4 @@
-import React, {useCallback, useRef} from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 import {getButtonRole} from '@components/Button/utils';
 import Icon from '@components/Icon';
@@ -136,20 +136,6 @@ function BaseListItem<TItem extends ListItem>({
         canSelectMultiple,
     });
 
-    // When the list-level Enter shortcut is disabled (shouldPreventEnterKeySubmit=false),
-    // handle Enter directly on the item since role="option" elements don't get
-    // automatic Enter→click synthesis from the browser or BaseGenericPressable.
-    const handleKeyDown = useCallback(
-        (event: React.KeyboardEvent) => {
-            if (shouldPreventEnterKeySubmit || event.key !== CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
-                return;
-            }
-            event.preventDefault();
-            onSelectRow(item);
-        },
-        [shouldPreventEnterKeySubmit, onSelectRow, item],
-    );
-
     return (
         <OfflineWithFeedback
             onClose={() => onDismissError(item)}
@@ -168,7 +154,6 @@ function BaseListItem<TItem extends ListItem>({
                 onLongPress={() => {
                     onLongPressRow?.(item);
                 }}
-                onKeyDown={!shouldPreventEnterKeySubmit ? handleKeyDown : undefined}
                 onPress={(e) => {
                     if (isMouseDownOnInput) {
                         e?.stopPropagation(); // Preventing the click action

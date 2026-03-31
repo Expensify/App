@@ -51,7 +51,6 @@ function ListItemRenderer<TItem extends ListItem>({
     shouldUseDefaultRightHandSideCheckmark,
     shouldHighlightSelectedItem,
     shouldDisableHoverStyle,
-    shouldPreventEnterKeySubmit,
     shouldShowRightCaret,
     errorRowStyles,
 }: ListItemRendererProps<TItem>) {
@@ -82,7 +81,8 @@ function ListItemRenderer<TItem extends ListItem>({
                 onCheckboxPress={handleOnCheckboxPress()}
                 onDismissError={() => onDismissError?.(item)}
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
-                shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
+                // We're already handling the Enter key press in the useKeyboardShortcut hook, so we don't want the list item to submit the form
+                shouldPreventEnterKeySubmit
                 rightHandSideComponent={rightHandSideComponent}
                 keyForList={item.keyForList}
                 shouldUseDefaultRightHandSideComponent={shouldUseDefaultRightHandSideComponent}
