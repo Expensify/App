@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {useCallback, useMemo, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -55,7 +55,7 @@ import {canIOUBePaid, dismissRejectUseExplanation, initBulkEditDraftTransaction}
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {BillingGraceEndPeriod, Report, SearchResults, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {BillingGraceEndPeriod, Report, Transaction, TransactionViolations} from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import useAllTransactions from './useAllTransactions';
 import useBulkPayOptions from './useBulkPayOptions';
@@ -68,6 +68,7 @@ import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
 import usePersonalPolicy from './usePersonalPolicy';
+import usePreviousDefined from './usePreviousDefined';
 import useSelfDMReport from './useSelfDMReport';
 import useTheme from './useTheme';
 import useThemeStyles from './useThemeStyles';
@@ -100,6 +101,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const {clearSelectedTransactions, selectAllMatchingItems} = useSearchActionsContext();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {accountID} = currentUserPersonalDetails;
+    const currentUserEmail = currentUserPersonalDetails.email ?? '';
+    const currentUserLogin = currentUserPersonalDetails.login ?? '';
     const allTransactions = useAllTransactions();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
@@ -121,14 +124,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
     // Cache the last search results that had data, so the merge option remains available
     // while results are temporarily unset (e.g. during sorting/loading).
-    const lastNonEmptySearchResultsRef = useRef<SearchResults | undefined>(undefined);
-    useEffect(() => {
-        if (!currentSearchResults?.data) {
-            return;
-        }
-        lastNonEmptySearchResultsRef.current = currentSearchResults;
-    }, [currentSearchResults]);
-    const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResultsRef.current;
+    const searchResults = usePreviousDefined(currentSearchResults?.data ? currentSearchResults : undefined);
 
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
@@ -476,8 +472,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         deleteAppReport({
                             report,
                             selfDMReport,
-                            currentUserEmailParam: currentUserPersonalDetails?.email ?? '',
-                            currentUserAccountIDParam: currentUserPersonalDetails?.accountID,
+                            currentUserEmailParam: currentUserEmail,
+                            currentUserAccountIDParam: accountID,
                             reportTransactions: validTransactions,
                             allTransactionViolations,
                             bankAccountList,
@@ -526,8 +522,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         transactions,
         allReports,
         selfDMReport,
-        currentUserPersonalDetails?.email,
-        currentUserPersonalDetails?.accountID,
+        currentUserEmail,
+        currentUserPersonalDetails.email,
         toLocaleDigit,
         isExpenseReportType,
         selectedReportIDs,
@@ -679,16 +675,15 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         ],
     );
 
-    const onBulkPaySelectedRef = useRef(onBulkPaySelected);
-    useEffect(() => {
-        onBulkPaySelectedRef.current = onBulkPaySelected;
-    });
-    const stableOnBulkPaySelected = useCallback((paymentMethod?: PaymentMethodType, additionalData?: BulkPaySelectionData) => {
-        onBulkPaySelectedRef.current?.(paymentMethod, additionalData);
-    }, []);
+    const stableOnBulkPaySelected = useCallback(
+        (paymentMethod?: PaymentMethodType, additionalData?: BulkPaySelectionData) => {
+            onBulkPaySelected(paymentMethod, additionalData);
+        },
+        [onBulkPaySelected],
+    );
 
     const areAllTransactionsFromSubmitter = useMemo(() => {
-        if (!currentUserPersonalDetails?.accountID) {
+        if (!accountID) {
             return false;
         }
 
@@ -706,7 +701,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 return isCurrentUserSubmitter(getReportOrDraftReport(id, reports));
             })
         );
-    }, [selectedTransactionReportIDs, currentUserPersonalDetails?.accountID, currentSearchResults?.data]);
+    }, [selectedTransactionReportIDs, accountID, currentSearchResults?.data]);
 
     const headerButtonsOptions = useMemo(() => {
         if (selectedTransactionsKeys.length === 0 || status == null || !hash) {
@@ -746,13 +741,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     return false;
                 }
 
-                const reportExportOptions = getSecondaryExportReportActions(
-                    currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                    currentUserPersonalDetails?.login ?? '',
-                    completeReport,
-                    bankAccountList,
-                    reportPolicy,
-                );
+                const reportExportOptions = getSecondaryExportReportActions(accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserLogin, completeReport, bankAccountList, reportPolicy);
 
                 return reportExportOptions.includes(exportOption);
             };
@@ -1198,20 +1187,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         selectedTransactions,
         queryJSON?.type,
         expensifyIcons,
-        expensifyIcons.Export,
-        expensifyIcons.ArrowRight,
-        expensifyIcons.Table,
-        expensifyIcons.ThumbsUp,
-        expensifyIcons.ThumbsDown,
-        expensifyIcons.Send,
-        expensifyIcons.MoneyBag,
-        expensifyIcons.Stopwatch,
-        expensifyIcons.ArrowCollapse,
-        expensifyIcons.DocumentMerge,
-        expensifyIcons.ArrowSplit,
-        expensifyIcons.Pencil,
-        expensifyIcons.Trashcan,
-        expensifyIcons.Exclamation,
         translate,
         areAllMatchingItemsSelected,
         isOffline,
@@ -1228,13 +1203,14 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         integrationsExportTemplates,
         csvExportLayouts,
         allReports,
+        accountID,
         currentUserPersonalDetails.accountID,
-        currentUserPersonalDetails?.login,
+        currentUserLogin,
         bankAccountList,
-        styles.integrationIcon,
         styles.colorMuted,
         styles.fontWeightNormal,
         styles.textWrap,
+        styles.integrationIcon,
         showConfirmModal,
         clearSelectedTransactions,
         handleBasicExport,
@@ -1254,9 +1230,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         firstTransactionPolicy,
         handleDeleteSelectedTransactions,
         theme.icon,
-        styles.colorMuted,
-        styles.fontWeightNormal,
-        styles.textWrap,
         userBillingGracePeriodEnds,
         ownerBillingGracePeriodEnd,
         currentSearchKey,
