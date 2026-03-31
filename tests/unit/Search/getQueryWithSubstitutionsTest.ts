@@ -89,4 +89,17 @@ describe('getQueryWithSubstitutions should compute and return correct new query'
 
         expect(result).toBe('foo in:wave2,zxcv123 from:zzzz');
     });
+
+    test('when query has repeated values with indexed substitutions', () => {
+        const userTypedQuery = 'policyID:Team,Team,Team';
+        const substitutionsMock = {
+            'policyID:Team': '111',
+            'policyID:Team:1': '222',
+            'policyID:Team:2': '333',
+        };
+
+        const result = getQueryWithSubstitutions(userTypedQuery, substitutionsMock);
+
+        expect(result).toBe('policyID:111,222,333');
+    });
 });

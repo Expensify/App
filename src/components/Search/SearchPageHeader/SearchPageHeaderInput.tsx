@@ -15,10 +15,10 @@ import type {SearchQueryItem} from '@components/Search/SearchList/ListItem/Searc
 import {isSearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
 import {buildSubstitutionsMap} from '@components/Search/SearchRouter/buildSubstitutionsMap';
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
-import {getQueryWithSubstitutions} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
+import {getQueryWithSubstitutions, getSubstitutionMapKeyWithIndex} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import {getUpdatedSubstitutionsMap} from '@components/Search/SearchRouter/getUpdatedSubstitutionsMap';
 import {useSearchRouterActions} from '@components/Search/SearchRouter/SearchRouterContext';
-import type {SearchQueryJSON, SearchQueryString} from '@components/Search/types';
+import type {SearchAutocompleteQueryRange, SearchFilterKey, SearchQueryJSON, SearchQueryString} from '@components/Search/types';
 import type {SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
@@ -35,6 +35,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getTrimmedUserSearchQueryPreservingComma} from '@libs/SearchAutocompleteUtils';
+import {parse} from '@libs/SearchParser/autocompleteParser';
 import {buildUserReadableQueryString, getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 import variables from '@styles/variables';
@@ -229,7 +230,13 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                     setSelection({start: newSearchQuery.length, end: newSearchQuery.length});
 
                     if (item.mapKey && item.autocompleteID) {
-                        const substitutions = {...autocompleteSubstitutions, [item.mapKey]: item.autocompleteID};
+                        const filterKey = item.mapKey.split(':').at(0) as SearchFilterKey | undefined;
+                        const parsedNewQuery = parse(newSearchQuery) as {ranges: SearchAutocompleteQueryRange[]};
+                        const repeatedRangesCount = parsedNewQuery.ranges.filter((range) => range.key === filterKey && range.value === item.searchQuery).length;
+                        const substitutionMapKey = filterKey
+                            ? getSubstitutionMapKeyWithIndex(filterKey, item.searchQuery, Math.max(0, repeatedRangesCount - 1))
+                            : item.mapKey;
+                        const substitutions = {...autocompleteSubstitutions, [substitutionMapKey]: item.autocompleteID};
                         setAutocompleteSubstitutions(substitutions);
                     }
                 } else if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH) {
@@ -298,6 +305,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                                 reports={reports}
                                 allCards={personalAndWorkspaceCards}
                                 allFeeds={allFeeds}
+                                autocompleteSubstitutions={autocompleteSubstitutions}
                                 textInputRef={textInputRef}
                             />
                         </View>
@@ -370,6 +378,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                                 reports={reports}
                                 allCards={personalAndWorkspaceCards}
                                 allFeeds={allFeeds}
+                                autocompleteSubstitutions={autocompleteSubstitutions}
                                 textInputRef={textInputRef}
                             />
                         </View>

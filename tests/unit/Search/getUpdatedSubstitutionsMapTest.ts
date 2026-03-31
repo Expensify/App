@@ -53,4 +53,22 @@ describe('getUpdatedSubstitutionsMap should return updated and cleaned substitut
             'to:Steven': '@steven',
         });
     });
+
+    test('when query has repeated values, it preserves only indexed keys still in query', () => {
+        const userTypedQuery = 'policyID:Team,Team to:Steven';
+        const substitutionsMock = {
+            'policyID:Team': '111',
+            'policyID:Team:1': '222',
+            'policyID:Team:2': '333',
+            'to:Steven': '@steven',
+        };
+
+        const result = getUpdatedSubstitutionsMap(userTypedQuery, substitutionsMock);
+
+        expect(result).toStrictEqual({
+            'policyID:Team': '111',
+            'policyID:Team:1': '222',
+            'to:Steven': '@steven',
+        });
+    });
 });

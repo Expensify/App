@@ -13,7 +13,7 @@ import {useSearchActionsContext} from '@components/Search/SearchContext';
 import SearchInputSelectionWrapper from '@components/Search/SearchInputSelectionWrapper';
 import type {SearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
 import {isSearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
-import type {SearchQueryString} from '@components/Search/types';
+import type {SearchAutocompleteQueryRange, SearchFilterKey, SearchQueryString} from '@components/Search/types';
 import type {SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -35,6 +35,7 @@ import {getReportOrDraftReport} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getTrimmedUserSearchQueryPreservingComma} from '@libs/SearchAutocompleteUtils';
 import {getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
+import {parse} from '@libs/SearchParser/autocompleteParser';
 import StringUtils from '@libs/StringUtils';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
@@ -45,7 +46,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type Report from '@src/types/onyx/Report';
 import type {SubstitutionMap} from './getQueryWithSubstitutions';
-import {getQueryWithSubstitutions} from './getQueryWithSubstitutions';
+import {getQueryWithSubstitutions, getSubstitutionMapKeyWithIndex} from './getQueryWithSubstitutions';
 import {getUpdatedSubstitutionsMap} from './getUpdatedSubstitutionsMap';
 import {getContextualReportData, getContextualSearchAutocompleteKey, getContextualSearchQuery} from './SearchRouterUtils';
 
@@ -281,7 +282,13 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     setSelection({start: newSearchQuery.length, end: newSearchQuery.length});
 
                     if (item.mapKey && item.autocompleteID) {
-                        const substitutions = {...autocompleteSubstitutions, [item.mapKey]: item.autocompleteID};
+                        const filterKey = item.mapKey.split(':').at(0) as SearchFilterKey | undefined;
+                        const parsedNewQuery = parse(newSearchQuery) as {ranges: SearchAutocompleteQueryRange[]};
+                        const repeatedRangesCount = parsedNewQuery.ranges.filter((range) => range.key === filterKey && range.value === item.searchQuery).length;
+                        const substitutionMapKey = filterKey
+                            ? getSubstitutionMapKeyWithIndex(filterKey, item.searchQuery, Math.max(0, repeatedRangesCount - 1))
+                            : item.mapKey;
+                        const substitutions = {...autocompleteSubstitutions, [substitutionMapKey]: item.autocompleteID};
                         setAutocompleteSubstitutions(substitutions);
                     }
                     setFocusAndScrollToRight();
@@ -360,6 +367,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 reports={reports}
                 allFeeds={allFeeds}
                 allCards={personalAndWorkspaceCards}
+                autocompleteSubstitutions={autocompleteSubstitutions}
                 textInputRef={textInputRef}
             />
         </View>

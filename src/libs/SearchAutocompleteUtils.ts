@@ -178,8 +178,16 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID:
-        case CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID:
             return substitutionMap[`${range.key}:${range.value}`] !== undefined;
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID: {
+            const baseKey = `${range.key}:${range.value}`;
+            if (substitutionMap[baseKey] !== undefined) {
+                return true;
+            }
+            // Check for indexed keys (e.g., policyID:Name:1, policyID:Name:2) for same-name workspaces
+            const indexedKeyPrefix = `${baseKey}:`;
+            return Object.keys(substitutionMap).some((key) => key.startsWith(indexedKeyPrefix));
+        }
 
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TO:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM:

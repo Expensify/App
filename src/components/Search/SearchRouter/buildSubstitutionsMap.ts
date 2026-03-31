@@ -6,6 +6,7 @@ import {getFilterDisplayValue} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import type {CardFeeds, CardList, PersonalDetailsList, Policy, Report, ReportAttributesDerivedValue} from '@src/types/onyx';
 import type {SubstitutionMap} from './getQueryWithSubstitutions';
+import {getSubstitutionMapKeyWithIndex} from './getQueryWithSubstitutions';
 
 const getSubstitutionsKey = (filterKey: SearchFilterKey, value: string) => `${filterKey}:${value}`;
 
@@ -44,6 +45,7 @@ function buildSubstitutionsMap(
         return {};
     }
 
+    const displayKeyOccurrences = new Map<string, number>();
     const substitutionsMap = searchAutocompleteQueryRanges.reduce((map, range) => {
         const {key: filterKey, value: filterValue} = range;
 
@@ -89,7 +91,10 @@ function buildSubstitutionsMap(
 
             // If displayValue === filterValue, then it means there is nothing to substitute, so we don't add any key to map
             if (displayValue !== filterValue) {
-                const substitutionKey = getSubstitutionsKey(filterKey, displayValue);
+                const baseKey = getSubstitutionsKey(filterKey, displayValue);
+                const index = displayKeyOccurrences.get(baseKey) ?? 0;
+                displayKeyOccurrences.set(baseKey, index + 1);
+                const substitutionKey = getSubstitutionMapKeyWithIndex(filterKey, displayValue, index);
                 // eslint-disable-next-line no-param-reassign
                 map[substitutionKey] = filterValue;
             }

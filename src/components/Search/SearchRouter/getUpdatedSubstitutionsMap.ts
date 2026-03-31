@@ -1,6 +1,7 @@
 import type {SearchAutocompleteQueryRange, SearchFilterKey} from '@components/Search/types';
 import {parse} from '@libs/SearchParser/autocompleteParser';
 import type {SubstitutionMap} from './getQueryWithSubstitutions';
+import {getSubstitutionMapKeyWithIndex} from './getQueryWithSubstitutions';
 
 const getSubstitutionsKey = (filterKey: SearchFilterKey, value: string) => `${filterKey}:${value}`;
 
@@ -24,7 +25,13 @@ function getUpdatedSubstitutionsMap(query: string, substitutions: SubstitutionMa
         return {};
     }
 
-    const autocompleteQueryKeys = searchAutocompleteQueryRanges.map((range) => getSubstitutionsKey(range.key, range.value));
+    const keyOccurrences = new Map<string, number>();
+    const autocompleteQueryKeys = searchAutocompleteQueryRanges.map((range) => {
+        const baseKey = getSubstitutionsKey(range.key, range.value);
+        const index = keyOccurrences.get(baseKey) ?? 0;
+        keyOccurrences.set(baseKey, index + 1);
+        return getSubstitutionMapKeyWithIndex(range.key, range.value, index);
+    });
 
     // Build a new substitutions map consisting of only the keys from old map, that appear in query
     const updatedSubstitutionMap = autocompleteQueryKeys.reduce((map, key) => {

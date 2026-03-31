@@ -1,6 +1,8 @@
 import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
+import {getSubstitutionMapKey, getSubstitutionMapKeyWithIndex} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import type {SearchFilterKey, UserFriendlyKey} from '@components/Search/types';
 import {getCardFeedsForDisplay} from '@libs/CardFeedUtils';
 import {getCardDescription, isCard, isCardHiddenFromSearch} from '@libs/CardUtils';
@@ -52,6 +54,7 @@ type UseAutocompleteSuggestionsParams = {
     personalDetails: OnyxEntry<PersonalDetailsList>;
     feedKeysWithCards?: FeedKeysWithAssignedCards;
     translate: LocaleContextProps['translate'];
+    autocompleteSubstitutions?: SubstitutionMap;
 };
 
 // Static autocomplete lists derived from CONST values, computed once at module load
@@ -98,6 +101,7 @@ function useAutocompleteSuggestions({
     personalDetails,
     feedKeysWithCards,
     translate,
+    autocompleteSubstitutions,
 }: UseAutocompleteSuggestionsParams): AutocompleteItemData[] {
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allRecentCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES);
@@ -411,8 +415,29 @@ function useAutocompleteSuggestions({
                 }
                 workspaceList.push({id: singlePolicy.id, name: singlePolicy.name ?? ''});
             }
+
+            // Build set of already-selected policy IDs using substitution map to handle same-name workspaces
+            const policyRanges = ranges.filter((range) => range.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
+            const policyKeyOccurrences = new Map<string, number>();
+            const alreadySelectedPolicyIDs = new Set<string>();
+            for (const range of policyRanges) {
+                const baseKey = getSubstitutionMapKey(range.key, range.value);
+                const index = policyKeyOccurrences.get(baseKey) ?? 0;
+                policyKeyOccurrences.set(baseKey, index + 1);
+                const indexedKey = getSubstitutionMapKeyWithIndex(range.key, range.value, index);
+                const policyID = autocompleteSubstitutions?.[indexedKey];
+                if (policyID) {
+                    alreadySelectedPolicyIDs.add(policyID);
+                }
+            }
+            const shouldFilterByID = alreadySelectedPolicyIDs.size > 0;
+
             const filteredPolicies = workspaceList
-                .filter((workspace) => workspace.name.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(workspace.name.toLowerCase()))
+                .filter(
+                    (workspace) =>
+                        workspace.name.toLowerCase().includes(autocompleteValue.toLowerCase()) &&
+                        (shouldFilterByID ? !alreadySelectedPolicyIDs.has(workspace.id) : !alreadyAutocompletedKeys.has(workspace.name.toLowerCase())),
+                )
                 .sort()
                 .slice(0, 10);
 
