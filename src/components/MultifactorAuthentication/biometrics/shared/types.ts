@@ -5,7 +5,6 @@ import type CONST from '@src/CONST';
 
 type BaseRegisterResult = {
     keyInfo: RegistrationKeyInfo;
-    authenticationMethod: AuthTypeInfo;
 };
 
 type RegisterResult =

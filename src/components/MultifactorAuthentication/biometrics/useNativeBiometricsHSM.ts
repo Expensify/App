@@ -62,10 +62,6 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
 
             const credentialID = Base64URL.base64ToBase64url(publicKey);
 
-            // TODO: Remove once the backend no longer requires a Marqeta auth method at registration.
-            // No actual authentication happens during key creation, so this value is a placeholder.
-            const authType = VALUES.AUTH_TYPE.CREDENTIALS;
-
             const clientDataJSON = JSON.stringify({challenge: registrationChallenge.challenge});
             const keyInfo: NativeBiometricsHSMKeyInfo = {
                 rawId: credentialID,
@@ -83,7 +79,6 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
                 success: true,
                 reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.LOCAL_REGISTRATION_COMPLETE,
                 keyInfo,
-                authenticationMethod: {code: authType.CODE, name: authType.NAME, marqetaValue: authType.MARQETA_VALUE},
             });
         } catch (e) {
             onResult({

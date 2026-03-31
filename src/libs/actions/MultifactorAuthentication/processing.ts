@@ -1,5 +1,5 @@
 import type {MultifactorAuthenticationScenarioConfig} from '@components/MultifactorAuthentication/config/types';
-import type {MarqetaAuthTypeName, MultifactorAuthenticationReason, RegistrationKeyInfo} from '@libs/MultifactorAuthentication/shared/types';
+import type {MultifactorAuthenticationReason, RegistrationKeyInfo} from '@libs/MultifactorAuthentication/shared/types';
 import VALUES from '@libs/MultifactorAuthentication/VALUES';
 import {registerAuthenticationKey} from './index';
 
@@ -26,7 +26,6 @@ function isHttpSuccess(httpStatusCode: number | undefined): boolean {
 
 type RegistrationParams = {
     keyInfo: RegistrationKeyInfo;
-    authenticationMethod: MarqetaAuthTypeName;
 };
 
 /**
@@ -36,7 +35,6 @@ type RegistrationParams = {
 async function processRegistration(params: RegistrationParams): Promise<ProcessResult> {
     const {httpStatusCode, reason, message} = await registerAuthenticationKey({
         keyInfo: params.keyInfo,
-        authenticationMethod: params.authenticationMethod,
     });
 
     return {

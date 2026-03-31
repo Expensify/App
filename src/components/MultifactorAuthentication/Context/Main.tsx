@@ -283,7 +283,6 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                     {
                         success: result.success,
                         reason: result.reason,
-                        authMethod: result.success ? result.authenticationMethod.code : undefined,
                     },
                     result.success ? 'info' : 'error',
                 );
@@ -300,7 +299,6 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
                 const registrationResponse = await processRegistration({
                     keyInfo: result.keyInfo,
-                    authenticationMethod: result.authenticationMethod.marqetaValue,
                 });
 
                 addMFABreadcrumb(

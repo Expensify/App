@@ -19,7 +19,7 @@ describe('MultifactorAuthentication processing', () => {
 
         // Given a keyInfo object with biometric type (NativeBiometrics)
         // When processRegistration is called
-        // Then it should forward keyInfo and authenticationMethod to registerAuthenticationKey
+        // Then it should forward keyInfo to registerAuthenticationKey
         it('should call registerAuthenticationKey with the provided keyInfo', async () => {
             const keyInfo = {
                 rawId: 'public-key-123',
@@ -32,18 +32,16 @@ describe('MultifactorAuthentication processing', () => {
 
             await processRegistration({
                 keyInfo,
-                authenticationMethod: 'BIOMETRIC_FACE',
             });
 
             expect(registerAuthenticationKey).toHaveBeenCalledWith({
                 keyInfo,
-                authenticationMethod: 'BIOMETRIC_FACE',
             });
         });
 
         // Given a keyInfo object with public-key type (Passkeys)
         // When processRegistration is called
-        // Then it should forward keyInfo and authenticationMethod to registerAuthenticationKey
+        // Then it should forward keyInfo to registerAuthenticationKey
         it('should call registerAuthenticationKey with passkey keyInfo', async () => {
             const keyInfo = {
                 rawId: 'passkey-raw-id',
@@ -56,12 +54,10 @@ describe('MultifactorAuthentication processing', () => {
 
             await processRegistration({
                 keyInfo,
-                authenticationMethod: 'BIOMETRIC_FACE',
             });
 
             expect(registerAuthenticationKey).toHaveBeenCalledWith({
                 keyInfo,
-                authenticationMethod: 'BIOMETRIC_FACE',
             });
         });
 
@@ -76,7 +72,6 @@ describe('MultifactorAuthentication processing', () => {
 
             const result = await processRegistration({
                 keyInfo: {rawId: 'key', type: 'biometric' as const, response: {clientDataJSON: 'cdj', biometric: {publicKey: 'key', algorithm: CONST.COSE_ALGORITHM.EDDSA}}},
-                authenticationMethod: 'BIOMETRIC_FACE',
             });
 
             expect(result.success).toBe(true);
@@ -93,7 +88,6 @@ describe('MultifactorAuthentication processing', () => {
 
             const result = await processRegistration({
                 keyInfo: {rawId: 'key', type: 'biometric' as const, response: {clientDataJSON: 'cdj', biometric: {publicKey: 'key', algorithm: CONST.COSE_ALGORITHM.EDDSA}}},
-                authenticationMethod: 'BIOMETRIC_FACE',
             });
 
             expect(result.success).toBe(false);

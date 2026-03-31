@@ -121,7 +121,6 @@ function useNativeBiometrics(): UseBiometricsReturn {
             success: true,
             reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.LOCAL_REGISTRATION_COMPLETE,
             keyInfo,
-            authenticationMethod: authType,
         });
     };
 

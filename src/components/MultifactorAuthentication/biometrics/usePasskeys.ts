@@ -105,10 +105,6 @@ function usePasskeys(): UseBiometricsReturn {
                     attestationObject,
                 },
             },
-            authenticationMethod: {
-                name: PASSKEY_AUTH_TYPE.NAME,
-                marqetaValue: PASSKEY_AUTH_TYPE.MARQETA_VALUE,
-            },
         });
     };
 

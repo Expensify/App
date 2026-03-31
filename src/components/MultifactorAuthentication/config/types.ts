@@ -171,11 +171,14 @@ type MultifactorAuthenticationPromptType = keyof typeof MULTIFACTOR_AUTHENTICATI
 /**
  * Parameters required for biometrics registration scenario.
  */
-type RegisterBiometricsParams = MultifactorAuthenticationActionParams<
-    {
-        keyInfo: RegistrationKeyInfo;
-    },
-    'validateCode'
+type RegisterBiometricsParams = Omit<
+    MultifactorAuthenticationActionParams<
+        {
+            keyInfo: RegistrationKeyInfo;
+        },
+        'validateCode'
+    >,
+    'authenticationMethod'
 >;
 
 /**
