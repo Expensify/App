@@ -304,6 +304,7 @@ const illustrationsMock = {
     EmptyStateBackgroundImage: jest.fn(),
     ExampleCheckES: jest.fn(),
     ExampleCheckEN: jest.fn(),
+    FileImportTable: jest.fn(),
     WorkspaceProfile: jest.fn(),
     ExpensifyApprovedLogo: jest.fn(),
     GenericCompanyCard: jest.fn(),
@@ -322,6 +323,7 @@ const companyCardIconsMock = {
     BrexCompanyCardDetailLarge: jest.fn(),
     StripeCompanyCardDetailLarge: jest.fn(),
     PlaidCompanyCardDetailLarge: jest.fn(),
+    ExpensifyCardImage: jest.fn(),
 };
 
 describe('buildIndividualCardsData', () => {

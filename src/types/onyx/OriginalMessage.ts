@@ -729,6 +729,24 @@ type OriginalMessagePolicyChangeLog = {
         accountID: number;
     };
 
+    /** Name of company card feed */
+    feedName?: string;
+
+    /** Last four digits of a company card */
+    cardLastFour?: string;
+
+    /** Old name of a company card feed */
+    oldFeedName?: string;
+
+    /** Company card feed liability type */
+    liabilityType?: string;
+
+    /** Statement period end day for a company card feed */
+    statementPeriodEndDay?: string;
+
+    /** Previous statement period end day for a company card feed */
+    previousStatementPeriodEndDay?: string;
+
     /** Whether the user joined the workspace via joining link */
     didJoinPolicy?: boolean;
 };
