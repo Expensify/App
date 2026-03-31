@@ -28,7 +28,7 @@ function InboxListScreen() {
     const {orderedReports} = useSidebarOrderedReportsState('InboxSidePanel');
     const {registerPanelNavigation, closePanel, toggleFloating} = useInboxPanelActions();
     const {isFloating} = useInboxPanelState();
-    const icons = useMemoizedLazyExpensifyIcons(['Close', 'Expand', 'ArrowCollapse']);
+    const icons = useMemoizedLazyExpensifyIcons(['CloseSmall', 'Expand', 'ArrowCollapse']);
 
     // Register this screen's navigation so external callers (e.g. the main LHN)
     // can open a report inside the panel by calling navigateToReport().
@@ -51,9 +51,22 @@ function InboxListScreen() {
     return (
         <View style={[styles.flex1, styles.h100, styles.appBG]}>
             <TopBarWithLoadingBar
-                breadcrumbLabel={translate('common.inbox')}
+                breadcrumbLabel={translate('common.chats')}
                 shouldDisplaySearch={false}
                 shouldDisplayHelpButton={false}
+                leftContent={
+                    <PressableWithoutFeedback
+                        onPress={closePanel}
+                        role={CONST.ROLE.BUTTON}
+                        accessibilityLabel={translate('common.close')}
+                        style={[styles.touchableButtonImage, {marginLeft: -10}]}
+                    >
+                        <Icon
+                            src={icons.CloseSmall}
+                            fill={theme.icon}
+                        />
+                    </PressableWithoutFeedback>
+                }
             >
                 <PressableWithoutFeedback
                     onPress={toggleFloating}
@@ -62,18 +75,7 @@ function InboxListScreen() {
                     style={[styles.touchableButtonImage]}
                 >
                     <Icon
-                        src={isFloating ? icons.ArrowCollapse : icons.Expand}
-                        fill={theme.icon}
-                    />
-                </PressableWithoutFeedback>
-                <PressableWithoutFeedback
-                    onPress={closePanel}
-                    role={CONST.ROLE.BUTTON}
-                    accessibilityLabel={translate('common.close')}
-                    style={[styles.touchableButtonImage]}
-                >
-                    <Icon
-                        src={icons.Close}
+                        src={isFloating ? icons.Expand : icons.ArrowCollapse}
                         fill={theme.icon}
                     />
                 </PressableWithoutFeedback>

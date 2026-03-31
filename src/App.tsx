@@ -79,14 +79,14 @@ const PANEL_ANIMATION_DURATION = 300;
 
 const StrictModeWrapper = CONFIG.USE_REACT_STRICT_MODE_IN_DEV ? React.StrictMode : ({children}: {children: React.ReactElement}) => children;
 
-const FLOATING_PANEL_WIDTH = 300;
-const FLOATING_PANEL_HEIGHT = 500;
+const FLOATING_PANEL_WIDTH = 375;
+const FLOATING_PANEL_HEIGHT = 520;
 const FLOATING_PANEL_MARGIN = 20;
 
 function MainContent() {
     const {isOpen, isFloating} = useInboxPanelState();
     const {width: rawWindowWidth} = useRawWindowDimensions();
-    const panelWidth = rawWindowWidth * 0.2;
+    const panelWidth = Math.max(rawWindowWidth * 0.2, 350);
 
     // Measured width of the main content container, provided to all children via
     // EffectiveWidthContext so useWindowDimensions returns the true available width.
@@ -107,7 +107,7 @@ function MainContent() {
             panelTranslateX.value = panelWidthSV.value;
             return;
         }
-        const pw = rawWindowWidth * 0.2;
+        const pw = Math.max(rawWindowWidth * 0.2, 350);
         panelWidthSV.value = pw;
         panelContainerWidthSV.value = withTiming(isOpen ? pw : 0, {duration: PANEL_ANIMATION_DURATION});
         panelTranslateX.value = withTiming(isOpen ? 0 : pw, {duration: PANEL_ANIMATION_DURATION});

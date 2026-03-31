@@ -50,7 +50,7 @@ const useRootNavigatorScreenOptions = () => {
     // which are relative to the viewport and ignore the flex container.
     const {width: rawViewportWidth} = useRawWindowDimensions();
     const {isOpen: isPanelOpen, isFloating: isPanelFloating} = useInboxPanelState();
-    const panelWidth = isPanelOpen && !isPanelFloating ? rawViewportWidth * 0.2 : 0;
+    const panelWidth = isPanelOpen && !isPanelFloating ? Math.max(rawViewportWidth * 0.2, 350) : 0;
 
     return {
         rightModalNavigator: {
