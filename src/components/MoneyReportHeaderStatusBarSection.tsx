@@ -96,7 +96,8 @@ function MoneyReportHeaderStatusBarSection({reportID, statusBarType}: MoneyRepor
                 icon={getStatusIcon(expensifyIcons.Hourglass)}
                 description={
                     <BrokenConnectionDescription
-                        transactionID={transactions.at(0)?.transactionID ?? ''}
+                        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                        transactionID={transactions.at(0)!.transactionID}
                         report={moneyRequestReport}
                         policy={policy}
                     />
