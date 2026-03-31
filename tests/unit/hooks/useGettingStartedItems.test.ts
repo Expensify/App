@@ -8,6 +8,17 @@ import type {Policy, PolicyCategories} from '@src/types/onyx';
 import createRandomPolicy from '../../utils/collections/policies';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
+jest.mock('@hooks/useLocalize', () =>
+    jest.fn(() => ({
+        translate: jest.fn((key: string, params?: Record<string, string>) => {
+            if (params && 'integrationName' in params) {
+                return `${key}:${params.integrationName}`;
+            }
+            return key;
+        }),
+    })),
+);
+
 const POLICY_ID = '1';
 
 function buildPolicy(overrides: Partial<Policy> = {}): Policy {
