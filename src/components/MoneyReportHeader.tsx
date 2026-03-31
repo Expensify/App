@@ -1350,7 +1350,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         beginExportWithTemplate,
     ]);
 
-    const primaryActionComponent = !!primaryAction && (
+    const primaryActionComponent = 
         <MoneyReportHeaderPrimaryAction
             reportID={reportIDProp}
             chatReportID={chatReport?.reportID}
@@ -1374,8 +1374,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                 }
             }}
             onExportModalOpen={() => setExportModalStatus(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION)}
-        />
-    );
+        />;
 
     const beginPDFExport = (reportID: string) => {
         setIsPDFModalVisible(true);
