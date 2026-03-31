@@ -6696,10 +6696,17 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 subtitle: 'Approva o rifiuta le transazioni della Carta Expensify in tempo reale.',
                 defaultRuleDescription: 'Tutte le carte',
                 block: 'Blocca',
-                defaultRuleTitle: 'Categorie: Servizi per adulti, Bancomat, gioco d’azzardo, trasferimenti di denaro',
+                defaultRuleTitle: 'Categorie: servizi per adulti, sportelli bancomat, gioco d’azzardo, trasferimenti di denaro',
                 builtInProtectionModal: {
-                    title: 'Le Carte Expensify offrono una protezione integrata, sempre',
-                    description: `Expensify rifiuta sempre queste spese:\n\n  • Servizi per adulti\n  • Bancomat\n  • Gioco d’azzardo\n  • Trasferimenti di denaro\n\nAggiungi altre regole di spesa per proteggere il flusso di cassa dell’azienda.`,
+                    title: 'Le Carte Expensify offrono sempre una protezione integrata',
+                    description: `Expensify rifiuta sempre questi addebiti:
+
+  • Servizi per adulti
+  • Bancomat
+  • Gioco d’azzardo
+  • Trasferimenti di denaro
+
+Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 },
             },
         },

@@ -6707,13 +6707,20 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
             },
             spendRules: {
                 title: 'Ausgaben',
-                subtitle: 'Genehmigen oder lehnen Sie Expensify Karten-Transaktionen in Echtzeit ab.',
+                subtitle: 'Genehmigen oder lehnen Sie Expensify Karte-Transaktionen in Echtzeit ab.',
                 defaultRuleDescription: 'Alle Karten',
-                block: 'Block',
-                defaultRuleTitle: 'Kategorien: Dienste für Erwachsene, Geldautomaten, Glücksspiel, Geldüberweisungen',
+                block: 'Blockieren',
+                defaultRuleTitle: 'Kategorien: Erotikdienstleistungen, Geldautomaten, Glücksspiele, Geldüberweisungen',
                 builtInProtectionModal: {
                     title: 'Expensify Karten bieten integrierten Schutz – jederzeit',
-                    description: `Expensify lehnt diese Belastungen immer ab:\n\n  • Dienstleistungen für Erwachsene\n  • Geldautomaten (ATMs)\n  • Glücksspiel\n  • Geldüberweisungen\n\nFügen Sie weitere Ausgabenregeln hinzu, um den Cashflow des Unternehmens zu schützen.`,
+                    description: `Expensify lehnt diese Belastungen immer ab:
+
+  • Erwachsenenservices
+  • Geldautomaten
+  • Glücksspiel
+  • Geldüberweisungen
+
+Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu schützen.`,
                 },
             },
         },

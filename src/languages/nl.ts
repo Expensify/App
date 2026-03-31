@@ -6673,13 +6673,20 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             },
             spendRules: {
                 title: 'Uitgaven',
-                subtitle: 'Keur transacties met de Expensify Kaart in realtime goed of wijs ze af.',
+                subtitle: 'Keur Expensify Kaart-transacties in realtime goed of af.',
                 defaultRuleDescription: 'Alle kaarten',
                 block: 'Blokkeren',
-                defaultRuleTitle: 'Categorieën: Diensten voor volwassenen, geldautomaten, gokken, geldoverdrachten',
+                defaultRuleTitle: 'Categorieën: diensten voor volwassenen, geldautomaten, gokken, geldoverdrachten',
                 builtInProtectionModal: {
                     title: 'Expensify Kaarten bieden altijd ingebouwde bescherming',
-                    description: `Expensify wijst deze transacties altijd af:\n\n  • Seksdiensten\n  • Geldautomaten (ATM's)\n  • Gokken\n  • Geldoverschrijvingen\n\nVoeg meer bestedingsregels toe om de cashflow van je bedrijf te beschermen.`,
+                    description: `Expensify weigert deze uitgaven altijd:
+
+  • Services voor volwassenen  
+  • Geldautomaten (ATM's)  
+  • Gokken  
+  • Geldoverschrijvingen  
+
+Voeg meer bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 },
             },
         },

@@ -6509,10 +6509,17 @@ ${reportName}
                 subtitle: '实时批准或拒绝 Expensify 卡交易。',
                 defaultRuleDescription: '所有卡片',
                 block: '屏蔽',
-                defaultRuleTitle: '类别：成人服务、自动取款机、赌博、转账',
+                defaultRuleTitle: '类别：成人服务、ATM、赌博、转账',
                 builtInProtectionModal: {
-                    title: 'Expensify 卡提供始终内置的保护',
-                    description: `Expensify 始终会拒绝以下消费：\n\n  • 成人服务\n  • 自动取款机（ATM）\n  • 赌博\n  • 转账汇款\n\n添加更多消费规则，保护公司的现金流。`,
+                    title: 'Expensify 卡始终提供内置保护',
+                    description: `Expensify 始终会拒绝以下消费：
+
+  • 成人服务
+  • ATM
+  • 赌博
+  • 转账
+
+添加更多消费规则以保护公司现金流。`,
                 },
             },
         },

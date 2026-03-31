@@ -6624,8 +6624,15 @@ ${reportName}
                 block: 'ブロック',
                 defaultRuleTitle: 'カテゴリ：アダルトサービス、ATM、ギャンブル、送金',
                 builtInProtectionModal: {
-                    title: 'Expensify カードは、常に組み込みの保護機能を備えています',
-                    description: `Expensify は常に次の利用を拒否します:\n\n  ・アダルトサービス\n  ・ATM\n  ・ギャンブル\n  ・送金\n\n会社のキャッシュフローを守るために、支出ルールをさらに追加しましょう。`,
+                    title: 'Expensify カードには、常に標準で保護機能があります',
+                    description: `Expensify は、次のような支払いを常に拒否します：
+
+  ・アダルトサービス
+  ・ATM
+  ・ギャンブル
+  ・送金
+
+会社のキャッシュフローを守るために、支出ルールをさらに追加しましょう。`,
                 },
             },
         },
