@@ -45,11 +45,11 @@ const CHART_VIEW_TO_COMPONENT: Record<ChartView, React.ComponentType<SearchChart
 function SearchChartView({queryJSON, view, groupBy, data, isLoading}: SearchChartViewProps) {
     const {preferredLocale} = useLocalize();
 
-    const {getLabel, getFilterQuery} = CHART_GROUP_BY_CONFIG[groupBy];
+    const {getLabel, getFilterQuery, filterKey} = CHART_GROUP_BY_CONFIG[groupBy];
     const ChartComponent = CHART_VIEW_TO_COMPONENT[view];
 
     const handleItemPress = (filterQuery: string) => {
-        const currentQueryString = buildSearchQueryString(queryJSON);
+        const currentQueryString = buildSearchQueryString({...queryJSON, flatFilters: queryJSON.flatFilters.filter((filter) => filter.key !== filterKey)});
         const newQueryJSON = buildSearchQueryJSON(`${currentQueryString} ${filterQuery}`);
 
         if (!newQueryJSON) {
