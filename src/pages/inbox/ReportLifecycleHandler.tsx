@@ -14,7 +14,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 type ReportLifecycleHandlerProps = {
-    reportIDFromRoute: string | undefined;
+    reportID: string | undefined;
 };
 
 /**
@@ -25,14 +25,14 @@ type ReportLifecycleHandlerProps = {
  * - Telemetry span cancellation on unmount
  * - Bank account unlock effect
  */
-function ReportLifecycleHandler({reportIDFromRoute}: ReportLifecycleHandlerProps) {
-    const reportID = getNonEmptyStringOnyxID(reportIDFromRoute);
+function ReportLifecycleHandler({reportID}: ReportLifecycleHandlerProps) {
+    const onyxReportID = getNonEmptyStringOnyxID(reportID);
     const isFocused = useIsFocused();
     const prevIsFocused = usePrevious(isFocused);
     const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
-    const isTopMostReportId = currentReportIDValue === reportIDFromRoute;
+    const isTopMostReportId = currentReportIDValue === reportID;
 
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${onyxReportID}`);
     useBankAccountUnlockEffect(report);
 
     // Hide emoji picker when screen loses focus
@@ -45,18 +45,18 @@ function ReportLifecycleHandler({reportIDFromRoute}: ReportLifecycleHandlerProps
 
     // DeviceEventEmitter listener + telemetry cleanup
     useEffect(() => {
-        const skipOpenReportListener = DeviceEventEmitter.addListener(`switchToPreExistingReport_${reportID}`, () => {});
+        const skipOpenReportListener = DeviceEventEmitter.addListener(`switchToPreExistingReport_${onyxReportID}`, () => {});
 
         return () => {
             skipOpenReportListener.remove();
 
             // Cancel telemetry span when user leaves the screen before full report data is loaded
-            cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`);
+            cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${onyxReportID}`);
 
             // Cancel any pending send-message spans to prevent orphaned spans when navigating away
             cancelSpansByPrefix(CONST.TELEMETRY.SPAN_SEND_MESSAGE);
         };
-    }, [reportID]);
+    }, [onyxReportID]);
 
     // Clear notifications for the current report when it's opened and re-focused
     const clearNotifications = () => {
@@ -65,7 +65,7 @@ function ReportLifecycleHandler({reportIDFromRoute}: ReportLifecycleHandlerProps
             return;
         }
 
-        clearReportNotifications(reportID);
+        clearReportNotifications(onyxReportID);
     };
 
     useEffect(clearNotifications, [clearNotifications]);

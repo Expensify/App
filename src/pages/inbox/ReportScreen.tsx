@@ -977,7 +977,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                             shouldDisplaySearchRouter
                         >
                             <DragAndDropProvider isDisabled={isEditingDisabled}>
-                                <ReportLifecycleHandler reportIDFromRoute={reportIDFromRoute} />
+                                <ReportLifecycleHandler reportID={reportIDFromRoute} />
                                 <OfflineWithFeedback
                                     pendingAction={reportPendingAction ?? report?.pendingFields?.reimbursed}
                                     errors={reportErrors}
