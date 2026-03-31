@@ -112,16 +112,15 @@ function SpendRuleMerchantEditPage({route}: SpendRuleMerchantEditPageProps) {
                     title={translate('common.merchant')}
                     onBackButtonPress={goBack}
                 />
-                <View style={[styles.flex1, styles.mt5]}>
+                <View style={[styles.flex1, styles.mt3]}>
                     <TextInput
                         value={merchantName}
                         onChangeText={setMerchantName}
                         label={translate('common.merchant')}
                         accessibilityLabel={translate('common.merchant')}
-                        containerStyles={[styles.ph5, styles.mb5]}
-                        selectTextOnFocus
+                        containerStyles={[styles.ph5]}
                     />
-                    <View style={[styles.ph5, styles.pb2]}>
+                    <View style={[styles.ph5, styles.pb2, styles.mt6]}>
                         <Text style={[styles.textLabelSupporting]}>{translate('workspace.rules.spendRules.matchType')}</Text>
                     </View>
                     <SelectionList
