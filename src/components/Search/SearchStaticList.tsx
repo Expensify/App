@@ -91,7 +91,7 @@ function SearchStaticList({searchResults, queryJSON, contentContainerStyle, onLa
 
             if (!item.reportAction?.childReportID) {
                 const shouldOpenTransactionThread = !isOneTransactionReport(item.report) || item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-                createAndOpenSearchTransactionThread(item, undefined, backTo, email ?? '', accountID, item.reportAction?.childReportID, undefined, shouldOpenTransactionThread);
+                createAndOpenSearchTransactionThread(item, undefined, backTo, email ?? '', accountID, undefined, item.reportAction?.childReportID, undefined, shouldOpenTransactionThread);
                 if (shouldOpenTransactionThread) {
                     return;
                 }

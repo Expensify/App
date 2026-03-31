@@ -97,6 +97,11 @@ type SearchProps = {
 // 5s safety timeout so the API.write() has time to apply optimistic data.
 const OPTIMISTIC_TRACKING_TIMEOUT_MS = 10_000;
 
+// Grace period (ms) before clearing optimistic tracking after a cached item
+// disappears from sortedData. Short enough to clean up rolled-back items,
+// long enough to survive a brief stale-snapshot gap.
+const OPTIMISTIC_ROLLBACK_GRACE_MS = 3_000;
+
 const hashToString = (queryHash?: number) => (queryHash || queryHash === 0 ? String(queryHash) : undefined);
 
 function mapTransactionItemToSelectedEntry(
@@ -229,6 +234,7 @@ function Search({
     const cachedOptimisticItemRef = useRef<TransactionListItemType | null>(null);
     const cachedOptimisticItemIndexRef = useRef(0);
     const optimisticTrackingCleanedUpRef = useRef(false);
+    const rollbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
     const clearOptimisticTracking = useCallback(() => {
         if (optimisticTrackingCleanedUpRef.current) {
@@ -260,6 +266,9 @@ function Search({
     useEffect(
         () => () => {
             flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+            if (rollbackTimeoutRef.current) {
+                clearTimeout(rollbackTimeoutRef.current);
+            }
         },
         [],
     );
@@ -1225,6 +1234,7 @@ function Search({
     // Track the optimistic item through its lifecycle in sortedData.
     // First appearance -> cache it & hide the skeleton.
     // Server confirmed (pendingAction !== ADD) -> clear all tracking.
+    // Disappeared after caching (rollback) -> schedule cleanup after grace period.
     useEffect(() => {
         if (!optimisticWatchKeyRef.current) {
             return;
@@ -1233,6 +1243,10 @@ function Search({
             (item): item is TransactionListItemType => 'transactionID' in item && `${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}` === optimisticWatchKeyRef.current,
         );
         if (optimisticItem) {
+            if (rollbackTimeoutRef.current) {
+                clearTimeout(rollbackTimeoutRef.current);
+                rollbackTimeoutRef.current = undefined;
+            }
             if (!cachedOptimisticItemRef.current) {
                 setShowPendingExpensePlaceholder(false);
             }
@@ -1242,6 +1256,11 @@ function Search({
             if (optimisticItem.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
                 clearOptimisticTracking();
             }
+        } else if (cachedOptimisticItemRef.current && !rollbackTimeoutRef.current) {
+            rollbackTimeoutRef.current = setTimeout(() => {
+                rollbackTimeoutRef.current = undefined;
+                clearOptimisticTracking();
+            }, OPTIMISTIC_ROLLBACK_GRACE_MS);
         }
     }, [sortedData, clearOptimisticTracking]);
 
