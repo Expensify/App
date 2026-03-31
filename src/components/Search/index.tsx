@@ -227,6 +227,7 @@ function Search({
     // Used by stableSortedData to re-inject the row if a stale snapshot temporarily removes it.
     // Cleared once the server-confirmed (non-optimistic) version arrives.
     const cachedOptimisticItemRef = useRef<TransactionListItemType | null>(null);
+    const cachedOptimisticItemIndexRef = useRef(0);
     const optimisticTrackingCleanedUpRef = useRef(false);
 
     const clearOptimisticTracking = useCallback(() => {
@@ -240,15 +241,18 @@ function Search({
     }, []);
 
     // Safety timeout: if the optimistic lifecycle hasn't resolved within 10s
-    // (e.g. API failure, offline, item never reaches sortedData), clear all
-    // tracking state so the UI doesn't get stuck on a skeleton or ghost row.
+    // (e.g. API failure, offline, item never reaches sortedData), clear the
+    // skeleton placeholder so the UI doesn't get stuck. The stableSortedData
+    // cache (cachedOptimisticItemRef) is intentionally kept alive so the item
+    // stays visible at its sorted position until server-confirmed data arrives;
+    // clearOptimisticTracking handles that cleanup when pendingAction !== ADD.
     useEffect(() => {
         if (!hasPendingWriteOnMountRef.current || !optimisticWatchKeyRef.current) {
             return;
         }
-        const id = setTimeout(clearOptimisticTracking, OPTIMISTIC_TRACKING_TIMEOUT_MS);
+        const id = setTimeout(() => setShowPendingExpensePlaceholder(false), OPTIMISTIC_TRACKING_TIMEOUT_MS);
         return () => clearTimeout(id);
-    }, [clearOptimisticTracking]);
+    }, []);
 
     // Flush (not cancel) on unmount so the API.write() still executes if the
     // user navigates away before onLayout fires. This also clears the channel,
@@ -1233,6 +1237,7 @@ function Search({
                 setShowPendingExpensePlaceholder(false);
             }
             cachedOptimisticItemRef.current = optimisticItem;
+            cachedOptimisticItemIndexRef.current = sortedData.indexOf(optimisticItem);
 
             if (optimisticItem.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
                 clearOptimisticTracking();
@@ -1254,7 +1259,10 @@ function Search({
         if (isStillInList) {
             return sortedData;
         }
-        return [...sortedData, cachedOptimisticItemRef.current];
+        const insertAt = Math.min(cachedOptimisticItemIndexRef.current, sortedData.length);
+        const result = [...sortedData];
+        result.splice(insertAt, 0, cachedOptimisticItemRef.current);
+        return result;
     }, [sortedData]);
 
     useEffect(() => {
