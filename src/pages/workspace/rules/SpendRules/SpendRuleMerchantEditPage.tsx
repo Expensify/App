@@ -79,13 +79,13 @@ function SpendRuleMerchantEditPage({route}: SpendRuleMerchantEditPageProps) {
         {
             value: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
             keyForList: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
-            text: translate('workspace.rules.spendRules.matchTypeContains'),
+            text: translate('workspace.rules.merchantRules.matchTypeContains'),
             isSelected: matchType === CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
         },
         {
             value: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
             keyForList: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
-            text: translate('workspace.rules.spendRules.matchTypeExact'),
+            text: translate('workspace.rules.merchantRules.matchTypeExact'),
             isSelected: matchType === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
         },
     ];
@@ -129,8 +129,9 @@ function SpendRuleMerchantEditPage({route}: SpendRuleMerchantEditPageProps) {
                     onSubmit={submit}
                     enabledWhenOffline
                     shouldHideFixErrorsAlert
+                    submitButtonStyles={[styles.ph5]}
                 >
-                    <View style={[styles.mb5]}>
+                    <View style={[styles.mb5, styles.ph5]}>
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.MERCHANT_NAMES}
@@ -138,13 +139,11 @@ function SpendRuleMerchantEditPage({route}: SpendRuleMerchantEditPageProps) {
                             accessibilityLabel={translate('common.merchant')}
                             value={merchantName}
                             onChangeText={setMerchantName}
-                            shouldSaveDraft={false}
                             ref={inputCallbackRef}
                             role={CONST.ROLE.PRESENTATION}
-                            containerStyles={[styles.ph5]}
                         />
                     </View>
-                    <View style={[styles.ph5, styles.pb2]}>
+                    <View style={[styles.pb2, styles.ph5]}>
                         <Text style={[styles.textLabelSupporting]}>{translate('workspace.rules.spendRules.matchType')}</Text>
                     </View>
                     <SelectionList
