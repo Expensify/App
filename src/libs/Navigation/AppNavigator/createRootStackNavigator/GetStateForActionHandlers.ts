@@ -298,7 +298,7 @@ function handleDismissModalAction(
         return {
             ...state,
             routes: [...state.routes.slice(0, -1), {...lastRoute, state: updatedNestedState}],
-        };
+        } as StackNavigationState<ParamListBase>;
     }
 
     return stackRouter.getStateForAction(state, newAction, configOptions);
