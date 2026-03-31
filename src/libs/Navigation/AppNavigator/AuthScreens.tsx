@@ -156,7 +156,7 @@ function AuthScreens() {
                         SupportalPermissionDeniedModalProvider,
                     ]}
                 >
-                    <RootStack.Navigator persistentScreens={[NAVIGATORS.TAB_NAVIGATOR, NAVIGATORS.RIGHT_MODAL_NAVIGATOR, SCREENS.SEARCH.ROOT]}>
+                    <RootStack.Navigator persistentScreens={[NAVIGATORS.TAB_NAVIGATOR, NAVIGATORS.RIGHT_MODAL_NAVIGATOR]}>
                         {/* TAB_NAVIGATOR (containing Home and Workspaces) has to be the first navigator in auth screens. */}
                         <RootStack.Screen
                             name={NAVIGATORS.TAB_NAVIGATOR}
