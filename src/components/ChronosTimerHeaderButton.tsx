@@ -66,7 +66,7 @@ function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd]}>
             <Button
-                success
+                success={!isTimerRunning}
                 text={translate(isTimerRunning ? 'chronos.stopTimer' : 'chronos.startTimer')}
                 onPress={callFunctionIfActionIsAllowed(onChronosTimerPress)}
                 style={styles.flex1}
