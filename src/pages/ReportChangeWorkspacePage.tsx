@@ -81,7 +81,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
             if (!policyID || !policy) {
                 return;
             }
-            if (shouldRestrictUserBillableActions(policy.id, userBillingGracePeriods, undefined, ownerBillingGraceEndPeriod)) {
+            if (shouldRestrictUserBillableActions(policy.id, ownerBillingGraceEndPeriod, userBillingGracePeriods)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                 return;
             }

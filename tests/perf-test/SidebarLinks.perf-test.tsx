@@ -28,7 +28,6 @@ jest.mock('../../src/libs/Navigation/navigationRef', () => ({
     addListener: () => () => {},
     isReady: () => true,
 }));
-jest.mock('@components/Icon/Expensicons');
 
 jest.mock('@react-navigation/native');
 jest.mock('@src/hooks/useLHNEstimatedListSize/index.native.ts');

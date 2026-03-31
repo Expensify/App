@@ -40,8 +40,6 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
-jest.mock('@components/Icon/Illustrations');
-
 // Replace MenuItemWithTopDescription with a simple test double that exposes props in the tree
 jest.mock('@components/MenuItemWithTopDescription', () => {
     const ReactMock = require('react') as typeof React;
