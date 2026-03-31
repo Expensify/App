@@ -129,9 +129,17 @@ function getPathForDynamicRoute(state: State): string {
     }
 
     const basePath = getPathFromState(reducedState);
-    const [basePathWithoutQuery] = splitPathAndQuery(basePath);
+    const [basePathWithoutQuery, baseQuery] = splitPathAndQuery(basePath);
+    const [suffixPath, suffixQuery] = splitPathAndQuery(actualSuffix);
 
-    return `${basePathWithoutQuery}/${actualSuffix}`;
+    const mergedParams = new URLSearchParams(baseQuery ?? '');
+    const suffixParams = new URLSearchParams(suffixQuery ?? '');
+    for (const [key, value] of suffixParams) {
+        mergedParams.set(key, value);
+    }
+    const queryString = mergedParams.toString();
+
+    return `${basePathWithoutQuery}/${suffixPath}${queryString ? `?${queryString}` : ''}`;
 }
 
 function getPathFromState(state: State): string {

@@ -9,7 +9,7 @@ import subscribe from './subscribe';
 
 const linkingConfig: LinkingOptions<RootNavigatorParamList> = {
     getStateFromPath: getAdaptedStateFromPath,
-    getPathFromState: (state) => getPathFromState(state),
+    getPathFromState,
     prefixes,
     config,
     subscribe,

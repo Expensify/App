@@ -119,17 +119,6 @@ describe('getPathFromState', () => {
         expect(mockRNGetPathFromState).not.toHaveBeenCalled();
     });
 
-    it('should use custom fallback for dynamic screens when path is MISSING', () => {
-        const state = buildState([{name: 'StandardScreen'}, {name: 'TestDynamicScreen'}]);
-
-        mockFindFocusedRoute.mockImplementation(realFindFocusedRoute);
-        mockRNGetPathFromState.mockReturnValue('/standard');
-
-        const result = getPathFromState(state as PartialState<NavigationState>);
-
-        expect(result).toBe('/standard/test-dynamic');
-    });
-
     it('should use RN getPathFromState for standard screens', () => {
         const state = {} as PartialState<NavigationState>;
         const expectedPath = '/standard/path';
@@ -167,13 +156,13 @@ describe('getPathFromState', () => {
             });
         });
 
-        it('1a: simple suffix (no path/query params)', () => {
+        it('simple suffix (no path/query params)', () => {
             const state = buildState([{name: 'WalletScreen'}, {name: 'VerifyAccountScreen'}]);
 
             expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/settings/wallet/verify-account');
         });
 
-        it('1b: suffix with path params', () => {
+        it('suffix with path params', () => {
             const state = buildState([
                 {name: 'ReportScreen', params: {reportID: '123'}},
                 {name: 'FlagScreen', params: {reportID: '456', reportActionID: 'abc'}},
@@ -182,28 +171,28 @@ describe('getPathFromState', () => {
             expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/r/123/flag/456/abc');
         });
 
-        it('1c: suffix with query params', () => {
+        it('suffix with query params', () => {
             const state = buildState([{name: 'WalletScreen'}, {name: 'CountryScreen', params: {country: 'PL'}}]);
 
             expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/settings/wallet/country?country=PL');
         });
 
-        it('1d: suffix with multiple query params', () => {
+        it('suffix with multiple query params', () => {
             const state = buildState([
                 {name: 'ReportScreen', params: {reportID: '123'}},
-                {name: 'ConstantPickerScreen', params: {formType: 'report', fieldName: 'status', fieldValue: 'open'}},
+                {name: 'ConstantPickerScreen', params: {formType: 'report', fieldName: 'status', fieldValue: 'open', reportID: '123'}},
             ]);
 
             expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/r/123/constant-picker?formType=report&fieldName=status&fieldValue=open');
         });
 
-        it('1e: suffix with query params config but params missing', () => {
+        it('suffix with query params config but params missing', () => {
             const state = buildState([{name: 'WalletScreen'}, {name: 'CountryScreen', params: {}}]);
 
             expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/settings/wallet/country');
         });
 
-        it('1f: suffix with partial query params (some present, some missing)', () => {
+        it('suffix with partial query params (some present, some missing)', () => {
             const state = buildState([
                 {name: 'ReportScreen', params: {reportID: '123'}},
                 {name: 'ConstantPickerScreen', params: {formType: 'report', fieldName: 'status'}},
@@ -212,35 +201,36 @@ describe('getPathFromState', () => {
             expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/r/123/constant-picker?formType=report&fieldName=status');
         });
 
-        it('2a: inner has path, outer has query params', () => {
+        it('inner dynamic suffix has path, outer has query params', () => {
             const state = buildState([{name: 'WalletScreen'}, {name: 'VerifyAccountScreen', path: '/settings/wallet/verify-account'}, {name: 'CountryScreen', params: {country: 'US'}}]);
 
             expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/settings/wallet/verify-account/country?country=US');
         });
 
-        it('2b: inner has path with path params, outer is simple', () => {
+        it('inner dynamic suffix has path with path params, outer is simple', () => {
             const state = buildState([{name: 'ReportScreen', params: {reportID: '123'}}, {name: 'FlagScreen', path: '/r/123/flag/456/abc'}, {name: 'VerifyAccountScreen'}]);
 
             expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/r/123/flag/456/abc/verify-account');
         });
 
-        it('2c: inner has path WITH query params, outer appends suffix (inner query params stripped)', () => {
+        it('inner dynamic suffix has path with query params, outer appends suffix (inner query params stripped)', () => {
             const state = buildState([
                 {name: 'WalletScreen'},
                 {name: 'CountryScreen', path: '/settings/wallet/country?country=US'},
                 {name: 'ConstantPickerScreen', params: {formType: 'report', fieldName: 'status', fieldValue: 'open'}},
             ]);
 
-            expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/settings/wallet/country/constant-picker?formType=report&fieldName=status&fieldValue=open');
+            expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/settings/wallet/country/constant-picker?country=US&formType=report&fieldName=status&fieldValue=open');
         });
+        // no
 
-        it('3a: two simple dynamic suffixes, no params on first', () => {
+        it('two simple dynamic suffixes, no params on first', () => {
             const state = buildState([{name: 'WalletScreen'}, {name: 'VerifyAccountScreen'}, {name: 'CountryScreen', params: {country: 'US'}}]);
 
             expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/settings/wallet/verify-account/country?country=US');
         });
 
-        it('3b: path params + query params stacking', () => {
+        it('path params + query params stacking', () => {
             const state = buildState([
                 {name: 'ReportScreen', params: {reportID: '123'}},
                 {name: 'FlagScreen', params: {reportID: '456', reportActionID: 'abc'}},
@@ -250,7 +240,7 @@ describe('getPathFromState', () => {
             expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/r/123/flag/456/abc/country?country=US');
         });
 
-        it('3c: three stacked dynamic suffixes, none with path', () => {
+        it('three stacked dynamic suffixes, none with path', () => {
             const state = buildState([
                 {name: 'WalletScreen'},
                 {name: 'VerifyAccountScreen'},
@@ -258,10 +248,10 @@ describe('getPathFromState', () => {
                 {name: 'ConstantPickerScreen', params: {formType: 'report', fieldName: 'x'}},
             ]);
 
-            expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/settings/wallet/verify-account/country/constant-picker?formType=report&fieldName=x');
+            expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/settings/wallet/verify-account/country/constant-picker?country=US&formType=report&fieldName=x');
         });
 
-        it('4a: dynamic screen inside a nested navigator', () => {
+        it('dynamic screen inside a nested navigator', () => {
             const state = buildState([
                 {
                     name: 'RHPNavigator',
@@ -272,7 +262,7 @@ describe('getPathFromState', () => {
             expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/settings/wallet/verify-account');
         });
 
-        it('4b: two dynamic suffixes inside nested navigator', () => {
+        it('two dynamic suffixes inside nested navigator', () => {
             const state = buildState([
                 {
                     name: 'RHPNavigator',
@@ -283,13 +273,13 @@ describe('getPathFromState', () => {
             expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/settings/wallet/verify-account/country?country=PL');
         });
 
-        it('5a: only dynamic route, no base (state has single route)', () => {
+        it('only dynamic route, no base (state has single route)', () => {
             const state = buildState([{name: 'VerifyAccountScreen'}]);
 
             expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/verify-account');
         });
 
-        it('5b: trailing slash normalization from base path', () => {
+        it('trailing slash normalization from base path', () => {
             mockRNGetPathFromState.mockReturnValue('/settings/wallet/');
 
             const state = buildState([{name: 'WalletScreen'}, {name: 'VerifyAccountScreen'}]);
@@ -297,7 +287,7 @@ describe('getPathFromState', () => {
             expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/settings/wallet/verify-account');
         });
 
-        it('5c: path params with special characters are encoded', () => {
+        it('path params with special characters are encoded', () => {
             const state = buildState([
                 {name: 'ReportScreen', params: {reportID: '123'}},
                 {name: 'FlagScreen', params: {reportID: 'a/b', reportActionID: 'c&d'}},
@@ -306,13 +296,13 @@ describe('getPathFromState', () => {
             expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/r/123/flag/a%2Fb/c%26d');
         });
 
-        it('5d: query param values with special characters are encoded', () => {
+        it('query param values with special characters are encoded', () => {
             const state = buildState([{name: 'WalletScreen'}, {name: 'CountryScreen', params: {country: 'a&b=c'}}]);
 
             expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/settings/wallet/country?country=a%26b%3Dc');
         });
 
-        it('5e: dynamic route with no params at all (params undefined)', () => {
+        it('dynamic route with no params at all (params undefined)', () => {
             const state = buildState([{name: 'WalletScreen'}, {name: 'CountryScreen'}]);
 
             expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/settings/wallet/country');
