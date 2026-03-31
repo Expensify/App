@@ -112,6 +112,9 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
      */
     keyboardSubmitBehavior?: ValueOf<typeof CONST.KEYBOARD_SUBMIT_BEHAVIOR>;
 
+    /** Callback fired synchronously when the user presses submit, before validation runs */
+    onBeforeSubmit?: () => void;
+
     /** Reference to the outer element */
     ref?: ForwardedRef<FormRef>;
 };
@@ -132,6 +135,7 @@ function FormProvider({
     shouldPreventDefaultFocusOnPressSubmit = false,
     shouldHideFixErrorsAlert = false,
     keyboardSubmitBehavior = CONST.KEYBOARD_SUBMIT_BEHAVIOR.DISMISS_THEN_SUBMIT,
+    onBeforeSubmit,
     ref,
     ...rest
 }: FormProviderProps) {
@@ -270,6 +274,8 @@ function FormProvider({
                 return;
             }
 
+            onBeforeSubmit?.();
+
             // Prepare values before submitting
             const trimmedStringValues = shouldTrimValues ? prepareValues(inputValues) : inputValues;
 
@@ -300,7 +306,19 @@ function FormProvider({
             } else {
                 onSubmit(trimmedStringValues);
             }
-        }, [enabledWhenOffline, formState?.isLoading, inputValues, isLoading, network?.isOffline, onSubmit, onValidate, shouldTrimValues, hasServerError, keyboardSubmitBehavior]),
+        }, [
+            enabledWhenOffline,
+            formState?.isLoading,
+            inputValues,
+            isLoading,
+            network?.isOffline,
+            onSubmit,
+            onValidate,
+            shouldTrimValues,
+            hasServerError,
+            keyboardSubmitBehavior,
+            onBeforeSubmit,
+        ]),
         1000,
         {leading: true, trailing: false},
     );

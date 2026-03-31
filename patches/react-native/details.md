@@ -252,9 +252,3 @@
 - Upstream PR/issue: 🛑
 - E/App issue: https://github.com/Expensify/App/issues/85877
 - PR introducing patch: 🛑
-
-### [react-native+0.83.1+034+fix-pressability-new-arch.patch](react-native+0.83.1+034+fix-pressability-new-arch.patch)
-
-- Reason: Fixes an Android-specific issue (reproducible on certain Samsung models) where `onPress` events do not trigger for `Pressable` components when used inside a `Tooltip`. The root cause is that in the new architecture, `Pressability.measure()` reads stale layout information from the shadow tree instead of the actual native view hierarchy. This patch introduces a new `measureAsyncOnUI` method that measures the view asynchronously using the native layout hierarchy on the UI thread, bypassing stale shadow tree data.
-- Upstream PR/issue: [facebook/react-native#51835](https://github.com/facebook/react-native/pull/51835)
-- E/App issue: [#59953](https://github.com/Expensify/App/issues/59953)
