@@ -250,7 +250,7 @@ function IOURequestStepScan({
         cancelSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION);
     }, [isMultiScanEnabled]);
 
-    const capturePhoto = useCallback(() => {
+    const capturePhoto = () => {
         if (!isMultiScanEnabled) {
             startSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION, {
                 name: CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION,
@@ -346,25 +346,7 @@ function IOURequestStepScan({
                 showCameraAlert();
                 Log.warn('Error taking photo', error);
             });
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- askForPermissions is not needed
-    }, [
-        cameraPermissionStatus,
-        isMultiScanEnabled,
-        translate,
-        showBlink,
-        flash,
-        hasFlash,
-        isPlatformMuted,
-        initialTransaction,
-        currentUserPersonalDetails,
-        reportID,
-        initialTransactionID,
-        isEditing,
-        receiptFiles,
-        submitReceipts,
-        updateScanAndNavigate,
-        askForPermissions,
-    ]);
+    }
 
     // Wait for camera permission status to render
     if (cameraPermissionStatus == null) {
