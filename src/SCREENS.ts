@@ -451,7 +451,7 @@ const SCREENS = {
         SETTINGS_TAGS_ROOT: 'Settings_Tags',
         SETTINGS_TAGS_SETTINGS: 'Settings_Tags_Settings',
         SETTINGS_TAGS_EDIT: 'Settings_Tags_Edit',
-        SETTINGS_TAG_CREATE: 'Settings_Tag_Create',
+        DYNAMIC_TAG_CREATE: 'Dynamic_Settings_Tag_Create',
         SETTINGS_TAG_EDIT: 'Settings_Tag_Edit',
         SETTINGS_TAG_SETTINGS: 'Settings_Tag_Settings',
         SETTINGS_TAG_APPROVER: 'Settings_Tag_Approver',

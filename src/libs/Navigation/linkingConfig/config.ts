@@ -1486,9 +1486,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 orderWeight: Number,
                             },
                         },
-                        [SCREENS.SETTINGS_TAGS.SETTINGS_TAG_CREATE]: {
-                            path: ROUTES.SETTINGS_TAG_CREATE.route,
-                        },
+                        [SCREENS.SETTINGS_TAGS.DYNAMIC_TAG_CREATE]: DYNAMIC_ROUTES.SETTINGS_TAG_CREATE.path,
                         [SCREENS.SETTINGS_TAGS.SETTINGS_TAG_EDIT]: {
                             path: ROUTES.SETTINGS_TAG_EDIT.route,
                             parse: {
