@@ -71,7 +71,11 @@ function useBottomDockedDismissAccessibility({
             return;
         }
 
-        markFirstMenuItemUnfocused();
+        const animationFrame = requestAnimationFrame(() => {
+            markFirstMenuItemUnfocused();
+        });
+
+        return () => cancelAnimationFrame(animationFrame);
     }, [isVisible, markFirstMenuItemUnfocused]);
 
     useEffect(
@@ -229,7 +233,11 @@ function useBottomDockedDismissAccessibility({
             return;
         }
 
-        markFirstMenuItemFocused();
+        const animationFrame = requestAnimationFrame(() => {
+            markFirstMenuItemFocused();
+        });
+
+        return () => cancelAnimationFrame(animationFrame);
     }, [focusedIndex, isVisible, markFirstMenuItemFocused, shouldConfirmFirstItemFocus, shouldDeferDismissButtonAccessibility]);
 
     return {
