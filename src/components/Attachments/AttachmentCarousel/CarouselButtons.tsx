@@ -51,7 +51,7 @@ function CarouselButtons({page, attachments, shouldShowArrows, onBack, onForward
                             small
                             innerStyles={[styles.arrowIcon]}
                             icon={icons.BackArrow}
-                            iconFill={theme.text}
+                            iconFill={theme.iconStrong}
                             onPress={onBack}
                             onPressIn={cancelAutoHideArrow}
                             onPressOut={autoHideArrow}
@@ -67,7 +67,7 @@ function CarouselButtons({page, attachments, shouldShowArrows, onBack, onForward
                             small
                             innerStyles={[styles.arrowIcon]}
                             icon={icons.ArrowRight}
-                            iconFill={theme.text}
+                            iconFill={theme.iconStrong}
                             onPress={onForward}
                             onPressIn={cancelAutoHideArrow}
                             onPressOut={autoHideArrow}

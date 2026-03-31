@@ -44,7 +44,7 @@ function PrevNextButtons({isPrevButtonDisabled, isNextButtonDisabled, onNext, on
                     <Icon
                         src={icons.BackArrow}
                         small
-                        fill={theme.icon}
+                        fill={theme.iconStrong}
                         isButtonIcon
                     />
                 </View>
@@ -62,7 +62,7 @@ function PrevNextButtons({isPrevButtonDisabled, isNextButtonDisabled, onNext, on
                     <Icon
                         src={icons.ArrowRight}
                         small
-                        fill={theme.icon}
+                        fill={theme.iconStrong}
                         isButtonIcon
                     />
                 </View>
