@@ -1056,6 +1056,14 @@ const translations: TranslationDeepObject<typeof en> = {
             inDays: () => ({one: 'In 1 Tag', other: (count: number) => `In ${count} Tagen`}),
             today: 'Heute',
         },
+        gettingStartedSection: {
+            title: 'Erste Schritte',
+            createWorkspace: 'Workspace erstellen',
+            connectAccounting: ({integrationName}: {integrationName: string}) => `Mit ${integrationName} verbinden`,
+            customizeCategories: 'Buchhaltungskategorien anpassen',
+            linkCompanyCards: 'Firmenkarten verknüpfen',
+            setupRules: 'Ausgabelimits einrichten',
+        },
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -7442,7 +7450,14 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
         searchIn: 'Suchen in',
         searchPlaceholder: 'Nach etwas suchen',
         suggestions: 'Vorschläge',
-        suggestionsAvailable: ({count}: {count: number}, query = '') => ({
+        suggestionsAvailable: (
+            {
+                count,
+            }: {
+                count: number;
+            },
+            query = '',
+        ) => ({
             one: `Vorschläge verfügbar${query ? ` für ${query}` : ''}. ${count} Ergebnis.`,
             other: (resultCount: number) => `Vorschläge verfügbar${query ? ` für ${query}` : ''}. ${resultCount} Ergebnisse.`,
         }),

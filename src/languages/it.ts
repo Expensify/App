@@ -1056,6 +1056,14 @@ const translations: TranslationDeepObject<typeof en> = {
             inDays: () => ({one: 'Tra 1 giorno', other: (count: number) => `Tra ${count} giorni`}),
             today: 'Oggi',
         },
+        gettingStartedSection: {
+            title: 'Per iniziare',
+            createWorkspace: 'Crea uno spazio di lavoro',
+            connectAccounting: ({integrationName}: {integrationName: string}) => `Connetti a ${integrationName}`,
+            customizeCategories: 'Personalizza le categorie contabili',
+            linkCompanyCards: 'Collega carte aziendali',
+            setupRules: 'Configura le regole di spesa',
+        },
     },
     allSettingsScreen: {
         subscription: 'Abbonamento',
@@ -7430,7 +7438,14 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
         searchIn: 'Cerca in',
         searchPlaceholder: 'Cerca qualcosa',
         suggestions: 'Suggerimenti',
-        suggestionsAvailable: ({count}: {count: number}, query = '') => ({
+        suggestionsAvailable: (
+            {
+                count,
+            }: {
+                count: number;
+            },
+            query = '',
+        ) => ({
             one: `Suggerimenti disponibili${query ? ` per ${query}` : ''}. ${count} risultato.`,
             other: (resultCount: number) => `Suggerimenti disponibili${query ? ` per ${query}` : ''}. ${resultCount} risultati.`,
         }),

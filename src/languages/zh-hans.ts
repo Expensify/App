@@ -1022,6 +1022,14 @@ const translations: TranslationDeepObject<typeof en> = {
             inDays: () => ({one: '1 天后', other: (count: number) => `在 ${count} 天后`}),
             today: '今天',
         },
+        gettingStartedSection: {
+            title: '入门',
+            createWorkspace: '创建工作区',
+            connectAccounting: ({integrationName}: {integrationName: string}) => `连接到 ${integrationName}`,
+            customizeCategories: '自定义会计类别',
+            linkCompanyCards: '关联公司卡',
+            setupRules: '设置消费规则',
+        },
     },
     allSettingsScreen: {
         subscription: '订阅',
@@ -7214,7 +7222,14 @@ ${reportName}
         searchIn: '搜索范围',
         searchPlaceholder: '搜索内容',
         suggestions: '建议',
-        suggestionsAvailable: ({count}: {count: number}, query = '') => ({
+        suggestionsAvailable: (
+            {
+                count,
+            }: {
+                count: number;
+            },
+            query = '',
+        ) => ({
             one: `有可用建议${query ? `：${query}` : ''}。共${count}条结果。`,
             other: (resultCount: number) => `有可用建议${query ? `：${query}` : ''}。共${resultCount}条结果。`,
         }),

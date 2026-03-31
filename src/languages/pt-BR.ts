@@ -1054,6 +1054,14 @@ const translations: TranslationDeepObject<typeof en> = {
             inDays: () => ({one: 'Em 1 dia', other: (count: number) => `Em ${count} dias`}),
             today: 'Hoje',
         },
+        gettingStartedSection: {
+            title: 'Introdução',
+            createWorkspace: 'Criar um workspace',
+            connectAccounting: ({integrationName}: {integrationName: string}) => `Conectar ao ${integrationName}`,
+            customizeCategories: 'Personalizar categorias contábeis',
+            linkCompanyCards: 'Vincular cartões corporativos',
+            setupRules: 'Configurar regras de gasto',
+        },
     },
     allSettingsScreen: {
         subscription: 'Assinatura',
@@ -7384,7 +7392,14 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         searchIn: 'Pesquisar em',
         searchPlaceholder: 'Pesquisar algo',
         suggestions: 'Sugestões',
-        suggestionsAvailable: ({count}: {count: number}, query = '') => ({
+        suggestionsAvailable: (
+            {
+                count,
+            }: {
+                count: number;
+            },
+            query = '',
+        ) => ({
             one: `Sugestões disponíveis${query ? ` para ${query}` : ''}. ${count} resultado.`,
             other: (resultCount: number) => `Sugestões disponíveis${query ? ` para ${query}` : ''}. ${resultCount} resultados.`,
         }),

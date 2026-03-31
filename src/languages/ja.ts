@@ -1039,6 +1039,14 @@ const translations: TranslationDeepObject<typeof en> = {
             inDays: () => ({one: '1日後', other: (count: number) => `${count}日後`}),
             today: '今日',
         },
+        gettingStartedSection: {
+            title: 'はじめに',
+            createWorkspace: 'ワークスペースを作成',
+            connectAccounting: ({integrationName}: {integrationName: string}) => `${integrationName}に接続する`,
+            customizeCategories: '会計カテゴリをカスタマイズする',
+            linkCompanyCards: '会社カードを連携',
+            setupRules: '支出ルールを設定',
+        },
     },
     allSettingsScreen: {
         subscription: 'サブスクリプション',
@@ -7338,7 +7346,14 @@ ${reportName}
         searchIn: '検索対象',
         searchPlaceholder: '何かを検索',
         suggestions: '提案',
-        suggestionsAvailable: ({count}: {count: number}, query = '') => ({
+        suggestionsAvailable: (
+            {
+                count,
+            }: {
+                count: number;
+            },
+            query = '',
+        ) => ({
             one: `候補があります${query ? `: ${query}` : ''}。${count}件の結果。`,
             other: (resultCount: number) => `候補があります${query ? `: ${query}` : ''}。${resultCount}件の結果。`,
         }),

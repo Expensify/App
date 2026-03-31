@@ -1055,6 +1055,14 @@ const translations: TranslationDeepObject<typeof en> = {
             inDays: () => ({one: 'Over 1 dag', other: (count: number) => `Over ${count} dagen`}),
             today: 'Vandaag',
         },
+        gettingStartedSection: {
+            title: 'Aan de slag',
+            createWorkspace: 'Maak een werkruimte',
+            connectAccounting: ({integrationName}: {integrationName: string}) => `Verbind met ${integrationName}`,
+            customizeCategories: 'Boekhoudcategorieën aanpassen',
+            linkCompanyCards: 'Bedrijfspassen koppelen',
+            setupRules: 'Uitgavenregels instellen',
+        },
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -7396,7 +7404,14 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
         searchIn: 'Zoeken in',
         searchPlaceholder: 'Zoek iets',
         suggestions: 'Suggesties',
-        suggestionsAvailable: ({count}: {count: number}, query = '') => ({
+        suggestionsAvailable: (
+            {
+                count,
+            }: {
+                count: number;
+            },
+            query = '',
+        ) => ({
             one: `Suggesties beschikbaar${query ? ` voor ${query}` : ''}. ${count} resultaat.`,
             other: (resultCount: number) => `Suggesties beschikbaar${query ? ` voor ${query}` : ''}. ${resultCount} resultaten.`,
         }),
