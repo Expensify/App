@@ -135,13 +135,11 @@ function useWebCamera({onUnmount}: UseWebCameraOptions = {}) {
 
     useEffect(
         () => () => {
-            onUnmount?.();
             if (!getScreenshotTimeoutRef.current) {
                 return;
             }
             clearTimeout(getScreenshotTimeoutRef.current);
         },
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- only run on unmount
         [],
     );
 
