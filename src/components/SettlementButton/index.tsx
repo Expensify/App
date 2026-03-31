@@ -222,7 +222,7 @@ function SettlementButton({
             return true;
         }
 
-        if (policy && shouldRestrictUserBillableActions(policy.id, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods)) {
+        if (policy && shouldRestrictUserBillableActions(policy.id, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods, amountOwed)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
             return true;
         }
@@ -249,6 +249,7 @@ function SettlementButton({
         currentUserAccountID,
         isSelfTourViewed,
         betas,
+        amountOwed,
     ]);
 
     const shortFormPayElsewhereButton = {
