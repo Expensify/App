@@ -1,10 +1,9 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {PressableWithoutFeedback} from '@components/Pressable';
-import Text from '@components/Text';
+import Button from '@components/Button';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
-import CONST from '@src/CONST';
+import useTheme from '@hooks/useTheme';
 import {useInboxPanelActions} from './InboxPanelContext';
 
 type InboxPanelToggleButtonProps = {
@@ -12,19 +11,20 @@ type InboxPanelToggleButtonProps = {
 };
 
 function InboxPanelToggleButton({style}: InboxPanelToggleButtonProps) {
-    const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const theme = useTheme();
     const {togglePanel} = useInboxPanelActions();
+    const icons = useMemoizedLazyExpensifyIcons(['ChatBubbles']);
 
     return (
-        <PressableWithoutFeedback
-            accessibilityLabel={translate('common.inbox')}
+        <Button
+            icon={icons.ChatBubbles}
+            iconFill={theme.icon}
+            text={translate('common.chats')}
             onPress={togglePanel}
-            role={CONST.ROLE.BUTTON}
+            accessibilityLabel={translate('common.chats')}
             style={style}
-        >
-            <Text style={styles.textBlue}>{translate('common.inbox')}</Text>
-        </PressableWithoutFeedback>
+        />
     );
 }
 
