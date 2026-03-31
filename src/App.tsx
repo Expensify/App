@@ -18,6 +18,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import FullScreenBlockingViewContextProvider from './components/FullScreenBlockingViewContextProvider';
 import FullScreenLoaderContextProvider from './components/FullScreenLoaderContext';
 import HTMLEngineProvider from './components/HTMLEngineProvider';
+import InboxSidePanel from './components/InboxSidePanel';
 import InitialURLContextProvider from './components/InitialURLContextProvider';
 import {InputBlurContextProvider} from './components/InputBlurContext';
 import {KeyboardDismissibleFlatListContextProvider} from './components/KeyboardDismissibleFlatList/KeyboardDismissibleFlatListContext';
@@ -138,11 +139,18 @@ function App() {
                                     ]}
                                 >
                                     <CustomStatusBarAndBackground />
-                                    <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
-                                        <ColorSchemeWrapper>
-                                            <Expensify />
-                                        </ColorSchemeWrapper>
-                                    </ErrorBoundary>
+                                    <View style={{flex: 1, flexDirection: 'row'}}>
+                                        <View style={{flex: 4}}>
+                                            <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
+                                                <ColorSchemeWrapper>
+                                                    <Expensify />
+                                                </ColorSchemeWrapper>
+                                            </ErrorBoundary>
+                                        </View>
+                                        <View style={{flex: 1, borderLeftWidth: 1, borderLeftColor: '#e5e5e5'}}>
+                                            <InboxSidePanel />
+                                        </View>
+                                    </View>
                                     <NavigationBar />
                                 </ComposeProviders>
                             </View>
