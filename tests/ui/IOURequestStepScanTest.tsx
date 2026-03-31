@@ -171,15 +171,22 @@ describe('IOURequestStepScan', () => {
         const REPORT_ID = '1';
         const POLICY_ID = 'policy-1';
         const TRANSACTION_ID_1 = '101';
+        const TRANSACTION_ID_2 = '102';
 
         const transaction1 = createRandomTransaction(1);
         transaction1.reportID = REPORT_ID;
         transaction1.transactionID = TRANSACTION_ID_1;
         transaction1.receipt = {source: 'file://first-receipt.png', state: CONST.IOU.RECEIPT_STATE.OPEN};
 
+        const transaction2 = createRandomTransaction(2);
+        transaction2.reportID = REPORT_ID;
+        transaction2.transactionID = TRANSACTION_ID_2;
+        transaction2.receipt = {source: 'file://second-receipt.png', state: CONST.IOU.RECEIPT_STATE.OPEN};
+
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, createMinimalReport(REPORT_ID, POLICY_ID));
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID_1}`, transaction1);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID_2}`, transaction2);
         });
         await waitForBatchedUpdates();
 
@@ -202,9 +209,6 @@ describe('IOURequestStepScan', () => {
                                 } as unknown as PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_SCAN>['route']
                             }
                             navigation={{} as never}
-                            isMultiScanEnabled
-                            isStartingScan
-                            setIsMultiScanEnabled={jest.fn()}
                         />
                     </NavigationContainer>
                 </LocaleContextProvider>
