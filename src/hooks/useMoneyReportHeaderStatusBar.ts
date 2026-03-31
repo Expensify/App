@@ -5,10 +5,11 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {isMarkAsResolvedAction} from '@libs/ReportPrimaryActionUtils';
-import {getTransactionsWithReceipts, hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils} from '@libs/ReportUtils';
+import {hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils} from '@libs/ReportUtils';
 import {
     allHavePendingRTERViolation,
     hasDuplicateTransactions,
+    hasReceipt,
     isExpensifyCardTransaction,
     isPayAtEndExpense as isPayAtEndExpenseTransactionUtils,
     isPending,
@@ -69,11 +70,11 @@ function useMoneyReportHeaderStatusBar(reportID: string | undefined, chatReportI
     const isArchivedReport = useReportIsArchived(moneyRequestReport?.reportID);
     const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`, {selector: getArchiveReason});
 
-    const hasScanningReceipt = getTransactionsWithReceipts(moneyRequestReport?.reportID).some(isScanning);
+    const hasScanningReceipt = transactions.filter((t) => hasReceipt(t)).some(isScanning);
     const hasOnlyPendingTransactions = transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, violations, email ?? '', accountID, moneyRequestReport, policy);
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactions, moneyRequestReport, policy, violations, email ?? '', accountID);
-    const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(moneyRequestReport?.reportID);
+    const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(moneyRequestReport?.reportID, transactions);
     const isPayAtEndExpense = isPayAtEndExpenseTransactionUtils(transaction);
     const hasDuplicates = hasDuplicateTransactions(email ?? '', accountID, moneyRequestReport, policy, allTransactionViolations);
     const shouldShowMarkAsResolved = isMarkAsResolvedAction(moneyRequestReport, transactionViolations);
