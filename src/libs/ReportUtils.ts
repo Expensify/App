@@ -55,6 +55,7 @@ import type {
     ReportMetadata,
     ReportNameValuePairs,
     ReportViolationName,
+    SearchResults,
     Task,
     Transaction,
     TransactionViolation,
@@ -4701,10 +4702,10 @@ function getTransactionCommentObject(transaction: OnyxEntry<Transaction>): Comme
  */
 function canEditMoneyRequest(
     reportAction: OnyxInputOrEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>,
+    linkedTransaction: OnyxEntry<Transaction>,
     isChatReportArchived = false,
     report?: OnyxInputOrEntry<Report>,
     policy?: OnyxEntry<Policy>,
-    linkedTransaction?: OnyxEntry<Transaction>,
 ): boolean {
     const isDeleted = isDeletedAction(reportAction);
 
@@ -4720,15 +4721,17 @@ function canEditMoneyRequest(
         return false;
     }
 
-    const transaction = linkedTransaction ?? getLinkedTransaction(reportAction ?? undefined);
+    if (!linkedTransaction) {
+        return false;
+    }
 
     // In case the transaction is failed to be created, we should disable editing the money request
-    if (!transaction?.transactionID || (transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(transaction.errors))) {
+    if (!linkedTransaction.transactionID || (linkedTransaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(linkedTransaction.errors))) {
         return false;
     }
 
     // Domain admins can report unreported managed card transactions
-    if (transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID && isManagedCardTransaction(transaction)) {
+    if (linkedTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID && isManagedCardTransaction(linkedTransaction)) {
         return true;
     }
 
@@ -4847,6 +4850,71 @@ function canEditReportPolicy(report: OnyxEntry<Report>, reportPolicy: OnyxEntry<
 }
 
 /**
+ * Checks if the user can edit multiple transactions
+ */
+function canEditMultipleTransactions(
+    selectedTransactions: Transaction[],
+    reportActions: OnyxCollection<ReportActions>,
+    reports: OnyxCollection<Report>,
+    policies: OnyxCollection<Policy>,
+    areReportsSelected = false,
+    searchSnapshotData?: SearchResults['data'],
+): boolean {
+    if (areReportsSelected) {
+        return false;
+    }
+
+    if (selectedTransactions.length < 2) {
+        return false;
+    }
+
+    for (const transaction of selectedTransactions) {
+        const isUnreportedExpense = !transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+        if (isUnreportedExpense) {
+            continue;
+        }
+
+        // Do not allow editing split expenses in bulk
+        if (transaction.comment?.source === CONST.IOU.TYPE.SPLIT || transaction.comment?.splits) {
+            return false;
+        }
+
+        const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}` as const;
+        const actionsForReport = {...(searchSnapshotData?.[reportActionsKey] ?? {}), ...(reportActions?.[reportActionsKey] ?? {})};
+        const reportAction = getIOUActionForTransactionID(Object.values(actionsForReport), transaction.transactionID);
+        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}` as const;
+        const report = reports?.[reportKey] ?? (searchSnapshotData?.[reportKey] as OnyxEntry<Report>);
+        const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
+
+        const isApproved = isReportApproved({report});
+
+        if (isApproved || isSettled(report)) {
+            return false;
+        }
+
+        const fieldsToCheck = [
+            CONST.EDIT_REQUEST_FIELD.AMOUNT,
+            CONST.EDIT_REQUEST_FIELD.MERCHANT,
+            CONST.EDIT_REQUEST_FIELD.CATEGORY,
+            CONST.EDIT_REQUEST_FIELD.TAG,
+            CONST.EDIT_REQUEST_FIELD.DESCRIPTION,
+            CONST.EDIT_REQUEST_FIELD.DATE,
+            CONST.EDIT_REQUEST_FIELD.BILLABLE,
+            CONST.EDIT_REQUEST_FIELD.REIMBURSABLE,
+            CONST.EDIT_REQUEST_FIELD.TAX_RATE,
+        ];
+
+        const isTransactionEditable = fieldsToCheck.some((field) => canEditFieldOfMoneyRequest({reportAction, fieldToEdit: field, transaction, report, policy}));
+
+        if (!isTransactionEditable) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/**
  * Checks if the current user can edit the provided property of an expense
  *
  */
@@ -4880,9 +4948,10 @@ function canEditFieldOfMoneyRequest({
         CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE,
         CONST.EDIT_REQUEST_FIELD.REIMBURSABLE,
         CONST.EDIT_REQUEST_FIELD.REPORT,
+        CONST.EDIT_REQUEST_FIELD.BILLABLE,
     ];
 
-    if (!isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction, isChatReportArchived, report, policy, transaction)) {
+    if (!isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction, transaction, isChatReportArchived, report, policy)) {
         return false;
     }
 
@@ -4893,6 +4962,10 @@ function canEditFieldOfMoneyRequest({
 
     const iouMessage = getOriginalMessage(reportAction);
     const moneyRequestReport = report ?? (iouMessage?.IOUReportID ? (getReport(iouMessage?.IOUReportID, allReports) ?? ({} as Report)) : ({} as Report));
+
+    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.BILLABLE && isInvoiceReport(moneyRequestReport) && isReportApproved({report: moneyRequestReport})) {
+        return false;
+    }
 
     if (isSettled(String(moneyRequestReport.reportID)) || isReportIDApproved(String(moneyRequestReport.reportID))) {
         return false;
@@ -5024,14 +5097,14 @@ function canEditFieldOfMoneyRequest({
  * - It's an expense where conditions for modifications are defined in canEditMoneyRequest method
  * - It's not pending deletion
  */
-function canEditReportAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
+function canEditReportAction(reportAction: OnyxInputOrEntry<ReportAction>, linkedTransaction: OnyxEntry<Transaction>): boolean {
     const isCommentOrIOU = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT || reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU;
     const message = reportAction ? getReportActionMessageReportUtils(reportAction) : undefined;
 
     return !!(
         reportAction?.actorAccountID === deprecatedCurrentUserAccountID &&
         isCommentOrIOU &&
-        (!isMoneyRequestAction(reportAction) || canEditMoneyRequest(reportAction)) && // Returns true for non-IOU actions
+        (!isMoneyRequestAction(reportAction) || canEditMoneyRequest(reportAction, linkedTransaction)) && // Returns true for non-IOU actions
         !isReportMessageAttachment(message) &&
         ((!reportAction.isAttachmentWithText && !reportAction.isAttachmentOnly) || !reportAction.isOptimisticAction) &&
         !isDeletedAction(reportAction) &&
@@ -5091,7 +5164,7 @@ function canHoldUnholdReportAction(
     return {canHoldRequest, canUnholdRequest};
 }
 
-const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>, iouTransaction: OnyxEntry<Transaction>): void => {
+const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>, iouTransaction: OnyxEntry<Transaction>, isOffline: boolean): void => {
     if (!isMoneyRequestAction(reportAction)) {
         return;
     }
@@ -5114,7 +5187,7 @@ const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>, iou
 
     if (isOnHold) {
         if (reportAction.childReportID) {
-            unholdRequest(transactionID, reportAction.childReportID, policy);
+            unholdRequest(transactionID, reportAction.childReportID, policy, isOffline);
         } else {
             Log.warn('Missing reportAction.childReportID during money request unhold');
         }
@@ -9021,8 +9094,32 @@ function generateIsEmptyReport(report: OnyxEntry<Report>, isReportArchived: bool
     return !lastVisibleMessage.lastMessageText;
 }
 
+/**
+ * Get the latest report action from other users
+ * @param reportActions - The report actions
+ * @param accountID - The current user account ID (to exclude own actions)
+ * @returns The latest report action from other users
+ */
+function getLatestReportActionFromOtherUsers(reportActions: ReportActions | undefined, accountID: number | undefined): ReportAction | null {
+    if (!accountID) {
+        return null;
+    }
+
+    return Object.values(reportActions ?? {}).reduce((latest: ReportAction | null, current: ReportAction) => {
+        if (
+            !isDeletedAction(current) &&
+            current.actorAccountID !== accountID &&
+            (!latest || current.created > latest.created) &&
+            (!isWhisperAction(current) || current.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER)
+        ) {
+            return current;
+        }
+        return latest;
+    }, null);
+}
+
 // We need oneTransactionThreadReport to get the correct last visible action created
-function isUnread(report: OnyxEntry<Report>, oneTransactionThreadReport: OnyxEntry<Report>, isReportArchived: boolean | undefined): boolean {
+function isUnread(report: OnyxEntry<Report>, oneTransactionThreadReport: OnyxEntry<Report>, isReportArchived: boolean | undefined, reportActions: ReportActions | undefined): boolean {
     if (!report) {
         return false;
     }
@@ -9034,13 +9131,16 @@ function isUnread(report: OnyxEntry<Report>, oneTransactionThreadReport: OnyxEnt
     if (!report.lastReadTime) {
         return true;
     }
+
+    const latestReportActionFromOtherUsers = getLatestReportActionFromOtherUsers(reportActions, deprecatedCurrentUserAccountID);
+
     // lastVisibleActionCreated and lastReadTime are both datetime strings and can be compared directly
     const lastVisibleActionCreated = getReportLastVisibleActionCreated(report, oneTransactionThreadReport);
     const lastReadTime = report.lastReadTime ?? '';
     const lastMentionedTime = report.lastMentionedTime ?? '';
 
     // If the user was mentioned and the comment got deleted the lastMentionedTime will be more recent than the lastVisibleActionCreated
-    return lastReadTime < (lastVisibleActionCreated ?? '') || lastReadTime < lastMentionedTime;
+    return lastReadTime < (lastVisibleActionCreated ?? '') || lastReadTime < lastMentionedTime || lastReadTime < (latestReportActionFromOtherUsers?.created ?? '');
 }
 
 function isIOUOwnedByCurrentUser(report: OnyxEntry<Report>, allReportsDict?: OnyxCollection<Report>): boolean {
@@ -9628,7 +9728,8 @@ function reasonForReportToBeInOptionList({
     if (isInFocusMode) {
         const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, currentReportActions);
         const oneTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
-        return isUnread(report, oneTransactionThreadReport, isReportArchived) && getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE
+        const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`];
+        return isUnread(report, oneTransactionThreadReport, isReportArchived, reportActions) && getReportNotificationPreference(report) !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE
             ? CONST.REPORT_IN_LHN_REASONS.IS_UNREAD
             : null;
     }
@@ -12815,7 +12916,7 @@ function isWaitingForSubmissionFromCurrentUser(chatReport: OnyxEntry<Report>, po
     return chatReport?.isOwnPolicyExpenseChat && !policy?.harvesting?.enabled;
 }
 
-function getChatListItemReportName(action: ReportAction & {reportName?: string}, report: Report | undefined): string {
+function getChatListItemReportName(action: ReportAction & {reportName?: string}, report: Report | undefined, conciergeReportID: string | undefined): string {
     if (report && isInvoiceReport(report)) {
         const properInvoiceReport = report;
         properInvoiceReport.chatReportID = report.parentReportID;
@@ -12830,12 +12931,12 @@ function getChatListItemReportName(action: ReportAction & {reportName?: string},
     if (report?.reportID) {
         // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return getReportName({report: getReport(report?.reportID, allReports)});
+        return getReportName({report: getReport(report?.reportID, allReports), conciergeReportID});
     }
 
     // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return getReportName({report});
+    return getReportName({report, conciergeReportID});
 }
 
 /**
@@ -13434,6 +13535,7 @@ export {
     canHoldUnholdReportAction,
     canEditReportPolicy,
     canEditFieldOfMoneyRequest,
+    canEditMultipleTransactions,
     canEditMoneyRequest,
     canEditReportAction,
     canEditReportDescription,
@@ -13781,6 +13883,7 @@ export {
     getBillableAndTaxTotal,
     getReportForHeader,
     isReportOpenOrUnsubmitted,
+    getLatestReportActionFromOtherUsers,
     getIconsForExpenseReport,
     getTransactionSortValue,
     isSortableColumnName,

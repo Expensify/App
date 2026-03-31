@@ -1,6 +1,7 @@
 export type {default as GetTransactionsForMergingParams} from './GetTransactionsForMergingParams';
 export type {default as ImportCSVTransactionsParams} from './ImportCSVTransactionsParams';
 export type {default as ImportMultiLevelTagsParams} from './ImportMultiLevelTagsParams';
+export type {default as ImportCSVCompanyCardsParams} from './ImportCSVCompanyCardsParams';
 export type {default as CleanPolicyTagsParams} from './CleanPolicyTagsParams';
 export type {default as ActivatePhysicalExpensifyCardParams} from './ActivatePhysicalExpensifyCardParams';
 export type {default as AddNewContactMethodParams} from './AddNewContactMethodParams';
@@ -150,6 +151,7 @@ export type {default as FlagCommentParams} from './FlagCommentParams';
 export type {default as UpdateReportPrivateNoteParams} from './UpdateReportPrivateNoteParams';
 export type {default as UpdateCompanyInformationForBankAccountParams} from './UpdateCompanyInformationForBankAccountParams';
 export type {default as UpdatePersonalDetailsForWalletParams} from './UpdatePersonalDetailsForWalletParams';
+export type {default as UpdatePersonalBankAccountInfoParams} from './UpdatePersonalBankAccountInfoParams';
 export type {default as VerifyIdentityParams} from './VerifyIdentityParams';
 export type {default as AcceptWalletTermsParams} from './AcceptWalletTermsParams';
 export type {default as ChronosRemoveOOOEventParams} from './ChronosRemoveOOOEventParams';

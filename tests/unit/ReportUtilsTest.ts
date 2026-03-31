@@ -12,6 +12,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import * as HoldUtils from '@libs/actions/IOU/Hold';
 import {putOnHold} from '@libs/actions/IOU/Hold';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
+import type {TaskForParameters} from '@libs/actions/Report';
 import type {OnboardingTaskLinks} from '@libs/actions/Welcome/OnboardingFlow';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
@@ -52,6 +53,7 @@ import {
     canDeleteReportAction,
     canDeleteTransaction,
     canEditMoneyRequest,
+    canEditReportAction,
     canEditReportDescription,
     canEditReportTitle,
     canEditRoomVisibility,
@@ -74,6 +76,7 @@ import {
     getAvailableReportFields,
     getBillableAndTaxTotal,
     getChatByParticipants,
+    getChatListItemReportName,
     getChatRoomSubtitle,
     getDefaultWorkspaceAvatar,
     getDisplayNameForParticipant,
@@ -933,6 +936,90 @@ describe('ReportUtils', () => {
             expect(result?.guidedSetupData.length).toBeGreaterThanOrEqual(1);
             const messageEntries = result?.guidedSetupData.filter((data) => data.type === 'message');
             expect(messageEntries?.length).toBeGreaterThanOrEqual(1);
+        });
+
+        it('should auto-complete VIEW_TOUR task when isSelfTourViewed is true', () => {
+            const result = prepareOnboardingOnyxData({
+                introSelected: undefined,
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                onboardingMessage: {
+                    message: 'This is a test',
+                    tasks: [
+                        {
+                            type: CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR,
+                            title: () => 'View Tour',
+                            description: () => 'Take a tour',
+                            autoCompleted: false,
+                        },
+                    ],
+                },
+                adminsChatReportID: '1',
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                isSelfTourViewed: true,
+            });
+
+            const viewTourTask = result?.guidedSetupData.find(
+                (item): item is Extract<TaskForParameters, {type: 'task'}> => item.type === 'task' && 'task' in item && item.task === CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR,
+            );
+            expect(viewTourTask).toBeDefined();
+            expect(viewTourTask?.completedTaskReportActionID).toBeDefined();
+        });
+
+        it('should not auto-complete VIEW_TOUR task when isSelfTourViewed is false', () => {
+            const result = prepareOnboardingOnyxData({
+                introSelected: undefined,
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                onboardingMessage: {
+                    message: 'This is a test',
+                    tasks: [
+                        {
+                            type: CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR,
+                            title: () => 'View Tour',
+                            description: () => 'Take a tour',
+                            autoCompleted: false,
+                        },
+                    ],
+                },
+                adminsChatReportID: '1',
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                isSelfTourViewed: false,
+            });
+
+            const viewTourTask = result?.guidedSetupData.find(
+                (item): item is Extract<TaskForParameters, {type: 'task'}> => item.type === 'task' && 'task' in item && item.task === CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR,
+            );
+            expect(viewTourTask).toBeDefined();
+            expect(viewTourTask?.completedTaskReportActionID).toBeUndefined();
+        });
+
+        it('should auto-complete VIEW_TOUR task when isSelfTourViewed is undefined but onboarding.selfTourViewed is true via Onyx', async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {selfTourViewed: true, hasCompletedGuidedSetupFlow: false});
+            await waitForBatchedUpdates();
+
+            const result = prepareOnboardingOnyxData({
+                introSelected: undefined,
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                onboardingMessage: {
+                    message: 'This is a test',
+                    tasks: [
+                        {
+                            type: CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR,
+                            title: () => 'View Tour',
+                            description: () => 'Take a tour',
+                            autoCompleted: false,
+                        },
+                    ],
+                },
+                adminsChatReportID: '1',
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                isSelfTourViewed: undefined,
+            });
+
+            const viewTourTask = result?.guidedSetupData.find(
+                (item): item is Extract<TaskForParameters, {type: 'task'}> => item.type === 'task' && 'task' in item && item.task === CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR,
+            );
+            expect(viewTourTask).toBeDefined();
+            expect(viewTourTask?.completedTaskReportActionID).toBeDefined();
         });
     });
 
@@ -4845,10 +4932,10 @@ describe('ReportUtils', () => {
             const unholdRequestSpy = jest.spyOn(HoldUtils, 'unholdRequest').mockImplementation(() => undefined);
 
             // When changeMoneyRequestHoldStatus is called
-            changeMoneyRequestHoldStatus(reportAction, iouTransaction);
+            changeMoneyRequestHoldStatus(reportAction, iouTransaction, false);
 
             // Then unholdRequest should be called with the correct parameters and navigation should not be called
-            expect(unholdRequestSpy).toHaveBeenCalledWith(transactionID, childReportID, expect.objectContaining({id: policyID}));
+            expect(unholdRequestSpy).toHaveBeenCalledWith(transactionID, childReportID, expect.objectContaining({id: policyID}), false);
             expect(Navigation.navigate).not.toHaveBeenCalled();
         });
 
@@ -4890,7 +4977,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             // When changeMoneyRequestHoldStatus is called
-            changeMoneyRequestHoldStatus(reportAction, iouTransaction);
+            changeMoneyRequestHoldStatus(reportAction, iouTransaction, false);
 
             // Then navigation should be called with the correct parameters
             expect(Navigation.navigate).toHaveBeenCalledWith(
@@ -5068,7 +5155,7 @@ describe('ReportUtils', () => {
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoiceReport.reportID}`, invoiceReport);
 
-            const canEditRequest = canEditMoneyRequest(moneyRequestAction, true, invoiceReport, undefined, transaction);
+            const canEditRequest = canEditMoneyRequest(moneyRequestAction, transaction, true, invoiceReport);
 
             expect(canEditRequest).toEqual(false);
         });
@@ -5108,9 +5195,307 @@ describe('ReportUtils', () => {
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
 
-            const canEditRequest = canEditMoneyRequest(moneyRequestAction, true, expenseReport, undefined, transaction);
+            const canEditRequest = canEditMoneyRequest(moneyRequestAction, transaction, true, expenseReport);
 
             expect(canEditRequest).toEqual(true);
+        });
+
+        it('it should return false when linkedTransaction is undefined', () => {
+            const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                reportActionID: '44',
+                actorAccountID: currentUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: '1',
+                    IOUTransactionID: '44',
+                    amount: 100,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'USD 1.00 expense',
+                        text: 'USD 1.00 expense',
+                        isEdited: false,
+                        whisperedTo: [],
+                        isDeletedParentAction: false,
+                        deleted: '',
+                    },
+                ],
+                created: '2025-03-05 16:34:27',
+            };
+
+            const canEditRequest = canEditMoneyRequest(moneyRequestAction, undefined);
+
+            expect(canEditRequest).toEqual(false);
+        });
+
+        it('it should return false for a deleted money request action', () => {
+            const transaction = createRandomTransaction(56);
+            const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                reportActionID: '56',
+                actorAccountID: currentUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: '1',
+                    IOUTransactionID: transaction.transactionID,
+                    amount: 100,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: '',
+                        text: '',
+                        isDeletedParentAction: true,
+                        deleted: '2025-03-05 16:34:27',
+                    },
+                ],
+                created: '2025-03-05 16:34:27',
+            };
+
+            const canEditRequest = canEditMoneyRequest(moneyRequestAction, transaction);
+
+            expect(canEditRequest).toEqual(false);
+        });
+
+        it('it should return false for a non-allowed action type (DELETE)', () => {
+            const transaction = createRandomTransaction(57);
+            const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                reportActionID: '57',
+                actorAccountID: currentUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: '1',
+                    IOUTransactionID: transaction.transactionID,
+                    amount: 100,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.DELETE,
+                },
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'USD 1.00 expense',
+                        text: 'USD 1.00 expense',
+                        isEdited: false,
+                        whisperedTo: [],
+                        isDeletedParentAction: false,
+                        deleted: '',
+                    },
+                ],
+                created: '2025-03-05 16:34:27',
+            };
+
+            const canEditRequest = canEditMoneyRequest(moneyRequestAction, transaction);
+
+            expect(canEditRequest).toEqual(false);
+        });
+
+        it('it should return false when linkedTransaction has a pending ADD action with errors', () => {
+            const transaction = {
+                ...createRandomTransaction(55),
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                errors: {error: 'Something went wrong'},
+            };
+            const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                reportActionID: '55',
+                actorAccountID: currentUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: '1',
+                    IOUTransactionID: transaction.transactionID,
+                    amount: 100,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'USD 1.00 expense',
+                        text: 'USD 1.00 expense',
+                        isEdited: false,
+                        whisperedTo: [],
+                        isDeletedParentAction: false,
+                        deleted: '',
+                    },
+                ],
+                created: '2025-03-05 16:34:27',
+            };
+
+            const canEditRequest = canEditMoneyRequest(moneyRequestAction, transaction);
+
+            expect(canEditRequest).toEqual(false);
+        });
+    });
+
+    describe('canEditReportAction', () => {
+        it('it should return true for a non-money-request comment by current user', () => {
+            const transaction = createRandomTransaction(100);
+            const reportAction: ReportAction = {
+                reportActionID: '100',
+                actorAccountID: currentUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'Hello world',
+                        text: 'Hello world',
+                    },
+                ],
+                created: '2025-03-05 16:34:27',
+            };
+
+            expect(canEditReportAction(reportAction, transaction)).toEqual(true);
+        });
+
+        it('it should return false for a money request action with a failed transaction', () => {
+            const transaction = {
+                ...createRandomTransaction(101),
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                errors: {error: 'Something went wrong'},
+            };
+            const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                reportActionID: '101',
+                actorAccountID: currentUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: '1',
+                    IOUTransactionID: transaction.transactionID,
+                    amount: 500,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'USD 5.00 expense',
+                        text: 'USD 5.00 expense',
+                        isEdited: false,
+                        whisperedTo: [],
+                        isDeletedParentAction: false,
+                        deleted: '',
+                    },
+                ],
+                created: '2025-03-05 16:34:27',
+            };
+
+            expect(canEditReportAction(moneyRequestAction, transaction)).toEqual(false);
+        });
+
+        it('it should return true for a money request action with a valid linkedTransaction', async () => {
+            const expenseReport: Report = {
+                reportID: '1',
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            const transaction = createRandomTransaction(103);
+            const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                reportActionID: '103',
+                actorAccountID: currentUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: expenseReport.reportID,
+                    IOUTransactionID: transaction.transactionID,
+                    amount: 500,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'USD 5.00 expense',
+                        text: 'USD 5.00 expense',
+                        isEdited: false,
+                        whisperedTo: [],
+                        isDeletedParentAction: false,
+                        deleted: '',
+                    },
+                ],
+                created: '2025-03-05 16:34:27',
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+
+            expect(canEditReportAction(moneyRequestAction, transaction)).toEqual(true);
+        });
+
+        it('it should return false for a report action by another user', () => {
+            const transaction = createRandomTransaction(102);
+            const reportAction: ReportAction = {
+                reportActionID: '102',
+                actorAccountID: 999999,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'Hello world',
+                        text: 'Hello world',
+                    },
+                ],
+                created: '2025-03-05 16:34:27',
+            };
+
+            expect(canEditReportAction(reportAction, transaction)).toEqual(false);
+        });
+
+        it('it should return false for a deleted report action', () => {
+            const transaction = createRandomTransaction(104);
+            const reportAction: ReportAction = {
+                reportActionID: '104',
+                actorAccountID: currentUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: '',
+                        text: '',
+                        isDeletedParentAction: true,
+                        deleted: '2025-03-05 16:34:27',
+                    },
+                ],
+                created: '2025-03-05 16:34:27',
+            };
+
+            expect(canEditReportAction(reportAction, transaction)).toEqual(false);
+        });
+
+        it('it should return false for a report action with pending DELETE', () => {
+            const transaction = createRandomTransaction(105);
+            const reportAction: ReportAction = {
+                reportActionID: '105',
+                actorAccountID: currentUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'Hello world',
+                        text: 'Hello world',
+                    },
+                ],
+                created: '2025-03-05 16:34:27',
+            };
+
+            expect(canEditReportAction(reportAction, transaction)).toEqual(false);
+        });
+
+        it('it should return false for a CREATED action type', () => {
+            const transaction = createRandomTransaction(106);
+            const reportAction: ReportAction = {
+                reportActionID: '106',
+                actorAccountID: currentUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'Chat created',
+                        text: 'Chat created',
+                    },
+                ],
+                created: '2025-03-05 16:34:27',
+            };
+
+            expect(canEditReportAction(reportAction, transaction)).toEqual(false);
         });
     });
 
@@ -15078,6 +15463,65 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('getChatListItemReportName', () => {
+        const conciergeReportID = 'concierge-report-123';
+
+        beforeEach(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdates();
+        });
+
+        it('should return CONCIERGE_DISPLAY_NAME when conciergeReportID matches report ID', async () => {
+            const conciergeReport: Report = {
+                reportID: conciergeReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`, conciergeReport);
+            await waitForBatchedUpdates();
+
+            const action = {...createRandomReportAction(1)};
+            const result = getChatListItemReportName(action, conciergeReport, conciergeReportID);
+            expect(result).toBe(CONST.CONCIERGE_DISPLAY_NAME);
+        });
+
+        it('should not return CONCIERGE_DISPLAY_NAME when conciergeReportID does not match report ID', async () => {
+            const regularReport: Report = {
+                reportID: 'regular-report-456',
+                type: CONST.REPORT.TYPE.CHAT,
+                reportName: 'Regular Chat',
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${regularReport.reportID}`, regularReport);
+            await waitForBatchedUpdates();
+
+            const action = {...createRandomReportAction(2)};
+            const result = getChatListItemReportName(action, regularReport, conciergeReportID);
+            expect(result).not.toBe(CONST.CONCIERGE_DISPLAY_NAME);
+        });
+
+        it('should return action.reportName when set, regardless of conciergeReportID', () => {
+            const conciergeReport: Report = {
+                reportID: conciergeReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            const action = {...createRandomReportAction(3), reportName: 'Custom Action Name'};
+            const result = getChatListItemReportName(action, conciergeReport, conciergeReportID);
+            expect(result).toBe('Custom Action Name');
+        });
+
+        it('should use Onyx-connected conciergeReportID when explicit parameter is undefined', async () => {
+            const conciergeReport: Report = {
+                reportID: conciergeReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, conciergeReportID);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`, conciergeReport);
+            await waitForBatchedUpdates();
+
+            const action = {...createRandomReportAction(4)};
+            const result = getChatListItemReportName(action, conciergeReport, undefined);
+            expect(result).toBe(CONST.CONCIERGE_DISPLAY_NAME);
+        });
+    });
     describe('buildOptimisticApprovedReportAction', () => {
         it('should set actorAccountID to the provided currentUserAccountID', () => {
             const customAccountID = 99;

@@ -803,11 +803,15 @@ const CONST = {
         },
     },
     ENABLE_GLOBAL_REIMBURSEMENTS: {
-        STEP_NAMES: ['1', '2', '3'],
-        STEP: {
-            BUSINESS_INFO: 'BusinessInfoStep',
-            AGREEMENTS: 'AgreementsStep',
-            DOCUSIGN: 'DocusignStep',
+        STEP_INDEX_LIST: ['1', '2', '3'],
+        PAGE_NAME: {
+            BUSINESS_INFO: {
+                REGISTRATION_NUMBER: 'registration-number',
+                TYPE: 'type',
+                PAYMENT_VOLUME: 'payment-volume',
+                AVERAGE_REIMBURSEMENT: 'average-reimbursement',
+                CONFIRM: 'confirm',
+            },
         },
         ALLOWED_FILE_TYPES: ['pdf', 'jpg', 'jpeg', 'png'],
     },
@@ -844,6 +848,7 @@ const CONST = {
         PERSONAL_CARD_IMPORT: 'personalCardImport',
         SUGGESTED_FOLLOWUPS: 'suggestedFollowups',
         FREEZE_CARD: 'freezeCard',
+        BULK_EDIT: 'bulkEdit',
         NEW_MANUAL_EXPENSE_FLOW: 'newManualExpenseFlow',
     },
     BUTTON_STATES: {
@@ -1163,6 +1168,7 @@ const CONST = {
         'https://help.expensify.com/articles/new-expensify/connect-credit-cards/company-cards/Commercial-feeds#how-to-set-up-an-american-express-corporate-feed',
     COMPANY_CARDS_STRIPE_HELP: 'https://dashboard.stripe.com/login?redirect=%2Fexpenses%2Fsettings',
     COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL: 'https://help.expensify.com/new-expensify/hubs/connect-credit-cards/',
+    COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL: 'https://help.expensify.com/articles/new-expensify/connect-credit-cards/Company-Card-Settings',
     CUSTOM_REPORT_NAME_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/spending-insights/Export-Expenses-And-Reports#formulas',
     CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/workspaces/Configure-Reimbursement-Settings',
     CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Set-up-rules#configure-expense-report-rules',
@@ -1259,6 +1265,7 @@ const CONST = {
         SHUTTER_SIZE: 90,
         MAX_REPORT_PREVIEW_RECEIPTS: 3,
         FLASH_DELAY_MS: 2000,
+        PHOTO_ASPECT_RATIO: 4 / 3,
     },
     RECEIPT_PREVIEW_TOP_BOTTOM_MARGIN: 120,
     REPORT: {
@@ -1452,6 +1459,7 @@ const CONST = {
                     ADD_CUSTOM_UNIT: 'POLICYCHANGELOG_ADD_CUSTOM_UNIT',
                     ADD_CUSTOM_UNIT_RATE: 'POLICYCHANGELOG_ADD_CUSTOM_UNIT_RATE',
                     ADD_EMPLOYEE: 'POLICYCHANGELOG_ADD_EMPLOYEE',
+                    ADD_CARD_FEED: 'POLICYCHANGELOG_ADD_CARD_FEED',
                     ADD_INTEGRATION: 'POLICYCHANGELOG_ADD_INTEGRATION',
                     ADD_REPORT_FIELD: 'POLICYCHANGELOG_ADD_REPORT_FIELD',
                     ADD_TAG: 'POLICYCHANGELOG_ADD_TAG',
@@ -1467,6 +1475,7 @@ const CONST = {
                     DELETE_CUSTOM_UNIT_RATE: 'POLICYCHANGELOG_DELETE_CUSTOM_UNIT_RATE',
                     DELETE_CUSTOM_UNIT_SUB_RATE: 'POLICYCHANGELOG_DELETE_CUSTOM_UNIT_SUB_RATE',
                     DELETE_EMPLOYEE: 'POLICYCHANGELOG_DELETE_EMPLOYEE',
+                    DELETE_CARD_FEED: 'POLICYCHANGELOG_DELETE_CARD_FEED',
                     DELETE_INTEGRATION: 'POLICYCHANGELOG_DELETE_INTEGRATION',
                     DELETE_REPORT_FIELD: 'POLICYCHANGELOG_DELETE_REPORT_FIELD',
                     DELETE_TAG: 'POLICYCHANGELOG_DELETE_TAG',
@@ -1535,6 +1544,11 @@ const CONST = {
                     UPDATE_TAG_NAME: 'POLICYCHANGELOG_UPDATE_TAG_NAME',
                     UPDATE_TIME_ENABLED: 'POLICYCHANGELOG_UPDATE_TIME_ENABLED',
                     UPDATE_TIME_RATE: 'POLICYCHANGELOG_UPDATE_TIME_RATE',
+                    RENAME_CARD_FEED: 'POLICYCHANGELOG_RENAME_CARD_FEED',
+                    ASSIGN_COMPANY_CARD: 'POLICYCHANGELOG_ASSIGN_COMPANY_CARD',
+                    UNASSIGN_COMPANY_CARD: 'POLICYCHANGELOG_UNASSIGN_COMPANY_CARD',
+                    UPDATE_CARD_FEED_LIABILITY: 'POLICYCHANGELOG_UPDATE_CARD_FEED_LIABILITY',
+                    UPDATE_CARD_FEED_STATEMENT_PERIOD: 'POLICYCHANGELOG_UPDATE_CARD_FEED_STATEMENT_PERIOD',
                     LEAVE_POLICY: 'POLICYCHANGELOG_LEAVE_POLICY',
                     CORPORATE_UPGRADE: 'POLICYCHANGELOG_CORPORATE_UPGRADE',
                     CORPORATE_FORCE_UPGRADE: 'POLICYCHANGELOG_CORPORATE_FORCE_UPGRADE',
@@ -3000,6 +3014,14 @@ const CONST = {
         VENDOR_BILL: 'VENDOR_BILL',
     },
 
+    UPDATE_PERSONAL_BANK_ACCOUNT: {
+        PAGE_NAME: {
+            LEGAL_NAME: 'legal-name',
+            ADDRESS: 'address',
+            PHONE_NUMBER: 'phone-number',
+        },
+    },
+
     MISSING_PERSONAL_DETAILS: {
         STEP_INDEX_LIST: ['1', '2', '3', '4'],
         STEP_INDEX_LIST_WITH_PIN: ['1', '2', '3', '4', '5'],
@@ -3241,6 +3263,8 @@ const CONST = {
         QUANTITY_MAX_LENGTH: 12,
         // This is the transactionID used when going through the create expense flow so that it mimics a real transaction (like the edit flow)
         OPTIMISTIC_TRANSACTION_ID: '1',
+        // This is the transactionID used when bulk editing multiple expenses
+        OPTIMISTIC_BULK_EDIT_TRANSACTION_ID: 'optimisticBulkEditTransactionID',
         // This is the transactionID used when going through the distance split expense flow so that it mimics a draft transaction
         OPTIMISTIC_DISTANCE_SPLIT_TRANSACTION_ID: '2',
         // Note: These payment types are used when building IOU reportAction message values in the server and should
@@ -3996,6 +4020,7 @@ const CONST = {
             PLAID_CONNECTION: 'PlaidConnection',
             SELECT_STATEMENT_CLOSE_DATE: 'SelectStatementCloseDate',
             SELECT_DIRECT_STATEMENT_CLOSE_DATE: 'SelectDirectStatementCloseDate',
+            IMPORT_FROM_FILE: 'ImportFromFile',
         },
         CARD_TYPE: {
             AMEX: 'amex',
@@ -4027,6 +4052,7 @@ const CONST = {
             WELLS_FARGO: 'Wells Fargo',
             MOCK_BANK: 'Mock Bank',
             OTHER: 'Other',
+            FILE_IMPORT: 'Import transactions from file',
         },
         NON_CONNECTABLE_BANKS: {
             PEX: 'PEX',
@@ -4553,6 +4579,7 @@ const CONST = {
         TAX_RATE: 'taxRate',
         TAX_AMOUNT: 'taxAmount',
         REIMBURSABLE: 'reimbursable',
+        BILLABLE: 'billable',
         REPORT: 'report',
     },
     FOOTER: {
@@ -7354,6 +7381,7 @@ const CONST = {
             TAG: 'tag',
         },
         BULK_ACTION_TYPES: {
+            EDIT: 'edit',
             EXPORT: 'export',
             APPROVE: 'approve',
             PAY: 'pay',
@@ -8268,6 +8296,15 @@ const CONST = {
         DATE: 'date',
         MERCHANT: 'merchant',
         TRANSACTION_FIELDS: ['date', 'merchant', 'amount', 'category'] as const,
+        CARD_NUMBER: 'cardNumber',
+        POSTED_DATE: 'postedDate',
+        TAG: 'tag',
+        COMMENT: 'comment',
+        ORIGINAL_TRANSACTION_DATE: 'originalTransactionDate',
+        ORIGINAL_AMOUNT: 'originalAmount',
+        ORIGINAL_CURRENCY: 'originalCurrency',
+        UNIQUE_ID: 'uniqueID',
+        EXTERNAL_ID: 'externalID',
     },
 
     IMPORT_SPREADSHEET: {
