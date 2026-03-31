@@ -4225,8 +4225,10 @@ const CONST = {
         FIELDS: {
             CARD_IDS: 'cardIDs',
             RESTRICTION_ACTION: 'restrictionAction',
-            MERCHANTS: 'merchants',
+            MERCHANT_NAMES: 'merchantNames',
+            MERCHANT_MATCH_TYPES: 'merchantMatchTypes',
             CATEGORIES: 'categories',
+            MAX_AMOUNT: 'maxAmount',
         },
     },
 

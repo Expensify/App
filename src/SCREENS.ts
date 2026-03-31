@@ -822,6 +822,7 @@ const SCREENS = {
         RULES_SPEND_NEW: 'Rules_Spend_New',
         RULES_SPEND_CARD: 'Rules_Spend_Card',
         RULES_SPEND_CATEGORY: 'Rules_Spend_Category',
+        RULES_SPEND_MAX_AMOUNT: 'Rules_Spend_Max_Amount',
         RULES_MERCHANT_MERCHANT_TO_MATCH: 'Rules_Merchant_Merchant_To_Match',
         RULES_MERCHANT_MATCH_TYPE: 'Rules_Merchant_Match_Type',
         RULES_MERCHANT_MERCHANT: 'Rules_Merchant_Merchant',

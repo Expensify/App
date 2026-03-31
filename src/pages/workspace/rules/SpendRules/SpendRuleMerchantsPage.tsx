@@ -10,7 +10,6 @@ import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hook
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {updateDraftSpendRule} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -19,14 +18,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {SpendRuleMerchant} from '@src/types/form/SpendRuleForm';
 
 type SpendRuleMerchantsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_SPEND_MERCHANTS>;
-
-function getMatchTypeDescription(merchant: SpendRuleMerchant, translate: ReturnType<typeof useLocalize>['translate']) {
-    const isExactMatch = merchant.matchType === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO;
-    return isExactMatch ? translate('workspace.rules.spendRules.merchantExactlyMatches') : translate('workspace.rules.spendRules.merchantContains');
-}
 
 function SpendRuleMerchantsPage({route}: SpendRuleMerchantsPageProps) {
     const {policyID} = route.params;
@@ -37,7 +30,8 @@ function SpendRuleMerchantsPage({route}: SpendRuleMerchantsPageProps) {
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus']);
 
     const restrictionAction = spendRuleForm?.restrictionAction ?? CONST.SPEND_CARD_RULE.ACTION.ALLOW;
-    const merchants = spendRuleForm?.merchants ?? [];
+    const merchantNames = spendRuleForm?.merchantNames ?? [];
+    const merchantMatchTypes = spendRuleForm?.merchantMatchTypes ?? [];
 
     const emptyStateTitle =
         restrictionAction === CONST.SPEND_CARD_RULE.ACTION.BLOCK ? translate('workspace.rules.spendRules.noBlockedMerchants') : translate('workspace.rules.spendRules.noAllowedMerchants');
@@ -51,11 +45,6 @@ function SpendRuleMerchantsPage({route}: SpendRuleMerchantsPageProps) {
 
     const addMerchant = () => {
         Navigation.navigate(ROUTES.RULES_SPEND_MERCHANT_EDIT.getRoute(policyID, ROUTES.NEW));
-    };
-
-    const handleSaveRule = () => {
-        updateDraftSpendRule({merchants});
-        Navigation.goBack(ROUTES.RULES_SPEND_NEW.getRoute(policyID));
     };
 
     return (
@@ -83,14 +72,14 @@ function SpendRuleMerchantsPage({route}: SpendRuleMerchantsPageProps) {
                         titleStyle={styles.textStrong}
                         onPress={addMerchant}
                     />
-                    {merchants.length > 0 ? (
-                        merchants.map((merchant, index) => (
+                    {merchantNames.length > 0 ? (
+                        merchantNames.map((merchantName, index) => (
                             <MenuItemWithTopDescription
-                                key={`${merchant.name}-${merchant.matchType}`}
-                                description={getMatchTypeDescription(merchant, translate)}
+                                key={`${merchantName}-${merchantMatchTypes.at(index) ?? ''}`}
+                                description={merchantMatchTypes.at(index) === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO ? translate('workspace.rules.spendRules.merchantExactlyMatches') : translate('workspace.rules.spendRules.merchantContains')}
                                 onPress={() => Navigation.navigate(ROUTES.RULES_SPEND_MERCHANT_EDIT.getRoute(policyID, String(index)))}
                                 shouldShowRightIcon
-                                title={merchant.name}
+                                title={merchantName}
                                 titleStyle={styles.flex1}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
                             />
@@ -109,7 +98,7 @@ function SpendRuleMerchantsPage({route}: SpendRuleMerchantsPageProps) {
                     buttonText={translate('common.save')}
                     containerStyles={[styles.m4, styles.mb5]}
                     isAlertVisible={false}
-                    onSubmit={handleSaveRule}
+                    onSubmit={goBack}
                     enabledWhenOffline
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_SAVE}
                 />

@@ -1065,8 +1065,6 @@ const ONYXKEYS = {
         MERCHANT_RULE_FORM_DRAFT: 'merchantRuleFormDraft',
         SPEND_RULE_FORM: 'spendRuleForm',
         SPEND_RULE_FORM_DRAFT: 'spendRuleFormDraft',
-        SPEND_RULE_MERCHANT_FORM: 'spendRuleMerchantForm',
-        SPEND_RULE_MERCHANT_FORM_DRAFT: 'spendRuleMerchantFormDraft',
         ADD_DOMAIN_MEMBER_FORM: 'addDomainMemberForm',
         ADD_DOMAIN_MEMBER_FORM_DRAFT: 'addDomainMemberFormDraft',
         ADD_WORK_EMAIL_FORM: 'addWorkEmailForm',
@@ -1210,7 +1208,6 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.EXPENSE_RULE_FORM]: FormTypes.ExpenseRuleForm;
     [ONYXKEYS.FORMS.MERCHANT_RULE_FORM]: FormTypes.MerchantRuleForm;
     [ONYXKEYS.FORMS.SPEND_RULE_FORM]: FormTypes.SpendRuleForm;
-    [ONYXKEYS.FORMS.SPEND_RULE_MERCHANT_FORM]: FormTypes.SpendRuleMerchantForm;
     [ONYXKEYS.FORMS.ADD_DOMAIN_MEMBER_FORM]: FormTypes.AddDomainMemberForm;
     [ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM]: FormTypes.AddWorkEmailForm;
 };

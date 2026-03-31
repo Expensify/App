@@ -2995,6 +2995,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/rules/spend-rules/new/category',
         getRoute: (policyID: string) => `workspaces/${policyID}/rules/spend-rules/new/category` as const,
     },
+    RULES_SPEND_MAX_AMOUNT: {
+        route: 'workspaces/:policyID/rules/spend-rules/new/max-amount',
+        getRoute: (policyID: string) => `workspaces/${policyID}/rules/spend-rules/new/max-amount` as const,
+    },
     RULES_SPEND_MERCHANTS: {
         route: 'workspaces/:policyID/rules/spend-rules/new/merchants',
         getRoute: (policyID: string) => `workspaces/${policyID}/rules/spend-rules/new/merchants` as const,

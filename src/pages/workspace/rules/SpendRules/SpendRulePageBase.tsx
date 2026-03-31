@@ -3,9 +3,11 @@ import {View} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -14,6 +16,7 @@ import {getSpendCardRuleValueJSON, setExpensifyCardRule} from '@libs/actions/Car
 import {clearDraftSpendRule, updateDraftSpendRule} from '@libs/actions/User';
 import {filterInactiveCards, getCardDescriptionForSearchTable, isCard} from '@libs/CardUtils';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
+import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -22,7 +25,6 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {SpendRuleMerchant} from '@src/types/form/SpendRuleForm';
 import SpendRuleRestrictionTypeToggle from './SpendRuleRestrictionTypeToggle';
 
 type SpendRulePageBaseProps = {
@@ -36,6 +38,7 @@ const MAX_SUMMARY_CHARS = 74;
 function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
     const domainAccountID = useDefaultFundID(policyID);
     const [spendRuleForm] = useOnyx(ONYXKEYS.FORMS.SPEND_RULE_FORM);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
@@ -62,17 +65,46 @@ function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps)
 
     const categoriesMenuTitle = (spendRuleForm?.categories ?? []).map((categoryName) => getDecodedCategoryName(categoryName)).join(', ');
 
-    function getMerchantMenuTitle(merchantsToSummarize: SpendRuleMerchant[] | undefined): string {
-        const normalizedMerchants = (merchantsToSummarize ?? []).map((merchant) => ({...merchant, name: merchant.name.trim()})).filter((merchant) => merchant.name !== '');
-        if (!normalizedMerchants.length) {
+    const selectedCardsCurrencies = new Set<string>();
+    for (const id of cardIDs ?? []) {
+        const cardValue = cardsList?.[id];
+        if (cardValue === undefined || !isCard(cardValue)) {
+            continue;
+        }
+        if (typeof cardValue.nameValuePairs?.currency === 'string' && cardValue.nameValuePairs.currency) {
+            selectedCardsCurrencies.add(String(cardValue.nameValuePairs.currency));
+        }
+    }
+
+    const hasCurrencyMismatch = !(cardIDs?.length ?? 0) || selectedCardsCurrencies.size > 1;
+    const selectedCurrency = selectedCardsCurrencies.size === 1 ? Array.from(selectedCardsCurrencies).at(0) : undefined;
+    const parsedMaxAmount = Number.parseFloat(spendRuleForm?.maxAmount ?? '');
+    const maxAmountMenuTitle = Number.isFinite(parsedMaxAmount) ? convertToDisplayString(convertToBackendAmount(parsedMaxAmount), selectedCurrency ?? CONST.CURRENCY.USD) : '';
+
+    const openCurrencyMismatchModal = async () => {
+        const result = await showConfirmModal({
+            title: translate('workspace.rules.spendRules.currencyMismatchTitle'),
+            prompt: translate('workspace.rules.spendRules.currencyMismatchPrompt'),
+            confirmText: translate('workspace.rules.spendRules.reviewSelectedCards'),
+            cancelText: translate('common.cancel'),
+        });
+        if (result.action !== ModalActions.CONFIRM) {
+            return;
+        }
+        Navigation.navigate(ROUTES.RULES_SPEND_CARD.getRoute(policyID));
+    };
+
+    function getMerchantMenuTitle(merchantNamesToSummarize: string[] | undefined): string {
+        const normalizedMerchantNames = (merchantNamesToSummarize ?? []).map((merchantName) => merchantName.trim()).filter((merchantName) => merchantName !== '');
+        if (!normalizedMerchantNames.length) {
             return '';
         }
 
         let text = '';
         let shownCount = 0;
 
-        for (const merchant of normalizedMerchants) {
-            const nextText = text ? `${text}, ${merchant.name}` : merchant.name;
+        for (const merchantName of normalizedMerchantNames) {
+            const nextText = text ? `${text}, ${merchantName}` : merchantName;
             if (nextText.length > MAX_SUMMARY_CHARS) {
                 continue;
             }
@@ -80,7 +112,7 @@ function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps)
             shownCount++;
         }
 
-        const hiddenCount = Math.max(normalizedMerchants.length - shownCount, 0);
+        const hiddenCount = Math.max(normalizedMerchantNames.length - shownCount, 0);
         return text && hiddenCount > 0 ? translate('workspace.rules.spendRules.merchantsMoreCount', {summary: text, count: hiddenCount}) : text;
     }
 
@@ -130,7 +162,7 @@ function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps)
                         description={translate('common.merchant')}
                         onPress={() => Navigation.navigate(ROUTES.RULES_SPEND_MERCHANTS.getRoute(policyID))}
                         shouldShowRightIcon
-                        title={getMerchantMenuTitle(spendRuleForm?.merchants)}
+                        title={getMerchantMenuTitle(spendRuleForm?.merchantNames)}
                         numberOfLinesTitle={2}
                         titleStyle={styles.flex1}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
@@ -141,6 +173,14 @@ function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps)
                         shouldShowRightIcon
                         title={categoriesMenuTitle}
                         numberOfLinesTitle={2}
+                        titleStyle={styles.flex1}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
+                    />
+                    <MenuItemWithTopDescription
+                        description={translate('workspace.rules.spendRules.maxAmount')}
+                        onPress={() => (hasCurrencyMismatch ? openCurrencyMismatchModal() : Navigation.navigate(ROUTES.RULES_SPEND_MAX_AMOUNT.getRoute(policyID)))}
+                        shouldShowRightIcon
+                        title={maxAmountMenuTitle}
                         titleStyle={styles.flex1}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
                     />

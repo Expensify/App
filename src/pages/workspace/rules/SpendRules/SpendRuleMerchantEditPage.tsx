@@ -3,7 +3,6 @@ import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -24,8 +23,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {SpendRuleMerchant} from '@src/types/form/SpendRuleForm';
-import INPUT_IDS from '@src/types/form/SpendRuleMerchantForm';
+import INPUT_IDS from '@src/types/form/SpendRuleForm';
 
 type SpendRuleMerchantEditPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_SPEND_MERCHANT_EDIT>;
 
@@ -40,33 +38,40 @@ function SpendRuleMerchantEditPage({route}: SpendRuleMerchantEditPageProps) {
     const {inputCallbackRef} = useAutoFocusInput();
     const [spendRuleForm] = useOnyx(ONYXKEYS.FORMS.SPEND_RULE_FORM);
 
-    const merchants = spendRuleForm?.merchants ?? [];
+    const merchantNames = spendRuleForm?.merchantNames ?? [];
+    const merchantMatchTypes = spendRuleForm?.merchantMatchTypes ?? [];
     const isNew = merchantIndex === ROUTES.NEW;
     const index = isNew ? -1 : Number(merchantIndex);
-    const existingMerchant = isNew ? undefined : merchants.at(index);
+    const existingMerchantName = isNew ? undefined : merchantNames.at(index);
+    const existingMerchantMatchType = isNew ? undefined : merchantMatchTypes.at(index);
 
-    const [merchantName, setMerchantName] = useState(existingMerchant?.name ?? '');
-    const [matchType, setMatchType] = useState<ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>>(existingMerchant?.matchType ?? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
+    const [merchantName, setMerchantName] = useState(existingMerchantName ?? '');
+    const [matchType, setMatchType] = useState<ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>>(existingMerchantMatchType ?? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
 
     const goBack = () => {
         Navigation.goBack(ROUTES.RULES_SPEND_MERCHANTS.getRoute(policyID));
     };
 
-    const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SPEND_RULE_MERCHANT_FORM>) => {
-        const merchantNameValue = values[INPUT_IDS.MERCHANT_NAME] as string | undefined;
-        const trimmedMerchantName = merchantNameValue?.trim() ?? '';
+    const submit = () => {
+        const trimmedMerchantName = merchantName.trim();
         if (!trimmedMerchantName) {
             if (!isNew) {
-                const updatedMerchants = merchants.filter((_, merchantArrayIndex) => merchantArrayIndex !== index);
-                updateDraftSpendRule({merchants: updatedMerchants});
+                const updatedMerchantNames = merchantNames.filter((_, merchantArrayIndex) => merchantArrayIndex !== index);
+                const updatedMerchantMatchTypes = merchantMatchTypes.filter((_, merchantArrayIndex) => merchantArrayIndex !== index);
+                updateDraftSpendRule({merchantNames: updatedMerchantNames, merchantMatchTypes: updatedMerchantMatchTypes});
             }
             goBack();
             return;
         }
 
-        const currentMerchant: SpendRuleMerchant = {name: trimmedMerchantName, matchType};
-        const updatedMerchants = isNew ? [...merchants, currentMerchant] : merchants.map((merchant, merchantArrayIndex) => (merchantArrayIndex === index ? currentMerchant : merchant));
-        updateDraftSpendRule({merchants: updatedMerchants});
+        const updatedMerchantNames = isNew
+            ? [...merchantNames, trimmedMerchantName]
+            : merchantNames.map((name, merchantArrayIndex) => (merchantArrayIndex === index ? trimmedMerchantName : name));
+
+        const updatedMerchantMatchTypes = isNew
+            ? [...merchantMatchTypes, matchType]
+            : merchantMatchTypes.map((type, merchantArrayIndex) => (merchantArrayIndex === index ? matchType : type));
+        updateDraftSpendRule({merchantNames: updatedMerchantNames, merchantMatchTypes: updatedMerchantMatchTypes});
         goBack();
     };
 
@@ -93,13 +98,12 @@ function SpendRuleMerchantEditPage({route}: SpendRuleMerchantEditPageProps) {
             return;
         }
 
-        const current = merchants.at(index);
-        if (!current) {
+        if (!merchantMatchTypes.at(index)) {
             return;
         }
 
-        const currentMerchants = merchants.map((merchant, merchantArrayIndex) => (merchantArrayIndex === index ? {...merchant, matchType: nextMatchType} : merchant));
-        updateDraftSpendRule({merchants: currentMerchants});
+        const updatedMerchantMatchTypes = merchantMatchTypes.map((type, merchantArrayIndex) => (merchantArrayIndex === index ? nextMatchType : type));
+        updateDraftSpendRule({merchantMatchTypes: updatedMerchantMatchTypes});
     };
 
     return (
@@ -119,7 +123,7 @@ function SpendRuleMerchantEditPage({route}: SpendRuleMerchantEditPageProps) {
                     onBackButtonPress={goBack}
                 />
                 <FormProvider
-                    formID={ONYXKEYS.FORMS.SPEND_RULE_MERCHANT_FORM}
+                    formID={ONYXKEYS.FORMS.SPEND_RULE_FORM}
                     submitButtonText={translate('common.save')}
                     style={[styles.flex1, styles.mt3]}
                     onSubmit={submit}
@@ -129,11 +133,12 @@ function SpendRuleMerchantEditPage({route}: SpendRuleMerchantEditPageProps) {
                     <View style={[styles.mb5]}>
                         <InputWrapper
                             InputComponent={TextInput}
-                            inputID={INPUT_IDS.MERCHANT_NAME}
+                            inputID={INPUT_IDS.MERCHANT_NAMES}
                             label={translate('common.merchant')}
                             accessibilityLabel={translate('common.merchant')}
                             value={merchantName}
                             onChangeText={setMerchantName}
+                            shouldSaveDraft={false}
                             ref={inputCallbackRef}
                             role={CONST.ROLE.PRESENTATION}
                             containerStyles={[styles.ph5]}
