@@ -7,6 +7,7 @@ import type {
     ConciergeBrokenCardConnectionParams,
     CreatedReportForUnapprovedTransactionsParams,
     MultifactorAuthenticationTranslationParams,
+    NextStepParams,
     PaidElsewhereParams,
     UpdatedPolicyTagParams,
     ViolationsRterParams,
@@ -567,6 +568,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unsupportedDevice: {
             unsupportedDevice: 'Dispositivo no compatible',
             pleaseDownloadMobileApp: `Esta acción no está soportada en tu dispositivo. Por favor descarga la aplicación de Expensify desde la <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> o <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> e inténtalo de nuevo.`,
+            pleaseUseWebApp: `Esta acción no está soportada en tu dispositivo. Por favor usa la <a href="${CONST.NEW_EXPENSIFY_URL}">aplicación web de Expensify</a> e inténtalo de nuevo.`,
         },
         biometricsTest: {
             biometricsTest: 'Prueba de biometría',
@@ -1223,6 +1225,7 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         settledExpensify: 'Pagado',
         done: 'Listo',
+        deleted: 'Eliminado',
         settledElsewhere: 'Pagado de otra forma',
         individual: 'Individual',
         business: 'Empresa',
@@ -1476,6 +1479,18 @@ const translations: TranslationDeepObject<typeof en> = {
                 markedAsResolved: 'marcó el motivo del rechazo como resuelto',
             },
         },
+        rejectReport: {
+            title: 'Rechazar informe',
+            description: 'Explica por qué rechazas este informe:',
+            rejectReason: 'Motivo del rechazo',
+            selectTarget: 'Elige al miembro al que devolver este informe para su revisión:',
+            lastApprover: 'Último aprobador',
+            submitter: 'Remitente',
+            rejectedReportMessage: 'Este informe fue rechazado.',
+            rejectedNextStep: 'Este informe fue rechazado. Esperando a que corrijas los problemas y lo vuelvas a enviar manualmente.',
+            selectMemberError: 'Selecciona un miembro al que devolver este informe.',
+            couldNotReject: 'No se pudo rechazar el informe. Por favor, inténtalo de nuevo.',
+        },
 
         moveExpenses: 'Mover a informe',
         moveExpensesError: 'No puedes mover gastos per diem a informes de otros espacios de trabajo, porque las tarifas de dietas pueden diferir entre espacios de trabajo.',
@@ -1704,6 +1719,18 @@ const translations: TranslationDeepObject<typeof en> = {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (_) =>
                 `¡Ups! Parece que estás enviando el informe a <strong>ti mismo</strong>. Aprobar tus propios informes está <strong>prohibido</strong> por tu espacio de trabajo. Por favor, envía este informe a otra persona o contacta a tu administrador para cambiar la persona a la que lo envías.`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: ({actor, actorType}: NextStepParams) => {
+                // All ACTOR_TYPE enum values are explicitly handled
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Este informe fue rechazado. Esperando a que <strong>tú</strong> corrijas los problemas y lo vuelvas a enviar manualmente.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Este informe fue rechazado. Esperando a que <strong>${actor}</strong> corrija los problemas y lo vuelva a enviar manualmente.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Este informe fue rechazado. Esperando a que un administrador corrija los problemas y lo vuelva a enviar manualmente.`;
+                }
+            },
         },
         eta: {
             [CONST.NEXT_STEP.ETA_KEY.SHORTLY]: 'en breve',
@@ -1875,6 +1902,7 @@ const translations: TranslationDeepObject<typeof en> = {
             softKillTheApp: 'Desactivar la aplicación',
             kill: 'Matar',
             sentryDebug: 'Depuración de Sentry',
+            sentrySendDescription: 'Enviar datos a Sentry',
             sentryDebugDescription: 'Registrar las solicitudes de Sentry en la consola',
             sentryHighlightedSpanOps: 'Nombres de spans resaltados',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigation, ui.load',
@@ -1886,6 +1914,11 @@ const translations: TranslationDeepObject<typeof en> = {
         versionLetter: 'v',
         readTheTermsAndPrivacy: `Leer los <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Términos de Servicio</a> y <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacidad</a>.`,
         help: 'Ayuda',
+        helpPage: {
+            title: 'Ayuda y soporte',
+            description: 'Estamos aquí para ayudarte las 24 horas, los 7 días de la semana',
+            helpSite: 'Sitio de ayuda',
+        },
         whatIsNew: 'Qué hay de nuevo',
         accountSettings: 'Configuración de la cuenta',
         account: 'Cuenta',
@@ -2823,13 +2856,8 @@ ${amount} para ${merchant} - ${date}`,
                         4. Busca ${integrationName}.
                         5. Haz clic en *Conectar*.
 
-                        ${
-                            integrationName && CONST.connectionsVideoPaths[integrationName]
-                                ? `[Ir a contabilidad](${workspaceAccountingLink}).
-
-                        ![Conéctate a ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
-                                : `[Ir a contabilidad](${workspaceAccountingLink}).`
-                        }`),
+                        [Ir a contabilidad](${workspaceAccountingLink}).
+                    `),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `Conecta [tu tarjeta corporativa](${corporateCardLink})`,
@@ -3208,6 +3236,13 @@ ${amount} para ${merchant} - ${date}`,
             `¡Ups! Parece que la moneda de tu espacio de trabajo no está configurada en USD. Para continuar, ve a <a href="${workspaceRoute}">la configuración del área de trabajo</a>, configúrala en USD e inténtalo nuevamente.`,
         bbaAdded: '¡Cuenta bancaria empresarial agregada!',
         bbaAddedDescription: 'Está lista para ser utilizada en pagos.',
+        lockedBankAccount: 'Cuenta bancaria bloqueada',
+        unlockBankAccount: 'Desbloquear cuenta bancaria',
+        youCantPayThis: `No puedes pagar este informe porque tienes una <a href="${CONST.UNLOCK_BANK_ACCOUNT_HELP_URL}">cuenta bancaria bloqueada</a>. Haz clic abajo y Concierge te ayudará con los próximos pasos para desbloquearla.`,
+        htmlUnlockMessage: (maskedAccountNumber: string) =>
+            `<h1>Cuenta Bancaria de Expensify ${maskedAccountNumber}</h1><p>Gracias por enviar una solicitud para desbloquear tu cuenta bancaria. Las solicitudes de retiro pueden ser rechazadas por fondos insuficientes o si la cuenta bancaria no ha sido habilitada para débito directo. Revisaremos tu caso y nos comunicaremos contigo si necesitamos algo más para resolver el problema.</p>`,
+        textUnlockMessage: (maskedAccountNumber: string) =>
+            `Cuenta Bancaria de Expensify ${maskedAccountNumber}\nGracias por enviar una solicitud para desbloquear tu cuenta bancaria. Las solicitudes de retiro pueden ser rechazadas por fondos insuficientes o si la cuenta bancaria no ha sido habilitada para débito directo. Revisaremos tu caso y nos comunicaremos contigo si necesitamos algo más para resolver el problema.`,
         error: {
             youNeedToSelectAnOption: 'Debes seleccionar una opción para continuar',
             noBankAccountAvailable: 'Lo sentimos, no hay ninguna cuenta bancaria disponible',
@@ -4885,6 +4920,9 @@ ${amount} para ${merchant} - ${date}`,
         companyCards: {
             addCards: 'Añadir tarjetas',
             selectCards: 'Seleccionar tarjetas',
+            fromOtherWorkspaces: 'De otros espacios de trabajo',
+            addWorkEmail: 'Añade tu correo electrónico de trabajo',
+            addWorkEmailDescription: 'Por favor, añade tu correo de trabajo para poder usar los feeds existentes de otros espacios de trabajo.',
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Error al cargar las fuentes de tarjetas del espacio de trabajo',
                 workspaceFeedsCouldNotBeLoadedMessage:
@@ -5007,6 +5045,11 @@ ${amount} para ${merchant} - ${date}`,
                 transactionsAreReimbursable: 'Las transacciones son reembolsables',
                 flipAmountSign: 'Invertir el signo del monto',
                 importButton: 'Importar transacciones',
+            },
+            deletedCard: 'Tarjeta eliminada',
+            assignNewCards: {
+                title: 'Asignar nuevas tarjetas',
+                description: 'Obtén las últimas tarjetas para asignar desde tu banco',
             },
         },
         expensifyCard: {
@@ -6330,17 +6373,20 @@ ${amount} para ${merchant} - ${date}`,
         },
         downgrade: {
             commonFeatures: {
-                title: 'Desmejorar al plan Recopilar',
-                note: 'Si desmejoras, perderás acceso a estas funciones y más:',
+                title: 'Reducir a Controlar',
+                note: 'Perderás acceso a las siguientes funciones ',
+                noteAndMore: 'y más:',
                 benefits: {
-                    note: 'Para una comparación completa de nuestros planes, consulta nuestra',
-                    pricingPage: 'página de precios',
-                    confirm: '¿Estás seguro de que deseas desmejorar y eliminar tus configuraciones?',
-                    warning: 'Esto no se puede deshacer.',
-                    benefit1: 'Conexiones de contabilidad (excepto QuickBooks Online y Xero)',
-                    benefit2: 'Reglas inteligentes de gastos',
-                    benefit3: 'Flujos de aprobación de varios niveles',
-                    benefit4: 'Controles de seguridad mejorados',
+                    important: '¡IMPORTANTE!',
+                    confirm: 'Necesitarás cambiar el "Tipo de plan" de cada espacio de trabajo a "Controlar" para asegurar la tarifa Controlar.',
+                    benefit1Label: 'Integraciones con ERP',
+                    benefit1: 'NetSuite, Sage Intacct, QuickBooks Desktop, Oracle, Microsoft Dynamics',
+                    benefit2Label: 'Integraciones con RR. HH.',
+                    benefit2: 'Workday, Certinia',
+                    benefit3Label: 'Seguridad',
+                    benefit3: 'SSO/SAML',
+                    benefit4Label: 'Avanzado',
+                    benefit4: 'Reglas inteligentes de gastos, dietas, aprobaciones multinivel, informes personalizados y presupuestos',
                     headsUp: '¡Atención!',
                     multiWorkspaceNote:
                         'Tendrás que bajar de categoría todos tus espacios de trabajo antes de tu primer pago mensual para comenzar una suscripción con la tasa del plan Recopilar. Haz clic en',
@@ -6418,8 +6464,7 @@ ${amount} para ${merchant} - ${date}`,
                 eReceiptsHint: `Los recibos electrónicos se crean automáticamente [para la mayoría de las transacciones en USD](${CONST.DEEP_DIVE_ERECEIPTS}).`,
                 attendeeTracking: 'Seguimiento de asistentes',
                 attendeeTrackingHint: 'Haz un seguimiento del coste por persona para cada gasto.',
-                prohibitedDefaultDescription:
-                    'Marque cualquier recibo donde aparezcan alcohol, apuestas u otros artículos restringidos. Los gastos con recibos que incluyan estos conceptos requerirán una revisión manual.',
+                prohibitedDefaultDescription: 'Marque los recibos con estos conceptos para revisión manual',
                 prohibitedExpenses: 'Gastos prohibidos',
                 alcohol: 'Alcohol',
                 hotelIncidentals: 'Gastos adicionales de hotel',
@@ -6709,7 +6754,8 @@ ${amount} para ${merchant} - ${date}`,
             `cambió la sub-tasa "${customUnitSubRateName}" de la tasa "${customUnitRateName}" de "${customUnitName}" ${updatedField} a "${newValue}" (anteriormente "${oldValue}")`,
         removedCustomUnitSubRate: ({customUnitName, customUnitRateName, removedSubRateName}) =>
             `eliminó la sub-tasa "${removedSubRateName}" de la tasa "${customUnitRateName}" de "${customUnitName}"`,
-        addedReportField: ({fieldType, fieldName}) => `añadió el campo de informe ${fieldType} "${fieldName}"`,
+        addedReportField: ({fieldType, fieldName, defaultValue}) =>
+            `añadió el campo de informe ${fieldType} "${fieldName}"${defaultValue ? ` con el valor predeterminado "${defaultValue}"` : ''}`,
         updatedCustomUnitRate: (customUnitName, customUnitRateName, updatedField, newValue, oldValue) =>
             `cambió la tasa de ${customUnitName} ${updatedField} "${customUnitRateName}" a "${newValue}" (previamente "${oldValue}")`,
         updatedCustomUnitTaxRateExternalID: (customUnitRateName, newValue, newTaxPercentage, oldTaxPercentage, oldValue) => {
@@ -7203,6 +7249,7 @@ ${amount} para ${merchant} - ${date}`,
             hold: 'Retener',
             unhold: 'Desbloquear',
             reject: 'Rechazar',
+            undelete: 'Restaurar',
             noOptionsAvailable: 'No hay opciones disponibles para el grupo de gastos seleccionado.',
         },
         filtersHeader: 'Filtros',
@@ -7216,6 +7263,7 @@ ${amount} para ${merchant} - ${date}`,
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'El mes pasado',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Este mes',
                     [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Año hasta la fecha',
+                    [CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS]: 'Últimos 12 meses',
                     [CONST.SEARCH.DATE_PRESETS.LAST_STATEMENT]: 'Último extracto',
                 },
             },
@@ -7303,6 +7351,10 @@ ${amount} para ${merchant} - ${date}`,
         searchIn: 'Buscar en',
         searchPlaceholder: 'Busca algo',
         suggestions: 'Sugerencias',
+        suggestionsAvailable: ({count}: {count: number}, query = '') => ({
+            one: `Sugerencias disponibles${query ? ` para ${query}` : ''}. ${count} resultado.`,
+            other: (resultCount: number) => `Sugerencias disponibles${query ? ` para ${query}` : ''}. ${resultCount} resultados.`,
+        }),
         exportSearchResults: {
             title: 'Crear exportación',
             description: '¡Wow, esos son muchos elementos! Los agruparemos y Concierge te enviará un archivo en breve.',
@@ -7977,6 +8029,9 @@ ${amount} para ${merchant} - ${date}`,
         scrollToNewestMessages: 'Desplázate a los mensajes más recientes',
         preStyledText: 'texto preestilizado',
         viewAttachment: 'Ver archivo adjunto',
+        contextMenuAvailable: 'Menú contextual disponible. Pulsa Shift+F10 para abrirlo.',
+        contextMenuAvailableMacOS: 'Menú contextual disponible. Pulsa VO-Shift-M para abrirlo.',
+        contextMenuAvailableNative: 'Menú contextual disponible. Pulsa dos veces y mantén pulsado para abrir.',
         selectAllFeatures: 'Seleccionar todas las características',
         selectAllItems: 'Seleccionar todos los elementos',
         selectAllTransactions: 'Seleccionar todas las transacciones',
@@ -8183,6 +8238,8 @@ ${amount} para ${merchant} - ${date}`,
             }
         },
         modifiedDate: 'Fecha difiere del recibo escaneado',
+        increasedDistance: ({formattedRouteDistance}) =>
+            formattedRouteDistance ? `La distancia supera la ruta calculada de ${formattedRouteDistance}` : 'La distancia supera la ruta calculada',
         nonExpensiworksExpense: 'Gasto no proviene de Expensiworks',
         overAutoApprovalLimit: (formattedLimit) => `Importe supera el límite de aprobación automática${formattedLimit ? ` de ${formattedLimit}` : ''}`,
         overCategoryLimit: (formattedLimit) => `Importe supera el límite para la categoría${formattedLimit ? ` de ${formattedLimit}/persona` : ''}`,
@@ -8730,6 +8787,7 @@ ${amount} para ${merchant} - ${date}`,
             theresWasAProblemDuringAWorkspaceConnectionSync: 'Hubo un problema durante la sincronización de la conexión del espacio de trabajo',
             theresAProblemWithYourWallet: 'Hay un problema con tu billetera',
             theresAProblemWithYourWalletTerms: 'Hay un problema con los términos de tu billetera',
+            aBankAccountIsLocked: 'Una cuenta bancaria está bloqueada',
         },
     },
     emptySearchView: {
