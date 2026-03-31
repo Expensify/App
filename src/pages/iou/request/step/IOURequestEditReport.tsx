@@ -138,6 +138,8 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     });
 
     const createReport = () => {
+        const isRestricted = !!(policyForMovingExpensesID && shouldRestrictUserBillableActions(policyForMovingExpensesID, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods));
+
         if (hasPerDiemTransactions) {
             handleCreateReport();
             return;
@@ -149,7 +151,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute(true, backTo));
             return;
         }
-        if (policyForMovingExpensesID && shouldRestrictUserBillableActions(policyForMovingExpensesID, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods)) {
+        if (isRestricted) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyForMovingExpensesID));
             return;
         }

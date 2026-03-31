@@ -238,11 +238,13 @@ function IOURequestEditReportCommon({
     };
 
     const handleCreateReport = useCallback(() => {
-        if (!validatePerDiemMove(policyForMovingExpenses?.id)) {
+        const canCreateReport = validatePerDiemMove(policyForMovingExpenses?.id);
+
+        if (!canCreateReport) {
             return;
         }
         createReport?.();
-    }, [validatePerDiemMove, policyForMovingExpenses?.id, createReport]);
+    }, [createReport, policyForMovingExpenses?.id, validatePerDiemMove]);
 
     const headerMessage = useMemo(() => (searchValue && !reportOptions.length ? translate('common.noResultsFound') : ''), [searchValue, reportOptions.length, translate]);
 
