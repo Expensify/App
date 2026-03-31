@@ -10,7 +10,6 @@ import type {PressableRef} from '@components/Pressable/GenericPressable/types';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useActiveElementRole from '@hooks/useActiveElementRole';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import HapticFeedback from '@libs/HapticFeedback';
@@ -19,8 +18,6 @@ import CONST from '@src/CONST';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import type {ButtonAppearanceProps} from './ButtonContext';
 import ButtonContext from './ButtonContext';
-import {ButtonIconLeft, ButtonIconRight} from './ButtonIcons';
-import ButtonText from './ButtonText';
 
 type ButtonEventsProps = {
     /** A function that is called when the button is clicked on */
@@ -173,7 +170,7 @@ function Button({
     children,
     allowBubble = false,
     contentContainerStyle = [],
-    size,
+    size = CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
     isLoading = false,
     isDisabled = false,
     onLayout = () => {},
@@ -203,31 +200,21 @@ function Button({
     sentryLabel,
     ref,
 }: ButtonProps) {
-    const resolvedSize = size ?? CONST.DROPDOWN_BUTTON_SIZE.MEDIUM;
     const theme = useTheme();
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const [isHovered, setIsHovered] = useState(false);
     const buttonLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'Button',
     };
-
-    // Detect which sub-components are present in children
-    const childrenArray = React.Children.toArray(children);
-    const hasIconLeft = childrenArray.some((child) => (child as React.ReactElement)?.type === ButtonIconLeft);
-    const hasText = childrenArray.some((child) => (child as React.ReactElement)?.type === ButtonText);
-    const hasIconRight = childrenArray.some((child) => (child as React.ReactElement)?.type === ButtonIconRight);
 
     const contextValue = useMemo(
         () => ({
             isHovered,
             isLoading,
             variant,
-            size: resolvedSize,
-            hasIconLeft,
-            hasText,
+            size,
         }),
-        [isHovered, isLoading, variant, resolvedSize, hasIconLeft, hasText],
+        [isHovered, isLoading, variant, size],
     );
 
     const buttonVariantStyles = useMemo(() => {
@@ -251,26 +238,26 @@ function Button({
         return [defaultButtonVariantStyles[variant], shouldUseDisabledStyles && disabledButtonVariantStyles[variant]];
     }, [isDisabled, shouldStayNormalOnDisable, styles, variant]);
 
+    const buttonSizeStyle = useMemo<StyleProp<ViewStyle>>(() => {
+        const allButtonSizeStyles = {
+            [CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL]: styles.buttonExtraSmall,
+            [CONST.DROPDOWN_BUTTON_SIZE.SMALL]: styles.buttonSmall,
+            [CONST.DROPDOWN_BUTTON_SIZE.MEDIUM]: styles.buttonMedium,
+            [CONST.DROPDOWN_BUTTON_SIZE.LARGE]: styles.buttonLarge,
+        };
+        return allButtonSizeStyles[size];
+    }, [size, styles.buttonExtraSmall, styles.buttonLarge, styles.buttonMedium, styles.buttonSmall]);
+
     const buttonStyles = useMemo<StyleProp<ViewStyle>>(
         () => [
             styles.button,
-            StyleUtils.getButtonStyleWithIcon(
-                styles,
-                size === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL,
-                size === CONST.DROPDOWN_BUTTON_SIZE.SMALL,
-                size === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
-                size === CONST.DROPDOWN_BUTTON_SIZE.LARGE,
-                hasIconLeft,
-                hasText,
-                hasIconRight,
-            ),
+            buttonSizeStyle,
             buttonVariantStyles,
             shouldRemoveBorderRadius === 'right' || shouldRemoveBorderRadius === 'all' ? styles.noRightBorderRadius : undefined,
             shouldRemoveBorderRadius === 'left' || shouldRemoveBorderRadius === 'all' ? styles.noLeftBorderRadius : undefined,
-            hasText && hasIconRight ? styles.alignItemsStretch : undefined,
             innerStyles,
         ],
-        [styles, buttonVariantStyles, shouldRemoveBorderRadius, innerStyles, hasText, hasIconRight, StyleUtils, size, hasIconLeft],
+        [styles, buttonVariantStyles, shouldRemoveBorderRadius, buttonSizeStyle, innerStyles],
     );
 
     const buttonContainerStyles = useMemo<StyleProp<ViewStyle>>(
@@ -376,7 +363,7 @@ function Button({
                     <ActivityIndicator
                         color={variant === 'success' || variant === 'danger' ? theme.textLight : theme.text}
                         style={[styles.pAbsolute, styles.l0, styles.r0]}
-                        size={resolvedSize === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL ? 12 : undefined}
+                        size={size === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL ? 12 : undefined}
                         reasonAttributes={buttonLoadingReasonAttributes}
                     />
                 )}

@@ -1,5 +1,8 @@
 import React from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {ButtonProps} from './Button';
 import Button from './Button';
@@ -70,6 +73,18 @@ function ButtonWithIcons({
     iconRightHoverFill,
     iconRightStyles = [],
 }: ButtonWithIconsProps) {
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    const buttonStyle = StyleUtils.getButtonStyleWithIcon(
+        styles,
+        size === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL,
+        size === CONST.DROPDOWN_BUTTON_SIZE.SMALL,
+        size === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
+        size === CONST.DROPDOWN_BUTTON_SIZE.LARGE,
+        !!iconLeft,
+        !!text,
+        !!iconRight,
+    );
     return (
         <Button
             allowBubble={allowBubble}
@@ -87,7 +102,7 @@ function ButtonWithIcons({
             enterKeyEventListenerPriority={enterKeyEventListenerPriority}
             style={style}
             disabledStyle={disabledStyle}
-            innerStyles={innerStyles}
+            innerStyles={[buttonStyle, !!text && !!iconRight && styles.alignItemsStretch, innerStyles]}
             shouldUseDefaultHover={shouldUseDefaultHover}
             hoverStyles={hoverStyles}
             variant={variant}
@@ -109,13 +124,13 @@ function ButtonWithIcons({
                     src={iconLeft}
                     fill={iconLeftFill}
                     hoverFill={iconLeftHoverFill}
-                    style={iconLeftStyles}
+                    style={[!text && styles.mr0, iconLeftStyles]}
                 />
             )}
             {!!text && (
                 <ButtonText
                     hoverStyle={textHoverStyles}
-                    style={textStyles}
+                    style={[!!iconLeft && styles.textAlignLeft, textStyles]}
                     numberOfLines={textNumberOfLines}
                 >
                     {text}

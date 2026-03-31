@@ -14,8 +14,6 @@ type ButtonContextValue = ButtonAppearanceProps & {
     isLoading: boolean;
     iconFill?: string;
     iconHoverFill?: string;
-    hasIconLeft: boolean;
-    hasText: boolean;
 };
 
 const defaultButtonContextValue: ButtonContextValue = {
@@ -25,8 +23,6 @@ const defaultButtonContextValue: ButtonContextValue = {
     size: CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
     iconFill: undefined,
     iconHoverFill: undefined,
-    hasIconLeft: false,
-    hasText: false,
 };
 
 const ButtonContext = createContext<ButtonContextValue>(defaultButtonContextValue);
