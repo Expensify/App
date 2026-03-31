@@ -1073,6 +1073,37 @@ describe('SearchQueryUtils', () => {
             expect(queryJSONa?.similarSearchHash).not.toEqual(queryJSONb?.similarSearchHash);
         });
 
+        it('should return different primary hash for queries with different explicit views but the same similarSearchHash', () => {
+            const queryJSONa = buildSearchQueryJSON('type:expense groupBy:category view:pie');
+            const queryJSONb = buildSearchQueryJSON('type:expense groupBy:category view:bar');
+
+            expect(queryJSONa?.similarSearchHash).toEqual(queryJSONb?.similarSearchHash);
+            expect(queryJSONa?.hash).not.toEqual(queryJSONb?.hash);
+        });
+
+        it('should return different primary hash for implicit table view and explicit view:table', () => {
+            const queryJSONa = buildSearchQueryJSON('type:expense groupBy:category');
+            const queryJSONb = buildSearchQueryJSON('type:expense groupBy:category view:table', 'type:expense groupBy:category view:table');
+
+            expect(queryJSONa?.similarSearchHash).toEqual(queryJSONb?.similarSearchHash);
+            expect(queryJSONa?.hash).not.toEqual(queryJSONb?.hash);
+        });
+
+        it('should not include view in query string when groupBy is removed after chart drill-down', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense date:this-month groupBy:category view:bar');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            queryJSON.groupBy = undefined;
+            queryJSON.view = CONST.SEARCH.VIEW.TABLE;
+
+            const result = buildSearchQueryString(queryJSON);
+
+            expect(result).not.toContain('view:');
+        });
+
         describe('limit filter hashing', () => {
             it('should return same similarSearchHash for queries with different limit values', () => {
                 const queryJSONa = buildSearchQueryJSON('type:expense limit:10');
@@ -1427,7 +1458,7 @@ describe('SearchQueryUtils', () => {
         });
 
         test('includes view when explicitly set to table in rawFilterList', () => {
-            const queryJSON = buildSearchQueryJSON('type:expense view:table', 'type:expense view:table');
+            const queryJSON = buildSearchQueryJSON('type:expense groupBy:category view:table', 'type:expense groupBy:category view:table');
 
             const result = buildSearchQueryString(queryJSON);
 

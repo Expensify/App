@@ -132,6 +132,7 @@ const SCREENS = {
         HELP: 'Settings_Help',
         DYNAMIC_VERIFY_ACCOUNT: 'Dynamic_Verify_Account',
         DYNAMIC_ADD_BANK_ACCOUNT_VERIFY_ACCOUNT: 'Dynamic_Add_Bank_Account_Verify_Account',
+        DYNAMIC_KEYBOARD_SHORTCUTS: 'Dynamic_Keyboard_Shortcuts',
 
         PROFILE: {
             ROOT: 'Settings_Profile',
@@ -669,10 +670,13 @@ const SCREENS = {
         COMPANY_CARDS_SELECT_FEED: 'Workspace_CompanyCards_Select_Feed',
         COMPANY_CARDS_BANK_CONNECTION: 'Workspace_CompanyCards_BankConnection',
         COMPANY_CARDS_ADD_NEW: 'Workspace_CompanyCards_New',
+        COMPANY_CARDS_IMPORT_SPREADSHEET: 'Workspace_CompanyCards_Import_Spreadsheet',
+        COMPANY_CARDS_IMPORTED: 'Workspace_CompanyCards_Imported',
         COMPANY_CARDS_TYPE: 'Workspace_CompanyCards_Type',
         COMPANY_CARDS_INSTRUCTIONS: 'Workspace_CompanyCards_Instructions',
         COMPANY_CARDS_NAME: 'Workspace_CompanyCards_Name',
         COMPANY_CARDS_DETAILS: 'Workspace_CompanyCards_Details',
+        COMPANY_CARDS_LAYOUT_NAME: 'Workspace_CompanyCards_Layout_Name',
         COMPANY_CARDS_SETTINGS: 'Workspace_CompanyCards_Settings',
         COMPANY_CARDS_SETTINGS_FEED_NAME: 'Workspace_CompanyCards_Settings_Feed_Name',
         COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE: 'Workspace_CompanyCards_Settings_Statement_Close_Date',
@@ -926,7 +930,6 @@ const SCREENS = {
     REFERRAL_DETAILS: 'Referral_Details',
     REPORT_VERIFY_ACCOUNT: 'Report_Verify_Account',
     EXPENSE_REPORT_VERIFY_ACCOUNT: 'Expense_Report_Verify_Account',
-    KEYBOARD_SHORTCUTS: 'KeyboardShortcuts',
     SHARE: {
         ROOT: 'Share_Root',
         SHARE_DETAILS: 'Share_Details',

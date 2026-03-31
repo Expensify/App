@@ -7,7 +7,7 @@ import ConfirmModal from './ConfirmModal';
 function UpdateAppModal() {
     const [isModalOpen, setIsModalOpen] = useState(true);
     const {translate} = useLocalize();
-    const [updateAvailable] = useOnyx(ONYXKEYS.UPDATE_AVAILABLE, {initWithStoredValues: false});
+    const [updateAvailable] = useOnyx(ONYXKEYS.RAM_ONLY_UPDATE_AVAILABLE);
 
     if (!updateAvailable) {
         return null;
