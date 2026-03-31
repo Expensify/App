@@ -315,7 +315,7 @@ function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left
 
                                 const innerTickSpacing = (axisBounds.right - axisBounds.left) / data.length;
                                 const tickCenter = axisBounds.left + index * innerTickSpacing + innerTickSpacing / 2;
-                                const labelLeft = labelRotation === 45 ? tickCenter - innerTickSpacing : tickCenter - innerTickSpacing / 2;
+                                const labelLeft = labelRotation === -45 ? tickCenter - innerTickSpacing : tickCenter - innerTickSpacing / 2;
 
                                 return (
                                     <Text
@@ -329,7 +329,7 @@ function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left
                                                 width: innerTickSpacing,
                                                 fontSize: variables.iconSizeExtraSmall,
                                                 lineHeight: variables.iconSizeExtraSmall,
-                                                textAlign: labelRotation === 45 ? 'right' : 'center',
+                                                textAlign: labelRotation === -45 ? 'right' : 'center',
                                                 transform: [{rotate: `${labelRotation}deg`}],
                                             },
                                         ]}

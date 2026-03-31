@@ -322,7 +322,7 @@ function BarChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left'
 
                                 const tickSpacing = (axisBounds.right - axisBounds.left) / data.length;
                                 const tickCenter = axisBounds.left + index * tickSpacing + tickSpacing / 2;
-                                const labelLeft = labelRotation === 45 ? tickCenter - tickSpacing : tickCenter - tickSpacing / 2;
+                                const labelLeft = labelRotation === -45 ? tickCenter - tickSpacing : tickCenter - tickSpacing / 2;
 
                                 return (
                                     <Text
@@ -336,7 +336,7 @@ function BarChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left'
                                                 width: tickSpacing,
                                                 fontSize: variables.iconSizeExtraSmall,
                                                 lineHeight: variables.iconSizeExtraSmall,
-                                                textAlign: labelRotation === 45 ? 'right' : 'center',
+                                                textAlign: labelRotation === -45 ? 'right' : 'center',
                                                 transform: [{rotate: `${labelRotation}deg`}],
                                             },
                                         ]}
