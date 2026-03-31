@@ -1532,7 +1532,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
 
     getIconColorStyle: (isSuccess: boolean, isError: boolean, isStrong = false): string => {
         if (isStrong) {
-            return theme.iconStrong;
+            return theme.icon;
         }
         if (isSuccess) {
             return theme.badgeSuccessText;
@@ -1540,7 +1540,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         if (isError) {
             return theme.badgeDangerText;
         }
-        return theme.iconStrong;
+        return theme.icon;
     },
 
     getEnvironmentBadgeStyle: (isSuccess: boolean, isError: boolean, isAdhoc: boolean): ViewStyle => {

@@ -361,8 +361,7 @@ function Button({
             primaryText
         );
 
-        const defaultFill = success || danger ? theme.textLight : theme.iconStrong;
-        const defaultRightIconFill = success || danger ? theme.textLight : theme.buttonIcon;
+        const defaultFill = success || danger ? theme.textLight : theme.buttonIcon;
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (icon || shouldShowRightIcon) {
@@ -388,7 +387,7 @@ function Button({
                         <View style={[styles.justifyContentCenter, large ? styles.ml2 : styles.ml1, iconRightStyles]}>
                             <Icon
                                 src={iconRight ?? icons.ArrowRight}
-                                fill={isHovered ? (iconRightHoverFill ?? iconHoverFill ?? defaultRightIconFill) : (iconRightFill ?? iconFill ?? defaultRightIconFill)}
+                                fill={isHovered ? (iconRightHoverFill ?? iconHoverFill ?? defaultFill) : (iconRightFill ?? iconFill ?? defaultFill)}
                                 extraSmall={extraSmall}
                                 small={small}
                                 medium={medium}

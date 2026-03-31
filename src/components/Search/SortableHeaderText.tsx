@@ -73,7 +73,7 @@ export default function SortableHeaderText({text, icon, sortOrder, isActive, tex
                     {!!icon && (
                         <Icon
                             src={icon}
-                            fill={theme.iconStrong}
+                            fill={theme.icon}
                             height={16}
                             width={16}
                         />
@@ -89,7 +89,7 @@ export default function SortableHeaderText({text, icon, sortOrder, isActive, tex
                     {displayIcon && (
                         <Icon
                             src={sortArrowIcon}
-                            fill={theme.iconStrong}
+                            fill={theme.icon}
                             height={12}
                             width={12}
                         />

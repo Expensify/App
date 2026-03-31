@@ -446,7 +446,7 @@ function OptionRowLHN({
                                             >
                                                 <Icon
                                                     testID="Pencil Icon"
-                                                    fill={theme.iconStrong}
+                                                    fill={theme.icon}
                                                     src={expensifyIcons.Pencil}
                                                 />
                                             </View>
@@ -460,7 +460,7 @@ function OptionRowLHN({
                                                 >
                                                     <Icon
                                                         testID="Pin Icon"
-                                                        fill={theme.iconStrong}
+                                                        fill={theme.icon}
                                                         src={expensifyIcons.Pin}
                                                     />
                                                 </View>
