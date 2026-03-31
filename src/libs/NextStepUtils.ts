@@ -277,8 +277,8 @@ function parseMessage(messages: Message[] | undefined, currentUserEmail: string)
             const nextPart = messages.at(index + 1);
 
             if (currentUserEmail === part.text || part.clickToCopyText === currentUserEmail) {
-                tagType = 'strong';
                 content = nextPart?.text === `'s` ? 'your' : 'you';
+                tagType = content === 'your' ? 'span' : 'strong';
             } else if (part.text === `'s` && (previousPart?.text === currentUserEmail || previousPart?.clickToCopyText === currentUserEmail)) {
                 content = '';
             } else if (isEmail) {
