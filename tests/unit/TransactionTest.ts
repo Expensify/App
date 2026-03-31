@@ -2,6 +2,7 @@ import {act, renderHook, waitFor} from '@testing-library/react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
+import type {ValueOf} from 'type-fest';
 import useOnyx from '@hooks/useOnyx';
 import {changeTransactionsReport, dismissDuplicateTransactionViolation, markAsCash, sanitizeWaypointsForAPI, saveWaypoint} from '@libs/actions/Transaction';
 import DateUtils from '@libs/DateUtils';
@@ -94,23 +95,27 @@ describe('Transaction', () => {
     });
 
     describe('changeTransactionsReport', () => {
-        it('correctly moves the IOU report action when an unreported transaction is added to an expense report', async () => {
-            const transaction = generateTransaction({
-                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
-            });
-            const oldIOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
+        function createIOUAction(transaction: Transaction, reportID = transaction.reportID, type: ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE> = CONST.IOU.REPORT_ACTION_TYPE.CREATE) {
+            return {
                 reportActionID: rand64(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                 actorAccountID: CURRENT_USER_ID,
                 created: DateUtils.getDBTime(),
                 originalMessage: {
-                    IOUReportID: '0',
+                    IOUReportID: reportID,
                     IOUTransactionID: transaction.transactionID,
                     amount: transaction.amount,
                     currency: transaction.currency,
-                    type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+                    type,
                 },
-            };
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>;
+        }
+
+        it('correctly moves the IOU report action when an unreported transaction is added to an expense report', async () => {
+            const transaction = generateTransaction({
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+            });
+            const oldIOUAction = createIOUAction(transaction, '0', CONST.IOU.REPORT_ACTION_TYPE.TRACK);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_SELF_DM_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
 
@@ -148,19 +153,7 @@ describe('Transaction', () => {
             const transaction = generateTransaction({
                 reportID: FAKE_OLD_REPORT_ID,
             });
-            const oldIOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
-                reportActionID: rand64(),
-                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                actorAccountID: CURRENT_USER_ID,
-                created: DateUtils.getDBTime(),
-                originalMessage: {
-                    IOUReportID: FAKE_OLD_REPORT_ID,
-                    IOUTransactionID: transaction.transactionID,
-                    amount: transaction.amount,
-                    currency: transaction.currency,
-                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                },
-            };
+            const oldIOUAction = createIOUAction(transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
 
@@ -200,19 +193,7 @@ describe('Transaction', () => {
             const transaction = generateTransaction({
                 reportID: FAKE_OLD_REPORT_ID,
             });
-            const oldIOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
-                reportActionID: rand64(),
-                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                actorAccountID: CURRENT_USER_ID,
-                created: DateUtils.getDBTime(),
-                originalMessage: {
-                    IOUReportID: FAKE_OLD_REPORT_ID,
-                    IOUTransactionID: transaction.transactionID,
-                    amount: transaction.amount,
-                    currency: transaction.currency,
-                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                },
-            };
+            const oldIOUAction = createIOUAction(transaction);
 
             const mockReportNextStep = {
                 type: 'neutral' as const,
@@ -265,19 +246,7 @@ describe('Transaction', () => {
             const transaction = generateTransaction({
                 reportID: FAKE_OLD_REPORT_ID,
             });
-            const oldIOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
-                reportActionID: rand64(),
-                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                actorAccountID: CURRENT_USER_ID,
-                created: DateUtils.getDBTime(),
-                originalMessage: {
-                    IOUReportID: FAKE_OLD_REPORT_ID,
-                    IOUTransactionID: transaction.transactionID,
-                    amount: transaction.amount,
-                    currency: transaction.currency,
-                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                },
-            };
+            const oldIOUAction = createIOUAction(transaction);
 
             const mockReportNextStep = {
                 type: 'alert' as const,
@@ -331,19 +300,7 @@ describe('Transaction', () => {
             const transaction = generateTransaction({
                 reportID: FAKE_OLD_REPORT_ID,
             });
-            const oldIOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
-                reportActionID: rand64(),
-                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                actorAccountID: CURRENT_USER_ID,
-                created: DateUtils.getDBTime(),
-                originalMessage: {
-                    IOUReportID: FAKE_OLD_REPORT_ID,
-                    IOUTransactionID: transaction.transactionID,
-                    amount: transaction.amount,
-                    currency: transaction.currency,
-                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                },
-            };
+            const oldIOUAction = createIOUAction(transaction);
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
@@ -388,19 +345,7 @@ describe('Transaction', () => {
                 amount: -100,
                 currency: CONST.CURRENCY.USD,
             });
-            const oldIOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
-                reportActionID: rand64(),
-                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                actorAccountID: CURRENT_USER_ID,
-                created: DateUtils.getDBTime(),
-                originalMessage: {
-                    IOUReportID: FAKE_OLD_REPORT_ID,
-                    IOUTransactionID: transaction.transactionID,
-                    amount: transaction.amount,
-                    currency: transaction.currency,
-                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                },
-            };
+            const oldIOUAction = createIOUAction(transaction);
             const submittedReport: Report = {
                 ...createExpenseReport(6),
                 reportID: FAKE_OLD_REPORT_ID,
@@ -456,19 +401,7 @@ describe('Transaction', () => {
             const transaction = generateTransaction({
                 reportID: FAKE_OLD_REPORT_ID,
             });
-            const oldIOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
-                reportActionID: rand64(),
-                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                actorAccountID: CURRENT_USER_ID,
-                created: DateUtils.getDBTime(),
-                originalMessage: {
-                    IOUReportID: FAKE_OLD_REPORT_ID,
-                    IOUTransactionID: transaction.transactionID,
-                    amount: transaction.amount,
-                    currency: transaction.currency,
-                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                },
-            };
+            const oldIOUAction = createIOUAction(transaction);
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
@@ -508,19 +441,7 @@ describe('Transaction', () => {
             const transaction = generateTransaction({
                 reportID: FAKE_OLD_REPORT_ID,
             });
-            const oldIOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
-                reportActionID: rand64(),
-                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                actorAccountID: CURRENT_USER_ID,
-                created: DateUtils.getDBTime(),
-                originalMessage: {
-                    IOUReportID: FAKE_OLD_REPORT_ID,
-                    IOUTransactionID: transaction.transactionID,
-                    amount: transaction.amount,
-                    currency: transaction.currency,
-                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                },
-            };
+            const oldIOUAction = createIOUAction(transaction);
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
@@ -566,19 +487,7 @@ describe('Transaction', () => {
                 currency: CONST.CURRENCY.USD,
                 reimbursable: false,
             };
-            const oldIOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
-                reportActionID: rand64(),
-                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                actorAccountID: CURRENT_USER_ID,
-                created: DateUtils.getDBTime(),
-                originalMessage: {
-                    IOUReportID: '0',
-                    IOUTransactionID: transaction.transactionID,
-                    amount: transaction.amount,
-                    currency: transaction.currency,
-                    type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
-                },
-            };
+            const oldIOUAction = createIOUAction(transaction, '0', CONST.IOU.REPORT_ACTION_TYPE.TRACK);
             const expenseReport = {
                 ...createRandomReport(1, undefined),
                 total: -200,
@@ -627,19 +536,7 @@ describe('Transaction', () => {
                 currency: 'IDR',
                 reimbursable: false,
             };
-            const oldIOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
-                reportActionID: rand64(),
-                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                actorAccountID: CURRENT_USER_ID,
-                created: DateUtils.getDBTime(),
-                originalMessage: {
-                    IOUReportID: '0',
-                    IOUTransactionID: transaction.transactionID,
-                    amount: transaction.amount,
-                    currency: transaction.currency,
-                    type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
-                },
-            };
+            const oldIOUAction = createIOUAction(transaction, '0', CONST.IOU.REPORT_ACTION_TYPE.TRACK);
             const expenseReport = {
                 ...createRandomReport(1, undefined),
                 total: -200,
@@ -694,19 +591,7 @@ describe('Transaction', () => {
                 convertedAmount: -3673,
                 reimbursable: true,
             };
-            const oldIOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
-                reportActionID: rand64(),
-                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                actorAccountID: CURRENT_USER_ID,
-                created: DateUtils.getDBTime(),
-                originalMessage: {
-                    IOUReportID: oldExpenseReport.reportID,
-                    IOUTransactionID: transaction.transactionID,
-                    amount: transaction.amount,
-                    currency: transaction.currency,
-                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                },
-            };
+            const oldIOUAction = createIOUAction(transaction);
             const newExpenseReport = {
                 ...createRandomReport(2, undefined),
                 total: 0,
@@ -761,19 +646,7 @@ describe('Transaction', () => {
                 convertedAmount: -1503,
                 reimbursable: true,
             };
-            const oldIOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
-                reportActionID: rand64(),
-                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                actorAccountID: CURRENT_USER_ID,
-                created: DateUtils.getDBTime(),
-                originalMessage: {
-                    IOUReportID: oldExpenseReport.reportID,
-                    IOUTransactionID: transaction.transactionID,
-                    amount: transaction.amount,
-                    currency: transaction.currency,
-                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                },
-            };
+            const oldIOUAction = createIOUAction(transaction);
             const newExpenseReport = {
                 ...createRandomReport(2, undefined),
                 total: 0,
@@ -828,19 +701,7 @@ describe('Transaction', () => {
                 amount: -100,
                 reimbursable: false,
             };
-            const oldIOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
-                reportActionID: rand64(),
-                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                actorAccountID: CURRENT_USER_ID,
-                created: DateUtils.getDBTime(),
-                originalMessage: {
-                    IOUReportID: FAKE_OLD_REPORT_ID,
-                    IOUTransactionID: transaction.transactionID,
-                    amount: transaction.amount,
-                    currency: transaction.currency,
-                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                },
-            };
+            const oldIOUAction = createIOUAction(transaction, FAKE_OLD_REPORT_ID);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${oldExpenseReport.reportID}`, oldExpenseReport);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldExpenseReport.reportID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
@@ -890,19 +751,7 @@ describe('Transaction', () => {
                 reimbursable: false,
                 currency: 'IDR',
             };
-            const oldIOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
-                reportActionID: rand64(),
-                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                actorAccountID: CURRENT_USER_ID,
-                created: DateUtils.getDBTime(),
-                originalMessage: {
-                    IOUReportID: FAKE_OLD_REPORT_ID,
-                    IOUTransactionID: transaction.transactionID,
-                    amount: transaction.amount,
-                    currency: transaction.currency,
-                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                },
-            };
+            const oldIOUAction = createIOUAction(transaction, FAKE_OLD_REPORT_ID);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${oldExpenseReport.reportID}`, oldExpenseReport);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldExpenseReport.reportID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
@@ -1007,32 +856,8 @@ describe('Transaction', () => {
                 currency: CONST.CURRENCY.USD,
                 reimbursable: false,
             };
-            const oldIOUAction1: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
-                reportActionID: rand64(),
-                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                actorAccountID: CURRENT_USER_ID,
-                created: DateUtils.getDBTime(),
-                originalMessage: {
-                    IOUReportID: FAKE_OLD_REPORT_ID,
-                    IOUTransactionID: transaction1.transactionID,
-                    amount: transaction1.amount,
-                    currency: transaction1.currency,
-                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                },
-            };
-            const oldIOUAction2: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
-                reportActionID: rand64(),
-                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                actorAccountID: CURRENT_USER_ID,
-                created: DateUtils.getDBTime(),
-                originalMessage: {
-                    IOUReportID: FAKE_OLD_REPORT_ID,
-                    IOUTransactionID: transaction2.transactionID,
-                    amount: transaction2.amount,
-                    currency: transaction2.currency,
-                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                },
-            };
+            const oldIOUAction1 = createIOUAction(transaction1);
+            const oldIOUAction2 = createIOUAction(transaction2);
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`, transaction1);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`, transaction2);
@@ -1108,19 +933,7 @@ describe('Transaction', () => {
             const transaction = generateTransaction({
                 reportID: FAKE_OLD_REPORT_ID,
             });
-            const oldIOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
-                reportActionID: rand64(),
-                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                actorAccountID: CURRENT_USER_ID,
-                created: DateUtils.getDBTime(),
-                originalMessage: {
-                    IOUReportID: FAKE_OLD_REPORT_ID,
-                    IOUTransactionID: transaction.transactionID,
-                    amount: transaction.amount,
-                    currency: transaction.currency,
-                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                },
-            };
+            const oldIOUAction = createIOUAction(transaction);
             const violations: TransactionViolation[] = [
                 {name: CONST.VIOLATIONS.MISSING_CATEGORY, type: 'violation'},
                 {name: CONST.VIOLATIONS.RTER, type: 'warning'},
@@ -1165,19 +978,7 @@ describe('Transaction', () => {
                 convertedAmount: -1503,
                 reimbursable: true,
             };
-            const oldIOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
-                reportActionID: rand64(),
-                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                actorAccountID: CURRENT_USER_ID,
-                created: DateUtils.getDBTime(),
-                originalMessage: {
-                    IOUReportID: oldExpenseReport.reportID,
-                    IOUTransactionID: transaction.transactionID,
-                    amount: transaction.amount,
-                    currency: transaction.currency,
-                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                },
-            };
+            const oldIOUAction = createIOUAction(transaction);
             const newExpenseReport = {
                 ...createRandomReport(2, undefined),
                 total: 0,

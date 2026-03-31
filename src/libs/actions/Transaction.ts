@@ -844,7 +844,7 @@ type ChangeTransactionsReportProps = {
     allTransactions: OnyxCollection<Transaction>;
     translate: LocaleContextProps['translate'];
     toLocaleDigit: LocaleContextProps['toLocaleDigit'];
-    policyTagList?: OnyxEntry<PolicyTagLists>;
+    policyTagList?: PolicyTagLists;
 };
 
 function changeTransactionsReport({
