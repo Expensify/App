@@ -94,6 +94,10 @@ const EmptyParentReportActionForTransactionThread = undefined;
 // Amount of time to wait until all list items should be rendered and scrollToEnd will behave well
 const DELAY_FOR_SCROLLING_TO_END = 100;
 
+// The server page size for report actions is ~50. Gaps from IOU prioritization only happen
+// when the initial load is truncated, so skip backfill for smaller reports.
+const BACKFILL_MIN_ACTIONS_THRESHOLD = 50;
+
 type MoneyRequestReportListProps = {
     /** The report */
     report: OnyxTypes.Report;
@@ -436,7 +440,7 @@ function MoneyRequestReportActionsList({
 
         if (!isBackfillingRef.current) {
             const hasIOUActions = reportActions.some((action) => isMoneyRequestAction(action));
-            if (!hasIOUActions || reportActions.length < 50 || !reportMetadata?.newestFetchedReportActionID) {
+            if (!hasIOUActions || reportActions.length < BACKFILL_MIN_ACTIONS_THRESHOLD || !reportMetadata?.newestFetchedReportActionID) {
                 return;
             }
         }
@@ -453,7 +457,9 @@ function MoneyRequestReportActionsList({
         isBackfillingRef.current = true;
         prevBackfillCursorRef.current = cursor;
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => requestAnimationFrame(() => getOlderActions(reportID, cursor)));
+        const handle = InteractionManager.runAfterInteractions(() => getOlderActions(reportID, cursor));
+
+        return () => handle.cancel();
     }, [
         hasFinishedInitialLoad,
         isOffline,
