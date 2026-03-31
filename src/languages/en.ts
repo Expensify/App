@@ -6719,7 +6719,7 @@ const translations = {
                 matchType: 'Match type',
                 matchTypeContains: 'Contains',
                 matchTypeExact: 'Matches exactly',
-                merchantsMoreCount: ({summary, count}: {summary: string; count: number}) => `${summary} +${count} more`,
+                merchantsMoreCount: ({summary, count}: {summary: string; count: number}) => `${summary}, +${count} more`,
             },
         },
         planTypePage: {

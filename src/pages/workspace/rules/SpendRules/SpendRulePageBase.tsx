@@ -58,16 +58,16 @@ function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps)
                   return getCardDescriptionForSearchTable(card, displayName || undefined) || id;
               })
               .join(', ');
-            
+
     function getMerchantMenuTitle(merchantsToSummarize: SpendRuleMerchant[] | undefined): string {
         const normalizedMerchants = (merchantsToSummarize ?? []).map((merchant) => ({...merchant, name: merchant.name.trim()})).filter((merchant) => merchant.name !== '');
         if (!normalizedMerchants.length) {
             return '';
         }
-    
+
         let text = '';
         let shownCount = 0;
-    
+
         for (const merchant of normalizedMerchants) {
             const nextText = text ? `${text}, ${merchant.name}` : merchant.name;
             if (nextText.length > MAX_SUMMARY_CHARS) {
@@ -128,6 +128,7 @@ function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps)
                         onPress={() => Navigation.navigate(ROUTES.RULES_SPEND_MERCHANTS.getRoute(policyID))}
                         shouldShowRightIcon
                         title={getMerchantMenuTitle(spendRuleForm?.merchants)}
+                        numberOfLinesTitle={2}
                         titleStyle={styles.flex1}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
                     />
