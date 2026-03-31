@@ -1,0 +1,228 @@
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import React from 'react';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import {useSearchStateContext} from '@components/Search/SearchContext';
+import AnimatedSettlementButton from '@components/SettlementButton/AnimatedSettlementButton';
+import type {PaymentActionParams} from '@components/SettlementButton/types';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
+import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
+import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
+import usePermissions from '@hooks/usePermissions';
+import usePolicy from '@hooks/usePolicy';
+import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
+import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
+import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
+import {search} from '@libs/actions/Search';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {getAllNonDeletedTransactions, getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
+import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {
+    hasHeldExpenses as hasHeldExpensesReportUtils,
+    hasUpdatedTotal,
+    hasViolations as hasViolationsReportUtils,
+    isAllowedToApproveExpenseReport,
+    isInvoiceReport as isInvoiceReportUtil,
+} from '@libs/ReportUtils';
+import {isExpensifyCardTransaction, isPending} from '@libs/TransactionUtils';
+import {approveMoneyRequest, canApproveIOU, canIOUBePaid as canIOUBePaidAction, payInvoice, payMoneyRequest} from '@userActions/IOU';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import type * as OnyxTypes from '@src/types/onyx';
+import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+
+type PayPrimaryActionProps = {
+    reportID: string | undefined;
+    chatReportID: string | undefined;
+    isPaidAnimationRunning: boolean;
+    isApprovedAnimationRunning: boolean;
+    stopAnimation: () => void;
+    startAnimation: () => void;
+    startApprovedAnimation: () => void;
+    onHoldMenuOpen: (requestType: string, paymentType?: PaymentMethodType, methodID?: number) => void;
+};
+
+function PayPrimaryAction({
+    reportID,
+    chatReportID,
+    isPaidAnimationRunning,
+    isApprovedAnimationRunning,
+    stopAnimation,
+    startAnimation,
+    startApprovedAnimation,
+    onHoldMenuOpen,
+}: PayPrimaryActionProps) {
+    const {isOffline} = useNetwork();
+    const {accountID, email} = useCurrentUserPersonalDetails();
+    const {isBetaEnabled} = usePermissions();
+    const {isDelegateAccessRestricted} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+
+    const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${moneyRequestReport?.reportID}`);
+
+    const activePolicy = usePolicy(activePolicyID);
+    const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
+    const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`);
+    const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
+
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const isInvoiceReport = isInvoiceReportUtil(moneyRequestReport);
+    const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations, accountID, email ?? '');
+
+    const allReportTransactions = useReportTransactionsCollection(reportID);
+    const {reportActions: unfilteredReportActions} = usePaginatedReportActions(moneyRequestReport?.reportID);
+    const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
+    const nonDeletedTransactions = getAllNonDeletedTransactions(allReportTransactions, reportActions, isOffline, true);
+    const visibleTransactions = nonDeletedTransactions?.filter((t) => isOffline || t.pendingAction !== 'delete');
+    const reportTransactionIDs = visibleTransactions?.map((t) => t.transactionID);
+    const transactionThreadReportID = getOneTransactionThreadReportID(moneyRequestReport, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
+    const requestParentReportAction = (() => {
+        if (!reportActions || !transactionThreadReport?.parentReportActionID) {
+            return null;
+        }
+        return reportActions.find((action): action is OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => action.reportActionID === transactionThreadReport.parentReportActionID);
+    })();
+    const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
+
+    const {transactions: reportTransactionsMap} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
+    const transactions = Object.values(reportTransactionsMap);
+    const hasOnlyPendingTransactions = transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
+
+    const canIOUBePaid = canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, transaction ? [transaction] : undefined, false, undefined, invoiceReceiverPolicy);
+    const onlyShowPayElsewhere =
+        !canIOUBePaid && canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, transaction ? [transaction] : undefined, true, undefined, invoiceReceiverPolicy);
+    const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
+    const shouldShowApproveButton = (canApproveIOU(moneyRequestReport, policy, reportMetadata, transactions) && !hasOnlyPendingTransactions) || isApprovedAnimationRunning;
+    const shouldDisableApproveButton = shouldShowApproveButton && !isAllowedToApproveExpenseReport(moneyRequestReport);
+    const canAllowSettlement = hasUpdatedTotal(moneyRequestReport, policy);
+    const totalAmount = getTotalAmountForIOUReportPreviewButton(moneyRequestReport, policy, CONST.REPORT.PRIMARY_ACTIONS.PAY);
+    const isAnyTransactionOnHold = hasHeldExpensesReportUtils(moneyRequestReport?.reportID);
+
+    const {currentSearchQueryJSON, currentSearchKey, currentSearchResults} = useSearchStateContext();
+    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
+
+    const confirmApproval = () => {
+        if (isDelegateAccessRestricted) {
+            showDelegateNoAccessModal();
+        } else if (isAnyTransactionOnHold) {
+            onHoldMenuOpen(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
+        } else {
+            startApprovedAnimation();
+            approveMoneyRequest({
+                expenseReport: moneyRequestReport,
+                policy,
+                currentUserAccountIDParam: accountID,
+                currentUserEmailParam: email ?? '',
+                hasViolations,
+                isASAPSubmitBetaEnabled,
+                expenseReportCurrentNextStepDeprecated: nextStep,
+                betas,
+                userBillingGraceEndPeriods,
+                amountOwed,
+                ownerBillingGraceEndPeriod,
+                full: true,
+                onApproved: startApprovedAnimation,
+            });
+        }
+    };
+
+    const confirmPayment = ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
+        if (!type || !chatReport) {
+            return;
+        }
+        if (isDelegateAccessRestricted) {
+            showDelegateNoAccessModal();
+        } else if (isAnyTransactionOnHold) {
+            onHoldMenuOpen(CONST.IOU.REPORT_ACTION_TYPE.PAY, type, methodID);
+        } else if (isInvoiceReport) {
+            startAnimation();
+            payInvoice({
+                paymentMethodType: type,
+                chatReport,
+                invoiceReport: moneyRequestReport,
+                invoiceReportCurrentNextStepDeprecated: nextStep,
+                introSelected,
+                currentUserAccountIDParam: accountID,
+                currentUserEmailParam: email ?? '',
+                payAsBusiness,
+                existingB2BInvoiceReport,
+                methodID,
+                paymentMethod,
+                activePolicy,
+                betas,
+                isSelfTourViewed,
+            });
+        } else {
+            startAnimation();
+            payMoneyRequest({
+                paymentType: type,
+                chatReport,
+                iouReport: moneyRequestReport,
+                introSelected,
+                iouReportCurrentNextStepDeprecated: nextStep,
+                currentUserAccountID: accountID,
+                activePolicy,
+                policy,
+                betas,
+                isSelfTourViewed,
+                userBillingGraceEndPeriods,
+                amountOwed,
+                ownerBillingGraceEndPeriod,
+                methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
+                onPaid: startAnimation,
+            });
+            if (currentSearchQueryJSON && !isOffline) {
+                search({
+                    searchKey: currentSearchKey,
+                    shouldCalculateTotals,
+                    offset: 0,
+                    queryJSON: currentSearchQueryJSON,
+                    isOffline,
+                    isLoading: !!currentSearchResults?.search?.isLoading,
+                });
+            }
+        }
+    };
+
+    return (
+        <AnimatedSettlementButton
+            isPaidAnimationRunning={isPaidAnimationRunning}
+            isApprovedAnimationRunning={isApprovedAnimationRunning}
+            onAnimationFinish={stopAnimation}
+            formattedAmount={totalAmount}
+            canIOUBePaid
+            onlyShowPayElsewhere={onlyShowPayElsewhere}
+            currency={moneyRequestReport?.currency}
+            confirmApproval={confirmApproval}
+            policyID={moneyRequestReport?.policyID}
+            chatReportID={chatReport?.reportID}
+            iouReport={moneyRequestReport}
+            onPress={confirmPayment}
+            enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
+            shouldHidePaymentOptions={!shouldShowPayButton}
+            shouldShowApproveButton={shouldShowApproveButton}
+            shouldDisableApproveButton={shouldDisableApproveButton}
+            isDisabled={isOffline && !canAllowSettlement}
+            isLoading={!isOffline && !canAllowSettlement}
+        />
+    );
+}
+
+export default PayPrimaryAction;

@@ -186,6 +186,7 @@ import {useLockedAccountActions, useLockedAccountState} from './LockedAccountMod
 import Modal from './Modal';
 import {ModalActions} from './Modal/Global/ModalContext';
 import MoneyReportHeaderKYCDropdown from './MoneyReportHeaderKYCDropdown';
+import MoneyReportHeaderPrimaryAction from './MoneyReportHeaderPrimaryAction';
 import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
 import MoneyReportHeaderStatusBarSkeleton from './MoneyReportHeaderStatusBarSkeleton';
 import type {MoneyRequestHeaderStatusBarProps} from './MoneyRequestHeaderStatusBar';
@@ -1386,142 +1387,6 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         beginExportWithTemplate,
     ]);
 
-    const primaryActionsImplementation = {
-        [CONST.REPORT.PRIMARY_ACTIONS.SUBMIT]: (
-            <AnimatedSubmitButton
-                success
-                text={translate('common.submit')}
-                onPress={() => handleSubmitReport()}
-                isSubmittingAnimationRunning={isSubmittingAnimationRunning}
-                onAnimationFinish={stopAnimation}
-                isDisabled={shouldBlockSubmit}
-            />
-        ),
-        [CONST.REPORT.PRIMARY_ACTIONS.APPROVE]: (
-            <Button
-                success
-                onPress={() => confirmApproval()}
-                text={translate('iou.approve')}
-                isDisabled={isBlockSubmitDueToPreventSelfApproval}
-            />
-        ),
-        [CONST.REPORT.PRIMARY_ACTIONS.PAY]: (
-            <AnimatedSettlementButton
-                isPaidAnimationRunning={isPaidAnimationRunning}
-                isApprovedAnimationRunning={isApprovedAnimationRunning}
-                onAnimationFinish={stopAnimation}
-                formattedAmount={totalAmount}
-                canIOUBePaid
-                onlyShowPayElsewhere={onlyShowPayElsewhere}
-                currency={moneyRequestReport?.currency}
-                confirmApproval={confirmApproval}
-                policyID={moneyRequestReport?.policyID}
-                chatReportID={chatReport?.reportID}
-                iouReport={moneyRequestReport}
-                onPress={confirmPayment}
-                enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
-                shouldHidePaymentOptions={!shouldShowPayButton}
-                shouldShowApproveButton={shouldShowApproveButton}
-                shouldDisableApproveButton={shouldDisableApproveButton}
-                isDisabled={isOffline && !canAllowSettlement}
-                isLoading={!isOffline && !canAllowSettlement}
-            />
-        ),
-        [CONST.REPORT.PRIMARY_ACTIONS.EXPORT_TO_ACCOUNTING]: (
-            <Button
-                success
-                text={translate('workspace.common.exportIntegrationSelected', {
-                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                    connectionName: connectedIntegration!,
-                })}
-                onPress={() => {
-                    if (!connectedIntegration || !moneyRequestReport) {
-                        return;
-                    }
-                    if (isExported) {
-                        setExportModalStatus(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
-                        return;
-                    }
-                    exportToIntegration(moneyRequestReport?.reportID, connectedIntegration);
-                }}
-            />
-        ),
-        [CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD]: (
-            <Button
-                success
-                text={translate('iou.unhold')}
-                onPress={() => {
-                    if (isDelegateAccessRestricted) {
-                        showDelegateNoAccessModal();
-                        return;
-                    }
-
-                    const parentReportAction = getReportAction(moneyRequestReport?.parentReportID, moneyRequestReport?.parentReportActionID);
-
-                    const IOUActions = getAllExpensesToHoldIfApplicable(moneyRequestReport, reportActions, transactions, policy);
-
-                    if (IOUActions.length) {
-                        for (const action of IOUActions) {
-                            changeMoneyRequestHoldStatus(action, getLinkedIOUTransaction(action, transactions));
-                        }
-                        return;
-                    }
-
-                    const moneyRequestAction = transactionThreadReportID ? requestParentReportAction : parentReportAction;
-                    if (!moneyRequestAction) {
-                        return;
-                    }
-                    changeMoneyRequestHoldStatus(moneyRequestAction, getLinkedIOUTransaction(moneyRequestAction, transactions));
-                }}
-            />
-        ),
-        [CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH]: (
-            <Button
-                success
-                text={translate('iou.markAsCash')}
-                onPress={markAsCash}
-            />
-        ),
-        [CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.MARK_AS_RESOLVED]: (
-            <Button
-                success
-                onPress={() => {
-                    if (!transaction?.transactionID) {
-                        return;
-                    }
-                    markRejectViolationAsResolved(transaction?.transactionID, transactionThreadReport?.reportID);
-                }}
-                text={translate('iou.reject.markAsResolved')}
-            />
-        ),
-        [CONST.REPORT.PRIMARY_ACTIONS.REVIEW_DUPLICATES]: (
-            <Button
-                success
-                text={translate('iou.reviewDuplicates')}
-                onPress={() => {
-                    let threadID = transactionThreadReportID ?? getFirstDuplicateThreadID(transactions, reportActions);
-                    if (!threadID) {
-                        const duplicateTransaction = transactions.find((reportTransaction) =>
-                            isDuplicate(
-                                reportTransaction,
-                                email ?? '',
-                                accountID,
-                                moneyRequestReport,
-                                policy,
-                                allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + reportTransaction.transactionID],
-                            ),
-                        );
-                        const transactionID = duplicateTransaction?.transactionID;
-                        const iouAction = getIOUActionForReportID(moneyRequestReport?.reportID, transactionID);
-                        const createdTransactionThreadReport = createTransactionThreadReport(introSelected, email ?? '', accountID, moneyRequestReport, iouAction);
-                        threadID = createdTransactionThreadReport?.reportID;
-                    }
-                    Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(threadID));
-                }}
-            />
-        ),
-    };
-
     const beginPDFExport = (reportID: string) => {
         setIsPDFModalVisible(true);
         exportReportToPDF({reportID});
@@ -2480,7 +2345,32 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
             >
                 {shouldDisplayNarrowMoreButton && (
                     <View style={[styles.flexRow, styles.gap2]}>
-                        {!!primaryAction && !shouldShowSelectedTransactionsButton && primaryActionsImplementation[primaryAction]}
+                        {!!primaryAction && !shouldShowSelectedTransactionsButton && (
+                            <MoneyReportHeaderPrimaryAction
+                                reportID={reportIDProp}
+                                chatReportID={chatReport?.reportID}
+                                primaryAction={primaryAction}
+                                isPaidAnimationRunning={isPaidAnimationRunning}
+                                isApprovedAnimationRunning={isApprovedAnimationRunning}
+                                isSubmittingAnimationRunning={isSubmittingAnimationRunning}
+                                stopAnimation={stopAnimation}
+                                startAnimation={startAnimation}
+                                startApprovedAnimation={startApprovedAnimation}
+                                startSubmittingAnimation={startSubmittingAnimation}
+                                onHoldMenuOpen={(type, payType, methodID) => {
+                                    setRequestType(type as ActionHandledType);
+                                    setPaymentType(payType);
+                                    setSelectedVBBAToPayFromHoldMenu(payType === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined);
+                                    if (getPlatform() === CONST.PLATFORM.IOS) {
+                                        // eslint-disable-next-line @typescript-eslint/no-deprecated
+                                        InteractionManager.runAfterInteractions(() => setIsHoldMenuVisible(true));
+                                    } else {
+                                        setIsHoldMenuVisible(true);
+                                    }
+                                }}
+                                onExportModalOpen={() => setExportModalStatus(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION)}
+                            />
+                        )}
                         {!!applicableSecondaryActions.length && !shouldShowSelectedTransactionsButton && (
                             <MoneyReportHeaderKYCDropdown
                                 chatReportID={chatReport?.reportID}
@@ -2503,7 +2393,34 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                     <View style={[styles.dFlex, styles.w100, styles.ph5, styles.pb3]}>{renderSelectionModeDropdown(styles.w100)}</View>
                 ) : (
                     <View style={[styles.flexRow, styles.gap2, styles.pb3, styles.ph5, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                        {!!primaryAction && <View style={[styles.flex1]}>{primaryActionsImplementation[primaryAction]}</View>}
+                        {!!primaryAction && (
+                            <View style={[styles.flex1]}>
+                                <MoneyReportHeaderPrimaryAction
+                                    reportID={reportIDProp}
+                                    chatReportID={chatReport?.reportID}
+                                    primaryAction={primaryAction}
+                                    isPaidAnimationRunning={isPaidAnimationRunning}
+                                    isApprovedAnimationRunning={isApprovedAnimationRunning}
+                                    isSubmittingAnimationRunning={isSubmittingAnimationRunning}
+                                    stopAnimation={stopAnimation}
+                                    startAnimation={startAnimation}
+                                    startApprovedAnimation={startApprovedAnimation}
+                                    startSubmittingAnimation={startSubmittingAnimation}
+                                    onHoldMenuOpen={(type, payType, methodID) => {
+                                        setRequestType(type as ActionHandledType);
+                                        setPaymentType(payType);
+                                        setSelectedVBBAToPayFromHoldMenu(payType === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined);
+                                        if (getPlatform() === CONST.PLATFORM.IOS) {
+                                            // eslint-disable-next-line @typescript-eslint/no-deprecated
+                                            InteractionManager.runAfterInteractions(() => setIsHoldMenuVisible(true));
+                                        } else {
+                                            setIsHoldMenuVisible(true);
+                                        }
+                                    }}
+                                    onExportModalOpen={() => setExportModalStatus(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION)}
+                                />
+                            </View>
+                        )}
                         {!!applicableSecondaryActions.length && (
                             <MoneyReportHeaderKYCDropdown
                                 chatReportID={chatReport?.reportID}
