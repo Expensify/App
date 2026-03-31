@@ -2,7 +2,7 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function alertUser() {
-    Onyx.set(ONYXKEYS.UPDATE_REQUIRED, true);
+    Onyx.set(ONYXKEYS.RAM_ONLY_UPDATE_REQUIRED, true);
 }
 
 export {
