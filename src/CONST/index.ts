@@ -272,6 +272,12 @@ const CONST = {
     MAX_IMAGE_PIXEL_COUNT: 50000000,
     CHUNK_LOAD_ERROR: 'ChunkLoadError',
 
+    RECEIPT_CAMERA: {
+        PHOTO_WIDTH: 4032,
+        PHOTO_HEIGHT: 3024,
+        PHOTO_ASPECT_RATIO: 4 / 3,
+    },
+
     API_ATTACHMENT_VALIDATIONS: {
         // 24 megabytes in bytes, this is limit set on servers, do not update without wider internal discussion
         MAX_SIZE: 25165824,
@@ -6352,7 +6358,7 @@ const CONST = {
     },
 
     /**
-     * Constants for maxToRenderPerBatch parameter that is used for FlatList or SectionList. This controls the amount of items rendered per batch, which is the next chunk of items
+     * Constants for maxToRenderPerBatch parameter that is used for FlatList. This controls the amount of items rendered per batch, which is the next chunk of items
      * rendered on every scroll.
      */
     MAX_TO_RENDER_PER_BATCH: {
