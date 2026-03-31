@@ -39,7 +39,7 @@ function FreeTrialSection() {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const illustrations = useMemoizedLazyIllustrations(['TreasureChest'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['TreasureChest']);
     const {shouldShowFreeTrialSection, discountType, daysLeft, discountInfo} = useFreeTrial();
 
     if (!shouldShowFreeTrialSection) {
