@@ -50,13 +50,17 @@ function SpendRuleMerchantEditPage({route}: SpendRuleMerchantEditPageProps) {
     const handleSave = () => {
         const trimmedMerchantName = merchantName.trim();
         if (!trimmedMerchantName) {
+            if (!isNew) {
+                const updatedMerchants = merchants.filter((_, merchantArrayIndex) => merchantArrayIndex !== index);
+                updateDraftSpendRule({merchants: updatedMerchants});
+            }
             goBack();
             return;
         }
 
         const currentMerchant: SpendRuleMerchant = {name: trimmedMerchantName, matchType};
-        const currentMerchants = isNew ? [...merchants, currentMerchant] : merchants.map((m, idx) => (idx === index ? currentMerchant : m));
-        updateDraftSpendRule({merchants: currentMerchants});
+        const updatedMerchants = isNew ? [...merchants, currentMerchant] : merchants.map((merchant, merchantArrayIndex) => (merchantArrayIndex === index ? currentMerchant : merchant));
+        updateDraftSpendRule({merchants: updatedMerchants});
         goBack();
     };
 
@@ -88,7 +92,7 @@ function SpendRuleMerchantEditPage({route}: SpendRuleMerchantEditPageProps) {
             return;
         }
 
-        const currentMerchants = merchants.map((m, idx) => (idx === index ? {...current, matchType: nextMatchType} : m));
+        const currentMerchants = merchants.map((merchant, merchantArrayIndex) => (merchantArrayIndex === index ? {...merchant, matchType: nextMatchType} : merchant));
         updateDraftSpendRule({merchants: currentMerchants});
     };
 
@@ -115,6 +119,7 @@ function SpendRuleMerchantEditPage({route}: SpendRuleMerchantEditPageProps) {
                         label={translate('common.merchant')}
                         accessibilityLabel={translate('common.merchant')}
                         containerStyles={[styles.ph5, styles.mb5]}
+                        selectTextOnFocus
                     />
                     <View style={[styles.ph5, styles.pb2]}>
                         <Text style={[styles.textLabelSupporting]}>{translate('workspace.rules.spendRules.matchType')}</Text>
