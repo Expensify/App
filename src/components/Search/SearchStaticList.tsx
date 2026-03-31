@@ -60,15 +60,13 @@ function SearchStaticList({searchResults, queryJSON, contentContainerStyle, onLa
     const {accountID, email} = useCurrentUserPersonalDetails();
 
     const [showPendingExpensePlaceholder] = useState(() => hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH));
-    const [isFirstFrame, setIsFirstFrame] = useState(true);
-    const onFirstFrameLayout = useCallback(() => setIsFirstFrame(false), []);
 
     const {type, status, sortBy, sortOrder, groupBy} = queryJSON;
     const validGroupBy = getValidGroupBy(groupBy);
     const searchData = searchResults?.data;
 
     const sortedData = useMemo(() => {
-        if (isFirstFrame || !searchData) {
+        if (!searchData) {
             return [] as TransactionListItemType[];
         }
 
@@ -85,7 +83,7 @@ function SearchStaticList({searchResults, queryJSON, contentContainerStyle, onLa
         });
 
         return (getSortedSections(type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy) as TransactionListItemType[]).slice(0, STATIC_LIST_MAX_ITEMS);
-    }, [isFirstFrame, searchData, type, status, sortBy, sortOrder, validGroupBy, accountID, email, translate, formatPhoneNumber, localeCompare]);
+    }, [searchData, type, status, sortBy, sortOrder, validGroupBy, accountID, email, translate, formatPhoneNumber, localeCompare]);
 
     const onPressItem = useCallback(
         (item: TransactionListItemType) => {
@@ -199,29 +197,10 @@ function SearchStaticList({searchResults, queryJSON, contentContainerStyle, onLa
     }, [sortedData.length, onLayoutProp]);
 
     const pendingExpenseReasonAttributes = useMemo(() => ({context: 'SearchStaticList.PendingExpensePlaceholder'}) as const, []);
-    const firstFrameReasonAttributes = useMemo(() => ({context: 'SearchStaticList.FirstFrame'}) as const, []);
-
-    if (isFirstFrame) {
-        return (
-            <View
-                key="first-frame"
-                style={styles.flex1}
-                onLayout={onFirstFrameLayout}
-            >
-                <SearchRowSkeleton
-                    shouldAnimate={false}
-                    fixedNumItems={STATIC_LIST_MAX_ITEMS}
-                    containerStyle={contentContainerStyle}
-                    reasonAttributes={firstFrameReasonAttributes}
-                />
-            </View>
-        );
-    }
 
     if (sortedData.length === 0 && showPendingExpensePlaceholder) {
         return (
             <View
-                key="content"
                 style={styles.flex1}
                 onLayout={onLayout}
             >
@@ -241,7 +220,6 @@ function SearchStaticList({searchResults, queryJSON, contentContainerStyle, onLa
 
     return (
         <View
-            key="content"
             style={styles.flex1}
             onLayout={onLayout}
         >
