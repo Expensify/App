@@ -222,7 +222,6 @@ describe('getPathFromState', () => {
 
             expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/settings/wallet/country/constant-picker?country=US&formType=report&fieldName=status&fieldValue=open');
         });
-        // no
 
         it('two simple dynamic suffixes, no params on first', () => {
             const state = buildState([{name: 'WalletScreen'}, {name: 'VerifyAccountScreen'}, {name: 'CountryScreen', params: {country: 'US'}}]);
