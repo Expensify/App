@@ -1,6 +1,11 @@
 import type {ValueOf} from 'type-fest';
 import type {UnitPosition, UnitWithFallback} from '@components/Charts';
 import type {PaymentMethod} from '@components/KYCWall/types';
+import type {SearchKey, SearchTypeMenuItem} from '@libs/SearchUIUtils';
+import type CONST from '@src/CONST';
+import type {Report, ReportAction, SearchResults, Transaction} from '@src/types/onyx';
+import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
+import type IconAsset from '@src/types/utils/IconAsset';
 import type {
     ReportActionListItemType,
     TaskListItemType,
@@ -16,12 +21,7 @@ import type {
     TransactionWeekGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
     TransactionYearGroupListItemType,
-} from '@components/SelectionListWithSections/types';
-import type {SearchKey, SearchTypeMenuItem} from '@libs/SearchUIUtils';
-import type CONST from '@src/CONST';
-import type {Report, ReportAction, SearchResults, Transaction} from '@src/types/onyx';
-import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
-import type IconAsset from '@src/types/utils/IconAsset';
+} from './SearchList/ListItem/types';
 
 /** Model of the selected transaction */
 type SelectedTransactionInfo = {
@@ -75,6 +75,9 @@ type SelectedTransactionInfo = {
 
     /** The exchange rate of the transaction if the transaction is grouped. Defaults to the exchange rate against the active policy currency if group has no target currency */
     groupExchangeRate?: number;
+
+    /** The currency conversion rate from the transaction currency to the report currency */
+    currencyConversionRate?: string;
 
     /** Whether it is the only expense of the parent expense report */
     isFromOneTransactionReport: boolean;
@@ -163,6 +166,7 @@ type SearchContextData = {
     currentSearchKey: SearchKey | undefined;
     currentSearchQueryJSON: SearchQueryJSON | undefined;
     currentSearchResults: SearchResults | undefined;
+    currentSelectedTransactionReportID: string | undefined;
     selectedTransactions: SelectedTransactions;
     selectedTransactionIDs: string[];
     selectedReports: SelectedReports[];
@@ -176,7 +180,7 @@ type SearchStateContextValue = SearchContextData & {
     currentSearchResults: SearchResults | undefined;
     /** Whether we're on a main to-do search and should use live Onyx data instead of snapshots */
     shouldUseLiveData: boolean;
-    shouldShowFiltersBarLoading: boolean;
+    shouldShowActionsBarLoading: boolean;
     lastSearchType: string | undefined;
     shouldShowSelectAllMatchingItems: boolean;
     areAllMatchingItemsSelected: boolean;
@@ -188,13 +192,14 @@ type SearchActionsContextValue = {
         (selectedTransactionIDs: string[], unused?: undefined): void;
         (selectedTransactions: SelectedTransactions, data: TransactionListItemType[] | TransactionGroupListItemType[] | ReportActionListItemType[] | TaskListItemType[]): void;
     };
+    setCurrentSelectedTransactionReportID: (reportID: string | undefined) => void;
     /** If you want to clear `selectedTransactionIDs`, pass `true` as the first argument */
     clearSelectedTransactions: {
         (hash?: number, shouldTurnOffSelectionMode?: boolean): void;
         (clearIDs: true, unused?: undefined): void;
     };
     removeTransaction: (transactionID: string | undefined) => void;
-    setShouldShowFiltersBarLoading: (shouldShow: boolean) => void;
+    setShouldShowActionsBarLoading: (shouldShow: boolean) => void;
     setLastSearchType: (type: string | undefined) => void;
     setShouldShowSelectAllMatchingItems: (shouldShow: boolean) => void;
     selectAllMatchingItems: (on: boolean) => void;
@@ -347,12 +352,6 @@ type GroupedItem =
 type SearchChartProps = {
     /** Grouped transaction data from search results */
     data: GroupedItem[];
-
-    /** Chart title */
-    title: string;
-
-    /** Chart title icon */
-    titleIcon: IconAsset;
 
     /** Function to extract label from grouped item */
     getLabel: (item: GroupedItem) => string;

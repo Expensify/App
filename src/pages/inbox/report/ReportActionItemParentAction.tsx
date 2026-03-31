@@ -199,7 +199,7 @@ function ReportActionItemParentAction({
                     report?.errorFields?.createChatThread ?? (report?.errorFields?.createChat ? getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage') : null)
                 }
                 errorRowStyles={[styles.ml10, styles.mr2]}
-                onClose={() => navigateToConciergeChatAndDeleteReport(report?.reportID, conciergeReportID, currentUserAccountID, introSelected, undefined, true)}
+                onClose={() => navigateToConciergeChatAndDeleteReport(report?.reportID, conciergeReportID, currentUserAccountID, introSelected, allBetas, undefined, true)}
             >
                 {ancestors.map((ancestor) => {
                     const {report: ancestorReport, reportAction: ancestorReportAction} = ancestor;
@@ -224,7 +224,7 @@ function ReportActionItemParentAction({
                             pendingAction={ancestorReport?.pendingFields?.addWorkspaceRoom ?? ancestorReport?.pendingFields?.createChat}
                             errors={ancestorReport?.errorFields?.addWorkspaceRoom ?? ancestorReport?.errorFields?.createChat}
                             errorRowStyles={[styles.ml10, styles.mr2]}
-                            onClose={() => navigateToConciergeChatAndDeleteReport(ancestorReport.reportID, conciergeReportID, currentUserAccountID, introSelected)}
+                            onClose={() => navigateToConciergeChatAndDeleteReport(ancestorReport.reportID, conciergeReportID, currentUserAccountID, introSelected, allBetas)}
                         >
                             {shouldDisplayThreadDivider && (
                                 <ThreadDivider

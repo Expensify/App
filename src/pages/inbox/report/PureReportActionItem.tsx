@@ -269,8 +269,11 @@ type PureReportActionItemProps = {
     /** Model of onboarding selected */
     introSelected?: OnyxEntry<OnyxTypes.IntroSelected>;
 
-    /** All transaction drafts */
-    allTransactionDrafts: OnyxCollection<OnyxTypes.Transaction>;
+    /** Beta features list */
+    betas?: OnyxEntry<OnyxTypes.Beta[]>;
+
+    /** All transaction draft IDs */
+    draftTransactionIDs: string[] | undefined;
 
     /** Report for this action */
     report: OnyxEntry<OnyxTypes.Report>;
@@ -455,6 +458,9 @@ type PureReportActionItemProps = {
     /** Current user's account id */
     currentUserAccountID: number;
 
+    /** Current user's email */
+    currentUserEmail: string | undefined;
+
     /** The bank account list */
     bankAccountList?: OnyxTypes.BankAccountList | undefined;
 
@@ -480,7 +486,8 @@ const isEmptyHTML = <T extends React.JSX.Element>({props: {html}}: T): boolean =
 function PureReportActionItem({
     personalPolicyID,
     introSelected,
-    allTransactionDrafts,
+    betas,
+    draftTransactionIDs,
     action,
     report,
     policy,
@@ -533,6 +540,7 @@ function PureReportActionItem({
     shouldHighlight = false,
     isTryNewDotNVPDismissed = false,
     currentUserAccountID,
+    currentUserEmail,
     bankAccountList,
     reportNameValuePairsOrigin,
     reportNameValuePairsOriginalID,
@@ -543,8 +551,9 @@ function PureReportActionItem({
     const shouldDisplayContextMenuValue = shouldDisplayContextMenu && !isConciergeGreeting;
 
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
-    const {translate, formatPhoneNumber, localeCompare, formatTravelDate, getLocalDateFromDatetime, datetimeToCalendarTime} = useLocalize();
+    const {translate, formatPhoneNumber, localeCompare, formatTravelDate, getLocalDateFromDatetime} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const personalDetail = useCurrentUserPersonalDetails();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -579,6 +588,8 @@ function PureReportActionItem({
 
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(action.childReportID)}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
+    const trackExpenseTransactionID = isActionableTrackExpense(action) ? getOriginalMessage(action)?.transactionID : undefined;
+    const [trackExpenseTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(trackExpenseTransactionID)}`);
 
     const highlightedBackgroundColorIfNeeded = useMemo(
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -623,7 +634,7 @@ function PureReportActionItem({
             clearError(transactionID);
         }
         clearAllRelatedReportActionErrors(reportID, action, originalReportID);
-    }, [action, isSendingMoney, reportID, clearAllRelatedReportActionErrors, report, chatReport, clearError]);
+    }, [action, isSendingMoney, reportID, clearAllRelatedReportActionErrors, report, chatReport, clearError, originalReportID]);
 
     const showDismissReceiptErrorModal = useCallback(async () => {
         const result = await showConfirmModal({
@@ -832,8 +843,9 @@ function PureReportActionItem({
             transactionThreadReport,
             isDisabled: false,
             shouldDisplayContextMenu: shouldDisplayContextMenuValue,
+            originalReportID,
         }),
-        [report, action, transactionThreadReport, shouldDisplayContextMenuValue, isReportArchived],
+        [report, action, transactionThreadReport, shouldDisplayContextMenuValue, isReportArchived, originalReportID],
     );
 
     const contextMenuActionsValue = useMemo(
@@ -921,7 +933,7 @@ function PureReportActionItem({
                     shouldUseLocalization: false,
                     key: `${action.reportActionID}-followup-${followup.text}`,
                     onPress: () => {
-                        resolveSuggestedFollowup(reportActionReport, reportID, action, followup, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE, currentUserAccountID);
+                        resolveSuggestedFollowup(reportActionReport, reportID, action, followup, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE, currentUserAccountID, currentUserEmail);
                     },
                 }));
             }
@@ -933,24 +945,24 @@ function PureReportActionItem({
 
         const reportActionReportID = originalReportID ?? reportID;
         if (isActionableTrackExpense(action)) {
-            const transactionID = getOriginalMessage(action)?.transactionID;
             const options = [
                 {
                     text: 'actionableMentionTrackExpense.submit',
                     key: `${action.reportActionID}-actionableMentionTrackExpense-submit`,
                     onPress: () => {
                         createDraftTransactionAndNavigateToParticipantSelector({
-                            transactionID,
                             reportID: reportActionReportID,
                             actionName: CONST.IOU.ACTION.SUBMIT,
                             reportActionID: action.reportActionID,
                             introSelected,
-                            allTransactionDrafts,
+                            draftTransactionIDs,
                             activePolicy,
                             userBillingGraceEndPeriods,
                             amountOwed,
+                            ownerBillingGraceEndPeriod,
                             isRestrictedToPreferredPolicy,
                             preferredPolicyID,
+                            transaction: trackExpenseTransaction,
                         });
                     },
                 },
@@ -963,15 +975,16 @@ function PureReportActionItem({
                         key: `${action.reportActionID}-actionableMentionTrackExpense-categorize`,
                         onPress: () => {
                             createDraftTransactionAndNavigateToParticipantSelector({
-                                transactionID,
                                 reportID: reportActionReportID,
                                 actionName: CONST.IOU.ACTION.CATEGORIZE,
                                 reportActionID: action.reportActionID,
                                 introSelected,
-                                allTransactionDrafts,
+                                draftTransactionIDs,
                                 activePolicy,
                                 userBillingGraceEndPeriods,
                                 amountOwed,
+                                ownerBillingGraceEndPeriod,
+                                transaction: trackExpenseTransaction,
                             });
                         },
                     },
@@ -980,15 +993,16 @@ function PureReportActionItem({
                         key: `${action.reportActionID}-actionableMentionTrackExpense-share`,
                         onPress: () => {
                             createDraftTransactionAndNavigateToParticipantSelector({
-                                transactionID,
                                 reportID: reportActionReportID,
                                 actionName: CONST.IOU.ACTION.SHARE,
                                 reportActionID: action.reportActionID,
                                 introSelected,
-                                allTransactionDrafts,
+                                draftTransactionIDs,
                                 activePolicy,
                                 userBillingGraceEndPeriods,
                                 amountOwed,
+                                ownerBillingGraceEndPeriod,
+                                transaction: trackExpenseTransaction,
                             });
                         },
                     },
@@ -1117,6 +1131,7 @@ function PureReportActionItem({
         isActionableWhisper,
         policy,
         currentUserAccountID,
+        currentUserEmail,
         personalDetail.timezone,
         createDraftTransactionAndNavigateToParticipantSelector,
         isRestrictedToPreferredPolicy,
@@ -1128,13 +1143,15 @@ function PureReportActionItem({
         isOriginalReportArchived,
         resolveActionableMentionWhisper,
         introSelected,
-        allTransactionDrafts,
+        draftTransactionIDs,
         activePolicy,
         report,
         originalReport,
         personalPolicyID,
         userBillingGraceEndPeriods,
         amountOwed,
+        ownerBillingGraceEndPeriod,
+        trackExpenseTransaction,
     ]);
 
     /**
@@ -1169,6 +1186,7 @@ function PureReportActionItem({
                     style={displayAsGroup ? [] : [styles.mt2]}
                     isWhisper={isWhisper}
                     shouldDisplayContextMenu={shouldDisplayContextMenuValue}
+                    originalReportID={originalReportID}
                 />
             );
 
@@ -1200,6 +1218,7 @@ function PureReportActionItem({
                                             introSelected,
                                             personalDetail.email ?? '',
                                             personalDetail.accountID,
+                                            betas,
                                             iouReport,
                                             action,
                                         );
@@ -1213,6 +1232,7 @@ function PureReportActionItem({
                                     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(action.childReportID, undefined, undefined, Navigation.getActiveRoute()));
                                 }}
                                 isTrackExpense={isTrackExpenseActionReportActionsUtils(action)}
+                                originalReportID={originalReportID}
                             />
                         </View>
                     );
@@ -1231,6 +1251,7 @@ function PureReportActionItem({
                     containerStyles={displayAsGroup ? [] : [styles.mt2]}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                     shouldDisplayContextMenu={shouldDisplayContextMenuValue}
+                    originalReportID={originalReportID}
                 />
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && isClosedExpenseReportWithNoExpenses) {
@@ -1250,6 +1271,7 @@ function PureReportActionItem({
                     onPaymentOptionsHide={() => setIsPaymentMethodPopoverActive(false)}
                     shouldDisplayContextMenu={shouldDisplayContextMenuValue}
                     shouldShowBorder={shouldShowBorder}
+                    originalReportID={originalReportID}
                 />
             );
         } else if (isTaskAction(action)) {
@@ -2031,12 +2053,6 @@ function PureReportActionItem({
         );
     };
 
-    // Calculating accessibilityLabel for chat message with sender, date and time and the message content.
-    const displayName = getDisplayNameOrDefault(personalDetails?.[action.actorAccountID ?? CONST.DEFAULT_NUMBER_ID]);
-    const formattedTimestamp = datetimeToCalendarTime(action.created, false);
-    const plainMessage = getReportActionText(action);
-    const accessibilityLabel = `${displayName}, ${formattedTimestamp}, ${plainMessage}`;
-
     return (
         <View>
             {shouldShowCreatedAction && createdActionContent}
@@ -2057,8 +2073,7 @@ function PureReportActionItem({
                 onSecondaryInteraction={showPopover}
                 preventDefaultContextMenu={draftMessage === undefined && !hasErrors}
                 withoutFocusOnSecondaryInteraction
-                accessibilityLabel={accessibilityLabel}
-                accessibilityHint={translate('accessibilityHints.chatMessage')}
+                accessibilityLabel={translate('accessibilityHints.chatMessage')}
                 accessibilityRole={CONST.ROLE.BUTTON}
                 sentryLabel={CONST.SENTRY_LABEL.REPORT.PURE_REPORT_ACTION_ITEM}
             >
@@ -2195,6 +2210,7 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         prevProps.parentReport?.reportID === nextProps.parentReport?.reportID &&
         deepEqual(prevProps.personalDetails, nextProps.personalDetails) &&
         deepEqual(prevProps.introSelected, nextProps.introSelected) &&
+        deepEqual(prevProps.betas, nextProps.betas) &&
         deepEqual(prevProps.blockedFromConcierge, nextProps.blockedFromConcierge) &&
         prevProps.originalReportID === nextProps.originalReportID &&
         deepEqual(prevProps.originalReport?.participants, nextProps.originalReport?.participants) &&
