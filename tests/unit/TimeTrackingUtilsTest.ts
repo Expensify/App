@@ -126,34 +126,30 @@ describe('TimeTrackingUtils', () => {
     describe('isValidTimeExpenseAmount', () => {
         it('should validate normal time expense amount', () => {
             const amount = 40000; // $400.00
-            const currency = CONST.CURRENCY.USD;
             const decimals = 2;
 
-            expect(isValidTimeExpenseAmount(amount, currency, decimals)).toBe(true);
+            expect(isValidTimeExpenseAmount(amount, decimals)).toBe(true);
         });
 
         it('should validate large but reasonable amounts', () => {
             const amount = 1000000; // $10,000.00
-            const currency = CONST.CURRENCY.USD;
             const decimals = 2;
 
-            expect(isValidTimeExpenseAmount(amount, currency, decimals)).toBe(true);
+            expect(isValidTimeExpenseAmount(amount, decimals)).toBe(true);
         });
 
         it('should reject too large amounts with decimals', () => {
             const amount = 10_000_000_000_00; // $10,000,000,000.00
-            const currency = CONST.CURRENCY.USD;
             const decimals = 2;
 
-            expect(isValidTimeExpenseAmount(amount, currency, decimals)).toBe(false);
+            expect(isValidTimeExpenseAmount(amount, decimals)).toBe(false);
         });
 
         it('should reject too large amounts without decimals', () => {
             const amount = 10_000_000_000_00; // ₫10,000,000,000
-            const currency = 'VND';
             const decimals = 0;
 
-            expect(isValidTimeExpenseAmount(amount, currency, decimals)).toBe(false);
+            expect(isValidTimeExpenseAmount(amount, decimals)).toBe(false);
         });
     });
 });
