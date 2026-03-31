@@ -95,6 +95,7 @@ function IOURequestStepDistance({
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
@@ -340,6 +341,7 @@ function IOURequestStepDistance({
             draftTransactionIDs,
             isSelfTourViewed: !!isSelfTourViewed,
             amountOwed,
+            userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,
         });
     }, [
@@ -378,6 +380,7 @@ function IOURequestStepDistance({
         draftTransactionIDs,
         isSelfTourViewed,
         amountOwed,
+        userBillingGracePeriodEnds,
         ownerBillingGracePeriodEnd,
     ]);
 

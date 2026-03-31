@@ -48,6 +48,7 @@ function OptionRowLHNData({
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const {login} = useCurrentUserPersonalDetails();
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fullReport?.policyID}`);
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fullReport?.reportID}`);
 
     const card = useGetExpensifyCardFromReportAction({reportAction: lastAction, policyID: fullReport?.policyID});
 
@@ -86,6 +87,7 @@ function OptionRowLHNData({
         reportAttributesDerived,
         policyTags,
         currentUserLogin: login ?? '',
+        reportActions,
     });
 
     // For single-sender IOUs, trim to the sender's avatar to match the header.
