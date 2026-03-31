@@ -65,6 +65,8 @@ type ViolationsMissingTagParams = {tagName?: string} | undefined;
 
 type ViolationsModifiedAmountParams = {type?: ViolationDataType; displayPercentVariance?: number};
 
+type ViolationsIncreasedDistanceParams = {formattedRouteDistance?: string};
+
 type OptionalParam<T> = Partial<T>;
 
 type LogSizeAndDateParams = {size: number; date: string};
@@ -77,7 +79,7 @@ type UpdatePolicyCustomUnitDefaultCategoryParams = {customUnitName: string; newV
 
 type UpdatePolicyCustomUnitParams = {oldValue: string; newValue: string; customUnitName: string; updatedField: string};
 
-type AddedOrDeletedPolicyReportFieldParams = {fieldType: string; fieldName?: string};
+type AddedOrDeletedPolicyReportFieldParams = {fieldType: string; fieldName?: string; defaultValue?: string};
 
 type UpdatedPolicyApprovalRuleParams = {oldApproverEmail: string; oldApproverName?: string; newApproverEmail: string; newApproverName?: string; field: string; name: string};
 
@@ -227,6 +229,7 @@ export type {
     UserIsAlreadyMemberParams,
     ViolationsMissingTagParams,
     ViolationsModifiedAmountParams,
+    ViolationsIncreasedDistanceParams,
     ChangeFieldParams,
     ExportedToIntegrationParams,
     IntegrationsMessageParams,

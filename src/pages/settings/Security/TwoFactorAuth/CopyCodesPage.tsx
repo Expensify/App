@@ -18,6 +18,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {READ_COMMANDS} from '@libs/API/types';
 import Clipboard from '@libs/Clipboard';
+import getPlatform from '@libs/getPlatform';
 import localFileDownload from '@libs/localFileDownload';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -31,14 +32,24 @@ import type {TwoFactorAuthPageProps} from './TwoFactorAuthPage';
 import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 
 function CopyCodesPage({route}: TwoFactorAuthPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Copy', 'Download'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Copy', 'Download']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use correct style
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isExtraSmallScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const [error, setError] = useState('');
+    const [statusAnnouncement, setStatusAnnouncement] = useState({id: 0, text: ''});
     const isFocused = useIsFocused();
+
+    const isWeb = getPlatform() === CONST.PLATFORM.WEB;
+
+    const announceStatus = (message: string) => {
+        if (!isWeb) {
+            return;
+        }
+        setStatusAnnouncement((prev) => ({id: prev.id + 1, text: message}));
+    };
 
     const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
 
@@ -122,12 +133,14 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                                                 Clipboard.setString(account?.recoveryCodes ?? '');
                                                 setError('');
                                                 setCodesAreCopied();
+                                                announceStatus(translate('common.copied'));
                                             }}
                                             styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCodesButton]}
                                             textStyles={[styles.buttonMediumText]}
                                             tooltipText=""
                                             tooltipTextChecked=""
                                             accessibilityLabel={`${translate('twoFactorAuth.copy')}, ${translate('twoFactorAuth.stepCodes')}`}
+                                            accessibilityLabelChecked={translate('common.copied')}
                                             sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.COPY_CODES}
                                         />
                                         <PressableWithDelayToggle
@@ -137,6 +150,7 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                                                 localFileDownload('two-factor-auth-codes', account?.recoveryCodes ?? '', translate);
                                                 setError('');
                                                 setCodesAreCopied();
+                                                announceStatus(translate('fileDownload.success.title'));
                                             }}
                                             inline={false}
                                             styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCodesButton]}
@@ -153,6 +167,15 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                     </Section>
                 )}
                 <FixedFooter style={[styles.mtAuto, styles.pt5]}>
+                    {!!statusAnnouncement.text && (
+                        <Text
+                            key={statusAnnouncement.id}
+                            role={CONST.ROLE.ALERT}
+                            style={styles.hiddenElementOutsideOfWindow}
+                        >
+                            {statusAnnouncement.text}
+                        </Text>
+                    )}
                     {!!error && (
                         <FormHelpMessage
                             isError

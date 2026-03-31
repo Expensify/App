@@ -53,7 +53,7 @@ function CreateReportMenuItem() {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const icons = useMemoizedLazyExpensifyIcons(['Document'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Document']);
     const {shouldRedirectToExpensifyClassic, showRedirectToExpensifyClassicModal} = useRedirectToExpensifyClassic();
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: sessionEmailAndAccountIDSelector});
@@ -112,6 +112,7 @@ function CreateReportMenuItem() {
         policyID: defaultChatEnabledPolicyID,
         policyName: defaultChatEnabledPolicy?.name ?? '',
         onConfirm: handleCreateWorkspaceReport,
+        shouldHandleNavigationBack: false,
     });
 
     return (
@@ -133,14 +134,13 @@ function CreateReportMenuItem() {
                     // If we couldn't guess the workspace to create the report, or a guessed workspace is past its grace period and we have other workspaces to choose from
                     if (
                         !workspaceIDForReportCreation ||
-                        (shouldRestrictUserBillableActions(workspaceIDForReportCreation, userBillingGraceEndPeriods, undefined, ownerBillingGraceEndPeriod) &&
-                            groupPoliciesWithChatEnabled.length > 1)
+                        (shouldRestrictUserBillableActions(workspaceIDForReportCreation, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods) && groupPoliciesWithChatEnabled.length > 1)
                     ) {
                         Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
                         return;
                     }
 
-                    if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation, userBillingGraceEndPeriods, undefined, ownerBillingGraceEndPeriod)) {
+                    if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods)) {
                         // Check if empty report confirmation should be shown
                         if (shouldShowEmptyReportConfirmation) {
                             openCreateReportConfirmation();

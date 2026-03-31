@@ -34,6 +34,7 @@ import Building from '@assets/images/building.svg';
 import Buildings from '@assets/images/buildings.svg';
 import CalendarSolid from '@assets/images/calendar-solid.svg';
 import Calendar from '@assets/images/calendar.svg';
+import CameraFlip from '@assets/images/camera-flip.svg';
 import Camera from '@assets/images/camera.svg';
 import CarPlus from '@assets/images/car-plus.svg';
 import CarWithKey from '@assets/images/car-with-key.svg';
@@ -81,6 +82,7 @@ import Emoji from '@assets/images/emoji.svg';
 import Lightbulb from '@assets/images/emojiCategoryIcons/light-bulb.svg';
 import EmptyStateRoutePending from '@assets/images/emptystate__routepending.svg';
 import EmptyStateSpyPigeon from '@assets/images/emptystate__spy-pigeon.svg';
+import EnvelopeOpenStar from '@assets/images/envelope-open-star.svg';
 import EReceiptIcon from '@assets/images/eReceiptIcon.svg';
 import Exclamation from '@assets/images/exclamation.svg';
 import Exit from '@assets/images/exit.svg';
@@ -283,6 +285,7 @@ const Expensicons = {
     Buildings,
     Calendar,
     Camera,
+    CameraFlip,
     Car,
     CarPlus,
     Cash,
@@ -320,6 +323,7 @@ const Expensicons = {
     DragHandles,
     EReceiptIcon,
     Emoji,
+    EnvelopeOpenStar,
     EmptyStateRoutePending,
     ExpenseCopy,
     Exclamation,

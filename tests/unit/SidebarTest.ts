@@ -14,7 +14,6 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 
 // Be sure to include the mocked Permissions and Expensicons libraries or else the beta tests won't work
 jest.mock('@src/libs/Permissions');
-jest.mock('@src/components/Icon/Expensicons');
 jest.mock('@src/hooks/useRootNavigationState');
 
 const TEST_USER_ACCOUNT_ID = 1;

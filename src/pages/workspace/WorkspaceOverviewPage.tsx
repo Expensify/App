@@ -32,7 +32,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolationOfWorkspace from '@hooks/useTransactionViolationOfWorkspace';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {close} from '@libs/actions/Modal';
-import {clearInviteDraft, clearWorkspaceOwnerChangeFlow, isApprover as isApproverUserAction, requestWorkspaceOwnerChange} from '@libs/actions/Policy/Member';
+import {clearInviteDraft, clearWorkspaceOwnerChangeFlow, requestWorkspaceOwnerChange} from '@libs/actions/Policy/Member';
 import {
     calculateBillNewDot,
     clearAvatarErrors,
@@ -56,6 +56,7 @@ import {
     goBackFromInvalidPolicy,
     isPendingDeletePolicy,
     isPolicyAdmin as isPolicyAdminPolicyUtils,
+    isPolicyApprover,
     isPolicyAuditor,
     isPolicyOwner,
     shouldBlockWorkspaceDeletionForInvoicifyUser,
@@ -197,7 +198,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const mentionReportContextValue = {policyID: policy?.id, currentReportID: undefined, exactlyMatch: true};
 
     const fetchPolicyData = () => {
-        if (policyDraft?.id) {
+        if (policyDraft?.id || !isFocused) {
             return;
         }
         openPolicyProfilePage(route.params.policyID);
@@ -262,6 +263,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             lastUsedPaymentMethods: lastPaymentMethod,
             localeCompare,
             personalPolicyID,
+            currentUserAccountID: accountID,
         });
         if (isOffline) {
             setIsDeleteModalOpen(false);
@@ -368,7 +370,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         const technicalContact = policy?.technicalContact;
         const isCurrentUserReimburser = policy?.achAccount?.reimburser === session?.email;
         const userEmail = session?.email ?? '';
-        const isApprover = isApproverUserAction(policy, userEmail);
+        const isApprover = isPolicyApprover(policy, userEmail);
 
         if (isCurrentUserReimburser) {
             return translate('common.leaveWorkspaceReimburser');

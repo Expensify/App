@@ -36,6 +36,7 @@ type BuildNextStepNewParams = {
     shouldFixViolations?: boolean;
     isUnapprove?: boolean;
     isReopen?: boolean;
+    isRejectedReport?: boolean;
     /**
      * Bypass Next Approver ID is used when an approver is bypassed so that we can show the next approver in the chain.
      * This is necessary in the case where report actions are not yet updated to determine the bypass action.
@@ -81,6 +82,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
         shouldFixViolations,
         isUnapprove,
         isReopen,
+        isRejectedReport: isRejectedReportParam,
         bypassNextApproverID,
     } = params;
 
@@ -118,6 +120,14 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
     switch (predictedNextStatus) {
         // Generates an optimistic nextStep once a report has been opened
         case CONST.REPORT.STATUS_NUM.OPEN:
+            if (isRejectedReportParam) {
+                nextStep = {
+                    messageKey: CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT,
+                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                    actorAccountID: ownerAccountID,
+                };
+                break;
+            }
             if ((isASAPSubmitBetaEnabled && hasViolations && isInstantSubmitEnabled) || shouldFixViolations) {
                 nextStep = {
                     messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES,
@@ -322,28 +332,12 @@ function buildOptimisticNextStepForPreventSelfApprovalsEnabled() {
     return optimisticNextStep;
 }
 
-function buildOptimisticFixIssueNextStep() {
-    const optimisticNextStep: ReportNextStepDeprecated = {
-        type: 'neutral',
+function buildOptimisticFixIssueNextStep(ownerAccountID: number): ReportNextStep {
+    return {
+        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES,
         icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-        message: [
-            {
-                text: 'Waiting for ',
-            },
-            {
-                text: `you`,
-                type: 'strong',
-            },
-            {
-                text: ' to ',
-            },
-            {
-                text: 'fix the issue(s)',
-            },
-        ],
+        actorAccountID: ownerAccountID,
     };
-
-    return optimisticNextStep;
 }
 
 function buildOptimisticNextStepForStrictPolicyRuleViolations() {
@@ -378,7 +372,8 @@ function getReportNextStep(
             (transaction) => !!transaction && hasSubmissionBlockingViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, moneyRequestReport, policy),
         )
     ) {
-        return buildOptimisticFixIssueNextStep();
+        // eslint-disable-next-line rulesdir/no-default-id-values -- actorAccountID can be -1 for unspecified owner
+        return buildOptimisticFixIssueNextStep(moneyRequestReport?.ownerAccountID ?? -1);
     }
 
     const isSubmitterSameAsNextApprover =
@@ -456,6 +451,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
         shouldFixViolations,
         isUnapprove,
         isReopen,
+        isRejectedReport,
         bypassNextApproverID,
     } = params;
 
@@ -531,6 +527,26 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
     switch (predictedNextStatus) {
         // Generates an optimistic nextStep once a report has been opened
         case CONST.REPORT.STATUS_NUM.OPEN:
+            if (isRejectedReport) {
+                optimisticNextStep = {
+                    type,
+                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                    message: [
+                        {
+                            text: 'This report was rejected. Waiting on ',
+                        },
+                        {
+                            text: `${ownerDisplayName}`,
+                            type: 'strong',
+                            clickToCopyText: ownerAccountID === currentUserAccountIDParam ? currentUserEmailParam : '',
+                        },
+                        {
+                            text: ' to fix the issues and manually resubmit.',
+                        },
+                    ],
+                };
+                break;
+            }
             if ((isASAPSubmitBetaEnabled && hasViolations && isInstantSubmitEnabled) || shouldFixViolations) {
                 optimisticNextStep = {
                     type,

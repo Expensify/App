@@ -4,11 +4,11 @@ import React, {useEffect, useRef, useState} from 'react';
 import {FlatList, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import ActivityIndicator from '@components/ActivityIndicator';
 import ConfirmModal from '@components/ConfirmModal';
 import type {DomainItem} from '@components/Domain/DomainMenuItem';
 import DomainMenuItem from '@components/Domain/DomainMenuItem';
 import DomainsEmptyStateComponent from '@components/DomainsEmptyStateComponent';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import type {MenuItemProps} from '@components/MenuItem';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
@@ -20,7 +20,7 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchBar from '@components/SearchBar';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useCardFeeds from '@hooks/useCardFeeds';
@@ -42,22 +42,22 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolationOfWorkspace from '@hooks/useTransactionViolationOfWorkspace';
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {close} from '@libs/actions/Modal';
-import {clearWorkspaceOwnerChangeFlow, isApprover as isApproverUserAction, requestWorkspaceOwnerChange} from '@libs/actions/Policy/Member';
+import {clearWorkspaceOwnerChangeFlow, requestWorkspaceOwnerChange} from '@libs/actions/Policy/Member';
 import {calculateBillNewDot, clearDeleteWorkspaceError, clearDuplicateWorkspace, clearErrors, deleteWorkspace, leaveWorkspace, removeWorkspace} from '@libs/actions/Policy/Policy';
 import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
 import {filterInactiveCards} from '@libs/CardUtils';
 import {hasDomainErrors} from '@libs/DomainUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
-import usePreloadFullScreenNavigators from '@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {AuthScreensParamList} from '@libs/Navigation/types';
+import type {WorkspaceNavigatorParamList} from '@libs/Navigation/types';
 import {
     getConnectionExporters,
     getPolicyBrickRoadIndicatorStatus,
     getUberConnectionErrorDirectlyFromPolicy,
     isPendingDeletePolicy,
     isPolicyAdmin,
+    isPolicyApprover,
     isPolicyAuditor,
     shouldBlockWorkspaceDeletionForInvoicifyUser,
     shouldShowEmployeeListError,
@@ -148,7 +148,7 @@ function WorkspacesListPage() {
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
-    const route = useRoute<PlatformStackRouteProp<AuthScreensParamList, typeof SCREENS.WORKSPACES_LIST>>();
+    const route = useRoute<PlatformStackRouteProp<WorkspaceNavigatorParamList, typeof SCREENS.WORKSPACES_LIST>>();
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const [duplicateWorkspace] = useOnyx(ONYXKEYS.DUPLICATE_WORKSPACE);
     const {isRestrictedToPreferredPolicy, preferredPolicyID, isRestrictedPolicyCreation} = usePreferredPolicy();
@@ -159,9 +159,6 @@ function WorkspacesListPage() {
     const [allDomainErrors] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN_ERRORS);
     const [adminAccess] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
-
-    // This hook preloads the screens of adjacent tabs to make changing tabs faster.
-    usePreloadFullScreenNavigators();
 
     const ownedPaidPolicies = ownerPoliciesSelector(policies, currentUserPersonalDetails?.accountID);
     const activeOwnedPaidPoliciesCount = ownedPaidPolicies.filter((p) => !isPendingDeletePolicy(p)).length;
@@ -242,6 +239,7 @@ function WorkspacesListPage() {
             lastUsedPaymentMethods: lastPaymentMethod,
             localeCompare,
             personalPolicyID,
+            currentUserAccountID: currentUserPersonalDetails.accountID,
         });
         if (isOffline) {
             setIsDeleteModalOpen(false);
@@ -274,7 +272,7 @@ function WorkspacesListPage() {
         const technicalContact = policyToLeave?.technicalContact;
         const isCurrentUserReimburser = isUserReimburserForPolicy(policies, policyIDToLeave, session?.email);
         const userEmail = session?.email ?? '';
-        const isApprover = isApproverUserAction(policyToLeave, userEmail);
+        const isApprover = isPolicyApprover(policyToLeave, userEmail);
 
         if (isCurrentUserReimburser) {
             return translate('common.leaveWorkspaceReimburser');
@@ -549,6 +547,7 @@ function WorkspacesListPage() {
                     action: () => null,
                     dismissError: () => null,
                     isJoinRequestPending: true,
+                    keyForList: policyInfo.name,
                 });
             } else {
                 workspaces.push({
@@ -569,6 +568,7 @@ function WorkspacesListPage() {
                     role: policy.role,
                     type: policy.type,
                     employeeList: policy.employeeList,
+                    keyForList: policy.name,
                 });
             }
         }
@@ -738,9 +738,9 @@ function WorkspacesListPage() {
                 </TopBarWithLoadingBar>
                 {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pt2]}>{headerButton}</View>}
                 {shouldShowLoadingIndicator ? (
-                    <View style={[styles.flex1]}>
-                        <FullScreenLoadingIndicator
-                            style={[styles.flex1, styles.pRelative]}
+                    <View style={[styles.flex1, styles.fullScreenLoading]}>
+                        <ActivityIndicator
+                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                             reasonAttributes={
                                 {
                                     context: 'WorkspacesListPage',
