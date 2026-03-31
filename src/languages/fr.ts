@@ -1148,6 +1148,7 @@ const translations: TranslationDeepObject<typeof en> = {
         flash: 'flash',
         multiScan: 'numérisation multiple',
         shutter: 'obturateur',
+        flipCamera: 'changer de caméra',
         gallery: 'galerie',
         deleteReceipt: 'Supprimer le reçu',
         deleteConfirmation: 'Voulez-vous vraiment supprimer ce reçu ?',
@@ -2945,13 +2946,8 @@ ${amount} pour ${merchant} - ${date}`,
                         4. Recherchez ${integrationName}.
                         5. Cliquez sur *Connecter*.
 
-${
-    integrationName && CONST.connectionsVideoPaths[integrationName]
-        ? `[Accéder à la comptabilité](${workspaceAccountingLink}).
-
-                        ![Se connecter à ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
-        : `[Accéder à la comptabilité](${workspaceAccountingLink}).`
-}`),
+                        [Accéder à la comptabilité](${workspaceAccountingLink}).
+                    `),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `Connectez [vos cartes d’entreprise](${corporateCardLink})`,
@@ -3376,6 +3372,11 @@ ${
         confirmationStepHeader: 'Vérifiez vos informations.',
         confirmationStepSubHeader: 'Vérifiez attentivement les détails ci-dessous et cochez la case des conditions pour confirmer.',
         toGetStarted: 'Ajoutez un compte bancaire personnel pour recevoir des remboursements, payer des factures ou activer le Portefeuille Expensify.',
+        updatePersonalInfo: 'Mettre à jour le compte bancaire',
+        updatePersonalInfoFailure: 'Impossible de mettre à jour les informations du compte bancaire. Veuillez réessayer plus tard.',
+        updateSuccessTitle: 'Compte bancaire mis à jour !',
+        updateSuccessHeader: 'Compte bancaire mis à jour',
+        updateSuccessMessage: 'Félicitations, votre compte bancaire est configuré et prêt à recevoir des remboursements.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Saisissez le mot de passe Expensify',
@@ -5033,6 +5034,9 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
         companyCards: {
             addCards: 'Ajouter des cartes',
             selectCards: 'Sélectionner des cartes',
+            fromOtherWorkspaces: "D'autres espaces de travail",
+            addWorkEmail: 'Ajoutez votre adresse e-mail professionnelle',
+            addWorkEmailDescription: "Veuillez ajouter votre e-mail professionnel pour utiliser les flux existants d'autres espaces de travail.",
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Impossible de charger les flux de cartes',
                 workspaceFeedsCouldNotBeLoadedMessage:
@@ -7225,6 +7229,17 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             approvedReimbursedClosedSpend,
         }: UpdatedPolicyBudgetNotificationParams) =>
             `Attention ! Cet espace de travail a un budget ${budgetFrequency} de « ${budgetAmount} » pour le/la ${budgetTypeForNotificationMessage} « ${budgetName} ». Vous en êtes actuellement à ${approvedReimbursedClosedSpend}, ce qui dépasse ${thresholdPercentage}% du budget. Il y a aussi ${awaitingApprovalSpend} en attente d’approbation et ${unsubmittedSpend} qui n’a pas encore été soumis, pour un total de ${totalSpend}. ${summaryLink ? `<a href="${summaryLink}">Voici une note de frais</a> avec toutes ces dépenses pour vos dossiers !` : ''}`,
+        addedCardFeed: (feedName: string) => `a ajouté le flux de carte « ${feedName} »`,
+        removedCardFeed: (feedName: string) => `a supprimé le flux de carte « ${feedName} »`,
+        renamedCardFeed: (newName: string, oldName: string) => `a renommé le flux de carte en « ${newName} » (auparavant « ${oldName} »)`,
+        assignedCompanyCard: (email: string, feedName: string, cardLastFour: string) =>
+            `a assigné ${email} ${feedName ? `« ${feedName} » ` : ''}carte de société se terminant par ${cardLastFour}`,
+        unassignedCompanyCard: (email: string, feedName: string, cardLastFour: string) =>
+            `carte d’entreprise ${feedName ? `« ${feedName} » ` : ''}se terminant par ${cardLastFour} désassignée de ${email}`,
+        updatedCardFeedLiability: (feedName: string, enabled: boolean) =>
+            `Autoriser les porteurs de carte ${enabled ? 'activé' : 'Désactivé'} à supprimer les transactions de carte pour le flux de cartes « ${feedName} »`,
+        updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
+            `a modifié le jour de fin de période de relevé du flux de carte « ${feedName} »${newValue ? ` à « ${newValue} »` : ''}${previousValue ? ` (précédemment « ${previousValue} »)` : ''}`,
         addedReportField: ({fieldType, fieldName, defaultValue}: AddedOrDeletedPolicyReportFieldParams) =>
             `a ajouté le champ de note de frais ${fieldType} « ${fieldName} »${defaultValue ? ` avec la valeur par défaut « ${defaultValue} »` : ''}`,
     },
@@ -7370,6 +7385,9 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         topMerchants: 'Commerçants principaux',
         groupedExpenses: 'dépenses groupées',
         bulkActions: {
+            editMultiple: 'Modifier plusieurs',
+            editMultipleTitle: 'Modifier plusieurs dépenses',
+            editMultipleDescription: 'Les modifications seront appliquées à toutes les dépenses sélectionnées et remplaceront toutes les valeurs précédemment définies.',
             approve: 'Approuver',
             pay: 'Payer',
             delete: 'Supprimer',

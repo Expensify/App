@@ -302,7 +302,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         'ReportCopy',
         'Printer',
         'DocumentMerge',
-    ] as const);
+    ]);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${moneyRequestReport?.reportID}`);
     const [transactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
@@ -1130,7 +1130,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         setIsHoldEducationalModalVisible(false);
         setNameValuePair(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, true, false, !shouldFailAllRequests);
         if (requestParentReportAction) {
-            changeMoneyRequestHoldStatus(requestParentReportAction, transaction);
+            changeMoneyRequestHoldStatus(requestParentReportAction, transaction, isOffline);
         }
     };
 
@@ -1138,7 +1138,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD) {
             dismissRejectUseExplanation();
             if (requestParentReportAction) {
-                changeMoneyRequestHoldStatus(requestParentReportAction, transaction);
+                changeMoneyRequestHoldStatus(requestParentReportAction, transaction, isOffline);
             }
         } else if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK) {
             dismissRejectUseExplanation();
@@ -1462,7 +1462,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
 
                     if (IOUActions.length) {
                         for (const action of IOUActions) {
-                            changeMoneyRequestHoldStatus(action, getLinkedIOUTransaction(action, transactions));
+                            changeMoneyRequestHoldStatus(action, getLinkedIOUTransaction(action, transactions), isOffline);
                         }
                         return;
                     }
@@ -1471,7 +1471,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                     if (!moneyRequestAction) {
                         return;
                     }
-                    changeMoneyRequestHoldStatus(moneyRequestAction, getLinkedIOUTransaction(moneyRequestAction, transactions));
+                    changeMoneyRequestHoldStatus(moneyRequestAction, getLinkedIOUTransaction(moneyRequestAction, transactions), isOffline);
                 }}
             />
         ),
@@ -1513,7 +1513,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                         );
                         const transactionID = duplicateTransaction?.transactionID;
                         const iouAction = getIOUActionForReportID(moneyRequestReport?.reportID, transactionID);
-                        const createdTransactionThreadReport = createTransactionThreadReport(introSelected, email ?? '', accountID, moneyRequestReport, iouAction);
+                        const createdTransactionThreadReport = createTransactionThreadReport(introSelected, email ?? '', accountID, betas, moneyRequestReport, iouAction);
                         threadID = createdTransactionThreadReport?.reportID;
                     }
                     Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(threadID));
@@ -1831,7 +1831,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                 const isDismissed = isReportSubmitter ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
 
                 if (isDismissed || isChatReportDM) {
-                    changeMoneyRequestHoldStatus(requestParentReportAction, transaction);
+                    changeMoneyRequestHoldStatus(requestParentReportAction, transaction, isOffline);
                 } else if (isReportSubmitter) {
                     setIsHoldEducationalModalVisible(true);
                 } else {
@@ -1854,7 +1854,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                     return;
                 }
 
-                changeMoneyRequestHoldStatus(requestParentReportAction, transaction);
+                changeMoneyRequestHoldStatus(requestParentReportAction, transaction, isOffline);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.SPLIT]: {
@@ -2446,7 +2446,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         );
     }
 
-    const showNextStepBar = shouldShowNextStep && !!(optimisticNextStep?.message?.length ?? (optimisticNextStep && 'messageKey' in optimisticNextStep));
+    const showNextStepBar = shouldShowNextStep && !!optimisticNextStep && (('message' in optimisticNextStep && !!optimisticNextStep.message?.length) || 'messageKey' in optimisticNextStep);
     const showNextStepSkeleton = shouldShowNextStep && !optimisticNextStep && !!isLoadingInitialReportActions && !isOffline;
     const shouldShowMoreContent = showNextStepBar || showNextStepSkeleton || !!statusBarProps || isReportInSearch;
 
