@@ -68,7 +68,7 @@ function TransactionPreviewContent({
     isReviewDuplicateTransactionPage = false,
     shouldHighlight = false,
 }: TransactionPreviewContentProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Folder', 'Tag'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Folder', 'Tag']);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -132,7 +132,18 @@ function TransactionPreviewContent({
     const isMarkAsCash = parentReport && currentUserLogin ? isMarkAsCashActionForTransaction(currentUserLogin, parentReport, violations, policy) : false;
 
     const violationMessage = firstViolation
-        ? ViolationsUtils.getViolationTranslation(firstViolation, translate, canEdit, undefined, companyCardPageURL, connectionLink, card, isMarkAsCash)
+        ? ViolationsUtils.getViolationTranslation(
+              firstViolation,
+              translate,
+              canEdit,
+              undefined,
+              companyCardPageURL,
+              connectionLink,
+              card,
+              isMarkAsCash,
+              transaction?.comment?.customUnit?.routeDistanceMeters,
+              transaction?.comment?.customUnit?.distanceUnit,
+          )
         : undefined;
 
     const previewText = useMemo(
