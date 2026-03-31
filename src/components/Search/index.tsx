@@ -286,6 +286,7 @@ function Search({
 
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const previousTransactions = usePrevious(transactions);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
@@ -1045,6 +1046,7 @@ function Search({
                     email ?? '',
                     accountID,
                     formatPhoneNumber,
+                    betas,
                     item?.reportAction?.childReportID,
                     undefined,
                     shouldOpenTransactionThread,
@@ -1102,6 +1104,7 @@ function Search({
                             email ?? '',
                             accountID,
                             formatPhoneNumber,
+                            betas,
                             firstTransaction?.reportAction?.childReportID,
                             transactionPreviewData,
                             false,
@@ -1154,6 +1157,7 @@ function Search({
             markReportIDAsMultiTransactionExpense,
             unmarkReportIDAsMultiTransactionExpense,
             introSelected,
+            betas,
             email,
             accountID,
             formatPhoneNumber,

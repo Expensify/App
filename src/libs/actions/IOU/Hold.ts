@@ -349,7 +349,7 @@ function putTransactionsOnHold(
 /**
  * Remove expense from HOLD
  */
-function unholdRequest(formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], transactionID: string, reportID: string, policy: OnyxEntry<Policy>) {
+function unholdRequest(formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], transactionID: string, reportID: string, policy: OnyxEntry<Policy>, isOffline: boolean) {
     const allTransactions = getAllTransactions();
     const allTransactionViolations = getAllTransactionViolations();
     const allReports = getAllReports();
@@ -545,7 +545,7 @@ function unholdRequest(formatPhoneNumber: LocaleContextProps['formatPhoneNumber'
         {optimisticData, successData, failureData},
     );
 
-    const currentReportID = getDisplayedReportID(reportID);
+    const currentReportID = getDisplayedReportID(reportID, isOffline);
     notifyNewAction(currentReportID, undefined, true);
 }
 

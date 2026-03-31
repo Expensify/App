@@ -4,7 +4,6 @@ import {createFilteredOptionList} from '@libs/OptionsListUtils';
 import type {OptionList} from '@libs/OptionsListUtils/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Beta from '@src/types/onyx/Beta';
-import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import usePrivateIsArchivedMap from './usePrivateIsArchivedMap';
@@ -78,7 +77,6 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
     const reportAttributesDerived = useReportAttributes();
 
     const privateIsArchivedMap = usePrivateIsArchivedMap();
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {formatPhoneNumber} = useLocalize();
 
     const totalReports = allReports ? Object.keys(allReports).length : 0;
@@ -87,36 +85,14 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
     const options: OptionList | null = useMemo(
         () =>
             enabled && allReports && allPersonalDetails
-                ? createFilteredOptionList(
-                      allPersonalDetails,
-                      allReports,
-                      currentUserPersonalDetails.accountID,
-                      reportAttributesDerived,
-                      privateIsArchivedMap,
-                      allPolicies,
-                      formatPhoneNumber,
-                      {
-                          maxRecentReports: reportsLimit,
-                          includeP2P,
-                          searchTerm,
-                          betas,
-                      },
-                  )
+                ? createFilteredOptionList(allPersonalDetails, allReports, reportAttributesDerived, privateIsArchivedMap, allPolicies, formatPhoneNumber, {
+                      maxRecentReports: reportsLimit,
+                      includeP2P,
+                      searchTerm,
+                      betas,
+                  })
                 : null,
-        [
-            enabled,
-            allReports,
-            allPersonalDetails,
-            currentUserPersonalDetails.accountID,
-            reportAttributesDerived,
-            privateIsArchivedMap,
-            allPolicies,
-            formatPhoneNumber,
-            reportsLimit,
-            includeP2P,
-            searchTerm,
-            betas,
-        ],
+        [enabled, allReports, allPersonalDetails, reportAttributesDerived, privateIsArchivedMap, allPolicies, reportsLimit, includeP2P, searchTerm, betas, formatPhoneNumber],
     );
 
     const hasMore = options ? reportsLimit < totalReports : false;
