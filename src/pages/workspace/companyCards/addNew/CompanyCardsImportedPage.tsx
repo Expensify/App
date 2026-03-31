@@ -137,6 +137,7 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
             existingCardsList,
             lastSelectedFeed: lastSelectedFeed ?? undefined,
             workspaceCardFeeds,
+            isEditing: !!prefilledLayoutType,
         });
     };
 

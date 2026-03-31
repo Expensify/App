@@ -4,6 +4,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {CombinedCardFeeds} from '@hooks/useCardFeeds';
 import * as API from '@libs/API';
 import type {
+    AddCSVCompanyCardsParams,
     AssignCompanyCardParams,
     ImportCSVCompanyCardsParams,
     OpenPolicyAddCardFeedPageParams,
@@ -64,6 +65,7 @@ type ImportCSVCompanyCardsData = {
     existingCardsList?: WorkspaceCardsList;
     lastSelectedFeed?: CompanyCardFeedWithDomainID;
     workspaceCardFeeds?: OnyxEntry<CardFeeds>;
+    isEditing?: boolean;
 };
 
 type OptimisticCompanyCardCSVTransaction = Pick<Transaction, 'transactionID' | 'amount' | 'created' | 'currency' | 'merchant' | 'category' | 'tag' | 'comment' | 'cardName' | 'bank'> & {
@@ -1146,12 +1148,13 @@ function importCSVCompanyCards({
     existingCardsList,
     lastSelectedFeed,
     workspaceCardFeeds,
+    isEditing,
 }: ImportCSVCompanyCardsData) {
     const feedName = layoutType as CompanyCardFeed;
     const {csvDataWithGeneratedIDs, normalizedColumnMappings, transactions: optimisticTransactions} = buildOptimisticCompanyCardCSVTransactions(csvData, columnMappings, feedName);
     const instanceID = Date.now().toString();
 
-    const parameters: ImportCSVCompanyCardsParams = {
+    const parameters: ImportCSVCompanyCardsParams | AddCSVCompanyCardsParams = {
         policyID,
         settings: JSON.stringify({
             columnMappings: normalizedColumnMappings,
@@ -1323,7 +1326,8 @@ function importCSVCompanyCards({
         });
     }
 
-    API.write(WRITE_COMMANDS.IMPORT_CSV_COMPANY_CARDS, parameters, {optimisticData, successData, failureData});
+    const command = isEditing ? WRITE_COMMANDS.ADD_CSV_COMPANY_CARDS : WRITE_COMMANDS.IMPORT_CSV_COMPANY_CARDS;
+    API.write(command, parameters, {optimisticData, successData, failureData});
 }
 
 /**
