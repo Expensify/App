@@ -231,4 +231,6 @@ function IOUSettlementButton({
     );
 }
 
+IOUSettlementButton.displayName = 'IOUSettlementButton';
+
 export default IOUSettlementButton;

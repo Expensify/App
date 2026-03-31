@@ -250,4 +250,6 @@ function ExpenseSettlementButton({
     );
 }
 
+ExpenseSettlementButton.displayName = 'ExpenseSettlementButton';
+
 export default ExpenseSettlementButton;

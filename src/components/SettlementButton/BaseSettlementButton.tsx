@@ -138,5 +138,7 @@ function BaseSettlementButton({
     );
 }
 
+BaseSettlementButton.displayName = 'BaseSettlementButton';
+
 export default BaseSettlementButton;
 export type {BaseSettlementButtonProps};

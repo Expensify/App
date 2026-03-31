@@ -230,4 +230,6 @@ function InvoiceSettlementButton({
     );
 }
 
+InvoiceSettlementButton.displayName = 'InvoiceSettlementButton';
+
 export default InvoiceSettlementButton;
