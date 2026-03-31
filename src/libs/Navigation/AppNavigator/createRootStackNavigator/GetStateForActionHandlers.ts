@@ -22,7 +22,7 @@ import type {
 } from './types';
 
 const MODAL_ROUTES_TO_DISMISS = new Set<string>([
-    NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
+    NAVIGATORS.WORKSPACE_NAVIGATOR,
     NAVIGATORS.RIGHT_MODAL_NAVIGATOR,
     NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR,
     NAVIGATORS.FEATURE_TRAINING_MODAL_NAVIGATOR,
@@ -284,6 +284,21 @@ function handleDismissModalAction(
     if (!lastRoute?.name || !MODAL_ROUTES_TO_DISMISS.has(lastRoute?.name)) {
         Log.hmmm('[Navigation] dismissModal failed because there is no modal stack to dismiss');
         return null;
+    }
+
+    // When dismissing WORKSPACE_NAVIGATOR while viewing a workspace/domain split navigator
+    // (nested index > 0), navigate back to WORKSPACES_LIST within the navigator instead of
+    // popping the entire navigator from the root stack.
+    if (lastRoute.name === NAVIGATORS.WORKSPACE_NAVIGATOR && lastRoute.state && lastRoute.state.index !== undefined && lastRoute.state.index > 0) {
+        const updatedNestedState = {
+            ...lastRoute.state,
+            routes: lastRoute.state.routes.slice(0, 1),
+            index: 0,
+        };
+        return {
+            ...state,
+            routes: [...state.routes.slice(0, -1), {...lastRoute, state: updatedNestedState}],
+        };
     }
 
     return stackRouter.getStateForAction(state, newAction, configOptions);
