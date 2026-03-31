@@ -1088,6 +1088,8 @@ const translations: TranslationDeepObject<typeof en> = {
         emptyMappedField: (fieldName: string) => `Oeps! Het veld („${fieldName}”) bevat een of meer lege waarden. Controleer het en probeer het opnieuw.`,
         importSuccessfulTitle: 'Import geslaagd',
         importCategoriesSuccessfulDescription: ({categories}: {categories: number}) => (categories > 1 ? `${categories} categorieën zijn toegevoegd.` : '1 categorie is toegevoegd.'),
+        importCompanyCardTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
+            transactions > 1 ? `${transactions} transacties zijn toegevoegd.` : '1 transactie is toegevoegd.',
         importMembersSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
             if (!added && !updated) {
                 return 'Er zijn geen leden toegevoegd of bijgewerkt.';
@@ -5016,6 +5018,11 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             },
             addNewCard: {
                 other: 'Anders',
+                fileImport: 'Transacties uit bestand importeren',
+                createFileFeedHelpText: `<muted-text>Volg deze <a href="${CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}">hulpgids</a> om de uitgaven op je bedrijfskaarten te importeren!</muted-text>`,
+                companyCardLayoutName: 'Naam van lay-out van bedrijfskaart',
+                cardLayoutNameRequired: 'De naam van de lay-out van de bedrijfskaart is verplicht',
+                useAdvancedFields: 'Geavanceerde velden gebruiken (niet aanbevolen)',
                 cardProviders: {
                     gl1025: 'American Express Corporate Cards',
                     cdf: 'Mastercard Zakelijke Kaarten',
@@ -5093,6 +5100,25 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                     prompt: 'We hebben gemerkt dat je het toevoegen van je kaarten niet hebt afgerond. Als je een probleem bent tegengekomen, laat het ons weten zodat we je kunnen helpen alles weer op de rails te krijgen.',
                     confirmText: 'Probleem melden',
                     cancelText: 'Overslaan',
+                },
+                csvColumns: {
+                    cardNumber: 'Kaartnummer',
+                    postedDate: 'Datum',
+                    merchant: 'Handelaar',
+                    amount: 'Bedrag',
+                    currency: 'Valuta',
+                    ignore: 'Negeren',
+                    originalTransactionDate: 'Oorspronkelijke transactiedatum',
+                    originalAmount: 'Oorspronkelijk bedrag',
+                    originalCurrency: 'Oorspronkelijke valuta',
+                    comment: 'Opmerking',
+                    category: 'Categorie',
+                    tag: 'Label',
+                },
+                csvErrors: {
+                    requiredColumns: (missingColumns: string) => `Wijs een kolom toe aan elk van de attributen: ${missingColumns}.`,
+                    duplicateColumns: (duplicateColumn: string) =>
+                        `Oeps! Je hebt één enkel veld (“${duplicateColumn}”) aan meerdere kolommen gekoppeld. Controleer dit en probeer het opnieuw.`,
                 },
             },
             statementCloseDate: {

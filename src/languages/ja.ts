@@ -1072,6 +1072,8 @@ const translations: TranslationDeepObject<typeof en> = {
         emptyMappedField: (fieldName: string) => `おっと！フィールド（「${fieldName}」）に1つ以上の空の値が含まれています。確認してもう一度お試しください。`,
         importSuccessfulTitle: 'インポートに成功しました',
         importCategoriesSuccessfulDescription: ({categories}: {categories: number}) => (categories > 1 ? `${categories} 個のカテゴリーを追加しました。` : 'カテゴリが1件追加されました。'),
+        importCompanyCardTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
+            transactions > 1 ? `${transactions} 件の取引が追加されました。` : '1 件の取引が追加されました。',
         importMembersSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
             if (!added && !updated) {
                 return 'メンバーは追加も更新もされていません。';
@@ -4979,6 +4981,11 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             },
             addNewCard: {
                 other: 'その他',
+                fileImport: 'ファイルから取引をインポート',
+                createFileFeedHelpText: `<muted-text>会社カードの経費をインポートするには、この<a href="${CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}">ヘルプガイド</a>に従ってください。</muted-text>`,
+                companyCardLayoutName: '法人カードレイアウト名',
+                cardLayoutNameRequired: '法人カードレイアウト名は必須です',
+                useAdvancedFields: '詳細フィールドを使用（非推奨）',
                 cardProviders: {
                     gl1025: 'American Express コーポレートカード',
                     cdf: 'Mastercard コマーシャルカード',
@@ -5055,6 +5062,24 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                     prompt: 'カードの追加が完了していないようです。問題が見つかった場合はお知らせください。元どおりスムーズに進められるようお手伝いします。',
                     confirmText: '問題を報告',
                     cancelText: 'スキップ',
+                },
+                csvColumns: {
+                    cardNumber: 'カード番号',
+                    postedDate: '日付',
+                    merchant: '加盟店',
+                    amount: '金額',
+                    currency: '通貨',
+                    ignore: '無視',
+                    originalTransactionDate: '元の取引日',
+                    originalAmount: '元の金額',
+                    originalCurrency: '元の通貨',
+                    comment: 'コメント',
+                    category: 'カテゴリ',
+                    tag: 'タグ',
+                },
+                csvErrors: {
+                    requiredColumns: (missingColumns: string) => `各属性に列を割り当ててください：${missingColumns}`,
+                    duplicateColumns: (duplicateColumn: string) => `おっと！1 つのフィールド（"${duplicateColumn}"）を複数の列にマッピングしています。確認して、もう一度お試しください。`,
                 },
             },
             statementCloseDate: {

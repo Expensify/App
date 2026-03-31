@@ -1087,6 +1087,8 @@ const translations: TranslationDeepObject<typeof en> = {
         emptyMappedField: (fieldName: string) => `Ops! O campo ("${fieldName}") contém um ou mais valores vazios. Revise e tente novamente.`,
         importSuccessfulTitle: 'Importação concluída',
         importCategoriesSuccessfulDescription: ({categories}: {categories: number}) => (categories > 1 ? `${categories} categorias foram adicionadas.` : '1 categoria foi adicionada.'),
+        importCompanyCardTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
+            transactions > 1 ? `${transactions} transações foram adicionadas.` : '1 transação foi adicionada.',
         importMembersSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
             if (!added && !updated) {
                 return 'Nenhum membro foi adicionado ou atualizado.';
@@ -5009,6 +5011,11 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             },
             addNewCard: {
                 other: 'Outro',
+                fileImport: 'Importar transações do arquivo',
+                createFileFeedHelpText: `<muted-text>Siga este <a href="${CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}">guia de ajuda</a> para importar as despesas do cartão corporativo!</muted-text>`,
+                companyCardLayoutName: 'Nome do layout do cartão corporativo',
+                cardLayoutNameRequired: 'O nome do layout do cartão corporativo é obrigatório',
+                useAdvancedFields: 'Usar campos avançados (não recomendado)',
                 cardProviders: {
                     gl1025: 'Cartões Corporativos American Express',
                     cdf: 'Cartões Comerciais Mastercard',
@@ -5086,6 +5093,24 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                     prompt: 'Percebemos que você não terminou de adicionar seus cartões. Se encontrou algum problema, avise a gente para que possamos ajudar a colocar tudo de volta nos trilhos.',
                     confirmText: 'Informar problema',
                     cancelText: 'Pular',
+                },
+                csvColumns: {
+                    cardNumber: 'Número do cartão',
+                    postedDate: 'Data',
+                    merchant: 'Estabelecimento',
+                    amount: 'Valor',
+                    currency: 'Moeda',
+                    ignore: 'Ignorar',
+                    originalTransactionDate: 'Data original da transação',
+                    originalAmount: 'Valor original',
+                    originalCurrency: 'Moeda original',
+                    comment: 'Comentário',
+                    category: 'Categoria',
+                    tag: 'Etiqueta',
+                },
+                csvErrors: {
+                    requiredColumns: (missingColumns: string) => `Atribua uma coluna a cada um dos atributos: ${missingColumns}.`,
+                    duplicateColumns: (duplicateColumn: string) => `Ops! Você mapeou um único campo ("${duplicateColumn}") para várias colunas. Revise e tente novamente.`,
                 },
             },
             statementCloseDate: {
