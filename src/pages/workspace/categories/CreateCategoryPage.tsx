@@ -7,7 +7,8 @@ import useLocalize from '@hooks/useLocalize';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {completePendingCategorySelection, createPolicyCategory} from '@libs/actions/Policy/Category';
+import {completePendingCategorySelection} from '@libs/actions/IOU';
+import {createPolicyCategory} from '@libs/actions/Policy/Category';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {hasTags} from '@libs/PolicyUtils';
@@ -26,6 +27,7 @@ type CreateCategoryPageProps =
 function CreateCategoryPage({route}: CreateCategoryPageProps) {
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params.policyID}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${route.params.policyID}`);
+    const [pendingCategorySelection] = useOnyx(ONYXKEYS.PENDING_CATEGORY_SELECTION);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const backTo = route.params?.backTo;
@@ -67,7 +69,9 @@ function CreateCategoryPage({route}: CreateCategoryPageProps) {
                 setupCategoriesAndTagsParentReportAction,
                 policyHasTags,
             });
-            completePendingCategorySelection(values.categoryName.trim());
+            if (pendingCategorySelection) {
+                completePendingCategorySelection(values.categoryName.trim());
+            }
             Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(route.params.policyID, backTo) : undefined);
         },
         [
@@ -86,6 +90,7 @@ function CreateCategoryPage({route}: CreateCategoryPageProps) {
             setupCategoriesAndTagsHasOutstandingChildTask,
             setupCategoriesAndTagsParentReportAction,
             policyHasTags,
+            pendingCategorySelection,
         ],
     );
 

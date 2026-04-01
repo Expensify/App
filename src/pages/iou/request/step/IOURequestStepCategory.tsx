@@ -1,5 +1,5 @@
 import lodashIsEmpty from 'lodash/isEmpty';
-import React, {useEffect, useRef} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {InteractionManager, View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -20,9 +20,9 @@ import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getIOURequestPolicyID, setMoneyRequestCategory, updateMoneyRequestCategory} from '@libs/actions/IOU';
+import {clearPendingCategorySelection, getIOURequestPolicyID, setMoneyRequestCategory, setPendingCategorySelection, updateMoneyRequestCategory} from '@libs/actions/IOU';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
-import {clearPendingCategorySelection, enablePolicyCategories, getPolicyCategories, setPendingCategorySelection} from '@libs/actions/Policy/Category';
+import {enablePolicyCategories, getPolicyCategories} from '@libs/actions/Policy/Category';
 import {isCategoryMissing} from '@libs/CategoryUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
@@ -145,58 +145,80 @@ function IOURequestStepCategory({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [policyID]);
 
-    const navigateBack = () => {
+    const navigateBack = useCallback(() => {
         Navigation.goBack(backTo);
-    };
+    }, [backTo]);
 
-    const updateCategory = (category: ListItem) => {
-        const categorySearchText = category.searchText ?? '';
-        const isSelectedCategory = categorySearchText === categoryForDisplay;
-        const updatedCategory = isSelectedCategory ? '' : categorySearchText;
+    const updateCategory = useCallback(
+        (category: ListItem) => {
+            const categorySearchText = category.searchText ?? '';
+            const isSelectedCategory = categorySearchText === categoryForDisplay;
+            const updatedCategory = isSelectedCategory ? '' : categorySearchText;
 
-        if (transaction) {
-            // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
-            if (isEditingSplit) {
-                setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {category: updatedCategory}, policy);
-                navigateBack();
+            if (transaction) {
+                // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
+                if (isEditingSplit) {
+                    setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {category: updatedCategory}, policy);
+                    navigateBack();
+                    return;
+                }
+
+                if (isEditing && report) {
+                    updateMoneyRequestCategory({
+                        transactionID: transaction.transactionID,
+                        transactionThreadReport: report,
+                        parentReport,
+                        parentReportNextStep,
+                        category: updatedCategory,
+                        policy,
+                        policyTagList: policyTags,
+                        policyCategories,
+                        policyRecentlyUsedCategories,
+                        currentUserAccountIDParam,
+                        currentUserEmailParam,
+                        isASAPSubmitBetaEnabled,
+                        hash: currentSearchHash,
+                    });
+                    navigateBack();
+                    return;
+                }
+            }
+
+            setMoneyRequestCategory(transactionID, updatedCategory, policy);
+
+            if (action === CONST.IOU.ACTION.CATEGORIZE && !backTo) {
+                if (report?.reportID) {
+                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, report.reportID));
+                }
                 return;
             }
 
-            if (isEditing && report) {
-                updateMoneyRequestCategory({
-                    transactionID: transaction.transactionID,
-                    transactionThreadReport: report,
-                    parentReport,
-                    parentReportNextStep,
-                    category: updatedCategory,
-                    policy,
-                    policyTagList: policyTags,
-                    policyCategories,
-                    policyRecentlyUsedCategories,
-                    currentUserAccountIDParam,
-                    currentUserEmailParam,
-                    isASAPSubmitBetaEnabled,
-                    hash: currentSearchHash,
-                });
-                navigateBack();
-                return;
-            }
-        }
-
-        setMoneyRequestCategory(transactionID, updatedCategory, policy);
-
-        if (action === CONST.IOU.ACTION.CATEGORIZE && !backTo) {
-            if (report?.reportID) {
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, report.reportID));
-            }
-            return;
-        }
-
-        navigateBack();
-    };
-
-    const updateCategoryRef = useRef(updateCategory);
-    updateCategoryRef.current = updateCategory;
+            navigateBack();
+        },
+        [
+            action,
+            backTo,
+            categoryForDisplay,
+            currentSearchHash,
+            currentUserAccountIDParam,
+            currentUserEmailParam,
+            isASAPSubmitBetaEnabled,
+            isEditing,
+            isEditingSplit,
+            iouType,
+            navigateBack,
+            parentReport,
+            parentReportNextStep,
+            policy,
+            policyCategories,
+            policyRecentlyUsedCategories,
+            policyTags,
+            report,
+            splitDraftTransaction,
+            transaction,
+            transactionID,
+        ],
+    );
 
     useEffect(() => {
         if (pendingCategorySelection?.transactionID !== transactionID || !pendingCategorySelection?.categoryName) {
@@ -204,11 +226,8 @@ function IOURequestStepCategory({
         }
         const {categoryName} = pendingCategorySelection;
         clearPendingCategorySelection();
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
-            updateCategoryRef.current({searchText: categoryName, keyForList: categoryName, text: categoryName, isSelected: false});
-        });
-    }, [pendingCategorySelection, transactionID]);
+        updateCategory({searchText: categoryName, keyForList: categoryName, text: categoryName, isSelected: false});
+    }, [pendingCategorySelection, transactionID, updateCategory]);
 
     return (
         <StepScreenWrapper

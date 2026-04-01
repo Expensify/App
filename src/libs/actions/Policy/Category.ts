@@ -1853,21 +1853,6 @@ function setPolicyCategoryAttendeesRequired(policyID: string, categoryName: stri
     API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_ATTENDEES_REQUIRED, parameters, onyxData);
 }
 
-/** Marks a transaction as waiting for an in-situ category creation to complete. */
-function setPendingCategorySelection(transactionID: string) {
-    Onyx.set(ONYXKEYS.PENDING_CATEGORY_SELECTION, {transactionID});
-}
-
-/** Records the newly created category name so IOURequestStepCategory can auto-apply it. */
-function completePendingCategorySelection(categoryName: string) {
-    Onyx.merge(ONYXKEYS.PENDING_CATEGORY_SELECTION, {categoryName});
-}
-
-/** Clears the pending category selection after it has been applied (or cancelled). */
-function clearPendingCategorySelection() {
-    Onyx.set(ONYXKEYS.PENDING_CATEGORY_SELECTION, null);
-}
-
 export {
     buildOptimisticPolicyCategories,
     buildOptimisticMccGroup,
@@ -1897,7 +1882,4 @@ export {
     setWorkspaceCategoryDescriptionHint,
     setWorkspaceCategoryEnabled,
     setWorkspaceRequiresCategory,
-    setPendingCategorySelection,
-    completePendingCategorySelection,
-    clearPendingCategorySelection,
 };
