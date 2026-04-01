@@ -6945,6 +6945,7 @@ describe('actions/IOU', () => {
                         currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                         currentUserEmailParam: CARLOS_EMAIL,
                         isSelfTourViewed: false,
+                        betas: undefined,
                         hasActiveAdminPolicies: false,
                     });
                     return waitForBatchedUpdates();
@@ -7105,6 +7106,7 @@ describe('actions/IOU', () => {
                         currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                         currentUserEmailParam: CARLOS_EMAIL,
                         isSelfTourViewed: false,
+                        betas: undefined,
                         hasActiveAdminPolicies: false,
                     });
                     return waitForBatchedUpdates();
@@ -7676,6 +7678,7 @@ describe('actions/IOU', () => {
                         currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                         currentUserEmailParam: CARLOS_EMAIL,
                         isSelfTourViewed: false,
+                        betas: undefined,
                         hasActiveAdminPolicies: false,
                     });
                     return waitForBatchedUpdates();
@@ -8179,6 +8182,7 @@ describe('actions/IOU', () => {
             openReport({
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
+                betas: undefined,
                 participantLoginList: userLogins,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
@@ -8278,6 +8282,7 @@ describe('actions/IOU', () => {
             openReport({
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
+                betas: undefined,
                 participantLoginList: userLogins,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
@@ -8400,6 +8405,7 @@ describe('actions/IOU', () => {
             openReport({
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
+                betas: undefined,
                 participantLoginList: userLogins,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
@@ -8536,6 +8542,7 @@ describe('actions/IOU', () => {
             openReport({
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
+                betas: undefined,
                 participantLoginList: userLogins,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
@@ -8841,6 +8848,7 @@ describe('actions/IOU', () => {
             openReport({
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
+                betas: undefined,
                 participantLoginList: userLogins,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
@@ -9012,6 +9020,7 @@ describe('actions/IOU', () => {
             openReport({
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
+                betas: undefined,
                 participantLoginList: userLogins,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
@@ -9281,6 +9290,7 @@ describe('actions/IOU', () => {
             openReport({
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
+                betas: undefined,
                 participantLoginList: userLogins,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
@@ -9380,6 +9390,7 @@ describe('actions/IOU', () => {
             openReport({
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
+                betas: undefined,
                 participantLoginList: userLogins,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
@@ -9679,6 +9690,7 @@ describe('actions/IOU', () => {
                         currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                         currentUserEmailParam: CARLOS_EMAIL,
                         isSelfTourViewed: false,
+                        betas: undefined,
                         hasActiveAdminPolicies: false,
                     });
 
@@ -9826,6 +9838,7 @@ describe('actions/IOU', () => {
                         currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                         currentUserEmailParam: CARLOS_EMAIL,
                         isSelfTourViewed: false,
+                        betas: undefined,
                         hasActiveAdminPolicies: false,
                     });
 
@@ -9907,6 +9920,7 @@ describe('actions/IOU', () => {
                             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                             currentUserEmailParam: CARLOS_EMAIL,
                             isSelfTourViewed: false,
+                            betas: undefined,
                             hasActiveAdminPolicies: false,
                         });
                         return waitForBatchedUpdates();
@@ -10176,6 +10190,7 @@ describe('actions/IOU', () => {
                             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                             currentUserEmailParam: CARLOS_EMAIL,
                             isSelfTourViewed: false,
+                            betas: undefined,
                             hasActiveAdminPolicies: false,
                         });
                         return waitForBatchedUpdates();
@@ -10395,6 +10410,7 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                 currentUserEmailParam: CARLOS_EMAIL,
                 isSelfTourViewed: false,
+                betas: undefined,
                 hasActiveAdminPolicies: false,
             });
             return waitForBatchedUpdates()
@@ -10623,6 +10639,7 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                 currentUserEmailParam: CARLOS_EMAIL,
                 isSelfTourViewed: false,
+                betas: undefined,
                 hasActiveAdminPolicies: false,
             });
 
@@ -13586,6 +13603,7 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                 currentUserEmailParam: CARLOS_EMAIL,
                 isSelfTourViewed: false,
+                betas: undefined,
                 hasActiveAdminPolicies: false,
             });
             await waitForBatchedUpdates();
@@ -13688,6 +13706,7 @@ describe('actions/IOU', () => {
                 currentUserEmailParam: CARLOS_EMAIL,
                 activePolicyID: '123',
                 isSelfTourViewed: false,
+                betas: undefined,
                 hasActiveAdminPolicies: false,
             });
             await waitForBatchedUpdates();
@@ -14133,6 +14152,7 @@ describe('actions/IOU', () => {
                     currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                     currentUserEmailParam: CARLOS_EMAIL,
                     isSelfTourViewed: false,
+                    betas: undefined,
                     hasActiveAdminPolicies: false,
                 });
 
@@ -14308,6 +14328,7 @@ describe('actions/IOU', () => {
                     currentUserAccountIDParam: RORY_ACCOUNT_ID,
                     currentUserEmailParam: RORY_EMAIL,
                     isSelfTourViewed: false,
+                    betas: undefined,
                     hasActiveAdminPolicies: false,
                 });
 
@@ -14487,6 +14508,7 @@ describe('actions/IOU', () => {
                     currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                     currentUserEmailParam: CARLOS_EMAIL,
                     isSelfTourViewed: false,
+                    betas: undefined,
                     hasActiveAdminPolicies: false,
                 });
 
@@ -14675,6 +14697,7 @@ describe('actions/IOU', () => {
                     currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                     currentUserEmailParam: CARLOS_EMAIL,
                     isSelfTourViewed: false,
+                    betas: undefined,
                     hasActiveAdminPolicies: false,
                 });
 

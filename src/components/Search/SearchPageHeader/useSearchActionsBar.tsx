@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import type {ReactNode} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/DropdownButton';
@@ -18,6 +18,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {close} from '@libs/actions/Modal';
+import {openSearchCardFiltersPage} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildFilterQueryWithSortDefaults} from '@libs/SearchQueryUtils';
 import {filterValidHasValues, getFeedOptions, getGroupCurrencyOptions, getHasOptions, getStatusOptions, getWithdrawalTypeOptions, mapFiltersFormToLabelValueList} from '@libs/SearchUIUtils';
@@ -104,25 +105,39 @@ function GroupCurrencyPopup({updateFilterForm, closeOverlay}: FilterBarPopupProp
     );
 }
 
-function FeedPopup({updateFilterForm, closeOverlay}: FilterBarPopupProps) {
+function FeedPopup({updateFilterForm, closeOverlay, isExpanded}: FilterBarPopupProps) {
+    const {isOffline} = useNetwork();
     const {translate, localeCompare} = useLocalize();
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
+
     const [feed] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: filterFeedSelector});
     const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
+    const [areCardsLoaded] = useOnyx(ONYXKEYS.IS_SEARCH_FILTERS_CARD_DATA_LOADED);
+
+    useEffect(() => {
+        if (isOffline || !isExpanded) {
+            return;
+        }
+        openSearchCardFiltersPage();
+    }, [isOffline, isExpanded]);
 
     const updateFeedFilterForm = (items: Array<MultiSelectItem<string>>) => {
         updateFilterForm({feed: items.map((item) => item.value)});
     };
+
     const feedOptions = getFeedOptions(allFeeds, personalAndWorkspaceCards, translate, localeCompare, feedKeysWithCards);
     const feedValue = feed ? feedOptions.filter((option) => feed.includes(option.value)) : [];
+    const shouldShowLoadingState = !areCardsLoaded && !isOffline;
 
     return (
         <MultiSelectFilterPopup
+            isExpanded={isExpanded}
             closeOverlay={closeOverlay}
             translationKey="search.filters.feed"
             items={feedOptions}
             value={feedValue}
+            loading={shouldShowLoadingState}
             onChangeCallback={updateFeedFilterForm}
         />
     );
@@ -179,6 +194,7 @@ function makeDateFilterItem(
     return {
         PopoverComponent: (props) => (
             <DatePickerFilterPopup
+                isExpanded={props.isExpanded}
                 closeOverlay={props.closeOverlay}
                 filterKey={filterKey}
                 value={value}
@@ -241,8 +257,9 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
         switch (filterKey) {
             case FILTER_KEYS.GROUP_CURRENCY:
                 return {
-                    PopoverComponent: ({closeOverlay}) => (
+                    PopoverComponent: ({closeOverlay, isExpanded}) => (
                         <GroupCurrencyPopup
+                            isExpanded={isExpanded}
                             updateFilterForm={updateFilterForm}
                             closeOverlay={closeOverlay}
                         />
@@ -258,6 +275,7 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
                 };
                 const hasComponent = (props: PopoverComponentProps) => (
                     <MultiSelectFilterPopup
+                        isExpanded={props.isExpanded}
                         closeOverlay={props.closeOverlay}
                         translationKey="search.has"
                         items={hasOptions}
@@ -276,6 +294,7 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
                 };
                 const isComponent = (props: PopoverComponentProps) => (
                     <MultiSelectFilterPopup
+                        isExpanded={props.isExpanded}
                         closeOverlay={props.closeOverlay}
                         translationKey="search.filters.is"
                         items={isOptions}
@@ -287,8 +306,9 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
             }
             case FILTER_KEYS.FEED: {
                 return {
-                    PopoverComponent: ({closeOverlay}) => (
+                    PopoverComponent: ({closeOverlay, isExpanded}) => (
                         <FeedPopup
+                            isExpanded={isExpanded}
                             updateFilterForm={updateFilterForm}
                             closeOverlay={closeOverlay}
                         />
@@ -347,6 +367,7 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
                 };
                 const statusComponent = (props: PopoverComponentProps) => (
                     <MultiSelectFilterPopup
+                        isExpanded={props.isExpanded}
                         closeOverlay={props.closeOverlay}
                         translationKey="common.status"
                         items={statusOptions}
@@ -382,8 +403,9 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
             }
             case FILTER_KEYS.POLICY_ID:
                 return {
-                    PopoverComponent: ({closeOverlay}) => (
+                    PopoverComponent: ({closeOverlay, isExpanded}) => (
                         <WorkspacePopup
+                            isExpanded={isExpanded}
                             policyIDQuery={queryJSON.policyID}
                             updateFilterForm={updateFilterForm}
                             closeOverlay={closeOverlay}

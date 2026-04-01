@@ -56,6 +56,7 @@ import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import DatePickerFilterPopup from './DatePickerFilterPopup';
+import FeedFilterPopup from './FeedFilterPopup';
 import MultiSelectFilterPopup from './MultiSelectFilterPopup';
 
 type FilterItem = WithSentryLabel & {
@@ -359,9 +360,9 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
         updateFilterForm({feed: items.map((item) => item.value)});
     };
     const feedComponent = (props: PopoverComponentProps) => (
-        <MultiSelectFilterPopup
+        <FeedFilterPopup
+            isExpanded={props.isExpanded}
             closeOverlay={props.closeOverlay}
-            translationKey="search.filters.feed"
             items={feedOptions}
             value={feed}
             onChangeCallback={updateFeedFilterForm}
@@ -370,6 +371,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
 
     const datePickerComponent = (props: PopoverComponentProps) => (
         <DatePickerFilterPopup
+            isExpanded={props.isExpanded}
             closeOverlay={props.closeOverlay}
             setPopoverWidth={props.setPopoverWidth}
             filterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}
@@ -381,6 +383,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
 
     const postedPickerComponent = (props: PopoverComponentProps) => (
         <DatePickerFilterPopup
+            isExpanded={props.isExpanded}
             closeOverlay={props.closeOverlay}
             setPopoverWidth={props.setPopoverWidth}
             filterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED}
@@ -392,6 +395,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
 
     const withdrawnPickerComponent = (props: PopoverComponentProps) => (
         <DatePickerFilterPopup
+            isExpanded={props.isExpanded}
             closeOverlay={props.closeOverlay}
             setPopoverWidth={props.setPopoverWidth}
             filterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN}
@@ -417,6 +421,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     };
     const statusComponent = (props: PopoverComponentProps) => (
         <MultiSelectFilterPopup
+            isExpanded={props.isExpanded}
             closeOverlay={props.closeOverlay}
             translationKey="common.status"
             items={statusOptions}
@@ -430,6 +435,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     };
     const hasComponent = (props: PopoverComponentProps) => (
         <MultiSelectFilterPopup
+            isExpanded={props.isExpanded}
             closeOverlay={props.closeOverlay}
             translationKey="search.has"
             items={hasOptions}
@@ -443,6 +449,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     };
     const isComponent = (props: PopoverComponentProps) => (
         <MultiSelectFilterPopup
+            isExpanded={props.isExpanded}
             closeOverlay={props.closeOverlay}
             translationKey="search.filters.is"
             items={isOptions}

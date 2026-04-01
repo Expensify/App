@@ -7,6 +7,7 @@ import SelectionListWithSections from '@components/SelectionList/SelectionListWi
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
 import type {WithNavigationTransitionEndProps} from '@components/withNavigationTransitionEnd';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -19,6 +20,7 @@ import {READ_COMMANDS} from '@libs/API/types';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import HttpUtils from '@libs/HttpUtils';
 import {appendCountryCode} from '@libs/LoginUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getHeaderMessage, getParticipantsOption} from '@libs/OptionsListUtils';
@@ -28,7 +30,7 @@ import type {OptionData} from '@libs/ReportUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {InvitedEmailsToAccountIDs} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -38,11 +40,12 @@ import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscree
 
 type WorkspaceInvitePageProps = WithPolicyAndFullscreenLoadingProps &
     WithNavigationTransitionEndProps &
-    PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INVITE>;
+    PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_INVITE>;
 
-function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
+function DynamicWorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const dynamicBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_INVITE.path);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
@@ -175,7 +178,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
             invitedEmailsToAccountIDs[login] = Number(accountID);
         }
         setWorkspaceInviteMembersDraft(route.params.policyID, invitedEmailsToAccountIDs);
-        Navigation.navigate(ROUTES.WORKSPACE_INVITE_MESSAGE.getRoute(route.params.policyID, Navigation.getActiveRoute()));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_INVITE_MESSAGE.path));
     }, [route.params.policyID, selectedOptions]);
 
     const [policyName, shouldShowAlertPrompt] = useMemo(() => [policy?.name ?? '', !isEmptyObject(policy?.errors)], [policy?.name, policy?.errors]);
@@ -250,7 +253,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
                     subtitle={policyName}
                     onBackButtonPress={() => {
                         clearErrors(route.params.policyID);
-                        Navigation.goBack(route.params.backTo);
+                        Navigation.goBack(dynamicBackPath);
                     }}
                 />
                 <SelectionListWithSections
@@ -276,4 +279,4 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
     );
 }
 
-export default withNavigationTransitionEnd(withPolicyAndFullscreenLoading(WorkspaceInvitePage));
+export default withNavigationTransitionEnd(withPolicyAndFullscreenLoading(DynamicWorkspaceInvitePage));
