@@ -54,9 +54,9 @@ import type * as OnyxTypes from '@src/types/onyx';
 import findNodeHandle from '@src/utils/findNodeHandle';
 import KeyboardUtils from '@src/utils/keyboard';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
+import type {SuggestionsRef} from './ReportActionCompose/ComposerContext';
 import getCursorPosition from './ReportActionCompose/getCursorPosition';
 import getScrollPosition from './ReportActionCompose/getScrollPosition';
-import type {SuggestionsRef} from './ReportActionCompose/ReportActionCompose';
 import Suggestions from './ReportActionCompose/Suggestions';
 import shouldUseEmojiPickerSelection from './shouldUseEmojiPickerSelection';
 

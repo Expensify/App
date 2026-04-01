@@ -2,8 +2,8 @@ import {useRef} from 'react';
 import type {RefObject} from 'react';
 import type {BlurEvent, View} from 'react-native';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
+import type {SuggestionsRef} from './ComposerContext';
 import type {ComposerRef} from './ComposerWithSuggestions/ComposerWithSuggestions';
-import type {SuggestionsRef} from './ReportActionCompose';
 
 const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 

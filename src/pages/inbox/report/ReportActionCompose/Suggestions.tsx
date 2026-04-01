@@ -6,7 +6,7 @@ import type {MeasureParentContainerAndCursorCallback} from '@components/AutoComp
 import type {TextSelection} from '@components/Composer/types';
 import {useDragAndDropState} from '@components/DragAndDrop/Provider';
 import usePrevious from '@hooks/usePrevious';
-import type {SuggestionsRef} from './ReportActionCompose';
+import type {SuggestionsRef} from './ComposerContext';
 import SuggestionEmoji from './SuggestionEmoji';
 import SuggestionMention from './SuggestionMention';
 
