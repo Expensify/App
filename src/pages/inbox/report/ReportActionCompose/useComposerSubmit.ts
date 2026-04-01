@@ -6,13 +6,18 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
+import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useShortMentionsList from '@hooks/useShortMentionsList';
 import {addComment} from '@libs/actions/Report';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
+import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import {rand64} from '@libs/NumberUtils';
 import {addDomainToShortMention} from '@libs/ParsingUtils';
+import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, isSentMoneyReportAction} from '@libs/ReportActionsUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {generateAccountID} from '@libs/UserUtils';
 import {useAgentZeroStatusActions} from '@pages/inbox/AgentZeroStatusContext';
@@ -28,26 +33,30 @@ import type {ComposerRef} from './ComposerWithSuggestions/ComposerWithSuggestion
 type UseComposerSubmitParams = {
     report: OnyxEntry<OnyxTypes.Report>;
     reportID: string;
-    effectiveTransactionThreadReportID?: string;
     composerRefShared: {get: () => Partial<ComposerRef>};
     updateShouldShowSuggestionMenuToFalse: () => void;
     setIsAttachmentPreviewActive: (value: boolean) => void;
 };
 
-function useComposerSubmit({
-    report,
-    reportID,
-    effectiveTransactionThreadReportID,
-    composerRefShared,
-    updateShouldShowSuggestionMenuToFalse,
-    setIsAttachmentPreviewActive,
-}: UseComposerSubmitParams) {
+function useComposerSubmit({report, reportID, composerRefShared, updateShouldShowSuggestionMenuToFalse, setIsAttachmentPreviewActive}: UseComposerSubmitParams) {
     const isInSidePanel = useIsInSidePanel();
     const {kickoffWaitingIndicator} = useAgentZeroStatusActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
     const {availableLoginsList} = useShortMentionsList();
     const {scrollOffsetRef} = useContext(ActionListContext);
+
+    const {isOffline} = useNetwork();
+    const {reportActions: unfilteredReportActions} = usePaginatedReportActions(report?.reportID);
+    const filteredReportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
+    const allReportTransactions = useReportTransactionsCollection(reportID);
+    const reportTransactions = getAllNonDeletedTransactions(allReportTransactions, filteredReportActions, isOffline, true);
+    const visibleTransactions = isOffline ? reportTransactions : reportTransactions?.filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const reportTransactionIDs = visibleTransactions?.map((t) => t.transactionID);
+    const isSentMoneyReport = filteredReportActions.some((action) => isSentMoneyReportAction(action));
+    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, filteredReportActions, isOffline, reportTransactionIDs);
+    const effectiveTransactionThreadReportID = isSentMoneyReport ? undefined : transactionThreadReportID;
 
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [targetReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${effectiveTransactionThreadReportID ?? reportID}`);

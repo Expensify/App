@@ -25,11 +25,10 @@ const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
 type ComposerProviderProps = {
     reportID: string;
-    transactionThreadReportID?: string;
     children: React.ReactNode;
 };
 
-function ComposerProvider({children, reportID, transactionThreadReportID}: ComposerProviderProps) {
+function ComposerProvider({children, reportID}: ComposerProviderProps) {
     const {isOffline} = useNetwork();
     const {shouldAddOrReplaceReceipt, transactionID} = useShouldAddOrReplaceReceipt(reportID, isOffline);
     const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
@@ -110,7 +109,6 @@ function ComposerProvider({children, reportID, transactionThreadReportID}: Compo
     const {submitForm, addAttachment, onAttachmentPreviewClose} = useComposerSubmit({
         report,
         reportID,
-        effectiveTransactionThreadReportID: transactionThreadReportID,
         composerRefShared,
         updateShouldShowSuggestionMenuToFalse,
         setIsAttachmentPreviewActive,

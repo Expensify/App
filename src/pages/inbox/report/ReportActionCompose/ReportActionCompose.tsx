@@ -5,17 +5,12 @@ import ImportedStateIndicator from '@components/ImportedStateIndicator';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsScrollLikelyLayoutTriggered from '@hooks/useIsScrollLikelyLayoutTriggered';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
-import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DomUtils from '@libs/DomUtils';
 import FS from '@libs/Fullstory';
-import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
-import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, isSentMoneyReportAction} from '@libs/ReportActionsUtils';
 import {chatIncludesChronos, chatIncludesConcierge, getReportOfflinePendingActionAndErrors} from '@libs/ReportUtils';
 import {isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
 import CONST from '@src/CONST';
@@ -166,25 +161,11 @@ function Composer({reportID}: ReportActionComposeProps) {
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const {isOffline} = useNetwork();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
 
     const {reportPendingAction: pendingAction} = getReportOfflinePendingActionAndErrors(report);
-
-    // --- Report actions & transaction resolution (for effectiveTransactionThreadReportID) ---
-    const {reportActions: unfilteredReportActions} = usePaginatedReportActions(report?.reportID);
-    const filteredReportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
-
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
-    const allReportTransactions = useReportTransactionsCollection(reportID);
-    const reportTransactions = getAllNonDeletedTransactions(allReportTransactions, filteredReportActions, isOffline, true);
-    const visibleTransactions = isOffline ? reportTransactions : reportTransactions?.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-    const reportTransactionIDs = visibleTransactions?.map((t) => t.transactionID);
-    const isSentMoneyReport = filteredReportActions.some((action) => isSentMoneyReportAction(action));
-    const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, filteredReportActions, isOffline, reportTransactionIDs);
-    const effectiveTransactionThreadReportID = isSentMoneyReport ? undefined : transactionThreadReportID;
 
     if (!report) {
         return null;
@@ -192,10 +173,7 @@ function Composer({reportID}: ReportActionComposeProps) {
 
     return (
         <View style={[styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}>
-            <ComposerProvider
-                reportID={reportID}
-                transactionThreadReportID={effectiveTransactionThreadReportID}
-            >
+            <ComposerProvider reportID={reportID}>
                 <Composer.LocalTime
                     reportID={reportID}
                     pendingAction={pendingAction}
