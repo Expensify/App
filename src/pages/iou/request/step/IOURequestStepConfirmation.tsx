@@ -56,7 +56,6 @@ import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction'
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {
     findSelfDMReportID,
     generateReportID,
@@ -68,7 +67,7 @@ import {
     isSelectedManagerMcTest,
 } from '@libs/ReportUtils';
 import stitchOdometerImages from '@libs/stitchOdometerImages';
-import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import getSubmitExpenseScenario from '@libs/telemetry/getSubmitExpenseScenario';
 import markSubmitExpenseEnd from '@libs/telemetry/markSubmitExpenseEnd';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -92,11 +91,9 @@ import {
     getIOURequestPolicyID,
     requestMoney as requestMoneyIOUActions,
     setMoneyRequestBillable,
-    setMoneyRequestCategory,
     setMoneyRequestParticipantsFromReport,
     setMoneyRequestReceipt,
     setMoneyRequestReimbursable,
-    startMoneyRequest,
     trackExpense as trackExpenseIOUActions,
     updateLastLocationPermissionPrompt,
 } from '@userActions/IOU';
@@ -104,7 +101,6 @@ import {submitPerDiemExpenseForSelfDM, submitPerDiemExpense as submitPerDiemExpe
 import {getReceiverType, sendInvoice} from '@userActions/IOU/SendInvoice';
 import {sendMoneyElsewhere, sendMoneyWithWallet} from '@userActions/IOU/SendMoney';
 import {splitBill, splitBillAndOpenReport, startSplitBill} from '@userActions/IOU/Split';
-import {openDraftWorkspaceRequest} from '@userActions/Policy/Policy';
 import {removeDraftTransaction, removeDraftTransactionsByIDs, replaceDefaultDraftTransaction} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -118,6 +114,11 @@ import type {Receipt} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import CategoryDefaultsSetter from './confirmation/CategoryDefaultsSetter';
+import DraftWorkspaceOpener from './confirmation/DraftWorkspaceOpener';
+import ExpenseDefaultsSetter from './confirmation/ExpenseDefaultsSetter';
+import MoneyRequestInitializer from './confirmation/MoneyRequestInitializer';
+import TelemetrySpanManager from './confirmation/TelemetrySpanManager';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -193,7 +194,6 @@ function IOURequestStepConfirmation({
     const draftPolicyID = getIOURequestPolicyID(initialTransaction, reportDraft);
     const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${draftPolicyID}`);
     const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${realPolicyID}`);
-    const [reportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT);
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -255,6 +255,8 @@ function IOURequestStepConfirmation({
     const reportAttributesDerived = useReportAttributes();
     const [recentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${policyID}`);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const transactionViolationsRef = useRef(transactionViolations);
+    transactionViolationsRef.current = transactionViolations;
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '');
 
     const policyCategories = useMemo(() => {
@@ -350,9 +352,11 @@ function IOURequestStepConfirmation({
                 const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
                 return participant.accountID
                     ? getParticipantsOption(participant, personalDetails)
-                    : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, reportDrafts);
+                    : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived);
             }) ?? [],
-        [transaction?.participants, iouType, personalDetails, reportAttributesDerived, reportDrafts, privateIsArchivedMap, policy, conciergeReportID],
+        // getReportOrDraftReport (called inside getReportOption) falls back to its module-level allReportsDraft
+        // connection, so we don't need to subscribe to COLLECTION.REPORT_DRAFT here.
+        [transaction?.participants, iouType, personalDetails, reportAttributesDerived, privateIsArchivedMap, policy, conciergeReportID],
     );
     const participantsPolicyTags = useParticipantsPolicyTags(participants ?? []);
     const isPolicyExpenseChat = useMemo(() => participants?.some((participant) => participant.isPolicyExpenseChat), [participants]);
@@ -363,60 +367,9 @@ function IOURequestStepConfirmation({
 
     useFetchRoute(transaction, transaction?.comment?.waypoints, action, shouldUseTransactionDraft(action, iouType) ? CONST.TRANSACTION.STATE.DRAFT : CONST.TRANSACTION.STATE.CURRENT);
 
-    useEffect(() => {
-        endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
-        endSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_MOUNT);
+    const policyExpenseChatPolicyID = participants?.find((participant) => participant.isPolicyExpenseChat)?.policyID;
 
-        // Grab parent ref before ending it — children need it for parent_span_id linking
-        const parentSpan = getSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION);
-
-        startSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_LIST_READY, {
-            name: CONST.TELEMETRY.SPAN_CONFIRMATION_LIST_READY,
-            op: CONST.TELEMETRY.SPAN_CONFIRMATION_LIST_READY,
-            parentSpan,
-            attributes: {[CONST.TELEMETRY.ATTRIBUTE_IOU_TYPE]: iouType},
-        });
-        startSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_RECEIPT_LOAD, {
-            name: CONST.TELEMETRY.SPAN_CONFIRMATION_RECEIPT_LOAD,
-            op: CONST.TELEMETRY.SPAN_CONFIRMATION_RECEIPT_LOAD,
-            parentSpan,
-        });
-
-        // End parent AFTER children are created — Sentry preserves parent_span_id regardless
-        endSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION);
-
-        return () => {
-            cancelSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_LIST_READY);
-            cancelSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_RECEIPT_LOAD);
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want this to run on mount/unmount
-    }, []);
-
-    useEffect(() => {
-        if (!isCreatingTrackExpense || policyID === undefined) {
-            return;
-        }
-
-        openDraftWorkspaceRequest(policyID);
-    }, [isCreatingTrackExpense, policy?.pendingAction, policyID]);
-
-    const policyExpenseChatPolicyID = useMemo(() => {
-        return participants?.find((participant) => participant.isPolicyExpenseChat)?.policyID;
-    }, [participants]);
-
-    const senderPolicyID = useMemo(() => {
-        return participants?.find((participant) => !!participant && 'isSender' in participant && participant.isSender)?.policyID;
-    }, [participants]);
-
-    useEffect(() => {
-        if (policyExpenseChatPolicyID && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-            openDraftWorkspaceRequest(policyExpenseChatPolicyID);
-            return;
-        }
-        if (senderPolicyID && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-            openDraftWorkspaceRequest(senderPolicyID);
-        }
-    }, [isOffline, policy?.pendingAction, policyExpenseChatPolicyID, senderPolicyID]);
+    const senderPolicyID = participants?.find((participant) => !!participant && 'isSender' in participant && participant.isSender)?.policyID;
 
     const odometerStartImage = transaction?.comment?.odometerStartImage;
     const odometerEndImage = transaction?.comment?.odometerEndImage;
@@ -477,75 +430,6 @@ function IOURequestStepConfirmation({
             ignore = true;
         };
     }, [isOdometerDistanceRequest, currentTransactionID, odometerStartImage, odometerEndImage, action, translate, iouType]);
-
-    const defaultBillable = !!policy?.defaultBillable;
-    useEffect(() => {
-        if (isMovingTransactionFromTrackExpense) {
-            return;
-        }
-        for (const transactionID of transactionIDs) {
-            setMoneyRequestBillable(transactionID, defaultBillable);
-        }
-    }, [transactionIDs, defaultBillable, isMovingTransactionFromTrackExpense]);
-
-    useEffect(() => {
-        if (isMovingTransactionFromTrackExpense) {
-            return;
-        }
-        const defaultReimbursable = (isPolicyExpenseChat && isPaidGroupPolicy(policy)) || isCreatingTrackExpense ? (policy?.defaultReimbursable ?? true) : true;
-        for (const transactionID of transactionIDs) {
-            setMoneyRequestReimbursable(transactionID, defaultReimbursable);
-        }
-    }, [transactionIDs, policy, isPolicyExpenseChat, isMovingTransactionFromTrackExpense, isCreatingTrackExpense]);
-
-    useEffect(() => {
-        // Exit early if the transaction is still loading
-        if (!!isLoadingTransaction || (transaction?.transactionID && (!transaction?.isFromGlobalCreate || !isEmptyObject(transaction?.participants)))) {
-            return;
-        }
-
-        startMoneyRequest(
-            iouType ?? CONST.IOU.TYPE.CREATE,
-            // When starting to create an expense from the global FAB, If there is not an existing report yet, a random optimistic reportID is generated and used
-            // for all of the routes in the creation flow.
-            reportID ?? generateReportID(),
-            draftTransactionIDs,
-        );
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run again
-    }, [isLoadingTransaction]);
-
-    useEffect(() => {
-        for (const item of transactions) {
-            if (!item.category) {
-                // If the expense had his category cleared due to unsaved changes (i.e. changing to recipient to one that does not have category)
-                // then we should reset the category to it's last saved value
-                const existingCategory = existingTransaction?.category;
-                if (existingCategory) {
-                    const isExistingCategoryEnabled = policyCategories?.[existingCategory]?.enabled;
-                    if (isExistingCategoryEnabled) {
-                        setMoneyRequestCategory(item.transactionID, existingCategory, policy);
-                    }
-                }
-                continue;
-            }
-        }
-        // We don't want to clear out category every time the transactions change
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [policy?.id, policyCategories, transactions.length]);
-
-    const policyDistance = Object.values(policy?.customUnits ?? {}).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
-    const defaultCategory = policyDistance?.defaultCategory ?? '';
-
-    useEffect(() => {
-        for (const item of transactions) {
-            if (!isDistanceRequest || !!item?.category) {
-                continue;
-            }
-            setMoneyRequestCategory(item.transactionID, defaultCategory, policy, isMovingTransactionFromTrackExpense);
-        }
-        // Prevent resetting to default when unselect category
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [transactionIDs, requestType, defaultCategory, policy?.id]);
 
     const navigateBack = useCallback(() => {
         if (backTo) {
@@ -669,6 +553,7 @@ function IOURequestStepConfirmation({
             removeDraftTransactionsByIDs(draftTransactionIDs, true);
             navigateToStartMoneyRequestStep(requestType, iouType, initialTransactionID, reportID);
         });
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- draftTransactionIDs is intentionally excluded to avoid re-running on draft changes
     }, [requestType, iouType, initialTransactionID, reportID, action, report, transactions, participants]);
 
     const requestMoney = useCallback(
@@ -788,7 +673,7 @@ function IOURequestStepConfirmation({
                     isASAPSubmitBetaEnabled,
                     currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                     currentUserEmailParam: currentUserPersonalDetails.email ?? '',
-                    transactionViolations,
+                    transactionViolations: transactionViolationsRef.current,
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                     quickAction,
                     existingTransactionDraft,
@@ -823,7 +708,6 @@ function IOURequestStepConfirmation({
             shouldGenerateTransactionThreadReport,
             backToReport,
             isASAPSubmitBetaEnabled,
-            transactionViolations,
             policyRecentlyUsedCurrencies,
             quickAction,
             isSelfTourViewed,
@@ -1085,7 +969,7 @@ function IOURequestStepConfirmation({
                 },
                 backToReport,
                 isASAPSubmitBetaEnabled,
-                transactionViolations,
+                transactionViolations: transactionViolationsRef.current,
                 quickAction,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                 personalDetails,
@@ -1116,7 +1000,6 @@ function IOURequestStepConfirmation({
             gpsDraftDetails,
             backToReport,
             isASAPSubmitBetaEnabled,
-            transactionViolations,
             quickAction,
             policyRecentlyUsedCurrencies,
             personalDetails,
@@ -1264,7 +1147,7 @@ function IOURequestStepConfirmation({
                         policyRecentlyUsedCategories,
                         policyRecentlyUsedTags,
                         isASAPSubmitBetaEnabled,
-                        transactionViolations,
+                        transactionViolations: transactionViolationsRef.current,
                         quickAction,
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                         betas,
@@ -1299,7 +1182,7 @@ function IOURequestStepConfirmation({
                         policyRecentlyUsedCategories,
                         policyRecentlyUsedTags,
                         isASAPSubmitBetaEnabled,
-                        transactionViolations,
+                        transactionViolations: transactionViolationsRef.current,
                         quickAction,
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                         betas,
@@ -1419,7 +1302,6 @@ function IOURequestStepConfirmation({
             policyRecentlyUsedTags,
             quickAction,
             isASAPSubmitBetaEnabled,
-            transactionViolations,
             existingInvoiceReport,
             policy,
             policyTags,
@@ -1618,6 +1500,39 @@ function IOURequestStepConfirmation({
             shouldAvoidScrollOnVirtualViewport={!isMobileSafari()}
             testID="IOURequestStepConfirmation"
         >
+            <TelemetrySpanManager iouType={iouType} />
+            <DraftWorkspaceOpener
+                isCreatingTrackExpense={isCreatingTrackExpense}
+                policyID={policyID}
+                policyPendingAction={policy?.pendingAction}
+                policyExpenseChatPolicyID={policyExpenseChatPolicyID}
+                senderPolicyID={senderPolicyID}
+                isOffline={isOffline}
+            />
+            <ExpenseDefaultsSetter
+                transactionIDs={transactionIDs}
+                policy={policy}
+                isPolicyExpenseChat={isPolicyExpenseChat}
+                isMovingTransactionFromTrackExpense={isMovingTransactionFromTrackExpense}
+                isCreatingTrackExpense={isCreatingTrackExpense}
+            />
+            <MoneyRequestInitializer
+                isLoadingTransaction={!!isLoadingTransaction}
+                transaction={transaction}
+                iouType={iouType}
+                reportID={reportID}
+                draftTransactionIDs={draftTransactionIDs}
+            />
+            <CategoryDefaultsSetter
+                transactions={transactions}
+                transactionIDs={transactionIDs}
+                existingTransaction={existingTransaction}
+                policyCategories={policyCategories}
+                policy={policy}
+                isDistanceRequest={isDistanceRequest}
+                requestType={requestType}
+                isMovingTransactionFromTrackExpense={isMovingTransactionFromTrackExpense}
+            />
             <DragAndDropProvider isDisabled={!showReceiptEmptyState || isOdometerDistanceRequest}>
                 <View style={styles.flex1}>
                     <HeaderWithBackButton
