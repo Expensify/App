@@ -2018,7 +2018,13 @@ const translations: TranslationDeepObject<typeof en> = {
         accountSettings: 'Impostazioni account',
         account: 'Account',
         general: 'Generale',
-        helpPage: {title: 'Aiuto e supporto', description: 'Siamo qui per aiutarti 24 ore su 24, 7 giorni su 7', helpSite: 'Sito di assistenza'},
+        helpPage: {
+            title: 'Aiuto e supporto',
+            description: 'Siamo qui per aiutarti 24 ore su 24, 7 giorni su 7',
+            helpSite: 'Sito di assistenza',
+            conciergeChat: 'Concierge',
+            conciergeChatDescription: 'Il tuo assistente IA personale',
+        },
     },
     closeAccountPage: {
         closeAccount: 'Chiudi account',

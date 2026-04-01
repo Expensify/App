@@ -2090,6 +2090,8 @@ const translations = {
             title: 'Help and support',
             description: 'We are here to help you 24/7',
             helpSite: 'Help site',
+            conciergeChat: 'Concierge',
+            conciergeChatDescription: 'Your personal AI agent',
         },
         whatIsNew: "What's new",
         accountSettings: 'Account settings',

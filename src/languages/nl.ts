@@ -2014,7 +2014,13 @@ const translations: TranslationDeepObject<typeof en> = {
         accountSettings: 'Accountinstellingen',
         account: 'Account',
         general: 'Algemeen',
-        helpPage: {title: 'Hulp en ondersteuning', description: 'We zijn er om je 24/7 te helpen', helpSite: 'Helppagina'},
+        helpPage: {
+            title: 'Hulp en ondersteuning',
+            description: 'We zijn er om je 24/7 te helpen',
+            helpSite: 'Helppagina',
+            conciergeChat: 'Concierge',
+            conciergeChatDescription: 'Je persoonlijke AI-agent',
+        },
     },
     closeAccountPage: {
         closeAccount: 'Account sluiten',

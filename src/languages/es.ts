@@ -1945,6 +1945,8 @@ const translations: TranslationDeepObject<typeof en> = {
             title: 'Ayuda y soporte',
             description: 'Estamos aquí para ayudarte las 24 horas, los 7 días de la semana',
             helpSite: 'Sitio de ayuda',
+            conciergeChat: 'Concierge',
+            conciergeChatDescription: 'Tu agente personal de IA',
         },
         whatIsNew: 'Qué hay de nuevo',
         accountSettings: 'Configuración de la cuenta',

@@ -2017,7 +2017,13 @@ const translations: TranslationDeepObject<typeof en> = {
         accountSettings: 'Kontoeinstellungen',
         account: 'Konto',
         general: 'Allgemein',
-        helpPage: {title: 'Hilfe und Support', description: 'Wir sind rund um die Uhr für Sie da', helpSite: 'Hilfeseite'},
+        helpPage: {
+            title: 'Hilfe und Support',
+            description: 'Wir sind rund um die Uhr für Sie da',
+            helpSite: 'Hilfeseite',
+            conciergeChat: 'Concierge',
+            conciergeChatDescription: 'Ihr persönlicher KI-Agent',
+        },
     },
     closeAccountPage: {
         closeAccount: 'Konto schließen',
