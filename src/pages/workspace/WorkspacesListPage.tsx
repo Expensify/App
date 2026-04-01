@@ -254,6 +254,7 @@ function WorkspacesListPage() {
         closeModal,
         defaultCardFeeds,
         hasCardFeedOrExpensifyCard,
+        hasDeleteWorkspaceExpensifyCardsError,
         isOffline,
         lastAccessedWorkspacePolicyID,
         lastPaymentMethod,
@@ -390,7 +391,7 @@ function WorkspacesListPage() {
         }).then(() => {
             hideDeleteWorkspaceErrorModal();
         });
-    }, [isOffline, policyToDeleteLatestErrorMessage, isPendingDelete, prevIsPendingDelete, isFocused, policyIDToDelete]);
+    }, [isOffline, hideDeleteWorkspaceErrorModal, showConfirmModal, translate, policyToDeleteLatestErrorMessage, isPendingDelete, prevIsPendingDelete, isFocused, policyIDToDelete]);
     const startChangeOwnershipFlow = (policyID: string | undefined) => {
         if (!policyID) {
             return;

@@ -310,6 +310,72 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         dropdownMenuRef.current?.setIsMenuVisible(false);
     }, [isLoadingBill]);
 
+    const confirmModalPrompt = () => {
+        const exporters = getConnectionExporters(policy);
+        const policyOwnerDisplayName = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.displayName ?? '';
+        const technicalContact = policy?.technicalContact;
+        const isCurrentUserReimburser = policy?.achAccount?.reimburser === session?.email;
+        const userEmail = session?.email ?? '';
+        const isApprover = isPolicyApprover(policy, userEmail);
+
+        if (isCurrentUserReimburser) {
+            return translate('common.leaveWorkspaceReimburser');
+        }
+
+        if (technicalContact === userEmail) {
+            return translate('common.leaveWorkspaceConfirmationTechContact', policyOwnerDisplayName);
+        }
+
+        if (exporters.some((exporter) => exporter === userEmail)) {
+            return translate('common.leaveWorkspaceConfirmationExporter', policyOwnerDisplayName);
+        }
+
+        if (isApprover) {
+            return translate('common.leaveWorkspaceConfirmationApprover', policyOwnerDisplayName);
+        }
+
+        if (isPolicyAdminPolicyUtils(policy)) {
+            return translate('common.leaveWorkspaceConfirmationAdmin');
+        }
+
+        if (isPolicyAuditor(policy)) {
+            return translate('common.leaveWorkspaceConfirmationAuditor');
+        }
+
+        return translate('common.leaveWorkspaceConfirmation');
+    };
+
+    const sessionEmail = session?.email;
+    const policyAchAccountReimburser = policy?.achAccount?.reimburser;
+    const handleLeave = useCallback(() => {
+        const isReimburser = policyAchAccountReimburser === sessionEmail;
+
+        if (isReimburser) {
+            showConfirmModal({
+                title: translate('common.leaveWorkspace'),
+                prompt: confirmModalPrompt(),
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+                success: true,
+            });
+            return;
+        }
+
+        showConfirmModal({
+            title: translate('common.leaveWorkspace'),
+            prompt: confirmModalPrompt(),
+            confirmText: translate('common.leave'),
+            cancelText: translate('common.cancel'),
+            danger: true,
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+
+            handleLeaveWorkspace();
+        });
+    }, [confirmModalPrompt, handleLeaveWorkspace, policyAchAccountReimburser, sessionEmail, showConfirmModal, translate]);
+
     const [prevDeleteState, setPrevDeleteState] = useState({isFocused, isPendingDelete});
     if (prevDeleteState.isPendingDelete !== isPendingDelete || prevDeleteState.isFocused !== isFocused) {
         setPrevDeleteState({isFocused, isPendingDelete});
@@ -398,72 +464,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             ),
         );
     };
-
-    const confirmModalPrompt = () => {
-        const exporters = getConnectionExporters(policy);
-        const policyOwnerDisplayName = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.displayName ?? '';
-        const technicalContact = policy?.technicalContact;
-        const isCurrentUserReimburser = policy?.achAccount?.reimburser === session?.email;
-        const userEmail = session?.email ?? '';
-        const isApprover = isPolicyApprover(policy, userEmail);
-
-        if (isCurrentUserReimburser) {
-            return translate('common.leaveWorkspaceReimburser');
-        }
-
-        if (technicalContact === userEmail) {
-            return translate('common.leaveWorkspaceConfirmationTechContact', policyOwnerDisplayName);
-        }
-
-        if (exporters.some((exporter) => exporter === userEmail)) {
-            return translate('common.leaveWorkspaceConfirmationExporter', policyOwnerDisplayName);
-        }
-
-        if (isApprover) {
-            return translate('common.leaveWorkspaceConfirmationApprover', policyOwnerDisplayName);
-        }
-
-        if (isPolicyAdminPolicyUtils(policy)) {
-            return translate('common.leaveWorkspaceConfirmationAdmin');
-        }
-
-        if (isPolicyAuditor(policy)) {
-            return translate('common.leaveWorkspaceConfirmationAuditor');
-        }
-
-        return translate('common.leaveWorkspaceConfirmation');
-    };
-
-    const sessionEmail = session?.email;
-    const policyAchAccountReimburser = policy?.achAccount?.reimburser;
-    const handleLeave = useCallback(() => {
-        const isReimburser = policyAchAccountReimburser === sessionEmail;
-
-        if (isReimburser) {
-            showConfirmModal({
-                title: translate('common.leaveWorkspace'),
-                prompt: confirmModalPrompt(),
-                confirmText: translate('common.buttonConfirm'),
-                shouldShowCancelButton: false,
-                success: true,
-            });
-            return;
-        }
-
-        showConfirmModal({
-            title: translate('common.leaveWorkspace'),
-            prompt: confirmModalPrompt(),
-            confirmText: translate('common.leave'),
-            cancelText: translate('common.cancel'),
-            danger: true,
-        }).then((result) => {
-            if (result.action !== ModalActions.CONFIRM) {
-                return;
-            }
-
-            handleLeaveWorkspace();
-        });
-    }, [confirmModalPrompt, handleLeaveWorkspace, policyAchAccountReimburser, sessionEmail, showConfirmModal, translate]);
 
     const handleInvitePress = () => {
         if (isAccountLocked) {
