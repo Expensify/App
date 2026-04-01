@@ -193,7 +193,7 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
                         maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                     />
                 </View>
-                {hasPreviousApprover && !isSubmitterSameAsPreviousApprover && (
+                {hasPreviousApprover && (
                     <View style={styles.mb6}>
                         <Text style={[styles.mb3]}>{translate('iou.rejectReport.selectTarget')}</Text>
                         <View style={styles.mhn5}>
