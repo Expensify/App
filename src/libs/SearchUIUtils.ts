@@ -4460,6 +4460,7 @@ function getColumnsToShow({
     isExpenseReportViewFromIOUReport = false,
     shouldShowBillableColumn = false,
     shouldShowReimbursableColumn = false,
+    shouldShowCommentsColumn = false,
     reportCurrency,
     shouldUseStrictDefaultExpenseColumns = false,
 }: {
@@ -4472,6 +4473,7 @@ function getColumnsToShow({
     isExpenseReportViewFromIOUReport?: boolean;
     shouldShowBillableColumn?: boolean;
     shouldShowReimbursableColumn?: boolean;
+    shouldShowCommentsColumn?: boolean;
     reportCurrency?: string;
     shouldUseStrictDefaultExpenseColumns?: boolean;
 }): SearchColumnType[] {
@@ -4590,8 +4592,8 @@ function getColumnsToShow({
               [CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]: shouldShowReimbursableColumn,
               [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: shouldShowBillableColumn,
-              [CONST.SEARCH.TABLE_COLUMNS.COMMENTS]: true,
               [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: true,
+              [CONST.SEARCH.TABLE_COLUMNS.COMMENTS]: shouldShowCommentsColumn,
           }
         : {
               [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
@@ -4652,7 +4654,7 @@ function getColumnsToShow({
                 }
             }
 
-            if (!addedColumns.has(CONST.SEARCH.TABLE_COLUMNS.COMMENTS)) {
+            if (shouldShowCommentsColumn && !addedColumns.has(CONST.SEARCH.TABLE_COLUMNS.COMMENTS)) {
                 result.push(CONST.SEARCH.TABLE_COLUMNS.COMMENTS);
             }
 
@@ -4810,8 +4812,8 @@ function getColumnsToShow({
             CONST.SEARCH.TABLE_COLUMNS.TYPE,
             CONST.SEARCH.TABLE_COLUMNS.DATE,
             CONST.SEARCH.TABLE_COLUMNS.STATUS,
-            CONST.SEARCH.TABLE_COLUMNS.COMMENTS,
             CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
+            CONST.SEARCH.TABLE_COLUMNS.COMMENTS,
             CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE,
             CONST.SEARCH.TABLE_COLUMNS.BILLABLE,
             CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID,

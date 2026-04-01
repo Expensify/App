@@ -35,9 +35,8 @@ function ReportDetailsColumnsPage() {
     const [reportDetailsColumns] = useOnyx(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
-    const [reportTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
-        selector: (transactions) => Object.values(transactions ?? {}).filter((t): t is NonNullable<typeof t> => t != null && t.reportID === reportID),
-    });
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const reportTransactions = Object.values(allTransactions ?? {}).filter((t): t is NonNullable<typeof t> => t != null && t.reportID === reportID);
     const currentUserDetails = useCurrentUserPersonalDetails();
 
     const allTypeCustomColumns = Object.values(CONST.SEARCH.REPORT_DETAILS_CUSTOM_COLUMNS) as SearchCustomColumnIds[];
