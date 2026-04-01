@@ -58,7 +58,7 @@ function SearchStaticList({searchResults, queryJSON, contentContainerStyle, onLa
     const theme = useTheme();
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const session = useSession();
-    const accountID = session?.accountID ?? 0;
+    const accountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const email = session?.email;
 
     const [showPendingExpensePlaceholder] = useState(() => hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH));
@@ -216,7 +216,7 @@ function SearchStaticList({searchResults, queryJSON, contentContainerStyle, onLa
     }
 
     if (sortedData.length === 0) {
-        return null;
+        return <View onLayout={onLayout} />;
     }
 
     return (
