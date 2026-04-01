@@ -5,7 +5,7 @@ import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
-import type {Onboarding, OnboardingPurpose, PersonalDetailsList, Policy, Report, ReportAction, ReportNameValuePairs} from '@src/types/onyx';
+import type {Onboarding, OnboardingPurpose, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
 import type {ReportAttributes, ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 
 type OptionMode = ValueOf<typeof CONST.OPTION_MODE>;
@@ -60,29 +60,17 @@ type OptionRowLHNDataProps = {
     /** The transaction thread report associated with the current report, if any */
     oneTransactionThreadReport: OnyxEntry<Report>;
 
-    /** Array of report name value pairs for this report */
-    reportNameValuePairs: OnyxEntry<ReportNameValuePairs>;
-
     /** The policy which the user has access to and which the report could be tied to */
     policy?: OnyxEntry<Policy>;
 
     /** Invoice receiver policy */
     invoiceReceiverPolicy?: OnyxEntry<Policy>;
 
-    /** The action from the parent report */
-    parentReportAction?: OnyxEntry<ReportAction>;
-
-    /** Whether a report contains a draft */
-    hasDraftComment: boolean;
-
     /** The reportID of the report */
     reportID: string;
 
     /** Toggle between compact and default view */
     viewMode?: OptionMode;
-
-    /** The last message text from the report */
-    lastMessageTextFromReport?: string;
 
     /** A function that is called when an option is selected. Selected option is passed as a param */
     onSelectRow?: (optionItem: OptionData, popoverAnchor: RefObject<View | null>) => void;
@@ -110,14 +98,6 @@ type OptionRowLHNDataProps = {
 
     /** TestID of the row, indicating order */
     testID: number;
-
-    /** Whether the report is archived */
-    isReportArchived: boolean;
-
-    /** The last action should be displayed */
-    lastAction: ReportAction | undefined;
-
-    lastActionReport: OnyxEntry<Report> | undefined;
 
     /** The current user's account ID */
     currentUserAccountID: number;

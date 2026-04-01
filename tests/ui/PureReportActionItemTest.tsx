@@ -114,7 +114,7 @@ describe('PureReportActionItem', () => {
                                 currentUserAccountID={ACTOR_ACCOUNT_ID}
                                 betas={undefined}
                                 draftTransactionIDs={[]}
-                                userBillingGraceEndPeriods={undefined}
+                                userBillingGracePeriodEnds={undefined}
                             />
                         </PortalProvider>
                     </ScreenWrapper>
@@ -411,7 +411,7 @@ describe('PureReportActionItem', () => {
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     betas={undefined}
                                     draftTransactionIDs={[]}
-                                    userBillingGraceEndPeriods={undefined}
+                                    userBillingGracePeriodEnds={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -470,7 +470,7 @@ describe('PureReportActionItem', () => {
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     betas={undefined}
                                     draftTransactionIDs={[]}
-                                    userBillingGraceEndPeriods={undefined}
+                                    userBillingGracePeriodEnds={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -541,7 +541,7 @@ describe('PureReportActionItem', () => {
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     betas={undefined}
                                     draftTransactionIDs={[]}
-                                    userBillingGraceEndPeriods={undefined}
+                                    userBillingGracePeriodEnds={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -607,7 +607,7 @@ describe('PureReportActionItem', () => {
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     betas={undefined}
                                     draftTransactionIDs={[]}
-                                    userBillingGraceEndPeriods={undefined}
+                                    userBillingGracePeriodEnds={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -660,7 +660,7 @@ describe('PureReportActionItem', () => {
                                     betas={undefined}
                                     draftTransactionIDs={[]}
                                     modifiedExpenseMessage={modifiedExpenseMessage}
-                                    userBillingGraceEndPeriods={undefined}
+                                    userBillingGracePeriodEnds={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
