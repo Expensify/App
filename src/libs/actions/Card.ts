@@ -1653,21 +1653,44 @@ function buildSpendRuleAST(spendRuleValues: SpendRuleForm): SpendRuleAST | undef
 }
 
 function setExpensifyCardRule(domainAccountID: number, cardRuleID: string, spendRuleValues: SpendRuleForm) {
-    const ruleID = String(cardRuleID);
+    const ruleID = cardRuleID;
     const ruleAST = buildSpendRuleAST(spendRuleValues);
     if (!ruleAST) {
         return;
     }
 
-    const nextCardRuleValue = JSON.stringify(ruleAST);
+    const cardRuleValue = JSON.stringify(ruleAST);
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`,
+            value: {
+                cardRules: {
+                    [ruleID]: cardRuleValue,
+                },
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`,
+            value: {
+                cardRules: {
+                    [ruleID]: null,
+                },
+            },
+        },
+    ];
 
     const parameters: SetExpensifyCardRuleParams = {
         domainAccountID,
         cardRuleID: ruleID,
-        cardRuleValue: nextCardRuleValue,
+        cardRuleValue,
     };
 
-    API.write(WRITE_COMMANDS.SET_EXPENSIFY_CARD_RULE, parameters);
+    API.write(WRITE_COMMANDS.SET_EXPENSIFY_CARD_RULE, parameters, {optimisticData, failureData});
 }
 
 function getSpendCardRuleValueJSON(cardIDStrings: string[], action: ValueOf<typeof CONST.SPEND_CARD_RULE.ACTION>) {

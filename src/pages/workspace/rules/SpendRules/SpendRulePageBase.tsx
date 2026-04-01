@@ -12,7 +12,7 @@ import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getSpendCardRuleValueJSON, setExpensifyCardRule} from '@libs/actions/Card';
+import {setExpensifyCardRule} from '@libs/actions/Card';
 import {clearDraftSpendRule, updateDraftSpendRule} from '@libs/actions/User';
 import {filterInactiveCards, getCardDescriptionForSearchTable, isCard} from '@libs/CardUtils';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';

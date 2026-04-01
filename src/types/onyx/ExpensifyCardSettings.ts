@@ -111,8 +111,8 @@ type ExpensifyCardSettings = OnyxCommon.OnyxValueWithOfflineFeedback<
         // eslint-disable-next-line @typescript-eslint/naming-convention
         TRAVEL_US?: ExpensifyCardSettingsBase;
 
-        /** Spend rules for the feed keyed by rule ID */
-        cardRules?: Record<string, ExpensifyCardRule>;
+        /** Spend rules for the feed keyed by rule ID - stringified JSON of ExpensifyCardRule */
+        cardRules?: Record<string, string>;
 
         /** Whether the card settings has been loaded before */
         hasOnceLoaded?: boolean;
