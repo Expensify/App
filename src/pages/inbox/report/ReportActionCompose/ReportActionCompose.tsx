@@ -18,7 +18,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
 import ComposerBox, {useComposerBox} from './ComposerBox';
 import type {SuggestionsRef} from './ComposerContext';
-import {useComposerActions, useComposerInternalsActions, useComposerInternalsData, useComposerSendState, useComposerState} from './ComposerContext';
+import {useComposerActions, useComposerData, useComposerDataActions, useComposerSendState, useComposerState} from './ComposerContext';
 import ComposerDropZone from './ComposerDropZone';
 import ComposerFooter from './ComposerFooter';
 import ComposerLocalTime from './ComposerLocalTime';
@@ -51,9 +51,8 @@ function ComposerBoxContent({reportID}: ComposerBoxContentProps) {
     const {isComposerFullSize, isFullComposerAvailable, isMenuVisible} = useComposerState();
     const {isBlockedFromConcierge, isSendDisabled, exceededMaxLength} = useComposerSendState();
     const {setMenuVisibility, setIsFullComposerAvailable, handleSendMessage, focus, onValueChange} = useComposerActions();
-    const {composerRef, suggestionsRef, actionButtonRef, isNextModalWillOpenRef, shouldFocusComposerOnScreenFocus, shouldShowComposeInput, userBlockedFromConcierge} =
-        useComposerInternalsData();
-    const {onBlur, onFocus, onAddActionPressed, onItemSelected, onTriggerAttachmentPicker, submitForm, validateAttachments, setComposerRef} = useComposerInternalsActions();
+    const {composerRef, suggestionsRef, actionButtonRef, isNextModalWillOpenRef, shouldFocusComposerOnScreenFocus, shouldShowComposeInput, userBlockedFromConcierge} = useComposerData();
+    const {onBlur, onFocus, onAddActionPressed, onItemSelected, onTriggerAttachmentPicker, submitForm, validateAttachments, setComposerRef} = useComposerDataActions();
     const {measureContainer} = useComposerBox();
 
     const {isScrollLayoutTriggered, raiseIsScrollLayoutTriggered} = useIsScrollLikelyLayoutTriggered();

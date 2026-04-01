@@ -47,7 +47,7 @@ type ComposerActions = {
     };
 };
 
-type ComposerInternalsData = {
+type ComposerData = {
     composerRef: RefObject<ComposerRef | null>;
     suggestionsRef: RefObject<SuggestionsRef | null>;
     actionButtonRef: RefObject<View | HTMLDivElement | null>;
@@ -60,7 +60,7 @@ type ComposerInternalsData = {
     ErrorModal: ReactNode;
 };
 
-type ComposerInternalsActions = {
+type ComposerDataActions = {
     setComposerRef: (ref: ComposerRef | null) => void;
     onBlur: (event: BlurEvent) => void;
     onFocus: () => void;
@@ -107,8 +107,8 @@ const ComposerValueContext = createContext<string>('');
 const ComposerStateContext = createContext<ComposerState>(defaultState);
 const ComposerSendStateContext = createContext<ComposerSendState>(defaultSendState);
 const ComposerActionsContext = createContext<ComposerActions>(defaultActions);
-const ComposerInternalsDataContext = createContext<ComposerInternalsData | null>(null);
-const ComposerInternalsActionsContext = createContext<ComposerInternalsActions | null>(null);
+const ComposerDataContext = createContext<ComposerData | null>(null);
+const ComposerDataActionsContext = createContext<ComposerDataActions | null>(null);
 
 function useComposerValue() {
     return useContext(ComposerValueContext);
@@ -126,18 +126,18 @@ function useComposerActions() {
     return useContext(ComposerActionsContext);
 }
 
-function useComposerInternalsData() {
-    const ctx = useContext(ComposerInternalsDataContext);
+function useComposerData() {
+    const ctx = useContext(ComposerDataContext);
     if (!ctx) {
-        throw new Error('useComposerInternalsData must be used inside ComposerProvider');
+        throw new Error('useComposerData must be used inside ComposerProvider');
     }
     return ctx;
 }
 
-function useComposerInternalsActions() {
-    const ctx = useContext(ComposerInternalsActionsContext);
+function useComposerDataActions() {
+    const ctx = useContext(ComposerDataActionsContext);
     if (!ctx) {
-        throw new Error('useComposerInternalsActions must be used inside ComposerProvider');
+        throw new Error('useComposerDataActions must be used inside ComposerProvider');
     }
     return ctx;
 }
@@ -147,13 +147,13 @@ export {
     ComposerStateContext,
     ComposerSendStateContext,
     ComposerActionsContext,
-    ComposerInternalsDataContext,
-    ComposerInternalsActionsContext,
+    ComposerDataContext,
+    ComposerDataActionsContext,
     useComposerValue,
     useComposerState,
     useComposerSendState,
     useComposerActions,
-    useComposerInternalsData,
-    useComposerInternalsActions,
+    useComposerData,
+    useComposerDataActions,
 };
-export type {SuggestionsRef, ComposerState, ComposerSendState, ComposerActions, ComposerInternalsData, ComposerInternalsActions};
+export type {SuggestionsRef, ComposerState, ComposerSendState, ComposerActions, ComposerData, ComposerDataActions};

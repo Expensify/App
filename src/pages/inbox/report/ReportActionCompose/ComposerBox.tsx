@@ -5,7 +5,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {hideEmojiPicker, isActive as isActiveEmojiPickerAction} from '@userActions/EmojiPickerAction';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
-import {useComposerInternalsData, useComposerSendState, useComposerState} from './ComposerContext';
+import {useComposerData, useComposerSendState, useComposerState} from './ComposerContext';
 
 type ComposerBoxContextValue = {
     measureContainer: (callback: MeasureInWindowOnSuccessCallback) => void;
@@ -30,7 +30,7 @@ function ComposerBox({reportID, isComposerFullSize, pendingAction, children}: Co
     const styles = useThemeStyles();
     const {isFocused} = useComposerState();
     const {exceededMaxLength, isBlockedFromConcierge} = useComposerSendState();
-    const {PDFValidationComponent, ErrorModal} = useComposerInternalsData();
+    const {PDFValidationComponent, ErrorModal} = useComposerData();
 
     const shouldUseFocusedColor = !isBlockedFromConcierge && isFocused;
 

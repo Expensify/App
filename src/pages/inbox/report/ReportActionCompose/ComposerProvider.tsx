@@ -13,7 +13,7 @@ import {setIsComposerFullSize} from '@userActions/Report';
 import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {ComposerActionsContext, ComposerInternalsActionsContext, ComposerInternalsDataContext, ComposerSendStateContext, ComposerStateContext, ComposerValueContext} from './ComposerContext';
+import {ComposerActionsContext, ComposerDataActionsContext, ComposerDataContext, ComposerSendStateContext, ComposerStateContext, ComposerValueContext} from './ComposerContext';
 import type {SuggestionsRef} from './ComposerContext';
 import type {ComposerRef} from './ComposerWithSuggestions/ComposerWithSuggestions';
 import useAttachmentUploadValidation from './useAttachmentUploadValidation';
@@ -221,9 +221,9 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
             <ComposerStateContext.Provider value={composerState}>
                 <ComposerSendStateContext.Provider value={composerSendState}>
                     <ComposerActionsContext.Provider value={composerActions}>
-                        <ComposerInternalsDataContext.Provider value={composerInternalsData}>
-                            <ComposerInternalsActionsContext.Provider value={composerInternalsActions}>{children}</ComposerInternalsActionsContext.Provider>
-                        </ComposerInternalsDataContext.Provider>
+                        <ComposerDataContext.Provider value={composerInternalsData}>
+                            <ComposerDataActionsContext.Provider value={composerInternalsActions}>{children}</ComposerDataActionsContext.Provider>
+                        </ComposerDataContext.Provider>
                     </ComposerActionsContext.Provider>
                 </ComposerSendStateContext.Provider>
             </ComposerStateContext.Provider>
