@@ -82,6 +82,14 @@ function LinkedActionNotFoundGate({reportActionIDFromRoute, children}: LinkedAct
         setWasEverVisible(true);
     }
 
+    // Track whether isLoadingInitialReportActions has been true at least once during this mount.
+    // For previously loaded reports, stale metadata may already have isLoadingInitialReportActions: false
+    // before openReport() fires its optimistic update — without this guard we'd flash "not found".
+    const [hasSeenLoadingCycle, setHasSeenLoadingCycle] = useState(false);
+    if (isLoadingInitialReportActions && !hasSeenLoadingCycle) {
+        setHasSeenLoadingCycle(true);
+    }
+
     // Show "comment not found" when:
     // 1. The linked action doesn't exist in the report's actions collection (after loading completes)
     // 2. The linked action exists but is deleted/hidden, and was never visible during this mount
@@ -92,7 +100,8 @@ function LinkedActionNotFoundGate({reportActionIDFromRoute, children}: LinkedAct
     // view is empty" — that's a report view concern, not a linked-action-not-found concern.
     // Showing "comment not found" for an action that exists in the collection is incorrect.
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundLinkedAction = (!isLinkedActionInaccessibleWhisper && isLinkedActionDeleted && !wasEverVisible) || (!isLoadingInitialReportActions && !linkedAction);
+    const shouldShowNotFoundLinkedAction =
+        (!isLinkedActionInaccessibleWhisper && isLinkedActionDeleted && !wasEverVisible) || (hasSeenLoadingCycle && !isLoadingInitialReportActions && !linkedAction);
 
     // Action was deleted while we were viewing it — navigate away
     useEffect(() => {
