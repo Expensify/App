@@ -663,12 +663,15 @@ function MoneyRequestConfirmationList({
             if (iouAmount !== 0 && !isNewManualExpenseFlowEnabled) {
                 text = translate('iou.createExpenseWithAmount', {amount: formattedAmount});
             }
+        } else if (isTypeSplit) {
+            text = translate('iou.splitAmount', formattedAmount);
+            if (isNewManualExpenseFlowEnabled) {
+                text = translate('iou.splitExpense');
+            }
         } else if (iouAmount === 0) {
             text = translate('iou.createExpense');
         } else if (isNewManualExpenseFlowEnabled) {
             text = translate('iou.createExpense');
-        } else if (isTypeSplit) {
-            text = translate('iou.splitAmount', formattedAmount);
         } else {
             text = translate('iou.createExpenseWithAmount', {amount: formattedAmount});
         }
