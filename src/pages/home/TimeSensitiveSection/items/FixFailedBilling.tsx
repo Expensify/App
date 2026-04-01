@@ -2,8 +2,8 @@ import React from 'react';
 import BaseWidgetItem from '@components/BaseWidgetItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import navigateToSubscriptionPayment from '@pages/home/common/navigateToSubscriptionPayment';
 import colors from '@styles/theme/colors';
-import navigateFromAddPaymentCardItem from './AddPaymentCard/navigateFromAddPaymentCardItem';
 
 function FixFailedBilling() {
     const {translate} = useLocalize();
@@ -17,7 +17,7 @@ function FixFailedBilling() {
             title={translate('homePage.timeSensitiveSection.fixFailedBilling.title')}
             subtitle={translate('homePage.timeSensitiveSection.fixFailedBilling.subtitle')}
             ctaText={translate('homePage.timeSensitiveSection.ctaFix')}
-            onCtaPress={navigateFromAddPaymentCardItem}
+            onCtaPress={navigateToSubscriptionPayment}
             buttonProps={{danger: true}}
         />
     );

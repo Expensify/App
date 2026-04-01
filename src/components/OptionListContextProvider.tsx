@@ -1,6 +1,5 @@
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
@@ -71,26 +70,24 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
     const personalDetails = usePersonalDetails();
     const prevPersonalDetails = usePrevious(personalDetails);
     const privateIsArchivedMap = usePrivateIsArchivedMap();
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const currentUserAccountID = currentUserPersonalDetails.accountID;
     const hasInitialData = useMemo(() => Object.keys(personalDetails ?? {}).length > 0, [personalDetails]);
     const getReprocessedReportOption = useCallback(
         (report: OnyxEntry<Report> | null, reportID: string, policyID?: string) => {
             const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
             const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID ?? report?.policyID}`];
 
-            return processReport(report, personalDetails, privateIsArchived, currentUserAccountID, policy, reportAttributes?.reports).reportOption;
+            return processReport(report, personalDetails, privateIsArchived, policy, reportAttributes?.reports).reportOption;
         },
-        [allPolicies, currentUserAccountID, personalDetails, privateIsArchivedMap, reportAttributes?.reports],
+        [allPolicies, personalDetails, privateIsArchivedMap, reportAttributes?.reports],
     );
 
     const loadOptions = useCallback(() => {
-        const optionLists = createOptionList(personalDetails, currentUserAccountID, privateIsArchivedMap, reports, allPolicies, reportAttributes?.reports);
+        const optionLists = createOptionList(personalDetails, privateIsArchivedMap, reports, allPolicies, reportAttributes?.reports);
         setOptions({
             reports: optionLists.reports,
             personalDetails: optionLists.personalDetails,
         });
-    }, [personalDetails, currentUserAccountID, privateIsArchivedMap, reports, allPolicies, reportAttributes?.reports]);
+    }, [personalDetails, privateIsArchivedMap, reports, allPolicies, reportAttributes?.reports]);
 
     /**
      * This effect is responsible for generating the options list when their data is not yet initialized
@@ -160,7 +157,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                 reports: Array.from(updatedReportsMap.values()),
             };
         });
-    }, [changedReportsEntries, getReprocessedReportOption, personalDetails, currentUserAccountID, reports, allPolicies, reportAttributes?.reports, privateIsArchivedMap]);
+    }, [changedReportsEntries, getReprocessedReportOption]);
 
     useEffect(() => {
         if (!changedReportActions || !areOptionsInitialized.current) {
@@ -193,7 +190,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                 reports: Array.from(updatedReportsMap.values()),
             };
         });
-    }, [changedReportActions, getReprocessedReportOption, personalDetails, currentUserAccountID, reports, allPolicies, reportAttributes?.reports, privateIsArchivedMap]);
+    }, [changedReportActions, getReprocessedReportOption]);
 
     useEffect(() => {
         if (!changedPolicies || !areOptionsInitialized.current || !reports || !prevPolicies) {
@@ -269,7 +266,6 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
         if (!prevPersonalDetails) {
             const {personalDetails: newPersonalDetailsOptions, reports: newReports} = createOptionList(
                 personalDetails,
-                currentUserAccountID,
                 privateIsArchivedMap,
                 reports,
                 allPolicies,
@@ -309,7 +305,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
 
                 const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
                 const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-                const newReportOption = createOptionFromReport(report, personalDetails, currentUserAccountID, privateIsArchived, policy, reportAttributes?.reports, {
+                const newReportOption = createOptionFromReport(report, personalDetails, privateIsArchived, policy, reportAttributes?.reports, {
                     showPersonalDetails: true,
                 });
                 const replaceIndex = options.reports.findIndex((option) => option.reportID === report.reportID);
@@ -321,7 +317,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
         }
 
         // since personal details are not a collection, we need to recreate the whole list from scratch
-        const newPersonalDetailsOptions = createOptionList(personalDetails, currentUserAccountID, privateIsArchivedMap, reports, allPolicies, reportAttributes?.reports).personalDetails;
+        const newPersonalDetailsOptions = createOptionList(personalDetails, privateIsArchivedMap, reports, allPolicies, reportAttributes?.reports).personalDetails;
 
         setOptions((prevOptions) => {
             const newOptions = {...prevOptions};
@@ -391,9 +387,7 @@ const useOptionsList = (options?: {shouldInitialize: boolean}) => {
     useEffect(() => {
         if (!prevOptions.current) {
             prevOptions.current = optionsList;
-            // eslint-disable-next-line react-hooks/set-state-in-effect -- This hook initializes its mirrored local state from context on first mount before applying shallow equality optimizations.
             setInternalOptions(optionsList);
-            // eslint-disable-next-line react-hooks/set-state-in-effect -- This hook initializes its mirrored initialization flag from context on first mount before applying shallow equality optimizations.
             setAreInternalOptionsInitialized(areOptionsInitialized);
             return;
         }
@@ -406,15 +400,12 @@ const useOptionsList = (options?: {shouldInitialize: boolean}) => {
         const hasInitializedChanged = prevIsInitialized !== areOptionsInitialized;
         if (areOptionsEqual) {
             if (hasInitializedChanged) {
-                // eslint-disable-next-line react-hooks/set-state-in-effect -- This hook intentionally mirrors the initialization flag from context while preserving shallow option equality optimizations.
                 setAreInternalOptionsInitialized(areOptionsInitialized);
             }
 
             return;
         }
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- This hook intentionally mirrors context into local state only when the shallow-compared options actually change.
         setInternalOptions(optionsList);
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- This hook intentionally mirrors the initialization flag from context when the option list changes.
         setAreInternalOptionsInitialized(areOptionsInitialized);
     }, [optionsList, areOptionsInitialized, prevIsInitialized]);
 
