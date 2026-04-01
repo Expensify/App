@@ -9698,7 +9698,7 @@ describe('actions/IOU', () => {
 
                     const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
                     // Change the approval mode for the policy since default is Submit and Close
-                    setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
+                    setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL);
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -9845,7 +9845,7 @@ describe('actions/IOU', () => {
                     });
 
                     const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-                    setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, {});
+                    setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, {});
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -10418,7 +10418,7 @@ describe('actions/IOU', () => {
             return waitForBatchedUpdates()
                 .then(async () => {
                     policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-                    setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, {});
+                    setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, RORY_ACCOUNT_ID, RORY_EMAIL, {});
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -10645,7 +10645,7 @@ describe('actions/IOU', () => {
                 hasActiveAdminPolicies: false,
             });
 
-            setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, {});
+            setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, {});
             await waitForBatchedUpdates();
 
             let chatReport: OnyxEntry<Report>;
@@ -14160,7 +14160,7 @@ describe('actions/IOU', () => {
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
                 // Change the approval mode for the policy since default is Submit and Close
-                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, {});
+                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, {});
                 await waitForBatchedUpdates();
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.REPORT,
@@ -14336,7 +14336,7 @@ describe('actions/IOU', () => {
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
                 // Change the approval mode for the policy since default is Submit and Close
-                setWorkspaceApprovalMode(policy, RORY_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, {});
+                setWorkspaceApprovalMode(policy, RORY_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, {});
                 await waitForBatchedUpdates();
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.REPORT,
@@ -14515,7 +14515,7 @@ describe('actions/IOU', () => {
                 });
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, {});
+                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, {});
                 await waitForBatchedUpdates();
 
                 await getOnyxData({
@@ -14705,7 +14705,7 @@ describe('actions/IOU', () => {
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
                 // Change the approval mode for the policy since default is Submit and Close
-                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, {});
+                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, {});
                 await waitForBatchedUpdates();
 
                 await getOnyxData({
