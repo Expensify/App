@@ -17,5 +17,4 @@ type NativeBiometricsHSMKeyInfo = {
     };
 };
 
-// eslint-disable-next-line import/prefer-default-export
-export type {NativeBiometricsHSMKeyInfo};
+export default NativeBiometricsHSMKeyInfo;

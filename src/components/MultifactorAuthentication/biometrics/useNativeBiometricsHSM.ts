@@ -1,10 +1,9 @@
 import {createKeys, deleteKeys, getAllKeys, InputEncoding, isSensorAvailable, signWithOptions} from '@sbaiahmed1/react-native-biometrics';
-import {useCallback} from 'react';
 import addMFABreadcrumb from '@components/MultifactorAuthentication/observability/breadcrumbs';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import {buildSigningData, getKeyAlias, mapAuthTypeNumber, mapLibraryError, mapSignErrorCode} from '@libs/MultifactorAuthentication/NativeBiometricsHSM/helpers';
-import type {NativeBiometricsHSMKeyInfo} from '@libs/MultifactorAuthentication/NativeBiometricsHSM/types';
+import type NativeBiometricsHSMKeyInfo from '@libs/MultifactorAuthentication/NativeBiometricsHSM/types';
 import VALUES from '@libs/MultifactorAuthentication/VALUES';
 import CONST from '@src/CONST';
 import Base64URL from '@src/utils/Base64URL';
@@ -21,12 +20,12 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
     const {translate} = useLocalize();
     const {serverKnownCredentialIDs, haveCredentialsEverBeenConfigured} = useServerCredentials();
 
-    const doesDeviceSupportAuthenticationMethod = useCallback(async () => {
+    const doesDeviceSupportAuthenticationMethod = async () => {
         const sensorResult = await isSensorAvailable();
         return sensorResult.isDeviceSecure ?? sensorResult.available;
-    }, []);
+    };
 
-    const getLocalCredentialID = useCallback(async () => {
+    const getLocalCredentialID = async () => {
         try {
             const keyAlias = getKeyAlias(accountID);
             const {keys} = await getAllKeys(keyAlias);
@@ -39,21 +38,21 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
             addMFABreadcrumb('Failed to get local credential ID', {reason: mapLibraryError(e) ?? VALUES.REASON.HSM.GENERIC}, 'error');
             return undefined;
         }
-    }, [accountID]);
+    };
 
-    const areLocalCredentialsKnownToServer = useCallback(async () => {
+    const areLocalCredentialsKnownToServer = async () => {
         const key = await getLocalCredentialID();
         return !!key && serverKnownCredentialIDs.includes(key);
-    }, [getLocalCredentialID, serverKnownCredentialIDs]);
+    };
 
-    const deleteLocalKeysForAccount = useCallback(async () => {
+    const deleteLocalKeysForAccount = async () => {
         try {
             const keyAlias = getKeyAlias(accountID);
             await deleteKeys(keyAlias);
         } catch (e) {
             addMFABreadcrumb('Failed to delete local keys', {reason: mapLibraryError(e) ?? VALUES.REASON.HSM.GENERIC}, 'error');
         }
-    }, [accountID]);
+    };
 
     const register = async (onResult: (result: RegisterResult) => Promise<void> | void, registrationChallenge: Parameters<UseBiometricsReturn['register']>[1]) => {
         try {

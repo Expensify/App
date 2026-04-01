@@ -5,7 +5,7 @@
 import type {ValueOf} from 'type-fest';
 import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioAdditionalParams} from '@components/MultifactorAuthentication/config/types';
 import type {NativeBiometricsKeyInfo} from '@libs/MultifactorAuthentication/NativeBiometrics/types';
-import type {NativeBiometricsHSMKeyInfo} from '@libs/MultifactorAuthentication/NativeBiometricsHSM/types';
+import type NativeBiometricsHSMKeyInfo from '@libs/MultifactorAuthentication/NativeBiometricsHSM/types';
 import type NATIVE_BIOMETRIC_HSM_VALUES from '@libs/MultifactorAuthentication/NativeBiometricsHSM/VALUES';
 import type {PasskeyRegistrationKeyInfo} from '@libs/MultifactorAuthentication/Passkeys/types';
 import type {PASSKEY_AUTH_TYPE} from '@libs/MultifactorAuthentication/Passkeys/WebAuthn';
