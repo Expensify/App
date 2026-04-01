@@ -714,6 +714,7 @@ function createCorpayBankAccount(fields: ReimbursementAccountForm, policyID: str
                     isLoading: false,
                     isCreateCorpayBankAccount: false,
                     isSuccess: false,
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('walletPage.addBankAccountFailure'),
                 },
             },
         ],
