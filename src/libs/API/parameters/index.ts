@@ -2,7 +2,6 @@ export type {default as GetTransactionsForMergingParams} from './GetTransactions
 export type {default as ImportCSVTransactionsParams} from './ImportCSVTransactionsParams';
 export type {default as ImportMultiLevelTagsParams} from './ImportMultiLevelTagsParams';
 export type {default as ImportCSVCompanyCardsParams} from './ImportCSVCompanyCardsParams';
-export type {default as AddCSVCompanyCardsParams} from './AddCSVCompanyCardsParams';
 export type {default as CleanPolicyTagsParams} from './CleanPolicyTagsParams';
 export type {default as ActivatePhysicalExpensifyCardParams} from './ActivatePhysicalExpensifyCardParams';
 export type {default as AddNewContactMethodParams} from './AddNewContactMethodParams';
