@@ -182,12 +182,14 @@ function makeDateFilterItem(
     on: string | undefined,
     after: string | undefined,
     before: string | undefined,
+    range: string | undefined,
     updateFilterForm: (v: Partial<SearchAdvancedFiltersForm>) => void,
 ): FilterItem {
     const value = {
         [CONST.SEARCH.DATE_MODIFIERS.ON]: on,
         [CONST.SEARCH.DATE_MODIFIERS.AFTER]: after,
         [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: before,
+        [CONST.SEARCH.DATE_MODIFIERS.RANGE]: range,
     };
     return {
         PopoverComponent: (props) => (
@@ -324,6 +326,7 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
                     searchAdvancedFiltersForm.postedOn,
                     searchAdvancedFiltersForm.postedAfter,
                     searchAdvancedFiltersForm.postedBefore,
+                    searchAdvancedFiltersForm.postedRange,
                     updateFilterForm,
                 );
             case FILTER_KEYS.WITHDRAWAL_TYPE: {
@@ -351,6 +354,7 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
                     searchAdvancedFiltersForm.withdrawnOn,
                     searchAdvancedFiltersForm.withdrawnAfter,
                     searchAdvancedFiltersForm.withdrawnBefore,
+                    searchAdvancedFiltersForm.withdrawnRange,
                     updateFilterForm,
                 );
             case FILTER_KEYS.STATUS: {
@@ -383,6 +387,7 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
                     searchAdvancedFiltersForm.dateOn,
                     searchAdvancedFiltersForm.dateAfter,
                     searchAdvancedFiltersForm.dateBefore,
+                    searchAdvancedFiltersForm.dateRange,
                     updateFilterForm,
                 );
             case FILTER_KEYS.FROM: {
