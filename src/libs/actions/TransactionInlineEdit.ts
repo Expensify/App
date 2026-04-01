@@ -351,7 +351,7 @@ function getTransactionEditPermissions({
     // Matches MoneyRequestView's canEdit.
     // For unreported expenses, parentReportAction may not be loaded; they are
     // always editable by the owner.
-    const canEdit = isUnreported || (isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, isChatReportArchived, parentReport, policy, transaction));
+    const canEdit = isUnreported || (isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, transaction, isChatReportArchived, parentReport, policy));
     if (!canEdit) {
         return NO_EDIT;
     }
