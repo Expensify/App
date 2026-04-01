@@ -14,7 +14,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isSearchDatePreset} from '@libs/SearchQueryUtils';
+import {getDateRangeDisplayValueFromFormValue, isSearchDatePreset} from '@libs/SearchQueryUtils';
 import {getDatePresets} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -148,10 +148,12 @@ function ReportFieldPopup({closeOverlay, updateFilterForm}: ReportFieldPopupProp
             const onKey = `${CONST.SEARCH.REPORT_FIELD.ON_PREFIX}${suffix}` as const;
             const beforeKey = `${CONST.SEARCH.REPORT_FIELD.BEFORE_PREFIX}${suffix}` as const;
             const afterKey = `${CONST.SEARCH.REPORT_FIELD.AFTER_PREFIX}${suffix}` as const;
+            const rangeKey = `${CONST.SEARCH.REPORT_FIELD.RANGE_PREFIX}${suffix}` as const;
             return {
                 [CONST.SEARCH.DATE_MODIFIERS.ON]: values[onKey] ?? searchAdvancedFiltersForm?.[onKey],
                 [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: values[beforeKey] ?? searchAdvancedFiltersForm?.[beforeKey],
                 [CONST.SEARCH.DATE_MODIFIERS.AFTER]: values[afterKey] ?? searchAdvancedFiltersForm?.[afterKey],
+                [CONST.SEARCH.DATE_MODIFIERS.RANGE]: values[rangeKey] ?? searchAdvancedFiltersForm?.[rangeKey],
             };
         }
         const filterKey = `${CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX}${suffix}` as const;
@@ -172,6 +174,7 @@ function ReportFieldPopup({closeOverlay, updateFilterForm}: ReportFieldPopupProp
             const onKey = `${CONST.SEARCH.REPORT_FIELD.ON_PREFIX}${suffix}`;
             const afterKey = `${CONST.SEARCH.REPORT_FIELD.AFTER_PREFIX}${suffix}`;
             const beforeKey = `${CONST.SEARCH.REPORT_FIELD.BEFORE_PREFIX}${suffix}`;
+            const rangeKey = `${CONST.SEARCH.REPORT_FIELD.RANGE_PREFIX}${suffix}`;
             return (
                 <ReportFieldDatePopup
                     field={selectedField}
@@ -183,6 +186,7 @@ function ReportFieldPopup({closeOverlay, updateFilterForm}: ReportFieldPopupProp
                             [onKey]: newValue[CONST.SEARCH.DATE_MODIFIERS.ON],
                             [afterKey]: newValue[CONST.SEARCH.DATE_MODIFIERS.AFTER],
                             [beforeKey]: newValue[CONST.SEARCH.DATE_MODIFIERS.BEFORE],
+                            [rangeKey]: newValue[CONST.SEARCH.DATE_MODIFIERS.RANGE],
                         }))
                     }
                 />
@@ -219,6 +223,7 @@ function ReportFieldPopup({closeOverlay, updateFilterForm}: ReportFieldPopupProp
                     acc[`${CONST.SEARCH.REPORT_FIELD.ON_PREFIX}${suffix}`] = undefined;
                     acc[`${CONST.SEARCH.REPORT_FIELD.AFTER_PREFIX}${suffix}`] = undefined;
                     acc[`${CONST.SEARCH.REPORT_FIELD.BEFORE_PREFIX}${suffix}`] = undefined;
+                    acc[`${CONST.SEARCH.REPORT_FIELD.RANGE_PREFIX}${suffix}`] = undefined;
                 } else {
                     acc[filterKey] = undefined;
                 }
@@ -239,6 +244,7 @@ function ReportFieldPopup({closeOverlay, updateFilterForm}: ReportFieldPopupProp
             const onValue = formDateValue?.[CONST.SEARCH.DATE_MODIFIERS.ON];
             const afterValue = formDateValue?.[CONST.SEARCH.DATE_MODIFIERS.AFTER];
             const beforeValue = formDateValue?.[CONST.SEARCH.DATE_MODIFIERS.BEFORE];
+            const rangeValue = formDateValue?.[CONST.SEARCH.DATE_MODIFIERS.RANGE];
 
             if (onValue) {
                 dateValues.push(isSearchDatePreset(onValue) ? translate(`search.filters.date.presets.${onValue}`) : translate('search.filters.date.on', onValue));
@@ -250,6 +256,13 @@ function ReportFieldPopup({closeOverlay, updateFilterForm}: ReportFieldPopupProp
 
             if (beforeValue) {
                 dateValues.push(translate('search.filters.date.before', beforeValue));
+            }
+
+            if (rangeValue) {
+                const rangeDisplay = getDateRangeDisplayValueFromFormValue(rangeValue, undefined, undefined, true);
+                if (rangeDisplay) {
+                    dateValues.push(rangeDisplay);
+                }
             }
 
             return {key: field.fieldID, name: field.name, value: dateValues.join(', '), field};
