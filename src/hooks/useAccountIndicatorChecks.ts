@@ -1,5 +1,5 @@
 import {hasPaymentMethodError} from '@libs/actions/PaymentMethods';
-import {hasPartiallySetupBankAccount, hasPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
+import {hasPartiallySetupBankAccount} from '@libs/BankAccountUtils';
 import {hasPendingExpensifyCardAction} from '@libs/CardUtils';
 import {hasSubscriptionGreenDotInfo, hasSubscriptionRedDotError} from '@libs/SubscriptionUtils';
 import {hasLoginListError, hasLoginListInfo} from '@libs/UserUtils';
@@ -29,7 +29,7 @@ function useAccountIndicatorChecks(): AccountIndicatorChecksResult {
     const [retryBillingFailed] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED);
     const [billingStatus] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_STATUS);
     const [amountOwed = 0] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -50,7 +50,7 @@ function useAccountIndicatorChecks(): AccountIndicatorChecksResult {
             fundList,
             billingStatus,
             amountOwed,
-            ownerBillingGraceEndPeriod,
+            ownerBillingGracePeriodEnd,
         ),
         [CONST.INDICATOR_STATUS.HAS_REIMBURSEMENT_ACCOUNT_ERRORS]: Object.keys(reimbursementAccount?.errors ?? {}).length > 0,
         [CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_ERROR]: !!loginList && hasLoginListError(loginList),
@@ -72,9 +72,9 @@ function useAccountIndicatorChecks(): AccountIndicatorChecksResult {
             fundList,
             billingStatus,
             amountOwed,
-            ownerBillingGraceEndPeriod,
+            ownerBillingGracePeriodEnd,
         ),
-        [CONST.INDICATOR_STATUS.HAS_PARTIALLY_SETUP_BANK_ACCOUNT_INFO]: hasPartiallySetupBankAccount(bankAccountList) || hasPersonalBankAccountMissingInfo(bankAccountList),
+        [CONST.INDICATOR_STATUS.HAS_PARTIALLY_SETUP_BANK_ACCOUNT_INFO]: hasPartiallySetupBankAccount(bankAccountList),
     };
 
     const [accountStatus] = Object.entries(accountChecks).find(([, value]) => value) ?? [];

@@ -14,15 +14,7 @@ import INPUT_IDS from '@src/types/form/PersonalBankAccountForm';
 const PERSONAL_INFO_STEP_KEY = INPUT_IDS.BANK_INFO_STEP;
 const STEP_FIELDS = [PERSONAL_INFO_STEP_KEY.PHONE_NUMBER];
 
-type PhoneNumberStepProps = SubStepProps & {
-    /** Whether to delay auto-focusing the input to avoid conflicts with navigation animations */
-    shouldDelayAutoFocus?: boolean;
-
-    /** Whether the form submit button should be enabled when offline */
-    enabledWhenOffline?: boolean;
-};
-
-function PhoneNumberStep({onNext, onMove, isEditing, shouldDelayAutoFocus, enabledWhenOffline = true}: PhoneNumberStepProps) {
+function PhoneNumberStep({onNext, onMove, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
 
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
@@ -66,8 +58,7 @@ function PhoneNumberStep({onNext, onMove, isEditing, shouldDelayAutoFocus, enabl
             inputLabel={translate('common.phoneNumber')}
             inputMode={CONST.INPUT_MODE.TEL}
             defaultValue={defaultPhoneNumber}
-            shouldDelayAutoFocus={shouldDelayAutoFocus}
-            enabledWhenOffline={enabledWhenOffline}
+            enabledWhenOffline
         />
     );
 }

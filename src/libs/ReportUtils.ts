@@ -2995,10 +2995,10 @@ type GetAddExpenseDropdownOptionsParams = {
     icons: Record<'Location' | 'ReceiptPlus' | 'Plus', IconAsset>;
     iouReportID: string | undefined;
     policy: OnyxEntry<Policy>;
-    userBillingGraceEndPeriods: OnyxCollection<BillingGraceEndPeriod>;
+    userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     draftTransactionIDs: string[] | undefined;
     amountOwed: OnyxEntry<number>;
-    ownerBillingGraceEndPeriod: OnyxEntry<number>;
+    ownerBillingGracePeriodEnd: OnyxEntry<number>;
     iouRequestBackToReport?: string;
     unreportedExpenseBackToReport?: string;
     lastDistanceExpenseType?: IOURequestType;
@@ -3009,10 +3009,10 @@ function getAddExpenseDropdownOptions({
     icons,
     iouReportID,
     policy,
-    userBillingGraceEndPeriods,
+    userBillingGracePeriodEnds,
     draftTransactionIDs,
     amountOwed,
-    ownerBillingGraceEndPeriod,
+    ownerBillingGracePeriodEnd,
     iouRequestBackToReport,
     unreportedExpenseBackToReport,
     lastDistanceExpenseType,
@@ -3030,7 +3030,7 @@ function getAddExpenseDropdownOptions({
                 if (
                     policy &&
                     policy.type !== CONST.POLICY.TYPE.PERSONAL &&
-                    shouldRestrictUserBillableActions(policy.id, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods, amountOwed)
+                    shouldRestrictUserBillableActions(policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)
                 ) {
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
@@ -3047,7 +3047,7 @@ function getAddExpenseDropdownOptions({
                 if (!iouReportID) {
                     return;
                 }
-                if (policy && shouldRestrictUserBillableActions(policy.id, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods, amountOwed)) {
+                if (policy && shouldRestrictUserBillableActions(policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
@@ -3060,7 +3060,7 @@ function getAddExpenseDropdownOptions({
             icon: icons.ReceiptPlus,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_UNREPORTED,
             onSelected: () => {
-                if (policy && shouldRestrictUserBillableActions(policy.id, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods, amountOwed)) {
+                if (policy && shouldRestrictUserBillableActions(policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
@@ -11456,9 +11456,9 @@ type CreateDraftTransactionParams = {
     introSelected: OnyxEntry<IntroSelected>;
     draftTransactionIDs: string[] | undefined;
     activePolicy: OnyxEntry<Policy>;
-    userBillingGraceEndPeriods: OnyxCollection<BillingGraceEndPeriod>;
+    userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     amountOwed: OnyxEntry<number>;
-    ownerBillingGraceEndPeriod?: OnyxEntry<number>;
+    ownerBillingGracePeriodEnd?: OnyxEntry<number>;
     isRestrictedToPreferredPolicy?: boolean;
     preferredPolicyID?: string;
     transaction: OnyxEntry<Transaction>;
@@ -11471,9 +11471,9 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     introSelected,
     draftTransactionIDs,
     activePolicy,
-    userBillingGraceEndPeriods,
+    userBillingGracePeriodEnds,
     amountOwed,
-    ownerBillingGraceEndPeriod,
+    ownerBillingGracePeriodEnd,
     isRestrictedToPreferredPolicy = false,
     preferredPolicyID,
     transaction,
@@ -11540,7 +11540,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     }
 
     if (actionName === CONST.IOU.ACTION.CATEGORIZE) {
-        if (activePolicy && shouldRestrictUserBillableActions(activePolicy.id, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods, amountOwed)) {
+        if (activePolicy && shouldRestrictUserBillableActions(activePolicy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(activePolicy.id));
             return;
         }
