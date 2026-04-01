@@ -5841,7 +5841,7 @@ function getReportActionMessage({
         });
     }
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED) {
-        return translate('iou.receiptScanningFailed');
+        return translate('violations.smartscanFailed', {canEdit: wasActionTakenByCurrentUser(reportAction)});
     }
 
     if (isReimbursementDeQueuedOrCanceledAction(reportAction)) {
