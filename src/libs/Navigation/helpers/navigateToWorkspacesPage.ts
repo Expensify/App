@@ -23,13 +23,11 @@ type Params = {
 
 // Navigates to the appropriate workspace tab or workspace list page.
 const navigateToWorkspacesPage = ({currentUserLogin, shouldUseNarrowLayout, policy, domain, lastWorkspacesTabNavigatorRoute, topmostFullScreenRoute}: Params) => {
-    if (!topmostFullScreenRoute || topmostFullScreenRoute.name === SCREENS.WORKSPACES_LIST) {
-        // Not in a main workspace navigation context or the workspaces list page is already displayed, so do nothing.
-        return;
-    }
-
-    if (topmostFullScreenRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
-        // Already inside a workspace: go back to the list.
+    const isCurrentlyOnWorkspacesTab = topmostFullScreenRoute?.name === NAVIGATORS.WORKSPACE_NAVIGATOR;
+    const isWorkspaceOrDomainOnTop =
+        lastWorkspacesTabNavigatorRoute?.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR || lastWorkspacesTabNavigatorRoute?.name === NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR;
+    if (isCurrentlyOnWorkspacesTab && isWorkspaceOrDomainOnTop) {
+        // Already in the workspace or domain navigator: go back to the list.
         Navigation.goBack(ROUTES.WORKSPACES_LIST.route);
         return;
     }

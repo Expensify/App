@@ -48,6 +48,7 @@ type PersonalDetailsFormValues = {
 };
 
 function buildSetPersonalDetailsAndShipExpensifyCardsParams(values: PersonalDetailsFormValues, countryCode: number): Omit<SetPersonalDetailsAndShipExpensifyCardsParams, 'validateCode'> {
+    const stateValue = (values.addressState ?? values.state).trim();
     return {
         legalFirstName: values.legalFirstName?.trim() ?? '',
         legalLastName: values.legalLastName?.trim() ?? '',
@@ -57,7 +58,8 @@ function buildSetPersonalDetailsAndShipExpensifyCardsParams(values: PersonalDeta
         addressStreet2: values.addressLine2?.trim() ?? '',
         addressZip: values.zipPostCode?.trim().toUpperCase() ?? '',
         addressCountry: values.country,
-        addressState: (values.addressState ?? values.state).trim(),
+        addressState: values.country === CONST.COUNTRY.US ? stateValue : '',
+        addressProvince: values.country !== CONST.COUNTRY.US ? stateValue : '',
         dob: values.dob,
     };
 }
