@@ -261,9 +261,9 @@ function Button({
             buttonVariantStyles,
             shouldRemoveBorderRadius === 'right' || shouldRemoveBorderRadius === 'all' ? styles.noRightBorderRadius : undefined,
             shouldRemoveBorderRadius === 'left' || shouldRemoveBorderRadius === 'all' ? styles.noLeftBorderRadius : undefined,
-            buttonVariantStyles,
             styles.alignItemsStretch,
             innerStyles,
+            buttonVariantStyles,
         ],
         [styles, buttonVariantStyles, shouldRemoveBorderRadius, buttonSizeStyle, innerStyles],
     );
