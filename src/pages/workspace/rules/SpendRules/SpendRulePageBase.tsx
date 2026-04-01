@@ -150,12 +150,12 @@ function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps)
             return;
         }
 
+        if (!cardIDs) {
+            return;
+        }
+
         clearError();
-        setExpensifyCardRule({
-            domainAccountID,
-            cardRuleID: String(rand64()),
-            cardRuleValue: getSpendCardRuleValueJSON(cardIDs, restrictionAction),
-        });
+        setExpensifyCardRule(domainAccountID, rand64(), getSpendCardRuleValueJSON(cardIDs, restrictionAction));
         clearDraftSpendRule();
         Navigation.goBack();
     };

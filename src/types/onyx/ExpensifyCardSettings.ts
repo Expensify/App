@@ -79,8 +79,8 @@ type ExpensifyCardRuleFilter = {
     /** The operator for the filter, defined in CONST.SEARCH.SYNTAX_OPERATORS */
     operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
 
-    /** The right side of the filter condition (e.g., 1234) */
-    right: ExpensifyCardRuleFilter | number[];
+    /** The right side of the filter condition */
+    right: ExpensifyCardRuleFilter | string[];
 };
 
 /** Expensify card rule data model */

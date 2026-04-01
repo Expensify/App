@@ -12,7 +12,6 @@ import type {
     RequestReplacementExpensifyCardParams,
     ResolveFraudAlertParams,
     RevealExpensifyCardDetailsParams,
-    SetExpensifyCardRuleParams,
     SetPersonalCardReimbursableParams,
     StartIssueNewCardFlowParams,
     UnassignCardParams,
@@ -1556,8 +1555,10 @@ function queueExpensifyCardForBilling(feedCountry: string, domainAccountID: numb
     API.write(WRITE_COMMANDS.QUEUE_EXPENSIFY_CARD_FOR_BILLING, parameters);
 }
 
-function setExpensifyCardRule(parameters: SetExpensifyCardRuleParams) {
-    API.write(WRITE_COMMANDS.SET_EXPENSIFY_CARD_RULE, parameters);
+function setExpensifyCardRule(domainAccountID: number, cardRuleID: string, cardRuleValue: string) {
+    
+
+    API.write(WRITE_COMMANDS.SET_EXPENSIFY_CARD_RULE, {domainAccountID, cardRuleID, cardRuleValue});
 }
 
 function getSpendCardRuleValueJSON(cardIDStrings: string[], action: ValueOf<typeof CONST.SPEND_CARD_RULE.ACTION>) {
