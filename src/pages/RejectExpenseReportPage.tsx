@@ -83,6 +83,7 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
 
     const submitterAccountID = report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const hasPreviousApprover = previousApprover !== null && previousApprover.accountID !== currentUserPersonalDetails?.accountID;
+    const isSubmitterSameAsPreviousApprover = hasPreviousApprover && previousApprover.accountID === submitterAccountID;
 
     const options = [];
 
@@ -152,7 +153,7 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
         );
         Navigation.goBack();
     };
-
+    console.log('>>>>>>>>>>>>>>>>>>>>>>>', {options});
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
@@ -193,7 +194,7 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
                         maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                     />
                 </View>
-                {hasPreviousApprover && (
+                {hasPreviousApprover && !isSubmitterSameAsPreviousApprover && (
                     <View style={styles.mb6}>
                         <Text style={[styles.mb3]}>{translate('iou.rejectReport.selectTarget')}</Text>
                         <View style={styles.mhn5}>
