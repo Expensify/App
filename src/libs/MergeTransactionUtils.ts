@@ -1,6 +1,7 @@
 import {deepEqual} from 'fast-equals';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
+import type {CurrencyListActionsContextType} from '@components/CurrencyListContextProvider';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SelectedTransactionInfo} from '@components/Search/types';
 import CONST from '@src/CONST';
@@ -9,7 +10,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {MergeTransaction, Policy, Report, SearchResults, Transaction} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import SafeString from '@src/utils/SafeString';
-import {convertToBackendAmount, convertToDisplayString, getCurrencyDecimals} from './CurrencyUtils';
+import {convertToBackendAmount, convertToDisplayString} from './CurrencyUtils';
 import Parser from './Parser';
 import {getCommaSeparatedTagNameWithSanitizedColons} from './PolicyUtils';
 import {constructReceiptSourceFromFilename} from './ReceiptUtils';
@@ -212,6 +213,7 @@ function getMergeableDataAndConflictFields(
     targetTransaction: OnyxEntry<Transaction>,
     sourceTransaction: OnyxEntry<Transaction>,
     localeCompare: LocaleContextProps['localeCompare'],
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     searchReports: Array<OnyxEntry<Report>> = [],
     targetTransactionPolicy?: OnyxEntry<Policy>,
     sourceTransactionPolicy?: OnyxEntry<Policy>,
@@ -272,7 +274,7 @@ function getMergeableDataAndConflictFields(
         // We allow user to select unreported report
         if (field === 'reportID') {
             if (targetValue === sourceValue) {
-                const updatedValues = getMergeFieldUpdatedValues({transaction: targetTransaction, field, fieldValue: SafeString(targetValue), searchReports});
+                const updatedValues = getMergeFieldUpdatedValues({transaction: targetTransaction, field, fieldValue: SafeString(targetValue), getCurrencyDecimals, searchReports});
                 Object.assign(mergeableData, updatedValues);
             } else {
                 conflictFields.push(field);
@@ -307,6 +309,7 @@ function getMergeableDataAndConflictFields(
                 transaction: selectedTransaction,
                 field,
                 fieldValue: selectedFieldValue as MergeTransaction[typeof field],
+                getCurrencyDecimals,
                 mergeTransaction: mergeableData as MergeTransaction,
                 searchReports,
                 policy: selectedPolicy,
@@ -602,6 +605,7 @@ type GetMergeFieldUpdatedValuesParams<K extends MergeFieldKey> = {
     transaction: OnyxEntry<Transaction>;
     field: K;
     fieldValue: MergeTransaction[K];
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     mergeTransaction?: OnyxEntry<MergeTransaction>;
     searchReports?: Array<OnyxEntry<Report>>;
     policy?: OnyxEntry<Policy>;
@@ -615,6 +619,7 @@ function getMergeFieldUpdatedValues<K extends MergeFieldKey>({
     transaction,
     field,
     fieldValue,
+    getCurrencyDecimals,
     mergeTransaction,
     searchReports,
     policy,

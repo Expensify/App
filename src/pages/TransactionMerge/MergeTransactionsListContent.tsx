@@ -7,6 +7,7 @@ import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 import MergeExpensesSkeleton from '@components/Skeletons/MergeExpensesSkeleton';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDebouncedState from '@hooks/useDebouncedState';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -46,6 +47,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction, isOnSear
     const currentUserLogin = session?.email;
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const {isOffline} = useNetwork();
+    const {getCurrencyDecimals} = useCurrencyListActions();
 
     const eligibleTransactions = mergeTransaction?.eligibleTransactions;
     const {targetTransaction, sourceTransaction, targetTransactionReport, sourceTransactionReport, targetTransactionPolicy, sourceTransactionPolicy} = useMergeTransactions({
@@ -162,6 +164,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction, isOnSear
             transactionID,
             [targetTransaction, sourceTransaction],
             localeCompare,
+            getCurrencyDecimals,
             reports,
             true,
             isOnSearch,

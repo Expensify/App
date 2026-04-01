@@ -36,7 +36,7 @@ function ReportFieldsSettingsPage({
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
-    const icons = useMemoizedLazyExpensifyIcons(['Trashcan'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
 
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
     const reportFieldKey = getReportFieldKey(reportFieldID);

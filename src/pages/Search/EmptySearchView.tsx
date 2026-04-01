@@ -16,8 +16,9 @@ import type {SearchQueryJSON} from '@components/Search/types';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useConfirmModal from '@hooks/useConfirmModal';
-import useCreateReportAction from '@hooks/useCreateReportAction';
+import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useHasEmptyReportsForPolicy from '@hooks/useHasEmptyReportsForPolicy';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -34,6 +35,7 @@ import {areAllGroupPoliciesExpenseChatDisabled, getDefaultChatEnabledPolicy, get
 import {generateReportID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {isDefaultExpenseReportsQuery, isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
 import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
+import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -122,7 +124,7 @@ function EmptySearchViewContent({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const illustrations = useMemoizedLazyIllustrations(['EmptyStateTravel'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['EmptyStateTravel']);
     const {showConfirmModal} = useConfirmModal();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const {isBetaEnabled} = usePermissions();
@@ -133,7 +135,8 @@ function EmptySearchViewContent({
     });
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, accountID ?? CONST.DEFAULT_NUMBER_ID, '');
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
-
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [hasTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         selector: hasTransactionsSelector,
     });
@@ -144,6 +147,12 @@ function EmptySearchViewContent({
     const shouldRedirectToExpensifyClassic = areAllGroupPoliciesExpenseChatDisabled(allPolicies ?? {});
 
     const defaultChatEnabledPolicy = getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled as Array<OnyxEntry<Policy>>, activePolicy);
+
+    const defaultChatEnabledPolicyID = defaultChatEnabledPolicy?.id;
+
+    const hasEmptyReport = useHasEmptyReportsForPolicy(defaultChatEnabledPolicyID);
+    const [hasDismissedEmptyReportsConfirmation] = useOnyx(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED);
+    const shouldShowEmptyReportConfirmation = hasEmptyReport && hasDismissedEmptyReportsConfirmation !== true;
 
     const filteredPolicyID = queryJSON?.policyID;
     let isFilteredWorkspaceAccessible = true;
@@ -177,10 +186,19 @@ function EmptySearchViewContent({
         });
     };
 
-    const {createReportAction} = useCreateReportAction({
-        onCreateReport: handleCreateWorkspaceReport,
-        groupPoliciesWithChatEnabled,
+    const {openCreateReportConfirmation: openCreateReportFromSearch} = useCreateEmptyReportConfirmation({
+        policyID: defaultChatEnabledPolicyID,
+        policyName: defaultChatEnabledPolicy?.name ?? '',
+        onConfirm: handleCreateWorkspaceReport,
     });
+
+    const handleCreateReportClick = () => {
+        if (shouldShowEmptyReportConfirmation) {
+            openCreateReportFromSearch();
+        } else {
+            handleCreateWorkspaceReport(false);
+        }
+    };
 
     const handleRedirectToExpensifyClassic = () => {
         showConfirmModal({
@@ -296,11 +314,35 @@ function EmptySearchViewContent({
                                       },
                                   ]
                                 : []),
-                            {
-                                buttonText: translate('quickAction.createReport'),
-                                buttonAction: createReportAction,
-                                success: true,
-                            },
+                            ...(groupPoliciesWithChatEnabled.length > 0
+                                ? [
+                                      {
+                                          buttonText: translate('quickAction.createReport'),
+                                          buttonAction: () => {
+                                              interceptAnonymousUser(() => {
+                                                  const workspaceIDForReportCreation = defaultChatEnabledPolicyID;
+
+                                                  if (
+                                                      !workspaceIDForReportCreation ||
+                                                      (shouldRestrictUserBillableActions(workspaceIDForReportCreation, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds) &&
+                                                          groupPoliciesWithChatEnabled.length > 1)
+                                                  ) {
+                                                      // If we couldn't guess the workspace to create the report, or a guessed workspace is past it's grace period and we have other workspaces to choose from
+                                                      Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
+                                                      return;
+                                                  }
+
+                                                  if (!shouldRestrictUserBillableActions(workspaceIDForReportCreation, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds)) {
+                                                      handleCreateReportClick();
+                                                  } else {
+                                                      Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(workspaceIDForReportCreation));
+                                                  }
+                                              });
+                                          },
+                                          success: true,
+                                      },
+                                  ]
+                                : []),
                         ],
                     };
                 }

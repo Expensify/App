@@ -4,6 +4,7 @@ import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
+import {initBulkEditDraftTransaction} from '@libs/actions/IOU';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {createTransactionThreadReport, exportReportToCSV} from '@libs/actions/Report';
@@ -16,6 +17,7 @@ import {
     canDeleteCardTransactionByLiabilityType,
     canDeleteTransaction,
     canEditFieldOfMoneyRequest,
+    canEditMultipleTransactions,
     canHoldUnholdReportAction,
     canRejectReportAction,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
@@ -33,6 +35,7 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
 import useAllTransactions from './useAllTransactions';
+import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDeleteTransactions from './useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from './useDuplicateTransactionsAndViolations';
@@ -40,6 +43,7 @@ import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
 import useOnyx from './useOnyx';
+import usePermissions from './usePermissions';
 import useReportIsArchived from './useReportIsArchived';
 
 // We do not use PRIMARY_REPORT_ACTIONS or SECONDARY_REPORT_ACTIONS because they weren't meant to be used in this situation. `value` property of returned options is later ignored.
@@ -78,16 +82,34 @@ function useSelectedTransactionsActions({
     const {selectedTransactionIDs, currentSearchHash, selectedTransactions: selectedTransactionsMeta} = useSearchStateContext();
     const {clearSelectedTransactions} = useSearchActionsContext();
     const allTransactions = useAllTransactions();
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES);
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const {getCurrencyDecimals} = useCurrencyListActions();
 
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'Trashcan', 'ArrowRight', 'Table', 'DocumentMerge', 'Export', 'ArrowCollapse', 'ArrowSplit', 'ThumbsDown']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons([
+        'Stopwatch',
+        'Trashcan',
+        'ArrowRight',
+        'Table',
+        'DocumentMerge',
+        'Export',
+        'ArrowCollapse',
+        'ArrowSplit',
+        'ThumbsDown',
+        'Pencil',
+    ] as const);
+
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(selectedTransactionIDs);
     const isReportArchived = useReportIsArchived(report?.reportID);
+    const {isBetaEnabled} = usePermissions();
     const {deleteTransactions} = useDeleteTransactions({report, reportActions, policy});
     const {login, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const selectedTransactionsList = selectedTransactionIDs.reduce((acc, transactionID) => {
@@ -187,6 +209,20 @@ function useSelectedTransactionsActions({
     let computedOptions: Array<DropdownOption<string>> = [];
     if (selectedTransactionIDs.length) {
         const options = [];
+
+        const canEditMultiple = canEditMultipleTransactions(selectedTransactionsList, allReportActions, allReports, allPolicies) && isBetaEnabled(CONST.BETAS.BULK_EDIT);
+
+        if (canEditMultiple) {
+            options.push({
+                text: translate('search.bulkActions.editMultiple'),
+                icon: expensifyIcons.Pencil,
+                value: CONST.SEARCH.BULK_ACTION_TYPES.EDIT,
+                onSelected: () => {
+                    initBulkEditDraftTransaction(selectedTransactionIDs);
+                    Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_TRANSACTIONS_RHP);
+                },
+            });
+        }
         const isMoneyRequestReport = isMoneyRequestReportUtils(report);
         const isReportReimbursed = report?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
 
@@ -246,7 +282,7 @@ function useSelectedTransactionsActions({
                         if (!action?.childReportID) {
                             continue;
                         }
-                        unholdRequest(transactionID, action?.childReportID, policy);
+                        unholdRequest(transactionID, action.childReportID, policy, isOffline);
                     }
                     clearSelectedTransactions(true);
                 },
@@ -377,6 +413,7 @@ function useSelectedTransactionsActions({
                                     introSelected,
                                     login ?? '',
                                     currentUserAccountID,
+                                    betas,
                                     report,
                                     iouReportAction,
                                     selectedTransaction,
@@ -390,6 +427,7 @@ function useSelectedTransactionsActions({
                             transactionID,
                             selectedTransactionsList,
                             localeCompare,
+                            getCurrencyDecimals,
                             [],
                             false,
                             isOnSearch,
@@ -458,6 +496,7 @@ function useSelectedTransactionsActions({
                 },
             });
         }
+
         computedOptions = options;
     }
 
