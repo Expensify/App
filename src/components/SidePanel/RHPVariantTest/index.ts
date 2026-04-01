@@ -28,9 +28,8 @@ Onyx.connectWithoutView({
 
 /**
  * Determines if the user should be navigated to the RHP variant side panel after onboarding.
- * The RHP variant is only shown to micro companies that are part of the RHP experiment.
- * The Track expenses variant applies to all company sizes EXCEPT micro (which already has
- * its own RHP variants and should fall through to normal #admins navigation).
+ * The existing micro-company RHP variants (rhpConciergeDm, rhpAdminsRoom) are only shown to micro companies.
+ * The trackExpensesWithConcierge variant is controlled entirely by the backend and applies regardless of company size.
  *
  * Accepts an optional variantOverride to bypass the module-level Onyx variable, avoiding a race
  * condition where the Onyx callback hasn't fired yet when this is called immediately after the
@@ -39,14 +38,11 @@ Onyx.connectWithoutView({
 const shouldOpenRHPVariant: ShouldOpenRHPVariant = (variantOverride) => {
     const variant = variantOverride ?? onboardingRHPVariant;
 
-    const isMicroCompany = onboardingCompanySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO;
-
-    // Track expenses variant applies to all company sizes EXCEPT micro, which has its own
-    // RHP experiment variants (rhpConciergeDm, rhpAdminsRoom).
-    // Micro users should fall through to normal navigation (e.g., #admins chat).
     if (variant === CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE) {
-        return !isMicroCompany;
+        return true;
     }
+
+    const isMicroCompany = onboardingCompanySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO;
     const isRHPConciergeDM = variant === CONST.ONBOARDING_RHP_VARIANT.RHP_CONCIERGE_DM;
     const isRHPAdminsRoom = variant === CONST.ONBOARDING_RHP_VARIANT.RHP_ADMINS_ROOM;
 
