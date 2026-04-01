@@ -1,6 +1,6 @@
 import {PortalHost} from '@gorhom/portal';
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {ViewStyle} from 'react-native';
 // We use Animated for all functionality related to wide RHP to make it easier
 // to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
@@ -354,6 +354,20 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     });
     const isDeletedTransactionThread = isReportTransactionThread(report) && (isParentActionDeleted || isParentActionMissingAfterLoad);
     const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
+
+    // Track whether the current route is an own workspace chat (isOwnPolicyExpenseChat).
+    // Must be a ref set synchronously during render — by the time the navigation effects fire
+    // after a delegate split, the server SET has wiped report/prevReport in Onyx so we can't
+    // rely on live state or usePrevious. See issue #84248.
+    const isCurrentRouteOwnWorkspaceChatRef = useRef(false);
+    if (report?.reportID && report.reportID === reportIDFromRoute) {
+        isCurrentRouteOwnWorkspaceChatRef.current = !!report.isOwnPolicyExpenseChat;
+    } else if (!report?.reportID) {
+        // Report wiped by Onyx SET — intentionally keep the last known value.
+    } else {
+        isCurrentRouteOwnWorkspaceChatRef.current = false;
+    }
+
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundLinkedAction =
         (!isLinkedActionInaccessibleWhisper && isLinkedActionDeleted && isNavigatingToDeletedAction) ||
@@ -473,7 +487,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             isEmpty(report) &&
             (isMoneyRequest(prevReport) ||
                 isMoneyRequestReport(prevReport) ||
-                isPolicyExpenseChat(prevReport) ||
+                // Own policy expense chats (workspace chats) are excluded: a vacation delegate
+                // splitting an expense sends a temporary server SET that wipes the report, but
+                // the chat was never intentionally removed. See issue #84248.
+                (isPolicyExpenseChat(prevReport) && !prevReport?.isOwnPolicyExpenseChat) ||
                 isGroupChat(prevReport) ||
                 isAdminRoom(prevReport) ||
                 isAnnounceRoom(prevReport));
@@ -566,6 +583,22 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
 
+        // Do not navigate away for own workspace chats — a delegate split causes a temporary
+        // Onyx wipe that looks like a deletion but the chat was never actually removed.
+        // See issue #84248.
+        if (isCurrentRouteOwnWorkspaceChatRef.current) {
+            return;
+        }
+
+        // Clean up the navigation stack before redirecting to prevent an infinite loop where
+        // pressing back returns to the wiped report URL and re-triggers this effect.
+        Navigation.dismissModal();
+        if (Navigation.getTopmostReportId() === reportIDFromRoute) {
+            Navigation.isNavigationReady().then(() => {
+                Navigation.popToSidebar();
+            });
+        }
+
         // Try to navigate to parent report if available
         if (deletedReportParentID && !isMoneyRequestReportPendingDeletion(deletedReportParentID)) {
             Navigation.isNavigationReady().then(() => {
@@ -578,7 +611,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         Navigation.isNavigationReady().then(() => {
             navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas);
         });
-    }, [reportWasDeleted, isFocused, deletedReportParentID, conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas]);
+    }, [reportWasDeleted, isFocused, deletedReportParentID, conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, reportIDFromRoute]);
 
     const actionListValue = useActionListContextValue();
 

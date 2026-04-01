@@ -85,6 +85,23 @@ function SidebarOrderedReportsContextProvider({
     const derivedCurrentReportID = currentReportIDForTests ?? currentReportIDValue;
     const prevDerivedCurrentReportID = usePrevious(derivedCurrentReportID);
 
+    // Track whether the currently-open report is an own workspace chat. We use a ref set
+    // synchronously during render because chatReports[currentReportID] gets wiped to undefined
+    // when a delegate splits an expense — the live value can't be trusted at effect time.
+    // The ref persists through the wipe so the LHN force-inclusion still fires. See issue #84248.
+    const isCurrentReportOwnWorkspaceChatRef = useRef(false);
+    const prevCurrentReportIDForRef = useRef<string | undefined>(undefined);
+    if (derivedCurrentReportID !== prevCurrentReportIDForRef.current) {
+        // Report changed — reset
+        isCurrentReportOwnWorkspaceChatRef.current = false;
+        prevCurrentReportIDForRef.current = derivedCurrentReportID;
+    }
+    const currentChatReportEntry = derivedCurrentReportID ? chatReports?.[`${ONYXKEYS.COLLECTION.REPORT}${derivedCurrentReportID}`] : undefined;
+    if (currentChatReportEntry?.reportID) {
+        isCurrentReportOwnWorkspaceChatRef.current = !!currentChatReportEntry.isOwnPolicyExpenseChat;
+    }
+    // else: report was wiped — intentionally keep the last known value in the ref
+
     // we need to force reportsToDisplayInLHN to re-compute when we clear currentReportsToDisplay, but the way it currently works relies on not having currentReportsToDisplay as a memo dependency, so we just need something we can change to trigger it
     // I don't like it either, but clearing the cache is only a hack for the debug modal and I will endeavor to make it better as I work to improve the cache correctness of the LHN more broadly
     const [clearCacheDummyCounter, setClearCacheDummyCounter] = useState(0);
@@ -284,12 +301,13 @@ function SidebarOrderedReportsContextProvider({
         // the current report is missing from the list, which should very rarely happen. In this
         // case we re-generate the list a 2nd time with the current report included.
 
-        // We also execute the following logic if `shouldUseNarrowLayout` is false because this is
-        // requirement for web. Consider a case, where we have report with expenses and we click on
-        // any expense, a new LHN item is added in the list and is visible on web. But on mobile, we
-        // just navigate to the screen with expense details, so there seems no point to execute this logic on mobile.
+        // On narrow layouts (iOS/mobile) the force-inclusion block is normally skipped because
+        // navigating to a new report simply replaces the screen. However, when a vacation delegate
+        // splits an expense, a temporary server SET wipes the own workspace chat from chatReports.
+        // We bypass the narrow-layout skip for that specific case so the LHN stays correct.
+        // See issue #84248.
         if (
-            (!shouldUseNarrowLayout || orderedReportIDs.length === 0) &&
+            (!shouldUseNarrowLayout || orderedReportIDs.length === 0 || isCurrentReportOwnWorkspaceChatRef.current) &&
             derivedCurrentReportID &&
             derivedCurrentReportID !== '-1' &&
             orderedReportIDs.indexOf(derivedCurrentReportID) === -1
