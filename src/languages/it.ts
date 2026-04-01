@@ -1096,15 +1096,12 @@ const translations: TranslationDeepObject<typeof en> = {
             if (!added && !updated) {
                 return 'Nessuna categoria è stata aggiunta o aggiornata.';
             }
-
             if (added && updated) {
                 return `${added} ${added === 1 ? 'categoria aggiunta' : 'categorie aggiunte'}, ${updated} ${updated === 1 ? 'categoria aggiornata' : 'categorie aggiornate'}.`;
             }
-
             if (added) {
                 return added === 1 ? 'È stata aggiunta 1 categoria.' : `Sono state aggiunte ${added} categorie.`;
             }
-
             return updated === 1 ? 'È stata aggiornata 1 categoria.' : `Sono state aggiornate ${updated} categorie.`;
         },
         importCompanyCardTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
@@ -6730,30 +6727,36 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 addSpendRule: 'Aggiungi regola di spesa',
                 cardPageTitle: 'Carta',
                 cardsSectionTitle: 'Carte',
-                chooseCards: 'Scegli carte',
+                chooseCards: 'Scegli le carte',
                 saveRule: 'Salva regola',
                 allow: 'Consenti',
                 spendRuleSectionTitle: 'Regola di spesa',
                 restrictionType: 'Tipo di restrizione',
-                restrictionTypeHelpAllow: 'Gli addebiti vengono approvati se corrispondono a un qualsiasi esercente o categoria e non superano un importo massimo.',
-                restrictionTypeHelpBlock: 'Gli addebiti vengono rifiutati se corrispondono a un esercente o a una categoria, oppure se superano un importo massimo.',
+                restrictionTypeHelpAllow: 'Le spese vengono approvate se corrispondono a qualsiasi esercente o categoria e non superano un importo massimo.',
+                restrictionTypeHelpBlock: 'Le spese vengono rifiutate se corrispondono a un esercente o a una categoria, oppure se superano un importo massimo.',
                 addMerchant: 'Aggiungi esercente',
-                merchantContains: 'Il commerciante contiene',
-                merchantExactlyMatches: 'Il nome dell’esercente corrisponde esattamente',
+                merchantContains: 'L’esercente contiene',
+                merchantExactlyMatches: 'Il fornitore corrisponde esattamente',
                 noBlockedMerchants: 'Nessun esercente bloccato',
                 addMerchantToBlockSpend: 'Aggiungi un esercente da bloccare',
                 noAllowedMerchants: 'Nessun esercente consentito',
-                addMerchantToAllowSpend: 'Aggiungi un esercente per consentire le spese',
+                addMerchantToAllowSpend: 'Aggiungi un esercente per consentire la spesa',
                 matchType: 'Tipo di corrispondenza',
                 matchTypeContains: 'Contiene',
                 matchTypeExact: 'Corrisponde esattamente',
                 spendCategory: 'Categoria di spesa',
                 maxAmount: 'Importo massimo',
-                maxAmountHelp: 'Qualsiasi addebito superiore a questo importo verrà rifiutato, indipendentemente dalle restrizioni su esercente e categoria di spesa.',
+                maxAmountHelp: 'Qualsiasi addebito superiore a questo importo verrà rifiutato, indipendentemente dalle restrizioni per esercente e categoria di spesa.',
                 currencyMismatchTitle: 'Valuta non corrispondente',
-                currencyMismatchPrompt: 'Per impostare un importo massimo, seleziona carte che si chiudono nella stessa valuta.',
+                currencyMismatchPrompt: 'Per impostare un importo massimo, seleziona carte che si regolano nella stessa valuta.',
                 reviewSelectedCards: 'Verifica le carte selezionate',
                 merchantsMoreCount: ({summary, count}: {summary: string; count: number}) => `${summary}, +${count} in più`,
+                confirmErrorApplyAtLeastOneSpendRuleToOneCard: 'Applica almeno una regola di spesa a una carta',
+                confirmErrorCardRequired: 'Il campo Carta è obbligatorio',
+                confirmErrorApplyAtLeastOneSpendRule: 'Applica almeno una regola di spesa',
+                categories: 'Categorie',
+                merchants: 'Esercenti',
+                max: 'Massimo',
             },
         },
         planTypePage: {

@@ -1094,15 +1094,12 @@ const translations: TranslationDeepObject<typeof en> = {
             if (!added && !updated) {
                 return 'Nenhuma categoria foi adicionada ou atualizada.';
             }
-
             if (added && updated) {
                 return `${added} ${added === 1 ? 'categoria' : 'categorias'} adicionada${added === 1 ? '' : 's'}, ${updated} ${updated === 1 ? 'categoria' : 'categorias'} atualizada${updated === 1 ? '' : 's'}.`;
             }
-
             if (added) {
                 return added === 1 ? '1 categoria foi adicionada.' : `${added} categorias foram adicionadas.`;
             }
-
             return updated === 1 ? '1 categoria foi atualizada.' : `${updated} categorias foram atualizadas.`;
         },
         importCompanyCardTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
@@ -6708,30 +6705,36 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 addSpendRule: 'Adicionar regra de gasto',
                 cardPageTitle: 'Cartão',
                 cardsSectionTitle: 'Cartões',
-                chooseCards: 'Escolher cartões',
+                chooseCards: 'Escolha os cartões',
                 saveRule: 'Salvar regra',
                 allow: 'Permitir',
                 spendRuleSectionTitle: 'Regra de gasto',
                 restrictionType: 'Tipo de restrição',
-                restrictionTypeHelpAllow: 'Os lançamentos são aprovados se corresponderem a qualquer comerciante ou categoria e não ultrapassarem um valor máximo.',
-                restrictionTypeHelpBlock: 'As cobranças são recusadas se corresponderem a qualquer comerciante ou categoria, ou se excederem um valor máximo.',
+                restrictionTypeHelpAllow: 'As cobranças são aprovadas se corresponderem a qualquer comerciante ou categoria e não excederem um valor máximo.',
+                restrictionTypeHelpBlock: 'Cobranças são recusadas se corresponderem a qualquer estabelecimento ou categoria, ou se ultrapassarem um valor máximo.',
                 addMerchant: 'Adicionar comerciante',
-                merchantContains: 'Fornecedor contém',
+                merchantContains: 'Comerciante contém',
                 merchantExactlyMatches: 'Estabelecimento corresponde exatamente',
-                noBlockedMerchants: 'Nenhum comerciante bloqueado',
-                addMerchantToBlockSpend: 'Adicionar um comerciante para bloquear gastos',
-                noAllowedMerchants: 'Nenhum comerciante permitido',
-                addMerchantToAllowSpend: 'Adicione um comerciante para permitir gastos',
+                noBlockedMerchants: 'Nenhum estabelecimento bloqueado',
+                addMerchantToBlockSpend: 'Adicione um estabelecimento para bloquear gastos',
+                noAllowedMerchants: 'Nenhum estabelecimento permitido',
+                addMerchantToAllowSpend: 'Adicione um estabelecimento para permitir gastos',
                 matchType: 'Tipo de correspondência',
                 matchTypeContains: 'Contém',
                 matchTypeExact: 'Corresponde exatamente',
                 spendCategory: 'Categoria de gasto',
                 maxAmount: 'Valor máximo',
-                maxAmountHelp: 'Qualquer cobrança acima desse valor será recusada, independentemente das restrições de comerciante e categoria de gasto.',
-                currencyMismatchTitle: 'Moeda incompatível',
+                maxAmountHelp: 'Qualquer cobrança acima desse valor será recusada, independentemente das restrições de estabelecimento e categoria de gasto.',
+                currencyMismatchTitle: 'Incompatibilidade de moeda',
                 currencyMismatchPrompt: 'Para definir um valor máximo, selecione cartões que sejam liquidados na mesma moeda.',
                 reviewSelectedCards: 'Revisar cartões selecionados',
-                merchantsMoreCount: ({summary, count}: {summary: string; count: number}) => `${summary}, +${count} a mais`,
+                merchantsMoreCount: ({summary, count}: {summary: string; count: number}) => `${summary}, +${count} mais`,
+                confirmErrorApplyAtLeastOneSpendRuleToOneCard: 'Aplicar pelo menos uma regra de gasto a um cartão',
+                confirmErrorCardRequired: 'Cartão é um campo obrigatório',
+                confirmErrorApplyAtLeastOneSpendRule: 'Aplicar pelo menos uma regra de gasto',
+                categories: 'Categorias',
+                merchants: 'Comerciantes',
+                max: 'Máx.',
             },
         },
         planTypePage: {

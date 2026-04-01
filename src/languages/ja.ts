@@ -1079,15 +1079,12 @@ const translations: TranslationDeepObject<typeof en> = {
             if (!added && !updated) {
                 return 'カテゴリーは追加も更新もされていません。';
             }
-
             if (added && updated) {
                 return `${added}件のカテゴリーを追加し、${updated}件のカテゴリーを更新しました。`;
             }
-
             if (added) {
                 return added === 1 ? 'カテゴリーを1件追加しました。' : `${added}件のカテゴリーを追加しました。`;
             }
-
             return updated === 1 ? 'カテゴリーを1件更新しました。' : `${updated}件のカテゴリーを更新しました。`;
         },
         importCompanyCardTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
@@ -6661,25 +6658,31 @@ ${reportName}
                 allow: '許可する',
                 spendRuleSectionTitle: '支出ルール',
                 restrictionType: '制限タイプ',
-                restrictionTypeHelpAllow: '加盟店またはカテゴリのいずれかに一致し、上限金額を超えない場合、チャージは承認されます。',
-                restrictionTypeHelpBlock: '加盟店やカテゴリに一致する場合、または上限金額を超えた場合は、請求は拒否されます。',
-                addMerchant: '支払先を追加',
-                merchantContains: '支払先に含まれる',
-                merchantExactlyMatches: '取引先が完全一致',
+                restrictionTypeHelpAllow: '加盟店またはカテゴリのいずれかに一致し、かつ上限金額を超えない場合、請求は承認されます。',
+                restrictionTypeHelpBlock: '加盟店やカテゴリーがいずれかに一致する場合、または上限金額を超える場合、支払いは承認されません。',
+                addMerchant: '加盟店を追加',
+                merchantContains: '加盟店に含まれる',
+                merchantExactlyMatches: '支払先が完全一致',
                 noBlockedMerchants: 'ブロックされている加盟店はありません',
                 addMerchantToBlockSpend: '支出をブロックする取引先を追加',
-                noAllowedMerchants: '許可されている加盟店はありません',
-                addMerchantToAllowSpend: '支出を許可する加盟店を追加してください',
+                noAllowedMerchants: '許可された加盟店はありません',
+                addMerchantToAllowSpend: '支出を許可する加盟店を追加します',
                 matchType: 'マッチタイプ',
                 matchTypeContains: '含む',
                 matchTypeExact: '完全一致',
                 spendCategory: '支出カテゴリ',
                 maxAmount: '最大金額',
-                maxAmountHelp: '加盟店や支出カテゴリの制限にかかわらず、この金額を超えるすべての利用は承認されません。',
+                maxAmountHelp: '加盟店や支出カテゴリの制限に関係なく、この金額を超える請求はすべて承認されません。',
                 currencyMismatchTitle: '通貨の不一致',
-                currencyMismatchPrompt: '上限金額を設定するには、同じ通貨で精算されるカードを選択してください。',
+                currencyMismatchPrompt: '最大金額を設定するには、同じ通貨で精算されるカードを選択してください。',
                 reviewSelectedCards: '選択したカードを確認',
-                merchantsMoreCount: ({summary, count}: {summary: string; count: number}) => `${summary}、ほか +${count} 件`,
+                merchantsMoreCount: ({summary, count}: {summary: string; count: number}) => `${summary}、ほか+${count}件`,
+                confirmErrorApplyAtLeastOneSpendRuleToOneCard: '少なくとも 1 つの支出ルールを 1 枚のカードに適用してください',
+                confirmErrorCardRequired: 'カードは必須項目です',
+                confirmErrorApplyAtLeastOneSpendRule: '少なくとも 1 つの支出ルールを適用してください',
+                categories: 'カテゴリ',
+                merchants: '加盟店',
+                max: '最大',
             },
         },
         planTypePage: {

@@ -1095,15 +1095,12 @@ const translations: TranslationDeepObject<typeof en> = {
             if (!added && !updated) {
                 return 'Er zijn geen categorieën toegevoegd of bijgewerkt.';
             }
-
             if (added && updated) {
                 return `${added} ${added === 1 ? 'categorie' : 'categorieën'} toegevoegd, ${updated} ${updated === 1 ? 'categorie' : 'categorieën'} bijgewerkt.`;
             }
-
             if (added) {
                 return added === 1 ? '1 categorie is toegevoegd.' : `${added} categorieën zijn toegevoegd.`;
             }
-
             return updated === 1 ? '1 categorie is bijgewerkt.' : `${updated} categorieën zijn bijgewerkt.`;
         },
         importCompanyCardTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
@@ -6707,19 +6704,19 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
 
 Voeg meer bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 },
-                addSpendRule: 'Uitgaveregel toevoegen',
+                addSpendRule: 'Uitgavenregel toevoegen',
                 cardPageTitle: 'Kaart',
                 cardsSectionTitle: 'Kaarten',
                 chooseCards: 'Kaarten kiezen',
                 saveRule: 'Regel opslaan',
                 allow: 'Toestaan',
                 spendRuleSectionTitle: 'Bestedingsregel',
-                restrictionType: 'Restrictietype',
-                restrictionTypeHelpAllow: 'Kosten worden goedgekeurd als ze overeenkomen met een handelaar of categorie, en een maximumbedrag niet overschrijden.',
-                restrictionTypeHelpBlock: 'Transacties worden geweigerd als ze overeenkomen met een handelaar of categorie, of een maximumbedrag overschrijden.',
+                restrictionType: 'Type beperking',
+                restrictionTypeHelpAllow: 'Kosten worden goedgekeurd als ze overeenkomen met een handelaar of categorie en een maximumbedrag niet overschrijden.',
+                restrictionTypeHelpBlock: 'Kosten worden geweigerd als ze overeenkomen met een handelaar of categorie, of een maximumbedrag overschrijden.',
                 addMerchant: 'Winkel toevoegen',
-                merchantContains: 'Naam verkoper bevat',
-                merchantExactlyMatches: 'Merchant komt exact overeen',
+                merchantContains: 'Handelaar bevat',
+                merchantExactlyMatches: 'Handelaar komt exact overeen',
                 noBlockedMerchants: 'Geen geblokkeerde handelaren',
                 addMerchantToBlockSpend: 'Voeg een handelaar toe om uitgaven te blokkeren',
                 noAllowedMerchants: 'Geen toegestane handelaren',
@@ -6727,13 +6724,19 @@ Voeg meer bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 matchType: 'Overeenkomsttype',
                 matchTypeContains: 'Bevat',
                 matchTypeExact: 'Komt exact overeen',
-                spendCategory: 'Uitgavecategorie',
-                maxAmount: 'Maximaal bedrag',
-                maxAmountHelp: 'Elke transactie boven dit bedrag wordt geweigerd, ongeacht beperkingen op verkoper en uitgavecategorie.',
+                spendCategory: 'Uitgavencategorie',
+                maxAmount: 'Maximumbedrag',
+                maxAmountHelp: 'Elke betaling boven dit bedrag wordt geweigerd, ongeacht de beperkingen voor handelaar en uitgavencategorie.',
                 currencyMismatchTitle: 'Valutaverschil',
-                currencyMismatchPrompt: 'Om een maximumbedrag in te stellen, selecteer kaarten die in dezelfde valuta worden verrekend.',
+                currencyMismatchPrompt: 'Om een maximumbedrag in te stellen, selecteer je kaarten die in dezelfde valuta worden vereffend.',
                 reviewSelectedCards: 'Geselecteerde kaarten controleren',
                 merchantsMoreCount: ({summary, count}: {summary: string; count: number}) => `${summary}, +${count} extra`,
+                confirmErrorApplyAtLeastOneSpendRuleToOneCard: 'Pas minstens één bestedingsregel toe op één kaart',
+                confirmErrorCardRequired: 'Kaart is een verplicht veld',
+                confirmErrorApplyAtLeastOneSpendRule: 'Pas minstens één bestedingsregel toe',
+                categories: 'Categorieën',
+                merchants: 'Handelaars',
+                max: 'Max',
             },
         },
         planTypePage: {

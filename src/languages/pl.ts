@@ -1096,15 +1096,12 @@ const translations: TranslationDeepObject<typeof en> = {
             if (!added && !updated) {
                 return 'Nie dodano ani nie zaktualizowano żadnych kategorii.';
             }
-
             if (added && updated) {
                 return `Dodano ${added} ${added === 1 ? 'kategorię' : 'kategorie'}, zaktualizowano ${updated} ${updated === 1 ? 'kategorię' : 'kategorie'}.`;
             }
-
             if (added) {
                 return added === 1 ? 'Dodano 1 kategorię.' : `Dodano ${added} kategorie.`;
             }
-
             return updated === 1 ? 'Zaktualizowano 1 kategorię.' : `Zaktualizowano ${updated} kategorie.`;
         },
         importCompanyCardTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) => (transactions > 1 ? `Dodano ${transactions} transakcji.` : 'Dodano 1 transakcję.'),
@@ -6709,24 +6706,30 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 spendRuleSectionTitle: 'Zasada wydatków',
                 restrictionType: 'Typ ograniczenia',
                 restrictionTypeHelpAllow: 'Opłaty są zatwierdzane, jeśli pasują do dowolnego sprzedawcy lub kategorii i nie przekraczają maksymalnej kwoty.',
-                restrictionTypeHelpBlock: 'Transakcje są odrzucane, jeśli pasują do jakiegokolwiek sprzedawcy lub kategorii albo przekraczają maksymalną kwotę.',
+                restrictionTypeHelpBlock: 'Obciążenia są odrzucane, jeśli pasują do dowolnego sprzedawcy lub kategorii albo przekraczają maksymalną kwotę.',
                 addMerchant: 'Dodaj sprzedawcę',
-                merchantContains: 'Sprzedawca zawiera',
-                merchantExactlyMatches: 'Sprzedawca jest dokładnie taki sam',
+                merchantContains: 'Kontrahent zawiera',
+                merchantExactlyMatches: 'Sprzedawca dokładnie pasuje',
                 noBlockedMerchants: 'Brak zablokowanych sprzedawców',
                 addMerchantToBlockSpend: 'Dodaj sprzedawcę, aby zablokować wydatki',
                 noAllowedMerchants: 'Brak dozwolonych sprzedawców',
                 addMerchantToAllowSpend: 'Dodaj sprzedawcę, aby umożliwić wydatki',
                 matchType: 'Typ dopasowania',
                 matchTypeContains: 'Zawiera',
-                matchTypeExact: 'Dokładne dopasowania',
+                matchTypeExact: 'Dokładne dopasowanie',
                 spendCategory: 'Kategoria wydatków',
-                maxAmount: 'Maksymalna kwota',
-                maxAmountHelp: 'Każda transakcja powyżej tej kwoty zostanie odrzucona, niezależnie od ograniczeń sprzedawcy i kategorii wydatków.',
+                maxAmount: 'Kwota maksymalna',
+                maxAmountHelp: 'Każda transakcja powyżej tej kwoty zostanie odrzucona, niezależnie od ograniczeń dotyczących sprzedawcy i kategorii wydatków.',
                 currencyMismatchTitle: 'Niezgodność waluty',
                 currencyMismatchPrompt: 'Aby ustawić maksymalną kwotę, wybierz karty rozliczane w tej samej walucie.',
-                reviewSelectedCards: 'Przejrzyj wybrane karty',
+                reviewSelectedCards: 'Sprawdź wybrane karty',
                 merchantsMoreCount: ({summary, count}: {summary: string; count: number}) => `${summary}, +${count} więcej`,
+                confirmErrorApplyAtLeastOneSpendRuleToOneCard: 'Zastosuj co najmniej jedną regułę wydatków do jednej karty',
+                confirmErrorCardRequired: 'Pole karty jest wymagane',
+                confirmErrorApplyAtLeastOneSpendRule: 'Zastosuj co najmniej jedną regułę wydatków',
+                categories: 'Kategorie',
+                merchants: 'Sprzedawcy',
+                max: 'Maks',
             },
         },
         planTypePage: {
