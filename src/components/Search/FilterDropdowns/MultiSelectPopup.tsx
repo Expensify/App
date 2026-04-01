@@ -1,4 +1,5 @@
 import React, {useCallback, useMemo, useState} from 'react';
+import type {ReactNode} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import SelectionList from '@components/SelectionList';
@@ -17,6 +18,7 @@ type MultiSelectItem<T> = {
     text: string;
     value: T;
     icons?: Icon[];
+    leftElement?: ReactNode;
 };
 
 type MultiSelectPopupProps<T> = {
@@ -58,6 +60,7 @@ function MultiSelectPopup<T extends string>({label, value, items, closeOverlay, 
             keyForList: item.value,
             isSelected: !!selectedItems.find((i) => i.value === item.value),
             icons: item.icons,
+            leftElement: item.leftElement,
         }));
     }, [items, selectedItems, isSearchable, debouncedSearchTerm]);
 
