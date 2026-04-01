@@ -1,3 +1,4 @@
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -72,6 +73,7 @@ function DebugReportPage({
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const transactionID = DebugUtils.getTransactionID(report, reportActions);
     const isReportArchived = useReportIsArchived(reportID);
@@ -153,7 +155,7 @@ function DebugReportPage({
         ];
     }, [report, transactionViolations, isReportArchived, chatReport, reportActions, transactions, reportAttributes?.reportErrors, betas, priorityMode, draftComment, translate]);
 
-    const icons = useMemoizedLazyExpensifyIcons(['Eye'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Eye']);
 
     const DebugDetailsTab = useCallback(
         () => (
@@ -164,7 +166,7 @@ function DebugReportPage({
                     Debug.setDebugData(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, data);
                 }}
                 onDelete={() => {
-                    navigateToConciergeChatAndDeleteReport(reportID, conciergeReportID, currentUserAccountID, introSelected, true, true);
+                    navigateToConciergeChatAndDeleteReport(reportID, conciergeReportID, currentUserAccountID, introSelected, isSelfTourViewed, betas, true, true);
                 }}
                 validate={DebugUtils.validateReportDraftProperty}
             >
@@ -228,6 +230,8 @@ function DebugReportPage({
             currentUserAccountID,
             conciergeReportID,
             introSelected,
+            isSelfTourViewed,
+            betas,
         ],
     );
 

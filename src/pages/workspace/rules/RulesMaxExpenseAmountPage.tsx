@@ -56,7 +56,7 @@ function RulesMaxExpenseAmountPage({
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.RULES_MAX_EXPENSE_AMOUNT_FORM}
                     onSubmit={({maxExpenseAmount}) => {
-                        setPolicyMaxExpenseAmount(policyID, maxExpenseAmount);
+                        setPolicyMaxExpenseAmount(policyID, maxExpenseAmount, policy?.maxExpenseAmount);
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                     }}
                     submitButtonText={translate('workspace.editor.save')}

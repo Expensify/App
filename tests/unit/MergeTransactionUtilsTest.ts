@@ -25,6 +25,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Mock localeCompare function for tests
 const mockLocaleCompare = (a: string, b: string) => a.localeCompare(b);
+const mockGetCurrencyDecimals = () => 2;
 
 describe('MergeTransactionUtils', () => {
     beforeAll(() => {
@@ -335,7 +336,7 @@ describe('MergeTransactionUtils', () => {
                 created: '2025-01-02T00:00:00.000Z',
             };
 
-            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
+            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare, mockGetCurrencyDecimals);
 
             // Only the different values are in the conflict fields
             expect(result.conflictFields).toEqual(['amount', 'created', 'description', 'reimbursable', 'reportID']);
@@ -366,7 +367,7 @@ describe('MergeTransactionUtils', () => {
                 currency: CONST.CURRENCY.USD,
             };
 
-            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
+            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare, mockGetCurrencyDecimals);
 
             expect(result.conflictFields).not.toContain('amount');
             expect(result.mergeableData).toMatchObject({
@@ -389,7 +390,7 @@ describe('MergeTransactionUtils', () => {
                 cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
             };
 
-            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
+            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare, mockGetCurrencyDecimals);
 
             expect(result.conflictFields).not.toContain('amount');
             expect(result.mergeableData).toMatchObject({
@@ -416,7 +417,7 @@ describe('MergeTransactionUtils', () => {
                 },
             };
 
-            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
+            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare, mockGetCurrencyDecimals);
 
             expect(result.conflictFields).not.toContain('amount');
             expect(result.mergeableData).toMatchObject({
@@ -443,7 +444,7 @@ describe('MergeTransactionUtils', () => {
                 currency: CONST.CURRENCY.AUD,
             };
 
-            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
+            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare, mockGetCurrencyDecimals);
 
             expect(result.conflictFields).not.toContain('amount');
             expect(result.mergeableData).toMatchObject({
@@ -476,7 +477,7 @@ describe('MergeTransactionUtils', () => {
                     },
                 };
 
-                const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
+                const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare, mockGetCurrencyDecimals);
 
                 expect(result.conflictFields).not.toContain('attendees');
                 expect(result.mergeableData).toMatchObject({
@@ -509,7 +510,7 @@ describe('MergeTransactionUtils', () => {
                     },
                 };
 
-                const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
+                const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare, mockGetCurrencyDecimals);
 
                 expect(result.conflictFields).not.toContain('attendees');
                 expect(result.mergeableData).toMatchObject({
@@ -542,7 +543,7 @@ describe('MergeTransactionUtils', () => {
                     },
                 };
 
-                const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
+                const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare, mockGetCurrencyDecimals);
 
                 expect(result.conflictFields).toContain('attendees');
             });
@@ -570,7 +571,7 @@ describe('MergeTransactionUtils', () => {
                 reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
             };
 
-            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
+            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare, mockGetCurrencyDecimals);
 
             expect(result.conflictFields).not.toContain('taxValue');
             expect(result.conflictFields).toContain('merchant');
@@ -588,7 +589,7 @@ describe('MergeTransactionUtils', () => {
                 reportID: sharedReportID,
             };
 
-            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
+            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare, mockGetCurrencyDecimals);
 
             expect(result.conflictFields).not.toContain('reportID');
             expect(result.mergeableData).toMatchObject({
@@ -970,7 +971,7 @@ describe('MergeTransactionUtils', () => {
             const fieldValue = 'New Merchant Name';
 
             // When we get updated values for merchant field
-            const result = getMergeFieldUpdatedValues({transaction, field: 'merchant', fieldValue});
+            const result = getMergeFieldUpdatedValues({transaction, field: 'merchant', fieldValue, getCurrencyDecimals: mockGetCurrencyDecimals});
 
             // Then it should return an object with the field value
             expect(result).toEqual({
@@ -987,7 +988,7 @@ describe('MergeTransactionUtils', () => {
             const fieldValue = 2500;
 
             // When we get updated values for amount field
-            const result = getMergeFieldUpdatedValues({transaction, field: 'amount', fieldValue});
+            const result = getMergeFieldUpdatedValues({transaction, field: 'amount', fieldValue, getCurrencyDecimals: mockGetCurrencyDecimals});
 
             // Then it should include both amount and currency
             expect(result).toEqual({
@@ -1006,7 +1007,7 @@ describe('MergeTransactionUtils', () => {
             const fieldValue = '456';
 
             // When we get updated values for reportID field
-            const result = getMergeFieldUpdatedValues({transaction, field: 'reportID', fieldValue});
+            const result = getMergeFieldUpdatedValues({transaction, field: 'reportID', fieldValue, getCurrencyDecimals: mockGetCurrencyDecimals});
 
             // Then it should include both reportID and reportName
             expect(result).toEqual({
@@ -1041,7 +1042,7 @@ describe('MergeTransactionUtils', () => {
             const fieldValue = 'New Distance Merchant';
 
             // When we get updated values for merchant field
-            const result = getMergeFieldUpdatedValues({transaction, field: 'merchant', fieldValue});
+            const result = getMergeFieldUpdatedValues({transaction, field: 'merchant', fieldValue, getCurrencyDecimals: mockGetCurrencyDecimals});
 
             // Then it should include merchant plus all distance-specific fields
             expect(result).toEqual({
@@ -1496,7 +1497,7 @@ describe('MergeTransactionUtils', () => {
             };
 
             // When we get mergeable data and conflict fields
-            const {conflictFields} = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
+            const {conflictFields} = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare, mockGetCurrencyDecimals);
 
             // Then amount should still be a conflict field (not auto-resolved by transactionType: 'card')
             expect(conflictFields).toContain('amount');
