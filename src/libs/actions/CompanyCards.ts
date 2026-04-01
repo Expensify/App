@@ -15,7 +15,7 @@ import type {
     UpdateCardTransactionStartDateParams,
     UpdateCompanyCardNameParams,
 } from '@libs/API/parameters';
-import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CardUtils from '@libs/CardUtils';
 import {getCardFeedWithDomainID} from '@libs/CardUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -28,7 +28,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Card, CardFeeds, CurrencyList, Policy, WorkspaceCardsList} from '@src/types/onyx';
 import type {AssignCard, AssignCardData} from '@src/types/onyx/AssignCard';
-import type {ExpensifyCardDetails} from '@src/types/onyx/Card';
 import type {
     AddNewCardFeedData,
     AddNewCardFeedStep,
@@ -320,7 +319,9 @@ function deleteWorkspaceCompanyCardFeed(
     cardIDs: string[],
     feedToOpen?: CompanyCardFeedWithDomainID,
 ) {
+    const isCustomFeed = CardUtils.isCustomFeed(bankName);
     const optimisticFeedUpdates = {[bankName]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}};
+    const successFeedUpdates = {[bankName]: null};
     const failureFeedUpdates = {[bankName]: {pendingAction: null, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')}};
     const optimisticCardUpdates = Object.fromEntries(cardIDs.map((cardID) => [cardID, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}]));
     const successCardUpdates = Object.fromEntries(cardIDs.map((cardID) => [cardID, null]));
@@ -355,8 +356,19 @@ function deleteWorkspaceCompanyCardFeed(
         },
     ];
 
-    // Card collections only: API onyxData provides SHARED_NVP on success (avoid merge-after-set on that key).
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST | typeof ONYXKEYS.CARD_LIST>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER | typeof ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST | typeof ONYXKEYS.CARD_LIST>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`,
+            value: {
+                settings: {
+                    ...(isCustomFeed ? {companyCards: successFeedUpdates} : {oAuthAccountDetails: successFeedUpdates, companyCards: successFeedUpdates}),
+                    companyCardNicknames: {
+                        [bankName]: null,
+                    },
+                },
+            },
+        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${bankName}`,
@@ -1372,27 +1384,29 @@ function clearErrorField(bankName: CompanyCardFeedWithNumber, domainAccountID: n
     });
 }
 
-function linkCardFeedToPolicy(domainAccountID: number, policyID: string, feedType: string, feedCountry?: string, feedName?: CompanyCardFeedWithNumber) {
-    return new Promise((resolve, reject) => {
-        const parameters = {
-            policyID,
-            domainAccountID,
-            feedType,
-            feedName,
-            feedCountry: feedCountry && feedCountry.length > 0 ? feedCountry : CONST.COUNTRY.US,
-        };
-        // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.LINK_CARD_FEED_TO_POLICY, parameters)
-            .then((response) => {
-                if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-                    // eslint-disable-next-line prefer-promise-reject-errors
-                    reject('common.genericErrorMessage');
-                    return;
-                }
-                resolve(response as ExpensifyCardDetails);
-            })
-            // eslint-disable-next-line prefer-promise-reject-errors
-            .catch(() => reject('common.genericErrorMessage'));
+/**
+ * Seeds the Onyx state required before entering the card feed refresh flow.
+ * Used as the onValidationSuccess callback in the verify account page, where
+ * VerifyAccountPageBase handles navigation separately via navigateForwardTo.
+ */
+function seedCardFeedRefresh(feed: CompanyCardFeedWithDomainID, outputCurrency?: string, currencyList?: CurrencyList, countryByIp?: string) {
+    const isPlaid = !!getPlaidInstitutionId(feed);
+    const currentStep = isPlaid ? CONST.COMPANY_CARD.STEP.PLAID_CONNECTION : CONST.COMPANY_CARD.STEP.BANK_CONNECTION;
+
+    if (isPlaid) {
+        const country = getPlaidCountry(outputCurrency, currencyList, countryByIp);
+        setAddNewCompanyCardStepAndData({data: {selectedCountry: country}});
+    }
+
+    setAssignCardStepAndData({currentStep, isRefreshing: true});
+}
+
+/** Seeds the Onyx state and navigates to the card feed refresh flow. */
+function startCardFeedRefresh(policyID: string, feed: CompanyCardFeedWithDomainID, outputCurrency?: string, currencyList?: CurrencyList, countryByIp?: string) {
+    seedCardFeedRefresh(feed, outputCurrency, currencyList, countryByIp);
+
+    Navigation.setNavigationActionToMicrotaskQueue(() => {
+        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_REFRESH_CARD_FEED_CONNECTION.getRoute(policyID, feed));
     });
 }
 export {
@@ -1421,7 +1435,6 @@ export {
     importCSVCompanyCards,
     clearErrorField,
     clearAssignCardErrors,
-    linkCardFeedToPolicy,
     seedCardFeedRefresh,
     startCardFeedRefresh,
 };

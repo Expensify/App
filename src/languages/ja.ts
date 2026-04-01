@@ -4994,9 +4994,6 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
         companyCards: {
             addCards: 'カードを追加',
             selectCards: 'カードを選択',
-            fromOtherWorkspaces: '他のワークスペースから',
-            addWorkEmail: 'あなたの勤務用メールアドレスを追加',
-            addWorkEmailDescription: '他のワークスペースの既存フィードを使用するには、勤務用メールアドレスを追加してください。',
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'カードフィードを読み込めませんでした',
                 workspaceFeedsCouldNotBeLoadedMessage: 'ワークスペースカードフィードの読み込み中にエラーが発生しました。もう一度お試しいただくか、管理者にお問い合わせください。',

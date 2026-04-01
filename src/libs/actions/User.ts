@@ -1050,7 +1050,6 @@ function generateStatementPDF(period: string) {
 
 /**
  * Sets a contact method / secondary login as the user's "Default" contact method.
- * @param skipNavigation - When true, do not navigate (caller handles navigation, e.g. via useEffect when primaryContactMethod updates).
  */
 function setContactMethodAsDefault(
     currentUserPersonalDetails: OnyxEntry<OnyxPersonalDetails>,
@@ -1058,7 +1057,6 @@ function setContactMethodAsDefault(
     newDefaultContactMethod: string,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     backTo?: string,
-    skipNavigation?: boolean,
 ) {
     const oldDefaultContactMethod = currentEmail;
     const optimisticData: Array<
@@ -1213,9 +1211,7 @@ function setContactMethodAsDefault(
         successData,
         failureData,
     });
-    if (!skipNavigation) {
-        Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
-    }
+    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
 }
 
 function updateTheme(theme: ValueOf<typeof CONST.THEME>, shouldGoBack = true) {
