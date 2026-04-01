@@ -1,4 +1,14 @@
-import {getDBTimeWithSkew, getIsOffline, getLastOfflineAt, onReachabilityConfirmed, setForceOffline, setHasRadio, setSustainedFailures, subscribe} from '@src/libs/NetworkState';
+import {
+    getDBTimeWithSkew,
+    getIsOffline,
+    getLastOfflineAt,
+    onReachabilityConfirmed,
+    setForceOffline,
+    setHasRadio,
+    setSustainedFailures,
+    simulatePoorConnection,
+    subscribe,
+} from '@src/libs/NetworkState';
 
 // Log triggers a circular dep chain (NetworkState → Log → Network → SequentialQueue → NetworkState.subscribe())
 // that causes the listeners Set to be undefined during module init. Mock Log to break the cycle.
@@ -9,6 +19,7 @@ describe('NetworkState', () => {
         setHasRadio(true);
         setSustainedFailures(false);
         setForceOffline(false);
+        simulatePoorConnection(false);
     });
 
     describe('getIsOffline — state computation', () => {
@@ -271,17 +282,21 @@ describe('NetworkState', () => {
         });
 
         test('reconnect listener IS called when sustained failures clear (backend outage recovery)', () => {
+            jest.useFakeTimers();
             const reconnectListener = jest.fn();
             const unsubscribe = onReachabilityConfirmed(reconnectListener);
 
             setSustainedFailures(true);
             setSustainedFailures(false);
-            // A successful request proved connectivity — reconnect to backfill missed Onyx updates.
-            // Without this, a backend outage recovery (where NetInfo never transitions false→true)
-            // would leave the UI online but stale.
+
+            // Reconnect is deferred with jitter to stagger clients after a server-wide outage
+            expect(reconnectListener).not.toHaveBeenCalled();
+
+            jest.runAllTimers();
             expect(reconnectListener).toHaveBeenCalledTimes(1);
 
             unsubscribe();
+            jest.useRealTimers();
         });
 
         test('reconnect listener is not called by setForceOffline clearing', () => {
@@ -305,6 +320,91 @@ describe('NetworkState', () => {
             setHasRadio(false);
             setHasRadio(true);
             expect(reconnectListener).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('simulatePoorConnection', () => {
+        afterEach(() => {
+            simulatePoorConnection(false);
+            jest.useRealTimers();
+        });
+
+        test('enabling simulation makes getIsOffline toggle randomly', () => {
+            jest.useFakeTimers();
+            jest.spyOn(Math, 'random').mockReturnValue(0.1); // < 0.5 → offline
+
+            simulatePoorConnection(true);
+
+            expect(getIsOffline()).toBe(true);
+        });
+
+        test('disabling simulation restores online state', () => {
+            jest.useFakeTimers();
+            jest.spyOn(Math, 'random').mockReturnValue(0.1);
+
+            simulatePoorConnection(true);
+            expect(getIsOffline()).toBe(true);
+
+            simulatePoorConnection(false);
+            expect(getIsOffline()).toBe(false);
+        });
+
+        test('simulation schedules recurring random status changes', () => {
+            jest.useFakeTimers();
+            const listener = jest.fn();
+            const unsubscribe = subscribe(listener);
+
+            // First call: random < 0.5 → online, interval = 2000 + 0 = 2000ms
+            jest.spyOn(Math, 'random').mockReturnValue(0.0);
+            simulatePoorConnection(true);
+
+            listener.mockClear();
+
+            // Advance past the interval — should trigger next random status change
+            jest.advanceTimersByTime(2001);
+            expect(listener).toHaveBeenCalled();
+
+            unsubscribe();
+        });
+
+        test('enabling twice is a no-op', () => {
+            jest.useFakeTimers();
+            jest.spyOn(Math, 'random').mockReturnValue(0.1);
+
+            simulatePoorConnection(true);
+            expect(getIsOffline()).toBe(true);
+
+            // Second enable should not reset or cause issues
+            simulatePoorConnection(true);
+            expect(getIsOffline()).toBe(true);
+        });
+
+        test('disabling when not simulating is a no-op', () => {
+            const listener = jest.fn();
+            const unsubscribe = subscribe(listener);
+
+            simulatePoorConnection(false);
+            expect(listener).not.toHaveBeenCalled();
+
+            unsubscribe();
+        });
+
+        test('clearing stops the recurring timer', () => {
+            jest.useFakeTimers();
+            jest.spyOn(Math, 'random').mockReturnValue(0.0);
+
+            simulatePoorConnection(true);
+            const listener = jest.fn();
+            const unsubscribe = subscribe(listener);
+
+            simulatePoorConnection(false);
+            listener.mockClear();
+
+            // Advance time — no more status changes should fire
+            jest.advanceTimersByTime(10000);
+            expect(listener).not.toHaveBeenCalled();
+
+            unsubscribe();
         });
     });
 });
