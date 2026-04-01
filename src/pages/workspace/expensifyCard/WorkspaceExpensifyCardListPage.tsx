@@ -236,9 +236,6 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
 
     useAndroidBackButtonHandler(handleBackButtonPress);
 
-    console.log('settings');
-    console.log(settings);
-
     return (
         <ScreenWrapper
             enableEdgeToEdgeBottomSafeAreaPadding

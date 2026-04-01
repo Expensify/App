@@ -46,7 +46,7 @@ function WorkspaceExpensifyCardAddWorkEmailPage({route}: WorkspaceExpensifyCardA
 
     const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
-    const [email, setEmail] = React.useState('');
+    const [email, setEmail] = useState('');
     const emailLoginKey = email ? Object.keys(loginList ?? {}).find((login) => login.toLowerCase() === email.toLowerCase()) : undefined;
     const isWorkEmailValidated = emailLoginKey ? !!loginList?.[emailLoginKey]?.validatedDate : false;
 
