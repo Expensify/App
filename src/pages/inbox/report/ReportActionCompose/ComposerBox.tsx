@@ -2,8 +2,10 @@ import React, {createContext, useContext, useRef} from 'react';
 import type {MeasureInWindowOnSuccessCallback} from 'react-native';
 import {View} from 'react-native';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import {getReportOfflinePendingActionAndErrors} from '@libs/ReportUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
 import {useComposerData, useComposerSendState, useComposerState} from './ComposerContext';
 
 type ComposerBoxContextValue = {
@@ -19,17 +21,18 @@ function useComposerBox() {
 }
 
 type ComposerBoxProps = {
-    isComposerFullSize: boolean;
-    pendingAction: PendingAction | undefined;
+    reportID: string;
     children: React.ReactNode;
 };
 
-function ComposerBox({isComposerFullSize, pendingAction, children}: ComposerBoxProps) {
+function ComposerBox({reportID, children}: ComposerBoxProps) {
     const styles = useThemeStyles();
-    const {isFocused} = useComposerState();
+    const {isFocused, isComposerFullSize} = useComposerState();
     const {exceededMaxLength, isBlockedFromConcierge} = useComposerSendState();
     const {PDFValidationComponent, ErrorModal} = useComposerData();
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
 
+    const {reportPendingAction: pendingAction} = getReportOfflinePendingActionAndErrors(report);
     const shouldUseFocusedColor = !isBlockedFromConcierge && isFocused;
 
     const containerRef = useRef<View>(null);

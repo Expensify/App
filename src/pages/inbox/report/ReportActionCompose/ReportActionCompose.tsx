@@ -11,7 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DomUtils from '@libs/DomUtils';
 import FS from '@libs/Fullstory';
-import {chatIncludesChronos, chatIncludesConcierge, getReportOfflinePendingActionAndErrors} from '@libs/ReportUtils';
+import {chatIncludesChronos, chatIncludesConcierge} from '@libs/ReportUtils';
 import {hideEmojiPicker, isActive as isActiveEmojiPickerAction, isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -175,8 +175,6 @@ function Composer({reportID}: ReportActionComposeProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
 
-    const {reportPendingAction: pendingAction} = getReportOfflinePendingActionAndErrors(report);
-
     if (!report) {
         return null;
     }
@@ -186,15 +184,11 @@ function Composer({reportID}: ReportActionComposeProps) {
             <ComposerProvider reportID={reportID}>
                 <Composer.LocalTime
                     reportID={reportID}
-                    pendingAction={pendingAction}
                     isComposerFullSize={isComposerFullSize}
                 />
                 <View style={isComposerFullSize ? styles.flex1 : {}}>
                     <Composer.DropZone reportID={reportID}>
-                        <Composer.Box
-                            isComposerFullSize={isComposerFullSize}
-                            pendingAction={pendingAction}
-                        >
+                        <Composer.Box reportID={reportID}>
                             <ComposerBoxContent reportID={reportID} />
                         </Composer.Box>
                     </Composer.DropZone>
