@@ -1,11 +1,12 @@
 import {useCallback, useMemo, useState} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
 import {isCreatedAction} from '@libs/ReportActionsUtils';
 import {buildConciergeGreetingReportAction} from '@libs/ReportUtils';
 import type * as OnyxTypes from '@src/types/onyx';
 
 type UseConciergeSidePanelReportActionsParams = {
-    report: OnyxTypes.Report;
+    report: OnyxEntry<OnyxTypes.Report>;
     reportActions: OnyxTypes.ReportAction[];
     visibleReportActions: OnyxTypes.ReportAction[];
     isConciergeSidePanel: boolean;
@@ -76,8 +77,8 @@ function useConciergeSidePanelReportActions({
         if (!showConciergeGreeting) {
             return undefined;
         }
-        return buildConciergeGreetingReportAction(report.reportID, greetingText, report.lastReadTime ?? DateUtils.getDBTime());
-    }, [showConciergeGreeting, report.reportID, report.lastReadTime, greetingText]);
+        return buildConciergeGreetingReportAction({reportID: report?.reportID, greetingText, created: report?.lastReadTime ?? DateUtils.getDBTime()});
+    }, [showConciergeGreeting, report?.reportID, report?.lastReadTime, greetingText]);
 
     const firstUserMessageCreated = useMemo(() => {
         if (showConciergeSidePanelWelcome || !isConciergeSidePanel || !hasUserSentMessage || !sessionStartTime) {
