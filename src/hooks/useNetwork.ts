@@ -28,6 +28,7 @@ export default function useNetwork({onReconnect = () => {}}: UseNetworkProps = {
     }, [isOffline]);
 
     useEffect(() => {
+        // Used to store previous prop values to compare on next render
         prevOfflineStatusRef.current = isOffline;
     }, [isOffline]);
 
