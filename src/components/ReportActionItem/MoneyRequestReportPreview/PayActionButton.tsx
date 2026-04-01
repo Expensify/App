@@ -14,6 +14,7 @@ import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportU
 import {
     getReportTransactions,
     hasHeldExpenses as hasHeldExpensesReportUtils,
+    hasOnlyNonReimbursableTransactions,
     hasUpdatedTotal,
     hasViolations as hasViolationsReportUtils,
     isInvoiceReport as isInvoiceReportUtils,
@@ -35,6 +36,7 @@ type PayActionButtonProps = {
     onPaymentOptionsShow?: () => void;
     onPaymentOptionsHide?: () => void;
     onHoldMenuOpen: (requestType: string, paymentType?: PaymentMethodType, canPay?: boolean) => void;
+    onNonReimbursablePaymentError?: () => void;
     buttonMaxWidth: {maxWidth?: number};
     reportPreviewAction: ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS>;
 };
@@ -50,6 +52,7 @@ function PayActionButton({
     onPaymentOptionsShow,
     onPaymentOptionsHide,
     onHoldMenuOpen,
+    onNonReimbursablePaymentError,
     buttonMaxWidth,
     reportPreviewAction,
 }: PayActionButtonProps) {
@@ -88,12 +91,15 @@ function PayActionButton({
     const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserAccountID, currentUserEmail);
 
     const canIOUBePaid = canIOUBePaidIOUActions(iouReport, chatReport, policy, bankAccountList, transactions, false, undefined, invoiceReceiverPolicy);
-    const onlyShowPayElsewhere = !canIOUBePaid && canIOUBePaidIOUActions(iouReport, chatReport, policy, bankAccountList, transactions, true, undefined, invoiceReceiverPolicy);
-    const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
+    const reportHasOnlyNonReimbursableTransactions = hasOnlyNonReimbursableTransactions(iouReport?.reportID, transactions);
+    const onlyShowPayElsewhere = reportHasOnlyNonReimbursableTransactions
+        ? false
+        : !canIOUBePaid && canIOUBePaidIOUActions(iouReport, chatReport, policy, bankAccountList, transactions, true, undefined, invoiceReceiverPolicy);
+    const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere || reportHasOnlyNonReimbursableTransactions;
     const shouldShowOnlyPayElsewhere = !canIOUBePaid && onlyShowPayElsewhere;
     const canIOUBePaidAndApproved = canIOUBePaid;
 
-    const formattedAmount = getTotalAmountForIOUReportPreviewButton(iouReport, policy, reportPreviewAction);
+    const formattedAmount = getTotalAmountForIOUReportPreviewButton(iouReport, policy, reportPreviewAction, transactions);
 
     const confirmApproval = () => {
         if (isDelegateAccessRestricted) {
@@ -121,6 +127,10 @@ function PayActionButton({
 
     const confirmPayment = ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
         if (!type) {
+            return;
+        }
+        if (!isInvoiceReportUtils(iouReport) && reportHasOnlyNonReimbursableTransactions && type !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+            onNonReimbursablePaymentError?.();
             return;
         }
         if (isDelegateAccessRestricted) {
