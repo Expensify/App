@@ -28,7 +28,7 @@ function Composer({reportID}: ReportActionComposeProps) {
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
 
     return (
-        <View style={[styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}>
+        <View style={[isComposerFullSize && styles.chatItemFullComposeRow]}>
             <ComposerProvider reportID={reportID}>
                 <Composer.LocalTime reportID={reportID} />
                 <View style={isComposerFullSize ? styles.flex1 : {}}>
