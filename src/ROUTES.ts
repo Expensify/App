@@ -1927,6 +1927,10 @@ const ROUTES = {
             return getUrlWithBackToParam(`workspaces/${policyID}/accounting/quickbooks-desktop/export` as const, backTo, false);
         },
     },
+    POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXISTING_CONNECTIONS: {
+        route: 'workspaces/:policyID/accounting/quickbooks-desktop/existing-connections',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/quickbooks-desktop/existing-connections` as const,
+    },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_SETUP_MODAL: {
         route: 'workspaces/:policyID/accounting/quickbooks-desktop/setup-modal',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/quickbooks-desktop/setup-modal` as const,
