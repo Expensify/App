@@ -1,4 +1,4 @@
-import React, {useCallback, useRef} from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 import {getButtonRole} from '@components/Button/utils';
 import Icon from '@components/Icon';
@@ -108,28 +108,25 @@ function BaseListItem<TItem extends ListItem>({
     // When the list-level keyboard shortcut is disabled (disableKeyboardShortcuts), we handle
     // Enter activation here at the item level so each row can still be activated individually
     // without interfering with other focusable controls (e.g. footer inputs) on the same screen.
-    const handleKeyDown = useCallback(
-        (event: React.KeyboardEvent) => {
-            const target = event.target as HTMLElement;
-            if (
-                shouldPreventEnterKeySubmit ||
-                event.key !== CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey ||
-                event.shiftKey ||
-                event.metaKey ||
-                event.ctrlKey ||
-                item.isInteractive === false ||
-                target?.tagName === CONST.ELEMENT_NAME.INPUT ||
-                target?.tagName === CONST.ELEMENT_NAME.TEXTAREA ||
-                target?.contentEditable === 'true'
-            ) {
-                return;
-            }
+    const handleKeyDown = (event: React.KeyboardEvent) => {
+        const target = event.target as HTMLElement;
+        if (
+            shouldPreventEnterKeySubmit ||
+            event.key !== CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey ||
+            event.shiftKey ||
+            event.metaKey ||
+            event.ctrlKey ||
+            item.isInteractive === false ||
+            target?.tagName === CONST.ELEMENT_NAME.INPUT ||
+            target?.tagName === CONST.ELEMENT_NAME.TEXTAREA ||
+            target?.contentEditable === 'true'
+        ) {
+            return;
+        }
 
-            event.preventDefault();
-            onSelectRow(item);
-        },
-        [shouldPreventEnterKeySubmit, onSelectRow, item],
-    );
+        event.preventDefault();
+        onSelectRow(item);
+    };
 
     const handleMouseLeave = (e: React.MouseEvent<Element, MouseEvent>) => {
         bind.onMouseLeave();
