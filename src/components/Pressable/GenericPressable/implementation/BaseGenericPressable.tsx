@@ -179,7 +179,7 @@ function GenericPressable({
             ref={ref as ForwardedRef<View>}
             disabled={fullDisabled}
             onPress={!isDisabled && interactive ? singleExecution(onPressHandler) : undefined}
-            onLongPress={!isDisabled && onLongPress && interactive ? onLongPressHandler : undefined}
+            onLongPress={!isDisabled && onLongPress ? onLongPressHandler : undefined}
             onKeyDown={!isDisabled ? handleKeyDown : undefined}
             onPressIn={!isDisabled ? onPressIn : undefined}
             onPressOut={!isDisabled ? onPressOut : undefined}
