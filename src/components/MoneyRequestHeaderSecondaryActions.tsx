@@ -415,7 +415,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                     }
                     const backToRoute = route.params?.backTo ?? Navigation.getActiveRoute();
                     setDeleteTransactionNavigateBackUrl(backToRoute);
-                    if (isTrackExpenseAction(parentReportAction)) {
+                    if (isTrackExpenseAction(parentReportAction) && !isExpenseSplit) {
                         deleteTrackExpense({
                             chatReportID: report?.parentReportID,
                             chatReport: parentReport,

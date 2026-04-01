@@ -109,7 +109,7 @@ import {
     shouldUseFullTitleToDisplay,
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
-import {isDemoTransaction} from '@libs/TransactionUtils';
+import {getOriginalTransactionWithSplitInfo, isDemoTransaction} from '@libs/TransactionUtils';
 import {deleteTrackExpense, getNavigationUrlAfterTrackExpenseDelete, getNavigationUrlOnMoneyRequestDelete} from '@userActions/IOU';
 import {
     clearAvatarErrors,
@@ -310,6 +310,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const canDeleteRequest = isActionOwner && (canDeleteTransaction(moneyRequestReport, isMoneyRequestReportArchived) || isSelfDMTrackExpenseReport) && !isDeletedParentAction;
     const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
     const [iouTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
+    const [iouOriginalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransaction?.comment?.originalTransactionID)}`);
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(iouTransactionID ? [iouTransactionID] : []);
     const {deleteTransactions} = useDeleteTransactions({
         report: parentReport,
@@ -899,8 +900,9 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         }
 
         const isTrackExpense = isTrackExpenseAction(requestParentReportAction);
+        const {isExpenseSplit: isSelfDMExpenseSplit} = getOriginalTransactionWithSplitInfo(iouTransaction, iouOriginalTransaction);
 
-        if (isTrackExpense) {
+        if (isTrackExpense && !isSelfDMExpenseSplit) {
             deleteTrackExpense({
                 chatReportID: moneyRequestReport?.reportID,
                 chatReport: moneyRequestReport,
@@ -944,6 +946,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         currentSearchHash,
         removeTransaction,
         conciergeReportID,
+        iouTransaction,
+        iouOriginalTransaction,
     ]);
 
     // Where to navigate back to after deleting the transaction and its report.
