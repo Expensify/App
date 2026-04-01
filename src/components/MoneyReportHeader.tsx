@@ -132,7 +132,6 @@ import {
 } from '@libs/TransactionUtils';
 import type {ExportType} from '@pages/inbox/report/ReportDetailsExportPage';
 import {ActionListContext} from '@pages/inbox/ReportScreenContext';
-import variables from '@styles/variables';
 import {
     approveMoneyRequest,
     canApproveIOU,
