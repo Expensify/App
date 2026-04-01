@@ -283,6 +283,7 @@ export default createOnyxDerivedValueConfig({
                 transactions,
                 transactionViolations,
                 !!isReportArchived,
+                reports,
             );
             // if report has errors or violations, show red dot
             if (reasonAndReportAction) {
