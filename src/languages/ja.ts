@@ -946,15 +946,6 @@ const translations: TranslationDeepObject<typeof en> = {
         forYou: 'あなた向け',
         timeSensitiveSection: {
             title: '時間に敏感',
-            cta: '申請',
-            offer50off: {
-                title: '初年度が50％オフ！',
-                subtitle: ({formattedTime}: {formattedTime: string}) => `残り${formattedTime}`,
-            },
-            offer25off: {
-                title: '初年度が25％オフになります！',
-                subtitle: ({days}: {days: number}) => `残り ${days} ${days === 1 ? '日' : '日数'} 日`,
-            },
             addShippingAddress: {title: '配送先住所が必要です', subtitle: 'Expensify カードを受け取る住所を入力してください。', cta: '住所を追加'},
             addPaymentCard: {title: 'Expensify を引き続きご利用いただくには、支払いカードを追加してください', subtitle: 'アカウント ＞ サブスクリプション', cta: '追加'},
             activateCard: {title: 'Expensify カードを有効化する', subtitle: 'カードを認証して支出を始めましょう。', cta: '有効化'},
@@ -1039,6 +1030,19 @@ const translations: TranslationDeepObject<typeof en> = {
             inDays: () => ({one: '1日後', other: (count: number) => `${count}日後`}),
             today: '今日',
         },
+        freeTrialSection: {
+            title: ({days}: {days: number}) => `無料トライアル：あと ${days} ${days === 1 ? '日' : '日数'} 日！`,
+            offer50Body: '初年度が50％オフになります！',
+            offer25Body: '初年度が25％オフになります！',
+            addCardBody: '今すぐ追加しましょう！お支払い用カードを登録してください。',
+            ctaClaim: '申請',
+            ctaAdd: 'カードを追加',
+            timeRemaining: ({formattedTime}: {formattedTime: string}) => `残り時間：${formattedTime}`,
+            timeRemainingDays: () => ({
+                one: '残り時間：1日',
+                other: (pluralCount: number) => `残り時間：${pluralCount}日`,
+            }),
+        },
     },
     allSettingsScreen: {
         subscription: 'サブスクリプション',
@@ -1068,6 +1072,8 @@ const translations: TranslationDeepObject<typeof en> = {
         emptyMappedField: (fieldName: string) => `おっと！フィールド（「${fieldName}」）に1つ以上の空の値が含まれています。確認してもう一度お試しください。`,
         importSuccessfulTitle: 'インポートに成功しました',
         importCategoriesSuccessfulDescription: ({categories}: {categories: number}) => (categories > 1 ? `${categories} 個のカテゴリーを追加しました。` : 'カテゴリが1件追加されました。'),
+        importCompanyCardTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
+            transactions > 1 ? `${transactions} 件の取引が追加されました。` : '1 件の取引が追加されました。',
         importMembersSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
             if (!added && !updated) {
                 return 'メンバーは追加も更新もされていません。';
@@ -3324,11 +3330,6 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         confirmationStepHeader: '情報を確認してください。',
         confirmationStepSubHeader: '下記の詳細を再確認し、利用規約のチェックボックスをオンにして確定してください。',
         toGetStarted: '個人の銀行口座を追加して、経費精算の受け取りや請求書の支払い、Expensifyウォレットの有効化を行いましょう。',
-        updatePersonalInfo: '銀行口座を更新',
-        updatePersonalInfoFailure: '銀行口座情報を更新できませんでした。後でもう一度お試しください。',
-        updateSuccessTitle: '銀行口座が更新されました！',
-        updateSuccessHeader: '銀行口座が更新されました',
-        updateSuccessMessage: 'おめでとうございます。銀行口座の設定が完了し、精算の受け取りができるようになりました。',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Expensify のパスワードを入力',
@@ -4033,6 +4034,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             defaultNote: `${CONST.EMAIL.RECEIPTS} に送信されたレシートは、このワークスペースに表示されます。`,
             deleteConfirmation: 'このワークスペースを削除してもよろしいですか？',
             deleteWithCardsConfirmation: 'このワークスペースを削除してもよろしいですか？ すべてのカードフィードと割り当て済みカードが削除されます。',
+            deleteOpenExpensifyCardsError: 'あなたの会社にはまだ有効なExpensifyカードがあります。',
             outstandingBalanceWarning: '最後のワークスペースを削除する前に精算する必要がある未払残高があります。支払いを解決するには、サブスクリプション設定に移動してください。',
             settleBalance: 'サブスクリプションに移動',
             unavailable: '利用できないワークスペース',
@@ -4975,6 +4977,11 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             },
             addNewCard: {
                 other: 'その他',
+                fileImport: 'ファイルから取引をインポート',
+                createFileFeedHelpText: `<muted-text>会社カードの経費をインポートするには、この<a href="${CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}">ヘルプガイド</a>に従ってください。</muted-text>`,
+                companyCardLayoutName: '法人カードレイアウト名',
+                cardLayoutNameRequired: '法人カードレイアウト名は必須です',
+                useAdvancedFields: '詳細フィールドを使用（非推奨）',
                 cardProviders: {
                     gl1025: 'American Express コーポレートカード',
                     cdf: 'Mastercard コマーシャルカード',
@@ -5051,6 +5058,24 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                     prompt: 'カードの追加が完了していないようです。問題が見つかった場合はお知らせください。元どおりスムーズに進められるようお手伝いします。',
                     confirmText: '問題を報告',
                     cancelText: 'スキップ',
+                },
+                csvColumns: {
+                    cardNumber: 'カード番号',
+                    postedDate: '日付',
+                    merchant: '加盟店',
+                    amount: '金額',
+                    currency: '通貨',
+                    ignore: '無視',
+                    originalTransactionDate: '元の取引日',
+                    originalAmount: '元の金額',
+                    originalCurrency: '元の通貨',
+                    comment: 'コメント',
+                    category: 'カテゴリ',
+                    tag: 'タグ',
+                },
+                csvErrors: {
+                    requiredColumns: (missingColumns: string) => `各属性に列を割り当ててください：${missingColumns}`,
+                    duplicateColumns: (duplicateColumn: string) => `おっと！1 つのフィールド（"${duplicateColumn}"）を複数の列にマッピングしています。確認して、もう一度お試しください。`,
                 },
             },
             statementCloseDate: {

@@ -929,15 +929,6 @@ const translations: TranslationDeepObject<typeof en> = {
         forYou: '为你',
         timeSensitiveSection: {
             title: '时间敏感',
-            cta: '报销申请',
-            offer50off: {
-                title: '首年立享 5 折优惠！',
-                subtitle: ({formattedTime}: {formattedTime: string}) => `剩余 ${formattedTime}`,
-            },
-            offer25off: {
-                title: '首年立享 75 折优惠！',
-                subtitle: ({days}: {days: number}) => `剩余 ${days} ${days === 1 ? '天' : '天'}`,
-            },
             addShippingAddress: {title: '我们需要您的收货地址', subtitle: '请提供一个地址以接收您的 Expensify 卡。', cta: '添加地址'},
             addPaymentCard: {title: '添加支付卡以继续使用 Expensify', subtitle: '账户 ＞ 订阅', cta: '添加'},
             activateCard: {title: '激活你的 Expensify 卡', subtitle: '验证您的银行卡并开始消费。', cta: '启用'},
@@ -1022,6 +1013,19 @@ const translations: TranslationDeepObject<typeof en> = {
             inDays: () => ({one: '1 天后', other: (count: number) => `在 ${count} 天后`}),
             today: '今天',
         },
+        freeTrialSection: {
+            title: ({days}: {days: number}) => `免费试用：剩余 ${days} ${days === 1 ? '天' : '天'} 天！`,
+            offer50Body: '首年可享受五折优惠！',
+            offer25Body: '首年可享 75 折优惠！',
+            addCardBody: '别再犹豫！现在就添加你的付款卡。',
+            ctaClaim: '报销申请',
+            ctaAdd: '添加卡片',
+            timeRemaining: ({formattedTime}: {formattedTime: string}) => `剩余时间：${formattedTime}`,
+            timeRemainingDays: () => ({
+                one: '剩余时间：1天',
+                other: (pluralCount: number) => `剩余时间：${pluralCount}天`,
+            }),
+        },
     },
     allSettingsScreen: {
         subscription: '订阅',
@@ -1051,6 +1055,7 @@ const translations: TranslationDeepObject<typeof en> = {
         emptyMappedField: (fieldName: string) => `哎呀！字段（“${fieldName}”）包含一个或多个空值。请检查后重试。`,
         importSuccessfulTitle: '导入成功',
         importCategoriesSuccessfulDescription: ({categories}: {categories: number}) => (categories > 1 ? `已添加 ${categories} 个类别。` : '已添加 1 个类别。'),
+        importCompanyCardTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) => (transactions > 1 ? `已添加 ${transactions} 笔交易。` : '已添加 1 笔交易。'),
         importMembersSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
             if (!added && !updated) {
                 return '尚未添加或更新任何成员。';
@@ -3273,11 +3278,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         confirmationStepHeader: '请检查您的信息。',
         confirmationStepSubHeader: '请仔细核对以下详细信息，并勾选条款复选框以确认。',
         toGetStarted: '添加个人银行账户以接收报销、支付发票或启用 Expensify 钱包。',
-        updatePersonalInfo: '更新银行账户',
-        updatePersonalInfoFailure: '无法更新银行账户信息。请稍后重试。',
-        updateSuccessTitle: '银行账户已更新！',
-        updateSuccessHeader: '银行账户已更新',
-        updateSuccessMessage: '恭喜，您的银行账户已设置完成，可以开始接收报销款了。',
     },
     addPersonalBankAccountPage: {
         enterPassword: '输入 Expensify 密码',
@@ -3970,6 +3970,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             defaultNote: `发送到 ${CONST.EMAIL.RECEIPTS} 的收据将显示在此工作区中。`,
             deleteConfirmation: '确定要删除此工作区吗？',
             deleteWithCardsConfirmation: '确定要删除此工作区吗？这将移除所有卡片数据源和已分配的卡片。',
+            deleteOpenExpensifyCardsError: '您的公司仍有未关闭的 Expensify 卡。',
             outstandingBalanceWarning: '您有一笔未结清的余额，必须在删除最后一个工作区之前结清。请前往订阅设置以解决付款问题。',
             settleBalance: '前往订阅',
             unavailable: '工作区不可用',
@@ -4896,6 +4897,11 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             },
             addNewCard: {
                 other: '其他',
+                fileImport: '从文件导入交易',
+                createFileFeedHelpText: `<muted-text>请按照此<a href="${CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}">帮助指南</a>操作，将您的公司卡费用导入！</muted-text>`,
+                companyCardLayoutName: '公司卡片布局名称',
+                cardLayoutNameRequired: '公司卡片布局名称是必填的',
+                useAdvancedFields: '使用高级字段（不推荐）',
                 cardProviders: {
                     gl1025: 'American Express 公司卡',
                     cdf: '万事达商业卡',
@@ -4972,6 +4978,24 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     prompt: '我们注意到你还没有完成添加银行卡。如果遇到问题，请告诉我们，我们会帮你尽快恢复进度。',
                     confirmText: '报告问题',
                     cancelText: '跳过',
+                },
+                csvColumns: {
+                    cardNumber: '卡号',
+                    postedDate: '日期',
+                    merchant: '商家',
+                    amount: '金额',
+                    currency: '货币',
+                    ignore: '忽略',
+                    originalTransactionDate: '原始交易日期',
+                    originalAmount: '原始金额',
+                    originalCurrency: '原始货币',
+                    comment: '评论',
+                    category: '类别',
+                    tag: '标签',
+                },
+                csvErrors: {
+                    requiredColumns: (missingColumns: string) => `请为以下每个属性分配一列：${missingColumns}`,
+                    duplicateColumns: (duplicateColumn: string) => `哎呀！你已将单个字段（“${duplicateColumn}”）映射到了多个列。请检查后重试。`,
                 },
             },
             statementCloseDate: {
