@@ -427,6 +427,7 @@ describe('actions/Duplicate', () => {
             openReport({
                 reportID: transactionThreadReport1.reportID,
                 introSelected: undefined,
+                betas: undefined,
                 participantLoginList: userLogins,
                 newReportObject: transactionThreadReport1,
                 parentReportActionID: iouAction1?.reportActionID,
@@ -434,6 +435,7 @@ describe('actions/Duplicate', () => {
             openReport({
                 reportID: transactionThreadReport2.reportID,
                 introSelected: undefined,
+                betas: undefined,
                 participantLoginList: userLogins,
                 newReportObject: transactionThreadReport1,
                 parentReportActionID: iouAction2?.reportActionID,

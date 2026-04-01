@@ -2067,6 +2067,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
             currentUserEmailParam: CARLOS_EMAIL,
             isSelfTourViewed: false,
+            betas: undefined,
             hasActiveAdminPolicies: false,
         });
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -2545,6 +2546,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
             currentUserEmailParam: CARLOS_EMAIL,
             isSelfTourViewed: false,
+            betas: undefined,
             hasActiveAdminPolicies: false,
         });
 
@@ -2720,6 +2722,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             currentUserAccountIDParam: RORY_ACCOUNT_ID,
             currentUserEmailParam: RORY_EMAIL,
             isSelfTourViewed: false,
+            betas: undefined,
             hasActiveAdminPolicies: false,
         });
 
@@ -2899,6 +2902,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
             currentUserEmailParam: CARLOS_EMAIL,
             isSelfTourViewed: false,
+            betas: undefined,
             hasActiveAdminPolicies: false,
         });
 
@@ -3087,6 +3091,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
             currentUserEmailParam: CARLOS_EMAIL,
             isSelfTourViewed: false,
+            betas: undefined,
             hasActiveAdminPolicies: false,
         });
 
@@ -3352,6 +3357,7 @@ describe('updateSplitTransactions', () => {
             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
             currentUserEmailParam: CARLOS_EMAIL,
             isSelfTourViewed: false,
+            betas: undefined,
             hasActiveAdminPolicies: false,
         });
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -3481,6 +3487,7 @@ describe('updateSplitTransactions', () => {
             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
             currentUserEmailParam: CARLOS_EMAIL,
             isSelfTourViewed: false,
+            betas: undefined,
             hasActiveAdminPolicies: false,
         });
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
@@ -3619,6 +3626,7 @@ describe('updateSplitTransactions', () => {
             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
             currentUserEmailParam: CARLOS_EMAIL,
             isSelfTourViewed: false,
+            betas: undefined,
             hasActiveAdminPolicies: false,
         });
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);

@@ -6,6 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import type {TranslationPaths} from '@src/languages/types';
 
 type MultiSelectFilterPopupProps<T extends string> = PopoverComponentProps & {
+    loading?: boolean;
     translationKey: TranslationPaths;
     items: Array<MultiSelectItem<T>>;
     value: Array<MultiSelectItem<T>>;
@@ -13,13 +14,14 @@ type MultiSelectFilterPopupProps<T extends string> = PopoverComponentProps & {
     isSearchable?: boolean;
 };
 
-function MultiSelectFilterPopup<T extends string>({closeOverlay, translationKey, items, value, onChangeCallback, isSearchable}: MultiSelectFilterPopupProps<T>) {
+function MultiSelectFilterPopup<T extends string>({closeOverlay, loading, translationKey, items, value, onChangeCallback, isSearchable}: MultiSelectFilterPopupProps<T>) {
     const {translate} = useLocalize();
     return (
         <MultiSelectPopup
             label={translate(translationKey)}
             items={items}
             value={value}
+            loading={loading}
             closeOverlay={closeOverlay}
             onChange={onChangeCallback}
             isSearchable={isSearchable}

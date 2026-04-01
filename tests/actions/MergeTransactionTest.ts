@@ -969,6 +969,7 @@ describe('mergeTransactionRequest', () => {
             openReport({
                 reportID: thread.reportID,
                 introSelected: undefined,
+                betas: undefined,
                 participantLoginList: userLogins,
                 newReportObject: thread,
                 parentReportActionID: sourceIOUAction.reportActionID,
@@ -1144,6 +1145,7 @@ describe('mergeTransactionRequest', () => {
             openReport({
                 reportID: thread.reportID,
                 introSelected: undefined,
+                betas: undefined,
                 participantLoginList: userLogins,
                 newReportObject: thread,
                 parentReportActionID: sourceIOUAction.reportActionID,

@@ -55,9 +55,6 @@ type FullNameStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepPro
 
         /** Whether to show the Patriot Act help link (EnablePayments-only) */
         shouldShowPatriotActLink?: boolean;
-
-        /** Whether the form submit button should be enabled when offline */
-        enabledWhenOffline?: boolean;
     };
 
 function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
@@ -75,7 +72,6 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
     customLastNameLabel,
     shouldShowPatriotActLink = false,
     forwardedFSClass,
-    enabledWhenOffline: enabledWhenOfflineProp = true,
 }: FullNameStepProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -129,7 +125,7 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
             validate={customValidate ?? validate}
             onSubmit={onSubmit}
             style={[styles.mh5, styles.flexGrow1]}
-            enabledWhenOffline={enabledWhenOfflineProp}
+            enabledWhenOffline
         >
             <View>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{formTitle}</Text>

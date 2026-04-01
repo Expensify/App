@@ -138,7 +138,7 @@ function AuthScreensInitHandler() {
             App.reconnectApp(initialLastUpdateIDAppliedToClient);
         }
 
-        App.setUpPoliciesAndNavigate(session, introSelected, activePolicyID, isSelfTourViewed, hasActiveAdminPolicies);
+        App.setUpPoliciesAndNavigate(session, introSelected, activePolicyID, isSelfTourViewed, betas, hasActiveAdminPolicies);
 
         Download.clearDownloads();
 

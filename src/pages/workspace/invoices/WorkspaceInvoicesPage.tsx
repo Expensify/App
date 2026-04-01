@@ -40,7 +40,7 @@ function WorkspaceInvoicesPage({route}: WorkspaceInvoicesPageProps) {
                 icon={illustrations.InvoiceBlue}
                 addBottomSafeAreaPadding
             >
-                {(_hasVBA?: boolean, policyID?: string) => (
+                {(policyID?: string) => (
                     <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                         {!!policyID && <WorkspaceInvoiceBalanceSection policyID={policyID} />}
                         {!!policyID && <WorkspaceInvoiceVBASection policyID={policyID} />}
