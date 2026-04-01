@@ -185,6 +185,7 @@ describe('PaymentUtils', () => {
             event: undefined,
             iouPaymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
             triggerKYCFlow: mockTriggerKYCFlow,
+            expenseReportPolicy: testPolicy,
             policy: testPolicy,
             onPress: mockOnPress,
             currentAccountID: 1,

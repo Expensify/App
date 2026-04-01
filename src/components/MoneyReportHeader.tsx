@@ -2103,6 +2103,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                 event,
                 iouPaymentType,
                 triggerKYCFlow,
+                expenseReportPolicy: policy,
                 policy,
                 onPress: confirmPayment,
                 currentAccountID: accountID,
