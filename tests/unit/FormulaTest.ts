@@ -862,6 +862,31 @@ describe('CustomFormula', () => {
             expect(endResult).toBe('2025-01-15');
         });
 
+        test('should fall back to current date when all transactions are partial (scan expense)', () => {
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date('2025-01-19T12:00:00Z'));
+
+            const mockTransactions = [
+                {
+                    transactionID: 'scan1',
+                    created: '2025-01-15T12:00:00Z',
+                    amount: 0,
+                    merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                },
+            ] as Transaction[];
+
+            mockReportUtils.getReportTransactions.mockReturnValue(mockTransactions);
+            const context: FormulaContext = {
+                report: {reportID: 'test-report-123'} as Report,
+                policy: null as unknown as Policy,
+            };
+
+            expect(compute('{report:startdate}', context)).toBe('2025-01-19');
+            expect(compute('{report:enddate}', context)).toBe('2025-01-19');
+
+            jest.useRealTimers();
+        });
+
         test('should skip partial transactions (partial merchant)', () => {
             const mockTransactions = [
                 {

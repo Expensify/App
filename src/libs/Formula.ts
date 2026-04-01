@@ -718,7 +718,8 @@ function getOldestTransactionDate(reportID: string, context?: FormulaContext): s
         oldestDate = created;
     }
 
-    return oldestDate;
+    // Fall back to current date when all transactions were skipped (e.g. partial/scanning).
+    return oldestDate ?? new Date().toISOString();
 }
 
 /**
@@ -888,7 +889,8 @@ function getNewestTransactionDate(reportID: string, context?: FormulaContext): s
         newestDate = created;
     }
 
-    return newestDate;
+    // Fall back to current date when all transactions were skipped (e.g. partial/scanning).
+    return newestDate ?? new Date().toISOString();
 }
 
 /**
