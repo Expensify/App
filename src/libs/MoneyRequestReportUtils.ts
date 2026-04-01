@@ -11,6 +11,7 @@ import {
     getNonHeldAndFullAmount,
     hasHeldExpenses as hasHeldExpensesReportUtils,
     hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils,
+    hasOnlyNonReimbursableTransactions,
     hasUpdatedTotal,
     isInvoiceReport,
     isMoneyRequestReport,
@@ -152,7 +153,12 @@ function shouldWaitForTransactions(report: OnyxEntry<Report>, transactions: Tran
  * @param reportPreviewAction - The action that will take place when button is clicked which determines how amounts are calculated and displayed.
  * @returns - The total amount to be formatted as a string. Returns an empty string if no amount is applicable.
  */
-const getTotalAmountForIOUReportPreviewButton = (report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, reportPreviewAction: ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS>) => {
+const getTotalAmountForIOUReportPreviewButton = (
+    report: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+    reportPreviewAction: ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS>,
+    transactions?: Transaction[],
+) => {
     // Determine whether the non-held amount is appropriate to display for the PAY button.
     const {nonHeldAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(report, reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(report?.reportID);
@@ -165,6 +171,11 @@ const getTotalAmountForIOUReportPreviewButton = (report: OnyxEntry<Report>, poli
         // Return empty string if there are only held expenses which cannot be paid.
         if (hasOnlyHeldExpenses) {
             return '';
+        }
+
+        // For reports with only non-reimbursable expenses, show total display spend for Mark as paid.
+        if (hasOnlyNonReimbursableTransactions(report?.reportID, transactions)) {
+            return convertToDisplayString(totalDisplaySpend, report?.currency);
         }
 
         // We shouldn't display the nonHeldAmount as the default option if it's not valid since we cannot pay partially in this case

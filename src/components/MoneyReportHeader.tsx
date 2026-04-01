@@ -24,6 +24,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
+import useNonReimbursablePaymentModal from '@hooks/useNonReimbursablePaymentModal';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
@@ -102,6 +103,7 @@ import {
     getTransactionsWithReceipts,
     hasHeldExpenses as hasHeldExpensesReportUtils,
     hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils,
+    hasOnlyNonReimbursableTransactions,
     hasUpdatedTotal,
     hasViolations as hasViolationsReportUtils,
     isAllowedToApproveExpenseReport,
@@ -567,6 +569,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
     const shouldDisplayNarrowMoreButton = !shouldDisplayNarrowVersion || isWideRHPDisplayedOnWideLayout || isSuperWideRHPDisplayedOnWideLayout;
 
     const [offlineModalVisible, setOfflineModalVisible] = useState(false);
+    const {showNonReimbursablePaymentErrorModal, shouldBlockDirectPayment, nonReimbursablePaymentErrorDecisionModal} = useNonReimbursablePaymentModal(moneyRequestReport, transactions);
 
     const showExportProgressModal = useCallback(() => {
         return showConfirmModal({
@@ -624,9 +627,15 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
     });
 
     const canIOUBePaid = useMemo(() => getCanIOUBePaid(), [getCanIOUBePaid]);
-    const onlyShowPayElsewhere = useMemo(() => !canIOUBePaid && getCanIOUBePaid(true), [canIOUBePaid, getCanIOUBePaid]);
+    const reportHasOnlyNonReimbursableTransactions = hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID, transactions);
+    const onlyShowPayElsewhere = useMemo(() => {
+        if (reportHasOnlyNonReimbursableTransactions) {
+            return false;
+        }
+        return !canIOUBePaid && getCanIOUBePaid(true);
+    }, [canIOUBePaid, getCanIOUBePaid, reportHasOnlyNonReimbursableTransactions]);
 
-    const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
+    const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere || reportHasOnlyNonReimbursableTransactions;
 
     const shouldShowApproveButton = useMemo(
         () => (canApproveIOU(moneyRequestReport, policy, reportMetadata, transactions) && !hasOnlyPendingTransactions) || isApprovedAnimationRunning,
@@ -704,6 +713,10 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
     const confirmPayment = useCallback(
         ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
             if (!type || !chatReport) {
+                return;
+            }
+            if (shouldBlockDirectPayment(type)) {
+                showNonReimbursablePaymentErrorModal();
                 return;
             }
             setPaymentType(type);
@@ -789,6 +802,8 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
             isAnyTransactionOnHold,
             isInvoiceReport,
             showDelegateNoAccessModal,
+            showNonReimbursablePaymentErrorModal,
+            shouldBlockDirectPayment,
             startAnimation,
             moneyRequestReport,
             nextStep,
@@ -1211,7 +1226,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
     }, [connectedIntegration, exportModalStatus, moneyRequestReport?.reportID]);
 
     const getAmount = (actionType: ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS>) => ({
-        formattedAmount: getTotalAmountForIOUReportPreviewButton(moneyRequestReport, policy, actionType),
+        formattedAmount: getTotalAmountForIOUReportPreviewButton(moneyRequestReport, policy, actionType, nonPendingDeleteTransactions),
     });
 
     const {formattedAmount: totalAmount} = getAmount(CONST.REPORT.PRIMARY_ACTIONS.PAY);
@@ -2572,6 +2587,8 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                         }
                     }}
                     transactionCount={transactionIDs?.length ?? 0}
+                    transactions={transactions}
+                    onNonReimbursablePaymentError={showNonReimbursablePaymentErrorModal}
                 />
             )}
             <DecisionModal
@@ -2640,6 +2657,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                 isVisible={offlineModalVisible}
                 onClose={() => setOfflineModalVisible(false)}
             />
+            {nonReimbursablePaymentErrorDecisionModal}
             <Modal
                 onClose={() => {
                     setIsPDFModalVisible(false);
