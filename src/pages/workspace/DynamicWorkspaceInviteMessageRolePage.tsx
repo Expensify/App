@@ -1,6 +1,7 @@
 import React from 'react';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WorkspaceMemberRoleList from '@components/WorkspaceMemberRoleList';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useOnyx from '@hooks/useOnyx';
 import {setWorkspaceInviteRoleDraft} from '@libs/actions/Policy/Member';
 import Navigation from '@libs/Navigation/Navigation';
@@ -9,6 +10,7 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {goBackFromInvalidPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -16,11 +18,13 @@ import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 
-type WorkspaceInviteMessageRolePageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INVITE_MESSAGE_ROLE>;
+type DynamicWorkspaceInviteMessageRolePageProps = WithPolicyAndFullscreenLoadingProps &
+    PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_INVITE_MESSAGE_ROLE>;
 
-function WorkspaceInviteMessageRolePage({policy, route}: WorkspaceInviteMessageRolePageProps) {
+function DynamicWorkspaceInviteMessageRolePage({policy, route}: DynamicWorkspaceInviteMessageRolePageProps) {
     const [role = CONST.POLICY.ROLE.USER, roleResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${route.params.policyID}`);
     const isOnyxLoading = isLoadingOnyxValue(roleResult);
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_INVITE_MESSAGE_ROLE.path);
 
     return (
         <AccessOrNotFoundWrapper
@@ -40,14 +44,14 @@ function WorkspaceInviteMessageRolePage({policy, route}: WorkspaceInviteMessageR
                     onSelectRole={({value}) => {
                         setWorkspaceInviteRoleDraft(route.params.policyID, value);
                         Navigation.setNavigationActionToMicrotaskQueue(() => {
-                            Navigation.goBack(route.params.backTo);
+                            Navigation.goBack(backPath);
                         });
                     }}
-                    navigateBackTo={route.params.backTo}
+                    navigateBackTo={backPath}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
 }
 
-export default withPolicyAndFullscreenLoading(WorkspaceInviteMessageRolePage);
+export default withPolicyAndFullscreenLoading(DynamicWorkspaceInviteMessageRolePage);
