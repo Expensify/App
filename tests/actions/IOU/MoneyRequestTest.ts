@@ -443,6 +443,7 @@ describe('MoneyRequest', () => {
             participants: [] as Participant[],
             participantsPolicyTags: {} as Record<string, PolicyTagLists>,
             amountOwed: 0,
+            userBillingGracePeriodEnds: undefined,
         };
 
         beforeEach(async () => {
@@ -887,13 +888,13 @@ describe('MoneyRequest', () => {
             );
         });
 
-        it('should pass ownerBillingGraceEndPeriod through to shouldUseDefaultExpensePolicy', () => {
+        it('should pass ownerBillingGracePeriodEnd through to shouldUseDefaultExpensePolicy', () => {
             const pastDate = Math.floor(Date.now() / 1000) - 86400 * 30;
             handleMoneyRequestStepScanParticipants({
                 ...baseParams,
                 defaultExpensePolicy: undefined,
                 amountOwed: 100,
-                ownerBillingGraceEndPeriod: pastDate,
+                ownerBillingGracePeriodEnd: pastDate,
             });
 
             expect(Navigation.navigate).toHaveBeenCalledWith(
@@ -947,6 +948,7 @@ describe('MoneyRequest', () => {
             isSelfTourViewed: false,
             amountOwed: 0,
             draftTransactionIDs: undefined,
+            userBillingGracePeriodEnds: undefined,
         };
         const splitShares: SplitShares = {
             [firstSplitParticipantID]: {
@@ -1325,7 +1327,7 @@ describe('MoneyRequest', () => {
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.CREATE, baseParams.transactionID, baseParams.reportID));
         });
 
-        it('should pass ownerBillingGraceEndPeriod through to shouldUseDefaultExpensePolicy', () => {
+        it('should pass ownerBillingGracePeriodEnd through to shouldUseDefaultExpensePolicy', () => {
             const pastDate = Math.floor(Date.now() / 1000) - 86400 * 30;
             handleMoneyRequestStepDistanceNavigation({
                 ...baseParams,
@@ -1333,7 +1335,7 @@ describe('MoneyRequest', () => {
                 defaultExpensePolicy: undefined,
                 iouType: CONST.IOU.TYPE.CREATE,
                 amountOwed: 100,
-                ownerBillingGraceEndPeriod: pastDate,
+                ownerBillingGracePeriodEnd: pastDate,
             });
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.CREATE, baseParams.transactionID, baseParams.reportID));
@@ -1350,7 +1352,7 @@ describe('MoneyRequest', () => {
                 isPolicyExpenseChatEnabled: true,
             };
 
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0, undefined)).toBe(true);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0, undefined, undefined)).toBe(true);
         });
 
         it('should return false when iouType is not CREATE', () => {
@@ -1360,9 +1362,9 @@ describe('MoneyRequest', () => {
                 isPolicyExpenseChatEnabled: true,
             };
 
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.SUBMIT, policy, 0, undefined)).toBe(false);
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.TRACK, policy, 0, undefined)).toBe(false);
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.SPLIT, policy, 0, undefined)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.SUBMIT, policy, 0, undefined, undefined)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.TRACK, policy, 0, undefined, undefined)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.SPLIT, policy, 0, undefined, undefined)).toBe(false);
         });
 
         it('should return false when policy is not a paid group policy', () => {
@@ -1372,7 +1374,7 @@ describe('MoneyRequest', () => {
                 isPolicyExpenseChatEnabled: true,
             };
 
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0, undefined)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0, undefined, undefined)).toBe(false);
         });
 
         it('should return false when isPolicyExpenseChatEnabled is false', () => {
@@ -1382,15 +1384,15 @@ describe('MoneyRequest', () => {
                 isPolicyExpenseChatEnabled: false,
             };
 
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0, undefined)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0, undefined, undefined)).toBe(false);
         });
 
         it('should return false when policy is undefined', () => {
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, undefined, 0, undefined)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, undefined, 0, undefined, undefined)).toBe(false);
         });
 
         it('should return false when policy is null', () => {
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, null, 0, undefined)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, null, 0, undefined, undefined)).toBe(false);
         });
 
         it('should handle amountOwed being undefined', () => {
@@ -1400,10 +1402,10 @@ describe('MoneyRequest', () => {
                 isPolicyExpenseChatEnabled: true,
             };
 
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, undefined, undefined)).toBe(true);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, undefined, undefined, undefined)).toBe(true);
         });
 
-        it('should pass ownerBillingGraceEndPeriod through to shouldRestrictUserBillableActions', async () => {
+        it('should pass ownerBillingGracePeriodEnd through to shouldRestrictUserBillableActions', async () => {
             const policy = {
                 ...fakePolicy,
                 type: CONST.POLICY.TYPE.TEAM,
@@ -1415,7 +1417,7 @@ describe('MoneyRequest', () => {
             await Onyx.set(ONYXKEYS.SESSION, {accountID: TEST_USER_ACCOUNT_ID});
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 100, pastDate)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 100, undefined, pastDate)).toBe(false);
 
             await Onyx.clear();
         });

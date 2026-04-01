@@ -35,6 +35,7 @@ import {
     replaceReceipt,
     retractReport,
     setMoneyRequestCategory,
+    setMoneyRequestDistanceRate,
     shouldOptimisticallyUpdateSearch,
     submitReport,
     updateBulkEditDraftTransaction,
@@ -54,6 +55,7 @@ import {addComment, createNewReport, deleteReport, notifyNewAction, openReport} 
 import {subscribeToUserEvents} from '@libs/actions/User';
 import type {ApiCommand} from '@libs/API/types';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import Log from '@libs/Log';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
@@ -91,7 +93,18 @@ import DateUtils from '@src/libs/DateUtils';
 import * as SearchQueryUtils from '@src/libs/SearchQueryUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {IntroSelected, PersonalDetailsList, Policy, PolicyTagLists, RecentlyUsedTags, RecentWaypoint, Report, ReportNameValuePairs, SearchResults} from '@src/types/onyx';
+import type {
+    IntroSelected,
+    LastSelectedDistanceRates,
+    PersonalDetailsList,
+    Policy,
+    PolicyTagLists,
+    RecentlyUsedTags,
+    RecentWaypoint,
+    Report,
+    ReportNameValuePairs,
+    SearchResults,
+} from '@src/types/onyx';
 import type {Attendee, Participant as IOUParticipant, SplitExpense} from '@src/types/onyx/IOU';
 import type {OriginalMessageMovedTransaction} from '@src/types/onyx/OriginalMessage';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
@@ -527,7 +540,7 @@ describe('actions/IOU', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 draftTransactionIDs: [existingDraftTransaction1.transactionID, existingDraftTransaction2.transactionID],
                 activePolicy: undefined,
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 transaction: transactionToCategorize,
             });
@@ -575,7 +588,7 @@ describe('actions/IOU', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 draftTransactionIDs: [],
                 activePolicy: undefined,
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 transaction: originalTransaction,
             });
@@ -612,7 +625,7 @@ describe('actions/IOU', () => {
                 introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 draftTransactionIDs: [],
                 activePolicy: undefined,
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 transaction: undefined,
             });
@@ -645,7 +658,7 @@ describe('actions/IOU', () => {
                 draftTransactionIDs: [],
                 activePolicy: undefined,
                 transaction,
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
             });
             await waitForBatchedUpdates();
@@ -3637,6 +3650,193 @@ describe('actions/IOU', () => {
         });
     });
 
+    describe('setMoneyRequestDistanceRate', () => {
+        it('does not set distance rate if transaction is invalid', async () => {
+            // Given an invalid transaction
+            const consoleWarnSpy = jest.spyOn(Log, 'warn').mockImplementation(() => {});
+
+            // When calling setMoneyRequestDistanceRate with invalid transaction
+            setMoneyRequestDistanceRate(undefined, 'customUnitRateID123', createRandomPolicy(1), false);
+            // Then a warning should be logged and distance rate should not be set
+            expect(consoleWarnSpy).toHaveBeenCalledWith('setMoneyRequestDistanceRate is called without a valid transaction, skipping setting distance rate.');
+            const distanceRates = await getOnyxValue(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
+            expect(distanceRates).toBeUndefined();
+            consoleWarnSpy.mockRestore();
+        });
+
+        it('sets the last selected distance rate for valid transaction', async () => {
+            const policy = createRandomPolicy(1);
+            // Given a valid transaction
+            const testTransaction: Transaction = {
+                transactionID: 'testTransaction123',
+                amount: 1000,
+                currency: CONST.CURRENCY.USD,
+                comment: {
+                    comment: 'Test transaction',
+                    attendees: [],
+                },
+                created: DateUtils.getDBTime(),
+                merchant: 'Test Merchant',
+                reportID: 'testReport123',
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${testTransaction.transactionID}`, testTransaction);
+
+            // When calling setMoneyRequestDistanceRate with valid transaction
+            const customUnitRateID = 'customUnitRateID123';
+            setMoneyRequestDistanceRate(testTransaction, customUnitRateID, policy, false);
+            await waitForBatchedUpdates();
+            // Then the distance rate should be set in Onyx
+            const lastDistanceRates = (await getOnyxValue(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES)) as LastSelectedDistanceRates | undefined;
+            expect(lastDistanceRates?.[policy.id]).toBeDefined();
+            expect(lastDistanceRates?.[policy.id]).toBe(customUnitRateID);
+        });
+
+        it('sets distance rate and distance unit for draft transaction', async () => {
+            const policy = createRandomPolicy(1);
+            policy.customUnits = {
+                distanceUnitID: {
+                    customUnitID: 'distanceUnitID',
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    attributes: {
+                        unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+                    },
+                    rates: {},
+                },
+            };
+
+            const testTransaction: Transaction = {
+                transactionID: 'testTransaction123',
+                amount: 1000,
+                currency: CONST.CURRENCY.USD,
+                comment: {
+                    comment: 'Test transaction',
+                },
+                created: DateUtils.getDBTime(),
+                merchant: 'Test Merchant',
+                reportID: 'testReport123',
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${testTransaction.transactionID}`, testTransaction);
+
+            const customUnitRateID = 'customUnitRateID123';
+            setMoneyRequestDistanceRate(testTransaction, customUnitRateID, policy, true);
+            await waitForBatchedUpdates();
+
+            const transactionDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${testTransaction.transactionID}`);
+            expect(transactionDraft?.comment?.customUnit?.customUnitRateID).toBe(customUnitRateID);
+            expect(transactionDraft?.comment?.customUnit?.distanceUnit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
+            expect(transactionDraft?.comment?.customUnit?.defaultP2PRate).toBeUndefined();
+        });
+
+        it('converts distance quantity if distance unit changes', async () => {
+            const policy = createRandomPolicy(1);
+            policy.customUnits = {
+                distanceUnitID: {
+                    customUnitID: 'distanceUnitID',
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    attributes: {
+                        unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+                    },
+                    rates: {},
+                },
+            };
+
+            const testTransaction: Transaction = {
+                transactionID: 'testTransaction123',
+                amount: 1000,
+                currency: CONST.CURRENCY.USD,
+                comment: {
+                    comment: 'Test transaction',
+                    customUnit: {
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 10,
+                    },
+                },
+                created: DateUtils.getDBTime(),
+                merchant: 'Test Merchant',
+                reportID: 'testReport123',
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${testTransaction.transactionID}`, testTransaction);
+
+            const customUnitRateID = 'customUnitRateID123';
+            setMoneyRequestDistanceRate(testTransaction, customUnitRateID, policy, false);
+            await waitForBatchedUpdates();
+
+            const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${testTransaction.transactionID}`);
+            expect(transaction?.comment?.customUnit?.customUnitRateID).toBe(customUnitRateID);
+            expect(transaction?.comment?.customUnit?.distanceUnit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
+            // 10 miles to kilometers = 10 / 0.000621371 * 0.001 = 16.093444978925636
+            expect(transaction?.comment?.customUnit?.quantity).toBe(16.093444978925636);
+        });
+
+        it('does not convert distance quantity if distance unit changes but it is an odometer request', async () => {
+            const policy = createRandomPolicy(1);
+            policy.customUnits = {
+                distanceUnitID: {
+                    customUnitID: 'distanceUnitID',
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    attributes: {
+                        unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+                    },
+                    rates: {},
+                },
+            };
+
+            const testTransaction: Transaction = {
+                transactionID: 'testTransaction123',
+                amount: 1000,
+                currency: CONST.CURRENCY.USD,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER,
+                comment: {
+                    comment: 'Test transaction',
+                    customUnit: {
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 10,
+                    },
+                },
+                created: DateUtils.getDBTime(),
+                merchant: 'Test Merchant',
+                reportID: 'testReport123',
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${testTransaction.transactionID}`, testTransaction);
+
+            const customUnitRateID = 'customUnitRateID123';
+            setMoneyRequestDistanceRate(testTransaction, customUnitRateID, policy, false);
+            await waitForBatchedUpdates();
+
+            const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${testTransaction.transactionID}`);
+            expect(transaction?.comment?.customUnit?.customUnitRateID).toBe(customUnitRateID);
+            expect(transaction?.comment?.customUnit?.distanceUnit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
+            // Quantity should remain 10 for odometer requests
+            expect(transaction?.comment?.customUnit?.quantity).toBe(10);
+        });
+
+        it('does not set defaultP2PRate to null when policy is undefined', async () => {
+            const testTransaction: Transaction = {
+                transactionID: 'testTransaction123',
+                amount: 1000,
+                currency: CONST.CURRENCY.USD,
+                comment: {
+                    comment: 'Test transaction',
+                    customUnit: {
+                        defaultP2PRate: CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS,
+                    },
+                },
+                created: DateUtils.getDBTime(),
+                merchant: 'Test Merchant',
+                reportID: 'testReport123',
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${testTransaction.transactionID}`, testTransaction);
+
+            const customUnitRateID = 'customUnitRateID123';
+            setMoneyRequestDistanceRate(testTransaction, customUnitRateID, undefined, false);
+            await waitForBatchedUpdates();
+
+            const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${testTransaction.transactionID}`);
+            expect(transaction?.comment?.customUnit?.customUnitRateID).toBe(customUnitRateID);
+            expect(transaction?.comment?.customUnit?.defaultP2PRate).toBe(CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS);
+        });
+    });
+
     describe('split expense', () => {
         const splitMockPersonalDetails: PersonalDetailsList = {
             [RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL, displayName: 'Rory'},
@@ -5276,7 +5476,7 @@ describe('actions/IOU', () => {
                             currentUserAccountID,
                             betas: [CONST.BETAS.ALL],
                             isSelfTourViewed: false,
-                            userBillingGraceEndPeriods: undefined,
+                            userBillingGracePeriodEnds: undefined,
                             amountOwed: 0,
                         });
                     }
@@ -5483,7 +5683,7 @@ describe('actions/IOU', () => {
                             currentUserAccountID: CARLOS_ACCOUNT_ID,
                             betas: [CONST.BETAS.ALL],
                             isSelfTourViewed: false,
-                            userBillingGraceEndPeriods: undefined,
+                            userBillingGracePeriodEnds: undefined,
                             amountOwed: 0,
                         });
                     }
@@ -5644,7 +5844,7 @@ describe('actions/IOU', () => {
                             currentUserAccountID: CARLOS_ACCOUNT_ID,
                             betas: [CONST.BETAS.ALL],
                             isSelfTourViewed: false,
-                            userBillingGraceEndPeriods: undefined,
+                            userBillingGracePeriodEnds: undefined,
                             amountOwed: 0,
                         });
                     }
@@ -5696,7 +5896,7 @@ describe('actions/IOU', () => {
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
             });
 
@@ -5810,7 +6010,7 @@ describe('actions/IOU', () => {
                         full: false,
                         betas: [CONST.BETAS.ALL],
                         isSelfTourViewed: false,
-                        userBillingGraceEndPeriods: undefined,
+                        userBillingGracePeriodEnds: undefined,
                         amountOwed: 0,
                     });
                     return waitForBatchedUpdates();
@@ -5905,7 +6105,7 @@ describe('actions/IOU', () => {
                 policy,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
             });
             await waitForBatchedUpdates();
@@ -5939,7 +6139,7 @@ describe('actions/IOU', () => {
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: true,
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
             });
 
@@ -5986,7 +6186,7 @@ describe('actions/IOU', () => {
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
             });
 
@@ -6053,9 +6253,9 @@ describe('actions/IOU', () => {
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 amountOwed: 100,
-                ownerBillingGraceEndPeriod: pastDate,
+                ownerBillingGracePeriodEnd: pastDate,
             });
 
             await waitForBatchedUpdates();
@@ -6087,7 +6287,7 @@ describe('actions/IOU', () => {
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
                 betas: [CONST.BETAS.ALL],
                 isSelfTourViewed: false,
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
             });
 
@@ -6205,7 +6405,7 @@ describe('actions/IOU', () => {
                             currentUserAccountID: CARLOS_ACCOUNT_ID,
                             betas: [CONST.BETAS.ALL],
                             isSelfTourViewed: false,
-                            userBillingGraceEndPeriods: undefined,
+                            userBillingGracePeriodEnds: undefined,
                             amountOwed: 0,
                         });
                     }
@@ -7940,9 +8140,9 @@ describe('actions/IOU', () => {
                             hasViolations: true,
                             isASAPSubmitBetaEnabled: true,
                             expenseReportCurrentNextStepDeprecated: nextStep,
-                            userBillingGraceEndPeriods: undefined,
+                            userBillingGracePeriodEnds: undefined,
                             amountOwed: 0,
-                            ownerBillingGraceEndPeriod: undefined,
+                            ownerBillingGracePeriodEnd: undefined,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -8238,9 +8438,9 @@ describe('actions/IOU', () => {
                                 hasViolations: true,
                                 isASAPSubmitBetaEnabled: true,
                                 expenseReportCurrentNextStepDeprecated: nextStep,
-                                userBillingGraceEndPeriods: undefined,
+                                userBillingGracePeriodEnds: undefined,
                                 amountOwed: 0,
-                                ownerBillingGraceEndPeriod: undefined,
+                                ownerBillingGracePeriodEnd: undefined,
                             });
                         }
                         return waitForBatchedUpdates();
@@ -8505,9 +8705,9 @@ describe('actions/IOU', () => {
                                 hasViolations: true,
                                 isASAPSubmitBetaEnabled: true,
                                 expenseReportCurrentNextStepDeprecated: nextStep,
-                                userBillingGraceEndPeriods: undefined,
+                                userBillingGracePeriodEnds: undefined,
                                 amountOwed: 0,
-                                ownerBillingGraceEndPeriod: undefined,
+                                ownerBillingGracePeriodEnd: undefined,
                             });
                         }
                         return waitForBatchedUpdates();
@@ -8673,9 +8873,9 @@ describe('actions/IOU', () => {
                             hasViolations: true,
                             isASAPSubmitBetaEnabled: true,
                             expenseReportCurrentNextStepDeprecated: undefined,
-                            userBillingGraceEndPeriods: undefined,
+                            userBillingGracePeriodEnds: undefined,
                             amountOwed: 0,
-                            ownerBillingGraceEndPeriod: undefined,
+                            ownerBillingGracePeriodEnd: undefined,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -8744,9 +8944,9 @@ describe('actions/IOU', () => {
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: true,
                 expenseReportCurrentNextStepDeprecated: undefined,
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 amountOwed: 100,
-                ownerBillingGraceEndPeriod: pastDate,
+                ownerBillingGracePeriodEnd: pastDate,
             });
 
             await waitForBatchedUpdates();
@@ -8844,7 +9044,7 @@ describe('actions/IOU', () => {
                 (Navigation.navigate as jest.Mock).mockClear();
 
                 const nextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`);
-                const ownerBillingGraceEndPeriod = Math.floor(Date.now() / 1000) - 86400 * 30;
+                const ownerBillingGracePeriodEnd = Math.floor(Date.now() / 1000) - 86400 * 30;
                 submitReport({
                     expenseReport,
                     policy,
@@ -8853,9 +9053,9 @@ describe('actions/IOU', () => {
                     hasViolations: false,
                     isASAPSubmitBetaEnabled: true,
                     expenseReportCurrentNextStepDeprecated: nextStep,
-                    userBillingGraceEndPeriods: undefined,
+                    userBillingGracePeriodEnds: undefined,
                     amountOwed: 0,
-                    ownerBillingGraceEndPeriod,
+                    ownerBillingGracePeriodEnd,
                 });
 
                 await waitForBatchedUpdates();
@@ -11869,7 +12069,7 @@ describe('actions/IOU', () => {
                     currentUserAccountID: CARLOS_ACCOUNT_ID,
                     betas: [CONST.BETAS.ALL],
                     isSelfTourViewed: false,
-                    userBillingGraceEndPeriods: undefined,
+                    userBillingGracePeriodEnds: undefined,
                     amountOwed: 0,
                 });
             }
@@ -13962,9 +14162,9 @@ describe('actions/IOU', () => {
                 isASAPSubmitBetaEnabled: false,
                 expenseReportCurrentNextStepDeprecated: undefined,
                 betas: [CONST.BETAS.ALL],
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
-                ownerBillingGraceEndPeriod: undefined,
+                ownerBillingGracePeriodEnd: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -14012,9 +14212,9 @@ describe('actions/IOU', () => {
                 isASAPSubmitBetaEnabled: false,
                 expenseReportCurrentNextStepDeprecated: undefined,
                 betas: [CONST.BETAS.ALL],
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
-                ownerBillingGraceEndPeriod: undefined,
+                ownerBillingGracePeriodEnd: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -14058,9 +14258,9 @@ describe('actions/IOU', () => {
                 isASAPSubmitBetaEnabled: false,
                 expenseReportCurrentNextStepDeprecated: undefined,
                 betas: [CONST.BETAS.ALL],
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
-                ownerBillingGraceEndPeriod: undefined,
+                ownerBillingGracePeriodEnd: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -14180,9 +14380,9 @@ describe('actions/IOU', () => {
                 isASAPSubmitBetaEnabled: false,
                 expenseReportCurrentNextStepDeprecated: undefined,
                 betas: [CONST.BETAS.ALL],
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
-                ownerBillingGraceEndPeriod: undefined,
+                ownerBillingGracePeriodEnd: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -14209,9 +14409,9 @@ describe('actions/IOU', () => {
                 isASAPSubmitBetaEnabled: false,
                 expenseReportCurrentNextStepDeprecated: undefined,
                 betas: [CONST.BETAS.ALL],
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
-                ownerBillingGraceEndPeriod: undefined,
+                ownerBillingGracePeriodEnd: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -14236,9 +14436,9 @@ describe('actions/IOU', () => {
                 isASAPSubmitBetaEnabled: false,
                 expenseReportCurrentNextStepDeprecated: undefined,
                 betas: [CONST.BETAS.ALL],
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
-                ownerBillingGraceEndPeriod: undefined,
+                ownerBillingGracePeriodEnd: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -14293,9 +14493,9 @@ describe('actions/IOU', () => {
                 isASAPSubmitBetaEnabled: false,
                 expenseReportCurrentNextStepDeprecated: undefined,
                 betas: [CONST.BETAS.ALL],
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
-                ownerBillingGraceEndPeriod: undefined,
+                ownerBillingGracePeriodEnd: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -14406,10 +14606,10 @@ describe('actions/IOU', () => {
                 isASAPSubmitBetaEnabled: false,
                 expenseReportCurrentNextStepDeprecated: undefined,
                 betas: [CONST.BETAS.ALL],
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 full: false,
-                ownerBillingGraceEndPeriod: undefined,
+                ownerBillingGracePeriodEnd: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -15315,6 +15515,48 @@ describe('actions/IOU', () => {
                     introSelected,
                 }),
             );
+        });
+    });
+
+    describe('resetDraftTransactionsCustomUnit', () => {
+        it('should do nothing if transaction is not passed', async () => {
+            // Call the reset function without a transaction
+            resetDraftTransactionsCustomUnit(undefined);
+            await waitForBatchedUpdates();
+            const allDraftTransactions = await getOnyxValue(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT);
+            // Assuming there are no draft transactions, this should be undefined or an empty object
+            expect(allDraftTransactions).toBeUndefined();
+        });
+        it('should reset custom unit for a transaction', async () => {
+            const transactionID = 'transaction_reset_001';
+            const fakeTransaction: Transaction = {
+                transactionID,
+                amount: 1500,
+                currency: CONST.CURRENCY.USD,
+                created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                merchant: 'Test Reset',
+                reportID: 'report_reset_001',
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        quantity: 100,
+                    },
+                    waypoints: {
+                        waypoint0: {lat: 40.7128, lng: -74.006, address: 'NYC', name: 'NYC', keyForList: 'nyc_key'},
+                    },
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, fakeTransaction);
+            await waitForBatchedUpdates();
+            // Call the reset function
+            resetDraftTransactionsCustomUnit(fakeTransaction);
+            await waitForBatchedUpdates();
+            // Verify the transaction's custom unit and waypoints have been reset
+            const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+            expect(updatedTransaction?.comment?.customUnit?.name).toBe(CONST.CUSTOM_UNITS.NAME_DISTANCE);
+            expect(updatedTransaction?.comment?.customUnit?.quantity).toBe(100);
         });
     });
 });
