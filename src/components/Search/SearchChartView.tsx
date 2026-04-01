@@ -59,6 +59,8 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading}: SearchChar
         }
         newQueryJSON.groupBy = undefined;
         newQueryJSON.view = CONST.SEARCH.VIEW.TABLE;
+        newQueryJSON.sortBy = CONST.SEARCH.TABLE_COLUMNS.DATE;
+        newQueryJSON.sortOrder = CONST.SEARCH.SORT_ORDER.DESC;
 
         const newQueryString = buildSearchQueryString(newQueryJSON);
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: newQueryString}));
