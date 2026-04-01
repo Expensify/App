@@ -1,6 +1,7 @@
 import {deepEqual} from 'fast-equals';
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import Log from '@libs/Log';
 import {getTransactionThreadReportID} from '@libs/MergeTransactionUtils';
 import {isOneTransactionReport} from '@libs/ReportUtils';
@@ -30,6 +31,8 @@ type SidebarOrderedReportsStateContextValue = {
     orderedReports: OnyxTypes.Report[];
     orderedReportIDs: string[];
     currentReportID: string | undefined;
+    /** Same NVP as drives LHN ordering — single source for UI that must stay in sync (e.g. compact vs default row height). */
+    priorityMode: OnyxEntry<ValueOf<typeof CONST.PRIORITY_MODE>>;
 };
 
 type SidebarOrderedReportsActionsContextValue = {
@@ -42,6 +45,7 @@ const SidebarOrderedReportsStateContext = createContext<SidebarOrderedReportsSta
     orderedReports: [],
     orderedReportIDs: [],
     currentReportID: '',
+    priorityMode: CONST.PRIORITY_MODE.DEFAULT,
 });
 
 const SidebarOrderedReportsActionsContext = createContext<SidebarOrderedReportsActionsContextValue>({
@@ -300,6 +304,7 @@ function SidebarOrderedReportsContextProvider({
                 orderedReports: updatedReports,
                 orderedReportIDs: updatedReportIDs,
                 currentReportID: derivedCurrentReportID,
+                priorityMode,
             };
         }
 
@@ -307,8 +312,9 @@ function SidebarOrderedReportsContextProvider({
             orderedReports,
             orderedReportIDs,
             currentReportID: derivedCurrentReportID,
+            priorityMode,
         };
-    }, [getOrderedReportIDs, orderedReportIDs, derivedCurrentReportID, shouldUseNarrowLayout, getOrderedReports, orderedReports]);
+    }, [getOrderedReportIDs, orderedReportIDs, derivedCurrentReportID, shouldUseNarrowLayout, getOrderedReports, orderedReports, priorityMode]);
 
     const actionsValue: SidebarOrderedReportsActionsContextValue = useMemo(() => ({clearLHNCache}), [clearLHNCache]);
 

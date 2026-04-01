@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import React, {useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
@@ -6,7 +7,7 @@ import DisplayNames from '@components/DisplayNames';
 import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
+import {useOnboardingValues, usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import Text from '@components/Text';
@@ -18,6 +19,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -36,6 +38,7 @@ import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionConte
 import FreeTrial from '@pages/settings/Subscription/FreeTrial';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import LHNAvatar from './LHNAvatar';
 import type {OptionRowLHNProps} from './types';
@@ -47,19 +50,20 @@ function OptionRowLHN({
     onSelectRow = () => {},
     optionItem,
     viewMode = 'default',
-    onboardingPurpose,
-    onboarding,
-    isFullscreenVisible,
     isReportsSplitNavigatorLast,
     style,
     onLayout = () => {},
     hasDraftComment,
     shouldShowRBRorGBRTooltip,
-    isScreenFocused = false,
     testID,
     conciergeReportID,
 }: OptionRowLHNProps) {
     const {isProduction} = useEnvironment();
+    const isScreenFocused = useIsFocused();
+    const onboarding = useOnboardingValues();
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const onboardingPurpose = introSelected?.choice;
+    const [isFullscreenVisible] = useOnyx(ONYXKEYS.FULLSCREEN_VISIBILITY);
     const theme = useTheme();
     const styles = useThemeStyles();
     const popoverAnchor = useRef<View>(null);
