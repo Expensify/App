@@ -8,13 +8,14 @@ import {canShowReportRecipientLocalTime, getReportOfflinePendingActionAndErrors,
 import ParticipantLocalTime from '@pages/inbox/report/ParticipantLocalTime';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {useComposerState} from './ComposerContext';
 
 type ComposerLocalTimeProps = {
     reportID: string;
-    isComposerFullSize: boolean;
 };
 
-function ComposerLocalTime({reportID, isComposerFullSize}: ComposerLocalTimeProps) {
+function ComposerLocalTime({reportID}: ComposerLocalTimeProps) {
+    const {isComposerFullSize} = useComposerState();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
     const {isOffline} = useNetwork();

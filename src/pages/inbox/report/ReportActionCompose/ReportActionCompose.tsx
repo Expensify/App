@@ -182,10 +182,7 @@ function Composer({reportID}: ReportActionComposeProps) {
     return (
         <View style={[styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}>
             <ComposerProvider reportID={reportID}>
-                <Composer.LocalTime
-                    reportID={reportID}
-                    isComposerFullSize={isComposerFullSize}
-                />
+                <Composer.LocalTime reportID={reportID} />
                 <View style={isComposerFullSize ? styles.flex1 : {}}>
                     <Composer.DropZone reportID={reportID}>
                         <Composer.Box reportID={reportID}>
