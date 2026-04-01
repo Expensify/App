@@ -609,8 +609,11 @@ function isPartialMerchant(merchant: string): boolean {
     return merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
 }
 
-function isAmountMissing(transaction: OnyxEntry<Transaction>) {
-    return transaction?.amount === undefined && (transaction?.modifiedAmount === undefined || transaction?.modifiedAmount === '');
+function isAmountMissing(transaction: OnyxEntry<Transaction>, isFromExpenseReport = true) {
+    if (isFromExpenseReport) {
+        return transaction?.amount === undefined && (transaction?.modifiedAmount === undefined || transaction?.modifiedAmount === '');
+    }
+    return (transaction?.amount === 0 || transaction?.amount === undefined) && (!transaction?.modifiedAmount || transaction?.modifiedAmount === 0 || transaction?.modifiedAmount === '');
 }
 
 function hasValidModifiedAmount(transaction: OnyxEntry<Transaction> | null): boolean {
@@ -892,6 +895,10 @@ function getUpdatedTransaction({
 
     if (Object.hasOwn(transactionChanges, 'odometerEnd') && typeof transactionChanges.odometerEnd === 'number') {
         lodashSet(updatedTransaction, 'comment.odometerEnd', transactionChanges.odometerEnd);
+    }
+
+    if (Object.hasOwn(transactionChanges, 'reportID')) {
+        updatedTransaction.reportID = transactionChanges.reportID;
     }
 
     // For distance split requests, if the amount is changed, we need to update the amount and merchant based on the new distance which we calculate before and save in transactionChanges
@@ -1294,21 +1301,21 @@ function getTagArrayFromName(tagName: string): string[] {
 }
 
 /**
- * Returns the exchange rate for a transaction, based on its group
+ * Returns the exchange rate for a transaction, based on its group or currencyConversionRate
  */
-function getExchangeRate(transaction: TransactionWithOptionalSearchFields) {
+function getExchangeRate(transaction: TransactionWithOptionalSearchFields, reportCurrency?: string) {
     const fromCurrency = getCurrency(transaction);
-    const toCurrency = transaction.groupCurrency ?? fromCurrency;
+    const toCurrency = transaction.groupCurrency ?? reportCurrency ?? fromCurrency;
 
-    if (!transaction.groupExchangeRate) {
+    if (transaction.groupExchangeRate && Number(transaction.groupExchangeRate) !== 1) {
+        return `${transaction.groupExchangeRate} ${fromCurrency}/${toCurrency}`;
+    }
+
+    if (!transaction.currencyConversionRate || Number(transaction.currencyConversionRate) === 1) {
         return '';
     }
 
-    if (Number(transaction.groupExchangeRate) === 1) {
-        return '';
-    }
-
-    return transaction.groupExchangeRate ? `${transaction.groupExchangeRate} ${fromCurrency}/${toCurrency}` : '';
+    return `${transaction.currencyConversionRate} ${fromCurrency}/${toCurrency}`;
 }
 
 /**

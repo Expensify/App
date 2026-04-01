@@ -389,10 +389,10 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             [
                 {
                     crop: {
-                        originX: cropRect.x,
-                        originY: cropRect.y,
-                        width: cropRect.width,
-                        height: cropRect.height,
+                        originX: Math.max(0, Math.floor(cropRect.x)),
+                        originY: Math.max(0, Math.floor(cropRect.y)),
+                        width: Math.max(1, Math.floor(cropRect.width)),
+                        height: Math.max(1, Math.floor(cropRect.height)),
                     },
                 },
             ],

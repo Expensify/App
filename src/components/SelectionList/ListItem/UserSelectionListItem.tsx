@@ -1,11 +1,15 @@
 import {Str} from 'expensify-common';
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
-import SelectionCheckbox from '@components/SelectionList/components/SelectionCheckbox';
+import Icon from '@components/Icon';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {areEmailsFromSamePrivateDomain} from '@libs/LoginUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
@@ -30,8 +34,19 @@ function UserSelectionListItem<TItem extends ListItem>({
     pressableStyle,
 }: UserSelectionListItemProps<TItem>) {
     const styles = useThemeStyles();
+    const theme = useTheme();
+    const StyleUtils = useStyleUtils();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
     const {formatPhoneNumber} = useLocalize();
+
+    const handleCheckboxPress = useCallback(() => {
+        if (onCheckboxPress) {
+            onCheckboxPress(item);
+        } else {
+            onSelectRow(item);
+        }
+    }, [item, onCheckboxPress, onSelectRow]);
 
     const userHandle = useMemo(() => {
         const login = item.login ?? '';
@@ -100,13 +115,25 @@ function UserSelectionListItem<TItem extends ListItem>({
                     )}
                 </View>
 
-                <SelectionCheckbox
-                    item={item}
-                    onSelectRow={onCheckboxPress ?? onSelectRow}
+                <PressableWithFeedback
+                    accessibilityLabel={item.text ?? ''}
+                    role={CONST.ROLE.BUTTON}
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     disabled={isDisabled || item.isDisabledCheckbox}
-                    style={item.rightElement ? styles.mr3 : undefined}
-                />
+                    onPress={handleCheckboxPress}
+                    style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled, !!item.rightElement && styles.mr3]}
+                >
+                    <View style={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}>
+                        {!!item.isSelected && (
+                            <Icon
+                                src={icons.Checkmark}
+                                fill={theme.textLight}
+                                height={14}
+                                width={14}
+                            />
+                        )}
+                    </View>
+                </PressableWithFeedback>
 
                 {!!item.rightElement && item.rightElement}
             </View>

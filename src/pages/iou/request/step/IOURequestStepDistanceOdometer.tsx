@@ -74,7 +74,7 @@ function IOURequestStepDistanceOdometer({
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
-    const icons = useMemoizedLazyExpensifyIcons(['GalleryPlus'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['GalleryPlus']);
 
     const startReadingInputRef = useRef<BaseTextInputRef | null>(null);
     const endReadingInputRef = useRef<BaseTextInputRef | null>(null);
@@ -118,7 +118,8 @@ function IOURequestStepDistanceOdometer({
     const personalPolicy = usePersonalPolicy();
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const selfDMReport = useSelfDMReport();
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
@@ -138,8 +139,8 @@ function IOURequestStepDistanceOdometer({
     const [shouldEnableDiscardConfirmation, setShouldEnableDiscardConfirmation] = useState(!isEditingConfirmation && !isEditing);
 
     const shouldUseDefaultExpensePolicy = useMemo(
-        () => shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy, amountOwed, ownerBillingGraceEndPeriod),
-        [iouType, defaultExpensePolicy, amountOwed, ownerBillingGraceEndPeriod],
+        () => shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd),
+        [iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd],
     );
     const customUnitRateID = getRateID(transaction);
 
@@ -436,7 +437,7 @@ function IOURequestStepDistanceOdometer({
             if (hasChanges) {
                 // Update distance (which will also update amount and merchant)
                 updateMoneyRequestDistance({
-                    transactionID: transaction?.transactionID,
+                    transaction,
                     transactionThreadReport: report,
                     parentReport,
                     distance: calculatedDistance,
@@ -506,7 +507,8 @@ function IOURequestStepDistanceOdometer({
             draftTransactionIDs,
             isSelfTourViewed: !!isSelfTourViewed,
             amountOwed,
-            ownerBillingGraceEndPeriod,
+            userBillingGracePeriodEnds,
+            ownerBillingGracePeriodEnd,
         });
     };
 

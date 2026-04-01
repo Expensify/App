@@ -80,7 +80,7 @@ function TaskPreview({
     style,
     shouldDisplayContextMenu = true,
 }: TaskPreviewProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'DotIndicator', 'FallbackAvatar'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'DotIndicator', 'FallbackAvatar']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
