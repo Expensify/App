@@ -12,6 +12,7 @@ import type {
     RequestReplacementExpensifyCardParams,
     ResolveFraudAlertParams,
     RevealExpensifyCardDetailsParams,
+    SetExpensifyCardRuleParams,
     SetPersonalCardReimbursableParams,
     StartIssueNewCardFlowParams,
     UnassignCardParams,
@@ -29,6 +30,7 @@ import Log from '@libs/Log';
 import {isReportOpenOrUnsubmitted} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {SpendRuleForm} from '@src/types/form';
 import type {Card, CompanyCardFeedWithDomainID, Report, Transaction} from '@src/types/onyx';
 import type {CardLimitType, ExpensifyCardDetails, IssueNewCardData, IssueNewCardStep} from '@src/types/onyx/Card';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
@@ -1555,10 +1557,117 @@ function queueExpensifyCardForBilling(feedCountry: string, domainAccountID: numb
     API.write(WRITE_COMMANDS.QUEUE_EXPENSIFY_CARD_FOR_BILLING, parameters);
 }
 
-function setExpensifyCardRule(domainAccountID: number, cardRuleID: string, cardRuleValue: string) {
-    
+type SpendRuleASTNode = {
+    left: SpendRuleASTNode | string;
+    operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
+    right: SpendRuleASTNode | string[];
+};
 
-    API.write(WRITE_COMMANDS.SET_EXPENSIFY_CARD_RULE, {domainAccountID, cardRuleID, cardRuleValue});
+type SpendRuleAST = {
+    created: string;
+    action: ValueOf<typeof CONST.SPEND_CARD_RULE.ACTION>;
+    filters: SpendRuleASTNode;
+};
+
+function combineSpendRuleASTNodes(nodes: SpendRuleASTNode[], operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>): SpendRuleASTNode | undefined {
+    const [firstNode, ...remainingNodes] = nodes;
+    if (!firstNode) {
+        return undefined;
+    }
+
+    return remainingNodes.reduce<SpendRuleASTNode>((accumulator, node) => ({left: accumulator, operator, right: node}), firstNode);
+}
+
+function buildSpendRuleAST(spendRuleValues: SpendRuleForm): SpendRuleAST | undefined {
+    const cardIDs = spendRuleValues.cardIDs ?? [];
+    if (cardIDs.length === 0) {
+        return undefined;
+    }
+
+    const merchantNames = (spendRuleValues.merchantNames ?? []).map((merchant) => merchant.trim()).filter((merchant) => merchant !== '');
+    const merchantMatchTypes = spendRuleValues.merchantMatchTypes ?? [];
+    const categories = (spendRuleValues.categories ?? []).map((category) => category.trim()).filter((category) => category !== '');
+    const maxAmount = spendRuleValues.maxAmount?.trim() ?? '';
+
+    const cardNode: SpendRuleASTNode = {
+        left: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
+        operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+        right: cardIDs,
+    };
+
+    const exactMerchantNames = merchantNames.filter((_, index) => merchantMatchTypes.at(index) === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
+    const containsMerchantNames = merchantNames.filter((_, index) => merchantMatchTypes.at(index) !== CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
+    const merchantNodes: SpendRuleASTNode[] = [];
+
+    if (exactMerchantNames.length > 0) {
+        merchantNodes.push({
+            left: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
+            operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+            right: exactMerchantNames,
+        });
+    }
+
+    if (containsMerchantNames.length > 0) {
+        merchantNodes.push({
+            left: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
+            operator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
+            right: containsMerchantNames,
+        });
+    }
+
+    const merchantNode = combineSpendRuleASTNodes(merchantNodes, CONST.SEARCH.SYNTAX_OPERATORS.OR);
+    const categoryNode =
+        categories.length > 0
+            ? {
+                  left: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY,
+                  operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                  right: categories,
+              }
+            : undefined;
+
+    const criteriaNode = combineSpendRuleASTNodes([merchantNode, categoryNode].filter(Boolean) as SpendRuleASTNode[], CONST.SEARCH.SYNTAX_OPERATORS.OR);
+    const amountNode =
+        maxAmount !== ''
+            ? {
+                  left: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
+                  operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN,
+                  right: [maxAmount],
+              }
+            : undefined;
+
+    const ruleNode = combineSpendRuleASTNodes(
+        [amountNode, criteriaNode].filter(Boolean) as SpendRuleASTNode[],
+        spendRuleValues.restrictionAction === CONST.SPEND_CARD_RULE.ACTION.BLOCK ? CONST.SEARCH.SYNTAX_OPERATORS.OR : CONST.SEARCH.SYNTAX_OPERATORS.AND,
+    );
+    const filters = combineSpendRuleASTNodes([cardNode, ruleNode].filter(Boolean) as SpendRuleASTNode[], CONST.SEARCH.SYNTAX_OPERATORS.AND);
+
+    if (!filters) {
+        return undefined;
+    }
+
+    return {
+        created: DateUtils.getDBTime(),
+        action: spendRuleValues.restrictionAction ?? CONST.SPEND_CARD_RULE.ACTION.ALLOW,
+        filters,
+    };
+}
+
+function setExpensifyCardRule(domainAccountID: number, cardRuleID: string, spendRuleValues: SpendRuleForm) {
+    const ruleID = String(cardRuleID);
+    const ruleAST = buildSpendRuleAST(spendRuleValues);
+    if (!ruleAST) {
+        return;
+    }
+
+    const nextCardRuleValue = JSON.stringify(ruleAST);
+
+    const parameters: SetExpensifyCardRuleParams = {
+        domainAccountID,
+        cardRuleID: ruleID,
+        cardRuleValue: nextCardRuleValue,
+    };
+
+    API.write(WRITE_COMMANDS.SET_EXPENSIFY_CARD_RULE, parameters);
 }
 
 function getSpendCardRuleValueJSON(cardIDStrings: string[], action: ValueOf<typeof CONST.SPEND_CARD_RULE.ACTION>) {
