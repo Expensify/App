@@ -22,6 +22,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScrollToEndOnNewMessageReceived from '@hooks/useScrollToEndOnNewMessageReceived';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
@@ -178,6 +179,7 @@ function ReportActionsList({
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const personalDetailsList = usePersonalDetails();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['UpArrow']);
     const {windowHeight} = useWindowDimensions();
@@ -874,8 +876,11 @@ function ReportActionsList({
                     keyExtractor={keyExtractor}
                     drawDistance={1500}
                     renderScrollComponent={renderActionSheetAwareScrollView}
-                    contentContainerStyle={[styles.chatContentScrollView, shouldFocusToTopOnMount ? styles.justifyContentEnd : undefined]}
-                    shouldHideContent={shouldScrollToEndAfterLayout}
+                    contentContainerStyle={[
+                        styles.chatContentScrollView,
+                        shouldFocusToTopOnMount && styles.justifyContentEnd,
+                        shouldScrollToEndAfterLayout && StyleUtils.getHiddenChatContentStyle(),
+                    ]}
                     showsVerticalScrollIndicator={!shouldScrollToEndAfterLayout}
                     onEndReached={onEndReached}
                     onEndReachedThreshold={0.75}
