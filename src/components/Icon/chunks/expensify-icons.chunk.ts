@@ -21,6 +21,7 @@ import ActiveRoomAvatar from '@assets/images/avatars/room.svg';
 import BackArrow from '@assets/images/back-left.svg';
 import Bank from '@assets/images/bank.svg';
 import Basket from '@assets/images/basket.svg';
+import BedCircleSlash from '@assets/images/bed-circle-slash.svg';
 import Bed from '@assets/images/bed.svg';
 import Bell from '@assets/images/bell.svg';
 import Bill from '@assets/images/bill.svg';
@@ -34,7 +35,9 @@ import Building from '@assets/images/building.svg';
 import Buildings from '@assets/images/buildings.svg';
 import CalendarSolid from '@assets/images/calendar-solid.svg';
 import Calendar from '@assets/images/calendar.svg';
+import CameraFlip from '@assets/images/camera-flip.svg';
 import Camera from '@assets/images/camera.svg';
+import CarCircleSlash from '@assets/images/car-circle-slash.svg';
 import CarPlus from '@assets/images/car-plus.svg';
 import CarWithKey from '@assets/images/car-with-key.svg';
 import Car from '@assets/images/car.svg';
@@ -181,6 +184,7 @@ import Pencil from '@assets/images/pencil.svg';
 import Percent from '@assets/images/percent.svg';
 import Phone from '@assets/images/phone.svg';
 import Pin from '@assets/images/pin.svg';
+import PlaneCircleSlash from '@assets/images/plane-circle-slash.svg';
 import Plane from '@assets/images/plane.svg';
 import Play from '@assets/images/play.svg';
 import PlusMinus from '@assets/images/plus-minus.svg';
@@ -228,6 +232,7 @@ import Thread from '@assets/images/thread.svg';
 import ThreeDots from '@assets/images/three-dots.svg';
 import ThumbsDown from '@assets/images/thumbs-down.svg';
 import ThumbsUp from '@assets/images/thumbs-up.svg';
+import TrainCircleSlash from '@assets/images/train-circle-slash.svg';
 import Train from '@assets/images/train.svg';
 import Transfer from '@assets/images/transfer.svg';
 import Trashcan from '@assets/images/trashcan.svg';
@@ -284,6 +289,7 @@ const Expensicons = {
     Buildings,
     Calendar,
     Camera,
+    CameraFlip,
     Car,
     CarPlus,
     Cash,
@@ -465,7 +471,10 @@ const Expensicons = {
     ChatBubbleCounter,
     Lightbulb,
     Plane,
+    PlaneCircleSlash,
     Bed,
+    BedCircleSlash,
+    CarCircleSlash,
     CarWithKey,
     Clear,
     CheckCircle,
@@ -491,6 +500,7 @@ const Expensicons = {
     QBDSquare,
     GalleryNotFound,
     Train,
+    TrainCircleSlash,
     boltSlash,
     MagnifyingGlassSpyMouthClosed,
     CheckSquare,

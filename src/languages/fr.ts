@@ -963,15 +963,6 @@ const translations: TranslationDeepObject<typeof en> = {
         forYou: 'Pour vous',
         timeSensitiveSection: {
             title: 'Urgent',
-            cta: 'Réclamer',
-            offer50off: {
-                title: 'Bénéficiez de 50 % de réduction sur votre première année !',
-                subtitle: ({formattedTime}: {formattedTime: string}) => `${formattedTime} restant`,
-            },
-            offer25off: {
-                title: 'Bénéficiez de 25 % de réduction sur votre première année !',
-                subtitle: ({days}: {days: number}) => `${days} ${days === 1 ? 'jour' : 'jours'} restants`,
-            },
             addShippingAddress: {title: 'Nous avons besoin de votre adresse de livraison', subtitle: 'Indiquez une adresse pour recevoir votre Carte Expensify.', cta: 'Ajouter une adresse'},
             addPaymentCard: {title: 'Ajoutez une carte de paiement pour continuer à utiliser Expensify', subtitle: 'Compte > Abonnement', cta: 'Ajouter'},
             activateCard: {title: 'Activer votre Carte Expensify', subtitle: 'Validez votre carte et commencez à dépenser.', cta: 'Activer'},
@@ -1059,6 +1050,19 @@ const translations: TranslationDeepObject<typeof en> = {
             inDays: () => ({one: 'Dans 1 jour', other: (count: number) => `Dans ${count} jours`}),
             today: 'Aujourd’hui',
         },
+        freeTrialSection: {
+            title: ({days}: {days: number}) => `Essai gratuit : plus que ${days} ${days === 1 ? 'jour' : 'jours'} !`,
+            offer50Body: 'Profitez de 50 % de réduction sur votre première année !',
+            offer25Body: 'Obtenez 25 % de réduction sur votre première année !',
+            addCardBody: 'N’attendez pas ! Ajoutez votre carte de paiement maintenant.',
+            ctaClaim: 'Demande',
+            ctaAdd: 'Ajouter une carte',
+            timeRemaining: ({formattedTime}: {formattedTime: string}) => `Temps restant : ${formattedTime}`,
+            timeRemainingDays: () => ({
+                one: 'Temps restant : 1 jour',
+                other: (pluralCount: number) => `Temps restant : ${pluralCount} jours`,
+            }),
+        },
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -1088,7 +1092,20 @@ const translations: TranslationDeepObject<typeof en> = {
         singleFieldMultipleColumns: (fieldName: string) => `Oups ! Vous avez associé un seul champ (« ${fieldName} ») à plusieurs colonnes. Veuillez vérifier et réessayer.`,
         emptyMappedField: (fieldName: string) => `Oups ! Le champ (« ${fieldName} ») contient une ou plusieurs valeurs vides. Veuillez vérifier et réessayer.`,
         importSuccessfulTitle: 'Importation réussie',
-        importCategoriesSuccessfulDescription: ({categories}: {categories: number}) => (categories > 1 ? `${categories} catégories ont été ajoutées.` : '1 catégorie a été ajoutée.'),
+        importCategoriesSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
+            if (!added && !updated) {
+                return 'Aucune catégorie n’a été ajoutée ou mise à jour.';
+            }
+            if (added && updated) {
+                return `${added} ${added === 1 ? 'catégorie' : 'catégories'} ajouté(s), ${updated} ${updated === 1 ? 'catégorie' : 'catégories'} mis(es) à jour.`;
+            }
+            if (added) {
+                return added === 1 ? '1 catégorie a été ajoutée.' : `${added} catégories ont été ajoutées.`;
+            }
+            return updated === 1 ? '1 catégorie a été mise à jour.' : `${updated} catégories ont été mises à jour.`;
+        },
+        importCompanyCardTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
+            transactions > 1 ? `${transactions} transactions ont été ajoutées.` : '1 transaction a été ajoutée.',
         importMembersSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
             if (!added && !updated) {
                 return 'Aucun membre n’a été ajouté ni mis à jour.';
@@ -1148,6 +1165,7 @@ const translations: TranslationDeepObject<typeof en> = {
         flash: 'flash',
         multiScan: 'numérisation multiple',
         shutter: 'obturateur',
+        flipCamera: 'changer de caméra',
         gallery: 'galerie',
         deleteReceipt: 'Supprimer le reçu',
         deleteConfirmation: 'Voulez-vous vraiment supprimer ce reçu ?',
@@ -1429,6 +1447,11 @@ const translations: TranslationDeepObject<typeof en> = {
             manySplitsProvided: `Le nombre maximal de répartitions autorisées est de ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `La plage de dates ne peut pas dépasser ${CONST.IOU.SPLITS_LIMIT} jours.`,
             stitchOdometerImagesFailed: 'Échec de la combinaison des images de l’odomètre. Veuillez réessayer plus tard.',
+            nonReimbursablePayment: 'Impossible de payer via Expensify',
+            nonReimbursablePaymentDescription: (isMultiple?: boolean) =>
+                isMultiple
+                    ? 'Un ou plusieurs rapports sélectionnés ne contiennent pas de dépenses remboursables. Vérifiez les dépenses ou marquez-les manuellement comme payés.'
+                    : 'Le rapport ne contient pas de dépenses remboursables. Vérifiez les dépenses ou marquez-le manuellement comme payé.',
         },
         dismissReceiptError: 'Ignorer l’erreur',
         dismissReceiptErrorConfirmation: 'Attention ! Ignorer cette erreur supprimera complètement votre reçu téléversé. Êtes-vous sûr ?',
@@ -2945,13 +2968,8 @@ ${amount} pour ${merchant} - ${date}`,
                         4. Recherchez ${integrationName}.
                         5. Cliquez sur *Connecter*.
 
-${
-    integrationName && CONST.connectionsVideoPaths[integrationName]
-        ? `[Accéder à la comptabilité](${workspaceAccountingLink}).
-
-                        ![Se connecter à ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
-        : `[Accéder à la comptabilité](${workspaceAccountingLink}).`
-}`),
+                        [Accéder à la comptabilité](${workspaceAccountingLink}).
+                    `),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `Connectez [vos cartes d’entreprise](${corporateCardLink})`,
@@ -4085,6 +4103,7 @@ ${
             defaultNote: `Les reçus envoyés à ${CONST.EMAIL.RECEIPTS} apparaîtront dans cet espace de travail.`,
             deleteConfirmation: 'Voulez-vous vraiment supprimer cet espace de travail ?',
             deleteWithCardsConfirmation: 'Voulez-vous vraiment supprimer cet espace de travail ? Cela supprimera tous les flux de cartes et les cartes assignées.',
+            deleteOpenExpensifyCardsError: 'Votre entreprise a encore des cartes Expensify actives.',
             outstandingBalanceWarning:
                 'Vous avez un solde impayé qui doit être réglé avant de supprimer votre dernier espace de travail. Veuillez accéder à vos paramètres d’abonnement pour résoudre le paiement.',
             settleBalance: 'Aller à l’abonnement',
@@ -5033,6 +5052,9 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
         companyCards: {
             addCards: 'Ajouter des cartes',
             selectCards: 'Sélectionner des cartes',
+            fromOtherWorkspaces: "D'autres espaces de travail",
+            addWorkEmail: 'Ajoutez votre adresse e-mail professionnelle',
+            addWorkEmailDescription: "Veuillez ajouter votre e-mail professionnel pour utiliser les flux existants d'autres espaces de travail.",
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Impossible de charger les flux de cartes',
                 workspaceFeedsCouldNotBeLoadedMessage:
@@ -5043,6 +5065,11 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             },
             addNewCard: {
                 other: 'Autre',
+                fileImport: 'Importer des transactions depuis un fichier',
+                createFileFeedHelpText: `<muted-text>Veuillez suivre ce <a href="${CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}">guide d’aide</a> pour importer les dépenses de votre carte d’entreprise !</muted-text>`,
+                companyCardLayoutName: 'Nom de la disposition de carte entreprise',
+                cardLayoutNameRequired: 'Le nom du layout de la carte entreprise est requis',
+                useAdvancedFields: 'Utiliser les champs avancés (non recommandé)',
                 cardProviders: {
                     gl1025: 'Cartes American Express Corporate',
                     cdf: 'Cartes commerciales Mastercard',
@@ -5122,6 +5149,24 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                     prompt: 'Nous avons remarqué que vous n’aviez pas fini d’ajouter vos cartes. Si vous avez rencontré un problème, dites-le-nous afin que nous puissions vous aider à tout remettre sur les rails.',
                     confirmText: 'Signaler un problème',
                     cancelText: 'Ignorer',
+                },
+                csvColumns: {
+                    cardNumber: 'Numéro de carte',
+                    postedDate: 'Date',
+                    merchant: 'Commerçant',
+                    amount: 'Montant',
+                    currency: 'Devise',
+                    ignore: 'Ignorer',
+                    originalTransactionDate: 'Date de transaction d’origine',
+                    originalAmount: 'Montant d’origine',
+                    originalCurrency: 'Devise d’origine',
+                    comment: 'Commentaire',
+                    category: 'Catégorie',
+                    tag: 'Étiquette',
+                },
+                csvErrors: {
+                    requiredColumns: (missingColumns: string) => `Veuillez attribuer une colonne à chacun des attributs : ${missingColumns}.`,
+                    duplicateColumns: (duplicateColumn: string) => `Oups ! Vous avez associé un seul champ (« ${duplicateColumn} ») à plusieurs colonnes. Veuillez vérifier et réessayer.`,
                 },
             },
             statementCloseDate: {
@@ -7225,6 +7270,17 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             approvedReimbursedClosedSpend,
         }: UpdatedPolicyBudgetNotificationParams) =>
             `Attention ! Cet espace de travail a un budget ${budgetFrequency} de « ${budgetAmount} » pour le/la ${budgetTypeForNotificationMessage} « ${budgetName} ». Vous en êtes actuellement à ${approvedReimbursedClosedSpend}, ce qui dépasse ${thresholdPercentage}% du budget. Il y a aussi ${awaitingApprovalSpend} en attente d’approbation et ${unsubmittedSpend} qui n’a pas encore été soumis, pour un total de ${totalSpend}. ${summaryLink ? `<a href="${summaryLink}">Voici une note de frais</a> avec toutes ces dépenses pour vos dossiers !` : ''}`,
+        addedCardFeed: (feedName: string) => `a ajouté le flux de carte « ${feedName} »`,
+        removedCardFeed: (feedName: string) => `a supprimé le flux de carte « ${feedName} »`,
+        renamedCardFeed: (newName: string, oldName: string) => `a renommé le flux de carte en « ${newName} » (auparavant « ${oldName} »)`,
+        assignedCompanyCard: (email: string, feedName: string, cardLastFour: string) =>
+            `a assigné ${email} ${feedName ? `« ${feedName} » ` : ''}carte de société se terminant par ${cardLastFour}`,
+        unassignedCompanyCard: (email: string, feedName: string, cardLastFour: string) =>
+            `carte d’entreprise ${feedName ? `« ${feedName} » ` : ''}se terminant par ${cardLastFour} désassignée de ${email}`,
+        updatedCardFeedLiability: (feedName: string, enabled: boolean) =>
+            `Autoriser les porteurs de carte ${enabled ? 'activé' : 'Désactivé'} à supprimer les transactions de carte pour le flux de cartes « ${feedName} »`,
+        updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
+            `a modifié le jour de fin de période de relevé du flux de carte « ${feedName} »${newValue ? ` à « ${newValue} »` : ''}${previousValue ? ` (précédemment « ${previousValue} »)` : ''}`,
         addedReportField: ({fieldType, fieldName, defaultValue}: AddedOrDeletedPolicyReportFieldParams) =>
             `a ajouté le champ de note de frais ${fieldType} « ${fieldName} »${defaultValue ? ` avec la valeur par défaut « ${defaultValue} »` : ''}`,
     },
@@ -7370,6 +7426,9 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         topMerchants: 'Commerçants principaux',
         groupedExpenses: 'dépenses groupées',
         bulkActions: {
+            editMultiple: 'Modifier plusieurs',
+            editMultipleTitle: 'Modifier plusieurs dépenses',
+            editMultipleDescription: 'Les modifications seront appliquées à toutes les dépenses sélectionnées et remplaceront toutes les valeurs précédemment définies.',
             approve: 'Approuver',
             pay: 'Payer',
             delete: 'Supprimer',
