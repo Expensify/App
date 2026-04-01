@@ -16,7 +16,7 @@ type CategoryDefaultsSetterProps = {
 };
 
 /**
- * Renderless component that handles two category-related effects:
+ * Side-effect-only component that handles two category-related effects:
  * 1. Resets cleared categories back to their last saved value
  * 2. Sets the default distance category for distance requests
  */

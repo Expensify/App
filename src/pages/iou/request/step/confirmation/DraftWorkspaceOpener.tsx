@@ -13,7 +13,7 @@ type DraftWorkspaceOpenerProps = {
 };
 
 /**
- * Renderless component that opens draft workspace requests when needed.
+ * Side-effect-only component that opens draft workspace requests when needed.
  * Handles two cases:
  * 1. When creating a track expense, opens workspace for the policy
  * 2. When a policy expense chat or sender policy is present, opens that workspace

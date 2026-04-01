@@ -8,7 +8,7 @@ type TelemetrySpanManagerProps = {
 };
 
 /**
- * Renderless component that manages telemetry spans for the confirmation step.
+ * Side-effect-only component that manages telemetry spans for the confirmation step.
  * On mount: ends the open/mount spans, starts list-ready and receipt-load spans.
  * On unmount: cancels any still-open child spans.
  */

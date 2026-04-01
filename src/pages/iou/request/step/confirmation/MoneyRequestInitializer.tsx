@@ -16,7 +16,7 @@ type MoneyRequestInitializerProps = {
 };
 
 /**
- * Renderless component that initializes a money request (calls startMoneyRequest)
+ * Side-effect-only component that initializes a money request (calls startMoneyRequest)
  * when the transaction loads for the first time and has no participants yet.
  */
 function MoneyRequestInitializer({isLoadingTransaction, transaction, iouType, reportID, draftTransactionIDs}: MoneyRequestInitializerProps) {

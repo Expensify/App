@@ -13,7 +13,7 @@ type ExpenseDefaultsSetterProps = {
 };
 
 /**
- * Renderless component that sets default billable and reimbursable values
+ * Side-effect-only component that sets default billable and reimbursable values
  * on transactions based on the policy configuration.
  */
 function ExpenseDefaultsSetter({transactionIDs, policy, isPolicyExpenseChat, isMovingTransactionFromTrackExpense, isCreatingTrackExpense}: ExpenseDefaultsSetterProps) {
