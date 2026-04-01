@@ -17,9 +17,11 @@ const moveReceiptToDurableStorage: MoveReceiptToDurableStorage = async (sourceUr
     }
 
     try {
-        const folderExists = await RNFS.exists(uploadFolder);
-        if (!folderExists) {
-            await RNFS.mkdir(uploadFolder);
+        await RNFS.mkdir(uploadFolder);
+
+        if (!(await RNFS.exists(uploadFolder))) {
+            Log.alert('[moveReceiptToDurableStorage] Upload folder does not exist after mkdir', {uploadFolder});
+            return sourceUri;
         }
 
         const sourcePath = sourceUri.replace('file://', '');
