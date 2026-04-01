@@ -686,15 +686,24 @@ function ComposerWithSuggestions({
     }, [focus, route.key, shouldAutoFocus, shouldDelayAutoFocus]);
 
     /**
+     * Tracks whether there is a composer input is inside the side panel on the screen.
+     */
+    const handleSidePanelFocus = useCallback(() => {
+        if (!isInSidePanel) {
+            ReportActionComposeFocusManager.sidePanelComposerRef.current = null;
+        } else {
+            ReportActionComposeFocusManager.sidePanelComposerRef.current = textInputRef.current;
+        }
+    }, [isInSidePanel]);
+
+    /**
      * Set focus callback
      * @param shouldTakeOverFocus - Whether this composer should gain focus priority
      */
     const setUpComposeFocusManager = useCallback(
         (shouldTakeOverFocus = false) => {
             ReportActionComposeFocusManager.onComposerFocus((shouldFocusForNonBlurInputOnTapOutside = false) => {
-                if (!isInSidePanel) {
-                    ReportActionComposeFocusManager.sidePanelComposerRef.current = null;
-                }
+                handleSidePanelFocus();
                 if ((!willBlurTextInputOnTapOutside && !shouldFocusForNonBlurInputOnTapOutside) || !isFocused || !isSidePanelHiddenOrLargeScreen) {
                     return;
                 }
@@ -702,7 +711,7 @@ function ComposerWithSuggestions({
                 focus(true);
             }, shouldTakeOverFocus);
         },
-        [focus, isFocused, isSidePanelHiddenOrLargeScreen, isInSidePanel],
+        [focus, isFocused, isSidePanelHiddenOrLargeScreen, handleSidePanelFocus],
     );
 
     /**
@@ -923,23 +932,10 @@ function ComposerWithSuggestions({
     );
 
     const handleFocus = useCallback(() => {
-        if (!isInSidePanel) {
-            ReportActionComposeFocusManager.sidePanelComposerRef.current = null;
-        } else {
-            ReportActionComposeFocusManager.sidePanelComposerRef.current = textInputRef.current;
-        }
+        handleSidePanelFocus();
         setUpComposeFocusManager(!isInSidePanel);
         onFocus();
-    }, [onFocus, setUpComposeFocusManager, isInSidePanel]);
-
-    useEffect(() => {
-        return () => {
-            if (!isInSidePanel || !ReportActionComposeFocusManager.sidePanelComposerRef?.current) {
-                return;
-            }
-            ReportActionComposeFocusManager.sidePanelComposerRef.current = null;
-        };
-    }, [isInSidePanel]);
+    }, [onFocus, setUpComposeFocusManager, handleSidePanelFocus, isInSidePanel]);
 
     // When using the suggestions box (Suggestions) we need to imperatively
     // set the cursor to the end of the suggestion/mention after it's selected.
