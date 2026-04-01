@@ -43,13 +43,18 @@ function ReportDetailsColumnsPage() {
 
     // When no custom columns are saved, compute which columns getColumnsToShow would display
     // so the Columns page checkboxes reflect what the user actually sees on the report.
+    // Wait for transactions to load before computing effective columns.
+    // ColumnsSettingsList snapshots currentColumns in useState on mount,
+    // so we must not render it until we have the final value.
+    const isLoading = !allTransactions;
+
     const effectiveColumns = useMemo(() => {
         const savedColumns = (reportDetailsColumns ?? []) as SearchCustomColumnIds[];
         if (savedColumns.length > 0) {
             return savedColumns;
         }
 
-        if (!reportTransactions?.length) {
+        if (!reportTransactions.length) {
             return REPORT_DETAILS_DEFAULT_COLUMNS;
         }
 
@@ -73,6 +78,10 @@ function ReportDetailsColumnsPage() {
         setReportDetailsColumns(selectedColumnIds, reportDetailsColumns);
         Navigation.goBack();
     };
+
+    if (isLoading) {
+        return null;
+    }
 
     return (
         <ColumnsSettingsList
