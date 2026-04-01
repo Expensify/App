@@ -55,7 +55,7 @@ function RequireTwoFactorAuthenticationOverlay() {
             Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute(Navigation.getActiveRoute()));
             return;
         }
-        Navigation.navigate(ROUTES.SETTINGS_2FA_VERIFY_ACCOUNT.getRoute({forwardTo: ROUTES.SETTINGS_2FA_ROOT.getRoute()}));
+        Navigation.navigate(ROUTES.SETTINGS_2FA_VERIFY_ACCOUNT.getRoute({forwardTo: ROUTES.SETTINGS_2FA_ROOT.getRoute(), backTo: Navigation.getActiveRoute()}));
     }, [isUserValidated]);
 
     if (!shouldShowRequire2FAPage || isIn2FASetupFlow) {
