@@ -6,7 +6,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DomUtils from '@libs/DomUtils';
 import {hideEmojiPicker, isActive as isActiveEmojiPickerAction} from '@userActions/EmojiPickerAction';
 import CONST from '@src/CONST';
-import {useComposerActions, useComposerData, useComposerSendState} from './ComposerContext';
+import {useComposerActions, useComposerMeta, useComposerSendState} from './ComposerContext';
 
 type ComposerEmojiPickerProps = {
     reportID: string;
@@ -18,7 +18,7 @@ function ComposerEmojiPicker({reportID}: ComposerEmojiPickerProps) {
     const {isMediumScreenWidth} = useResponsiveLayout();
     const {isBlockedFromConcierge} = useComposerSendState();
     const {focus} = useComposerActions();
-    const {composerRef} = useComposerData();
+    const {composerRef} = useComposerMeta();
 
     const chatItemComposeSecondaryRowHeight = styles.chatItemComposeSecondaryRow.height + styles.chatItemComposeSecondaryRow.marginTop + styles.chatItemComposeSecondaryRow.marginBottom;
     const reportActionComposeHeight = styles.chatItemComposeBox.minHeight + chatItemComposeSecondaryRowHeight;

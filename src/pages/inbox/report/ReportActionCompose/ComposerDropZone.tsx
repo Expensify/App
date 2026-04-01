@@ -15,7 +15,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getParentReport, isChatRoom, isGroupChat, isInvoiceReport, isReportApproved, isSettled, temporary_getMoneyRequestOptions} from '@libs/ReportUtils';
 import {hasReceipt as hasReceiptTransactionUtils} from '@libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {useComposerDataActions} from './ComposerContext';
+import {useComposerMetaActions} from './ComposerContext';
 import useShouldAddOrReplaceReceipt from './useShouldAddOrReplaceReceipt';
 
 type ComposerDropZoneProps = {
@@ -128,7 +128,7 @@ function ComposerDropZone({reportID, children}: ComposerDropZoneProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const {isOffline} = useNetwork();
     const {shouldAddOrReplaceReceipt, transactionID} = useShouldAddOrReplaceReceipt(reportID, isOffline);
-    const {validateAttachments, onReceiptDropped} = useComposerDataActions();
+    const {validateAttachments, onReceiptDropped} = useComposerMetaActions();
 
     const onAttachmentDrop = (dragEvent: DragEvent) => validateAttachments({dragEvent});
 

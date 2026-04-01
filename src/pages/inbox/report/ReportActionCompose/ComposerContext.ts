@@ -47,7 +47,7 @@ type ComposerActions = {
     };
 };
 
-type ComposerData = {
+type ComposerMeta = {
     composerRef: RefObject<ComposerRef | null>;
     suggestionsRef: RefObject<SuggestionsRef | null>;
     actionButtonRef: RefObject<View | HTMLDivElement | null>;
@@ -60,7 +60,7 @@ type ComposerData = {
     ErrorModal: ReactNode;
 };
 
-type ComposerDataActions = {
+type ComposerMetaActions = {
     setComposerRef: (ref: ComposerRef | null) => void;
     onBlur: (event: BlurEvent) => void;
     onFocus: () => void;
@@ -107,8 +107,8 @@ const ComposerValueContext = createContext<string>('');
 const ComposerStateContext = createContext<ComposerState>(defaultState);
 const ComposerSendStateContext = createContext<ComposerSendState>(defaultSendState);
 const ComposerActionsContext = createContext<ComposerActions>(defaultActions);
-const ComposerDataContext = createContext<ComposerData | null>(null);
-const ComposerDataActionsContext = createContext<ComposerDataActions | null>(null);
+const ComposerMetaContext = createContext<ComposerMeta | null>(null);
+const ComposerMetaActionsContext = createContext<ComposerMetaActions | null>(null);
 
 function useComposerValue() {
     return useContext(ComposerValueContext);
@@ -126,18 +126,18 @@ function useComposerActions() {
     return useContext(ComposerActionsContext);
 }
 
-function useComposerData() {
-    const ctx = useContext(ComposerDataContext);
+function useComposerMeta() {
+    const ctx = useContext(ComposerMetaContext);
     if (!ctx) {
-        throw new Error('useComposerData must be used inside ComposerProvider');
+        throw new Error('useComposerMeta must be used inside ComposerProvider');
     }
     return ctx;
 }
 
-function useComposerDataActions() {
-    const ctx = useContext(ComposerDataActionsContext);
+function useComposerMetaActions() {
+    const ctx = useContext(ComposerMetaActionsContext);
     if (!ctx) {
-        throw new Error('useComposerDataActions must be used inside ComposerProvider');
+        throw new Error('useComposerMetaActions must be used inside ComposerProvider');
     }
     return ctx;
 }
@@ -147,13 +147,13 @@ export {
     ComposerStateContext,
     ComposerSendStateContext,
     ComposerActionsContext,
-    ComposerDataContext,
-    ComposerDataActionsContext,
+    ComposerMetaContext,
+    ComposerMetaActionsContext,
     useComposerValue,
     useComposerState,
     useComposerSendState,
     useComposerActions,
-    useComposerData,
-    useComposerDataActions,
+    useComposerMeta,
+    useComposerMetaActions,
 };
-export type {SuggestionsRef, ComposerState, ComposerSendState, ComposerActions, ComposerData, ComposerDataActions};
+export type {SuggestionsRef, ComposerState, ComposerSendState, ComposerActions, ComposerMeta, ComposerMetaActions};

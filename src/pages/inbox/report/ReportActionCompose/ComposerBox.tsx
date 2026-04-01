@@ -6,7 +6,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getReportOfflinePendingActionAndErrors} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {useComposerData, useComposerSendState, useComposerState} from './ComposerContext';
+import {useComposerMeta, useComposerSendState, useComposerState} from './ComposerContext';
 
 type ComposerBoxContextValue = {
     measureContainer: (callback: MeasureInWindowOnSuccessCallback) => void;
@@ -29,7 +29,7 @@ function ComposerBox({reportID, children}: ComposerBoxProps) {
     const styles = useThemeStyles();
     const {isFocused, isComposerFullSize} = useComposerState();
     const {exceededMaxLength, isBlockedFromConcierge} = useComposerSendState();
-    const {PDFValidationComponent, ErrorModal} = useComposerData();
+    const {PDFValidationComponent, ErrorModal} = useComposerMeta();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
 
     const {reportPendingAction: pendingAction} = getReportOfflinePendingActionAndErrors(report);

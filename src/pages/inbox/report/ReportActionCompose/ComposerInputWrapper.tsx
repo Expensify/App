@@ -8,7 +8,7 @@ import {isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {useComposerBox} from './ComposerBox';
-import {useComposerActions, useComposerData, useComposerDataActions, useComposerSendState, useComposerState} from './ComposerContext';
+import {useComposerActions, useComposerMeta, useComposerMetaActions, useComposerSendState, useComposerState} from './ComposerContext';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
 
 type ComposerInputWrapperProps = {
@@ -20,8 +20,8 @@ function ComposerInputWrapper({reportID}: ComposerInputWrapperProps) {
     const {isComposerFullSize, isMenuVisible} = useComposerState();
     const {isBlockedFromConcierge} = useComposerSendState();
     const {setIsFullComposerAvailable, handleSendMessage, onValueChange} = useComposerActions();
-    const {suggestionsRef, isNextModalWillOpenRef, shouldShowComposeInput, userBlockedFromConcierge} = useComposerData();
-    const {onBlur, onFocus, submitForm, validateAttachments, setComposerRef} = useComposerDataActions();
+    const {suggestionsRef, isNextModalWillOpenRef, shouldShowComposeInput, userBlockedFromConcierge} = useComposerMeta();
+    const {onBlur, onFocus, submitForm, validateAttachments, setComposerRef} = useComposerMetaActions();
     const {measureContainer} = useComposerBox();
 
     const {isScrollLayoutTriggered, raiseIsScrollLayoutTriggered} = useIsScrollLikelyLayoutTriggered();

@@ -13,7 +13,7 @@ import {setIsComposerFullSize} from '@userActions/Report';
 import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {ComposerActionsContext, ComposerDataActionsContext, ComposerDataContext, ComposerSendStateContext, ComposerStateContext, ComposerValueContext} from './ComposerContext';
+import {ComposerActionsContext, ComposerMetaActionsContext, ComposerMetaContext, ComposerSendStateContext, ComposerStateContext, ComposerValueContext} from './ComposerContext';
 import type {SuggestionsRef} from './ComposerContext';
 import type {ComposerRef} from './ComposerWithSuggestions/ComposerWithSuggestions';
 import useAttachmentUploadValidation from './useAttachmentUploadValidation';
@@ -185,7 +185,7 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
         debouncedValidate,
     };
 
-    const composerInternalsData = {
+    const composerMetaState = {
         composerRef,
         suggestionsRef,
         actionButtonRef,
@@ -198,7 +198,7 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
         ErrorModal,
     };
 
-    const composerInternalsActions = {
+    const composerMetaActions = {
         setComposerRef,
         onBlur,
         onFocus,
@@ -218,9 +218,9 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
             <ComposerStateContext.Provider value={composerState}>
                 <ComposerSendStateContext.Provider value={composerSendState}>
                     <ComposerActionsContext.Provider value={composerActions}>
-                        <ComposerDataContext.Provider value={composerInternalsData}>
-                            <ComposerDataActionsContext.Provider value={composerInternalsActions}>{children}</ComposerDataActionsContext.Provider>
-                        </ComposerDataContext.Provider>
+                        <ComposerMetaContext.Provider value={composerMetaState}>
+                            <ComposerMetaActionsContext.Provider value={composerMetaActions}>{children}</ComposerMetaActionsContext.Provider>
+                        </ComposerMetaContext.Provider>
                     </ComposerActionsContext.Provider>
                 </ComposerSendStateContext.Provider>
             </ComposerStateContext.Provider>
