@@ -76,6 +76,8 @@ type ViolationsMissingTagParams = {tagName?: string} | undefined;
 
 type ViolationsModifiedAmountParams = {type?: ViolationDataType; displayPercentVariance?: number};
 
+type ViolationsIncreasedDistanceParams = {formattedRouteDistance?: string};
+
 type ViolationsReceiptRequiredParams = {formattedLimit?: string; category?: string};
 
 type ViolationsRterParams = {
@@ -122,7 +124,7 @@ type UpdatedPolicyCustomUnitSubRateParams = {customUnitName: string; customUnitR
 
 type RemovedPolicyCustomUnitSubRateParams = {customUnitName: string; customUnitRateName: string; removedSubRateName: string};
 
-type AddedOrDeletedPolicyReportFieldParams = {fieldType: string; fieldName?: string};
+type AddedOrDeletedPolicyReportFieldParams = {fieldType: string; fieldName?: string; defaultValue?: string};
 
 type UpdatedPolicyReportFieldDefaultValueParams = {fieldName?: string; defaultValue?: string};
 
@@ -322,6 +324,7 @@ export type {
     UserIsAlreadyMemberParams,
     ViolationsMissingTagParams,
     ViolationsModifiedAmountParams,
+    ViolationsIncreasedDistanceParams,
     ViolationsReceiptRequiredParams,
     ViolationsRterParams,
     ViolationsTagOutOfPolicyParams,

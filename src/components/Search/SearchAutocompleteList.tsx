@@ -26,7 +26,7 @@ import Parser from '@libs/Parser';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import {getReportOrDraftReport} from '@libs/ReportUtils';
+import {formatReportLastMessageText, getReportOrDraftReport, getReportSubtitlePrefix} from '@libs/ReportUtils';
 import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithoutFilters, shouldHighlight} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 import {cancelSpan, endSpan, getSpan} from '@libs/telemetry/activeSpans';
@@ -294,9 +294,11 @@ function SearchAutocompleteList({
 
     const autocompleteQueryWithoutFilters = getQueryWithoutFilters(autocompleteQueryValue);
 
-    const sortedRecentSearches = Object.values(recentSearches ?? {}).sort((a, b) => localeCompare(b.timestamp, a.timestamp));
+    const sortedRecentSearches = Object.entries(recentSearches ?? {}).sort(([, firstRecentSearch], [, secondRecentSearch]) =>
+        localeCompare(secondRecentSearch.timestamp, firstRecentSearch.timestamp),
+    );
 
-    const recentSearchesData = sortedRecentSearches?.slice(0, 5).map(({query, timestamp}) => {
+    const recentSearchesData = sortedRecentSearches?.slice(0, 5).map(([recentSearchHash, {query}]) => {
         const searchQueryJSON = buildSearchQueryJSON(query);
         return {
             text: searchQueryJSON
@@ -317,7 +319,7 @@ function SearchAutocompleteList({
                 : query,
             singleIcon: expensifyIcons.History,
             searchQuery: query,
-            keyForList: timestamp,
+            keyForList: recentSearchHash,
             searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH,
         };
     });
@@ -352,6 +354,12 @@ function SearchAutocompleteList({
         debounceHandleSearch();
     }, [autocompleteQueryWithoutFilters, debounceHandleSearch]);
 
+    const reasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'SearchAutocompleteList',
+        isRecentSearchesDataLoaded,
+        areOptionsInitialized,
+    };
+
     /* Sections generation */
     const {sections, styledRecentReports, suggestionsCount} = useMemo(() => {
         const nextSections: Array<Section<AutocompleteListItem>> = [];
@@ -383,22 +391,44 @@ function SearchAutocompleteList({
         const nextStyledRecentReports = recentReportsOptions.map((option) => {
             const report = getReportOrDraftReport(option.reportID);
             const reportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
-            const shouldParserToHTML = reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
+            const shouldParserToHTML = !!reportAction && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
+            const shouldParseAlternateText = report?.lastActionType !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
             const keyForList = option.keyForList ?? option.reportID ?? (option.accountID ? String(option.accountID) : undefined);
             return {
                 ...option,
                 keyForList,
                 pressableStyle: styles.br2,
                 text: StringUtils.lineBreaksToSpaces(shouldParserToHTML ? Parser.htmlToText(option.text ?? '') : (option.text ?? '')),
+                alternateText: shouldParseAlternateText ? option.alternateText : getReportSubtitlePrefix(report) + formatReportLastMessageText(option.lastMessageText ?? ''),
                 wrapperStyle: [styles.pr3, styles.pl3],
             } as AutocompleteListItem;
         });
 
-        pushSection({
-            title: autocompleteQueryValue.trim() === '' ? translate('search.recentChats') : undefined,
-            data: nextStyledRecentReports,
-            sectionIndex: sectionIndex++,
-        });
+        if (areOptionsInitialized) {
+            pushSection({
+                title: autocompleteQueryValue.trim() === '' ? translate('search.recentChats') : undefined,
+                data: nextStyledRecentReports,
+                sectionIndex: sectionIndex++,
+            });
+        } else if (autocompleteQueryValue.trim() === '') {
+            pushSection({
+                title: translate('search.recentChats'),
+                data: [],
+                sectionIndex: sectionIndex++,
+                customHeader: (
+                    <OptionsListSkeletonView
+                        fixedNumItems={3}
+                        shouldStyleAsTable
+                        speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
+                        reasonAttributes={{
+                            context: 'SearchAutocompleteList',
+                            isRecentSearchesDataLoaded,
+                            areOptionsInitialized,
+                        }}
+                    />
+                ),
+            });
+        }
 
         if (autocompleteSuggestions.length > 0) {
             const autocompleteData: AutocompleteListItem[] = autocompleteSuggestions.map(({filterKey, text, autocompleteID, mapKey}) => {
@@ -417,12 +447,25 @@ function SearchAutocompleteList({
         }
 
         return {sections: nextSections, styledRecentReports: nextStyledRecentReports, suggestionsCount: nextSuggestionsCount};
-    }, [autocompleteQueryValue, autocompleteSuggestions, expensifyIcons, getAdditionalSections, recentReportsOptions, recentSearchesData, searchOptions, searchQueryItem, styles, translate]);
+    }, [
+        autocompleteQueryValue,
+        autocompleteSuggestions,
+        expensifyIcons,
+        getAdditionalSections,
+        recentReportsOptions,
+        recentSearchesData,
+        searchOptions,
+        searchQueryItem,
+        styles,
+        translate,
+        areOptionsInitialized,
+        isRecentSearchesDataLoaded,
+    ]);
 
     const sectionItemText = sections?.at(1)?.data?.[0]?.text ?? '';
     const normalizedReferenceText = sectionItemText.toLowerCase();
     const trimmedAutocompleteQueryValue = autocompleteQueryValue.trim();
-    const isLoading = !isRecentSearchesDataLoaded || !areOptionsInitialized;
+    const isLoading = !isRecentSearchesDataLoaded;
     const suggestionsAnnouncement = suggestionsCount > 0 ? translate('search.suggestionsAvailable', {count: suggestionsCount}, trimmedAutocompleteQueryValue) : '';
     useDebouncedAccessibilityAnnouncement(suggestionsAnnouncement, !!suggestionsAnnouncement, autocompleteQueryValue);
 
@@ -472,12 +515,6 @@ function SearchAutocompleteList({
             onHighlightFirstItem?.();
         }
     }, [autocompleteQueryValue, onHighlightFirstItem, normalizedReferenceText]);
-
-    const reasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'SearchAutocompleteList',
-        isRecentSearchesDataLoaded,
-        areOptionsInitialized,
-    };
 
     if (isLoading) {
         return (
