@@ -14,6 +14,8 @@ const darkContrastTheme = {
     textLight: colors.productLight900,
     iconColorfulBackground: colors.yellow800,
     mentionBG: colors.blue100,
+    ourMentionBG: colors.green100,
+    ourMentionText: colors.green700,
 } satisfies ThemeColors;
 
 export default darkContrastTheme;
