@@ -21,6 +21,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {hasSeenTourSelector} from '@src/selectors/Onboarding';
 
+const isWeb = getPlatform() === CONST.PLATFORM.WEB;
+
 function HelpPage() {
     const icons = useMemoizedLazyExpensifyIcons(['ConciergeAvatar', 'NewWindow', 'Monitor']);
     const illustrations = useMemoizedLazyIllustrations(['LifeRing', 'TopiaryDollarSign']);
@@ -33,7 +35,6 @@ function HelpPage() {
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {openSidePanel} = useSidePanelActions();
-    const isWeb = getPlatform() === CONST.PLATFORM.WEB;
 
     const menuItems = [
         {
