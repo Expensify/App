@@ -37,6 +37,7 @@ import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpActi
 import variables from '@styles/variables';
 import {searchInServer} from '@userActions/Report';
 import {search} from '@userActions/Search';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {SearchResults} from '@src/types/onyx';
 import type {SearchResultsInfo} from '@src/types/onyx/SearchResults';
@@ -151,7 +152,7 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
         return () => removeRouteKey(route.key);
     }, [addRouteKey, removeRouteKey, route.key, searchRouterListVisible]);
 
-    const [useStaticRendering] = useState(() => !!getPendingSubmitFollowUpAction());
+    const [useStaticRendering] = useState(() => getPendingSubmitFollowUpAction()?.followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH);
     const [isInteractive, setIsInteractive] = useState(!useStaticRendering);
     const [isHeaderInteractive, setIsHeaderInteractive] = useState(!useStaticRendering);
     const isHeaderInteractiveRef = useRef(isHeaderInteractive);
