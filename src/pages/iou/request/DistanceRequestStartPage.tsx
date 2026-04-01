@@ -9,7 +9,6 @@ import TabSelector from '@components/TabSelector/TabSelector';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
 import usePrevious from '@hooks/usePrevious';
@@ -61,8 +60,6 @@ function DistanceRequestStartPage({
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE);
-    const {isBetaEnabled} = usePermissions();
-    const showOdometerTab = isBetaEnabled(CONST.BETAS.ODOMETER_EXPENSES);
 
     const hasOnlyPersonalPolicies = useMemo(() => hasOnlyPersonalPoliciesUtil(allPolicies), [allPolicies]);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -224,18 +221,16 @@ function DistanceRequestStartPage({
                                 </TabScreenWithFocusTrapWrapper>
                             )}
                         </TopTab.Screen>
-                        {showOdometerTab && (
-                            <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_ODOMETER}>
-                                {() => (
-                                    <TabScreenWithFocusTrapWrapper>
-                                        <IOURequestStepDistanceOdometer
-                                            route={route}
-                                            navigation={navigation}
-                                        />
-                                    </TabScreenWithFocusTrapWrapper>
-                                )}
-                            </TopTab.Screen>
-                        )}
+                        <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_ODOMETER}>
+                            {() => (
+                                <TabScreenWithFocusTrapWrapper>
+                                    <IOURequestStepDistanceOdometer
+                                        route={route}
+                                        navigation={navigation}
+                                    />
+                                </TabScreenWithFocusTrapWrapper>
+                            )}
+                        </TopTab.Screen>
                     </OnyxTabNavigator>
                 </View>
             </ScreenWrapper>

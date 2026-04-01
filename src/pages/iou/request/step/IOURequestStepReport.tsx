@@ -59,8 +59,8 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
-    const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const {removeTransaction, setSelectedTransactions} = useSearchActionsContext();
     const reportOrDraftReport = getReportOrDraftReport(reportIDFromRoute);
@@ -264,6 +264,11 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     });
 
     const createReport = () => {
+        const restrictionPolicyID = isPerDiemTransaction ? perDiemOriginalPolicy?.id : policyForMovingExpensesID;
+        if (restrictionPolicyID && shouldRestrictUserBillableActions(restrictionPolicyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds)) {
+            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictionPolicyID));
+            return;
+        }
         if (isPerDiemTransaction) {
             handleCreateReport();
             return;
@@ -274,10 +279,6 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         if (shouldSelectPolicy) {
             setSelectedTransactions([transactionID]);
             Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute(true, backTo));
-            return;
-        }
-        if (policyForMovingExpensesID && shouldRestrictUserBillableActions(policyForMovingExpensesID, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods)) {
-            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyForMovingExpensesID));
             return;
         }
         handleCreateReport();
