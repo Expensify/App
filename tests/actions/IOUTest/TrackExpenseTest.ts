@@ -1611,6 +1611,7 @@ describe('actions/IOU/TrackExpense', () => {
             openReport({
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
+                betas: undefined,
                 participantLoginList: userLogins,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
@@ -1710,6 +1711,7 @@ describe('actions/IOU/TrackExpense', () => {
             openReport({
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
+                betas: undefined,
                 participantLoginList: userLogins,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
