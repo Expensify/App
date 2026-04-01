@@ -1,5 +1,5 @@
 /* eslint-disable rulesdir/prefer-early-return */
-import {useIsFocused, useRoute} from '@react-navigation/native';
+import {useFocusEffect, useIsFocused, useRoute} from '@react-navigation/native';
 import {isUserValidatedSelector} from '@selectors/Account';
 import {tierNameSelector} from '@selectors/UserWallet';
 import isEmpty from 'lodash/isEmpty';
@@ -205,10 +205,20 @@ function MoneyRequestReportActionsList({
     const [enableScrollToEnd, setEnableScrollToEnd] = useState<boolean>(false);
     const [lastActionEventId, setLastActionEventId] = useState<string>('');
 
-    const {selectedTransactionIDs} = useSearchStateContext();
-    const {setSelectedTransactions, clearSelectedTransactions} = useSearchActionsContext();
+    const {selectedTransactionIDs, currentSelectedTransactionReportID} = useSearchStateContext();
+    const {setSelectedTransactions, clearSelectedTransactions, setCurrentSelectedTransactionReportID} = useSearchActionsContext();
 
-    useFilterSelectedTransactions(transactions);
+    useFocusEffect(
+        useCallback(() => {
+            if (reportID && currentSelectedTransactionReportID !== reportID && selectedTransactionIDs.length > 0) {
+                clearSelectedTransactions(true);
+            }
+
+            setCurrentSelectedTransactionReportID(reportID);
+        }, [clearSelectedTransactions, currentSelectedTransactionReportID, reportID, selectedTransactionIDs.length, setCurrentSelectedTransactionReportID]),
+    );
+
+    useFilterSelectedTransactions(transactions, reportID);
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const {showConfirmModal} = useConfirmModal();
@@ -393,7 +403,23 @@ function MoneyRequestReportActionsList({
         transactionThreadReport,
         hasOlderActions,
         hasNewerActions,
+        newestFetchedReportActionID: reportMetadata?.newestFetchedReportActionID,
     });
+
+    const hasFinishedInitialLoad = reportMetadata?.isLoadingInitialReportActions === false;
+    const prevNewestFetchedIDRef = useRef<string | undefined>(undefined);
+    useEffect(() => {
+        if (hasFinishedInitialLoad && hasNewerActions && reportActions.length > 0 && !isOffline && !reportMetadata?.isLoadingNewerReportActions) {
+            // Safety guard: if the cursor hasn't advanced since the last call, the server
+            // isn't returning new data. Stop to prevent an infinite request loop.
+            const currentCursor = reportMetadata?.newestFetchedReportActionID;
+            if (prevNewestFetchedIDRef.current !== undefined && prevNewestFetchedIDRef.current === currentCursor) {
+                return;
+            }
+            prevNewestFetchedIDRef.current = currentCursor;
+            loadNewerChats(false);
+        }
+    }, [hasFinishedInitialLoad, reportActions.length, hasNewerActions, isOffline, reportMetadata?.isLoadingNewerReportActions, reportMetadata?.newestFetchedReportActionID, loadNewerChats]);
 
     const onStartReached = useCallback(() => {
         if (!isSearchTopmostFullScreenRoute()) {
@@ -451,7 +477,7 @@ function MoneyRequestReportActionsList({
             return;
         }
 
-        if (isUnread(report, transactionThreadReport, isReportArchived) || (lastAction && isCurrentActionUnread(report, lastAction, visibleReportActions))) {
+        if (isUnread(report, transactionThreadReport, isReportArchived, reportActionsObject) || (lastAction && isCurrentActionUnread(report, lastAction, visibleReportActions))) {
             // On desktop, when the notification center is displayed, isVisible will return false.
             // Currently, there's no programmatic way to dismiss the notification center panel.
             // To handle this, we use the 'referrer' parameter to check if the current navigation is triggered from a notification.

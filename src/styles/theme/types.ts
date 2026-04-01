@@ -6,7 +6,7 @@ import type {ColorScheme, StatusBarStyle} from '..';
 type Color = string;
 
 type ThemePreference = ValueOf<typeof CONST.THEME>;
-type ThemePreferenceWithoutSystem = Exclude<ThemePreference, typeof CONST.THEME.SYSTEM>;
+type ThemePreferenceWithoutSystem = Exclude<ThemePreference, typeof CONST.THEME.SYSTEM | typeof CONST.THEME.SYSTEM_CONTRAST>;
 
 type ThemeColors = {
     // Figma keys
@@ -95,6 +95,8 @@ type ThemeColors = {
     badgeDangerText: Color;
     badgeAdHoc: Color;
     badgeAdHocHover: Color;
+    bordersBold: Color;
+    buttonIcon: Color;
     mentionText: Color;
     mentionBG: Color;
     ourMentionText: Color;
@@ -117,7 +119,7 @@ type ThemeColors = {
     trialTimer: Color;
 
     reportStatusBadge: Record<
-        'draft' | 'outstanding' | 'paid' | 'approved' | 'closed',
+        'draft' | 'outstanding' | 'paid' | 'approved' | 'closed' | 'deleted',
         {
             backgroundColor: Color;
             textColor: Color;
