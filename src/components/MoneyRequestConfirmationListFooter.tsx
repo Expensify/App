@@ -776,10 +776,11 @@ function MoneyRequestConfirmationListFooter({
                     <ShowContextMenuStateContext.Provider value={contextMenuStateValue}>
                         <ShowContextMenuActionsContext.Provider value={contextMenuActionsValue}>
                             <MentionReportContext.Provider value={mentionReportContextValue}>
-                                {isNewManualExpenseFlowEnabled && !didConfirm && !isReadOnly ? (
+                                {isNewManualExpenseFlowEnabled && !isReadOnly ? (
                                     <View style={[styles.mh4, styles.mv2]}>
                                         <TextInput
                                             value={iouComment ?? ''}
+                                            readOnly={didConfirm}
                                             onChangeText={handleDescriptionInputChange}
                                             label={translate('common.description')}
                                             accessibilityLabel={translate('common.description')}
