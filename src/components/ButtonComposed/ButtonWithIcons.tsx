@@ -6,21 +6,21 @@ import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {ButtonProps} from './Button';
 import Button from './Button';
-import {ButtonIconLeft, ButtonIconRight} from './ButtonIcons';
-import ButtonText from './ButtonText';
+import {ButtonIconLeft, ButtonIconRight} from './primitives/ButtonIcons';
+import ButtonText from './primitives/ButtonText';
 
 type ButtonWithIconsProps = ButtonProps & {
-    // ICON LEFT PROPS
+    // Icon Left Props
     iconLeft?: IconAsset;
     iconLeftFill?: string;
     iconLeftHoverFill?: string;
     iconLeftStyles?: StyleProp<ViewStyle>;
-    // TEXT PROPS
+    // Text Props
     text?: string;
     textHoverStyles?: StyleProp<TextStyle>;
     textStyles?: StyleProp<TextStyle>;
     textNumberOfLines?: number;
-    // ICON RIGHT PROPS
+    // Icon Right Props
     iconRight?: IconAsset;
     iconRightFill?: string;
     iconRightHoverFill?: string;
@@ -59,7 +59,6 @@ function ButtonWithIcons({
     shouldStayNormalOnDisable = false,
     sentryLabel,
     ref,
-    // USED ONLY HERE
     iconLeft,
     iconLeftFill,
     iconLeftHoverFill,

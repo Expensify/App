@@ -3,6 +3,7 @@ import type {ForwardedRef} from 'react';
 import React, {useCallback, useMemo, useState} from 'react';
 import type {AccessibilityState, GestureResponderEvent, LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import ActivityIndicator from '@components/ActivityIndicator';
 import {getButtonRole} from '@components/Button/utils';
 import validateSubmitShortcut from '@components/Button/validateSubmitShortcut';
@@ -16,8 +17,8 @@ import HapticFeedback from '@libs/HapticFeedback';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
-import type {ButtonAppearanceProps} from './ButtonContext';
-import ButtonContext from './ButtonContext';
+import {ButtonContext} from './context';
+import type {ButtonVariant} from './context';
 
 type ButtonEventsProps = {
     /** A function that is called when the button is clicked on */
@@ -80,7 +81,7 @@ type ButtonBehaviorProps = {
     shouldStayNormalOnDisable?: boolean;
 };
 
-type ButtonStyleProps = ButtonAppearanceProps & {
+type ButtonStyleProps = {
     /** Additional styles to add after local styles. Applied to Pressable portion of button */
     style?: StyleProp<ViewStyle>;
 
@@ -98,6 +99,12 @@ type ButtonStyleProps = ButtonAppearanceProps & {
 
     /** Should we remove the border radius on a specific side? */
     shouldRemoveBorderRadius?: 'left' | 'right' | 'all';
+
+    /** The size of the button */
+    size?: ValueOf<typeof CONST.DROPDOWN_BUTTON_SIZE>;
+
+    /** The visual variant of the button, which controls its color scheme */
+    variant?: ButtonVariant;
 };
 
 type ButtonProps = WithSentryLabel &
@@ -382,4 +389,4 @@ function Button({
 }
 
 export default Button;
-export type {ButtonProps};
+export type {ButtonProps, ButtonVariant};

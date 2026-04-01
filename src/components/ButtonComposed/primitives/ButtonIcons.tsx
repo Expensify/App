@@ -6,7 +6,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
-import {useButtonContext} from './ButtonContext';
+import {useButtonContext} from '../context';
 
 type ButtonIconProps = {
     /** The icon asset to display */

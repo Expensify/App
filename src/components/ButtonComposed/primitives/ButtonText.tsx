@@ -5,7 +5,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import {useButtonContext} from './ButtonContext';
+import {useButtonContext} from '../context';
 
 type ButtonTextProps = {
     /** The text to display */

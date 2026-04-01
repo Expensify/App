@@ -1,20 +1,6 @@
 import {createContext, useContext} from 'react';
-import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-
-type ButtonVariant = 'success' | 'danger' | 'link';
-
-type ButtonAppearanceProps = {
-    size?: ValueOf<typeof CONST.DROPDOWN_BUTTON_SIZE>;
-    variant?: ButtonVariant;
-};
-
-type ButtonContextValue = ButtonAppearanceProps & {
-    isHovered: boolean;
-    isLoading: boolean;
-    iconFill?: string;
-    iconHoverFill?: string;
-};
+import type {ButtonContextValue} from './types';
 
 const defaultButtonContextValue: ButtonContextValue = {
     isHovered: false,
@@ -33,4 +19,3 @@ function useButtonContext(): ButtonContextValue {
 
 export default ButtonContext;
 export {useButtonContext};
-export type {ButtonAppearanceProps, ButtonContextValue, ButtonVariant};

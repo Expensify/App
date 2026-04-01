@@ -20,8 +20,8 @@
  */
 import withNavigationFallback from '@components/withNavigationFallback';
 import ButtonComponent from './Button';
-import {ButtonIconLeft, ButtonIconRight} from './ButtonIcons';
-import ButtonText from './ButtonText';
+import {ButtonIconLeft, ButtonIconRight} from './primitives/ButtonIcons';
+import ButtonText from './primitives/ButtonText';
 
 const Button = Object.assign(withNavigationFallback(ButtonComponent), {
     IconLeft: ButtonIconLeft,
