@@ -663,12 +663,12 @@ function MoneyRequestConfirmationList({
             if (iouAmount !== 0 && !isNewManualExpenseFlowEnabled) {
                 text = translate('iou.createExpenseWithAmount', {amount: formattedAmount});
             }
-        } else if (isTypeSplit) {
-            text = translate('iou.splitAmount', formattedAmount);
         } else if (iouAmount === 0) {
             text = translate('iou.createExpense');
         } else if (isNewManualExpenseFlowEnabled) {
             text = translate('iou.createExpense');
+        } else if (isTypeSplit) {
+            text = translate('iou.splitAmount', formattedAmount);
         } else {
             text = translate('iou.createExpenseWithAmount', {amount: formattedAmount});
         }
@@ -1395,6 +1395,7 @@ function MoneyRequestConfirmationList({
                 isMerchantRequired={isMerchantRequired}
                 isPolicyExpenseChat={isPolicyExpenseChat}
                 isReadOnly={isReadOnly}
+                isEditingSplitBill={isEditingSplitBill}
                 isTypeInvoice={isTypeInvoice}
                 onToggleBillable={onToggleBillable}
                 policy={policy}

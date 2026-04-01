@@ -176,6 +176,9 @@ type MoneyRequestConfirmationListFooterProps = {
     /** Flag indicating if it is read-only */
     isReadOnly: boolean;
 
+    /** Whether we're editing a split expense */
+    isEditingSplitBill?: boolean;
+
     /** Flag indicating if it is an invoice type */
     isTypeInvoice: boolean;
 
@@ -305,6 +308,7 @@ function MoneyRequestConfirmationListFooter({
     isMerchantRequired,
     isPolicyExpenseChat,
     isReadOnly,
+    isEditingSplitBill = false,
     isTypeInvoice,
     onToggleBillable,
     policy,
@@ -354,6 +358,7 @@ function MoneyRequestConfirmationListFooter({
 
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
 
     const reportAttributes = useReportAttributes();
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
@@ -361,6 +366,9 @@ function MoneyRequestConfirmationListFooter({
     const {policyForMovingExpensesID, policyForMovingExpenses, shouldSelectPolicy} = usePolicyForMovingExpenses();
 
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
+    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {
+        selector: (session) => session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+    });
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isCreatingTrackExpense = action === CONST.IOU.ACTION.CREATE && iouType === CONST.IOU.TYPE.TRACK;
 
@@ -609,9 +617,42 @@ function MoneyRequestConfirmationListFooter({
             }
 
             const parsedAmount = getBackendAmountFromInput(transactionAmount);
-            setMoneyRequestAmount(transactionID, parsedAmount ?? amount, value);
+            const updatedAmount = parsedAmount ?? amount;
+
+            if (isEditingSplitBill) {
+                const splitShares = splitDraftTransaction?.splitShares ?? transaction?.splitShares;
+                const accountID = currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
+                const newAccountIDs = Object.keys(splitShares ?? {}).map((key) => Number(key));
+                const oldAccountIDs = Object.keys(transaction?.splitShares ?? {}).map((key) => Number(key));
+                const accountIDs = [...new Set<number>([accountID, ...newAccountIDs, ...oldAccountIDs])];
+
+                const updatedSplitShares = accountIDs.reduce<NonNullable<OnyxTypes.Transaction['splitShares']>>((acc, splitShareAccountID) => {
+                    if (!newAccountIDs.includes(splitShareAccountID) && splitShareAccountID !== accountID) {
+                        acc[splitShareAccountID] = null;
+                        return acc;
+                    }
+
+                    const isPayer = splitShareAccountID === accountID;
+                    const participantsLength = newAccountIDs.includes(accountID) ? newAccountIDs.length - 1 : newAccountIDs.length;
+
+                    acc[splitShareAccountID] = {
+                        amount: calculateAmount(participantsLength, updatedAmount, value, isPayer),
+                        isModified: false,
+                    };
+                    return acc;
+                }, {});
+
+                setDraftSplitTransaction(transactionID, splitDraftTransaction, {
+                    amount: updatedAmount,
+                    currency: value,
+                    ...(accountIDs.length > 0 ? {splitShares: updatedSplitShares} : {}),
+                });
+                return;
+            }
+
+            setMoneyRequestAmount(transactionID, updatedAmount, value);
         },
-        [hideCurrencyPicker, transactionID, getBackendAmountFromInput, transactionAmount, amount],
+        [hideCurrencyPicker, transactionID, getBackendAmountFromInput, transactionAmount, amount, isEditingSplitBill, splitDraftTransaction, transaction?.splitShares, currentUserAccountID],
     );
 
     /**
@@ -628,10 +669,45 @@ function MoneyRequestConfirmationListFooter({
             if (parsedAmount === null) {
                 return;
             }
+            // Edits to the amount from the splits page should reset the split shares.
+            if (transaction?.splitShares) {
+                resetSplitShares(transaction, parsedAmount);
+            }
+
+            if (isEditingSplitBill) {
+                const splitShares = splitDraftTransaction?.splitShares ?? transaction?.splitShares;
+                const accountID = currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
+                const newAccountIDs = Object.keys(splitShares ?? {}).map((key) => Number(key));
+                const oldAccountIDs = Object.keys(transaction?.splitShares ?? {}).map((key) => Number(key));
+                const accountIDs = [...new Set<number>([accountID, ...newAccountIDs, ...oldAccountIDs])];
+
+                const updatedSplitShares = accountIDs.reduce<NonNullable<OnyxTypes.Transaction['splitShares']>>((acc, splitShareAccountID) => {
+                    if (!newAccountIDs.includes(splitShareAccountID) && splitShareAccountID !== accountID) {
+                        acc[splitShareAccountID] = null;
+                        return acc;
+                    }
+
+                    const isPayer = splitShareAccountID === accountID;
+                    const participantsLength = newAccountIDs.includes(accountID) ? newAccountIDs.length - 1 : newAccountIDs.length;
+
+                    acc[splitShareAccountID] = {
+                        amount: calculateAmount(participantsLength, parsedAmount, currency, isPayer),
+                        isModified: false,
+                    };
+                    return acc;
+                }, {});
+
+                setDraftSplitTransaction(transactionID, splitDraftTransaction, {
+                    amount: parsedAmount,
+                    currency,
+                    ...(accountIDs.length > 0 ? {splitShares: updatedSplitShares} : {}),
+                });
+                return;
+            }
 
             setMoneyRequestAmount(transactionID, parsedAmount, currency);
         },
-        [transactionID, getBackendAmountFromInput, currency],
+        [transactionID, getBackendAmountFromInput, isEditingSplitBill, splitDraftTransaction, transaction?.splitShares, currentUserAccountID, currency],
     );
 
     const shouldShowAmountRequiredError = useMemo(() => {
@@ -646,7 +722,7 @@ function MoneyRequestConfirmationListFooter({
         {
             item:
                 isNewManualExpenseFlowEnabled && !isAmountFieldDisabled ? (
-                    <View style={[styles.mh4, styles.mb2]}>
+                    <View style={[styles.mh4, styles.mv2]}>
                         <NumberWithSymbolForm
                             displayAsTextInput
                             value={transactionAmount}
