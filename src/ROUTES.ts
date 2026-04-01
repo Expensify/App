@@ -115,6 +115,12 @@ const DYNAMIC_ROUTES = {
         path: 'tag-create',
         entryScreens: [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT],
     },
+    SETTINGS_TAGS_EDIT: {
+        path: 'tags-edit',
+        entryScreens: [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_SETTINGS, SCREENS.SETTINGS_TAGS.SETTINGS_TAG_LIST_VIEW],
+        getRoute: (orderWeight: number) => `tags-edit?orderWeight=${orderWeight}`,
+        queryParams: ['orderWeight'],
+    },
     ADDRESS_COUNTRY: {
         path: 'country',
         entryScreens: [
@@ -1259,12 +1265,6 @@ const ROUTES = {
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (policyID: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/tags/settings` as const, backTo),
-    },
-    SETTINGS_TAGS_EDIT: {
-        route: 'settings/:policyID/tags/:orderWeight/edit',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, orderWeight: number, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/tags/${orderWeight}/edit` as const, backTo),
     },
     SETTINGS_TAG_EDIT: {
         route: 'settings/:policyID/tag/:orderWeight/:tagName/edit',
