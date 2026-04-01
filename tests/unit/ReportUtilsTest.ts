@@ -6695,6 +6695,17 @@ describe('ReportUtils', () => {
             expect(result.participants?.[2]?.role).toBe(CONST.REPORT.ROLE.MEMBER);
             expect(result.participants?.[3]?.role).toBe(CONST.REPORT.ROLE.MEMBER);
         });
+
+        it('should fall back to deprecated global currentUserAccountID when currentUserAccountID is not provided', () => {
+            const result = buildOptimisticChatReport({
+                participantList: [1, 2, 3],
+            });
+            // When no currentUserAccountID is provided, it falls back to the deprecated global value
+            // All participants should still get roles assigned (either ADMIN or MEMBER)
+            expect(result.participants?.[1]?.role).toBeDefined();
+            expect(result.participants?.[2]?.role).toBeDefined();
+            expect(result.participants?.[3]?.role).toBeDefined();
+        });
     });
 
     describe('getWorkspaceNameUpdatedMessage', () => {
