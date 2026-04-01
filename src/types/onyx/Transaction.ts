@@ -453,6 +453,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The transaction converted amount in report's currency */
         convertedAmount?: number;
 
+        /** The currency conversion rate from the transaction currency to the report currency */
+        currencyConversionRate?: string;
+
         /** The transaction tax amount */
         taxAmount?: number;
 
@@ -548,6 +551,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The transaction id */
         transactionID: string;
+
+        /** Selected transaction IDs for bulk edit operations (only used in draft transactions) */
+        selectedTransactionIDs?: string[];
 
         /** The transaction tag */
         tag?: string;

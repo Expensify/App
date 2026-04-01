@@ -64,7 +64,7 @@ function SageIntacctEditUserDimensionsPage({route}: SageIntacctEditUserDimension
         },
         [editedUserDimensionName, translate, userDimensions],
     );
-    const icons = useMemoizedLazyExpensifyIcons(['Trashcan'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
 
     return (
         <ConnectionLayout
