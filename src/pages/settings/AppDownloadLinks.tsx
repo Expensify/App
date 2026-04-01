@@ -23,7 +23,7 @@ type DownloadMenuItem = MenuItemProps & {
 };
 
 function AppDownloadLinksPage() {
-    const icons = useMemoizedLazyExpensifyIcons(['Android', 'Apple', 'Monitor', 'NewWindow'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Android', 'Apple', 'Monitor', 'NewWindow']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const popoverAnchor = useRef<View>(null);
@@ -84,6 +84,7 @@ function AppDownloadLinksPage() {
                         icon={item.icon}
                         iconRight={item.iconRight}
                         shouldBlockSelection
+                        shouldShowContextMenuHint
                         shouldShowRightIcon
                         role={CONST.ROLE.LINK}
                     />
