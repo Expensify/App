@@ -29,7 +29,7 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
         try {
             const keyAlias = getKeyAlias(accountID);
             const {keys} = await getAllKeys(keyAlias);
-            const entry = keys.find((key) => key.alias === keyAlias);
+            const entry = keys.at(0);
             if (!entry) {
                 return undefined;
             }
