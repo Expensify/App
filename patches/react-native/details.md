@@ -252,3 +252,9 @@
 - Upstream PR/issue: 🛑
 - E/App issue: https://github.com/Expensify/App/issues/85877
 - PR introducing patch: 🛑
+
+### [react-native+0.83.1+034+fix-fabric-collapsed-accessibility-announcement.patch](react-native+0.83.1+034+fix-fabric-collapsed-accessibility-announcement.patch)
+
+- Reason: Fixes a Fabric regression where VoiceOver on iOS only announces "expanded" but never "collapsed" for elements with `accessibilityState.expanded`. In `RCTViewComponentView.mm`, the code uses `value_or(false)` which skips the announcement entirely when `expanded` is `false`. This patch changes the logic to use `has_value()` and correctly announce both "expanded" and "collapsed" states, matching the old architecture (Paper) behavior.
+- Upstream PR/issue: https://github.com/facebook/react-native/issues/56296
+- E/App issue: [#76929](https://github.com/Expensify/App/issues/76929)

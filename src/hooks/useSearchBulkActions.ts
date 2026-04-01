@@ -40,6 +40,7 @@ import {
     canEditMultipleTransactions,
     getIntegrationIcon,
     getReportOrDraftReport,
+    hasOnlyNonReimbursableTransactions,
     isBusinessInvoiceRoom,
     isCurrentUserSubmitter,
     isExpenseReport as isExpenseReportUtil,
@@ -55,7 +56,7 @@ import {canIOUBePaid, dismissRejectUseExplanation, initBulkEditDraftTransaction}
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {BillingGraceEndPeriod, Report, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {BillingGraceEndPeriod, Policy, Report, Transaction, TransactionViolations} from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import useAllTransactions from './useAllTransactions';
 import useBulkPayOptions from './useBulkPayOptions';
@@ -84,10 +85,15 @@ function getRestrictedPolicyID(
     billingGracePeriods: OnyxCollection<BillingGraceEndPeriod>,
     ownerBillingGracePeriodEnd: OnyxEntry<number>,
     amountOwed: OnyxEntry<number>,
+    allPolicies: OnyxCollection<Policy>,
 ): string | undefined {
     return items
         .map((item) => item.policyID)
-        .find((policyID): policyID is string => !!policyID && shouldRestrictUserBillableActions(policyID, ownerBillingGracePeriodEnd, billingGracePeriods, amountOwed));
+        .find(
+            (policyID): policyID is string =>
+                !!policyID &&
+                shouldRestrictUserBillableActions(policyID, ownerBillingGracePeriodEnd, billingGracePeriods, amountOwed, allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]),
+        );
 }
 
 function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
@@ -128,6 +134,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
+    const [isNonReimbursablePaymentErrorModalVisible, setIsNonReimbursablePaymentErrorModalVisible] = useState(false);
     const {showConfirmModal} = useConfirmModal();
     const [isHoldEducationalModalVisible, setIsHoldEducationalModalVisible] = useState(false);
     const [rejectModalAction, setRejectModalAction] = useState<ValueOf<
@@ -391,7 +398,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
         const selectedItems = selectedReports.length ? selectedReports : Object.values(selectedTransactions);
 
-        const restrictedPolicyID = getRestrictedPolicyID(selectedItems, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed);
+        const restrictedPolicyID = getRestrictedPolicyID(selectedItems, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed, policies);
         if (restrictedPolicyID) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictedPolicyID));
             return;
@@ -419,6 +426,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         userBillingGracePeriodEnds,
         ownerBillingGracePeriodEnd,
         amountOwed,
+        policies,
     ]);
 
     const {expenseCount, uniqueReportCount} = useMemo(() => {
@@ -548,7 +556,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             const selectedOptions = selectedReports.length ? selectedReports : Object.values(selectedTransactions);
             const expenseReportBankAccountID = additionalData?.bankAccountID;
 
-            const restrictedPolicyID = getRestrictedPolicyID(selectedOptions, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed);
+            const restrictedPolicyID = getRestrictedPolicyID(selectedOptions, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed, policies);
             if (restrictedPolicyID) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictedPolicyID));
                 return;
@@ -578,6 +586,20 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     return;
                 }
 
+                const reportTransactions = Object.values(allTransactions ?? {}).filter(
+                    (transaction): transaction is NonNullable<typeof transaction> => !!transaction && transaction.reportID === itemReportID,
+                );
+
+                if (
+                    isExpenseReport &&
+                    !isInvoiceReport(itemReportID) &&
+                    hasOnlyNonReimbursableTransactions(itemReportID, reportTransactions.length > 0 ? reportTransactions : undefined) &&
+                    lastPolicyPaymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE
+                ) {
+                    setIsNonReimbursablePaymentErrorModalVisible(true);
+                    return;
+                }
+
                 const hasPolicyVBBA = itemPolicyID ? policyIDsWithVBBA.includes(itemPolicyID) : false;
                 // Allow bulk pay when user selected a business bank account, even if that account is not linked to the report's policy
                 const hasSelectedBusinessBankAccount = expenseReportBankAccountID != null;
@@ -603,9 +625,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         );
                         return;
                     }
-                    const reportTransactions = Object.values(allTransactions ?? {}).filter(
-                        (transaction): transaction is NonNullable<typeof transaction> => !!transaction && transaction.reportID === itemReportID,
-                    );
                     const invite = moveIOUReportToPolicyAndInviteSubmitter(itemReport, adminPolicy, formatPhoneNumber, reportTransactions);
                     if (!invite?.policyExpenseChatReportID) {
                         moveIOUReportToPolicy(itemReport, adminPolicy, false, reportTransactions);
@@ -974,7 +993,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
                     const itemList = !selectedReports.length ? Object.values(selectedTransactions).map((transaction) => transaction) : (selectedReports?.filter((report) => !!report) ?? []);
 
-                    const restrictedPolicyID = getRestrictedPolicyID(itemList, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed);
+                    const restrictedPolicyID = getRestrictedPolicyID(itemList, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed, policies);
                     if (restrictedPolicyID) {
                         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictedPolicyID));
                         return;
@@ -1222,6 +1241,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         showDelegateNoAccessModal,
         bulkPayButtonOptions,
         businessBankAccountOptions?.length,
+        shouldShowBusinessBankAccountOptions,
         onBulkPaySelected,
         areAllTransactionsFromSubmitter,
         dismissedHoldUseExplanation,
@@ -1247,6 +1267,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const handleDownloadErrorModalClose = useCallback(() => {
         setIsDownloadErrorModalVisible(false);
     }, [setIsDownloadErrorModalVisible]);
+
+    const handleNonReimbursablePaymentErrorModalClose = useCallback(() => {
+        setIsNonReimbursablePaymentErrorModalVisible(false);
+    }, [setIsNonReimbursablePaymentErrorModalVisible]);
 
     const dismissModalAndUpdateUseHold = useCallback(() => {
         setIsHoldEducationalModalVisible(false);
@@ -1278,11 +1302,13 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         confirmPayment: stableOnBulkPaySelected,
         isOfflineModalVisible,
         isDownloadErrorModalVisible,
+        isNonReimbursablePaymentErrorModalVisible,
         isHoldEducationalModalVisible,
         rejectModalAction,
         emptyReportsCount,
         handleOfflineModalClose,
         handleDownloadErrorModalClose,
+        handleNonReimbursablePaymentErrorModalClose,
         dismissModalAndUpdateUseHold,
         dismissRejectModalBasedOnAction,
     };

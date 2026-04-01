@@ -1088,7 +1088,21 @@ const translations: TranslationDeepObject<typeof en> = {
         singleFieldMultipleColumns: (fieldName: string) => `Ups! Przypisałeś jedno pole („${fieldName}”) do wielu kolumn. Sprawdź ustawienia i spróbuj ponownie.`,
         emptyMappedField: (fieldName: string) => `Ups! Pole („${fieldName}”) zawiera jedną lub więcej pustych wartości. Sprawdź je i spróbuj ponownie.`,
         importSuccessfulTitle: 'Import zakończony powodzeniem',
-        importCategoriesSuccessfulDescription: ({categories}: {categories: number}) => (categories > 1 ? `Dodano ${categories} kategorie.` : 'Dodano 1 kategorię.'),
+        importCategoriesSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
+            if (!added && !updated) {
+                return 'Nie dodano ani nie zaktualizowano żadnych kategorii.';
+            }
+
+            if (added && updated) {
+                return `Dodano ${added} ${added === 1 ? 'kategorię' : 'kategorie'}, zaktualizowano ${updated} ${updated === 1 ? 'kategorię' : 'kategorie'}.`;
+            }
+
+            if (added) {
+                return added === 1 ? 'Dodano 1 kategorię.' : `Dodano ${added} kategorie.`;
+            }
+
+            return updated === 1 ? 'Zaktualizowano 1 kategorię.' : `Zaktualizowano ${updated} kategorie.`;
+        },
         importCompanyCardTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) => (transactions > 1 ? `Dodano ${transactions} transakcji.` : 'Dodano 1 transakcję.'),
         importMembersSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
             if (!added && !updated) {
@@ -1426,6 +1440,11 @@ const translations: TranslationDeepObject<typeof en> = {
             manySplitsProvided: `Maksymalna dozwolona liczba podziałów to ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `Zakres dat nie może przekraczać ${CONST.IOU.SPLITS_LIMIT} dni.`,
             stitchOdometerImagesFailed: 'Nie udało się połączyć zdjęć licznika kilometrów. Spróbuj ponownie później.',
+            nonReimbursablePayment: 'Nie można zapłacić przez Expensify',
+            nonReimbursablePaymentDescription: (isMultiple?: boolean) =>
+                isMultiple
+                    ? 'Co najmniej jeden z wybranych raportów nie zawiera wydatków podlegających zwrotowi. Sprawdź wydatki ponownie lub oznacz je ręcznie jako opłacone.'
+                    : 'Raport nie zawiera wydatków podlegających zwrotowi. Sprawdź wydatki ponownie lub oznacz go ręcznie jako opłacony.',
         },
         dismissReceiptError: 'Odrzuć błąd',
         dismissReceiptErrorConfirmation: 'Uwaga! Zamknięcie tego błędu spowoduje całkowite usunięcie przesłanego paragonu. Czy na pewno chcesz kontynuować?',
@@ -3346,11 +3365,6 @@ ${amount} dla ${merchant} - ${date}`,
         confirmationStepHeader: 'Sprawdź swoje dane.',
         confirmationStepSubHeader: 'Sprawdź poniższe szczegóły i zaznacz pole z warunkami, aby potwierdzić.',
         toGetStarted: 'Dodaj osobiste konto bankowe, aby otrzymywać zwroty wydatków, opłacać faktury lub włączyć Portfel Expensify.',
-        updatePersonalInfo: 'Aktualizuj konto bankowe',
-        updatePersonalInfoFailure: 'Nie można zaktualizować informacji o koncie bankowym. Spróbuj ponownie później.',
-        updateSuccessTitle: 'Konto bankowe zaktualizowane!',
-        updateSuccessHeader: 'Konto bankowe zaktualizowane',
-        updateSuccessMessage: 'Gratulacje, Twoje konto bankowe jest skonfigurowane i gotowe do przyjmowania zwrotów.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Wpisz hasło do Expensify',

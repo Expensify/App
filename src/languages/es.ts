@@ -1008,7 +1008,18 @@ const translations: TranslationDeepObject<typeof en> = {
         emptyMappedField: (fieldName) => `¡Vaya! El campo ("${fieldName}") contiene uno o más valores vacíos. Por favor, revísalo e inténtalo de nuevo.`,
         importFailedTitle: 'Fallo en la importación',
         importFailedDescription: 'Por favor, asegúrate de que todos los campos estén llenos correctamente e inténtalo de nuevo. Si el problema persiste, por favor contacta a Concierge.',
-        importCategoriesSuccessfulDescription: ({categories}) => (categories > 1 ? `Se han agregado ${categories} categorías.` : 'Se ha agregado 1 categoría.'),
+        importCategoriesSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
+            if (!added && !updated) {
+                return 'No se han añadido ni actualizado categorías.';
+            }
+            if (added && updated) {
+                return `Se añadieron ${added} categoría${added === 1 ? '' : 's'} y se actualizaron ${updated} categoría${updated === 1 ? '' : 's'}.`;
+            }
+            if (added) {
+                return added === 1 ? 'Se añadió 1 categoría.' : `Se añadieron ${added} categorías.`;
+            }
+            return updated === 1 ? 'Se actualizó 1 categoría.' : `Se actualizaron ${updated} categorías.`;
+        },
         importMembersSuccessfulDescription: ({added, updated}) => {
             if (!added && !updated) {
                 return 'No se han añadido ni actualizado miembros.';
@@ -1353,6 +1364,11 @@ const translations: TranslationDeepObject<typeof en> = {
             endDateSameAsStartDate: 'La fecha de finalización no puede ser la misma que la fecha de inicio',
             manySplitsProvided: `La cantidad máxima de divisiones permitidas es ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `El rango de fechas no puede exceder los ${CONST.IOU.SPLITS_LIMIT} días.`,
+            nonReimbursablePayment: 'No se puede pagar a través de Expensify',
+            nonReimbursablePaymentDescription: (isMultiple?: boolean) =>
+                isMultiple
+                    ? 'Uno o más informes seleccionados no tienen gastos reembolsables. Vuelve a revisar los gastos o márcalos manualmente como pagados.'
+                    : 'El informe no tiene gastos reembolsables. Vuelve a revisar los gastos o márcalo manualmente como pagado.',
         },
         dismissReceiptError: 'Descartar error',
         dismissReceiptErrorConfirmation: '¡Atención! Descartar este error eliminará completamente tu recibo cargado. ¿Estás seguro?',
@@ -3298,11 +3314,6 @@ ${amount} para ${merchant} - ${date}`,
         confirmationStepHeader: 'Verifica tu información.',
         confirmationStepSubHeader: 'Verifica dos veces los detalles a continuación y marca la casilla de términos para confirmar.',
         toGetStarted: 'Agrega una cuenta bancaria personal para recibir reembolsos, pagar facturas o habilitar la Cartera de Expensify.',
-        updatePersonalInfo: 'Actualizar cuenta bancaria',
-        updatePersonalInfoFailure: 'No se pudo actualizar la información de la cuenta bancaria. Por favor, inténtalo de nuevo más tarde.',
-        updateSuccessTitle: '¡Cuenta bancaria actualizada!',
-        updateSuccessHeader: 'Cuenta bancaria actualizada',
-        updateSuccessMessage: 'Enhorabuena, tu cuenta bancaria está configurada y lista para recibir reembolsos.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Escribe tu contraseña de Expensify',

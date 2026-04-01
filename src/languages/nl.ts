@@ -1087,7 +1087,21 @@ const translations: TranslationDeepObject<typeof en> = {
         singleFieldMultipleColumns: (fieldName: string) => `Oeps! Je hebt één veld (‘${fieldName}’) aan meerdere kolommen gekoppeld. Controleer dit en probeer het opnieuw.`,
         emptyMappedField: (fieldName: string) => `Oeps! Het veld („${fieldName}”) bevat een of meer lege waarden. Controleer het en probeer het opnieuw.`,
         importSuccessfulTitle: 'Import geslaagd',
-        importCategoriesSuccessfulDescription: ({categories}: {categories: number}) => (categories > 1 ? `${categories} categorieën zijn toegevoegd.` : '1 categorie is toegevoegd.'),
+        importCategoriesSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
+            if (!added && !updated) {
+                return 'Er zijn geen categorieën toegevoegd of bijgewerkt.';
+            }
+
+            if (added && updated) {
+                return `${added} ${added === 1 ? 'categorie' : 'categorieën'} toegevoegd, ${updated} ${updated === 1 ? 'categorie' : 'categorieën'} bijgewerkt.`;
+            }
+
+            if (added) {
+                return added === 1 ? '1 categorie is toegevoegd.' : `${added} categorieën zijn toegevoegd.`;
+            }
+
+            return updated === 1 ? '1 categorie is bijgewerkt.' : `${updated} categorieën zijn bijgewerkt.`;
+        },
         importCompanyCardTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
             transactions > 1 ? `${transactions} transacties zijn toegevoegd.` : '1 transactie is toegevoegd.',
         importMembersSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
@@ -1428,6 +1442,11 @@ const translations: TranslationDeepObject<typeof en> = {
             manySplitsProvided: `Het maximale aantal toegestane splitsingen is ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `Het datumbereik mag niet meer dan ${CONST.IOU.SPLITS_LIMIT} dagen zijn.`,
             stitchOdometerImagesFailed: 'Odometerafbeeldingen combineren mislukt. Probeer het later opnieuw.',
+            nonReimbursablePayment: 'Kan niet via Expensify worden betaald',
+            nonReimbursablePaymentDescription: (isMultiple?: boolean) =>
+                isMultiple
+                    ? 'Een of meer geselecteerde rapporten bevatten geen declareerbare kosten. Controleer de kosten opnieuw of markeer ze handmatig als betaald.'
+                    : 'Het rapport bevat geen declareerbare kosten. Controleer de kosten opnieuw of markeer het handmatig als betaald.',
         },
         dismissReceiptError: 'Foutmelding sluiten',
         dismissReceiptErrorConfirmation: 'Let op! Dit foutbericht negeren verwijdert je geüploade bon volledig. Weet je het zeker?',
@@ -3354,11 +3373,6 @@ ${amount} voor ${merchant} - ${date}`,
         confirmationStepHeader: 'Controleer je gegevens.',
         confirmationStepSubHeader: 'Controleer de onderstaande gegevens goed en vink het vakje met de voorwaarden aan om te bevestigen.',
         toGetStarted: 'Voeg een persoonlijke bankrekening toe om terugbetalingen te ontvangen, facturen te betalen of de Expensify Wallet in te schakelen.',
-        updatePersonalInfo: 'Bankrekening bijwerken',
-        updatePersonalInfoFailure: 'Kan de bankrekeninggegevens niet bijwerken. Probeer het later opnieuw.',
-        updateSuccessTitle: 'Bankrekening bijgewerkt!',
-        updateSuccessHeader: 'Bankrekening bijgewerkt',
-        updateSuccessMessage: 'Gefeliciteerd, je bankrekening is ingesteld en klaar om terugbetalingen te ontvangen.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Voer Expensify-wachtwoord in',

@@ -565,6 +565,7 @@ describe('ReportUtils', () => {
 
             prepareOnboardingOnyxData({
                 introSelected: undefined,
+                betas: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
                     message: 'This is a test',
@@ -594,6 +595,7 @@ describe('ReportUtils', () => {
 
             prepareOnboardingOnyxData({
                 introSelected: undefined,
+                betas: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
                     message: 'This is a test',
@@ -622,12 +624,11 @@ describe('ReportUtils', () => {
             const adminsChatReportID = '1';
             // Not having `+` in the email allows for `isPostingTasksInAdminsRoom` flow
             await Onyx.merge(ONYXKEYS.SESSION, {email: 'test@example.com'});
-            // Enable the suggestedFollowups beta so tasks are skipped in favor of backend-generated followups
-            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.SUGGESTED_FOLLOWUPS]);
             await waitForBatchedUpdates();
 
             const result = prepareOnboardingOnyxData({
                 introSelected: undefined,
+                betas: [CONST.BETAS.SUGGESTED_FOLLOWUPS],
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
                     message: 'This is a test',
@@ -651,11 +652,11 @@ describe('ReportUtils', () => {
         it('should generate bespoke welcome message for SMALL company sizes with suggestedFollowups beta', async () => {
             const adminsChatReportID = '1';
             await Onyx.merge(ONYXKEYS.SESSION, {email: 'test@example.com'});
-            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.SUGGESTED_FOLLOWUPS]);
             await waitForBatchedUpdates();
 
             const result = prepareOnboardingOnyxData({
                 introSelected: undefined,
+                betas: [CONST.BETAS.SUGGESTED_FOLLOWUPS],
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
                     message: 'This is a test',
@@ -673,11 +674,11 @@ describe('ReportUtils', () => {
         it('should generate bespoke welcome message for LARGE company sizes with suggestedFollowups beta', async () => {
             const adminsChatReportID = '1';
             await Onyx.merge(ONYXKEYS.SESSION, {email: 'test@example.com'});
-            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.SUGGESTED_FOLLOWUPS]);
             await waitForBatchedUpdates();
 
             const result = prepareOnboardingOnyxData({
                 introSelected: undefined,
+                betas: [CONST.BETAS.SUGGESTED_FOLLOWUPS],
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
                     message: 'This is a test',
@@ -695,11 +696,11 @@ describe('ReportUtils', () => {
         it('should generate bespoke welcome message for MEDIUM_SMALL company sizes with suggestedFollowups beta', async () => {
             const adminsChatReportID = '1';
             await Onyx.merge(ONYXKEYS.SESSION, {email: 'test@example.com'});
-            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.SUGGESTED_FOLLOWUPS]);
             await waitForBatchedUpdates();
 
             const result = prepareOnboardingOnyxData({
                 introSelected: undefined,
+                betas: [CONST.BETAS.SUGGESTED_FOLLOWUPS],
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
                     message: 'This is a test',
@@ -717,11 +718,11 @@ describe('ReportUtils', () => {
         it('should generate bespoke welcome message for MEDIUM company sizes with suggestedFollowups beta', async () => {
             const adminsChatReportID = '1';
             await Onyx.merge(ONYXKEYS.SESSION, {email: 'test@example.com'});
-            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.SUGGESTED_FOLLOWUPS]);
             await waitForBatchedUpdates();
 
             const result = prepareOnboardingOnyxData({
                 introSelected: undefined,
+                betas: [CONST.BETAS.SUGGESTED_FOLLOWUPS],
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
                     message: 'This is a test',
@@ -739,11 +740,11 @@ describe('ReportUtils', () => {
         it('should append accounting integration suffix to bespoke welcome message', async () => {
             const adminsChatReportID = '1';
             await Onyx.merge(ONYXKEYS.SESSION, {email: 'test@example.com'});
-            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.SUGGESTED_FOLLOWUPS]);
             await waitForBatchedUpdates();
 
             const result = prepareOnboardingOnyxData({
                 introSelected: undefined,
+                betas: [CONST.BETAS.SUGGESTED_FOLLOWUPS],
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
                     message: 'This is a test',
@@ -762,12 +763,11 @@ describe('ReportUtils', () => {
             const adminsChatReportID = '1';
             // Not having `+` in the email allows for `isPostingTasksInAdminsRoom` flow
             await Onyx.merge(ONYXKEYS.SESSION, {email: 'test@example.com'});
-            // Do NOT set the suggestedFollowups beta - user should get the old task list behavior
-            await Onyx.merge(ONYXKEYS.BETAS, []);
             await waitForBatchedUpdates();
 
             const result = prepareOnboardingOnyxData({
                 introSelected: undefined,
+                betas: [],
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
                     message: 'This is a test',
@@ -787,6 +787,7 @@ describe('ReportUtils', () => {
 
             const result = prepareOnboardingOnyxData({
                 introSelected: undefined,
+                betas: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
                     message: 'This is a test',
@@ -803,6 +804,7 @@ describe('ReportUtils', () => {
         it('should not create tasks if the task feature is not in the selected interested features', () => {
             const result = prepareOnboardingOnyxData({
                 introSelected: undefined,
+                betas: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
                     message: 'This is a test',
@@ -826,6 +828,7 @@ describe('ReportUtils', () => {
 
             prepareOnboardingOnyxData({
                 introSelected: undefined,
+                betas: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
                     message: 'This is a test',
@@ -854,6 +857,7 @@ describe('ReportUtils', () => {
 
             prepareOnboardingOnyxData({
                 introSelected: undefined,
+                betas: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
                     message: 'This is a test',
@@ -886,6 +890,7 @@ describe('ReportUtils', () => {
         it('should produce empty guidedSetupData for LOOKING_AROUND intent with empty message', () => {
             const result = prepareOnboardingOnyxData({
                 introSelected: undefined,
+                betas: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
                 onboardingMessage: {
                     message: '',
@@ -901,6 +906,7 @@ describe('ReportUtils', () => {
         it('should not include sign-off message for LOOKING_AROUND intent', () => {
             const result = prepareOnboardingOnyxData({
                 introSelected: undefined,
+                betas: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
                 onboardingMessage: {
                     message: '',
@@ -922,6 +928,7 @@ describe('ReportUtils', () => {
         it('should include guidedSetupData for non-LOOKING_AROUND intents', () => {
             const result = prepareOnboardingOnyxData({
                 introSelected: undefined,
+                betas: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.PERSONAL_SPEND,
                 onboardingMessage: {
                     message: 'Here is how to track your spend in a few clicks.',
@@ -941,6 +948,7 @@ describe('ReportUtils', () => {
         it('should auto-complete VIEW_TOUR task when isSelfTourViewed is true', () => {
             const result = prepareOnboardingOnyxData({
                 introSelected: undefined,
+                betas: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
                     message: 'This is a test',
@@ -968,6 +976,7 @@ describe('ReportUtils', () => {
         it('should not auto-complete VIEW_TOUR task when isSelfTourViewed is false', () => {
             const result = prepareOnboardingOnyxData({
                 introSelected: undefined,
+                betas: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
                     message: 'This is a test',
@@ -998,6 +1007,7 @@ describe('ReportUtils', () => {
 
             const result = prepareOnboardingOnyxData({
                 introSelected: undefined,
+                betas: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
                     message: 'This is a test',

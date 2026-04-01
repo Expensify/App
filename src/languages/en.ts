@@ -1138,7 +1138,21 @@ const translations = {
         singleFieldMultipleColumns: (fieldName: string) => `Oops! You've mapped a single field ("${fieldName}") to multiple columns. Please review and try again.`,
         emptyMappedField: (fieldName: string) => `Oops! The field ("${fieldName}") contains one or more empty values. Please review and try again.`,
         importSuccessfulTitle: 'Import successful',
-        importCategoriesSuccessfulDescription: ({categories}: {categories: number}) => (categories > 1 ? `${categories} categories have been added.` : '1 category has been added.'),
+        importCategoriesSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
+            if (!added && !updated) {
+                return 'No categories have been added or updated.';
+            }
+
+            if (added && updated) {
+                return `${added} ${added === 1 ? 'category' : 'categories'} added, ${updated} ${updated === 1 ? 'category' : 'categories'} updated.`;
+            }
+
+            if (added) {
+                return added === 1 ? '1 category has been added.' : `${added} categories have been added.`;
+            }
+
+            return updated === 1 ? '1 category has been updated.' : `${updated} categories have been updated.`;
+        },
         importCompanyCardTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
             transactions > 1 ? `${transactions} transactions have been added.` : '1 transaction has been added.',
         importMembersSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
@@ -1481,6 +1495,11 @@ const translations = {
             endDateSameAsStartDate: "The end date can't be the same as the start date",
             manySplitsProvided: `The maximum splits allowed is ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `The date range can't exceed ${CONST.IOU.SPLITS_LIMIT} days.`,
+            nonReimbursablePayment: 'Cannot pay via Expensify',
+            nonReimbursablePaymentDescription: (isMultiple?: boolean) =>
+                isMultiple
+                    ? "One or more selected reports don't have reimbursable expenses. Double check the expenses, or manually mark as paid."
+                    : "The report doesn't have reimbursable expenses. Double check the expenses, or manually mark as paid.",
         },
         dismissReceiptError: 'Dismiss error',
         dismissReceiptErrorConfirmation: 'Heads up! Dismissing this error will remove your uploaded receipt entirely. Are you sure?',
@@ -3431,11 +3450,6 @@ const translations = {
         confirmationStepHeader: 'Check your info.',
         confirmationStepSubHeader: 'Double check the details below, and check the terms box to confirm.',
         toGetStarted: 'Add a personal bank account to receive reimbursements, pay invoices, or enable the Expensify Wallet.',
-        updatePersonalInfo: 'Update bank account',
-        updatePersonalInfoFailure: 'Unable to update bank account information. Please try again later.',
-        updateSuccessTitle: 'Bank account updated!',
-        updateSuccessHeader: 'Bank account updated',
-        updateSuccessMessage: 'Congrats, your bank account is set up and ready to receive reimbursements.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Enter Expensify password',

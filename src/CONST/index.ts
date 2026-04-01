@@ -1324,6 +1324,17 @@ const CONST = {
             MARK_AS_CASH: 'markAsCash',
             MARK_AS_RESOLVED: 'markAsResolved',
         },
+        STATUS_BAR_TYPE: {
+            MARK_AS_RESOLVED: 'markAsResolved',
+            BOOKING_PENDING: 'bookingPending',
+            BOOKING_ARCHIVED: 'bookingArchived',
+            ON_HOLD: 'onHold',
+            DUPLICATES: 'duplicates',
+            BROKEN_CONNECTION: 'brokenConnection',
+            PENDING_RTER: 'pendingRTER',
+            PENDING_TRANSACTIONS: 'pendingTransactions',
+            SCANNING_RECEIPT: 'scanningReceipt',
+        },
         REPORT_PREVIEW_ACTIONS: {
             VIEW: 'view',
             ADD_EXPENSE: 'addExpense',
@@ -3016,14 +3027,6 @@ const CONST = {
         CREDIT_CARD: 'CREDIT_CARD_CHARGE',
         CHECK: 'CHECK',
         VENDOR_BILL: 'VENDOR_BILL',
-    },
-
-    UPDATE_PERSONAL_BANK_ACCOUNT: {
-        PAGE_NAME: {
-            LEGAL_NAME: 'legal-name',
-            ADDRESS: 'address',
-            PHONE_NUMBER: 'phone-number',
-        },
     },
 
     MISSING_PERSONAL_DETAILS: {
@@ -8649,8 +8652,6 @@ const CONST = {
             ROTATE_BUTTON: 'Header-RotateButton',
             CLOSE_BUTTON: 'Header-CloseButton',
             MORE_BUTTON: 'Header-MoreButton',
-            PREVIOUS_BUTTON: 'Header-PreviousButton',
-            NEXT_BUTTON: 'Header-NextButton',
         },
         TOP_BAR: {
             CANCEL_BUTTON: 'TopBar-CancelButton',
