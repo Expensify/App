@@ -524,20 +524,17 @@ function popToSidebar() {
         return;
     }
 
-    // WorkspaceSplitNavigator and DomainSplitNavigator are nested inside WorkspaceNavigator.
-    const activeRoute = currentRoute.name === NAVIGATORS.WORKSPACE_NAVIGATOR ? currentRoute.state?.routes.at(-1) : currentRoute;
-
-    if (!isSplitNavigatorName(activeRoute?.name)) {
+    if (!isSplitNavigatorName(currentRoute?.name)) {
         Log.hmmm('[popToSidebar] must be invoked only from SplitNavigator');
         return;
     }
 
-    const topRoute = activeRoute.state?.routes.at(0);
-    const lastRoute = activeRoute.state?.routes.at(-1);
+    const topRoute = currentRoute.state?.routes.at(0);
+    const lastRoute = currentRoute.state?.routes.at(-1);
 
-    const currentRouteName = activeRoute.name as keyof typeof SPLIT_TO_SIDEBAR;
+    const currentRouteName = currentRoute?.name as keyof typeof SPLIT_TO_SIDEBAR;
     if (topRoute?.name !== SPLIT_TO_SIDEBAR[currentRouteName]) {
-        const params = activeRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR || activeRoute.name === NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR ? {...lastRoute?.params} : undefined;
+        const params = currentRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR || currentRoute.name === NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR ? {...lastRoute?.params} : undefined;
 
         const sidebarName = SPLIT_TO_SIDEBAR[currentRouteName];
 
