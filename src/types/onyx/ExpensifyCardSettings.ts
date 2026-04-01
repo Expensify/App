@@ -44,6 +44,9 @@ type ExpensifyCardSettingsBase = {
     /** Policy IDs linked to this Expensify Card feed (when present, drives feed grouping in the admin selector) */
     linkedPolicyIds?: string[];
 
+    /** Same data as `linkedPolicyIds`; backend uses this spelling (capital `ID`). */
+    linkedPolicyIDs?: string[];
+
     /** The Marqeta business token */
     marqetaBusinessToken?: number;
 

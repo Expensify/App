@@ -1,6 +1,12 @@
 import {useCallback} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
-import {getCardSettings, getFundIdFromSettingsKey} from '@libs/CardUtils';
+import {
+    getCardSettings,
+    getFundIdFromSettingsKey,
+    getLinkedPolicyIdsFromExpensifyCardSettings,
+    getPreferredPolicyFromExpensifyCardSettings,
+    isPolicyIDInLinkedExpensifyCardPolicyList,
+} from '@libs/CardUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ExpensifyCardSettings} from '@src/types/onyx';
@@ -19,10 +25,15 @@ function useDefaultFundID(policyID: string | undefined) {
 
     const getDomainFundID = useCallback(
         (cardSettings: OnyxCollection<ExpensifyCardSettings>) => {
-            const matchingKey = Object.entries(cardSettings ?? {}).find(
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                ([key, settings]) => settings?.preferredPolicy && settings.preferredPolicy === policyID && !key.includes(workspaceAccountID.toString()),
-            );
+            const matchingKey = Object.entries(cardSettings ?? {}).find(([key, settings]) => {
+                if (!settings || key.includes(workspaceAccountID.toString())) {
+                    return false;
+                }
+                if (policyID && isPolicyIDInLinkedExpensifyCardPolicyList(getLinkedPolicyIdsFromExpensifyCardSettings(settings), policyID)) {
+                    return true;
+                }
+                return !!policyID && getPreferredPolicyFromExpensifyCardSettings(settings)?.toUpperCase() === policyID.toUpperCase();
+            });
 
             return getFundIdFromSettingsKey(matchingKey?.[0] ?? '');
         },

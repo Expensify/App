@@ -15,6 +15,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setIssueNewCardStepAndData, updateSelectedExpensifyCardFeed} from '@libs/actions/Card';
+import {getLinkedPolicyIdsFromExpensifyCardSettings, getPreferredPolicyFromExpensifyCardSettings} from '@libs/CardUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import type {ExpensifyCardFeedEntry} from '@libs/ExpensifyCardFeedSelectorUtils';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
@@ -60,8 +61,10 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
         if (domainName) {
             return getDescriptionForPolicyDomainCard(domainName, policies);
         }
-        const preferredPolicyID = entry.settings?.preferredPolicy;
-        return (preferredPolicyID && policies?.[`${ONYXKEYS.COLLECTION.POLICY}${preferredPolicyID}`]?.name) ?? '';
+        const linkedPolicyIds = getLinkedPolicyIdsFromExpensifyCardSettings(entry.settings);
+        const preferredPolicyID = getPreferredPolicyFromExpensifyCardSettings(entry.settings);
+        const policyIDForName = linkedPolicyIds?.length ? linkedPolicyIds.at(0) : preferredPolicyID;
+        return (policyIDForName && policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDForName.toUpperCase()}`]?.name) ?? '';
     };
 
     const toListItem = (entry: ExpensifyCardFeedEntry): ExpensifyFeedListItem => ({
