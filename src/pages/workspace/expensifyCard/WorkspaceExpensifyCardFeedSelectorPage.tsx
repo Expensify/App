@@ -1,4 +1,5 @@
-import React from 'react';
+import {isUserValidatedSelector} from '@selectors/Account';
+import React, {useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -11,19 +12,25 @@ import useExpensifyCardFeedsForFeedSelector from '@hooks/useExpensifyCardFeedsFo
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setIssueNewCardStepAndData, updateSelectedExpensifyCardFeed} from '@libs/actions/Card';
+import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import type {ExpensifyCardFeedEntry} from '@libs/ExpensifyCardFeedSelectorUtils';
+import {isEmailPublicDomain} from '@libs/LoginUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getDescriptionForPolicyDomainCard} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
+import {linkCardFeedToPolicy} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 type ExpensifyFeedListItem = ListItem & {
     value: number;
@@ -38,8 +45,12 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['ExpensifyCardImage']);
     const [lastSelectedExpensifyCardFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED}${policyID}`);
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
+    const primaryContactMethod = usePrimaryContactMethod();
     const defaultFundID = useDefaultFundID(policyID);
     const lastSelectedExpensifyCardFeedID = lastSelectedExpensifyCardFeed ?? defaultFundID;
+    const [feedWithError, setFeedWithError] = useState<{fundID?: number; error?: Errors} | undefined>(undefined);
 
     const {primaryFeeds, otherFeeds} = useExpensifyCardFeedsForFeedSelector(policyID);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -58,6 +69,7 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
         text: getFeedSelectorRowText(entry),
         keyForList: entry.fundID.toString(),
         isSelected: entry.fundID === lastSelectedExpensifyCardFeedID,
+        errors: feedWithError?.fundID === entry.fundID ? feedWithError.error : undefined,
         leftElement: (
             <Icon
                 src={illustrations.ExpensifyCardImage}
@@ -85,6 +97,42 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
 
     const goBack = () => Navigation.goBack(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID));
 
+    const onDismissError = () => {
+        setFeedWithError(undefined);
+    };
+
+    const selectOtherFeed = (feed: ExpensifyFeedListItem) => {
+        const isUserFromPublicDomain = isEmailPublicDomain(primaryContactMethod);
+        if (!isUserValidated || isUserFromPublicDomain) {
+            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ADD_WORK_EMAIL.getRoute(policyID, feed.value));
+            return;
+        }
+
+        const primaryLoginKey = primaryContactMethod ? Object.keys(loginList ?? {}).find((login) => login.toLowerCase() === primaryContactMethod.toLowerCase()) : undefined;
+        const isPrimaryContactValidated = primaryLoginKey ? !!loginList?.[primaryLoginKey]?.validatedDate : !primaryContactMethod;
+        if (!isPrimaryContactValidated) {
+            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_VERIFY_WORK_EMAIL.getRoute(policyID, feed.value));
+            return;
+        }
+
+        linkCardFeedToPolicy(feed.value, policyID, CONST.COMPANY_CARD.LINK_FEED_TYPE.EXPENSIFY_CARD)
+            .then(() => {
+                updateSelectedExpensifyCardFeed(feed.value, policyID);
+                if (exitToIssueNew) {
+                    setIssueNewCardStepAndData({policyID, isChangeAssigneeDisabled: false});
+                    Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)));
+                    return;
+                }
+                goBack();
+            })
+            .catch((error: TranslationPaths) => {
+                setFeedWithError({
+                    fundID: feed.value,
+                    error: getMicroSecondOnyxErrorWithTranslationKey(error),
+                });
+            });
+    };
+
     const selectFeed = (feed: ExpensifyFeedListItem) => {
         updateSelectedExpensifyCardFeed(feed.value, policyID);
         if (exitToIssueNew) {
@@ -94,6 +142,8 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
         }
         goBack();
     };
+
+    const otherFeedFundIDs = new Set(otherFeeds.map((entry) => entry.fundID));
 
     return (
         <AccessOrNotFoundWrapper
@@ -112,10 +162,17 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
                 />
                 <SelectionListWithSections
                     ListItem={RadioListItem}
-                    onSelectRow={selectFeed}
+                    onSelectRow={(feed) => {
+                        if (otherFeedFundIDs.has(feed.value)) {
+                            selectOtherFeed(feed);
+                            return;
+                        }
+                        selectFeed(feed);
+                    }}
                     sections={sections}
                     initiallyFocusedItemKey={lastSelectedExpensifyCardFeedID.toString()}
                     addBottomSafeAreaPadding
+                    onDismissError={onDismissError}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
