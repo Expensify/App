@@ -80,7 +80,7 @@ function ComposerBoxContent({reportID, lastReportAction}: ComposerBoxContentProp
 
     const {isComposerFullSize, isFullComposerAvailable, isMenuVisible} = useComposerState();
     const {isBlockedFromConcierge, isSendDisabled, exceededMaxLength} = useComposerSendState();
-    const {setMenuVisibility, setIsFullComposerAvailable, setIsCommentEmpty, handleSendMessage, focus, onValueChange} = useComposerActions();
+    const {setMenuVisibility, setIsFullComposerAvailable, handleSendMessage, focus, onValueChange} = useComposerActions();
     const {composerRef, suggestionsRef, actionButtonRef, isNextModalWillOpenRef, shouldFocusComposerOnScreenFocus, shouldShowComposeInput, userBlockedFromConcierge} =
         useComposerInternalsData();
     const {onBlur, onFocus, onAddActionPressed, onItemSelected, onTriggerAttachmentPicker, submitForm, validateAttachments, setComposerRef} = useComposerInternalsActions();
@@ -150,7 +150,6 @@ function ComposerBoxContent({reportID, lastReportAction}: ComposerBoxContentProp
                 onPasteFile={(files) => validateAttachments({files})}
                 onClear={submitForm}
                 disabled={isBlockedFromConcierge || isEmojiPickerVisible()}
-                setIsCommentEmpty={setIsCommentEmpty}
                 onEnterKeyPress={handleSendMessage}
                 shouldShowComposeInput={shouldShowComposeInput}
                 onFocus={onFocus}

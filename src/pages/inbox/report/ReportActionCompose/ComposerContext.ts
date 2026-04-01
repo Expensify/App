@@ -35,7 +35,7 @@ type ComposerActions = {
     setIsFocused: (v: boolean) => void;
     setIsFullComposerAvailable: (v: boolean) => void;
     setMenuVisibility: (v: boolean) => void;
-    setIsCommentEmpty: (isEmpty: boolean) => void;
+    setValue: (v: string) => void;
     handleSendMessage: () => void;
     focus: () => void;
     onValueChange: (value: string) => void;
@@ -95,7 +95,7 @@ const defaultActions: ComposerActions = {
     setIsFocused: noop,
     setIsFullComposerAvailable: noop,
     setMenuVisibility: noop,
-    setIsCommentEmpty: noop,
+    setValue: noop,
     handleSendMessage: noop,
     focus: noop,
     onValueChange: noop,
@@ -103,11 +103,16 @@ const defaultActions: ComposerActions = {
     debouncedValidate: Object.assign(() => true as boolean | undefined, {cancel: noop, flush: () => true as boolean | undefined}),
 };
 
+const ComposerValueContext = createContext<string>('');
 const ComposerStateContext = createContext<ComposerState>(defaultState);
 const ComposerSendStateContext = createContext<ComposerSendState>(defaultSendState);
 const ComposerActionsContext = createContext<ComposerActions>(defaultActions);
 const ComposerInternalsDataContext = createContext<ComposerInternalsData | null>(null);
 const ComposerInternalsActionsContext = createContext<ComposerInternalsActions | null>(null);
+
+function useComposerValue() {
+    return useContext(ComposerValueContext);
+}
 
 function useComposerState() {
     return useContext(ComposerStateContext);
@@ -138,11 +143,13 @@ function useComposerInternalsActions() {
 }
 
 export {
+    ComposerValueContext,
     ComposerStateContext,
     ComposerSendStateContext,
     ComposerActionsContext,
     ComposerInternalsDataContext,
     ComposerInternalsActionsContext,
+    useComposerValue,
     useComposerState,
     useComposerSendState,
     useComposerActions,

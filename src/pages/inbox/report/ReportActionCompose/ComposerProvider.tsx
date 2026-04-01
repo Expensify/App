@@ -12,7 +12,7 @@ import {setIsComposerFullSize} from '@userActions/Report';
 import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {ComposerActionsContext, ComposerInternalsActionsContext, ComposerInternalsDataContext, ComposerSendStateContext, ComposerStateContext} from './ComposerContext';
+import {ComposerActionsContext, ComposerInternalsActionsContext, ComposerInternalsDataContext, ComposerSendStateContext, ComposerStateContext, ComposerValueContext} from './ComposerContext';
 import type {SuggestionsRef} from './ComposerContext';
 import type {ComposerRef} from './ComposerWithSuggestions/ComposerWithSuggestions';
 import useAttachmentUploadValidation from './useAttachmentUploadValidation';
@@ -47,9 +47,11 @@ function ComposerProvider({children, reportID, transactionThreadReportID, should
     const [isMenuVisible, setMenuVisibility] = useState(false);
     const [isAttachmentPreviewActive, setIsAttachmentPreviewActive] = useState(false);
 
-    const [isCommentEmpty, setIsCommentEmpty] = useState(() => {
-        return !draftComment || !!draftComment.match(CONST.REGEX.EMPTY_COMMENT);
+    const [value, setValue] = useState(() => {
+        return draftComment ?? '';
     });
+
+    const isEmpty = !value || !!value.match(CONST.REGEX.EMPTY_COMMENT);
 
     const includesConcierge = chatIncludesConcierge({participants: report?.participants});
     const userBlockedFromConcierge = isBlockedFromConciergeUserAction(blockedFromConcierge);
@@ -68,7 +70,7 @@ function ComposerProvider({children, reportID, transactionThreadReportID, should
         return null;
     })();
 
-    const isSendDisabled = isCommentEmpty || isBlockedFromConcierge || !!exceededMaxLength;
+    const isSendDisabled = isEmpty || isBlockedFromConcierge || !!exceededMaxLength;
 
     const validateMaxLength = (v: string) => {
         const taskCommentMatch = v?.match(CONST.REGEX.TASK_TITLE_WITH_OPTIONAL_SHORT_MENTION);
@@ -167,7 +169,7 @@ function ComposerProvider({children, reportID, transactionThreadReportID, should
     };
 
     const composerSendState = {
-        isEmpty: isCommentEmpty,
+        isEmpty,
         exceededMaxLength,
         isSendDisabled,
         isBlockedFromConcierge,
@@ -178,7 +180,7 @@ function ComposerProvider({children, reportID, transactionThreadReportID, should
         setIsFocused,
         setIsFullComposerAvailable,
         setMenuVisibility,
-        setIsCommentEmpty,
+        setValue,
         handleSendMessage,
         focus,
         onValueChange,
@@ -215,15 +217,17 @@ function ComposerProvider({children, reportID, transactionThreadReportID, should
     };
 
     return (
-        <ComposerStateContext.Provider value={composerState}>
-            <ComposerSendStateContext.Provider value={composerSendState}>
-                <ComposerActionsContext.Provider value={composerActions}>
-                    <ComposerInternalsDataContext.Provider value={composerInternalsData}>
-                        <ComposerInternalsActionsContext.Provider value={composerInternalsActions}>{children}</ComposerInternalsActionsContext.Provider>
-                    </ComposerInternalsDataContext.Provider>
-                </ComposerActionsContext.Provider>
-            </ComposerSendStateContext.Provider>
-        </ComposerStateContext.Provider>
+        <ComposerValueContext.Provider value={value}>
+            <ComposerStateContext.Provider value={composerState}>
+                <ComposerSendStateContext.Provider value={composerSendState}>
+                    <ComposerActionsContext.Provider value={composerActions}>
+                        <ComposerInternalsDataContext.Provider value={composerInternalsData}>
+                            <ComposerInternalsActionsContext.Provider value={composerInternalsActions}>{children}</ComposerInternalsActionsContext.Provider>
+                        </ComposerInternalsDataContext.Provider>
+                    </ComposerActionsContext.Provider>
+                </ComposerSendStateContext.Provider>
+            </ComposerStateContext.Provider>
+        </ComposerValueContext.Provider>
     );
 }
 
