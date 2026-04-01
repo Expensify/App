@@ -8,7 +8,7 @@ import type {PolicyCategories} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import times from '@src/utils/times';
-import {getDecodedCategoryName} from './CategoryUtils';
+import {getDecodedCategoryName, processCategoryNameSegments} from './CategoryUtils';
 import type {OptionTree} from './OptionsListUtils';
 import tokenizedSearch from './tokenizedSearch';
 
@@ -33,24 +33,7 @@ type Hierarchy = Record<string, Category & {[key: string]: Hierarchy & Category}
 function getCategoryOptionTree(options: Record<string, Category> | Category[], selectedOptions: Category[] = []): OptionTree[] {
     const optionCollection = new Map<string, OptionTree>();
     for (const option of Object.values(options)) {
-        const parts = option.name.split(CONST.PARENT_CHILD_SEPARATOR);
-
-        // Process the split to handle trailing colon (e.g., "A: B:")
-        const array: string[] = [];
-        for (let i = 0; i < parts.length; i++) {
-            const part = parts.at(i);
-            if (part === undefined) {
-                continue;
-            }
-            if (part === '' && i === parts.length - 1) {
-                // Trailing colon: merge the colon back to the last part
-                if (array.length > 0) {
-                    array[array.length - 1] = array.at(array.length - 1) + CONST.PARENT_CHILD_SEPARATOR;
-                }
-            } else {
-                array.push(part);
-            }
-        }
+        const array = processCategoryNameSegments(option.name);
         for (let index = 0; index < array.length; index++) {
             const optionName = array.at(index);
             if (!optionName) {
@@ -59,7 +42,10 @@ function getCategoryOptionTree(options: Record<string, Category> | Category[], s
 
             const indents = times(index, () => CONST.INDENTS).join('');
             const isChild = array.length - 1 === index;
-            const searchText = array.slice(0, index + 1).join(CONST.PARENT_CHILD_SEPARATOR);
+
+            // For leaf categories, use the original full name so it matches the policy.
+            // For parent categories, build the path from the processed segments.
+            const searchText = isChild ? option.name : array.slice(0, index + 1).join(CONST.PARENT_CHILD_SEPARATOR);
             const selectedParentOption = !isChild && Object.values(selectedOptions).find((op) => op.name === searchText);
             const optionParent = !isChild && Object.values(options).find((op) => op.name === searchText);
             const parentOption = selectedParentOption ?? optionParent;
@@ -267,24 +253,7 @@ function sortCategories(categories: Record<string, Category>, localeCompare: Loc
      * }
      */
     for (const category of sortedCategories) {
-        const parts = category.name.split(CONST.PARENT_CHILD_SEPARATOR);
-
-        // Process the split to handle trailing colon
-        const path: string[] = [];
-        for (let i = 0; i < parts.length; i++) {
-            const part = parts.at(i);
-            if (part === undefined) {
-                continue;
-            }
-            if (part === '' && i === parts.length - 1) {
-                // trailing colon: merge the colon back to the last part
-                if (path.length > 0) {
-                    path[path.length - 1] = path.at(path.length - 1) + CONST.PARENT_CHILD_SEPARATOR;
-                }
-            } else {
-                path.push(part);
-            }
-        }
+        const path = processCategoryNameSegments(category.name);
         const existedValue = lodashGet(hierarchy, path, {}) as Hierarchy;
         lodashSet(hierarchy, path, {
             ...existedValue,
