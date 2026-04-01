@@ -6,6 +6,7 @@ import type UpdateUnread from './types';
 
 let unreadTotalCount = 0;
 let currentPageTitle = '';
+let pendingUpdateId = 0;
 
 /**
  * Set the current page-specific title (called by useDocumentTitle hook)
@@ -18,16 +19,24 @@ function setPageTitle(title: string) {
 }
 
 /**
- * Update the actual document title and favicon
+ * Update the actual document title and favicon.
+ * Deduplicates multiple rapid calls within the same frame to prevent
+ * the browser from rendering intermediate empty/incorrect titles during navigation.
  */
 function updateDocumentTitle() {
     const hasUnread = unreadTotalCount !== 0;
+    // Cancel any previously scheduled update to avoid duplicate title changes
+    // that cause the browser tab title to flicker during page transitions.
+    pendingUpdateId += 1;
+    const currentUpdateId = pendingUpdateId;
+
     // This setTimeout is required because due to how react rendering messes with the DOM, the document title can't be modified synchronously, and we must wait until all JS is done
     // running before setting the title.
     setTimeout(() => {
-        // There is a Chrome browser bug that causes the title to revert back to the previous when we are navigating back. Setting the title to an empty string
-        // seems to improve this issue.
-        document.title = '';
+        // Skip if a newer update was scheduled after this one
+        if (currentUpdateId !== pendingUpdateId) {
+            return;
+        }
 
         // Use page-specific title if available, otherwise use the default SITE_TITLE
         const baseTitle = currentPageTitle || CONFIG.SITE_TITLE;
