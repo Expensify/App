@@ -17,7 +17,9 @@ import HeaderWithBackButton from './HeaderWithBackButton';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import ScreenWrapper from './ScreenWrapper';
 import SelectionList from './SelectionList';
-import SingleSelectListItem from './SelectionList/ListItem/SingleSelectListItem';
+import type RadioListItem from './SelectionList/ListItem/RadioListItem';
+import type TableListItem from './SelectionList/ListItem/TableListItem';
+import type UserListItem from './SelectionList/ListItem/UserListItem';
 import type {ListItem} from './SelectionList/types';
 
 type SelectorType<T = string> = ListItem & {
@@ -44,6 +46,9 @@ type SelectionScreenProps<T = string> = {
 
     /** Sections for the section list */
     data: Array<SelectorType<T>>;
+
+    /** Default renderer for every item in the list */
+    listItem: typeof RadioListItem | typeof UserListItem | typeof TableListItem;
 
     /** The style is applied for the wrap component of list item */
     listItemWrapperStyle?: StyleProp<ViewStyle>;
@@ -115,6 +120,7 @@ function SelectionScreen<T = string>({
     listEmptyContent,
     listFooterContent,
     data,
+    listItem,
     listItemWrapperStyle,
     initiallyFocusedOptionKey,
     onSelectRow,
@@ -164,7 +170,7 @@ function SelectionScreen<T = string>({
                 >
                     <SelectionList
                         data={data}
-                        ListItem={SingleSelectListItem}
+                        ListItem={listItem}
                         onSelectRow={onSelectRow}
                         showScrollIndicator
                         shouldShowTooltips={false}

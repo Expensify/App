@@ -5,7 +5,7 @@ import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
 import searchOptions from '@libs/searchOptions';
@@ -103,7 +103,7 @@ function StateSelectionPage() {
             <View />
             <SelectionList
                 data={searchResults}
-                ListItem={SingleSelectListItem}
+                ListItem={RadioListItem}
                 onSelectRow={selectCountryState}
                 textInputOptions={textInputOptions}
                 initiallyFocusedItemKey={currentState}

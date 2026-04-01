@@ -17,6 +17,10 @@ import com.facebook.react.defaults.DefaultReactActivityDelegate
 import expo.modules.ReactActivityDelegateWrapper
 
 class MainActivity : ReactActivity() {
+    companion object {
+        private const val APP_START_TIME_PREFERENCES = "AppStartTime"
+    }
+
     /**
      * Returns the name of the main component registered from JavaScript. This is used to schedule
      * rendering of the component.
@@ -36,6 +40,10 @@ class MainActivity : ReactActivity() {
     ))
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        getSharedPreferences(APP_START_TIME_PREFERENCES, MODE_PRIVATE)
+            .edit()
+            .putLong(APP_START_TIME_PREFERENCES, System.currentTimeMillis())
+            .apply()
         BootSplash.init(this)
         super.onCreate(null)
 

@@ -2946,4 +2946,86 @@ describe('TransactionUtils', () => {
             expect(TransactionUtils.getTagArrayFromName('')).toEqual(['']);
         });
     });
+
+    describe('getExchangeRate', () => {
+        it('returns groupExchangeRate string when groupExchangeRate is set and not 1', () => {
+            const transaction = generateTransaction({
+                currency: 'USD',
+                groupExchangeRate: 1.25,
+                groupCurrency: 'EUR',
+            });
+
+            expect(TransactionUtils.getExchangeRate(transaction)).toBe('1.25 USD/EUR');
+        });
+
+        it('returns empty string when groupExchangeRate is 1', () => {
+            const transaction = generateTransaction({
+                currency: 'USD',
+                groupExchangeRate: 1,
+                groupCurrency: 'EUR',
+            });
+
+            expect(TransactionUtils.getExchangeRate(transaction)).toBe('');
+        });
+
+        it('returns empty string when groupExchangeRate is undefined and no reportCurrency', () => {
+            const transaction = generateTransaction({
+                currency: 'USD',
+                groupExchangeRate: undefined,
+            });
+
+            expect(TransactionUtils.getExchangeRate(transaction)).toBe('');
+        });
+
+        it('returns currencyConversionRate string when groupExchangeRate is missing but currencyConversionRate is set', () => {
+            const transaction = generateTransaction({
+                currency: 'USD',
+                currencyConversionRate: '0.85',
+                groupCurrency: 'EUR',
+            });
+
+            expect(TransactionUtils.getExchangeRate(transaction)).toBe('0.85 USD/EUR');
+        });
+
+        it('returns empty string when currencyConversionRate is 1', () => {
+            const transaction = generateTransaction({
+                currency: 'USD',
+                currencyConversionRate: '1',
+                groupCurrency: 'EUR',
+            });
+
+            expect(TransactionUtils.getExchangeRate(transaction)).toBe('');
+        });
+
+        it('returns empty string when currencyConversionRate is undefined and groupExchangeRate is missing', () => {
+            const transaction = generateTransaction({
+                currency: 'USD',
+                currencyConversionRate: undefined,
+            });
+
+            expect(TransactionUtils.getExchangeRate(transaction)).toBe('');
+        });
+
+        it('uses fromCurrency as toCurrency when groupCurrency is not set', () => {
+            const transaction = generateTransaction({
+                currency: 'USD',
+                groupExchangeRate: 2.5,
+                groupCurrency: undefined,
+            });
+
+            // groupCurrency falls back to fromCurrency (USD)
+            expect(TransactionUtils.getExchangeRate(transaction)).toBe('2.5 USD/USD');
+        });
+
+        it('prefers groupExchangeRate over currencyConversionRate when both are set', () => {
+            const transaction = generateTransaction({
+                currency: 'USD',
+                groupExchangeRate: 1.25,
+                currencyConversionRate: '0.85',
+                groupCurrency: 'EUR',
+            });
+
+            expect(TransactionUtils.getExchangeRate(transaction)).toBe('1.25 USD/EUR');
+        });
+    });
 });

@@ -3,7 +3,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
-import SelectionCheckbox from '@components/SelectionList/components/SelectionCheckbox';
+import SelectCircle from '@components/SelectCircle';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -55,15 +55,9 @@ function OptionItem({title, icon, onPress, isSelected = false, isDisabled, style
                         />
                         {(isSelected || !isDisabled) && (
                             <View>
-                                <SelectionCheckbox
-                                    item={{
-                                        isSelected,
-                                        text: translate(title),
-                                        keyForList: title,
-                                    }}
-                                    isCircular
-                                    onSelectRow={() => onPress?.()}
-                                    accessibilityLabel={translate(title)}
+                                <SelectCircle
+                                    isChecked={isSelected}
+                                    selectCircleStyles={styles.sectionSelectCircle}
                                 />
                             </View>
                         )}

@@ -219,9 +219,6 @@ type CommonListItemProps<TItem extends ListItem> = {
 
     /** Whether product training tooltips can be displayed */
     canShowProductTrainingTooltip?: boolean;
-
-    /** Whether to show the radio button */
-    shouldShowRadioButton?: boolean;
 } & TRightHandSideComponent<TItem> &
     WithSentryLabel;
 

@@ -52,7 +52,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     const policyTag = getTagListByOrderWeight(policyTags, orderWeight);
     const {environmentURL} = useEnvironment();
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lock', 'Trashcan'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lock', 'Trashcan']);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAG_SETTINGS;
     const tagApprover = getTagApproverRule(policy, route.params?.tagName)?.approver ?? '';
     const approver = getPersonalDetailByEmail(tagApprover);
