@@ -64,7 +64,7 @@ function isPreloadAction(action: RootStackNavigatorAction): action is PreloadAct
     return action.type === CONST.NAVIGATION.ACTION_TYPE.PRELOAD;
 }
 
-const MODAL_GUARD_REDIRECT_TARGETS = new Set([NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR, NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR]);
+const MODAL_GUARD_REDIRECT_TARGETS: Set<string> = new Set([NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR, NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR]);
 
 function isModalGuardRedirectTarget(name: string) {
     return MODAL_GUARD_REDIRECT_TARGETS.has(name);
@@ -106,18 +106,16 @@ function handleNavigationGuards(
         // For non-modal redirects (e.g. HOME), do a full replace as before.
         const isModalRedirect = redirectState.routes.some((route) => isModalGuardRedirectTarget(route.name));
 
-        let routes;
+        let resetRoutes: typeof redirectState.routes = redirectState.routes;
         if (isModalRedirect) {
             const existingRouteNames = new Set(state.routes.map((route) => route.name));
             const newRoutes = redirectState.routes.filter((route) => !existingRouteNames.has(route.name));
-            routes = [...state.routes, ...newRoutes];
-        } else {
-            routes = redirectState.routes;
+            resetRoutes = [...(state.routes as typeof redirectState.routes), ...newRoutes];
         }
 
         const resetAction = CommonActions.reset({
-            index: routes.length - 1,
-            routes,
+            index: resetRoutes.length - 1,
+            routes: resetRoutes,
         });
 
         return stackRouter.getStateForAction(state, resetAction, configOptions);
