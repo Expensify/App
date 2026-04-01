@@ -1,9 +1,10 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {clearDraftValues, setDraftValues} from '@libs/actions/FormActions';
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDatePresets} from '@libs/SearchUIUtils';
@@ -14,6 +15,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import DateFilterBase from './FilterComponents/DateFilterBase';
+import type {SearchDateValues} from './FilterComponents/DatePresetFilterBase';
 import type {ReportFieldDateKey, SearchDateFilterKeys, SearchFilterKey} from './types';
 
 type SearchDatePresetFilterBasePageProps = {
@@ -31,6 +33,7 @@ function SearchDatePresetFilterBasePage({dateKey, titleKey}: SearchDatePresetFil
     const params = route.params as {subPage?: string} | undefined;
 
     const [searchAdvancedFiltersForm, searchAdvancedFiltersFormMetadata] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const [searchAdvancedFiltersFormDraft] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM_DRAFT);
     const isSearchAdvancedFiltersFormLoading = isLoadingOnyxValue(searchAdvancedFiltersFormMetadata);
 
     const dateOnKey = dateKey.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)
@@ -48,12 +51,26 @@ function SearchDatePresetFilterBasePage({dateKey, titleKey}: SearchDatePresetFil
     const dateOnValue = searchAdvancedFiltersForm?.[dateOnKey];
     const dateBeforeValue = searchAdvancedFiltersForm?.[dateBeforeKey];
     const dateAfterValue = searchAdvancedFiltersForm?.[dateAfterKey];
+    const hasDraftDateValues =
+        searchAdvancedFiltersFormDraft?.[dateOnKey] !== undefined ||
+        searchAdvancedFiltersFormDraft?.[dateBeforeKey] !== undefined ||
+        searchAdvancedFiltersFormDraft?.[dateAfterKey] !== undefined;
+
+    useEffect(() => {
+        if (params?.subPage) {
+            return;
+        }
+
+        return () => {
+            clearDraftValues(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+        };
+    }, [params?.subPage]);
 
     function getDefaultDateValues() {
         return {
-            [CONST.SEARCH.DATE_MODIFIERS.ON]: dateOnValue,
-            [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: dateBeforeValue,
-            [CONST.SEARCH.DATE_MODIFIERS.AFTER]: dateAfterValue,
+            [CONST.SEARCH.DATE_MODIFIERS.ON]: hasDraftDateValues ? (searchAdvancedFiltersFormDraft?.[dateOnKey] ?? undefined) : dateOnValue,
+            [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: hasDraftDateValues ? (searchAdvancedFiltersFormDraft?.[dateBeforeKey] ?? undefined) : dateBeforeValue,
+            [CONST.SEARCH.DATE_MODIFIERS.AFTER]: hasDraftDateValues ? (searchAdvancedFiltersFormDraft?.[dateAfterKey] ?? undefined) : dateAfterValue,
         };
     }
 
@@ -63,6 +80,7 @@ function SearchDatePresetFilterBasePage({dateKey, titleKey}: SearchDatePresetFil
     }
 
     const goBack = useCallback(() => {
+        clearDraftValues(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
         Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
     }, []);
 
@@ -101,6 +119,16 @@ function SearchDatePresetFilterBasePage({dateKey, titleKey}: SearchDatePresetFil
 
     const defaultDateValues = getDefaultDateValues();
     const presets = getPresets();
+    const updateDateDraftValues = useCallback(
+        (values: SearchDateValues) => {
+            setDraftValues(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {
+                [dateOnKey]: values[CONST.SEARCH.DATE_MODIFIERS.ON] ?? null,
+                [dateBeforeKey]: values[CONST.SEARCH.DATE_MODIFIERS.BEFORE] ?? null,
+                [dateAfterKey]: values[CONST.SEARCH.DATE_MODIFIERS.AFTER] ?? null,
+            });
+        },
+        [dateAfterKey, dateBeforeKey, dateOnKey],
+    );
 
     return (
         <ScreenWrapper
@@ -116,6 +144,7 @@ function SearchDatePresetFilterBasePage({dateKey, titleKey}: SearchDatePresetFil
                 presets={presets}
                 isSearchAdvancedFiltersFormLoading={isSearchAdvancedFiltersFormLoading}
                 onBackButtonPress={goBack}
+                onDateValuesChange={updateDateDraftValues}
                 selectedDateModifier={selectedDateModifier}
                 onSelectDateModifier={selectDateModifier}
                 onSubmit={(values) => {
@@ -124,6 +153,7 @@ function SearchDatePresetFilterBasePage({dateKey, titleKey}: SearchDatePresetFil
                         [dateBeforeKey]: values[CONST.SEARCH.DATE_MODIFIERS.BEFORE] ?? null,
                         [dateAfterKey]: values[CONST.SEARCH.DATE_MODIFIERS.AFTER] ?? null,
                     });
+                    clearDraftValues(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
                     Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
                 }}
             />

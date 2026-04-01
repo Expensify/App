@@ -79,14 +79,23 @@ function DatePresetFilterBase({
     const shouldShowHorizontalRule = !!presets?.length;
 
     const [dateValues, setDateValues] = useState<SearchDateValues>(defaultDateValues);
+    const defaultDateOnValue = defaultDateValues[CONST.SEARCH.DATE_MODIFIERS.ON];
+    const defaultDateBeforeValue = defaultDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE];
+    const defaultDateAfterValue = defaultDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER];
 
     useEffect(() => {
         if (isSearchAdvancedFiltersFormLoading) {
             return;
         }
-        setDateValues(defaultDateValues);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isSearchAdvancedFiltersFormLoading]);
+
+        // Sync the local state when another route instance updates the shared values.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setDateValues({
+            [CONST.SEARCH.DATE_MODIFIERS.ON]: defaultDateOnValue,
+            [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: defaultDateBeforeValue,
+            [CONST.SEARCH.DATE_MODIFIERS.AFTER]: defaultDateAfterValue,
+        });
+    }, [defaultDateAfterValue, defaultDateBeforeValue, defaultDateOnValue, isSearchAdvancedFiltersFormLoading]);
 
     const setDateValue = useCallback(
         (dateModifier: SearchDateModifier, value: string | undefined) => {
@@ -154,7 +163,9 @@ function DatePresetFilterBase({
             },
 
             clearDateValues() {
-                setDateValues({[CONST.SEARCH.DATE_MODIFIERS.ON]: undefined, [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: undefined, [CONST.SEARCH.DATE_MODIFIERS.AFTER]: undefined});
+                const clearedDateValues = {[CONST.SEARCH.DATE_MODIFIERS.ON]: undefined, [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: undefined, [CONST.SEARCH.DATE_MODIFIERS.AFTER]: undefined};
+                setDateValues(clearedDateValues);
+                onDateValueChange?.(clearedDateValues);
             },
 
             setDateValueOfSelectedDateModifier() {
@@ -173,7 +184,7 @@ function DatePresetFilterBase({
                 setDateValue(selectedDateModifier, undefined);
             },
         }),
-        [selectedDateModifier, dateValues, ephemeralDateValue, setDateValue],
+        [dateValues, ephemeralDateValue, onDateValueChange, selectedDateModifier, setDateValue],
     );
 
     return !selectedDateModifier ? (
