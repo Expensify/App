@@ -267,14 +267,14 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         if (!transaction?.transactionID || !imageType) {
             return;
         }
-        removeMoneyRequestOdometerImage(transaction.transactionID, imageType, isDraftTransaction);
+        removeMoneyRequestOdometerImage(transaction, imageType, isDraftTransaction, !isEditingConfirmation);
         const odometerGoBackRoute =
             isOdometerImage &&
             (isEditingConfirmation === true
                 ? ROUTES.MONEY_REQUEST_STEP_DISTANCE_ODOMETER.getRoute(action ?? CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID)
                 : ROUTES.DISTANCE_REQUEST_CREATE_TAB_ODOMETER.getRoute(action ?? CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, backToReport));
         Navigation.goBack(odometerGoBackRoute || undefined);
-    }, [transaction?.transactionID, imageType, isOdometerImage, isDraftTransaction, isEditingConfirmation, action, iouType, transactionID, reportID, backToReport]);
+    }, [transaction, imageType, isDraftTransaction, isOdometerImage, isEditingConfirmation, action, iouType, transactionID, reportID, backToReport]);
 
     const onDownloadAttachment = useDownloadAttachment({
         isAuthTokenRequired,
@@ -291,7 +291,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             return moveReceiptToDurableStorage(imageUri, filename).then((durableUri) => {
                 const durableFile = Object.assign(new File([file], file.name || filename, {type: file.type}), {uri: durableUri, source: durableUri});
                 if (isOdometerImage) {
-                    setMoneyRequestOdometerImage(transaction.transactionID, imageType, durableFile, isDraftTransaction);
+                    setMoneyRequestOdometerImage(transaction, imageType, durableFile, isDraftTransaction, !isEditingConfirmation);
                 } else if (isDraftTransaction) {
                     setMoneyRequestReceipt(transaction.transactionID, durableUri, filename, isDraftTransaction, fileType);
                 } else {
@@ -306,7 +306,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 }
             });
         },
-        [transaction?.transactionID, transaction?.receipt?.state, isDraftTransaction, isOdometerImage, imageType, fileType, policyCategories, policy],
+        [transaction, isDraftTransaction, isOdometerImage, isEditingConfirmation, imageType, fileType, policyCategories, policy],
     );
 
     const rotateReceipt = useCallback(() => {
@@ -381,10 +381,10 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             [
                 {
                     crop: {
-                        originX: cropRect.x,
-                        originY: cropRect.y,
-                        width: cropRect.width,
-                        height: cropRect.height,
+                        originX: Math.max(0, Math.floor(cropRect.x)),
+                        originY: Math.max(0, Math.floor(cropRect.y)),
+                        width: Math.max(1, Math.floor(cropRect.width)),
+                        height: Math.max(1, Math.floor(cropRect.height)),
                     },
                 },
             ],
