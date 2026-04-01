@@ -1278,6 +1278,7 @@ function openReport(params: OpenReportActionParams) {
     }
 
     const participantLoginList = participants.map((p) => p.login);
+    // TODO: allPersonalDetails fallback should be removed in follow-up PRs https://github.com/Expensify/App/issues/73656
     const participantAccountIDList = participants.map((p) => p.accountID).filter((id): id is number => id !== undefined);
 
     const optimisticReport = reportActionsExist(reportID)
@@ -2015,7 +2016,7 @@ function navigateToAndOpenReport(
             reportID: newChat?.reportID,
             introSelected,
             reportActionID: '',
-            participants: buildParticipantInfoFromLogins(userLogins, participantAccountIDs),
+            participants: buildParticipantInfoFromLogins(userLogins),
             personalDetails,
             newReportObject: newChat,
             isSelfTourViewed,
@@ -2157,7 +2158,7 @@ function createChildReport(
     if (!childReportID) {
         const participantAccountIDsForDetails = Object.keys(newChat.participants ?? {}).map(Number);
         const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(participantAccountIDsForDetails);
-        const participants = buildParticipantInfoFromLogins(participantLogins, participantAccountIDsForDetails);
+        const participants = buildParticipantInfoFromLogins(participantLogins);
         openReport({
             reportID: newChat.reportID,
             introSelected,
@@ -3067,7 +3068,7 @@ function toggleSubscribeToChildReport(
         });
 
         const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(participantAccountIDs);
-        const participants = buildParticipantInfoFromLogins(participantLogins, participantAccountIDs);
+        const participants = buildParticipantInfoFromLogins(participantLogins);
         openReport({
             reportID: newChat.reportID,
             introSelected,

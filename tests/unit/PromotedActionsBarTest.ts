@@ -54,7 +54,7 @@ describe('PromotedActions.message', () => {
 
         action.onSelected();
 
-        expect(mockNavigateToAndOpenReportWithAccountIDs).toHaveBeenCalledWith([42], 1, introSelected, undefined);
+        expect(mockNavigateToAndOpenReportWithAccountIDs).toHaveBeenCalledWith([42], 1, introSelected, undefined, {});
     });
 
     it('should pass undefined introSelected when not provided', () => {
@@ -69,7 +69,7 @@ describe('PromotedActions.message', () => {
 
         action.onSelected();
 
-        expect(mockNavigateToAndOpenReportWithAccountIDs).toHaveBeenCalledWith([42], {}, 1, undefined, undefined);
+        expect(mockNavigateToAndOpenReportWithAccountIDs).toHaveBeenCalledWith([42], 1, undefined, undefined, {});
     });
 
     it('should navigate to report directly when reportID is provided', () => {
@@ -120,7 +120,7 @@ describe('PromotedActions.message', () => {
 
         action.onSelected();
 
-        expect(mockNavigateToAndOpenReportWithAccountIDs).toHaveBeenCalledWith([42], {}, 1, introSelected, betas);
+        expect(mockNavigateToAndOpenReportWithAccountIDs).toHaveBeenCalledWith([42], 1, introSelected, betas, {});
     });
 
     it('should pass betas to navigateToAndOpenReport when login is provided', () => {
