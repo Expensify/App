@@ -9,9 +9,11 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setMoneyRequestDistanceRate} from '@libs/actions/IOU';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getOptimisticRateName, validateRateValue} from '@libs/PolicyDistanceRatesUtils';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
@@ -43,6 +45,7 @@ function CreateDistanceRatePage({
     const customUnitRateID = generateCustomUnitID();
     const {inputCallbackRef} = useAutoFocusInput();
     const isDistanceRateUpgrade = transactionID && reportID;
+    const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(transactionID)}`);
 
     const FullPageBlockingView = !customUnitID ? FullPageOfflineBlockingView : View;
 
@@ -68,7 +71,7 @@ function CreateDistanceRatePage({
         createPolicyDistanceRate(policyID, customUnitID, newRate);
         if (isDistanceRateUpgrade) {
             const isEdit = action === CONST.IOU.ACTION.EDIT;
-            setMoneyRequestDistanceRate(transactionID, customUnitRateID, policy, true);
+            setMoneyRequestDistanceRate(transactionDraft, customUnitRateID, policy, true);
             Navigation.goBack(
                 !isEdit
                     ? ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType ?? CONST.IOU.TYPE.SUBMIT, transactionID, reportID)

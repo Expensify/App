@@ -42,11 +42,10 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const flashListRef = useRef<FlashListRef<Report>>(null);
     const route = useRoute();
     const isScreenFocused = useIsFocused();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass', 'Plus'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass', 'Plus']);
 
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const reportAttributes = useReportAttributes();
-    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [policy] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -153,8 +152,9 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const renderItem = useCallback(
         ({item, index}: RenderItemProps): ReactElement => {
             const reportID = item.reportID;
+            const itemReportAttributes = reportAttributes?.[reportID];
             const itemParentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.parentReportID}`];
-            const itemReportNameValuePairs = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
+            const itemOneTransactionThreadReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${itemReportAttributes?.oneTransactionThreadReportID}`];
 
             let invoiceReceiverPolicyID = '-1';
             if (item?.invoiceReceiver && 'policyID' in item.invoiceReceiver) {
@@ -172,7 +172,9 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 <OptionRowLHNData
                     reportID={reportID}
                     fullReport={item}
-                    reportNameValuePairs={itemReportNameValuePairs}
+                    reportAttributes={itemReportAttributes}
+                    reportAttributesDerived={reportAttributes}
+                    oneTransactionThreadReport={itemOneTransactionThreadReport}
                     policy={itemPolicy}
                     invoiceReceiverPolicy={itemInvoiceReceiverPolicy}
                     personalDetails={personalDetails ?? {}}
@@ -194,8 +196,8 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             );
         },
         [
+            reportAttributes,
             reports,
-            reportNameValuePairs,
             policy,
             personalDetails,
             firstReportIDWithGBRorRBR,
@@ -215,8 +217,8 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     );
 
     const extraData = useMemo(
-        () => [reports, reportNameValuePairs, policy, personalDetails, data.length, optionMode, isOffline, isScreenFocused, isReportsSplitNavigatorLast],
-        [reports, reportNameValuePairs, policy, personalDetails, data.length, optionMode, isOffline, isScreenFocused, isReportsSplitNavigatorLast],
+        () => [reports, reportAttributes, policy, personalDetails, data.length, optionMode, isOffline, isScreenFocused, isReportsSplitNavigatorLast],
+        [reports, reportAttributes, policy, personalDetails, data.length, optionMode, isOffline, isScreenFocused, isReportsSplitNavigatorLast],
     );
 
     const previousOptionMode = usePrevious(optionMode);
@@ -273,11 +275,10 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 reportsCount: Object.keys(reports ?? {}).length,
                 policyCount: Object.keys(policy ?? {}).length,
                 personalDetailsCount: Object.keys(personalDetails ?? {}).length,
-                route,
                 reportsIDsFromUseReportsCount: data.length,
             });
         }
-    }, [data.length, shouldShowEmptyLHN, route, reports, policy, personalDetails]);
+    }, [data.length, shouldShowEmptyLHN, reports, policy, personalDetails]);
 
     return (
         <View style={[style ?? styles.flex1, shouldShowEmptyLHN ? styles.emptyLHNWrapper : undefined]}>

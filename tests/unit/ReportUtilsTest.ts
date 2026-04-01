@@ -12,6 +12,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import * as HoldUtils from '@libs/actions/IOU/Hold';
 import {putOnHold} from '@libs/actions/IOU/Hold';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
+import type {TaskForParameters} from '@libs/actions/Report';
 import type {OnboardingTaskLinks} from '@libs/actions/Welcome/OnboardingFlow';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
@@ -36,6 +37,7 @@ import {
     buildOptimisticCancelPaymentReportAction,
     buildOptimisticCardAssignedReportAction,
     buildOptimisticChatReport,
+    buildOptimisticClosedReportAction,
     buildOptimisticCreatedReportAction,
     buildOptimisticCreatedReportForUnapprovedAction,
     buildOptimisticEmptyReport,
@@ -51,6 +53,7 @@ import {
     canDeleteReportAction,
     canDeleteTransaction,
     canEditMoneyRequest,
+    canEditReportAction,
     canEditReportDescription,
     canEditReportTitle,
     canEditRoomVisibility,
@@ -73,6 +76,7 @@ import {
     getAvailableReportFields,
     getBillableAndTaxTotal,
     getChatByParticipants,
+    getChatListItemReportName,
     getChatRoomSubtitle,
     getDefaultWorkspaceAvatar,
     getDisplayNameForParticipant,
@@ -561,6 +565,7 @@ describe('ReportUtils', () => {
 
             prepareOnboardingOnyxData({
                 introSelected: undefined,
+                betas: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
                     message: 'This is a test',
@@ -590,6 +595,7 @@ describe('ReportUtils', () => {
 
             prepareOnboardingOnyxData({
                 introSelected: undefined,
+                betas: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
                     message: 'This is a test',
@@ -618,12 +624,11 @@ describe('ReportUtils', () => {
             const adminsChatReportID = '1';
             // Not having `+` in the email allows for `isPostingTasksInAdminsRoom` flow
             await Onyx.merge(ONYXKEYS.SESSION, {email: 'test@example.com'});
-            // Enable the suggestedFollowups beta so tasks are skipped in favor of backend-generated followups
-            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.SUGGESTED_FOLLOWUPS]);
             await waitForBatchedUpdates();
 
             const result = prepareOnboardingOnyxData({
                 introSelected: undefined,
+                betas: [CONST.BETAS.SUGGESTED_FOLLOWUPS],
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
                     message: 'This is a test',
@@ -647,11 +652,11 @@ describe('ReportUtils', () => {
         it('should generate bespoke welcome message for SMALL company sizes with suggestedFollowups beta', async () => {
             const adminsChatReportID = '1';
             await Onyx.merge(ONYXKEYS.SESSION, {email: 'test@example.com'});
-            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.SUGGESTED_FOLLOWUPS]);
             await waitForBatchedUpdates();
 
             const result = prepareOnboardingOnyxData({
                 introSelected: undefined,
+                betas: [CONST.BETAS.SUGGESTED_FOLLOWUPS],
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
                     message: 'This is a test',
@@ -669,11 +674,11 @@ describe('ReportUtils', () => {
         it('should generate bespoke welcome message for LARGE company sizes with suggestedFollowups beta', async () => {
             const adminsChatReportID = '1';
             await Onyx.merge(ONYXKEYS.SESSION, {email: 'test@example.com'});
-            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.SUGGESTED_FOLLOWUPS]);
             await waitForBatchedUpdates();
 
             const result = prepareOnboardingOnyxData({
                 introSelected: undefined,
+                betas: [CONST.BETAS.SUGGESTED_FOLLOWUPS],
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
                     message: 'This is a test',
@@ -691,11 +696,11 @@ describe('ReportUtils', () => {
         it('should generate bespoke welcome message for MEDIUM_SMALL company sizes with suggestedFollowups beta', async () => {
             const adminsChatReportID = '1';
             await Onyx.merge(ONYXKEYS.SESSION, {email: 'test@example.com'});
-            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.SUGGESTED_FOLLOWUPS]);
             await waitForBatchedUpdates();
 
             const result = prepareOnboardingOnyxData({
                 introSelected: undefined,
+                betas: [CONST.BETAS.SUGGESTED_FOLLOWUPS],
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
                     message: 'This is a test',
@@ -713,11 +718,11 @@ describe('ReportUtils', () => {
         it('should generate bespoke welcome message for MEDIUM company sizes with suggestedFollowups beta', async () => {
             const adminsChatReportID = '1';
             await Onyx.merge(ONYXKEYS.SESSION, {email: 'test@example.com'});
-            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.SUGGESTED_FOLLOWUPS]);
             await waitForBatchedUpdates();
 
             const result = prepareOnboardingOnyxData({
                 introSelected: undefined,
+                betas: [CONST.BETAS.SUGGESTED_FOLLOWUPS],
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
                     message: 'This is a test',
@@ -735,11 +740,11 @@ describe('ReportUtils', () => {
         it('should append accounting integration suffix to bespoke welcome message', async () => {
             const adminsChatReportID = '1';
             await Onyx.merge(ONYXKEYS.SESSION, {email: 'test@example.com'});
-            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.SUGGESTED_FOLLOWUPS]);
             await waitForBatchedUpdates();
 
             const result = prepareOnboardingOnyxData({
                 introSelected: undefined,
+                betas: [CONST.BETAS.SUGGESTED_FOLLOWUPS],
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
                     message: 'This is a test',
@@ -758,12 +763,11 @@ describe('ReportUtils', () => {
             const adminsChatReportID = '1';
             // Not having `+` in the email allows for `isPostingTasksInAdminsRoom` flow
             await Onyx.merge(ONYXKEYS.SESSION, {email: 'test@example.com'});
-            // Do NOT set the suggestedFollowups beta - user should get the old task list behavior
-            await Onyx.merge(ONYXKEYS.BETAS, []);
             await waitForBatchedUpdates();
 
             const result = prepareOnboardingOnyxData({
                 introSelected: undefined,
+                betas: [],
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
                     message: 'This is a test',
@@ -783,6 +787,7 @@ describe('ReportUtils', () => {
 
             const result = prepareOnboardingOnyxData({
                 introSelected: undefined,
+                betas: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
                     message: 'This is a test',
@@ -799,6 +804,7 @@ describe('ReportUtils', () => {
         it('should not create tasks if the task feature is not in the selected interested features', () => {
             const result = prepareOnboardingOnyxData({
                 introSelected: undefined,
+                betas: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
                     message: 'This is a test',
@@ -822,6 +828,7 @@ describe('ReportUtils', () => {
 
             prepareOnboardingOnyxData({
                 introSelected: undefined,
+                betas: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
                     message: 'This is a test',
@@ -850,6 +857,7 @@ describe('ReportUtils', () => {
 
             prepareOnboardingOnyxData({
                 introSelected: undefined,
+                betas: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
                     message: 'This is a test',
@@ -882,6 +890,7 @@ describe('ReportUtils', () => {
         it('should produce empty guidedSetupData for LOOKING_AROUND intent with empty message', () => {
             const result = prepareOnboardingOnyxData({
                 introSelected: undefined,
+                betas: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
                 onboardingMessage: {
                     message: '',
@@ -897,6 +906,7 @@ describe('ReportUtils', () => {
         it('should not include sign-off message for LOOKING_AROUND intent', () => {
             const result = prepareOnboardingOnyxData({
                 introSelected: undefined,
+                betas: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
                 onboardingMessage: {
                     message: '',
@@ -918,6 +928,7 @@ describe('ReportUtils', () => {
         it('should include guidedSetupData for non-LOOKING_AROUND intents', () => {
             const result = prepareOnboardingOnyxData({
                 introSelected: undefined,
+                betas: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.PERSONAL_SPEND,
                 onboardingMessage: {
                     message: 'Here is how to track your spend in a few clicks.',
@@ -932,6 +943,93 @@ describe('ReportUtils', () => {
             expect(result?.guidedSetupData.length).toBeGreaterThanOrEqual(1);
             const messageEntries = result?.guidedSetupData.filter((data) => data.type === 'message');
             expect(messageEntries?.length).toBeGreaterThanOrEqual(1);
+        });
+
+        it('should auto-complete VIEW_TOUR task when isSelfTourViewed is true', () => {
+            const result = prepareOnboardingOnyxData({
+                introSelected: undefined,
+                betas: undefined,
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                onboardingMessage: {
+                    message: 'This is a test',
+                    tasks: [
+                        {
+                            type: CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR,
+                            title: () => 'View Tour',
+                            description: () => 'Take a tour',
+                            autoCompleted: false,
+                        },
+                    ],
+                },
+                adminsChatReportID: '1',
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                isSelfTourViewed: true,
+            });
+
+            const viewTourTask = result?.guidedSetupData.find(
+                (item): item is Extract<TaskForParameters, {type: 'task'}> => item.type === 'task' && 'task' in item && item.task === CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR,
+            );
+            expect(viewTourTask).toBeDefined();
+            expect(viewTourTask?.completedTaskReportActionID).toBeDefined();
+        });
+
+        it('should not auto-complete VIEW_TOUR task when isSelfTourViewed is false', () => {
+            const result = prepareOnboardingOnyxData({
+                introSelected: undefined,
+                betas: undefined,
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                onboardingMessage: {
+                    message: 'This is a test',
+                    tasks: [
+                        {
+                            type: CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR,
+                            title: () => 'View Tour',
+                            description: () => 'Take a tour',
+                            autoCompleted: false,
+                        },
+                    ],
+                },
+                adminsChatReportID: '1',
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                isSelfTourViewed: false,
+            });
+
+            const viewTourTask = result?.guidedSetupData.find(
+                (item): item is Extract<TaskForParameters, {type: 'task'}> => item.type === 'task' && 'task' in item && item.task === CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR,
+            );
+            expect(viewTourTask).toBeDefined();
+            expect(viewTourTask?.completedTaskReportActionID).toBeUndefined();
+        });
+
+        it('should auto-complete VIEW_TOUR task when isSelfTourViewed is undefined but onboarding.selfTourViewed is true via Onyx', async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {selfTourViewed: true, hasCompletedGuidedSetupFlow: false});
+            await waitForBatchedUpdates();
+
+            const result = prepareOnboardingOnyxData({
+                introSelected: undefined,
+                betas: undefined,
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                onboardingMessage: {
+                    message: 'This is a test',
+                    tasks: [
+                        {
+                            type: CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR,
+                            title: () => 'View Tour',
+                            description: () => 'Take a tour',
+                            autoCompleted: false,
+                        },
+                    ],
+                },
+                adminsChatReportID: '1',
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                isSelfTourViewed: undefined,
+            });
+
+            const viewTourTask = result?.guidedSetupData.find(
+                (item): item is Extract<TaskForParameters, {type: 'task'}> => item.type === 'task' && 'task' in item && item.task === CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR,
+            );
+            expect(viewTourTask).toBeDefined();
+            expect(viewTourTask?.completedTaskReportActionID).toBeDefined();
         });
     });
 
@@ -4844,10 +4942,10 @@ describe('ReportUtils', () => {
             const unholdRequestSpy = jest.spyOn(HoldUtils, 'unholdRequest').mockImplementation(() => undefined);
 
             // When changeMoneyRequestHoldStatus is called
-            changeMoneyRequestHoldStatus(reportAction, iouTransaction);
+            changeMoneyRequestHoldStatus(reportAction, iouTransaction, false);
 
             // Then unholdRequest should be called with the correct parameters and navigation should not be called
-            expect(unholdRequestSpy).toHaveBeenCalledWith(transactionID, childReportID, expect.objectContaining({id: policyID}));
+            expect(unholdRequestSpy).toHaveBeenCalledWith(transactionID, childReportID, expect.objectContaining({id: policyID}), false);
             expect(Navigation.navigate).not.toHaveBeenCalled();
         });
 
@@ -4889,7 +4987,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             // When changeMoneyRequestHoldStatus is called
-            changeMoneyRequestHoldStatus(reportAction, iouTransaction);
+            changeMoneyRequestHoldStatus(reportAction, iouTransaction, false);
 
             // Then navigation should be called with the correct parameters
             expect(Navigation.navigate).toHaveBeenCalledWith(
@@ -5067,7 +5165,7 @@ describe('ReportUtils', () => {
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoiceReport.reportID}`, invoiceReport);
 
-            const canEditRequest = canEditMoneyRequest(moneyRequestAction, true, invoiceReport, undefined, transaction);
+            const canEditRequest = canEditMoneyRequest(moneyRequestAction, transaction, true, invoiceReport);
 
             expect(canEditRequest).toEqual(false);
         });
@@ -5107,9 +5205,307 @@ describe('ReportUtils', () => {
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
 
-            const canEditRequest = canEditMoneyRequest(moneyRequestAction, true, expenseReport, undefined, transaction);
+            const canEditRequest = canEditMoneyRequest(moneyRequestAction, transaction, true, expenseReport);
 
             expect(canEditRequest).toEqual(true);
+        });
+
+        it('it should return false when linkedTransaction is undefined', () => {
+            const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                reportActionID: '44',
+                actorAccountID: currentUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: '1',
+                    IOUTransactionID: '44',
+                    amount: 100,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'USD 1.00 expense',
+                        text: 'USD 1.00 expense',
+                        isEdited: false,
+                        whisperedTo: [],
+                        isDeletedParentAction: false,
+                        deleted: '',
+                    },
+                ],
+                created: '2025-03-05 16:34:27',
+            };
+
+            const canEditRequest = canEditMoneyRequest(moneyRequestAction, undefined);
+
+            expect(canEditRequest).toEqual(false);
+        });
+
+        it('it should return false for a deleted money request action', () => {
+            const transaction = createRandomTransaction(56);
+            const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                reportActionID: '56',
+                actorAccountID: currentUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: '1',
+                    IOUTransactionID: transaction.transactionID,
+                    amount: 100,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: '',
+                        text: '',
+                        isDeletedParentAction: true,
+                        deleted: '2025-03-05 16:34:27',
+                    },
+                ],
+                created: '2025-03-05 16:34:27',
+            };
+
+            const canEditRequest = canEditMoneyRequest(moneyRequestAction, transaction);
+
+            expect(canEditRequest).toEqual(false);
+        });
+
+        it('it should return false for a non-allowed action type (DELETE)', () => {
+            const transaction = createRandomTransaction(57);
+            const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                reportActionID: '57',
+                actorAccountID: currentUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: '1',
+                    IOUTransactionID: transaction.transactionID,
+                    amount: 100,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.DELETE,
+                },
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'USD 1.00 expense',
+                        text: 'USD 1.00 expense',
+                        isEdited: false,
+                        whisperedTo: [],
+                        isDeletedParentAction: false,
+                        deleted: '',
+                    },
+                ],
+                created: '2025-03-05 16:34:27',
+            };
+
+            const canEditRequest = canEditMoneyRequest(moneyRequestAction, transaction);
+
+            expect(canEditRequest).toEqual(false);
+        });
+
+        it('it should return false when linkedTransaction has a pending ADD action with errors', () => {
+            const transaction = {
+                ...createRandomTransaction(55),
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                errors: {error: 'Something went wrong'},
+            };
+            const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                reportActionID: '55',
+                actorAccountID: currentUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: '1',
+                    IOUTransactionID: transaction.transactionID,
+                    amount: 100,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'USD 1.00 expense',
+                        text: 'USD 1.00 expense',
+                        isEdited: false,
+                        whisperedTo: [],
+                        isDeletedParentAction: false,
+                        deleted: '',
+                    },
+                ],
+                created: '2025-03-05 16:34:27',
+            };
+
+            const canEditRequest = canEditMoneyRequest(moneyRequestAction, transaction);
+
+            expect(canEditRequest).toEqual(false);
+        });
+    });
+
+    describe('canEditReportAction', () => {
+        it('it should return true for a non-money-request comment by current user', () => {
+            const transaction = createRandomTransaction(100);
+            const reportAction: ReportAction = {
+                reportActionID: '100',
+                actorAccountID: currentUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'Hello world',
+                        text: 'Hello world',
+                    },
+                ],
+                created: '2025-03-05 16:34:27',
+            };
+
+            expect(canEditReportAction(reportAction, transaction)).toEqual(true);
+        });
+
+        it('it should return false for a money request action with a failed transaction', () => {
+            const transaction = {
+                ...createRandomTransaction(101),
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                errors: {error: 'Something went wrong'},
+            };
+            const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                reportActionID: '101',
+                actorAccountID: currentUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: '1',
+                    IOUTransactionID: transaction.transactionID,
+                    amount: 500,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'USD 5.00 expense',
+                        text: 'USD 5.00 expense',
+                        isEdited: false,
+                        whisperedTo: [],
+                        isDeletedParentAction: false,
+                        deleted: '',
+                    },
+                ],
+                created: '2025-03-05 16:34:27',
+            };
+
+            expect(canEditReportAction(moneyRequestAction, transaction)).toEqual(false);
+        });
+
+        it('it should return true for a money request action with a valid linkedTransaction', async () => {
+            const expenseReport: Report = {
+                reportID: '1',
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            const transaction = createRandomTransaction(103);
+            const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                reportActionID: '103',
+                actorAccountID: currentUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: expenseReport.reportID,
+                    IOUTransactionID: transaction.transactionID,
+                    amount: 500,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'USD 5.00 expense',
+                        text: 'USD 5.00 expense',
+                        isEdited: false,
+                        whisperedTo: [],
+                        isDeletedParentAction: false,
+                        deleted: '',
+                    },
+                ],
+                created: '2025-03-05 16:34:27',
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+
+            expect(canEditReportAction(moneyRequestAction, transaction)).toEqual(true);
+        });
+
+        it('it should return false for a report action by another user', () => {
+            const transaction = createRandomTransaction(102);
+            const reportAction: ReportAction = {
+                reportActionID: '102',
+                actorAccountID: 999999,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'Hello world',
+                        text: 'Hello world',
+                    },
+                ],
+                created: '2025-03-05 16:34:27',
+            };
+
+            expect(canEditReportAction(reportAction, transaction)).toEqual(false);
+        });
+
+        it('it should return false for a deleted report action', () => {
+            const transaction = createRandomTransaction(104);
+            const reportAction: ReportAction = {
+                reportActionID: '104',
+                actorAccountID: currentUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: '',
+                        text: '',
+                        isDeletedParentAction: true,
+                        deleted: '2025-03-05 16:34:27',
+                    },
+                ],
+                created: '2025-03-05 16:34:27',
+            };
+
+            expect(canEditReportAction(reportAction, transaction)).toEqual(false);
+        });
+
+        it('it should return false for a report action with pending DELETE', () => {
+            const transaction = createRandomTransaction(105);
+            const reportAction: ReportAction = {
+                reportActionID: '105',
+                actorAccountID: currentUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'Hello world',
+                        text: 'Hello world',
+                    },
+                ],
+                created: '2025-03-05 16:34:27',
+            };
+
+            expect(canEditReportAction(reportAction, transaction)).toEqual(false);
+        });
+
+        it('it should return false for a CREATED action type', () => {
+            const transaction = createRandomTransaction(106);
+            const reportAction: ReportAction = {
+                reportActionID: '106',
+                actorAccountID: currentUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'Chat created',
+                        text: 'Chat created',
+                    },
+                ],
+                created: '2025-03-05 16:34:27',
+            };
+
+            expect(canEditReportAction(reportAction, transaction)).toEqual(false);
         });
     });
 
@@ -13376,7 +13772,7 @@ describe('ReportUtils', () => {
                 introSelected: undefined,
                 draftTransactionIDs: [],
                 activePolicy: undefined,
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 transaction: undefined,
             });
@@ -13414,9 +13810,9 @@ describe('ReportUtils', () => {
                     introSelected: undefined,
                     draftTransactionIDs: [],
                     activePolicy,
-                    userBillingGraceEndPeriods: undefined,
+                    userBillingGracePeriodEnds: undefined,
                     amountOwed: 1,
-                    ownerBillingGraceEndPeriod: pastGracePeriod,
+                    ownerBillingGracePeriodEnd: pastGracePeriod,
                     transaction,
                 });
 
@@ -13436,7 +13832,7 @@ describe('ReportUtils', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${1}`, {});
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${activePolicy.id}`, activePolicy);
-                const userBillingGraceEndPeriods = {
+                const userBillingGracePeriodEnds = {
                     [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${ownerAccountID}`]: {
                         value: 1,
                     },
@@ -13450,7 +13846,7 @@ describe('ReportUtils', () => {
                     introSelected: undefined,
                     draftTransactionIDs: [],
                     activePolicy,
-                    userBillingGraceEndPeriods,
+                    userBillingGracePeriodEnds,
                     amountOwed: 0,
                     transaction,
                 });
@@ -13488,7 +13884,7 @@ describe('ReportUtils', () => {
                     introSelected: undefined,
                     draftTransactionIDs: [],
                     activePolicy,
-                    userBillingGraceEndPeriods: undefined,
+                    userBillingGracePeriodEnds: undefined,
                     amountOwed: 0,
                     transaction,
                 });
@@ -13528,7 +13924,7 @@ describe('ReportUtils', () => {
                     introSelected: undefined,
                     draftTransactionIDs: [],
                     activePolicy: undefined,
-                    userBillingGraceEndPeriods: undefined,
+                    userBillingGracePeriodEnds: undefined,
                     amountOwed: 0,
                     transaction,
                 });
@@ -13555,7 +13951,7 @@ describe('ReportUtils', () => {
                     introSelected: undefined,
                     draftTransactionIDs: [],
                     activePolicy: undefined,
-                    userBillingGraceEndPeriods: undefined,
+                    userBillingGracePeriodEnds: undefined,
                     amountOwed: 0,
                     transaction,
                 });
@@ -13603,7 +13999,7 @@ describe('ReportUtils', () => {
                     introSelected: undefined,
                     draftTransactionIDs: [],
                     activePolicy: undefined,
-                    userBillingGraceEndPeriods: undefined,
+                    userBillingGracePeriodEnds: undefined,
                     amountOwed: 0,
                     transaction,
                 });
@@ -13647,7 +14043,7 @@ describe('ReportUtils', () => {
                     introSelected: undefined,
                     draftTransactionIDs: [],
                     activePolicy,
-                    userBillingGraceEndPeriods: undefined,
+                    userBillingGracePeriodEnds: undefined,
                     amountOwed: 0,
                     transaction,
                 });
@@ -13690,9 +14086,9 @@ describe('ReportUtils', () => {
                     introSelected: undefined,
                     draftTransactionIDs: [],
                     activePolicy,
-                    userBillingGraceEndPeriods: undefined,
+                    userBillingGracePeriodEnds: undefined,
                     amountOwed: 0,
-                    ownerBillingGraceEndPeriod: pastGracePeriod,
+                    ownerBillingGracePeriodEnd: pastGracePeriod,
                     transaction,
                 });
 
@@ -13726,9 +14122,9 @@ describe('ReportUtils', () => {
                     introSelected: undefined,
                     draftTransactionIDs: [],
                     activePolicy,
-                    userBillingGraceEndPeriods: undefined,
+                    userBillingGracePeriodEnds: undefined,
                     amountOwed: 50,
-                    ownerBillingGraceEndPeriod: pastGracePeriod,
+                    ownerBillingGracePeriodEnd: pastGracePeriod,
                     transaction,
                 });
 
@@ -14411,10 +14807,10 @@ describe('ReportUtils', () => {
                 icons: mockIcons,
                 iouReportID: mockIouReportID,
                 policy: undefined,
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 draftTransactionIDs: undefined,
                 amountOwed: 0,
-                ownerBillingGraceEndPeriod: undefined,
+                ownerBillingGracePeriodEnd: undefined,
             });
             expect(result).toHaveLength(3);
         });
@@ -14425,10 +14821,10 @@ describe('ReportUtils', () => {
                 icons: mockIcons,
                 iouReportID: mockIouReportID,
                 policy: undefined,
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 draftTransactionIDs: undefined,
                 amountOwed: undefined,
-                ownerBillingGraceEndPeriod: undefined,
+                ownerBillingGracePeriodEnd: undefined,
             });
             expect(result.at(0)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE);
             expect(result.at(1)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.TRACK_DISTANCE_EXPENSE);
@@ -14441,10 +14837,10 @@ describe('ReportUtils', () => {
                 icons: mockIcons,
                 iouReportID: mockIouReportID,
                 policy: undefined,
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 draftTransactionIDs: undefined,
                 amountOwed: 0,
-                ownerBillingGraceEndPeriod: undefined,
+                ownerBillingGracePeriodEnd: undefined,
             });
             expect(result.at(0)?.text).toBe(translate(CONST.LOCALES.EN, 'iou.createExpense'));
             expect(result.at(1)?.text).toBe(translate(CONST.LOCALES.EN, 'iou.trackDistance'));
@@ -14457,10 +14853,10 @@ describe('ReportUtils', () => {
                 icons: mockIcons,
                 iouReportID: mockIouReportID,
                 policy: undefined,
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 draftTransactionIDs: undefined,
                 amountOwed: 0,
-                ownerBillingGraceEndPeriod: undefined,
+                ownerBillingGracePeriodEnd: undefined,
             });
             expect(result.at(0)?.sentryLabel).toBe(CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_CREATE);
             expect(result.at(1)?.sentryLabel).toBe(CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_TRACK_DISTANCE);
@@ -14476,10 +14872,10 @@ describe('ReportUtils', () => {
                 icons: mockIcons,
                 iouReportID: mockIouReportID,
                 policy: mockPolicy,
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 draftTransactionIDs: undefined,
                 amountOwed,
-                ownerBillingGraceEndPeriod: undefined,
+                ownerBillingGracePeriodEnd: undefined,
             });
 
             // Trigger each onSelected - the function should not throw
@@ -14496,10 +14892,10 @@ describe('ReportUtils', () => {
                 icons: mockIcons,
                 iouReportID: mockIouReportID,
                 policy: mockPolicy,
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 draftTransactionIDs: undefined,
                 amountOwed: 0,
-                ownerBillingGraceEndPeriod: undefined,
+                ownerBillingGracePeriodEnd: undefined,
             });
 
             expect(result).toHaveLength(3);
@@ -14515,10 +14911,10 @@ describe('ReportUtils', () => {
                 icons: mockIcons,
                 iouReportID: undefined,
                 policy: undefined,
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 draftTransactionIDs: undefined,
                 amountOwed: 0,
-                ownerBillingGraceEndPeriod: undefined,
+                ownerBillingGracePeriodEnd: undefined,
             });
 
             // CREATE_NEW_EXPENSE and TRACK_DISTANCE_EXPENSE should early-return when iouReportID is undefined
@@ -14534,10 +14930,10 @@ describe('ReportUtils', () => {
                 icons: mockIcons,
                 iouReportID: mockIouReportID,
                 policy: undefined,
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 draftTransactionIDs: undefined,
                 amountOwed: 0,
-                ownerBillingGraceEndPeriod: undefined,
+                ownerBillingGracePeriodEnd: undefined,
             });
 
             expect(result).toHaveLength(3);
@@ -14553,10 +14949,10 @@ describe('ReportUtils', () => {
                 icons: mockIcons,
                 iouReportID: mockIouReportID,
                 policy: undefined,
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 draftTransactionIDs: undefined,
                 amountOwed,
-                ownerBillingGraceEndPeriod: undefined,
+                ownerBillingGracePeriodEnd: undefined,
             });
 
             expect(result).toHaveLength(3);
@@ -14568,10 +14964,10 @@ describe('ReportUtils', () => {
                 icons: mockIcons,
                 iouReportID: mockIouReportID,
                 policy: undefined,
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 draftTransactionIDs: undefined,
                 amountOwed: 0,
-                ownerBillingGraceEndPeriod: undefined,
+                ownerBillingGracePeriodEnd: undefined,
             });
             expect(result.at(1)?.icon).toBe(mockIcons.Location);
             expect(result.at(2)?.icon).toBe(mockIcons.ReceiptPlus);
@@ -14899,10 +15295,10 @@ describe('ReportUtils', () => {
                 icons: mockIcons,
                 iouReportID,
                 policy: undefined,
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 draftTransactionIDs: undefined,
                 amountOwed: undefined,
-                ownerBillingGraceEndPeriod: undefined,
+                ownerBillingGracePeriodEnd: undefined,
             });
 
             expect(options).toHaveLength(3);
@@ -14918,10 +15314,10 @@ describe('ReportUtils', () => {
                     icons: mockIcons,
                     iouReportID: undefined,
                     policy: undefined,
-                    userBillingGraceEndPeriods: undefined,
+                    userBillingGracePeriodEnds: undefined,
                     draftTransactionIDs: undefined,
                     amountOwed: undefined,
-                    ownerBillingGraceEndPeriod: undefined,
+                    ownerBillingGracePeriodEnd: undefined,
                 });
                 options.at(0)?.onSelected?.();
 
@@ -14949,10 +15345,10 @@ describe('ReportUtils', () => {
                     icons: mockIcons,
                     iouReportID,
                     policy: testPolicy,
-                    userBillingGraceEndPeriods: pastDueCollection,
+                    userBillingGracePeriodEnds: pastDueCollection,
                     draftTransactionIDs: undefined,
                     amountOwed: undefined,
-                    ownerBillingGraceEndPeriod: undefined,
+                    ownerBillingGracePeriodEnd: undefined,
                 });
                 options.at(0)?.onSelected?.();
 
@@ -14981,17 +15377,17 @@ describe('ReportUtils', () => {
                     icons: mockIcons,
                     iouReportID,
                     policy: testPolicy,
-                    userBillingGraceEndPeriods: pastDueCollection,
+                    userBillingGracePeriodEnds: pastDueCollection,
                     draftTransactionIDs: undefined,
                     amountOwed: undefined,
-                    ownerBillingGraceEndPeriod: undefined,
+                    ownerBillingGracePeriodEnd: undefined,
                 });
                 options.at(2)?.onSelected?.();
 
                 expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
             });
 
-            it('should pass ownerBillingGraceEndPeriod to restrict owner with past-due billing', async () => {
+            it('should pass ownerBillingGracePeriodEnd to restrict owner with past-due billing', async () => {
                 const gracePeriodEnd = Math.floor(Date.now() / 1000) - 3600;
                 const testPolicy = {
                     ...createRandomPolicy(Number(policyID)),
@@ -15007,10 +15403,10 @@ describe('ReportUtils', () => {
                     icons: mockIcons,
                     iouReportID,
                     policy: testPolicy,
-                    userBillingGraceEndPeriods: undefined,
+                    userBillingGracePeriodEnds: undefined,
                     draftTransactionIDs: undefined,
                     amountOwed: undefined,
-                    ownerBillingGraceEndPeriod: gracePeriodEnd,
+                    ownerBillingGracePeriodEnd: gracePeriodEnd,
                 });
                 options.at(2)?.onSelected?.();
 
@@ -15077,6 +15473,65 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('getChatListItemReportName', () => {
+        const conciergeReportID = 'concierge-report-123';
+
+        beforeEach(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdates();
+        });
+
+        it('should return CONCIERGE_DISPLAY_NAME when conciergeReportID matches report ID', async () => {
+            const conciergeReport: Report = {
+                reportID: conciergeReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`, conciergeReport);
+            await waitForBatchedUpdates();
+
+            const action = {...createRandomReportAction(1)};
+            const result = getChatListItemReportName(action, conciergeReport, conciergeReportID);
+            expect(result).toBe(CONST.CONCIERGE_DISPLAY_NAME);
+        });
+
+        it('should not return CONCIERGE_DISPLAY_NAME when conciergeReportID does not match report ID', async () => {
+            const regularReport: Report = {
+                reportID: 'regular-report-456',
+                type: CONST.REPORT.TYPE.CHAT,
+                reportName: 'Regular Chat',
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${regularReport.reportID}`, regularReport);
+            await waitForBatchedUpdates();
+
+            const action = {...createRandomReportAction(2)};
+            const result = getChatListItemReportName(action, regularReport, conciergeReportID);
+            expect(result).not.toBe(CONST.CONCIERGE_DISPLAY_NAME);
+        });
+
+        it('should return action.reportName when set, regardless of conciergeReportID', () => {
+            const conciergeReport: Report = {
+                reportID: conciergeReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            const action = {...createRandomReportAction(3), reportName: 'Custom Action Name'};
+            const result = getChatListItemReportName(action, conciergeReport, conciergeReportID);
+            expect(result).toBe('Custom Action Name');
+        });
+
+        it('should use Onyx-connected conciergeReportID when explicit parameter is undefined', async () => {
+            const conciergeReport: Report = {
+                reportID: conciergeReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, conciergeReportID);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`, conciergeReport);
+            await waitForBatchedUpdates();
+
+            const action = {...createRandomReportAction(4)};
+            const result = getChatListItemReportName(action, conciergeReport, undefined);
+            expect(result).toBe(CONST.CONCIERGE_DISPLAY_NAME);
+        });
+    });
     describe('buildOptimisticApprovedReportAction', () => {
         it('should set actorAccountID to the provided currentUserAccountID', () => {
             const customAccountID = 99;
@@ -15184,6 +15639,72 @@ describe('ReportUtils', () => {
 
         it('should generate a non-empty reportActionID', () => {
             const action = buildOptimisticCardAssignedReportAction(10, currentUserAccountID);
+
+            expect(action.reportActionID).toBeTruthy();
+        });
+    });
+
+    describe('buildOptimisticClosedReportAction', () => {
+        it('should set actorAccountID to the provided currentUserAccountID', () => {
+            const customAccountID = 99;
+            const action = buildOptimisticClosedReportAction('user@example.com', 'Test Policy', customAccountID);
+
+            expect(action.actorAccountID).toBe(customAccountID);
+        });
+
+        it('should set actionName to CLOSED', () => {
+            const action = buildOptimisticClosedReportAction('user@example.com', 'Test Policy', currentUserAccountID);
+
+            expect(action.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.CLOSED);
+        });
+
+        it('should set originalMessage with the provided policyName and default reason', () => {
+            const policyName = 'My Workspace';
+            const action = buildOptimisticClosedReportAction('user@example.com', policyName, currentUserAccountID);
+
+            expect(getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CLOSED>)).toMatchObject({
+                policyName,
+                reason: CONST.REPORT.ARCHIVE_REASON.DEFAULT,
+            });
+        });
+
+        it('should set originalMessage with the provided reason when specified', () => {
+            const policyName = 'My Workspace';
+            const reason = CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED;
+            const action = buildOptimisticClosedReportAction('user@example.com', policyName, currentUserAccountID, reason);
+
+            expect(getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CLOSED>)).toMatchObject({
+                policyName,
+                reason,
+            });
+        });
+
+        it('should set message with the emailClosingReport as the first text', () => {
+            const emailClosingReport = 'admin@company.com';
+            const action = buildOptimisticClosedReportAction(emailClosingReport, 'Test Policy', currentUserAccountID);
+            const messages = action.message as Array<{type: string; style: string; text: string}>;
+
+            expect(messages.at(0)).toMatchObject({
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                style: 'strong',
+                text: emailClosingReport,
+            });
+        });
+
+        it('should set pendingAction to ADD', () => {
+            const action = buildOptimisticClosedReportAction('user@example.com', 'Test Policy', currentUserAccountID);
+
+            expect(action.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+        });
+
+        it('should set shouldShow to true', () => {
+            const action = buildOptimisticClosedReportAction('user@example.com', 'Test Policy', currentUserAccountID);
+
+            expect(action.shouldShow).toBe(true);
+        });
+
+        it('should generate a non-empty reportActionID', () => {
+            const action = buildOptimisticClosedReportAction('user@example.com', 'Test Policy', currentUserAccountID);
 
             expect(action.reportActionID).toBeTruthy();
         });

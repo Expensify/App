@@ -18,11 +18,10 @@ import {createRandomReport} from '../utils/collections/reports';
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-// Mock PolicyUtils so getPolicy and isPolicyAdmin are controllable in tests. ModifiedExpenseMessage
+// Mock PolicyUtils so isPolicyAdmin are controllable in tests. ModifiedExpenseMessage
 // uses named imports from this module; spies alone do not affect those references, so we need a module mock.
 jest.mock('@libs/PolicyUtils', () => ({
     ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
-    getPolicy: jest.fn(),
     isPolicyAdmin: jest.fn(),
 }));
 
