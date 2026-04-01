@@ -1634,7 +1634,7 @@ function buildSpendRuleAST(spendRuleValues: SpendRuleForm): SpendRuleAST | undef
         maxAmount !== ''
             ? {
                   left: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
-                  operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN,
+                  operator: spendRuleValues.restrictionAction === CONST.SPEND_CARD_RULE.ACTION.BLOCK ? CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN : CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN,
                   right: [maxAmount],
               }
             : undefined;
