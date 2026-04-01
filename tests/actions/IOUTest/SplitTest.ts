@@ -2290,6 +2290,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             currentUserEmailParam: CARLOS_EMAIL,
             isSelfTourViewed: false,
             hasActiveAdminPolicies: false,
+            betas: [],
         });
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
         setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
