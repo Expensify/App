@@ -7,13 +7,14 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import {convertToBackendAmount, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Permissions from '@libs/Permissions';
 import {getTagLists, isMultiLevelTags} from '@libs/PolicyUtils';
 import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, canEditMoneyRequest, canUserPerformWriteAction, isArchivedReport, isReportInGroupPolicy} from '@libs/ReportUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
-import {isExpenseUnreported} from '@libs/TransactionUtils';
+import {calculateTaxAmount, getCurrency, getTaxValue, isExpenseUnreported} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
@@ -274,14 +275,18 @@ function editTransactionAmountInline(hash: number | undefined, transactionID: st
     const iouParams = getIouParamsForTransaction(transactionID, transactionThreadReportID);
     // Keep the existing currency — only the amount is changing from the search table
     const currency = iouParams.transaction?.modifiedCurrency ?? iouParams.transaction?.currency ?? CONST.CURRENCY.USD;
+    // Recalculate tax from the existing tax code and the new amount
+    const taxCode = iouParams.transaction?.taxCode ?? '';
+    const taxPercentage = getTaxValue(iouParams.policy, iouParams.transaction, taxCode) ?? '';
+    const decimals = getCurrencyDecimals(getCurrency(iouParams.transaction));
+    const taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, newAmount, decimals));
     updateMoneyRequestAmountAndCurrency({
         ...iouParams,
         amount: newAmount,
         currency,
-        // Preserve existing tax values from the live transaction record
-        taxAmount: iouParams.transaction?.taxAmount ?? 0,
-        taxCode: iouParams.transaction?.taxCode ?? '',
-        taxValue: '',
+        taxAmount,
+        taxCode,
+        taxValue: taxPercentage,
         allowNegative: false,
         transactions: allTransactions,
         transactionViolations: allTransactionViolations,
