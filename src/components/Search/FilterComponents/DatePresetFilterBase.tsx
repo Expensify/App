@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useImperativeHandle, useMemo, useState} from 'react';
+import React, {useCallback, useImperativeHandle, useMemo, useState} from 'react';
 import type {Ref} from 'react';
 import CalendarPicker from '@components/DatePicker/CalendarPicker';
 import MenuItem from '@components/MenuItem';
@@ -42,9 +42,6 @@ type DatePresetFilterBaseProps = {
     /** The date presets */
     presets?: SearchDatePreset[];
 
-    /** Whether the search advanced filters form Onyx data is loading or not */
-    isSearchAdvancedFiltersFormLoading?: boolean;
-
     /** Callback when a date value changes (e.g. preset click or calendar save) */
     onDateValueChange?: (values: SearchDateValues) => void;
 
@@ -62,15 +59,7 @@ type DatePresetFilterBaseProps = {
  * - On save: if a date modifier is selected (i.e. user clicked save at the calendar picker) you should `setDateValueOfSelectedDateModifier` otherwise `getDateValues`
  * - On reset: if a date modifier is selected (i.e. user clicked reset at the calendar picker) you should `clearDateValueOfSelectedDateModifier` otherwise `clearDateValues`
  */
-function DatePresetFilterBase({
-    defaultDateValues,
-    selectedDateModifier,
-    onSelectDateModifier,
-    presets,
-    isSearchAdvancedFiltersFormLoading,
-    onDateValueChange,
-    ref,
-}: DatePresetFilterBaseProps) {
+function DatePresetFilterBase({defaultDateValues, selectedDateModifier, onSelectDateModifier, presets, onDateValueChange, ref}: DatePresetFilterBaseProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -79,23 +68,6 @@ function DatePresetFilterBase({
     const shouldShowHorizontalRule = !!presets?.length;
 
     const [dateValues, setDateValues] = useState<SearchDateValues>(defaultDateValues);
-    const defaultDateOnValue = defaultDateValues[CONST.SEARCH.DATE_MODIFIERS.ON];
-    const defaultDateBeforeValue = defaultDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE];
-    const defaultDateAfterValue = defaultDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER];
-
-    useEffect(() => {
-        if (isSearchAdvancedFiltersFormLoading) {
-            return;
-        }
-
-        // Sync the local state when another route instance updates the shared values.
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setDateValues({
-            [CONST.SEARCH.DATE_MODIFIERS.ON]: defaultDateOnValue,
-            [CONST.SEARCH.DATE_MODIFIERS.BEFORE]: defaultDateBeforeValue,
-            [CONST.SEARCH.DATE_MODIFIERS.AFTER]: defaultDateAfterValue,
-        });
-    }, [defaultDateAfterValue, defaultDateBeforeValue, defaultDateOnValue, isSearchAdvancedFiltersFormLoading]);
 
     const setDateValue = useCallback(
         (dateModifier: SearchDateModifier, value: string | undefined) => {

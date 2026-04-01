@@ -154,6 +154,12 @@ function DateFilterBase({
     };
 
     const computedTitle = getComputedTitle();
+    const datePresetFilterKey = [
+        defaultDateValues[CONST.SEARCH.DATE_MODIFIERS.ON] ?? '',
+        defaultDateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE] ?? '',
+        defaultDateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER] ?? '',
+        isSearchAdvancedFiltersFormLoading ? 'loading' : 'loaded',
+    ].join('|');
 
     const content = (
         <>
@@ -165,12 +171,12 @@ function DateFilterBase({
             )}
             <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                 <DatePresetFilterBase
+                    key={datePresetFilterKey}
                     ref={searchDatePresetFilterBaseRef}
                     defaultDateValues={defaultDateValues}
                     selectedDateModifier={selectedDateModifier}
                     onSelectDateModifier={handleSelectDateModifier}
                     presets={presets}
-                    isSearchAdvancedFiltersFormLoading={isSearchAdvancedFiltersFormLoading}
                     onDateValueChange={onDateValuesChange}
                 />
             </ScrollView>
