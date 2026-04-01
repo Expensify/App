@@ -60,7 +60,7 @@ function SidePanelModal({children, sidePanelTranslateX, closeSidePanel, shouldHi
             ComposerFocusManager.setReadyToFocus(uniqueModalId);
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [isExtraLargeScreenWidth]);
 
     return (
         <ModalPortal>

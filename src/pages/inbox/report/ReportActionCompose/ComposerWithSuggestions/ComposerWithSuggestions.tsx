@@ -291,7 +291,7 @@ function ComposerWithSuggestions({
         lastTextRef.current = value;
     }, [value]);
 
-    const {shouldUseNarrowLayout, isExtraLargeScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const maxComposerLines = shouldUseNarrowLayout ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
     const shouldAutoFocus = (shouldFocusInputOnScreenFocus || !!draftComment) && shouldShowComposeInput && areAllModalsHidden() && isFocused && !didHideComposerInput;
     const delayedAutoFocusRouteKeyRef = useRef<string | null>(null);
@@ -327,16 +327,13 @@ function ComposerWithSuggestions({
         (el: TextInput) => {
             if (isFocused) {
                 ReportActionComposeFocusManager.composerRef.current = el;
-                if (isInSidePanel && el !== ReportActionComposeFocusManager.sidePanelComposerRef.current && !!ReportActionComposeFocusManager.sidePanelComposerRef.current) {
-                    ReportActionComposeFocusManager.sidePanelComposerRef.current = el;
-                }
             }
             textInputRef.current = el;
             if (typeof animatedRef === 'function') {
                 animatedRef(el);
             }
         },
-        [animatedRef, isFocused, isInSidePanel],
+        [animatedRef, isFocused],
     );
 
     const resetKeyboardInput = useCallback(() => {
@@ -695,6 +692,9 @@ function ComposerWithSuggestions({
     const setUpComposeFocusManager = useCallback(
         (shouldTakeOverFocus = false) => {
             ReportActionComposeFocusManager.onComposerFocus((shouldFocusForNonBlurInputOnTapOutside = false) => {
+                if (!isInSidePanel) {
+                    ReportActionComposeFocusManager.sidePanelComposerRef.current = null;
+                }
                 if ((!willBlurTextInputOnTapOutside && !shouldFocusForNonBlurInputOnTapOutside) || !isFocused || !isSidePanelHiddenOrLargeScreen) {
                     return;
                 }
@@ -702,7 +702,7 @@ function ComposerWithSuggestions({
                 focus(true);
             }, shouldTakeOverFocus);
         },
-        [focus, isFocused, isSidePanelHiddenOrLargeScreen],
+        [focus, isFocused, isSidePanelHiddenOrLargeScreen, isInSidePanel],
     );
 
     /**
@@ -803,7 +803,7 @@ function ComposerWithSuggestions({
         }
 
         // Do not focus side panels composer if it wasn't focused before
-        if (isInSidePanel && ReportActionComposeFocusManager.sidePanelComposerRef.current !== textInputRef.current) {
+        if (isInSidePanel && !ReportActionComposeFocusManager.sidePanelComposerRef.current) {
             return;
         }
 
