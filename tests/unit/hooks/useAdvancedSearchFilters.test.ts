@@ -257,7 +257,7 @@ describe('useAdvancedSearchFilters', () => {
 
     describe('attendee filter visibility', () => {
         it('hides attendee filter when no policies have attendee tracking enabled', async () => {
-            const policy = buildPolicy(1, {isAttendeeTrackingEnabled: false});
+            const policy = buildPolicy(1, {type: CONST.POLICY.TYPE.CORPORATE, isAttendeeTrackingEnabled: false});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
 
             const {result} = renderHook(() => useAdvancedSearchFilters(), {wrapper});
@@ -269,7 +269,7 @@ describe('useAdvancedSearchFilters', () => {
         });
 
         it('shows attendee filter when attendee tracking is enabled', async () => {
-            const policy = buildPolicy(1, {isAttendeeTrackingEnabled: true});
+            const policy = buildPolicy(1, {type: CONST.POLICY.TYPE.CORPORATE, isAttendeeTrackingEnabled: true});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
 
             const {result} = renderHook(() => useAdvancedSearchFilters(), {wrapper});
@@ -378,6 +378,7 @@ describe('useAdvancedSearchFilters', () => {
     describe('cross-feature interaction', () => {
         it('shows multiple filters when multiple features are enabled', async () => {
             const policy = buildPolicy(1, {
+                type: CONST.POLICY.TYPE.CORPORATE,
                 areCategoriesEnabled: true,
                 areTagsEnabled: true,
                 isAttendeeTrackingEnabled: true,
