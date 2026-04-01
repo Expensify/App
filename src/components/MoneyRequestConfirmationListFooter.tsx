@@ -48,7 +48,7 @@ import {
     willFieldBeAutomaticallyFilled,
 } from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
-import {isInvalidMerchantValue, isValidInputLength} from '@libs/ValidationUtils';
+import {isValidInputLength} from '@libs/ValidationUtils';
 import IOURequestStepCurrencyModal from '@pages/iou/request/step/IOURequestStepCurrencyModal';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import variables from '@styles/variables';
@@ -494,10 +494,6 @@ function MoneyRequestConfirmationListFooter({
 
         if ((shouldDisplayFieldError || formError === 'iou.error.invalidMerchant') && isMerchantRequired && !trimmedMerchant) {
             return translate('common.error.fieldRequired');
-        }
-
-        if ((shouldDisplayFieldError || formError === 'iou.error.invalidMerchant') && trimmedMerchant && isInvalidMerchantValue(trimmedMerchant)) {
-            return translate('iou.error.invalidMerchant');
         }
 
         return '';

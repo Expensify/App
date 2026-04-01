@@ -1065,7 +1065,6 @@ function MoneyRequestConfirmationList({
             }
 
             const merchantValue = iouMerchant ?? '';
-            const trimmedMerchant = merchantValue.trim();
             const {isValid: isMerchantLengthValid} = isValidInputLength(merchantValue, CONST.MERCHANT_NAME_MAX_BYTES);
 
             if (!isMerchantLengthValid) {
@@ -1078,10 +1077,6 @@ function MoneyRequestConfirmationList({
                 return;
             }
 
-            if (!isEditingSplitBill && trimmedMerchant && isInvalidMerchantValue(trimmedMerchant)) {
-                setFormError('iou.error.invalidMerchant');
-                return;
-            }
             if (iouCategory.length > CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH) {
                 setFormError('iou.error.invalidCategoryLength');
                 return;
