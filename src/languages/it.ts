@@ -960,15 +960,6 @@ const translations: TranslationDeepObject<typeof en> = {
         forYou: 'Per te',
         timeSensitiveSection: {
             title: 'Sensibile al tempo',
-            cta: 'Richiesta',
-            offer50off: {
-                title: 'Ottieni il 50% di sconto sul primo anno!',
-                subtitle: ({formattedTime}: {formattedTime: string}) => `${formattedTime} rimanenti`,
-            },
-            offer25off: {
-                title: 'Ottieni il 25% di sconto sul tuo primo anno!',
-                subtitle: ({days}: {days: number}) => `Restano ${days} ${days === 1 ? 'giorno' : 'giorni'}`,
-            },
             addShippingAddress: {title: 'Ci serve il tuo indirizzo di spedizione', subtitle: 'Fornisci un indirizzo per ricevere la tua Carta Expensify.', cta: 'Aggiungi indirizzo'},
             addPaymentCard: {title: 'Aggiungi una carta di pagamento per continuare a usare Expensify', subtitle: 'Account > Abbonamento', cta: 'Aggiungi'},
             activateCard: {title: 'Attiva la tua Carta Expensify', subtitle: 'Convalida la tua carta e inizia a spendere.', cta: 'Attiva'},
@@ -1056,6 +1047,19 @@ const translations: TranslationDeepObject<typeof en> = {
             inDays: () => ({one: 'Tra 1 giorno', other: (count: number) => `Tra ${count} giorni`}),
             today: 'Oggi',
         },
+        freeTrialSection: {
+            title: ({days}: {days: number}) => `Prova gratuita: ${days} ${days === 1 ? 'giorno' : 'giorni'} rimanenti!`,
+            offer50Body: 'Ottieni il 50% di sconto sul tuo primo anno!',
+            offer25Body: 'Ottieni il 25% di sconto sul tuo primo anno!',
+            addCardBody: 'Non aspettare! Aggiungi subito la tua carta di pagamento.',
+            ctaClaim: 'Richiesta',
+            ctaAdd: 'Aggiungi carta',
+            timeRemaining: ({formattedTime}: {formattedTime: string}) => `Tempo rimanente: ${formattedTime}`,
+            timeRemainingDays: () => ({
+                one: 'Tempo rimanente: 1 giorno',
+                other: (pluralCount: number) => `Tempo rimanente: ${pluralCount} giorni`,
+            }),
+        },
     },
     allSettingsScreen: {
         subscription: 'Abbonamento',
@@ -1085,6 +1089,8 @@ const translations: TranslationDeepObject<typeof en> = {
         emptyMappedField: (fieldName: string) => `Ops! Il campo ("${fieldName}") contiene uno o più valori vuoti. Controlla e riprova.`,
         importSuccessfulTitle: 'Importazione riuscita',
         importCategoriesSuccessfulDescription: ({categories}: {categories: number}) => (categories > 1 ? `Sono state aggiunte ${categories} categorie.` : 'È stata aggiunta 1 categoria.'),
+        importCompanyCardTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
+            transactions > 1 ? `${transactions} transazioni sono state aggiunte.` : '1 transazione è stata aggiunta.',
         importMembersSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
             if (!added && !updated) {
                 return 'Non è stato aggiunto o aggiornato alcun membro.';
@@ -3352,11 +3358,6 @@ ${amount} per ${merchant} - ${date}`,
         confirmationStepHeader: 'Controlla le tue informazioni.',
         confirmationStepSubHeader: 'Controlla attentamente i dettagli qui sotto e seleziona la casella delle condizioni per confermare.',
         toGetStarted: 'Aggiungi un conto bancario personale per ricevere rimborsi, pagare fatture o attivare l’Expensify Wallet.',
-        updatePersonalInfo: 'Aggiorna conto bancario',
-        updatePersonalInfoFailure: 'Impossibile aggiornare le informazioni del conto bancario. Riprova più tardi.',
-        updateSuccessTitle: 'Conto bancario aggiornato!',
-        updateSuccessHeader: 'Conto bancario aggiornato',
-        updateSuccessMessage: 'Complimenti, il tuo conto bancario è configurato e pronto a ricevere rimborsi.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Inserisci la password di Expensify',
@@ -4062,6 +4063,7 @@ ${amount} per ${merchant} - ${date}`,
             defaultNote: `Le ricevute inviate a ${CONST.EMAIL.RECEIPTS} verranno visualizzate in questo workspace.`,
             deleteConfirmation: 'Sei sicuro di voler eliminare questo spazio di lavoro?',
             deleteWithCardsConfirmation: 'Sei sicuro di voler eliminare questo spazio di lavoro? Questa azione rimuoverà tutti i feed delle carte e le carte assegnate.',
+            deleteOpenExpensifyCardsError: 'La tua azienda ha ancora carte Expensify attive.',
             outstandingBalanceWarning:
                 'Hai un saldo in sospeso che deve essere saldato prima di eliminare il tuo ultimo workspace. Vai alle impostazioni dell’abbonamento per risolvere il pagamento.',
             settleBalance: 'Vai all’abbonamento',
@@ -5021,6 +5023,11 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             },
             addNewCard: {
                 other: 'Altro',
+                fileImport: 'Importa transazioni da file',
+                createFileFeedHelpText: `<muted-text>Segui questa <a href="${CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}">guida di supporto</a> per importare le spese della carta aziendale!</muted-text>`,
+                companyCardLayoutName: 'Nome layout carta aziendale',
+                cardLayoutNameRequired: 'Il nome del layout della carta aziendale è obbligatorio',
+                useAdvancedFields: 'Usa i campi avanzati (non consigliato)',
                 cardProviders: {
                     gl1025: 'Carte Corporate American Express',
                     cdf: 'Carte Commerciali Mastercard',
@@ -5099,6 +5106,24 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                     prompt: 'Abbiamo notato che non hai finito di aggiungere le tue carte. Se hai riscontrato un problema, faccelo sapere così possiamo aiutarti a rimettere le cose in carreggiata.',
                     confirmText: 'Segnala problema',
                     cancelText: 'Salta',
+                },
+                csvColumns: {
+                    cardNumber: 'Numero di carta',
+                    postedDate: 'Data',
+                    merchant: 'Esercente',
+                    amount: 'Importo',
+                    currency: 'Valuta',
+                    ignore: 'Ignora',
+                    originalTransactionDate: 'Data originale della transazione',
+                    originalAmount: 'Importo originale',
+                    originalCurrency: 'Valuta originale',
+                    comment: 'Commento',
+                    category: 'Categoria',
+                    tag: 'Tag',
+                },
+                csvErrors: {
+                    requiredColumns: (missingColumns: string) => `Assegna una colonna a ciascuno degli attributi: ${missingColumns}.`,
+                    duplicateColumns: (duplicateColumn: string) => `Ops! Hai associato un singolo campo ("${duplicateColumn}") a più colonne. Controlla e riprova.`,
                 },
             },
             statementCloseDate: {
