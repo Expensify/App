@@ -1,5 +1,5 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import EmbeddedDemo from '@components/EmbeddedDemo';
@@ -47,13 +47,17 @@ function TestDriveDemo() {
     const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
     });
+    const hasCalledOpenReportRef = useRef(false);
 
     useEffect(() => {
         if (hasSeenTour) {
             return;
         }
         if (!viewTourTaskReport) {
-            openReport({reportID: conciergeReportID, introSelected});
+            if (conciergeReportID && !hasCalledOpenReportRef.current) {
+                hasCalledOpenReportRef.current = true;
+                openReport({reportID: conciergeReportID, introSelected});
+            }
             return;
         }
         if (viewTourTaskReport.stateNum === CONST.REPORT.STATE_NUM.APPROVED) {
