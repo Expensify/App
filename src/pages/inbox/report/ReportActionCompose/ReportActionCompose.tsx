@@ -1,7 +1,5 @@
-import {useRoute} from '@react-navigation/native';
 import React from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
 import ImportedStateIndicator from '@components/ImportedStateIndicator';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -10,7 +8,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
-import useParentReportAction from '@hooks/useParentReportAction';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -21,7 +18,6 @@ import FS from '@libs/Fullstory';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import {
-    getCombinedReportActions,
     getFilteredReportActionsForReportView,
     getLinkedTransactionID,
     getOneTransactionThreadReportID,
@@ -31,7 +27,6 @@ import {
 } from '@libs/ReportActionsUtils';
 import {
     canEditFieldOfMoneyRequest,
-    canEditReportAction,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     chatIncludesChronos,
     chatIncludesConcierge,
@@ -42,8 +37,6 @@ import {getTransactionID} from '@libs/TransactionUtils';
 import {isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SCREENS from '@src/SCREENS';
-import type * as OnyxTypes from '@src/types/onyx';
 import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
 import ComposerBox, {useComposerBox} from './ComposerBox';
 import type {SuggestionsRef} from './ComposerContext';
@@ -68,10 +61,9 @@ type ReportActionComposeProps = {
 
 type ComposerBoxContentProps = {
     reportID: string;
-    lastReportAction: OnyxEntry<OnyxTypes.ReportAction>;
 };
 
-function ComposerBoxContent({reportID, lastReportAction}: ComposerBoxContentProps) {
+function ComposerBoxContent({reportID}: ComposerBoxContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -142,7 +134,6 @@ function ComposerBoxContent({reportID, lastReportAction}: ComposerBoxContentProp
                 policyID={report?.policyID}
                 includeChronos={chatIncludesChronos(report)}
                 isGroupPolicyReport={isGroupPolicyReport}
-                lastReportAction={lastReportAction}
                 isMenuVisible={isMenuVisible}
                 inputPlaceholder={inputPlaceholder}
                 isComposerFullSize={isComposerFullSize}
@@ -229,17 +220,6 @@ function Composer({reportID}: ReportActionComposeProps) {
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, filteredReportActions, isOffline, reportTransactionIDs);
     const effectiveTransactionThreadReportID = isSentMoneyReport ? undefined : transactionThreadReportID;
 
-    // --- lastReportAction (for up-arrow-to-edit) ---
-    const parentReportAction = useParentReportAction(report);
-    const [transactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${effectiveTransactionThreadReportID}`);
-    const transactionThreadReportActionsArray = transactionThreadReportActions ? Object.values(transactionThreadReportActions) : [];
-    const combinedReportActions = getCombinedReportActions(filteredReportActions, effectiveTransactionThreadReportID ?? null, transactionThreadReportActionsArray);
-
-    const route = useRoute();
-    const isOnSearchMoneyRequestReport = route.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT || route.name === SCREENS.RIGHT_MODAL.EXPENSE_REPORT;
-    const actionsForLastEditable = isOnSearchMoneyRequestReport ? filteredReportActions : combinedReportActions;
-    const lastReportAction = [...actionsForLastEditable, parentReportAction].find((action) => !isMoneyRequestAction(action) && canEditReportAction(action, undefined));
-
     // --- shouldAddOrReplaceReceipt & transactionID ---
     const isReportArchived = useReportIsArchived(report?.reportID);
     const isTransactionThreadView = isReportTransactionThread(report);
@@ -283,10 +263,7 @@ function Composer({reportID}: ReportActionComposeProps) {
                         isComposerFullSize={isComposerFullSize}
                         pendingAction={pendingAction}
                     >
-                        <ComposerBoxContent
-                            reportID={reportID}
-                            lastReportAction={lastReportAction}
-                        />
+                        <ComposerBoxContent reportID={reportID} />
                         <Composer.DropZone
                             reportID={reportID}
                             shouldAddOrReplaceReceipt={shouldAddOrReplaceReceipt}

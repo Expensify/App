@@ -53,6 +53,7 @@ import getCursorPosition from '@pages/inbox/report/ReportActionCompose/getCursor
 import getScrollPosition from '@pages/inbox/report/ReportActionCompose/getScrollPosition';
 import SilentCommentUpdater from '@pages/inbox/report/ReportActionCompose/SilentCommentUpdater';
 import Suggestions from '@pages/inbox/report/ReportActionCompose/Suggestions';
+import useLastEditableAction from '@pages/inbox/report/ReportActionCompose/useLastEditableAction';
 import {isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
 import type {OnEmojiSelected} from '@userActions/EmojiPickerAction';
 import {inputFocusChange} from '@userActions/InputFocus';
@@ -61,7 +62,6 @@ import {broadcastUserIsTyping, saveReportActionDraft, saveReportDraftComment} fr
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import type * as OnyxTypes from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 // eslint-disable-next-line no-restricted-imports
@@ -132,9 +132,6 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> &
 
         /** The ref to the next modal will open */
         isNextModalWillOpenRef: RefObject<boolean | null>;
-
-        /** The last report action */
-        lastReportAction?: OnyxEntry<OnyxTypes.ReportAction>;
 
         /** Whether to include chronos */
         includeChronos?: boolean;
@@ -208,7 +205,6 @@ function ComposerWithSuggestions({
     // Props: Report
     reportID,
     includeChronos,
-    lastReportAction,
     isGroupPolicyReport,
     policyID,
 
@@ -243,6 +239,7 @@ function ComposerWithSuggestions({
     // Fullstory
     forwardedFSClass,
 }: ComposerWithSuggestionsProps) {
+    const lastReportAction = useLastEditableAction(reportID);
     const route = useRoute();
     const {isKeyboardShown} = useKeyboardState();
     const theme = useTheme();
