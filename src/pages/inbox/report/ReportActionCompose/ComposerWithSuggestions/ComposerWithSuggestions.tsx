@@ -686,7 +686,7 @@ function ComposerWithSuggestions({
     }, [focus, route.key, shouldAutoFocus, shouldDelayAutoFocus]);
 
     /**
-     * Tracks whether there is a composer input is inside the side panel on the screen.
+     * Tracks whether there is a composer input inside the side panel on the screen.
      */
     const handleSidePanelFocus = useCallback(() => {
         if (!isInSidePanel) {
