@@ -286,14 +286,15 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const applyDurableReceipt = useCallback(
         (txnID: string, imageUri: string, filename: string, file: File, isSameReceipt?: boolean) => {
             return moveReceiptToDurableStorage(imageUri, filename).then((durableUri) => {
+                const durableFile = Object.assign(new File([file], file.name || filename, {type: file.type}), {uri: durableUri, source: durableUri});
                 if (isOdometerImage) {
-                    setMoneyRequestOdometerImage(txnID, imageType, {...file, uri: durableUri, source: durableUri}, isDraftTransaction);
+                    setMoneyRequestOdometerImage(txnID, imageType, durableFile, isDraftTransaction);
                 } else if (isDraftTransaction) {
                     setMoneyRequestReceipt(txnID, durableUri, filename, isDraftTransaction, fileType);
                 } else {
                     replaceReceipt({
                         transactionID: txnID,
-                        file,
+                        file: durableFile,
                         source: durableUri,
                         transactionPolicyCategories: policyCategories,
                         transactionPolicy: policy,
