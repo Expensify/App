@@ -1,5 +1,5 @@
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import {useCallback, useContext, useMemo, useRef} from 'react';
+import {useContext, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
@@ -59,26 +59,23 @@ function useAttachmentUploadValidation({
     const personalPolicy = usePersonalPolicy();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const hasOnlyPersonalPolicies = useMemo(() => hasOnlyPersonalPoliciesUtil(allPolicies), [allPolicies]);
+    const hasOnlyPersonalPolicies = hasOnlyPersonalPoliciesUtil(allPolicies);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
     const reportAttachmentsContext = useContext(AttachmentModalContext);
-    const showAttachmentModalScreen = useCallback(
-        (file: FileObject | FileObject[], dataTransferItems?: DataTransferItem[]) => {
-            reportAttachmentsContext.setCurrentAttachment<typeof SCREENS.REPORT_ADD_ATTACHMENT>({
-                reportID,
-                file,
-                dataTransferItems,
-                headerTitle: translate('reportActionCompose.sendAttachment'),
-                onConfirm: addAttachment,
-                onShow: () => setIsAttachmentPreviewActive(true),
-                onClose: onAttachmentPreviewClose,
-                shouldDisableSendButton: !!exceededMaxLength,
-            });
-            Navigation.navigate(ROUTES.REPORT_ADD_ATTACHMENT.getRoute(reportID));
-        },
-        [addAttachment, exceededMaxLength, onAttachmentPreviewClose, reportAttachmentsContext, reportID, setIsAttachmentPreviewActive, translate],
-    );
+    const showAttachmentModalScreen = (file: FileObject | FileObject[], dataTransferItems?: DataTransferItem[]) => {
+        reportAttachmentsContext.setCurrentAttachment<typeof SCREENS.REPORT_ADD_ATTACHMENT>({
+            reportID,
+            file,
+            dataTransferItems,
+            headerTitle: translate('reportActionCompose.sendAttachment'),
+            onConfirm: addAttachment,
+            onShow: () => setIsAttachmentPreviewActive(true),
+            onClose: onAttachmentPreviewClose,
+            shouldDisableSendButton: !!exceededMaxLength,
+        });
+        Navigation.navigate(ROUTES.REPORT_ADD_ATTACHMENT.getRoute(reportID));
+    };
 
     const attachmentUploadType = useRef<'receipt' | 'attachment'>(undefined);
     const onFilesValidated = (files: FileObject[], dataTransferItems: DataTransferItem[]) => {
@@ -135,79 +132,73 @@ function useAttachmentUploadValidation({
 
     const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation(onFilesValidated);
 
-    const validateAttachments = useCallback(
-        ({dragEvent, files}: {dragEvent?: DragEvent; files?: FileObject | FileObject[]}) => {
-            if (isAttachmentPreviewActive) {
+    const validateAttachments = ({dragEvent, files}: {dragEvent?: DragEvent; files?: FileObject | FileObject[]}) => {
+        if (isAttachmentPreviewActive) {
+            return;
+        }
+
+        let extractedFiles: FileObject[] = [];
+
+        if (files) {
+            extractedFiles = Array.isArray(files) ? files : [files];
+        } else {
+            if (!dragEvent) {
                 return;
             }
 
-            let extractedFiles: FileObject[] = [];
+            extractedFiles = getFilesFromClipboardEvent(dragEvent);
+        }
 
-            if (files) {
-                extractedFiles = Array.isArray(files) ? files : [files];
-            } else {
-                if (!dragEvent) {
-                    return;
+        const dataTransferItems = Array.from(dragEvent?.dataTransfer?.items ?? []);
+        if (extractedFiles.length === 0) {
+            return;
+        }
+
+        const validIndices: number[] = [];
+        const fileObjects = extractedFiles
+            .map((item, index) => {
+                const fileObject = cleanFileObject(item);
+                const cleanedFileObject = cleanFileObjectName(fileObject);
+                if (cleanedFileObject !== null) {
+                    validIndices.push(index);
                 }
+                return cleanedFileObject;
+            })
+            .filter((fileObject) => fileObject !== null);
 
-                extractedFiles = getFilesFromClipboardEvent(dragEvent);
-            }
+        if (!fileObjects.length) {
+            return;
+        }
 
-            const dataTransferItems = Array.from(dragEvent?.dataTransfer?.items ?? []);
-            if (extractedFiles.length === 0) {
+        // Create a filtered items array that matches the fileObjects
+        const filteredItems = dataTransferItems && validIndices.length > 0 ? validIndices.map((index) => dataTransferItems.at(index) ?? ({} as DataTransferItem)) : undefined;
+
+        attachmentUploadType.current = 'attachment';
+        validateFiles(fileObjects, filteredItems, {isValidatingReceipts: false});
+    };
+
+    const onReceiptDropped = (e: DragEvent) => {
+        if (policy && shouldRestrictUserBillableActions(policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+            return;
+        }
+
+        const files = getFilesFromClipboardEvent(e);
+        const items = Array.from(e.dataTransfer?.items ?? []);
+
+        if (shouldAddOrReplaceReceipt && transactionID) {
+            const file = files.at(0);
+            if (!file) {
                 return;
-            }
-
-            const validIndices: number[] = [];
-            const fileObjects = extractedFiles
-                .map((item, index) => {
-                    const fileObject = cleanFileObject(item);
-                    const cleanedFileObject = cleanFileObjectName(fileObject);
-                    if (cleanedFileObject !== null) {
-                        validIndices.push(index);
-                    }
-                    return cleanedFileObject;
-                })
-                .filter((fileObject) => fileObject !== null);
-
-            if (!fileObjects.length) {
-                return;
-            }
-
-            // Create a filtered items array that matches the fileObjects
-            const filteredItems = dataTransferItems && validIndices.length > 0 ? validIndices.map((index) => dataTransferItems.at(index) ?? ({} as DataTransferItem)) : undefined;
-
-            attachmentUploadType.current = 'attachment';
-            validateFiles(fileObjects, filteredItems, {isValidatingReceipts: false});
-        },
-        [isAttachmentPreviewActive, validateFiles],
-    );
-
-    const onReceiptDropped = useCallback(
-        (e: DragEvent) => {
-            if (policy && shouldRestrictUserBillableActions(policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
-                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
-                return;
-            }
-
-            const files = getFilesFromClipboardEvent(e);
-            const items = Array.from(e.dataTransfer?.items ?? []);
-
-            if (shouldAddOrReplaceReceipt && transactionID) {
-                const file = files.at(0);
-                if (!file) {
-                    return;
-                }
-
-                attachmentUploadType.current = 'receipt';
-                validateFiles([file], items);
             }
 
             attachmentUploadType.current = 'receipt';
-            validateFiles(files, items, {isValidatingReceipts: true});
-        },
-        [policy, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, shouldAddOrReplaceReceipt, transactionID, validateFiles, amountOwed],
-    );
+            validateFiles([file], items);
+        }
+
+        attachmentUploadType.current = 'receipt';
+        validateFiles(files, items, {isValidatingReceipts: true});
+    };
 
     return {
         validateAttachments,
