@@ -18,6 +18,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getSpendRuleFormValuesFromCardRule} from '@libs/actions/Card';
 import {filterInactiveCards, getCardDescriptionForSearchTable, isCard} from '@libs/CardUtils';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
+import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import variables from '@styles/variables';
@@ -25,6 +26,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SpendRuleForm} from '@src/types/form';
+import type {WorkspaceCardsList} from '@src/types/onyx';
 
 type SpendRulesSectionProps = {
     policyID: string;
@@ -38,6 +40,7 @@ type SpendRuleSummaryPart = {
 
 function getSpendRuleSummaryParts(
     formValues: SpendRuleForm,
+    selectedCurrency: string | undefined,
     actionLabel: string,
     translate: ReturnType<typeof useLocalize>['translate'],
 ): SpendRuleSummaryPart[] {
@@ -55,10 +58,35 @@ function getSpendRuleSummaryParts(
     }
 
     if (maxAmount) {
-        summaryParts.push({badgeLabel: 'Max', text: `${translate('iou.amount')}: ${maxAmount}`, isNeutral: true});
+        summaryParts.push({
+            badgeLabel: translate('workspace.rules.spendRules.max'),
+            text: `${translate('iou.amount')}: ${convertToDisplayString(convertToBackendAmount(Number.parseFloat(maxAmount)), selectedCurrency ?? CONST.CURRENCY.USD)}`,
+            isNeutral: true,
+        });
     }
 
     return summaryParts;
+}
+
+function getSelectedCardsCurrency(cardIDs: string[], cardsList: WorkspaceCardsList | undefined): string | undefined {
+    const currencies = new Set<string>();
+
+    for (const cardID of cardIDs) {
+        const card = cardsList?.[cardID];
+        if (!card || !isCard(card)) {
+            continue;
+        }
+
+        if (typeof card.nameValuePairs?.currency === 'string' && card.nameValuePairs.currency) {
+            currencies.add(String(card.nameValuePairs.currency));
+        }
+    }
+
+    if (currencies.size !== 1) {
+        return undefined;
+    }
+
+    return Array.from(currencies).at(0);
 }
 
 function SpendRulesSection({policyID}: SpendRulesSectionProps) {
@@ -104,6 +132,7 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
                 return undefined;
             }
             const actionLabel = formValues.restrictionAction === CONST.SPEND_CARD_RULE.ACTION.BLOCK ? blockLabel : allowLabel;
+            const selectedCurrency = getSelectedCardsCurrency(formValues.cardIDs, cardsList);
 
             const cardSummary = formValues.cardIDs
                 .map((cardID) => {
@@ -122,7 +151,7 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
                 ruleID,
                 actionLabel,
                 cardSummary,
-                summaryParts: getSpendRuleSummaryParts(formValues, actionLabel, translate),
+                summaryParts: getSpendRuleSummaryParts(formValues, selectedCurrency, actionLabel, translate),
                 isBlock: formValues.restrictionAction === CONST.SPEND_CARD_RULE.ACTION.BLOCK,
             };
         })

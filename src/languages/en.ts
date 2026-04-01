@@ -6751,6 +6751,7 @@ const translations = {
                 confirmErrorApplyAtLeastOneSpendRule: 'Apply at least one spend rule',
                 categories: 'Categories',
                 merchants: 'Merchants',
+                max: 'Max',
             },
         },
         planTypePage: {
