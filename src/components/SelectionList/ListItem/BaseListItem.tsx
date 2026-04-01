@@ -42,12 +42,14 @@ function getAccessibilityProps<TItem extends ListItem>({
         } satisfies CalculatedAccessibilityProps;
     }
 
-    const accessibilityLabel = getAccessibilityLabel(item);
-
     // For single-select lists, use role="option" with aria-selected so screen readers announce "selected"/"not selected".
     // For multi-select (checkbox/radio), keep existing role and state.
     const isSelectableOption = !canSelectMultiple && role !== CONST.ROLE.CHECKBOX && role !== CONST.ROLE.RADIO;
     const effectiveRole = isSelectableOption ? CONST.ROLE.OPTION : role;
+
+    // Pass isSelected to getAccessibilityLabel for selectable options so the web version
+    // can embed the selection state in the label, working around inconsistent aria-selected support.
+    const accessibilityLabel = getAccessibilityLabel(item, isSelectableOption ? item.isSelected : undefined);
 
     return {
         role: effectiveRole,
