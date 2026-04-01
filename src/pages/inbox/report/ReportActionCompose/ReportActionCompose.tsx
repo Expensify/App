@@ -207,7 +207,6 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
      */
     const [isMenuVisible, setMenuVisibility] = useState(false);
     const [isAttachmentPreviewActive, setIsAttachmentPreviewActive] = useState(false);
-    const [didHideComposerInput, setDidHideComposerInput] = useState(!shouldShowComposeInput);
 
     /**
      * Updates the composer when the comment length is exceeded
@@ -452,15 +451,6 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
         setIsFocused(true);
     };
 
-    useEffect(() => {
-        if (didHideComposerInput || shouldShowComposeInput) {
-            return;
-        }
-        // This is an intentional one-way latch: once the composer input has been hidden, it stays hidden.
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setDidHideComposerInput(true);
-    }, [shouldShowComposeInput, didHideComposerInput]);
-
     // Hide emoji picker on unmount or when switching reports
     useEffect(
         () => () => {
@@ -633,7 +623,6 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
                             onBlur={onBlur}
                             measureParentContainer={measureContainer}
                             onValueChange={onValueChange}
-                            didHideComposerInput={didHideComposerInput}
                             forwardedFSClass={fsClass}
                         />
                         {shouldDisplayDualDropZone && (
