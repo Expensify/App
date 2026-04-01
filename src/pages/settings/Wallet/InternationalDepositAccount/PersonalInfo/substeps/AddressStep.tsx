@@ -16,24 +16,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/HomeAddressForm';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
-type AddressStepProps = SubStepProps & {
-    /** Whether to persist field values as draft on keystroke */
-    shouldSaveDraft?: boolean;
-
-    /** Whether to hide the country selector (e.g. when country cannot be changed) */
-    shouldHideCountrySelector?: boolean;
-
-    /** Whether the form submit button should be enabled when offline */
-    enabledWhenOffline?: boolean;
-};
-
-function AddressStep({onNext, isEditing, shouldSaveDraft = false, shouldHideCountrySelector = false, enabledWhenOffline}: AddressStepProps) {
+function AddressStep({onNext, isEditing}: SubStepProps) {
     const styles = useThemeStyles();
 
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [defaultCountry] = useOnyx(ONYXKEYS.COUNTRY);
     const [bankAccountPersonalDetails] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT);
-    const [homeAddressFormDraft] = useOnyx(ONYXKEYS.FORMS.HOME_ADDRESS_FORM_DRAFT);
 
     const address = useMemo(() => {
         const normalizedAddress = normalizeCountryCode(getCurrentAddress(privatePersonalDetails)) as Address;
@@ -55,16 +43,13 @@ function AddressStep({onNext, isEditing, shouldSaveDraft = false, shouldHideCoun
         bankAccountPersonalDetails?.country,
         privatePersonalDetails,
     ]);
-
-    const draftCountry = shouldSaveDraft ? homeAddressFormDraft?.country : undefined;
-    const draftState = shouldSaveDraft ? homeAddressFormDraft?.state : undefined;
     const {translate} = useLocalize();
 
     // Check if country is valid
     const {street} = address ?? {};
     const [street1, street2] = street ? street.split('\n') : [undefined, undefined];
-    const [currentCountry, setCurrentCountry] = useState<string | undefined>(draftCountry ?? address?.country ?? defaultCountry ?? CONST.COUNTRY.US);
-    const [state, setState] = useState<string | undefined>(draftState ?? address?.state);
+    const [currentCountry, setCurrentCountry] = useState<string | undefined>(address?.country ?? defaultCountry ?? CONST.COUNTRY.US);
+    const [state, setState] = useState<string | undefined>(address?.state);
     const [city, setCity] = useState<string | undefined>(address?.city);
     const [zipcode, setZipcode] = useState<string | undefined>(address?.zip);
 
@@ -72,11 +57,11 @@ function AddressStep({onNext, isEditing, shouldSaveDraft = false, shouldHideCoun
         if (!address) {
             return;
         }
-        setState(draftState ?? address?.state);
-        setCurrentCountry(draftCountry ?? address?.country);
+        setState(address?.state);
+        setCurrentCountry(address?.country);
         setCity(address?.city);
         setZipcode(address?.zip);
-    }, [address?.state, address?.country, address?.city, address?.zip, address, draftCountry, draftState]);
+    }, [address?.state, address?.country, address?.city, address?.zip, address]);
 
     const handleAddressChange = (value: unknown, key: unknown) => {
         const addressPart = value as string;
@@ -135,9 +120,6 @@ function AddressStep({onNext, isEditing, shouldSaveDraft = false, shouldHideCoun
                 street1={street1}
                 street2={street2}
                 zip={zipcode}
-                shouldSaveDraft={shouldSaveDraft}
-                shouldHideCountrySelector={shouldHideCountrySelector}
-                enabledWhenOffline={enabledWhenOffline}
             />
         </>
     );

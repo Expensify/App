@@ -1086,7 +1086,21 @@ const translations: TranslationDeepObject<typeof en> = {
         singleFieldMultipleColumns: (fieldName: string) => `Ops! Você mapeou um único campo ("${fieldName}") para várias colunas. Revise e tente novamente.`,
         emptyMappedField: (fieldName: string) => `Ops! O campo ("${fieldName}") contém um ou mais valores vazios. Revise e tente novamente.`,
         importSuccessfulTitle: 'Importação concluída',
-        importCategoriesSuccessfulDescription: ({categories}: {categories: number}) => (categories > 1 ? `${categories} categorias foram adicionadas.` : '1 categoria foi adicionada.'),
+        importCategoriesSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
+            if (!added && !updated) {
+                return 'Nenhuma categoria foi adicionada ou atualizada.';
+            }
+
+            if (added && updated) {
+                return `${added} ${added === 1 ? 'categoria' : 'categorias'} adicionada${added === 1 ? '' : 's'}, ${updated} ${updated === 1 ? 'categoria' : 'categorias'} atualizada${updated === 1 ? '' : 's'}.`;
+            }
+
+            if (added) {
+                return added === 1 ? '1 categoria foi adicionada.' : `${added} categorias foram adicionadas.`;
+            }
+
+            return updated === 1 ? '1 categoria foi atualizada.' : `${updated} categorias foram atualizadas.`;
+        },
         importCompanyCardTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
             transactions > 1 ? `${transactions} transações foram adicionadas.` : '1 transação foi adicionada.',
         importMembersSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
@@ -3347,11 +3361,6 @@ ${amount} para ${merchant} - ${date}`,
         confirmationStepHeader: 'Verifique suas informações.',
         confirmationStepSubHeader: 'Verifique os detalhes abaixo e marque a caixa de termos para confirmar.',
         toGetStarted: 'Adicione uma conta bancária pessoal para receber reembolsos, pagar faturas ou ativar a Carteira Expensify.',
-        updatePersonalInfo: 'Atualizar conta bancária',
-        updatePersonalInfoFailure: 'Não foi possível atualizar as informações da conta bancária. Por favor, tente novamente mais tarde.',
-        updateSuccessTitle: 'Conta bancária atualizada!',
-        updateSuccessHeader: 'Conta bancária atualizada',
-        updateSuccessMessage: 'Parabéns, sua conta bancária está configurada e pronta para receber reembolsos.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Insira a senha do Expensify',
@@ -4058,6 +4067,7 @@ ${amount} para ${merchant} - ${date}`,
             defaultNote: `Recibos enviados para ${CONST.EMAIL.RECEIPTS} aparecerão neste workspace.`,
             deleteConfirmation: 'Tem certeza de que deseja excluir este workspace?',
             deleteWithCardsConfirmation: 'Tem certeza de que deseja excluir este workspace? Isso removerá todos os feeds de cartão e cartões atribuídos.',
+            deleteOpenExpensifyCardsError: 'Sua empresa ainda possui cartões Expensify ativos.',
             outstandingBalanceWarning:
                 'Você tem um saldo pendente que precisa ser quitado antes de excluir seu último espaço de trabalho. Acesse as configurações de assinatura para resolver o pagamento.',
             settleBalance: 'Ir para a assinatura',

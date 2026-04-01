@@ -1088,7 +1088,21 @@ const translations: TranslationDeepObject<typeof en> = {
         singleFieldMultipleColumns: (fieldName: string) => `Ups! Przypisałeś jedno pole („${fieldName}”) do wielu kolumn. Sprawdź ustawienia i spróbuj ponownie.`,
         emptyMappedField: (fieldName: string) => `Ups! Pole („${fieldName}”) zawiera jedną lub więcej pustych wartości. Sprawdź je i spróbuj ponownie.`,
         importSuccessfulTitle: 'Import zakończony powodzeniem',
-        importCategoriesSuccessfulDescription: ({categories}: {categories: number}) => (categories > 1 ? `Dodano ${categories} kategorie.` : 'Dodano 1 kategorię.'),
+        importCategoriesSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
+            if (!added && !updated) {
+                return 'Nie dodano ani nie zaktualizowano żadnych kategorii.';
+            }
+
+            if (added && updated) {
+                return `Dodano ${added} ${added === 1 ? 'kategorię' : 'kategorie'}, zaktualizowano ${updated} ${updated === 1 ? 'kategorię' : 'kategorie'}.`;
+            }
+
+            if (added) {
+                return added === 1 ? 'Dodano 1 kategorię.' : `Dodano ${added} kategorie.`;
+            }
+
+            return updated === 1 ? 'Zaktualizowano 1 kategorię.' : `Zaktualizowano ${updated} kategorie.`;
+        },
         importCompanyCardTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) => (transactions > 1 ? `Dodano ${transactions} transakcji.` : 'Dodano 1 transakcję.'),
         importMembersSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
             if (!added && !updated) {
@@ -3347,11 +3361,6 @@ ${amount} dla ${merchant} - ${date}`,
         confirmationStepHeader: 'Sprawdź swoje dane.',
         confirmationStepSubHeader: 'Sprawdź poniższe szczegóły i zaznacz pole z warunkami, aby potwierdzić.',
         toGetStarted: 'Dodaj osobiste konto bankowe, aby otrzymywać zwroty wydatków, opłacać faktury lub włączyć Portfel Expensify.',
-        updatePersonalInfo: 'Aktualizuj konto bankowe',
-        updatePersonalInfoFailure: 'Nie można zaktualizować informacji o koncie bankowym. Spróbuj ponownie później.',
-        updateSuccessTitle: 'Konto bankowe zaktualizowane!',
-        updateSuccessHeader: 'Konto bankowe zaktualizowane',
-        updateSuccessMessage: 'Gratulacje, Twoje konto bankowe jest skonfigurowane i gotowe do przyjmowania zwrotów.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Wpisz hasło do Expensify',
@@ -4058,6 +4067,7 @@ ${amount} dla ${merchant} - ${date}`,
             defaultNote: `Paragony wysłane na ${CONST.EMAIL.RECEIPTS} pojawią się w tym obszarze roboczym.`,
             deleteConfirmation: 'Czy na pewno chcesz usunąć tę przestrzeń roboczą?',
             deleteWithCardsConfirmation: 'Na pewno chcesz usunąć tę przestrzeń roboczą? Spowoduje to usunięcie wszystkich źródeł kart i przypisanych kart.',
+            deleteOpenExpensifyCardsError: 'Twoja firma nadal ma aktywne karty Expensify.',
             outstandingBalanceWarning:
                 'Masz zaległe saldo, które musi zostać uregulowane przed usunięciem ostatniego miejsca pracy. Przejdź do ustawień subskrypcji, aby uregulować płatność.',
             settleBalance: 'Przejdź do subskrypcji',
