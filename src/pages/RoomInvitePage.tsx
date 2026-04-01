@@ -81,7 +81,7 @@ function RoomInvitePage({
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState(userSearchPhrase ?? '');
     const [selectedLogins, setSelectedLogins] = useState<Set<string>>(new Set());
     const [extraOptions, setExtraOptions] = useState<OptionData[]>([]);
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const isReportArchived = useReportIsArchived(report.reportID);
 
     const loginToAccountIDMap = (() => {
