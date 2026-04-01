@@ -46,11 +46,8 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
 
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const reportAttributes = useReportAttributes();
-    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
-    const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [policy] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [isFullscreenVisible] = useOnyx(ONYXKEYS.FULLSCREEN_VISIBILITY);
@@ -157,10 +154,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             const reportID = item.reportID;
             const itemReportAttributes = reportAttributes?.[reportID];
             const itemParentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.parentReportID}`];
-            const itemReportNameValuePairs = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
             const itemOneTransactionThreadReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${itemReportAttributes?.oneTransactionThreadReportID}`];
-            const itemParentReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${item?.parentReportID}`];
-            const itemParentReportAction = item?.parentReportActionID ? itemParentReportActions?.[item?.parentReportActionID] : undefined;
 
             let invoiceReceiverPolicyID = '-1';
             if (item?.invoiceReceiver && 'policyID' in item.invoiceReceiver) {
@@ -172,9 +166,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             const itemInvoiceReceiverPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`];
 
             const itemPolicy = policy?.[`${ONYXKEYS.COLLECTION.POLICY}${item?.policyID}`];
-            const hasDraftComment =
-                !!draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] &&
-                !draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`]?.match(CONST.REGEX.EMPTY_COMMENT);
             const shouldShowRBRorGBRTooltip = firstReportIDWithGBRorRBR === reportID;
 
             return (
@@ -184,15 +175,12 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     reportAttributes={itemReportAttributes}
                     reportAttributesDerived={reportAttributes}
                     oneTransactionThreadReport={itemOneTransactionThreadReport}
-                    reportNameValuePairs={itemReportNameValuePairs}
-                    parentReportAction={itemParentReportAction}
                     policy={itemPolicy}
                     invoiceReceiverPolicy={itemInvoiceReceiverPolicy}
                     personalDetails={personalDetails ?? {}}
                     viewMode={optionMode}
                     isOptionFocused={!shouldDisableFocusOptions}
                     onSelectRow={onSelectRow}
-                    hasDraftComment={hasDraftComment}
                     onLayout={onLayoutItem}
                     shouldShowRBRorGBRTooltip={shouldShowRBRorGBRTooltip}
                     onboardingPurpose={introSelected?.choice}
@@ -210,10 +198,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
         [
             reportAttributes,
             reports,
-            reportNameValuePairs,
-            reportActions,
             policy,
-            draftComments,
             personalDetails,
             firstReportIDWithGBRorRBR,
             isFullscreenVisible,
@@ -232,34 +217,8 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     );
 
     const extraData = useMemo(
-        () => [
-            reportActions,
-            reports,
-            reportAttributes,
-            reportNameValuePairs,
-            policy,
-            personalDetails,
-            data.length,
-            optionMode,
-            draftComments,
-            isOffline,
-            isScreenFocused,
-            isReportsSplitNavigatorLast,
-        ],
-        [
-            reportActions,
-            reportAttributes,
-            reports,
-            reportNameValuePairs,
-            policy,
-            personalDetails,
-            data.length,
-            optionMode,
-            draftComments,
-            isOffline,
-            isScreenFocused,
-            isReportsSplitNavigatorLast,
-        ],
+        () => [reports, reportAttributes, policy, personalDetails, data.length, optionMode, isOffline, isScreenFocused, isReportsSplitNavigatorLast],
+        [reports, reportAttributes, policy, personalDetails, data.length, optionMode, isOffline, isScreenFocused, isReportsSplitNavigatorLast],
     );
 
     const previousOptionMode = usePrevious(optionMode);
@@ -314,14 +273,12 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
         if (shouldShowEmptyLHN) {
             Log.info('Woohoo! All caught up. Was rendered', false, {
                 reportsCount: Object.keys(reports ?? {}).length,
-                reportActionsCount: Object.keys(reportActions ?? {}).length,
                 policyCount: Object.keys(policy ?? {}).length,
                 personalDetailsCount: Object.keys(personalDetails ?? {}).length,
-                route,
                 reportsIDsFromUseReportsCount: data.length,
             });
         }
-    }, [data.length, shouldShowEmptyLHN, route, reports, reportActions, policy, personalDetails]);
+    }, [data.length, shouldShowEmptyLHN, reports, policy, personalDetails]);
 
     return (
         <View style={[style ?? styles.flex1, shouldShowEmptyLHN ? styles.emptyLHNWrapper : undefined]}>
