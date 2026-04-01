@@ -9,6 +9,11 @@ internalScope: Audience is all members. Covers exporting expenses from the Expen
 
 This article explains how to export expenses from the Expenses page to a CSV file using export templates.
 
+If you’re trying to export a specific type of data, use the guides below: 
+ - Expensify Card expenses: [View and Reconcile Expensify Card Expenses](https://help.expensify.com/articles/new-expensify/expensify-card/View-and-Reconcile-Expensify-Card-Expenses).
+ - Company card feed expenses: [Statement Matching and Reconciliation]([url](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Statement-Matching-and-Reconciliation)).
+ - Full expense reports:[Export Reports](/articles/new-expensify/reports-and-expenses/Export-Reports). 
+
 ## How to export a single expense
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Reports** > **Expenses**.
@@ -17,7 +22,7 @@ This article explains how to export expenses from the Expenses page to a CSV fil
 4. Select **Export**.
 5. Choose an export template from the menu that appears. 
 
-You'll receive the exported CSV file in a message from **Concierge**.
+You'll receive the exported CSV file in a message from Concierge.
 
 ## How to export multiple expenses
 
@@ -27,7 +32,7 @@ You'll receive the exported CSV file in a message from **Concierge**.
 4. Select **Export**.
 5. Choose an export template from the menu that appears. 
 
-You'll receive the exported CSV file in a message from **Concierge**.
+You'll receive the exported CSV file in a message from Concierge.
 
 ---
 
@@ -35,17 +40,17 @@ You'll receive the exported CSV file in a message from **Concierge**.
 
 Expensify offers pre-built export templates, or you can build your own custom export template. All available templates will appear in the menu when you export an expense. 
 
-   - **Basic Export** - Essential fields including date, amount, merchant, category, and receipt URL.
-   - **All Data - Expense Level Export** - One row per expense with all available data fields.
-   - **Custom Templates** - Any custom template created by you or your Workspace Admin, if available.
+   - **Basic export** - Essential fields including date, amount, merchant, category, and receipt URL.
+   - **All Data - expense level** - One row per expense with all available data fields.
+   - **custom templates** - Any custom template created by you or your Workspace Admin, if available.
 
-**Note** Currently, it's not possible to build a custom export templates on New Expensify, they can only be created on Expensify Classic. However, once built they will be available on New Expensify. [Learn how to build a custom export template in Expensify Classic]([url](https://help.expensify.com/articles/expensify-classic/spending-insights/Export-Expenses-And-Reports#create-a-custom-export-template)).  
+**Note** Currently, it's not possible to build a custom export templates on New Expensify, they can only be created on Expensify Classic. However, once built they will be available on New Expensify when exporting expenses. [Learn how to build a custom export template in Expensify Classic]([url](https://help.expensify.com/articles/expensify-classic/spending-insights/Export-Expenses-And-Reports#create-a-custom-export-template)).  
 
 # FAQ
 
 ## Where do I find the exported file?
 
-For the Basic Export template, the file downloads directly to your device. For all other templates, Concierge sends the file to you in a direct message. Open your Concierge chat to find it.
+For the Basic Export template, the file downloads directly to your device. For all other templates, Concierge sends the file to you in a direct message. Open your Concierge chat in the **Inbox** to find it.
 
 ## Can I customize which columns appear in the export?
 
@@ -68,11 +73,3 @@ Excel may remove leading zeros automatically. To prevent this:
 1. Open Excel and go to **File** > **Import**.
 2. Select your CSV file.
 3. Set the relevant columns to **Text** format.
-
----
-
-# Related Articles
-
-- [Export Reports](/articles/new-expensify/reports-and-expenses/Export-Reports) - Export full reports to CSV or download as PDF.
-- [Statement Matching and Reconciliation](/articles/new-expensify/reports-and-expenses/Statement-Matching-and-Reconciliation) - Reconcile company card transactions against your card statement.
-- [View and Reconcile Expensify Card Expenses](/articles/new-expensify/expensify-card/View-and-Reconcile-Expensify-Card-Expenses) - Reconcile Expensify Card expenses.
