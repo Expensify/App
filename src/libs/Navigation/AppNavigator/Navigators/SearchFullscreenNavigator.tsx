@@ -19,7 +19,7 @@ function SearchFullscreenNavigator({route}: PlatformStackScreenProps<TabNavigato
     const {centralScreen: centralScreenOptions} = useSplitNavigatorScreenOptions();
 
     return (
-        <FreezeWrapper freezeWhenInTabBackground>
+        <FreezeWrapper>
             <Stack.Navigator
                 screenOptions={centralScreenOptions}
                 defaultCentralScreen={SCREENS.SEARCH.ROOT}

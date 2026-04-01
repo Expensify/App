@@ -9,7 +9,7 @@ type FreezeWrapperProps = ChildrenProps & {
     freezeWhenInTabBackground?: boolean;
 };
 
-function FreezeWrapper({children, freezeWhenInTabBackground}: FreezeWrapperProps) {
+function FreezeWrapper({children, freezeWhenInTabBackground = true}: FreezeWrapperProps) {
     const navigation = useNavigation();
     const currentRoute = useRoute();
 

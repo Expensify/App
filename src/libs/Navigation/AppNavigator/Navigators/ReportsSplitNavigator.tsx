@@ -61,7 +61,7 @@ function ReportsSplitNavigator({route}: PlatformStackScreenProps<TabNavigatorPar
     };
 
     return (
-        <FreezeWrapper freezeWhenInTabBackground>
+        <FreezeWrapper>
             <Split.Navigator
                 persistentScreens={[SCREENS.INBOX]}
                 sidebarScreen={SCREENS.INBOX}
