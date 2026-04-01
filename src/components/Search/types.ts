@@ -305,6 +305,7 @@ type SearchQueryJSON = {
     /** Use similarSearchHash to test if two searchers are similar i.e. have same filters but not necessary same values */
     similarSearchHash: number;
     flatFilters: QueryFilters;
+    isViewExplicitlySet?: boolean;
 } & SearchQueryAST;
 
 type SearchAutocompleteResult = {
