@@ -1,9 +1,8 @@
-import React, {createContext, useContext, useEffect, useRef} from 'react';
+import React, {createContext, useContext, useRef} from 'react';
 import type {MeasureInWindowOnSuccessCallback} from 'react-native';
 import {View} from 'react-native';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {hideEmojiPicker, isActive as isActiveEmojiPickerAction} from '@userActions/EmojiPickerAction';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import {useComposerData, useComposerSendState, useComposerState} from './ComposerContext';
 
@@ -20,13 +19,12 @@ function useComposerBox() {
 }
 
 type ComposerBoxProps = {
-    reportID: string;
     isComposerFullSize: boolean;
     pendingAction: PendingAction | undefined;
     children: React.ReactNode;
 };
 
-function ComposerBox({reportID, isComposerFullSize, pendingAction, children}: ComposerBoxProps) {
+function ComposerBox({isComposerFullSize, pendingAction, children}: ComposerBoxProps) {
     const styles = useThemeStyles();
     const {isFocused} = useComposerState();
     const {exceededMaxLength, isBlockedFromConcierge} = useComposerSendState();
@@ -41,17 +39,6 @@ function ComposerBox({reportID, isComposerFullSize, pendingAction, children}: Co
         }
         containerRef.current.measureInWindow(callback);
     };
-
-    // Hide emoji picker on unmount or when switching reports
-    useEffect(
-        () => () => {
-            if (!isActiveEmojiPickerAction(reportID)) {
-                return;
-            }
-            hideEmojiPicker();
-        },
-        [reportID],
-    );
 
     const contextValue = {measureContainer};
 

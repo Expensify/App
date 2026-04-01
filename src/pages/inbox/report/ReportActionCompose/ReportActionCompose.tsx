@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
 import ImportedStateIndicator from '@components/ImportedStateIndicator';
@@ -12,7 +12,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DomUtils from '@libs/DomUtils';
 import FS from '@libs/Fullstory';
 import {chatIncludesChronos, chatIncludesConcierge, getReportOfflinePendingActionAndErrors} from '@libs/ReportUtils';
-import {isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
+import {hideEmojiPicker, isActive as isActiveEmojiPickerAction, isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
@@ -74,6 +74,17 @@ function ComposerBoxContent({reportID}: ComposerBoxContentProps) {
         const emojiOffsetWithComposeBox = (styles.chatItemComposeBox.minHeight - styles.chatItemEmojiButton.height) / 2;
         return reportActionComposeHeight - emojiOffsetWithComposeBox - CONST.MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM;
     })();
+
+    // Hide emoji picker on unmount or when switching reports — co-located with EmojiPickerButton trigger
+    useEffect(
+        () => () => {
+            if (!isActiveEmojiPickerAction(report?.reportID)) {
+                return;
+            }
+            hideEmojiPicker();
+        },
+        [report?.reportID],
+    );
 
     return (
         <>
@@ -181,7 +192,6 @@ function Composer({reportID}: ReportActionComposeProps) {
                 <View style={isComposerFullSize ? styles.flex1 : {}}>
                     <Composer.DropZone reportID={reportID}>
                         <Composer.Box
-                            reportID={reportID}
                             isComposerFullSize={isComposerFullSize}
                             pendingAction={pendingAction}
                         >
