@@ -1640,7 +1640,6 @@ const translations: TranslationDeepObject<typeof en> = {
         failedToApproveViaDEW: (reason: string) => `Genehmigung fehlgeschlagen. ${reason}`,
         cannotDuplicateDistanceExpense:
             'Sie können Entfernungsausgaben nicht über mehrere Arbeitsbereiche hinweg duplizieren, da sich die Sätze zwischen den Arbeitsbereichen unterscheiden können.',
-        deleted: 'Gelöscht',
     },
     transactionMerge: {
         listPage: {
@@ -7413,7 +7412,6 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
             unhold: 'Zurückhalten aufheben',
             reject: 'Ablehnen',
             noOptionsAvailable: 'Für die ausgewählte Ausgabengruppe sind keine Optionen verfügbar.',
-            undelete: 'Wiederherstellen',
         },
         filtersHeader: 'Filter',
         filters: {
