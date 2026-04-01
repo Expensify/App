@@ -34,7 +34,7 @@ function ReceiptView({route}: ReceiptViewProps) {
     const {setAttachmentError} = useAttachmentErrors();
     const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows} = useCarouselArrows();
     const styles = useThemeStyles();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Trashcan'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Trashcan']);
     const [page, setPage] = useState<number>(-1);
     const {showConfirmModal} = useConfirmModal();
 
