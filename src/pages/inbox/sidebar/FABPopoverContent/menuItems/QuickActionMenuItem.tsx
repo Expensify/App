@@ -38,7 +38,7 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate, formatPhoneNumber} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'ReceiptScan', 'Car', 'Task', 'Clock', 'MoneyCircle', 'Coins', 'Receipt', 'Cash', 'Transfer'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'ReceiptScan', 'Car', 'Task', 'Clock', 'MoneyCircle', 'Coins', 'Receipt', 'Cash', 'Transfer']);
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: sessionEmailAndAccountIDSelector});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
@@ -59,8 +59,8 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
     const [quickActionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${quickActionPolicyID}`);
     const reportAttributesSelector = (attributes: OnyxEntry<OnyxTypes.ReportAttributesDerivedValue>) => attributes?.reports;
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportAttributesSelector});
-    const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
 
     const isValidReport = !(isEmptyObject(quickActionReport) || isReportArchived);
 
@@ -107,11 +107,7 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
 
     const quickActionReportPolicyID = quickActionReport?.policyID;
     const selectOption = (onSelected: () => void, shouldRestrictAction: boolean) => {
-        if (
-            shouldRestrictAction &&
-            quickActionReportPolicyID &&
-            shouldRestrictUserBillableActions(quickActionReportPolicyID, userBillingGraceEndPeriods, undefined, ownerBillingGraceEndPeriod)
-        ) {
+        if (shouldRestrictAction && quickActionReportPolicyID && shouldRestrictUserBillableActions(quickActionReportPolicyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(quickActionReportPolicyID));
             return;
         }
@@ -188,7 +184,7 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
                 interceptAnonymousUser(() => {
                     if (
                         policyChatForActivePolicy?.policyID &&
-                        shouldRestrictUserBillableActions(policyChatForActivePolicy.policyID, userBillingGraceEndPeriods, undefined, ownerBillingGraceEndPeriod)
+                        shouldRestrictUserBillableActions(policyChatForActivePolicy.policyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds)
                     ) {
                         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyChatForActivePolicy.policyID));
                         return;

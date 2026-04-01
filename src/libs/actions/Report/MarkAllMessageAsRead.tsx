@@ -49,7 +49,8 @@ function markAllMessagesAsRead(archivedReportsIdSet: ArchivedReportsIDSet) {
         const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]);
         const oneTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
         const isArchivedReport = archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`);
-        if (!isUnread(report, oneTransactionThreadReport, isArchivedReport)) {
+        const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`];
+        if (!isUnread(report, oneTransactionThreadReport, isArchivedReport, reportActions)) {
             continue;
         }
 
