@@ -175,6 +175,7 @@ function makeDateFilterItem(
             <DatePickerFilterPopup
                 isExpanded={props.isExpanded}
                 closeOverlay={props.closeOverlay}
+                setPopoverWidth={props.setPopoverWidth}
                 filterKey={filterKey}
                 value={value}
                 translationKey={translationKey}
