@@ -106,7 +106,11 @@ function ConfirmationBusiness({onNext, onMove}: SubPageProps) {
             />
             <MenuItemWithTopDescription
                 description={translate('businessInfoStep.companyType')}
-                title={translate(`businessInfoStep.incorporationType.${values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_TYPE]}` as TranslationPaths)}
+                title={
+                    values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_TYPE]
+                        ? translate(`businessInfoStep.incorporationType.${values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_TYPE]}` as TranslationPaths)
+                        : ''
+                }
                 shouldShowRightIcon
                 onPress={() => {
                     onMove(BUSINESS_INFO_STEP_INDEXES.COMPANY_TYPE);
@@ -122,7 +126,7 @@ function ConfirmationBusiness({onNext, onMove}: SubPageProps) {
             />
             <MenuItemWithTopDescription
                 description={translate('businessInfoStep.incorporationState')}
-                title={translate(`allStates.${values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_STATE] as States}.stateName`)}
+                title={values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_STATE] ? translate(`allStates.${values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_STATE] as States}.stateName`) : ''}
                 shouldShowRightIcon
                 onPress={() => {
                     onMove(BUSINESS_INFO_STEP_INDEXES.INCORPORATION_STATE);
