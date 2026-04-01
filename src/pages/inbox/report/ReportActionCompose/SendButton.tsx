@@ -26,7 +26,7 @@ function SendButton({isDisabled: isDisabledProp, handleSendMessage}: SendButtonP
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to manage GestureDetector correctly
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const icons = useMemoizedLazyExpensifyIcons(['Send'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Send']);
     const Tap = Gesture.Tap()
         .onEnd(() => {
             handleSendMessage();

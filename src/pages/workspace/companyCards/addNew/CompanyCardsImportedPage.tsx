@@ -1,0 +1,191 @@
+import React, {useState} from 'react';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import type {ColumnRole} from '@components/ImportColumn';
+import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
+import ImportSpreadsheetConfirmModal from '@components/ImportSpreadsheetConfirmModal';
+import ScreenWrapper from '@components/ScreenWrapper';
+import useCardFeeds from '@hooks/useCardFeeds';
+import useCloseImportPage from '@hooks/useCloseImportPage';
+import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
+import {getFeedType} from '@libs/CardUtils';
+import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {goBackFromInvalidPolicy} from '@libs/PolicyUtils';
+import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import {importCSVCompanyCards} from '@userActions/CompanyCards';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+type CompanyCardsImportedPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_IMPORTED>;
+
+function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
+    const {translate} = useLocalize();
+    const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
+    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
+    const policyID = route.params.policyID;
+    const policy = usePolicy(policyID);
+    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
+    const [workspaceCardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
+    const [cardFeeds] = useCardFeeds(policyID);
+    const [isImportingTransactions, setIsImportingTransactions] = useState(false);
+    const {setIsClosing} = useCloseImportPage();
+    const shouldUseAdvancedFields = addNewCard?.data?.useAdvancedFields ?? false;
+    const layoutName = addNewCard?.data?.companyCardLayoutName ?? '';
+    const prefilledLayoutType = addNewCard?.data?.layoutType;
+    const [generatedLayoutType] = useState(() => prefilledLayoutType ?? getFeedType(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV, cardFeeds));
+    const layoutType = prefilledLayoutType ?? generatedLayoutType;
+    const [existingCardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${layoutType}`);
+
+    const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
+
+    const columnRoles: ColumnRole[] = (() => {
+        const baseRoles: ColumnRole[] = [
+            {text: translate('workspace.companyCards.addNewCard.csvColumns.ignore'), value: CONST.CSV_IMPORT_COLUMNS.IGNORE},
+            {text: translate('workspace.companyCards.addNewCard.csvColumns.cardNumber'), value: CONST.CSV_IMPORT_COLUMNS.CARD_NUMBER, isRequired: true},
+            {text: translate('workspace.companyCards.addNewCard.csvColumns.postedDate'), value: CONST.CSV_IMPORT_COLUMNS.POSTED_DATE, isRequired: true},
+            {text: translate('workspace.companyCards.addNewCard.csvColumns.merchant'), value: CONST.CSV_IMPORT_COLUMNS.MERCHANT, isRequired: true},
+            {text: translate('workspace.companyCards.addNewCard.csvColumns.amount'), value: CONST.CSV_IMPORT_COLUMNS.AMOUNT, isRequired: true},
+            {text: translate('workspace.companyCards.addNewCard.csvColumns.currency'), value: CONST.CSV_IMPORT_COLUMNS.CURRENCY, isRequired: true},
+        ];
+
+        if (!shouldUseAdvancedFields) {
+            return baseRoles;
+        }
+
+        const advancedRoles: ColumnRole[] = [
+            {text: translate('workspace.companyCards.addNewCard.csvColumns.originalTransactionDate'), value: CONST.CSV_IMPORT_COLUMNS.ORIGINAL_TRANSACTION_DATE},
+            {text: translate('workspace.companyCards.addNewCard.csvColumns.originalAmount'), value: CONST.CSV_IMPORT_COLUMNS.ORIGINAL_AMOUNT},
+            {text: translate('workspace.companyCards.addNewCard.csvColumns.originalCurrency'), value: CONST.CSV_IMPORT_COLUMNS.ORIGINAL_CURRENCY},
+            {text: translate('workspace.companyCards.addNewCard.csvColumns.comment'), value: CONST.CSV_IMPORT_COLUMNS.COMMENT},
+            {text: translate('workspace.companyCards.addNewCard.csvColumns.category'), value: CONST.CSV_IMPORT_COLUMNS.CATEGORY},
+            {text: translate('workspace.companyCards.addNewCard.csvColumns.tag'), value: CONST.CSV_IMPORT_COLUMNS.TAG},
+        ];
+
+        return [...baseRoles, ...advancedRoles];
+    })();
+
+    const requiredColumns = columnRoles.filter((role) => role.isRequired);
+
+    const validate = () => {
+        const columns = Object.values(spreadsheet?.columns ?? {});
+        let errors: Errors = {};
+
+        const missingRequiredColumns = requiredColumns
+            .filter((requiredColumn) => !columns.includes(requiredColumn.value))
+            .map((requiredColumn) => requiredColumn.text)
+            .join(', ');
+        if (missingRequiredColumns) {
+            errors.required = translate('workspace.companyCards.addNewCard.csvErrors.requiredColumns', missingRequiredColumns);
+        } else {
+            const duplicate = findDuplicate(columns);
+            if (duplicate) {
+                errors.duplicates = translate('workspace.companyCards.addNewCard.csvErrors.duplicateColumns', duplicate);
+            } else {
+                errors = {};
+            }
+        }
+        return errors;
+    };
+
+    const validationErrors = validate();
+
+    const importTransactions = () => {
+        const errors = validate();
+        if (Object.keys(errors).length > 0) {
+            return;
+        }
+
+        if (!layoutName) {
+            return;
+        }
+
+        const columnNamesByIndex = Object.values(spreadsheet?.columns ?? {});
+        const columnMappings = columnNames.map((_, index) => columnNamesByIndex.at(index) ?? CONST.CSV_IMPORT_COLUMNS.IGNORE);
+
+        // Transform columns-based data to rows-based data.
+        const columns = spreadsheet?.data ?? [];
+        const rows: string[][] = [];
+        if (columns.length > 0) {
+            const startRowIndex = spreadsheet?.containsHeader ? 1 : 0;
+            for (let rowIndex = startRowIndex; rowIndex < (columns.at(0)?.length ?? 0); rowIndex++) {
+                const row: string[] = [];
+                for (const column of columns) {
+                    row.push(column.at(rowIndex) ?? '');
+                }
+                rows.push(row);
+            }
+        }
+        setIsImportingTransactions(true);
+        importCSVCompanyCards({
+            policyID,
+            workspaceAccountID,
+            layoutName,
+            layoutType,
+            columnMappings,
+            csvData: rows,
+            existingCardsList,
+            lastSelectedFeed: lastSelectedFeed ?? undefined,
+            workspaceCardFeeds,
+        });
+    };
+
+    if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
+        return null;
+    }
+
+    const spreadsheetColumns = spreadsheet?.data;
+    if (!spreadsheetColumns) {
+        return <NotFoundPage />;
+    }
+
+    const closeImportPageAndModal = () => {
+        setIsClosing(true);
+        setIsImportingTransactions(false);
+        Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
+    };
+
+    return (
+        <AccessOrNotFoundWrapper
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
+            fullPageNotFoundViewProps={{subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized', onLinkPress: goBackFromInvalidPolicy}}
+        >
+            <ScreenWrapper
+                testID="CompanyCardsImportedPage"
+                enableEdgeToEdgeBottomSafeAreaPadding
+                shouldShowOfflineIndicatorInWideScreen
+            >
+                <HeaderWithBackButton
+                    title={translate('spreadsheet.importSpreadsheet')}
+                    onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS_IMPORT_SPREADSHEET.getRoute(policyID))}
+                />
+                <ImportSpreadsheetColumns
+                    spreadsheetColumns={spreadsheetColumns}
+                    columnNames={columnNames}
+                    importFunction={importTransactions}
+                    errors={validationErrors}
+                    columnRoles={columnRoles}
+                    learnMoreLink={CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}
+                    isButtonLoading={isImportingTransactions}
+                />
+                <ImportSpreadsheetConfirmModal
+                    isVisible={spreadsheet?.shouldFinalModalBeOpened ?? false}
+                    closeImportPageAndModal={closeImportPageAndModal}
+                />
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
+    );
+}
+
+export default CompanyCardsImportedPage;
