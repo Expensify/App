@@ -1,4 +1,5 @@
 import {
+    accountLockSelector,
     adminAccountIDsSelector,
     adminPendingActionSelector,
     defaultSecurityGroupIDSelector,
@@ -264,6 +265,25 @@ describe('domainSelectors', () => {
             expect(memberAccountIDsSelector(domain)).toEqual([111]);
         });
 
+        it('Should filter out members with null or undefined permission values', () => {
+            const domain = {
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
+                    shared: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        '100': 'read',
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        '200': null,
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        '300': undefined,
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        '400': 'read',
+                    },
+                },
+            } as unknown as OnyxEntry<Domain>;
+
+            expect(memberAccountIDsSelector(domain).sort()).toEqual([100, 400]);
+        });
+
         it('Should filter out non-numeric shared keys', () => {
             const domain = {
                 [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
@@ -408,13 +428,13 @@ describe('domainSelectors', () => {
 
         it('Should return an array of groups when keys start with the security group prefix', () => {
             const domain = {
-                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}123`]: {name: 'Group 1'},
-                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}456`]: {name: 'Group 2'},
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}123`]: {name: 'Group 1', shared: {}},
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}456`]: {name: 'Group 2', shared: {}},
             } as unknown as OnyxEntry<Domain>;
 
             const expectedGroups = [
-                {id: '123', details: {name: 'Group 1'}},
-                {id: '456', details: {name: 'Group 2'}},
+                {id: '123', details: {name: 'Group 1', shared: {}}},
+                {id: '456', details: {name: 'Group 2', shared: {}}},
             ];
 
             expect(groupsSelector(domain)).toEqual(expectedGroups);
@@ -422,11 +442,13 @@ describe('domainSelectors', () => {
 
         it('Should ignore keys that do not start with the security group prefix', () => {
             const domain = {
-                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}123`]: {name: 'Group 1'},
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}123`]: {name: 'Group 1', shared: {}},
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}456`]: {name: 'Group 2', shared: null},
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}789`]: {name: 'Group 3'},
                 otherKey: 'value',
             } as unknown as OnyxEntry<Domain>;
 
-            const expectedGroups = [{id: '123', details: {name: 'Group 1'}}];
+            const expectedGroups = [{id: '123', details: {name: 'Group 1', shared: {}}}];
 
             expect(groupsSelector(domain)).toEqual(expectedGroups);
         });
@@ -505,6 +527,34 @@ describe('domainSelectors', () => {
 
             const selector = vacationDelegateSelector(userID1);
             expect(selector(domain)).toBeUndefined();
+        });
+    });
+
+    describe('accountLockSelector', () => {
+        it('Should return lock state for the given account ID', () => {
+            const accountID = 123;
+            const domain = {
+                [`${CONST.DOMAIN.PRIVATE_LOCKED_ACCOUNT_PREFIX}${accountID}`]: true,
+            } as unknown as OnyxEntry<Domain>;
+
+            expect(accountLockSelector(accountID)(domain)).toBe(true);
+        });
+
+        it('Should return false when the lock state is false', () => {
+            const accountID = 123;
+            const domain = {
+                [`${CONST.DOMAIN.PRIVATE_LOCKED_ACCOUNT_PREFIX}${accountID}`]: false,
+            } as unknown as OnyxEntry<Domain>;
+
+            expect(accountLockSelector(accountID)(domain)).toBe(false);
+        });
+
+        it('Should return undefined when the domain object is undefined or account key does not exist', () => {
+            const accountID = 123;
+            const domain = {} as OnyxEntry<Domain>;
+
+            expect(accountLockSelector(accountID)(undefined)).toBeUndefined();
+            expect(accountLockSelector(accountID)(domain)).toBeUndefined();
         });
     });
 });

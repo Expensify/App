@@ -6,15 +6,15 @@ import Icon from '@components/Icon';
 import type {TransactionWithOptionalHighlight} from '@components/MoneyRequestReportView/MoneyRequestReportTransactionList';
 import {PressableWithFeedback} from '@components/Pressable';
 import RadioButton from '@components/RadioButton';
+import ActionCell from '@components/Search/SearchList/ListItem/ActionCell';
+import DateCell from '@components/Search/SearchList/ListItem/DateCell';
+import ExportedIconCell from '@components/Search/SearchList/ListItem/ExportedIconCell';
+import StatusCell from '@components/Search/SearchList/ListItem/StatusCell';
+import TextCell from '@components/Search/SearchList/ListItem/TextCell';
+import AmountCell from '@components/Search/SearchList/ListItem/TotalCell';
+import UserInfoCell from '@components/Search/SearchList/ListItem/UserInfoCell';
+import WorkspaceCell from '@components/Search/SearchList/ListItem/WorkspaceCell';
 import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
-import ActionCell from '@components/SelectionListWithSections/Search/ActionCell';
-import DateCell from '@components/SelectionListWithSections/Search/DateCell';
-import ExportedIconCell from '@components/SelectionListWithSections/Search/ExportedIconCell';
-import StatusCell from '@components/SelectionListWithSections/Search/StatusCell';
-import TextCell from '@components/SelectionListWithSections/Search/TextCell';
-import AmountCell from '@components/SelectionListWithSections/Search/TotalCell';
-import UserInfoCell from '@components/SelectionListWithSections/Search/UserInfoCell';
-import WorkspaceCell from '@components/SelectionListWithSections/Search/WorkspaceCell';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -24,6 +24,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isCategoryMissing} from '@libs/CategoryUtils';
 import getBase62ReportID from '@libs/getBase62ReportID';
+import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {isExpenseReport, isIOUReport, isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
@@ -38,11 +39,13 @@ import {
     getCreated as getTransactionCreated,
     hasMissingSmartscanFields,
     isAmountMissing,
+    isDeletedTransaction as isDeletedTransactionUtil,
     isMerchantMissing,
     isScanning,
     isTimeRequest,
     isUnreportedAndHasInvalidDistanceRateTransaction,
 } from '@libs/TransactionUtils';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {PersonalDetails, Policy, Report, ReportAction, TransactionViolation} from '@src/types/onyx';
@@ -200,6 +203,8 @@ function TransactionItemRow({
     const hasCategoryOrTag = !isCategoryMissing(transactionItem?.category) || !!transactionItem.tag;
     const createdAt = getTransactionCreated(transactionItem);
     const expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
+    const transactionThreadReportID = reportActions ? getIOUActionForTransactionID(reportActions, transactionItem.transactionID)?.childReportID : undefined;
+    const isDeletedTransaction = isDeletedTransactionUtil(transactionItem);
 
     const isDateColumnWide = dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isSubmittedColumnWide = submittedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
@@ -208,13 +213,6 @@ function TransactionItemRow({
     const isExportedColumnWide = exportedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isAmountColumnWide = amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isTaxAmountColumnWide = taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
-
-    const filteredViolations = useMemo(() => {
-        if (!violations) {
-            return undefined;
-        }
-        return violations;
-    }, [violations]);
 
     const bgActiveStyles = useMemo(() => {
         if (!isSelected || !shouldHighlightItemWhenSelected) {
@@ -255,14 +253,14 @@ function TransactionItemRow({
         }
     }, [transactionItem, translate, report, policy]);
 
-    const exchangeRateMessage = getExchangeRate(transactionItem);
+    const exchangeRateMessage = getExchangeRate(transactionItem, report?.currency);
 
     const cardName = useMemo(() => {
-        if (transactionItem.isCardFeedDeleted) {
-            return translate('workspace.companyCards.deletedFeed');
-        }
         if (transactionItem.cardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME) {
             return '';
+        }
+        if (transactionItem.isCardFeedDeleted && transactionItem.cardID) {
+            return translate('workspace.companyCards.deletedCard');
         }
         const cardID = transactionItem.cardID;
         if (cardID && customCardNames?.[cardID]) {
@@ -418,7 +416,6 @@ function TransactionItemRow({
                                 action={transactionItem.action}
                                 isSelected={isSelected}
                                 isChildListItem={isReportItemChild}
-                                parentAction={transactionItem.parentTransactionID}
                                 goToItem={onButtonPress}
                                 isLoading={isActionLoading}
                                 reportID={transactionItem.reportID}
@@ -570,7 +567,7 @@ function TransactionItemRow({
                         key={column}
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_RATE)]}
                     >
-                        <TextCell text={isTimeRequest(transactionItem) ? '' : (getTaxName(transactionItem.policy, transactionItem) ?? transactionItem.taxValue ?? '')} />
+                        <TextCell text={isTimeRequest(transactionItem) ? '' : (getTaxName(policy, transactionItem) ?? transactionItem.taxValue ?? '')} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT:
@@ -620,6 +617,7 @@ function TransactionItemRow({
                         <StatusCell
                             stateNum={transactionItem.report?.stateNum}
                             statusNum={transactionItem.report?.statusNum}
+                            isDeleted={isDeletedTransaction}
                         />
                     </View>
                 );
@@ -667,7 +665,7 @@ function TransactionItemRow({
                             style={styles.mr3}
                         />
                         <View style={[styles.flex2, styles.flexColumn, styles.justifyContentEvenly]}>
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.minHeight5]}>
+                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.minHeight5, styles.maxHeight5]}>
                                 <DateCell
                                     date={createdAt}
                                     showTooltip={shouldShowTooltip}
@@ -711,7 +709,8 @@ function TransactionItemRow({
                                     src={expensicons.ArrowRight}
                                     fill={theme.icon}
                                     additionalStyles={styles.opacitySemiTransparent}
-                                    small
+                                    width={variables.iconSizeNormal}
+                                    height={variables.iconSizeNormal}
                                 />
                             </View>
                         )}
@@ -730,7 +729,7 @@ function TransactionItemRow({
                     <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsStart]}>
                         <View style={[styles.flexColumn, styles.flex1]}>
                             {hasCategoryOrTag && !isIOUReport(report) && (
-                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.mt2, styles.minHeight6]}>
+                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.mt2, styles.minHeight4]}>
                                     <CategoryCell
                                         transactionItem={transactionItem}
                                         shouldShowTooltip={shouldShowTooltip}
@@ -746,10 +745,11 @@ function TransactionItemRow({
                             {shouldShowErrors && (
                                 <TransactionItemRowRBR
                                     transaction={transactionItem}
-                                    violations={filteredViolations}
+                                    violations={violations}
                                     report={report}
                                     containerStyles={[styles.mt2, styles.minHeight4]}
                                     missingFieldError={missingFieldError}
+                                    transactionThreadReportID={transactionThreadReportID}
                                 />
                             )}
                         </View>
@@ -815,7 +815,8 @@ function TransactionItemRow({
                                 src={expensicons.ArrowRight}
                                 fill={theme.icon}
                                 additionalStyles={!isHover && styles.opacitySemiTransparent}
-                                small
+                                width={variables.iconSizeNormal}
+                                height={variables.iconSizeNormal}
                             />
                         </PressableWithFeedback>
                     )}
@@ -823,9 +824,10 @@ function TransactionItemRow({
                 {shouldShowErrors && (
                     <TransactionItemRowRBR
                         transaction={transactionItem}
-                        violations={filteredViolations}
+                        violations={violations}
                         report={report}
                         missingFieldError={missingFieldError}
+                        transactionThreadReportID={transactionThreadReportID}
                     />
                 )}
             </View>

@@ -8,6 +8,9 @@ import {
     areAllGroupPoliciesExpenseChatDisabled,
     canSendInvoiceFromWorkspace,
     getActivePolicies,
+    getActivePoliciesWithExpenseChatAndPerDiemEnabled,
+    getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates,
+    getAllTaxRates,
     getAllTaxRatesNamesAndValues,
     getConnectedIntegrationNamesForPolicies,
     getCustomUnitsForDuplication,
@@ -23,7 +26,9 @@ import {
     getTagListByOrderWeight,
     getUberConnectionErrorDirectlyFromPolicy,
     getUnitRateValue,
+    hasDependentTags,
     hasDynamicExternalWorkflow,
+    hasIndependentTags,
     hasOnlyPersonalPolicies,
     hasOtherControlWorkspaces,
     hasPolicyWithXeroConnection,
@@ -37,7 +42,7 @@ import {isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import {getPolicyBrickRoadIndicatorStatus} from '@src/libs/PolicyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Policy, PolicyEmployeeList, Report, Transaction} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, PolicyEmployeeList, PolicyTagLists, Report, Transaction} from '@src/types/onyx';
 import type {Connections} from '@src/types/onyx/Policy';
 import createCollection from '../utils/collections/createCollection';
 import createRandomPolicy from '../utils/collections/policies';
@@ -269,7 +274,9 @@ describe('PolicyUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}2`, policy);
             await Onyx.set(`${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED}2`, lastSelectedExpensifyCardFeed);
             await Onyx.set(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${lastSelectedExpensifyCardFeed}`, {
-                paymentBankAccountID: 1234,
+                [CONST.COUNTRY.US]: {
+                    paymentBankAccountID: 1234,
+                },
             });
             const {result} = renderHook(() => useDefaultFundID(policy.id));
 
@@ -324,25 +331,27 @@ describe('PolicyUtils', () => {
         };
 
         it('returns undefined if neither option is selected', () => {
-            expect(getCustomUnitsForDuplication(policy, false, false)).toBeUndefined();
+            expect(getCustomUnitsForDuplication(policy, false, false, {distanceCustomUnitID: otherUnit.customUnitID, perDiemCustomUnitID: perDiemUnit.customUnitID})).toBeUndefined();
         });
 
         it('returns all custom units if both options are selected', () => {
-            const result = getCustomUnitsForDuplication(policy, true, true);
+            const result = getCustomUnitsForDuplication(policy, true, true, {distanceCustomUnitID: otherUnit.customUnitID, perDiemCustomUnitID: perDiemUnit.customUnitID});
             expect(result).toEqual(policy.customUnits);
         });
         it('returns only non-per-diem units if only custom units option is selected', () => {
-            const result = getCustomUnitsForDuplication(policy, true, false);
+            const result = getCustomUnitsForDuplication(policy, true, false, {distanceCustomUnitID: otherUnit.customUnitID, perDiemCustomUnitID: perDiemUnit.customUnitID});
             expect(result).toEqual({[otherUnit.customUnitID]: otherUnit});
         });
 
         it('returns only per diem unit if only per diem option is selected', () => {
-            const result = getCustomUnitsForDuplication(policy, false, true);
+            const result = getCustomUnitsForDuplication(policy, false, true, {distanceCustomUnitID: otherUnit.customUnitID, perDiemCustomUnitID: perDiemUnit.customUnitID});
             expect(result).toEqual({[perDiemUnit.customUnitID]: perDiemUnit});
         });
 
         it('returns undefined if customUnits is empty', () => {
-            expect(getCustomUnitsForDuplication(policyWithoutCustomUnits, true, true)).toBeUndefined();
+            expect(
+                getCustomUnitsForDuplication(policyWithoutCustomUnits, true, true, {distanceCustomUnitID: otherUnit.customUnitID, perDiemCustomUnitID: perDiemUnit.customUnitID}),
+            ).toBeUndefined();
         });
     });
     describe('getRateDisplayValue', () => {
@@ -1816,6 +1825,136 @@ describe('PolicyUtils', () => {
         });
     });
 
+    describe('getAllTaxRates (getAllTaxRatesNamesAndKeys)', () => {
+        it('returns empty object when there are no policies or no tax rates', () => {
+            expect(getAllTaxRates(undefined)).toEqual({});
+            expect(getAllTaxRates({})).toEqual({});
+            const policiesWithoutTaxes: OnyxCollection<Policy> = {
+                policy1: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    taxRates: undefined,
+                },
+            };
+            expect(getAllTaxRates(policiesWithoutTaxes)).toEqual({});
+        });
+
+        it('maps tax rate names to their keys across policies', () => {
+            const policies: OnyxCollection<Policy> = {
+                p1: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    taxRates: {
+                        taxes: {
+                            id_vat: {name: 'VAT', value: '20'},
+                            id_gst: {name: 'GST', value: '10'},
+                        },
+                        name: '',
+                        defaultExternalID: '',
+                        defaultValue: '',
+                        foreignTaxDefault: '',
+                    },
+                },
+                p2: {
+                    ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
+                    taxRates: {
+                        taxes: {
+                            id_sales: {name: 'Sales Tax', value: '8'},
+                        },
+                        name: '',
+                        defaultExternalID: '',
+                        defaultValue: '',
+                        foreignTaxDefault: '',
+                    },
+                },
+            };
+            const result = getAllTaxRates(policies);
+            expect(result).toEqual({
+                VAT: ['id_vat'],
+                GST: ['id_gst'],
+                'Sales Tax': ['id_sales'],
+            });
+        });
+
+        it('groups different keys under the same tax name', () => {
+            const policies: OnyxCollection<Policy> = {
+                p1: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    taxRates: {
+                        taxes: {
+                            key_a: {name: 'VAT', value: '20'},
+                        },
+                        name: '',
+                        defaultExternalID: '',
+                        defaultValue: '',
+                        foreignTaxDefault: '',
+                    },
+                },
+                p2: {
+                    ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
+                    taxRates: {
+                        taxes: {
+                            key_b: {name: 'VAT', value: '15'},
+                        },
+                        name: '',
+                        defaultExternalID: '',
+                        defaultValue: '',
+                        foreignTaxDefault: '',
+                    },
+                },
+            };
+            const result = getAllTaxRates(policies);
+            expect(result.VAT).toEqual(['key_a', 'key_b']);
+        });
+
+        it('deduplicates identical keys for the same tax name', () => {
+            const policies: OnyxCollection<Policy> = {
+                p1: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    taxRates: {
+                        taxes: {
+                            same_key: {name: 'VAT', value: '20'},
+                        },
+                        name: '',
+                        defaultExternalID: '',
+                        defaultValue: '',
+                        foreignTaxDefault: '',
+                    },
+                },
+                p2: {
+                    ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
+                    taxRates: {
+                        taxes: {
+                            same_key: {name: 'VAT', value: '20'},
+                        },
+                        name: '',
+                        defaultExternalID: '',
+                        defaultValue: '',
+                        foreignTaxDefault: '',
+                    },
+                },
+            };
+            const result = getAllTaxRates(policies);
+            expect(result.VAT).toEqual(['same_key']);
+        });
+
+        it('skips undefined policy entries', () => {
+            const policies: OnyxCollection<Policy> = {
+                p1: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    taxRates: {
+                        taxes: {id_vat: {name: 'VAT', value: '20'}},
+                        name: '',
+                        defaultExternalID: '',
+                        defaultValue: '',
+                        foreignTaxDefault: '',
+                    },
+                },
+                p2: undefined,
+            };
+            const result = getAllTaxRates(policies);
+            expect(result).toEqual({VAT: ['id_vat']});
+        });
+    });
+
     describe('canSendInvoiceFromWorkspace', () => {
         it('returns true when areInvoicesEnabled is true', () => {
             const policy = {areInvoicesEnabled: true} as Policy;
@@ -1974,6 +2113,91 @@ describe('PolicyUtils', () => {
         });
     });
 
+    describe('per diem policy filters', () => {
+        const perDiemCustomUnit = {
+            name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+            customUnitID: 'ABCDEF',
+            enabled: true,
+            rates: {
+                London: {
+                    customUnitRateID: 'London',
+                    name: 'London',
+                },
+            },
+        };
+
+        it('returns only control policies from getActivePoliciesWithExpenseChatAndPerDiemEnabled', () => {
+            const policies: OnyxCollection<Policy> = {
+                corporate: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                    role: CONST.POLICY.ROLE.USER,
+                    pendingAction: null,
+                    isPolicyExpenseChatEnabled: true,
+                    arePerDiemRatesEnabled: true,
+                    customUnits: {
+                        ABCDEF: perDiemCustomUnit,
+                    },
+                },
+                collect: {
+                    ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
+                    role: CONST.POLICY.ROLE.USER,
+                    pendingAction: null,
+                    isPolicyExpenseChatEnabled: true,
+                    arePerDiemRatesEnabled: true,
+                    customUnits: {
+                        ABCDEF: perDiemCustomUnit,
+                    },
+                },
+            };
+
+            const result = getActivePoliciesWithExpenseChatAndPerDiemEnabled(policies, undefined);
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.type).toBe(CONST.POLICY.TYPE.CORPORATE);
+        });
+
+        it('returns only control policies with rates from getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates', () => {
+            const policies: OnyxCollection<Policy> = {
+                corporateWithRates: {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                    role: CONST.POLICY.ROLE.USER,
+                    pendingAction: null,
+                    isPolicyExpenseChatEnabled: true,
+                    arePerDiemRatesEnabled: true,
+                    customUnits: {
+                        ABCDEF: perDiemCustomUnit,
+                    },
+                },
+                corporateWithoutRates: {
+                    ...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE),
+                    role: CONST.POLICY.ROLE.USER,
+                    pendingAction: null,
+                    isPolicyExpenseChatEnabled: true,
+                    arePerDiemRatesEnabled: true,
+                    customUnits: {
+                        ABCDEF: {
+                            ...perDiemCustomUnit,
+                            rates: {},
+                        },
+                    },
+                },
+                collectWithRates: {
+                    ...createRandomPolicy(3, CONST.POLICY.TYPE.TEAM),
+                    role: CONST.POLICY.ROLE.USER,
+                    pendingAction: null,
+                    isPolicyExpenseChatEnabled: true,
+                    arePerDiemRatesEnabled: true,
+                    customUnits: {
+                        ABCDEF: perDiemCustomUnit,
+                    },
+                },
+            };
+
+            const result = getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates(policies, undefined);
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.id).toBe('1');
+        });
+    });
+
     describe('sortPoliciesByName', () => {
         const localeCompare = (a: string, b: string) => a.localeCompare(b);
 
@@ -2079,6 +2303,150 @@ describe('PolicyUtils', () => {
             expect(result).toContain(CONST.POLICY.CONNECTIONS.NAME.QBO);
             expect(result).toContain(CONST.POLICY.CONNECTIONS.NAME.XERO);
             expect(result.size).toBe(2);
+        });
+    });
+
+    describe('hasDependentTags', () => {
+        it('returns false when policy has no multiple tag lists', () => {
+            const policy = {hasMultipleTagLists: false} as Policy;
+            const policyTagList: PolicyTagLists = {};
+            expect(hasDependentTags(policy, policyTagList)).toBe(false);
+        });
+
+        it('returns false when policy is undefined', () => {
+            expect(hasDependentTags(undefined, {})).toBe(false);
+        });
+
+        it('returns false when tags have no parentTagsFilter', () => {
+            const policy = {hasMultipleTagLists: true} as Policy;
+            const policyTagList = {
+                Department: {
+                    name: 'Department',
+                    tags: {
+                        Engineering: {name: 'Engineering', enabled: true},
+                    },
+                    required: false,
+                    orderWeight: 0,
+                },
+            } as PolicyTagLists;
+            expect(hasDependentTags(policy, policyTagList)).toBe(false);
+        });
+
+        it('returns true when a tag has rules.parentTagsFilter', () => {
+            const policy = {hasMultipleTagLists: true} as Policy;
+            const policyTagList = {
+                Department: {
+                    name: 'Department',
+                    tags: {
+                        Engineering: {name: 'Engineering', enabled: true, rules: {parentTagsFilter: '^California$'}},
+                    },
+                    required: false,
+                    orderWeight: 0,
+                },
+            } as PolicyTagLists;
+            expect(hasDependentTags(policy, policyTagList)).toBe(true);
+        });
+
+        it('returns true when a tag has parentTagsFilter at the top level', () => {
+            const policy = {hasMultipleTagLists: true} as Policy;
+            const policyTagList = {
+                Department: {
+                    name: 'Department',
+                    tags: {
+                        Engineering: {name: 'Engineering', enabled: true, parentTagsFilter: '^California$'},
+                    },
+                    required: false,
+                    orderWeight: 0,
+                },
+            } as PolicyTagLists;
+            expect(hasDependentTags(policy, policyTagList)).toBe(true);
+        });
+    });
+
+    describe('hasIndependentTags', () => {
+        it('returns false when policy has no multiple tag lists', () => {
+            const policy = {hasMultipleTagLists: false} as Policy;
+            const policyTagList: PolicyTagLists = {};
+            expect(hasIndependentTags(policy, policyTagList)).toBe(false);
+        });
+
+        it('returns false when policy is undefined', () => {
+            expect(hasIndependentTags(undefined, {})).toBe(false);
+        });
+
+        it('returns false when tags are dependent (have parentTagsFilter)', () => {
+            const policy = {hasMultipleTagLists: true} as Policy;
+            const policyTagList = {
+                Department: {
+                    name: 'Department',
+                    tags: {
+                        Engineering: {name: 'Engineering', enabled: true, rules: {parentTagsFilter: '^California$'}},
+                    },
+                    required: false,
+                    orderWeight: 0,
+                },
+            } as PolicyTagLists;
+            expect(hasIndependentTags(policy, policyTagList)).toBe(false);
+        });
+
+        it('returns false when all tag lists are empty', () => {
+            const policy = {hasMultipleTagLists: true} as Policy;
+            const policyTagList = {
+                Department: {
+                    name: 'Department',
+                    tags: {},
+                    required: false,
+                    orderWeight: 0,
+                },
+                Location: {
+                    name: 'Location',
+                    tags: {},
+                    required: false,
+                    orderWeight: 1,
+                },
+            } as PolicyTagLists;
+            expect(hasIndependentTags(policy, policyTagList)).toBe(false);
+        });
+
+        it('returns true when tags are independent and at least one tag exists', () => {
+            const policy = {hasMultipleTagLists: true} as Policy;
+            const policyTagList = {
+                Department: {
+                    name: 'Department',
+                    tags: {
+                        Engineering: {name: 'Engineering', enabled: true},
+                    },
+                    required: false,
+                    orderWeight: 0,
+                },
+            } as PolicyTagLists;
+            expect(hasIndependentTags(policy, policyTagList)).toBe(true);
+        });
+
+        it('returns true when at least one tag list has tags and others are empty', () => {
+            const policy = {hasMultipleTagLists: true} as Policy;
+            const policyTagList = {
+                Department: {
+                    name: 'Department',
+                    tags: {},
+                    required: false,
+                    orderWeight: 0,
+                },
+                Location: {
+                    name: 'Location',
+                    tags: {
+                        'New York': {name: 'New York', enabled: true},
+                    },
+                    required: false,
+                    orderWeight: 1,
+                },
+            } as PolicyTagLists;
+            expect(hasIndependentTags(policy, policyTagList)).toBe(true);
+        });
+
+        it('returns false when policyTagList is undefined', () => {
+            const policy = {hasMultipleTagLists: true} as Policy;
+            expect(hasIndependentTags(policy, undefined)).toBe(false);
         });
     });
 });

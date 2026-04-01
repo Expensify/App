@@ -43,7 +43,7 @@ type UberEmployeeStatus = ValueOf<typeof CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPL
 function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPolicyPageProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'FallbackAvatar'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'FallbackAvatar']);
     const illustrations = useMemoizedLazyIllustrations(['SewerDino']);
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
@@ -167,7 +167,7 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                     <Badge
                         text={badgeText}
                         success={isSuccess}
-                        style={[styles.ml3]}
+                        badgeStyles={styles.ml3}
                     />
                 );
             }
@@ -320,7 +320,7 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                                                 headerMessage: currentHeaderMessage,
                                             }}
                                             listEmptyContent={listEmptyContent}
-                                            showListEmptyContent={shouldShowListEmptyContent}
+                                            shouldShowListEmptyContent={shouldShowListEmptyContent}
                                         />
                                     </TabScreenWithFocusTrapWrapper>
                                 );

@@ -1,3 +1,4 @@
+import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
 import React, {useEffect, useState} from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
@@ -11,6 +12,7 @@ import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {createOptionFromReport, filterAndOrderOptions, formatSectionsFromSearchTerm, getAlternateText, getSearchOptions} from '@libs/OptionsListUtils';
 import type {Option} from '@libs/OptionsListUtils';
 import type {OptionWithKey, SelectionListSections} from '@libs/OptionsListUtils/types';
@@ -56,7 +58,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
 
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const reportAttributesDerived = useReportAttributes();
     const [selectedReportIDs, setSelectedReportIDs] = useState<string[]>(initialReportIDs);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -64,16 +66,17 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const privateIsArchivedMap = usePrivateIsArchivedMap();
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
+    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
 
     const selectedOptions: OptionData[] = selectedReportIDs.map((id) => {
         const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${id}`];
         const reportData = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`];
-        const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportData?.chatReportID}`];
-        const report = getSelectedOptionData(
-            createOptionFromReport({...reportData, reportID: id}, personalDetails, currentUserAccountID, chatReport, privateIsArchived, reportAttributesDerived),
-        );
+        const reportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportData?.policyID}`];
+        const report = getSelectedOptionData(createOptionFromReport({...reportData, reportID: id}, personalDetails, privateIsArchived, reportPolicy, reportAttributesDerived));
         const isReportArchived = !!privateIsArchived;
-        const alternateText = getAlternateText(report, {}, isReportArchived, currentUserAccountID, {}, undefined, undefined, reportAttributesDerived);
+        const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportData?.policyID}`];
+        const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
+        const alternateText = getAlternateText(report, {}, {isReportArchived, policy, reportAttributesDerived, policyTags: reportPolicyTags});
         return {...report, alternateText};
     });
 
@@ -107,7 +110,9 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             selectedOptions,
             chatOptions.recentReports,
             chatOptions.personalDetails,
+            privateIsArchivedMap,
             currentUserAccountID,
+            allPolicies,
             personalDetails,
             false,
             undefined,
@@ -166,11 +171,11 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
     );
 
     const isLoadingNewOptions = !!isSearchingForReports;
-    const showLoadingPlaceholder = !didScreenTransitionEnd || !areOptionsInitialized || !initialReportIDs || !personalDetails;
+    const shouldShowLoadingPlaceholder = !didScreenTransitionEnd || !areOptionsInitialized || !initialReportIDs || !personalDetails;
 
     const textInputOptions = {
         value: searchTerm,
-        label: translate('selectionList.nameEmailOrPhoneNumber'),
+        label: translate('common.search'),
         onChangeText: setSearchTerm,
         headerMessage,
     };
@@ -185,7 +190,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
             textInputOptions={textInputOptions}
             isLoadingNewOptions={isLoadingNewOptions}
-            showLoadingPlaceholder={showLoadingPlaceholder}
+            shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
             shouldShowTextInput
         />
     );

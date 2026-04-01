@@ -26,8 +26,9 @@ import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTrans
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {hasSeenTourSelector} from '@src/selectors/Onboarding';
+import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
-import Disclaimer from './Disclaimer';
 import DistanceCounter from './DistanceCounter';
 import GPSButtons from './GPSButtons';
 import type IOURequestStepDistanceGPSProps from './types';
@@ -55,14 +56,19 @@ function IOURequestStepDistanceGPS({
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const selfDMReport = useSelfDMReport();
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreatingNewRequest = !isEditing;
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
     const defaultExpensePolicy = useDefaultExpensePolicy();
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const personalPolicy = usePersonalPolicy();
     const policy = usePolicy(report?.policyID);
     const isArchived = isArchivedReport(reportNameValuePairs);
@@ -73,7 +79,7 @@ function IOURequestStepDistanceGPS({
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
 
-    const shouldUseDefaultExpensePolicy = shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy);
+    const shouldUseDefaultExpensePolicy = shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd);
 
     const customUnitRateID = getRateID(transaction);
     const unit = DistanceRequestUtils.getRate({transaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy}).unit;
@@ -124,6 +130,11 @@ function IOURequestStepDistanceGPS({
             recentWaypoints,
             unit,
             personalOutputCurrency: personalPolicy?.outputCurrency,
+            draftTransactionIDs,
+            isSelfTourViewed: !!isSelfTourViewed,
+            amountOwed,
+            userBillingGracePeriodEnds,
+            ownerBillingGracePeriodEnd,
         });
     };
 
@@ -147,14 +158,9 @@ function IOURequestStepDistanceGPS({
             shouldShowNotFoundPage={shouldShowNotFoundPage}
             shouldShowWrapper={!isCreatingNewRequest}
         >
-            <DistanceCounter
-                report={report}
-                transaction={transaction}
-                iouType={iouType}
-            />
+            <DistanceCounter unit={unit} />
             <View style={[styles.w100, styles.pAbsolute, styles.b0, styles.r0, styles.l0]}>
                 <Waypoints />
-                <Disclaimer />
                 <DotIndicatorMessage
                     style={[styles.ph5, styles.pb3]}
                     messages={getError()}
@@ -165,6 +171,7 @@ function IOURequestStepDistanceGPS({
                     setShouldShowStartError={setShouldShowStartError}
                     setShouldShowPermissionsError={setShouldShowPermissionsError}
                     reportID={reportID}
+                    unit={unit}
                 />
             </View>
         </StepScreenWrapper>

@@ -1,3 +1,4 @@
+import {isUserValidatedSelector} from '@selectors/Account';
 import React, {useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
@@ -10,18 +11,20 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
+import {useCurrencyListState} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {deleteWorkspaceCompanyCardFeed, setWorkspaceCompanyCardTransactionLiability} from '@libs/actions/CompanyCards';
-import {getCompanyCardFeed, getCompanyFeeds, getCustomOrFormattedFeedName, getDomainOrWorkspaceAccountID, getSelectedFeed} from '@libs/CardUtils';
+import {getCompanyCardFeed, getCompanyFeeds, getCustomOrFormattedFeedName, getDomainOrWorkspaceAccountID, getSelectedFeed, isDirectFeed} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+import {startCardFeedRefresh} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -43,12 +46,15 @@ function WorkspaceCompanyCardsSettingsPage({
 
     const [cardFeeds] = useCardFeeds(policyID);
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
+    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
+    const {currencyList} = useCurrencyListState();
 
     const selectedFeed = useMemo(() => getSelectedFeed(lastSelectedFeed, cardFeeds), [cardFeeds, lastSelectedFeed]);
     const feed = selectedFeed ? getCompanyCardFeed(selectedFeed) : undefined;
 
     const [cardsList] = useCardsList(selectedFeed);
-    const icons = useMemoizedLazyExpensifyIcons(['Trashcan'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Sync', 'Trashcan']);
     const feedName = selectedFeed ? getCustomOrFormattedFeedName(translate, feed, cardFeeds?.[selectedFeed]?.customFeedName) : undefined;
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const selectedFeedData = selectedFeed ? companyFeeds[selectedFeed] : undefined;
@@ -56,6 +62,7 @@ function WorkspaceCompanyCardsSettingsPage({
     const isPersonal = liabilityType === CONST.COMPANY_CARDS.DELETE_TRANSACTIONS.ALLOW;
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeedData);
     const isPending = !!selectedFeedData?.pending;
+    const isDirectFeedType = isDirectFeed(feed);
     const statementCloseDate = useMemo(() => {
         if (!selectedFeedData?.statementPeriodEndDay) {
             return undefined;
@@ -149,6 +156,23 @@ function WorkspaceCompanyCardsSettingsPage({
                             />
                             <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('workspace.moreFeatures.companyCards.setTransactionLiabilityDescription')}</Text>
                         </View>
+                        {isDirectFeedType && (
+                            <MenuItem
+                                icon={icons.Sync}
+                                title={translate('workspace.companyCards.assignNewCards.title')}
+                                description={translate('workspace.companyCards.assignNewCards.description')}
+                                onPress={() => {
+                                    if (!selectedFeed) {
+                                        return;
+                                    }
+                                    if (!isUserValidated) {
+                                        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_VERIFY_ACCOUNT.getRoute(policyID, selectedFeed));
+                                        return;
+                                    }
+                                    startCardFeedRefresh(policyID, selectedFeed, policy?.outputCurrency, currencyList, countryByIp);
+                                }}
+                            />
+                        )}
                         <MenuItem
                             icon={icons.Trashcan}
                             title={translate('workspace.moreFeatures.companyCards.removeCardFeed')}

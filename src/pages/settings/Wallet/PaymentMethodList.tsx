@@ -18,6 +18,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {
@@ -29,17 +30,22 @@ import {
     isCardFrozen,
     isExpensifyCard,
     isExpensifyCardPendingAction,
+    isExpiredCard,
     isPersonalCard,
+    isTravelCard,
     lastFourNumbersFromCardName,
     maskCardNumber,
 } from '@libs/CardUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
 import {getDescriptionForPolicyDomainCard} from '@libs/PolicyUtils';
+import {getTravelInvoicingCard, isTravelCVVEligible} from '@libs/TravelInvoicingUtils';
+import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {BankAccount, BankAccountList, CardList, Policy} from '@src/types/onyx';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -110,6 +116,9 @@ type PaymentMethodListProps = {
     /* Currency of payment method to filter by */
     filterCurrency?: string;
 
+    /** Account states to exclude from the list */
+    excludeStates?: Array<ValueOf<typeof CONST.BANK_ACCOUNT.STATE>>;
+
     /** Whether to show the default badge for the payment method */
     shouldHideDefaultBadge?: boolean;
 
@@ -160,6 +169,7 @@ function PaymentMethodList({
     itemIconRight,
     filterType,
     filterCurrency,
+    excludeStates,
     shouldHideDefaultBadge = false,
     threeDotsMenuItems,
     onThreeDotsMenuPress,
@@ -167,13 +177,14 @@ function PaymentMethodList({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus', 'ThreeDots'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus', 'ThreeDots', 'LuggageWithLines']);
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
-
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: isUserValidatedSelector,
     });
+    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
+    const {isBetaEnabled} = usePermissions();
     const [bankAccountList = getEmptyObject<BankAccountList>(), bankAccountListResult] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
@@ -198,6 +209,7 @@ function PaymentMethodList({
     // const [fundList = getEmptyObject<FundList>()] = useOnyx(ONYXKEYS.FUND_LIST);
 
     const {shouldShowRbrForFeedNameWithDomainID} = useCardFeedErrors();
+    const shouldShowListFooterComponent = shouldShowAddBankAccount;
 
     const filteredPaymentMethods = useMemo(() => {
         if (shouldShowAssignedCards) {
@@ -207,7 +219,8 @@ function PaymentMethodList({
                     (card) =>
                         CONST.EXPENSIFY_CARD.ACTIVE_STATES.includes(card.state ?? 0) &&
                         (isExpensifyCard(card) || !!card.domainName || isPersonalCard(card)) &&
-                        card.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH,
+                        card.cardName !== CONST.COMPANY_CARDS.CARD_NAME.CASH &&
+                        (!isExpensifyCard(card) || !isExpiredCard(card)),
                 );
 
             const assignedCardsSorted = lodashSortBy(assignedCards, getAssignedCardSortKey);
@@ -230,7 +243,7 @@ function PaymentMethodList({
                 if (card.fundID) {
                     const feedNameWithDomainID = getCardFeedWithDomainID(card.bank, card.fundID);
                     shouldShowRBR = shouldShowRbrForFeedNameWithDomainID[feedNameWithDomainID];
-                } else if (card.bank !== CONST.PERSONAL_CARD.BANK_NAME.CSV) {
+                } else if (card.bank !== CONST.PERSONAL_CARDS.BANK_NAME.CSV) {
                     // Don't show red dot for CSV imported cards without fundID
                     shouldShowRBR = true;
                 }
@@ -254,10 +267,11 @@ function PaymentMethodList({
                     const lastFourPAN = lastFourNumbersFromCardName(card.cardName);
                     const plaidUrl = getPlaidInstitutionIconUrl(card.bank);
                     const isCSVImportCard = card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD;
-                    const cardTitle = isCSVImportCard ? (card.nameValuePairs?.cardTitle ?? card.cardName) : maskCardNumber(card.cardName, card.bank);
+                    let cardTitle = isCSVImportCard ? (card.nameValuePairs?.cardTitle ?? card.cardName) : maskCardNumber(card.cardName, card.bank);
                     const pressHandler = onPress as CardPressHandler;
                     let cardDescription;
                     if (isUserPersonalCard) {
+                        cardTitle = customCardNames?.[card.cardID] ?? cardTitle;
                         cardDescription = lastFourPAN;
                     } else if (lastFourPAN) {
                         cardDescription = `${lastFourPAN} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName, policiesForAssignedCards)}`;
@@ -284,7 +298,7 @@ function PaymentMethodList({
 
                     assignedCardsGrouped.push({
                         key: card.cardID.toString(),
-                        plaidUrl: isUserPersonalCard ? undefined : plaidUrl,
+                        plaidUrl,
                         title: cardTitle,
                         description: isCSVImportCard ? translate('cardPage.csvCardDescription') : cardDescription,
                         interactive: !isDisabled,
@@ -306,10 +320,14 @@ function PaymentMethodList({
                 }
 
                 const isAdminIssuedVirtualCard = !!card?.nameValuePairs?.issuedBy && !!card?.nameValuePairs?.isVirtual;
-                const isTravelCard = !!card?.nameValuePairs?.isVirtual && !!card?.nameValuePairs?.isTravelCard;
+
+                // Travel cards are handled by the dedicated travelCardGrouped section below
+                if (isTravelCard(card)) {
+                    continue;
+                }
 
                 // The card should be grouped to a specific domain and such domain already exists in a assignedCardsGrouped
-                if (assignedCardsGrouped.some((item) => item.isGroupedCardDomain && item.description === card.domainName) && !isAdminIssuedVirtualCard && !isTravelCard) {
+                if (assignedCardsGrouped.some((item) => item.isGroupedCardDomain && item.description === card.domainName) && !isAdminIssuedVirtualCard) {
                     const domainGroupIndex = assignedCardsGrouped.findIndex((item) => item.isGroupedCardDomain && item.description === card.domainName);
                     const assignedCardsGroupedItem = assignedCardsGrouped.at(domainGroupIndex);
                     if (domainGroupIndex >= 0 && assignedCardsGroupedItem) {
@@ -335,8 +353,8 @@ function PaymentMethodList({
                 assignedCardsGrouped.push({
                     key: card.cardID.toString(),
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    title: isTravelCard ? translate('cardPage.expensifyTravelCard') : card?.nameValuePairs?.cardTitle || card.bank,
-                    description: isTravelCard ? translate('cardPage.expensifyTravelCard') : cardDescription,
+                    title: card?.nameValuePairs?.cardTitle || card.bank,
+                    description: cardDescription,
                     onPress: () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(String(card.cardID))),
                     onThreeDotsMenuPress: (e: GestureResponderEvent | KeyboardEvent | undefined) =>
                         pressHandler({
@@ -351,7 +369,7 @@ function PaymentMethodList({
                             cardID: card.cardID,
                         }),
                     cardID: card.cardID,
-                    isGroupedCardDomain: !isAdminIssuedVirtualCard && !isTravelCard,
+                    isGroupedCardDomain: !isAdminIssuedVirtualCard,
                     shouldShowRightIcon: true,
                     interactive: !isDisabled,
                     disabled: isDisabled,
@@ -367,12 +385,27 @@ function PaymentMethodList({
                 });
             }
 
-            const companyCards = [translate('workspace.common.companyCards'), ...companyCardsGrouped];
+            const travelCardGrouped: PaymentMethodItem[] = [];
+            const travelCard = getTravelInvoicingCard(cardList);
+            if (isTravelCVVEligible(isBetaEnabled(CONST.BETAS.TRAVEL_INVOICING), cardList) && travelCard) {
+                travelCardGrouped.push({
+                    title: translate('walletPage.travelCVV.title'),
+                    description: translate('walletPage.travelCVV.subtitle'),
+                    icon: expensifyIcons.LuggageWithLines,
+                    iconFill: colors.productLight100,
+                    iconStyles: styles.travelInvoicingIcon,
+                    shouldShowRightIcon: true,
+                    shouldShowThreeDotsMenu: false,
+                    onPress: () => Navigation.navigate(ROUTES.SETTINGS_WALLET_TRAVEL_CVV),
+                });
+            }
+
+            const companyCards = [translate('workspace.common.companyCards'), ...companyCardsGrouped, ...travelCardGrouped];
             const personalCards = [translate('workspace.common.personalCards'), ...personalCardsGrouped];
             if (companyCardsGrouped.length > 0 && personalCardsGrouped.length > 0) {
                 return [...companyCards, ...personalCards];
             }
-            return [...companyCardsGrouped, ...personalCardsGrouped];
+            return [...companyCardsGrouped, ...travelCardGrouped, ...personalCardsGrouped];
         }
 
         // Hide any billing cards that are not P2P debit cards for now because you cannot make them your default method, or delete them
@@ -395,6 +428,13 @@ function PaymentMethodList({
                 const currencyMatches = !filterCurrency || account.bankCurrency === filterCurrency;
 
                 return typeMatches && currencyMatches;
+            });
+        }
+
+        if (excludeStates?.length) {
+            combinedPaymentMethods = combinedPaymentMethods.filter((paymentMethod) => {
+                const account = paymentMethod as BankAccount;
+                return !excludeStates.includes(account.accountData?.state as ValueOf<typeof CONST.BANK_ACCOUNT.STATE>);
             });
         }
 
@@ -442,25 +482,29 @@ function PaymentMethodList({
         shouldShowAssignedCards,
         isLoadingBankAccountList,
         bankAccountList,
+        customCardNames,
         styles,
         translate,
         isOffline,
         filterType,
         filterCurrency,
+        excludeStates,
         isLoadingCardList,
         cardList,
+        isBetaEnabled,
+        onPress,
+        policiesForAssignedCards,
         illustrations,
         companyCardFeedIcons,
         shouldShowRbrForFeedNameWithDomainID,
         privatePersonalDetails,
-        onPress,
         shouldShowRightIcon,
-        itemIconRight,
-        expensifyIcons.ThreeDots,
         activePaymentMethodID,
+        expensifyIcons.LuggageWithLines,
+        expensifyIcons.ThreeDots,
         actionPaymentMethodType,
         onThreeDotsMenuPress,
-        policiesForAssignedCards,
+        itemIconRight,
     ]);
 
     const onPressItem = useCallback(() => {
@@ -469,7 +513,7 @@ function PaymentMethodList({
             if (path.includes(ROUTES.WORKSPACES_LIST.route) && policyID) {
                 Navigation.navigate(ROUTES.WORKSPACE_INVOICES_VERIFY_ACCOUNT.getRoute(policyID));
             } else {
-                Navigation.navigate(ROUTES.SETTINGS_ADD_BANK_ACCOUNT_VERIFY_ACCOUNT.route);
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT.path));
             }
             return;
         }
@@ -551,13 +595,13 @@ function PaymentMethodList({
     );
 
     return (
-        <View style={[style, {minHeight: (filteredPaymentMethods.length + (shouldShowAddBankAccount ? 1 : 0)) * variables.optionRowHeight}]}>
+        <View style={[style, {minHeight: (filteredPaymentMethods.length + (shouldShowListFooterComponent ? 1 : 0)) * variables.optionRowHeight}]}>
             <FlashList<PaymentMethod | string>
                 data={itemsToRender}
                 renderItem={renderItem}
                 keyExtractor={keyExtractor}
                 ListHeaderComponent={listHeaderComponent}
-                ListFooterComponent={shouldShowAddBankAccount ? renderListFooterComponent : null}
+                ListFooterComponent={shouldShowListFooterComponent ? renderListFooterComponent : null}
                 onContentSizeChange={onListContentSizeChange}
             />
         </View>

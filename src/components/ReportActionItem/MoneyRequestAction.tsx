@@ -1,8 +1,9 @@
 import {useRoute} from '@react-navigation/native';
 import lodashIsEmpty from 'lodash/isEmpty';
-import React, {useContext, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import RenderHTML from '@components/RenderHTML';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -24,7 +25,7 @@ import {
 } from '@libs/ReportActionsUtils';
 import type {ContextMenuAnchor} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import {contextMenuRef} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
-import ReportActionItemContext from '@pages/inbox/report/ReportActionItemContext';
+import {useReportActionItemActions, useReportActionItemState} from '@pages/inbox/report/ReportActionItemContext';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -67,6 +68,9 @@ type MoneyRequestActionProps = {
 
     /** Whether  context menu should be shown on press */
     shouldDisplayContextMenu?: boolean;
+
+    /** ID of the original report from which the given reportAction is first created */
+    originalReportID?: string;
 };
 
 function MoneyRequestAction({
@@ -81,17 +85,21 @@ function MoneyRequestAction({
     style,
     isWhisper = false,
     shouldDisplayContextMenu = true,
+    originalReportID,
 }: MoneyRequestActionProps) {
-    const {shouldOpenReportInRHP, onPreviewPressed} = useContext(ReportActionItemContext);
+    const {shouldOpenReportInRHP} = useReportActionItemState();
+    const {onPreviewPressed} = useReportActionItemActions();
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${requestReportID}`);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {canEvict: false});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
     const isReviewDuplicateTransactionPage = route.name === SCREENS.TRANSACTION_DUPLICATE.REVIEW;
     const isSplitBillAction = isSplitBillActionReportActionsUtils(action);
@@ -121,7 +129,7 @@ function MoneyRequestAction({
         const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : CONST.DEFAULT_NUMBER_ID;
 
         if (!action?.childReportID && transactionID && action.reportActionID) {
-            const transactionThreadReport = createTransactionThreadReport(introSelected, iouReport, action);
+            const transactionThreadReport = createTransactionThreadReport(introSelected, currentUserEmail ?? '', currentUserAccountID, betas, iouReport, action);
             if (shouldOpenReportInRHP) {
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: transactionThreadReport?.reportID, backTo: Navigation.getActiveRoute()}));
                 return;
@@ -183,6 +191,7 @@ function MoneyRequestAction({
             isHovered={isHovered}
             isWhisper={isWhisper}
             shouldDisplayContextMenu={shouldDisplayContextMenu}
+            originalReportID={originalReportID}
         />
     );
 }

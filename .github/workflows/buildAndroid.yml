@@ -35,6 +35,9 @@ on:
       ROCK_ARTIFACT_URL:
         description: URL to download the ad-hoc build artifact (adhoc only)
         value: ${{ jobs.build.outputs.ROCK_ARTIFACT_URL }}
+      SENTRY_URL:
+        description: URL to Sentry size analysis
+        value: ${{ jobs.build.outputs.SENTRY_URL }}
       AAB_FILENAME:
         description: Filename of the AAB artifact (empty if no AAB was produced)
         value: ${{ jobs.build.outputs.AAB_FILENAME }}
@@ -57,6 +60,7 @@ jobs:
     outputs:
       VERSION_CODE: ${{ steps.getAndroidVersion.outputs.VERSION_CODE }}
       ROCK_ARTIFACT_URL: ${{ steps.set-artifact-url.outputs.ARTIFACT_URL }}
+      SENTRY_URL: ${{ steps.sentry-upload.outputs.SENTRY_URL }}
       AAB_FILENAME: ${{ steps.collectArtifacts.outputs.AAB_FILENAME }}
       APK_FILENAME: ${{ steps.collectArtifacts.outputs.APK_FILENAME }}
       SOURCEMAP_FILENAME: index.android.bundle.map
@@ -183,7 +187,28 @@ jobs:
           comment-bot: false
           rock-build-extra-params: ${{ inputs.variant == 'Adhoc' && '--extra-params "-PreactNativeArchitectures=arm64-v8a,x86_64 --profile"' || '--extra-params "--profile"' }}
           custom-identifier: ${{ steps.computeIdentifier.outputs.IDENTIFIER }}
-          validate-elf-alignment: false
+          validate-elf-alignment: ${{ inputs.variant != 'Release' && 'true' || 'false' }}
+
+      - name: Set artifact URL output
+        id: set-artifact-url
+        if: ${{ inputs.variant == 'Adhoc' }}
+        run: echo "ARTIFACT_URL=$ARTIFACT_URL" >> "$GITHUB_OUTPUT"
+
+      - name: Upload Android build to Sentry for size analysis
+        id: sentry-upload
+        if: ${{ inputs.variant == 'Release' && env.ARTIFACT_PATH != '' }}
+        continue-on-error: true
+        timeout-minutes: 5
+        run: |
+          OUTPUT=$(npx sentry-cli build upload "$ARTIFACT_PATH" --org expensify --project app --build-configuration Release --log-level debug 2>&1)
+          echo "$OUTPUT"
+          SENTRY_URL=$(echo "$OUTPUT" | grep -oE 'https://expensify\.sentry\.io/[^ ]+' | head -1)
+          if [ -n "$SENTRY_URL" ]; then
+            echo "::notice::Android Sentry size analysis: $SENTRY_URL"
+            echo "SENTRY_URL=$SENTRY_URL" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
       - name: Upload Gradle profile report
         if: always()
@@ -193,11 +218,6 @@ jobs:
           name: ${{ inputs.artifact-prefix }}gradle-profile-report
           path: Mobile-Expensify/Android/build/reports/profile/
           if-no-files-found: ignore
-
-      - name: Set artifact URL output
-        id: set-artifact-url
-        if: ${{ inputs.variant == 'Adhoc' }}
-        run: echo "ARTIFACT_URL=$ARTIFACT_URL" >> "$GITHUB_OUTPUT"
 
       - name: Collect build artifacts
         id: collectArtifacts
@@ -283,6 +303,10 @@ jobs:
             --key-pass=pass:${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEY_PASSWORD }}
           unzip -p Expensify.apks universal.apk > Expensify.apk
 
+      - name: Validate ELF alignment for Release APK
+        if: ${{ inputs.variant == 'Release' && steps.collectArtifacts.outputs.HAS_AAB == 'true' }}
+        run: npx rock validate-elf-alignment "Expensify.apk"
+
       - name: Upload Android APK build artifact
         if: steps.collectArtifacts.outputs.HAS_AAB == 'true'
         # v6
@@ -290,3 +314,4 @@ jobs:
         with:
           name: ${{ inputs.artifact-prefix }}android-apk-artifact
           path: Expensify.apk
+

@@ -1,16 +1,19 @@
 import {isActingAsDelegateSelector} from '@selectors/Account';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsBlockedToAddFeed from '@hooks/useIsBlockedToAddFeed';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {navigateToConciergeChat} from '@libs/actions/Report';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import BankConnection from '@pages/workspace/companyCards/BankConnection';
@@ -27,6 +30,7 @@ import CardNameStep from './CardNameStep';
 import CardTypeStep from './CardTypeStep';
 import DetailsStep from './DetailsStep';
 import DirectStatementCloseDateStep from './DirectStatementCloseDatePage';
+import ImportFromFileStep from './ImportFromFileStep';
 import PlaidConnectionStep from './PlaidConnectionStep';
 import SelectBankStep from './SelectBankStep';
 import SelectCountryStep from './SelectCountryStep';
@@ -43,6 +47,10 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const {translate} = useLocalize();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector});
 
@@ -71,7 +79,13 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     }, [policyID]);
 
     if (isAddCardFeedLoading || isAllFeedsResultLoading || isBlockedToAddNewFeeds) {
-        return <FullScreenLoadingIndicator />;
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'AddNewCardPage',
+            isAddCardFeedLoading,
+            isAllFeedsResultLoading,
+            isBlockedToAddNewFeeds,
+        };
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     if (isActingAsDelegate) {
@@ -126,6 +140,9 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
         case CONST.COMPANY_CARDS.STEP.SELECT_DIRECT_STATEMENT_CLOSE_DATE:
             CurrentStep = <DirectStatementCloseDateStep policyID={policyID} />;
             break;
+        case CONST.COMPANY_CARDS.STEP.IMPORT_FROM_FILE:
+            CurrentStep = <ImportFromFileStep />;
+            break;
         default:
             CurrentStep = <SelectCountryStep policyID={policyID} />;
             break;
@@ -148,7 +165,7 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
                 onCancel={() => setIsModalVisible(false)}
                 onConfirm={() => {
                     setIsModalVisible(false);
-                    navigateToConciergeChat(conciergeReportID, false);
+                    navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false);
                 }}
             />
         </AccessOrNotFoundWrapper>

@@ -147,6 +147,9 @@ type OriginalMessageActionableMentionWhisper = {
 
     /** Collection of accountIDs of users mentioned in message */
     whisperedTo?: number[];
+
+    /** Timestamp of when the whisper was deleted (set by the backend when the parent comment is deleted) */
+    deleted?: string | null;
 };
 
 /** Model of `actionable card fraud alert` report action */
@@ -189,6 +192,12 @@ type OriginalMessageActionableReportMentionWhisper = {
 
     /** Collection of accountIDs of users mentioned in message */
     whisperedTo?: number[];
+
+    /** Timestamp of when the whisper was deleted (set by the backend when the parent comment is deleted) */
+    deleted?: string | null;
+
+    /** The reportActionID of the parent comment that triggered this whisper */
+    reportActionID?: number;
 };
 
 /** Model of `welcome whisper` report action */
@@ -719,6 +728,27 @@ type OriginalMessagePolicyChangeLog = {
         /** The accountID of the previous reimburser */
         accountID: number;
     };
+
+    /** Name of company card feed */
+    feedName?: string;
+
+    /** Last four digits of a company card */
+    cardLastFour?: string;
+
+    /** Old name of a company card feed */
+    oldFeedName?: string;
+
+    /** Company card feed liability type */
+    liabilityType?: string;
+
+    /** Statement period end day for a company card feed */
+    statementPeriodEndDay?: string;
+
+    /** Previous statement period end day for a company card feed */
+    previousStatementPeriodEndDay?: string;
+
+    /** Whether the user joined the workspace via joining link */
+    didJoinPolicy?: boolean;
 };
 
 /** Model of `join policy` report action */
@@ -1014,6 +1044,8 @@ type OriginalMessageMovedTransaction = {
     toReportID?: string;
     /** ID of the original report */
     fromReportID: string;
+    /** Reasoning for the automated move, used by Concierge Explain feature */
+    reasoning?: string;
 };
 
 /** Model of `moved` report action */
@@ -1044,6 +1076,9 @@ type OriginalMessageDismissedViolation = {
 type OriginalMessageDynamicExternalWorkflowRouted = {
     /** The approver of the report is submitted to */
     to: string;
+
+    /** Explanation for why the report was routed that way */
+    message?: string;
 };
 
 /** Model of `marked reimbursed` report action */
@@ -1089,6 +1124,9 @@ type OriginalMessageApproved = {
 
     /** The login of approver who is on vacation */
     managerOnVacation?: string;
+
+    /** The Concierge reasoning for the action */
+    reasoning?: string;
 };
 
 /** Model of `forwarded` report action */
@@ -1110,6 +1148,9 @@ type OriginalMessageForwarded = {
 
     /** The workflow the report is approved on */
     workflow?: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>;
+
+    /** Optional message explaining why the report was forwarded that way */
+    message?: string;
 };
 
 /**
@@ -1238,6 +1279,9 @@ type OriginalMessageDEWFailed = {
 
     /** Whether the action was automatic */
     automaticAction?: boolean;
+
+    /** Was the report submitted via harvesting (delayed submit) */
+    harvesting?: boolean;
 };
 
 /**
@@ -1287,6 +1331,8 @@ type OriginalMessageTakeControl = {
     lastModified: string;
     /** Tagged account IDs of new approvers */
     mentionedAccountIDs: number[];
+    /** Whether this action was triggered automatically (e.g., during auto-pay) */
+    automaticAction?: boolean;
 };
 
 /**
@@ -1369,6 +1415,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.HOLD_COMMENT]: never;
     [CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE]: OriginalMessageIntegrationMessage;
     [CONST.REPORT.ACTIONS.TYPE.REJECTED]: never;
+    [CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER]: never;
     [CONST.REPORT.ACTIONS.TYPE.REJECTEDTRANSACTION_THREAD]: never;
     [CONST.REPORT.ACTIONS.TYPE.REJECTED_TRANSACTION_MARKASRESOLVED]: never;
     [CONST.REPORT.ACTIONS.TYPE.IOU]: OriginalMessageIOU;

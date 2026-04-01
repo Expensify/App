@@ -1,3 +1,4 @@
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -5,6 +6,7 @@ import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -20,7 +22,7 @@ import DebugTabNavigator from '@libs/Navigation/DebugTabNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DebugParamList} from '@libs/Navigation/types';
-import {hasReportViolations, isReportOwner, shouldDisplayViolationsRBRInLHN} from '@libs/ReportUtils';
+import {getViolatingReportIDForRBRInLHN} from '@libs/ReportUtils';
 import DebugDetails from '@pages/Debug/DebugDetails';
 import DebugJSON from '@pages/Debug/DebugJSON';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -70,6 +72,9 @@ function DebugReportPage({
     const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const transactionID = DebugUtils.getTransactionID(report, reportActions);
     const isReportArchived = useReportIsArchived(reportID);
 
@@ -78,9 +83,8 @@ function DebugReportPage({
             return [];
         }
 
-        const shouldDisplayViolations = shouldDisplayViolationsRBRInLHN(report, transactionViolations);
-        const shouldDisplayReportViolations = isReportOwner(report) && hasReportViolations(reportID);
-        const hasViolations = !!shouldDisplayViolations || shouldDisplayReportViolations;
+        const shouldDisplayViolations = !!getViolatingReportIDForRBRInLHN(report, transactionViolations);
+        const hasViolations = !!shouldDisplayViolations;
         const {reason: reasonGBR, reportAction: reportActionGBR} = DebugUtils.getReasonAndReportActionForGBRInLHNRow(report, isReportArchived) ?? {};
         const {reason: reasonRBR, reportAction: reportActionRBR} =
             DebugUtils.getReasonAndReportActionForRBRInLHNRow(
@@ -149,9 +153,9 @@ function DebugReportPage({
                         : undefined,
             },
         ];
-    }, [report, transactionViolations, reportID, isReportArchived, chatReport, reportActions, transactions, reportAttributes?.reportErrors, betas, priorityMode, draftComment, translate]);
+    }, [report, transactionViolations, isReportArchived, chatReport, reportActions, transactions, reportAttributes?.reportErrors, betas, priorityMode, draftComment, translate]);
 
-    const icons = useMemoizedLazyExpensifyIcons(['Eye'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Eye']);
 
     const DebugDetailsTab = useCallback(
         () => (
@@ -162,7 +166,7 @@ function DebugReportPage({
                     Debug.setDebugData(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, data);
                 }}
                 onDelete={() => {
-                    navigateToConciergeChatAndDeleteReport(reportID, conciergeReportID, true, true);
+                    navigateToConciergeChatAndDeleteReport(reportID, conciergeReportID, currentUserAccountID, introSelected, isSelfTourViewed, betas, true, true);
                 }}
                 validate={DebugUtils.validateReportDraftProperty}
             >
@@ -223,6 +227,11 @@ function DebugReportPage({
             transactionID,
             translate,
             icons.Eye,
+            currentUserAccountID,
+            conciergeReportID,
+            introSelected,
+            isSelfTourViewed,
+            betas,
         ],
     );
 

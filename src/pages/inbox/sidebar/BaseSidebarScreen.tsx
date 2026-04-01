@@ -1,20 +1,49 @@
 import React from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
-import TopBar from '@components/Navigation/TopBar';
+import TopBarWithLoadingBar from '@components/Navigation/TopBarWithLoadingBar';
+import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobile} from '@libs/Browser';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import ONYXKEYS from '@src/ONYXKEYS';
 import SidebarLinksData from './SidebarLinksData';
+
+// Once the app finishes loading for the first time, we never show the skeleton again
+// (even if isLoadingApp briefly flips back to true during a reconnect).
+// This uses a module-level variable + connectWithoutView instead of a ref because
+// a ref resets on unmount, so the skeleton would flash again when the component
+// remounts (e.g. navigating between tabs).
+let hasEverFinishedLoading = false;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.IS_LOADING_APP,
+    callback: (value) => {
+        if (value !== false) {
+            return;
+        }
+        hasEverFinishedLoading = true;
+    },
+});
 
 function BaseSidebarScreen() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const shouldDisplayLHB = !shouldUseNarrowLayout;
+
+    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const shouldShowSkeleton = isLoadingApp && !hasEverFinishedLoading;
+
+    // Must be called unconditionally so openApp() can proceed even when
+    // the skeleton is shown and SidebarLinksData has not mounted yet.
+    useConfirmReadyToOpenApp();
 
     return (
         <ScreenWrapper
@@ -25,13 +54,20 @@ function BaseSidebarScreen() {
         >
             {({insets}) => (
                 <>
-                    <TopBar
+                    <TopBarWithLoadingBar
                         breadcrumbLabel={translate('common.inbox')}
                         shouldDisplaySearch={shouldUseNarrowLayout}
                         shouldDisplayHelpButton={shouldUseNarrowLayout}
                     />
                     <View style={[styles.flex1]}>
-                        <SidebarLinksData insets={insets} />
+                        {shouldShowSkeleton ? (
+                            <OptionsListSkeletonView
+                                shouldAnimate
+                                reasonAttributes={{context: 'BaseSidebarScreen', isLoadingApp, hasEverFinishedLoading} satisfies SkeletonSpanReasonAttributes}
+                            />
+                        ) : (
+                            <SidebarLinksData insets={insets} />
+                        )}
                     </View>
                     {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.INBOX} />}
                 </>

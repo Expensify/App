@@ -14,9 +14,11 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCardFeedWithDomainID, lastFourNumbersFromCardName, splitMaskedCardNumber} from '@libs/CardUtils';
+import {formatMaskedCardName, getCardFeedWithDomainID, lastFourNumbersFromCardName, splitMaskedCardNumber} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Card, CompanyCardFeed, CompanyCardFeedWithDomainID} from '@src/types/onyx';
@@ -94,6 +96,11 @@ function WorkspaceCompanyCardTableItem({
     const assignCard = () => onAssignCard(cardName, encryptedCardNumber);
     const isDeleting = !isOffline && pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
+    const reasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'WorkspaceCompanyCardsTableItem',
+        isDeleting,
+    };
+
     return (
         <OfflineWithFeedback
             errorRowStyles={[styles.ph5, styles.mb4]}
@@ -107,6 +114,7 @@ function WorkspaceCompanyCardTableItem({
                     <TableRowSkeleton
                         fixedNumItems={1}
                         useCompanyCardsLayout
+                        reasonAttributes={reasonAttributes}
                     />
                 </View>
             ) : (
@@ -184,7 +192,7 @@ function WorkspaceCompanyCardTableItem({
                                         numberOfLines={1}
                                         style={[styles.lh16, styles.optionDisplayName, styles.pre, !isAssigned && styles.cursorText]}
                                     >
-                                        {cardName}
+                                        {formatMaskedCardName(cardName)}
                                     </Text>
                                 </View>
                             )}
@@ -204,8 +212,8 @@ function WorkspaceCompanyCardTableItem({
                                             src={Expensicons.ArrowRight}
                                             fill={theme.icon}
                                             additionalStyles={[styles.alignSelfCenter, !hovered && styles.opacitySemiTransparent]}
-                                            medium
-                                            isButtonIcon
+                                            width={variables.iconSizeNormal}
+                                            height={variables.iconSizeNormal}
                                         />
                                     </View>
                                 ) : (
