@@ -32,10 +32,10 @@ import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {buildFilterQueryWithSortDefaults, isFilterSupported, isSearchDatePreset} from '@libs/SearchQueryUtils';
 import {
     filterValidHasValues,
+    getCurrencyOptions,
     getFeedOptions,
     getGroupByOptions,
     getGroupBySections,
-    getCurrencyOptions,
     getHasOptions,
     getStatusOptions,
     getTypeOptions,

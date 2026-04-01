@@ -23,7 +23,7 @@ import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import passthroughPolicyTagListSelector from '@src/selectors/PolicyTagList';
-import {SearchAdvancedFiltersForm} from '@src/types/form';
+import type {SearchAdvancedFiltersForm} from '@src/types/form';
 
 type InSelectPopupProps = {
     closeOverlay: () => void;

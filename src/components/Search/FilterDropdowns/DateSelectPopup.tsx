@@ -1,7 +1,6 @@
 import React, {useCallback, useRef, useState} from 'react';
 import {View} from 'react-native';
-import {ViewStyle} from 'react-native';
-import {StyleProp} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import DatePresetFilterBase from '@components/Search/FilterComponents/DatePresetFilterBase';
@@ -79,7 +78,7 @@ function DateSelectPopup({label, value, presets, style, closeOverlay, onChange}:
 
     return (
         <View style={[!isSmallScreenWidth && styles.pv4, styles.gap2, style]}>
-            {isSmallScreenWidth && !selectedDateModifier && label && <Text style={[styles.textLabel, styles.textSupporting, styles.ph5, styles.pv1]}>{label}</Text>}
+            {isSmallScreenWidth && !selectedDateModifier && !!label && <Text style={[styles.textLabel, styles.textSupporting, styles.ph5, styles.pv1]}>{label}</Text>}
             <View>
                 {!!selectedDateModifier && (
                     <HeaderWithBackButton

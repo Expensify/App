@@ -5,7 +5,7 @@ import {createCardFeedKey, getCardFeedKey, getCardFeedNamesWithType, getWorkspac
 import {getCardDescription} from '@libs/CardUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {WorkspaceCardsList} from '@src/types/onyx';
+import type {WorkspaceCardsList} from '@src/types/onyx';
 
 function useFilterCardValue(): string {
     const {translate} = useLocalize();
@@ -14,15 +14,15 @@ function useFilterCardValue(): string {
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const cardIdsFilter = searchAdvancedFiltersForm?.[CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID] ?? [];
     const feedFilter = searchAdvancedFiltersForm?.[CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED] ?? [];
-    const workspaceCardFeeds = Object.entries(searchCards ?? {}).reduce<Record<string, WorkspaceCardsList>>((workspaceCardsFeed, [cardID, card]) => {
+    const workspaceCardFeeds = Object.entries(searchCards ?? {}).reduce<Record<string, WorkspaceCardsList>>((acc, [cardID, card]) => {
         const feedKey = `${createCardFeedKey(card.fundID, card.bank)}`;
         const workspaceFeedKey = getWorkspaceCardFeedKey(feedKey);
-        if (!workspaceCardsFeed[workspaceFeedKey]) {
-            workspaceCardsFeed[workspaceFeedKey] = {};
+        if (!acc[workspaceFeedKey]) {
+            acc[workspaceFeedKey] = {};
         }
 
-        workspaceCardsFeed[workspaceFeedKey][cardID] = card;
-        return workspaceCardsFeed;
+        acc[workspaceFeedKey][cardID] = card;
+        return acc;
     }, {});
 
     const cardFeedNamesWithType = getCardFeedNamesWithType({

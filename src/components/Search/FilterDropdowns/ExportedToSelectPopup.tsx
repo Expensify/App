@@ -1,7 +1,8 @@
 import React from 'react';
 import {View} from 'react-native';
-import {TupleToUnion} from 'type-fest';
+import type {TupleToUnion} from 'type-fest';
 import Icon from '@components/Icon';
+import MultiSelectFilterPopup from '@components/Search/SearchPageHeader/MultiSelectFilterPopup';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -16,7 +17,6 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import MultiSelectFilterPopup from '../SearchPageHeader/MultiSelectFilterPopup';
 import type {MultiSelectItem} from './MultiSelectPopup';
 
 type ExportedToSelectPopupProps = {
@@ -132,7 +132,7 @@ function ExportedToSelectPopup({closeOverlay, updateFilterForm}: ExportedToSelec
     return (
         <MultiSelectFilterPopup
             closeOverlay={closeOverlay}
-            translationKey={'search.exportedTo'}
+            translationKey="search.exportedTo"
             items={exportedToPickerOptions}
             value={selectedExportedTo}
             isSearchable={exportedToPickerOptions.length >= CONST.STANDARD_LIST_ITEM_LIMIT}

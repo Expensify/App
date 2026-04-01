@@ -1,8 +1,8 @@
 import React from 'react';
 import {useCurrencyListActions, useCurrencyListState} from '@components/CurrencyListContextProvider';
+import MultiSelectFilterPopup from '@components/Search/SearchPageHeader/MultiSelectFilterPopup';
 import {getCurrencyOptions} from '@libs/SearchUIUtils';
 import type {TranslationPaths} from '@src/languages/types';
-import MultiSelectFilterPopup from '../SearchPageHeader/MultiSelectFilterPopup';
 import type {MultiSelectItem} from './MultiSelectPopup';
 
 type CurrencySelectPopupProps = {

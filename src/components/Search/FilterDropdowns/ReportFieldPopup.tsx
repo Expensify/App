@@ -6,6 +6,9 @@ import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import ScrollView from '@components/ScrollView';
+import type {SearchDateValues} from '@components/Search/FilterComponents/DatePresetFilterBase';
+import type {ReportFieldDateKey, ReportFieldTextKey} from '@components/Search/types';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -19,13 +22,10 @@ import {createAllPolicyReportFieldsSelector} from '@src/selectors/Policy';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {Policy, PolicyReportField} from '@src/types/onyx';
 import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
-import type {SearchDateValues} from '../FilterComponents/DatePresetFilterBase';
-import type {ReportFieldDateKey, ReportFieldTextKey} from '../types';
 import DateSelectPopup from './DateSelectPopup';
 import type {PopoverComponentProps} from './DropdownButton';
 import SingleSelectPopup from './SingleSelectPopup';
 import TextInputPopup from './TextInputPopup';
-import Text from '@components/Text';
 
 type ReportFieldPopupProps = PopoverComponentProps & {
     updateFilterForm: (value: Partial<SearchAdvancedFiltersForm>) => void;

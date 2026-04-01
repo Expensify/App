@@ -5,15 +5,15 @@ import AmountWithoutCurrencyInput from '@components/AmountWithoutCurrencyInput';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
+import type {SearchAmountFilterKeys} from '@components/Search/types';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import type {SearchAmountFilterKeys} from '../types';
 import type {PopoverComponentProps} from './DropdownButton';
-import Text from '@components/Text';
 
 type AmountPopupProps = PopoverComponentProps & {
     filterKey: SearchAmountFilterKeys;

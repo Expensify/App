@@ -1,5 +1,6 @@
 import React from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
+import MultiSelectFilterPopup from '@components/Search/SearchPageHeader/MultiSelectFilterPopup';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {getCleanedTagName, getTagNamesFromTagsLists} from '@libs/PolicyUtils';
@@ -9,7 +10,6 @@ import passthroughPolicyTagListSelector from '@src/selectors/PolicyTagList';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {PolicyTagLists} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
-import MultiSelectFilterPopup from '../SearchPageHeader/MultiSelectFilterPopup';
 import type {MultiSelectItem} from './MultiSelectPopup';
 
 type TagSelectPopupProps = {
@@ -56,7 +56,7 @@ function TagSelectPopup({closeOverlay, updateFilterForm}: TagSelectPopupProps) {
     return (
         <MultiSelectFilterPopup
             closeOverlay={closeOverlay}
-            translationKey={'common.tag'}
+            translationKey="common.tag"
             items={tagItems}
             value={selectedTagsItems ?? []}
             isSearchable={tagItems.length >= CONST.STANDARD_LIST_ITEM_LIMIT}

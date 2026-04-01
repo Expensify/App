@@ -5,6 +5,7 @@ import Button from '@components/Button';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import CardListItem from '@components/SelectionList/ListItem/CardListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
+import Text from '@components/Text';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
@@ -16,14 +17,14 @@ import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {openSearchCardFiltersPage} from '@libs/actions/Search';
-import {buildCardFeedsData, buildCardsData, CardFilterItem, generateSelectedCards, getDomainFeedData, getSelectedCardsFromFeeds} from '@libs/CardFeedUtils';
-import {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import {buildCardFeedsData, buildCardsData, generateSelectedCards, getDomainFeedData, getSelectedCardsFromFeeds} from '@libs/CardFeedUtils';
+import type {CardFilterItem} from '@libs/CardFeedUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {PopoverComponentProps} from './DropdownButton';
-import Text from '@components/Text';
 
 type CardSelectPopupProps = PopoverComponentProps & {
     updateFilterForm: (values: Partial<SearchAdvancedFiltersForm>) => void;

@@ -1,5 +1,6 @@
 import React from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
+import MultiSelectFilterPopup from '@components/Search/SearchPageHeader/MultiSelectFilterPopup';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
@@ -8,7 +9,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {PolicyCategories, PolicyCategory} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
-import MultiSelectFilterPopup from '../SearchPageHeader/MultiSelectFilterPopup';
 import type {MultiSelectItem} from './MultiSelectPopup';
 
 type CategorySelectPopupProps = {
@@ -80,7 +80,7 @@ function CategorySelectPopup({closeOverlay, updateFilterForm}: CategorySelectPop
     return (
         <MultiSelectFilterPopup
             closeOverlay={closeOverlay}
-            translationKey={'common.category'}
+            translationKey="common.category"
             items={categoryItems}
             value={selectedCategoriesItems ?? []}
             isSearchable={categoryItems.length >= CONST.STANDARD_LIST_ITEM_LIMIT}

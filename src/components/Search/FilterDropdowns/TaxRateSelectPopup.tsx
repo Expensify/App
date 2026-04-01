@@ -1,11 +1,11 @@
 import React from 'react';
+import MultiSelectFilterPopup from '@components/Search/SearchPageHeader/MultiSelectFilterPopup';
 import useOnyx from '@hooks/useOnyx';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {Policy} from '@src/types/onyx';
-import MultiSelectFilterPopup from '../SearchPageHeader/MultiSelectFilterPopup';
 import type {MultiSelectItem} from './MultiSelectPopup';
 
 type TaxRateSelectPopupProps = {
@@ -42,7 +42,7 @@ function TaxRateSelectPopup({closeOverlay, updateFilterForm}: TaxRateSelectPopup
     return (
         <MultiSelectFilterPopup
             closeOverlay={closeOverlay}
-            translationKey={'iou.taxRate'}
+            translationKey="iou.taxRate"
             items={taxItems}
             value={selectedTaxRates}
             isSearchable={taxItems.length >= CONST.STANDARD_LIST_ITEM_LIMIT}

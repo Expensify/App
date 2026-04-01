@@ -542,12 +542,12 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
 type SearchAdvancedFiltersKey = ValueOf<typeof FILTER_KEYS> | ReportFieldKey;
 
 type HasFilterValue = ValueOf<typeof CONST.SEARCH.HAS_VALUES>;
-type HasFilterValues = Array<HasFilterValue>;
+type HasFilterValues = HasFilterValue[];
 type IsFilterValue = ValueOf<typeof CONST.SEARCH.IS_VALUES>;
-type IsFilterValues = Array<IsFilterValue>;
+type IsFilterValues = IsFilterValue[];
 type BooleanValue = ValueOf<typeof CONST.SEARCH.BOOLEAN>;
 type ExpenseTypeValue = ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>;
-type ExpenseTypeValues = Array<ExpenseTypeValue>;
+type ExpenseTypeValues = ExpenseTypeValue[];
 
 type SearchAdvancedFiltersForm = Form<
     SearchAdvancedFiltersKey,
