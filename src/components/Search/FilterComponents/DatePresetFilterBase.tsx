@@ -99,9 +99,6 @@ type DatePresetFilterBaseProps = {
     /** Callback when date values change */
     onDateValuesChange?: (dateValues: SearchDateValues) => void;
 
-    /** Backward-compatible alias for onDateValuesChange */
-    onDateValueChange?: (dateValues: SearchDateValues) => void;
-
     /** Callback when range validation error changes */
     onRangeValidationErrorChange?: (shouldShowRangeError: boolean) => void;
 
@@ -127,7 +124,6 @@ function DatePresetFilterBase({
     isSearchAdvancedFiltersFormLoading,
     shouldShowRangeError = false,
     onDateValuesChange,
-    onDateValueChange,
     onRangeValidationErrorChange,
     forceVerticalCalendars = false,
     ref,
@@ -162,9 +158,8 @@ function DatePresetFilterBase({
     const notifyDateValuesChange = useCallback(
         (values: SearchDateValues) => {
             onDateValuesChange?.(values);
-            onDateValueChange?.(values);
         },
-        [onDateValueChange, onDateValuesChange],
+        [onDateValuesChange],
     );
 
     const [dateValues, setDateValues] = useState<SearchDateValues>(normalizedDefaultDateValues);
