@@ -12,11 +12,11 @@ import {joinRoom, navigateToAndOpenReport, navigateToAndOpenReportWithAccountIDs
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import {PersonalDetailsList} from '@src/types/onyx';
 import type Beta from '@src/types/onyx/Beta';
 import type OnyxReport from '@src/types/onyx/Report';
 import Button from './Button';
 import type {ThreeDotsMenuItem} from './HeaderWithBackButton/types';
-import { PersonalDetailsList } from '@src/types/onyx';
 
 type PromotedAction = {
     key: string;

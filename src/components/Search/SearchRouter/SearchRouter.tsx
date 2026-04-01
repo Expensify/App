@@ -298,7 +298,20 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 onRouterClose();
             }
         },
-        [autocompleteSubstitutions, onRouterClose, onSearchQueryChange, policies, reports, submitSearch, textInputValue, currentUserAccountID, introSelected, isSelfTourViewed, betas],
+        [
+            autocompleteSubstitutions,
+            onRouterClose,
+            personalDetails,
+            onSearchQueryChange,
+            policies,
+            reports,
+            submitSearch,
+            textInputValue,
+            currentUserAccountID,
+            introSelected,
+            isSelfTourViewed,
+            betas,
+        ],
     );
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => {

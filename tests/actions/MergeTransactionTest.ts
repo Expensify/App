@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import getOnyxValue from 'tests/utils/getOnyxValue';
 import {getReportPreviewAction} from '@libs/actions/IOU';
 import {areTransactionsEligibleForMerge, mergeTransactionRequest, setMergeTransactionKey, setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import {addComment, openReport} from '@libs/actions/Report';
@@ -26,7 +27,6 @@ import createRandomTransaction, {createRandomDistanceRequestTransaction} from '.
 import * as TestHelper from '../utils/TestHelper';
 import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-import getOnyxValue from 'tests/utils/getOnyxValue';
 
 // Helper function to create mock violations
 function createMockViolations(): TransactionViolation[] {
