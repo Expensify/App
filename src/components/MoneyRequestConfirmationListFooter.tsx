@@ -795,29 +795,29 @@ function MoneyRequestConfirmationListFooter({
                                         />
                                     </View>
                                 ) : (
-                                <MenuItemWithTopDescription
-                                    shouldShowRightIcon={!isReadOnly}
-                                    shouldParseTitle
-                                    excludedMarkdownRules={!policy ? ['reportMentions'] : []}
-                                    title={iouComment}
-                                    description={translate('common.description')}
-                                    onPress={() => {
-                                        if (!transactionID) {
-                                            return;
-                                        }
+                                    <MenuItemWithTopDescription
+                                        shouldShowRightIcon={!isReadOnly}
+                                        shouldParseTitle
+                                        excludedMarkdownRules={!policy ? ['reportMentions'] : []}
+                                        title={iouComment}
+                                        description={translate('common.description')}
+                                        onPress={() => {
+                                            if (!transactionID) {
+                                                return;
+                                            }
 
-                                        Navigation.navigate(
-                                            ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID),
-                                        );
-                                    }}
-                                    style={[styles.moneyRequestMenuItem]}
-                                    titleStyle={styles.flex1}
-                                    disabled={didConfirm}
-                                    interactive={!isReadOnly}
-                                    numberOfLinesTitle={2}
-                                    rightLabel={isDescriptionRequired ? translate('common.required') : ''}
-                                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DESCRIPTION_FIELD}
-                                />
+                                            Navigation.navigate(
+                                                ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID),
+                                            );
+                                        }}
+                                        style={[styles.moneyRequestMenuItem]}
+                                        titleStyle={styles.flex1}
+                                        disabled={didConfirm}
+                                        interactive={!isReadOnly}
+                                        numberOfLinesTitle={2}
+                                        rightLabel={isDescriptionRequired ? translate('common.required') : ''}
+                                        sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DESCRIPTION_FIELD}
+                                    />
                                 )}
                             </MentionReportContext.Provider>
                         </ShowContextMenuActionsContext.Provider>
@@ -915,29 +915,29 @@ function MoneyRequestConfirmationListFooter({
                         />
                     </View>
                 ) : (
-                <MenuItemWithTopDescription
-                    key={translate('common.merchant')}
-                    shouldShowRightIcon={!isReadOnly}
-                    title={isMerchantEmpty ? '' : iouMerchant}
-                    description={translate('common.merchant')}
-                    style={[styles.moneyRequestMenuItem]}
-                    titleStyle={styles.flex1}
-                    onPress={() => {
-                        if (!transactionID) {
-                            return;
-                        }
+                    <MenuItemWithTopDescription
+                        key={translate('common.merchant')}
+                        shouldShowRightIcon={!isReadOnly}
+                        title={isMerchantEmpty ? '' : iouMerchant}
+                        description={translate('common.merchant')}
+                        style={[styles.moneyRequestMenuItem]}
+                        titleStyle={styles.flex1}
+                        onPress={() => {
+                            if (!transactionID) {
+                                return;
+                            }
 
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
-                    }}
-                    disabled={didConfirm}
-                    interactive={!isReadOnly}
-                    brickRoadIndicator={shouldDisplayMerchantError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    errorText={shouldDisplayMerchantError ? translate('common.error.fieldRequired') : ''}
-                    rightLabel={isMerchantRequired && !shouldDisplayMerchantError ? translate('common.required') : ''}
-                    numberOfLinesTitle={2}
-                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.MERCHANT_FIELD}
-                />
-            ),
+                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
+                        }}
+                        disabled={didConfirm}
+                        interactive={!isReadOnly}
+                        brickRoadIndicator={shouldDisplayMerchantError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                        errorText={shouldDisplayMerchantError ? translate('common.error.fieldRequired') : ''}
+                        rightLabel={isMerchantRequired && !shouldDisplayMerchantError ? translate('common.required') : ''}
+                        numberOfLinesTitle={2}
+                        sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.MERCHANT_FIELD}
+                    />
+                ),
             shouldShow: shouldShowMerchant,
             shouldShowAboveShowMore: false,
         },
