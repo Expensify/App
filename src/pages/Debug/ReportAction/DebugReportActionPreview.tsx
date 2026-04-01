@@ -18,7 +18,6 @@ type DebugReportActionPreviewProps = {
 };
 
 function DebugReportActionPreview({reportAction, reportID}: DebugReportActionPreviewProps) {
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: tierNameSelector});
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
     const personalDetails = usePersonalDetails();
@@ -30,7 +29,6 @@ function DebugReportActionPreview({reportAction, reportID}: DebugReportActionPre
     return (
         <ScrollView>
             <ReportActionItem
-                policies={policies}
                 action={reportAction ?? ({} as ReportAction)}
                 report={report ?? ({} as Report)}
                 parentReportAction={undefined}

@@ -33,6 +33,7 @@ import {clearIssueNewCardFormData, setIssueNewCardStepAndData} from '@libs/actio
 import {clearDeletePaymentMethodError} from '@libs/actions/PaymentMethods';
 import {filterCardsByPersonalDetails, getCardsByCardholderName, getCardSettings, sortCardsByCardholderName} from '@libs/CardUtils';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getDescriptionForPolicyDomainCard, getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
@@ -59,7 +60,7 @@ type WorkspaceExpensifyCardListPageProps = {
 };
 
 function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExpensifyCardListPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Plus'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Plus']);
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
@@ -155,37 +156,46 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     );
 
     const renderItem = useCallback(
-        ({item, index}: ListRenderItemInfo<Card>) => (
-            <OfflineWithFeedback
-                key={`${item.nameValuePairs?.cardTitle}_${index}`}
-                pendingAction={item.pendingAction}
-                errorRowStyles={styles.ph5}
-                errors={item.errors}
-                onClose={() => clearDeletePaymentMethodError(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, item.cardID)}
-            >
-                <PressableWithFeedback
-                    role={CONST.ROLE.BUTTON}
-                    style={[styles.mh5, styles.br3, styles.mb2, styles.highlightBG]}
-                    accessibilityLabel="row"
-                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE_EXPENSIFY_CARD.CARD_LIST_ROW}
-                    hoverStyle={[styles.hoveredComponentBG]}
-                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, item.cardID.toString()))}
+        ({item, index}: ListRenderItemInfo<Card>) => {
+            const frozenByDisplayName = item.nameValuePairs?.frozen?.byAccountID
+                ? getDisplayNameOrDefault(personalDetails?.[item.nameValuePairs.frozen.byAccountID], '', false) || undefined
+                : undefined;
+
+            return (
+                <OfflineWithFeedback
+                    key={`${item.nameValuePairs?.cardTitle}_${index}`}
+                    pendingAction={item.pendingAction}
+                    errorRowStyles={styles.ph5}
+                    errors={item.errors}
+                    onClose={() => clearDeletePaymentMethodError(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, item.cardID)}
                 >
-                    {({hovered}) => (
-                        <WorkspaceCardListRow
-                            lastFourPAN={item.lastFourPAN ?? ''}
-                            cardholder={personalDetails?.[item.accountID ?? CONST.DEFAULT_NUMBER_ID]}
-                            limit={item.nameValuePairs?.unapprovedExpenseLimit ?? 0}
-                            name={item.nameValuePairs?.cardTitle ?? ''}
-                            currency={settlementCurrency}
-                            isVirtual={!!item.nameValuePairs?.isVirtual}
-                            isHovered={hovered}
-                            limitType={item.nameValuePairs?.limitType}
-                        />
-                    )}
-                </PressableWithFeedback>
-            </OfflineWithFeedback>
-        ),
+                    <PressableWithFeedback
+                        role={CONST.ROLE.BUTTON}
+                        style={[styles.mh5, styles.br3, styles.mb2, styles.highlightBG]}
+                        accessibilityLabel="row"
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE_EXPENSIFY_CARD.CARD_LIST_ROW}
+                        hoverStyle={[styles.hoveredComponentBG]}
+                        onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_DETAILS.getRoute(policyID, item.cardID.toString()))}
+                    >
+                        {({hovered}) => (
+                            <WorkspaceCardListRow
+                                lastFourPAN={item.lastFourPAN ?? ''}
+                                cardholder={personalDetails?.[item.accountID ?? CONST.DEFAULT_NUMBER_ID]}
+                                limit={item.nameValuePairs?.unapprovedExpenseLimit ?? 0}
+                                name={item.nameValuePairs?.cardTitle ?? ''}
+                                frozenByDisplayName={frozenByDisplayName}
+                                frozenByAccountID={item.nameValuePairs?.frozen?.byAccountID}
+                                frozenDate={item.nameValuePairs?.frozen?.date}
+                                currency={settlementCurrency}
+                                isVirtual={!!item.nameValuePairs?.isVirtual}
+                                isHovered={hovered}
+                                limitType={item.nameValuePairs?.limitType}
+                            />
+                        )}
+                    </PressableWithFeedback>
+                </OfflineWithFeedback>
+            );
+        },
         [personalDetails, settlementCurrency, policyID, defaultFundID, styles],
     );
 

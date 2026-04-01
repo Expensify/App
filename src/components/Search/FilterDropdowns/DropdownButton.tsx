@@ -20,6 +20,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 type PopoverComponentProps = {
+    isExpanded: boolean;
     closeOverlay: () => void;
 };
 
@@ -122,8 +123,8 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent, medi
     }, [isSmallScreenWidth, styles]);
 
     const popoverContent = useMemo(() => {
-        return PopoverComponent({closeOverlay: toggleOverlay});
-    }, [PopoverComponent, toggleOverlay]);
+        return PopoverComponent({closeOverlay: toggleOverlay, isExpanded: isOverlayVisible});
+    }, [PopoverComponent, toggleOverlay, isOverlayVisible]);
 
     return (
         <View
@@ -141,8 +142,8 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent, medi
             >
                 <CaretWrapper
                     style={[styles.flex1, styles.mw100, caretWrapperStyle]}
-                    caretWidth={variables.iconSizeSmall}
-                    caretHeight={variables.iconSizeSmall}
+                    caretWidth={medium ? variables.iconSizeSmall : variables.iconSizeExtraSmall}
+                    caretHeight={medium ? variables.iconSizeSmall : variables.iconSizeExtraSmall}
                     isActive={isOverlayVisible}
                 >
                     <Text
@@ -183,5 +184,5 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent, medi
     );
 }
 
-export type {PopoverComponentProps};
+export type {PopoverComponentProps, DropdownButtonProps};
 export default withViewportOffsetTop(DropdownButton);

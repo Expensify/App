@@ -21,6 +21,7 @@ import ActiveRoomAvatar from '@assets/images/avatars/room.svg';
 import BackArrow from '@assets/images/back-left.svg';
 import Bank from '@assets/images/bank.svg';
 import Basket from '@assets/images/basket.svg';
+import BedCircleSlash from '@assets/images/bed-circle-slash.svg';
 import Bed from '@assets/images/bed.svg';
 import Bell from '@assets/images/bell.svg';
 import Bill from '@assets/images/bill.svg';
@@ -34,7 +35,10 @@ import Building from '@assets/images/building.svg';
 import Buildings from '@assets/images/buildings.svg';
 import CalendarSolid from '@assets/images/calendar-solid.svg';
 import Calendar from '@assets/images/calendar.svg';
+import CameraFlip from '@assets/images/camera-flip.svg';
 import Camera from '@assets/images/camera.svg';
+import CarCircleSlash from '@assets/images/car-circle-slash.svg';
+import CarPlus from '@assets/images/car-plus.svg';
 import CarWithKey from '@assets/images/car-with-key.svg';
 import Car from '@assets/images/car.svg';
 import CaretUpDown from '@assets/images/caret-up-down.svg';
@@ -63,10 +67,12 @@ import ConnectionComplete from '@assets/images/connection-complete.svg';
 import Copy from '@assets/images/copy.svg';
 import CreditCardExclamation from '@assets/images/credit-card-exclamation.svg';
 import CreditCardHourglass from '@assets/images/credit-card-hourglass.svg';
+import CreditCardLock from '@assets/images/credit-card-lock.svg';
 import CreditCard from '@assets/images/creditcard.svg';
 import Crop from '@assets/images/crop.svg';
 import Crosshair from '@assets/images/crosshair.svg';
 import DocumentMerge from '@assets/images/document-merge.svg';
+import DocumentPlus from '@assets/images/document-plus.svg';
 import Document from '@assets/images/document.svg';
 import DotIndicatorUnfilled from '@assets/images/dot-indicator-unfilled.svg';
 import DotIndicator from '@assets/images/dot-indicator.svg';
@@ -78,12 +84,14 @@ import Emoji from '@assets/images/emoji.svg';
 import Lightbulb from '@assets/images/emojiCategoryIcons/light-bulb.svg';
 import EmptyStateRoutePending from '@assets/images/emptystate__routepending.svg';
 import EmptyStateSpyPigeon from '@assets/images/emptystate__spy-pigeon.svg';
+import EnvelopeOpenStar from '@assets/images/envelope-open-star.svg';
 import EReceiptIcon from '@assets/images/eReceiptIcon.svg';
 import Exclamation from '@assets/images/exclamation.svg';
 import Exit from '@assets/images/exit.svg';
 import Expand from '@assets/images/expand.svg';
 import ExpenseCopy from '@assets/images/expense-copy.svg';
 import ExpensifyAppIcon from '@assets/images/expensify-app-icon.svg';
+import ExpensifyCardHourglass from '@assets/images/expensify-card-hourglass.svg';
 import ExpensifyCard from '@assets/images/expensify-card-icon.svg';
 import ExpensifyFooterLogoVertical from '@assets/images/expensify-footer-logo-vertical.svg';
 import ExpensifyFooterLogo from '@assets/images/expensify-footer-logo.svg';
@@ -143,6 +151,7 @@ import LinkCopy from '@assets/images/link-copy.svg';
 import Link from '@assets/images/link.svg';
 import Location from '@assets/images/location.svg';
 import Lock from '@assets/images/lock.svg';
+import LuggageWithLinesPlus from '@assets/images/luggage-with-lines-plus.svg';
 import LuggageWithLines from '@assets/images/luggage-with-lines.svg';
 import Luggage from '@assets/images/luggage.svg';
 import MagnifyingGlassSpyMouthClosed from '@assets/images/magnifying-glass-spy-mouth-closed.svg';
@@ -175,6 +184,7 @@ import Pencil from '@assets/images/pencil.svg';
 import Percent from '@assets/images/percent.svg';
 import Phone from '@assets/images/phone.svg';
 import Pin from '@assets/images/pin.svg';
+import PlaneCircleSlash from '@assets/images/plane-circle-slash.svg';
 import Plane from '@assets/images/plane.svg';
 import Play from '@assets/images/play.svg';
 import PlusMinus from '@assets/images/plus-minus.svg';
@@ -222,6 +232,7 @@ import Thread from '@assets/images/thread.svg';
 import ThreeDots from '@assets/images/three-dots.svg';
 import ThumbsDown from '@assets/images/thumbs-down.svg';
 import ThumbsUp from '@assets/images/thumbs-up.svg';
+import TrainCircleSlash from '@assets/images/train-circle-slash.svg';
 import Train from '@assets/images/train.svg';
 import Transfer from '@assets/images/transfer.svg';
 import Trashcan from '@assets/images/trashcan.svg';
@@ -278,7 +289,9 @@ const Expensicons = {
     Buildings,
     Calendar,
     Camera,
+    CameraFlip,
     Car,
+    CarPlus,
     Cash,
     CertiniaSquare,
     ChatBubble,
@@ -301,9 +314,11 @@ const Expensicons = {
     Crop,
     CreditCardHourglass,
     CreditCardExclamation,
+    CreditCardLock,
     CircleSlash,
     Document,
     DocumentMerge,
+    DocumentPlus,
     DotIndicator,
     DotIndicatorUnfilled,
     DownArrow,
@@ -312,12 +327,14 @@ const Expensicons = {
     DragHandles,
     EReceiptIcon,
     Emoji,
+    EnvelopeOpenStar,
     EmptyStateRoutePending,
     ExpenseCopy,
     Exclamation,
     Exit,
     ExpensifyAppIcon,
     ExpensifyCard,
+    ExpensifyCardHourglass,
     ExpensifyWordmark,
     ExpensifyFooterLogo,
     ExpensifyFooterLogoVertical,
@@ -454,7 +471,10 @@ const Expensicons = {
     ChatBubbleCounter,
     Lightbulb,
     Plane,
+    PlaneCircleSlash,
     Bed,
+    BedCircleSlash,
+    CarCircleSlash,
     CarWithKey,
     Clear,
     CheckCircle,
@@ -480,6 +500,7 @@ const Expensicons = {
     QBDSquare,
     GalleryNotFound,
     Train,
+    TrainCircleSlash,
     boltSlash,
     MagnifyingGlassSpyMouthClosed,
     CheckSquare,
@@ -493,6 +514,7 @@ const Expensicons = {
     XeroExport,
     ArrowCircleClockwise,
     LuggageWithLines,
+    LuggageWithLinesPlus,
     TreasureChestGreenWithSparkle,
     UserShield,
 };

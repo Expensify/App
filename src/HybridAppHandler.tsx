@@ -7,6 +7,7 @@ import type HybridAppSettings from './libs/actions/HybridApp/types';
 import {setupNewDotAfterTransitionFromOldDot} from './libs/actions/Session';
 import Log from './libs/Log';
 import {endSpan, startSpan} from './libs/telemetry/activeSpans';
+import {addBootsplashBreadcrumb} from './libs/telemetry/bootsplashTelemetry';
 import ONYXKEYS from './ONYXKEYS';
 import {useSplashScreenActions, useSplashScreenState} from './SplashScreenStateContext';
 import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue';
@@ -23,6 +24,7 @@ function HybridAppHandler() {
 
             setupNewDotAfterTransitionFromOldDot(hybridAppSettings, tryNewDot).then(() => {
                 if (splashScreenState !== CONST.BOOT_SPLASH_STATE.VISIBLE) {
+                    addBootsplashBreadcrumb('HybridAppHandler: Splash no longer VISIBLE, skipping state transition', {splashScreenState});
                     return;
                 }
 
@@ -42,12 +44,16 @@ function HybridAppHandler() {
             return;
         }
 
+        addBootsplashBreadcrumb('HybridAppHandler: Requesting settings');
         getHybridAppSettings().then((hybridAppSettings: HybridAppSettings | null) => {
             if (!hybridAppSettings) {
                 // Native method can send non-null value only once per NewDot lifecycle. It prevents issues with multiple initializations during reloads on debug builds.
                 Log.info('[HybridApp] `getHybridAppSettings` called more than once during single NewDot lifecycle. Skipping initialization.');
+                addBootsplashBreadcrumb('HybridAppHandler: null settings, skipping');
                 return;
             }
+
+            addBootsplashBreadcrumb('HybridAppHandler: Settings received', {loggedOutFromOldDot: String(!!hybridAppSettings.hybridApp.loggedOutFromOldDot)});
 
             if (hybridAppSettings.hybridApp.loggedOutFromOldDot) {
                 startSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_LOGGED_OUT, {

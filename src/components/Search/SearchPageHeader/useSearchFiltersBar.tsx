@@ -1,9 +1,11 @@
 import {emailSelector} from '@selectors/Session';
 import React from 'react';
 import type {ReactNode} from 'react';
+import type {OnyxCollection} from 'react-native-onyx';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {SearchDateValues} from '@components/Search/FilterComponents/DatePresetFilterBase';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/DropdownButton';
+import GroupByPopup from '@components/Search/FilterDropdowns/GroupByPopup';
 import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import MultiSelectPopup from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import SingleSelectPopup from '@components/Search/FilterDropdowns/SingleSelectPopup';
@@ -19,6 +21,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchFilterSync from '@hooks/useSearchFilterSync';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {close} from '@libs/actions/Modal';
@@ -31,6 +34,7 @@ import {
     filterValidHasValues,
     getFeedOptions,
     getGroupByOptions,
+    getGroupBySections,
     getGroupCurrencyOptions,
     getHasOptions,
     getStatusOptions,
@@ -44,12 +48,14 @@ import ROUTES from '@src/ROUTES';
 import {hasMultipleOutputCurrenciesSelector} from '@src/selectors/Policy';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS, {AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
-import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
+import type {HasFilterValue, IsFilterValue, SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
+import type {Policy} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import DatePickerFilterPopup from './DatePickerFilterPopup';
+import FeedFilterPopup from './FeedFilterPopup';
 import MultiSelectFilterPopup from './MultiSelectFilterPopup';
 
 type FilterItem = WithSentryLabel & {
@@ -77,6 +83,35 @@ type UseSearchFiltersBarResult = {
     translate: ReturnType<typeof useLocalize>['translate'];
 };
 
+/**
+ * Extracts only the fields needed by getTypeOptions (canSendInvoice check).
+ * Strips heavyweight fields like customUnits, connections, taxRates, fieldList, rules, exportLayouts.
+ */
+function typeOptionsPoliciesSelector(policies: OnyxCollection<Policy>): OnyxCollection<Policy> {
+    if (!policies) {
+        return policies;
+    }
+    const result: OnyxCollection<Policy> = {};
+    for (const [key, policy] of Object.entries(policies)) {
+        if (!policy) {
+            continue;
+        }
+        result[key] = {
+            id: policy.id,
+            name: policy.name,
+            type: policy.type,
+            role: policy.role,
+            employeeList: policy.employeeList,
+            pendingAction: policy.pendingAction,
+            errors: policy.errors,
+            areInvoicesEnabled: policy.areInvoicesEnabled,
+            isJoinRequestPending: policy.isJoinRequestPending,
+            owner: policy.owner,
+        } as Policy;
+    }
+    return result;
+}
+
 function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEnabled: boolean): UseSearchFiltersBarResult {
     const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const {type: unsafeType, groupBy: unsafeGroupBy, status: unsafeStatus, view: unsafeView, flatFilters} = queryJSON;
@@ -87,14 +122,15 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
     const filterFormValues = useFilterFormValues(queryJSON);
+    useSearchFilterSync(filterFormValues);
     const {shouldUseNarrowLayout, isLargeScreenWidth} = useResponsiveLayout();
-    const {selectedTransactions, shouldShowFiltersBarLoading, currentSearchResults} = useSearchStateContext();
+    const {selectedTransactions, shouldShowActionsBarLoading: shouldShowFiltersBarLoading, currentSearchResults} = useSearchStateContext();
     const {currencyList} = useCurrencyListState();
     const {getCurrencySymbol} = useCurrencyListActions();
 
     const [email] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const [personalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST);
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: typeOptionsPoliciesSelector});
     const [hasMultipleOutputCurrency] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasMultipleOutputCurrenciesSelector});
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
@@ -132,6 +168,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     const type = typeOptions.find((option) => option.value === unsafeType) ?? null;
 
     const groupByOptions = getGroupByOptions(translate);
+    const groupBySections = getGroupBySections(translate);
     const groupBy = groupByOptions.find((option) => option.value === unsafeGroupBy) ?? null;
 
     const viewOptions = getViewOptions(translate);
@@ -250,9 +287,9 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     );
 
     const groupByComponent = ({closeOverlay}: PopoverComponentProps) => (
-        <SingleSelectPopup
-            label={translate('search.groupBy')}
-            items={groupByOptions}
+        <GroupByPopup
+            label={translate('search.display.groupBy')}
+            sections={groupBySections}
             value={groupBy}
             closeOverlay={closeOverlay}
             onChange={(item) => {
@@ -292,9 +329,9 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
         updateFilterForm({feed: items.map((item) => item.value)});
     };
     const feedComponent = (props: PopoverComponentProps) => (
-        <MultiSelectFilterPopup
+        <FeedFilterPopup
+            isExpanded={props.isExpanded}
             closeOverlay={props.closeOverlay}
-            translationKey="search.filters.feed"
             items={feedOptions}
             value={feed}
             onChangeCallback={updateFeedFilterForm}
@@ -303,6 +340,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
 
     const datePickerComponent = (props: PopoverComponentProps) => (
         <DatePickerFilterPopup
+            isExpanded={props.isExpanded}
             closeOverlay={props.closeOverlay}
             filterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}
             value={date}
@@ -313,6 +351,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
 
     const postedPickerComponent = (props: PopoverComponentProps) => (
         <DatePickerFilterPopup
+            isExpanded={props.isExpanded}
             closeOverlay={props.closeOverlay}
             filterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED}
             value={posted}
@@ -323,6 +362,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
 
     const withdrawnPickerComponent = (props: PopoverComponentProps) => (
         <DatePickerFilterPopup
+            isExpanded={props.isExpanded}
             closeOverlay={props.closeOverlay}
             filterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN}
             value={withdrawn}
@@ -347,6 +387,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     };
     const statusComponent = (props: PopoverComponentProps) => (
         <MultiSelectFilterPopup
+            isExpanded={props.isExpanded}
             closeOverlay={props.closeOverlay}
             translationKey="common.status"
             items={statusOptions}
@@ -355,11 +396,12 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
         />
     );
 
-    const updateHasFilterForm = (selectedItems: Array<MultiSelectItem<string>>) => {
+    const updateHasFilterForm = (selectedItems: Array<MultiSelectItem<HasFilterValue>>) => {
         updateFilterForm({has: selectedItems.map((item) => item.value)});
     };
     const hasComponent = (props: PopoverComponentProps) => (
         <MultiSelectFilterPopup
+            isExpanded={props.isExpanded}
             closeOverlay={props.closeOverlay}
             translationKey="search.has"
             items={hasOptions}
@@ -368,11 +410,12 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
         />
     );
 
-    const updateIsFilterForm = (selectedItems: Array<MultiSelectItem<string>>) => {
+    const updateIsFilterForm = (selectedItems: Array<MultiSelectItem<IsFilterValue>>) => {
         updateFilterForm({is: selectedItems.map((item) => item.value)});
     };
     const isComponent = (props: PopoverComponentProps) => (
         <MultiSelectFilterPopup
+            isExpanded={props.isExpanded}
             closeOverlay={props.closeOverlay}
             translationKey="search.filters.is"
             items={isOptions}
@@ -431,7 +474,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
         ...(shouldDisplayGroupByFilter
             ? [
                   {
-                      label: translate('search.groupBy'),
+                      label: translate('search.display.groupBy'),
                       PopoverComponent: groupByComponent,
                       value: groupBy?.text ?? null,
                       filterKey: FILTER_KEYS.GROUP_BY,
@@ -624,3 +667,4 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
 
 export default useSearchFiltersBar;
 export type {FilterItem};
+export {typeOptionsPoliciesSelector};

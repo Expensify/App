@@ -13,7 +13,6 @@ import com.expensify.chat.shortcutManagerModule.ShortcutManagerPackage
 import com.facebook.react.PackageList
 import com.facebook.react.ReactApplication
 import com.facebook.react.ReactHost
-import com.facebook.react.ReactNativeHost
 import com.facebook.react.ReactPackage
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.load
 import com.facebook.react.defaults.DefaultReactHost.getDefaultReactHost
@@ -22,44 +21,27 @@ import com.facebook.react.modules.i18nmanager.I18nUtil
 import com.facebook.react.soloader.OpenSourceMergedSoMapping
 import com.facebook.soloader.SoLoader
 import expo.modules.ApplicationLifecycleDispatcher
-import expo.modules.ReactNativeHostWrapper
 import com.facebook.react.ReactNativeApplicationEntryPoint.loadReactNative
 
 class MainApplication : MultiDexApplication(), ReactApplication {
-    companion object {
-        private const val APP_START_TIME_PREFERENCES = "AppStartTime"
+    override val reactHost: ReactHost by lazy {
+        getDefaultReactHost(
+            context = applicationContext,
+            packageList =
+                PackageList(this).packages.apply {
+                    // Packages that cannot be autolinked yet can be added manually here, for example:
+                    // add(MyReactNativePackage())
+                    add(ShortcutManagerPackage())
+                    add(BootSplashPackage())
+                    add(ExpensifyAppPackage())
+                    add(RNTextInputResetPackage())
+                    add(NavBarManagerPackage())
+                },
+        )
     }
-    override val reactNativeHost: ReactNativeHost = ReactNativeHostWrapper(this, object : DefaultReactNativeHost(this) {
-        override fun getUseDeveloperSupport() = BuildConfig.DEBUG
-
-        override fun getPackages(): List<ReactPackage>  =
-            PackageList(this).packages.apply {
-            // Packages that cannot be autolinked yet can be added manually here, for example:
-            // add(MyReactNativePackage());
-            add(ShortcutManagerPackage())
-            add(BootSplashPackage())
-            add(ExpensifyAppPackage())
-            add(RNTextInputResetPackage())
-            add(NavBarManagerPackage())
-        }
-
-        override fun getJSMainModuleName() = ".expo/.virtual-metro-entry"
-
-        override val isNewArchEnabled: Boolean
-            get() = BuildConfig.IS_NEW_ARCHITECTURE_ENABLED
-        override val isHermesEnabled: Boolean
-            get() = BuildConfig.IS_HERMES_ENABLED
-    })
-
-    override val reactHost: ReactHost
-        get() = getDefaultReactHost(applicationContext, reactNativeHost)
 
     override fun onCreate() {
         super.onCreate()
-        getSharedPreferences(APP_START_TIME_PREFERENCES, MODE_PRIVATE)
-            .edit()
-            .putLong(APP_START_TIME_PREFERENCES, System.currentTimeMillis())
-            .apply()
         ReactFontManager.getInstance().addCustomFont(this, "Custom Emoji Font", R.font.custom_emoji_font)
         ReactFontManager.getInstance().addCustomFont(this, "Expensify New Kansas", R.font.expensify_new_kansas)
         ReactFontManager.getInstance().addCustomFont(this, "Expensify Neue", R.font.expensify_neue)

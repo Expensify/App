@@ -1,5 +1,5 @@
 import {useFocusEffect} from '@react-navigation/core';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Alert, AppState, StyleSheet, View} from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
@@ -26,6 +26,7 @@ import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import getPlatform from '@libs/getPlatform';
@@ -35,6 +36,7 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
@@ -47,10 +49,12 @@ import ROUTES from '@src/ROUTES';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import CameraPermission from './CameraPermission';
-import NavigationAwareCamera from './NavigationAwareCamera/Camera';
-import ReceiptPreviews from './ReceiptPreviews';
+import captureReceipt from './captureReceipt';
+import NavigationAwareCamera from './components/NavigationAwareCamera/Camera';
+import ReceiptPreviews from './components/ReceiptPreviews';
+import useMobileReceiptScan from './hooks/useMobileReceiptScan';
+import useReceiptScan from './hooks/useReceiptScan';
 import type IOURequestStepScanProps from './types';
-import useReceiptScan from './useReceiptScan';
 
 function IOURequestStepScan({
     report,
@@ -70,16 +74,26 @@ function IOURequestStepScan({
     const {translate} = useLocalize();
     const {isLoaderVisible} = useFullScreenLoaderState();
     const {setIsLoaderVisible} = useFullScreenLoaderActions();
+    const {windowWidth, windowHeight} = useWindowDimensions();
     const device = useCameraDevice('back', {
         physicalDevices: ['wide-angle-camera', 'ultra-wide-angle-camera'],
     });
-    const format = useCameraFormat(device, [{photoAspectRatio: 4 / 3}, {videoResolution: 'max'}, {photoResolution: 'max'}]);
+    // Prioritize photoResolution over videoResolution so the format selector picks a 4032x3024
+    // format instead of the 5712x4284 (24.5MP) format that videoResolution:'max' would select.
+    // This cuts capture time roughly in half while maintaining the same output photo resolution.
+    // Use screen dimensions for video resolution since we only need enough for the preview.
+    const format = useCameraFormat(device, [
+        {photoAspectRatio: CONST.RECEIPT_CAMERA.PHOTO_ASPECT_RATIO},
+        {photoResolution: {width: CONST.RECEIPT_CAMERA.PHOTO_WIDTH, height: CONST.RECEIPT_CAMERA.PHOTO_HEIGHT}},
+        {videoResolution: {width: windowHeight, height: windowWidth}},
+    ]);
     // Format dimensions are in landscape orientation, so height/width gives portrait aspect ratio
     const cameraAspectRatio = format ? format.photoHeight / format.photoWidth : undefined;
+    const fps = useMemo(() => (format ? Math.min(Math.max(30, format.minFps), format.maxFps) : 30), [format]);
 
-    const navigateBack = () => {
-        Navigation.goBack();
-    };
+    const navigateBack = useCallback(() => {
+        Navigation.goBack(backTo);
+    }, [backTo]);
     const hasFlash = !!device?.hasFlash;
     const camera = useRef<Camera>(null);
     const [flash, setFlash] = useState(false);
@@ -268,31 +282,23 @@ function IOURequestStepScan({
             }
             replaceReceipt({transactionID: initialTransactionID, file: file as File, source, transactionPolicy: policy, transactionPolicyCategories: policyCategories});
         },
-        [initialTransactionID, policy, policyCategories, backTo],
+        [initialTransactionID, policy, policyCategories, backTo, navigateBack],
     );
 
     const getSource = useCallback((file: FileObject) => file.uri ?? '', []);
 
-    // Shared business logic from useReceiptScan hook
     const {
         isEditing,
-        canUseMultiScan,
         shouldAcceptMultipleFiles,
+        shouldSkipConfirmation,
         startLocationPermissionFlow,
         setStartLocationPermissionFlow,
         receiptFiles,
         setReceiptFiles,
-        shouldShowMultiScanEducationalPopup,
         navigateToConfirmationStep,
         validateFiles,
         PDFValidationComponent,
         ErrorModal,
-        submitReceipts,
-        submitMultiScanReceipts,
-        toggleMultiScan,
-        dismissMultiScanEducationalPopup,
-        blinkStyle,
-        showBlink,
         setTestReceiptAndNavigate,
     } = useReceiptScan({
         report,
@@ -308,8 +314,20 @@ function IOURequestStepScan({
         isStartingScan,
         updateScanAndNavigate,
         getSource,
-        setIsMultiScanEnabled,
     });
+
+    const {canUseMultiScan, shouldShowMultiScanEducationalPopup, submitReceipts, submitMultiScanReceipts, toggleMultiScan, dismissMultiScanEducationalPopup, blinkStyle, showBlink} =
+        useMobileReceiptScan({
+            initialTransaction,
+            iouType,
+            isMultiScanEnabled,
+            isStartingScan,
+            receiptFiles,
+            navigateToConfirmationStep,
+            shouldSkipConfirmation,
+            setStartLocationPermissionFlow,
+            setIsMultiScanEnabled,
+        });
 
     const maybeCancelShutterSpan = useCallback(() => {
         if (isMultiScanEnabled) {
@@ -362,12 +380,7 @@ function IOURequestStepScan({
 
         const path = getReceiptsUploadFolderPath();
 
-        camera?.current
-            ?.takePhoto({
-                flash: flash && hasFlash ? 'on' : 'off',
-                enableShutterSound: !isPlatformMuted,
-                path,
-            })
+        captureReceipt(camera.current, {flash, hasFlash, isPlatformMuted, path})
             .then((photo: PhotoFile) => {
                 setDidCapturePhoto(true);
 
@@ -407,7 +420,9 @@ function IOURequestStepScan({
                     return;
                 }
 
-                submitReceipts(newReceiptFiles);
+                // Defer navigation by one frame so React renders the frozen camera
+                // state (didCapturePhoto=true) before the screen transitions away.
+                requestAnimationFrame(() => submitReceipts(newReceiptFiles));
             })
             .catch((error: string) => {
                 isCapturingPhoto.current = false;
@@ -416,7 +431,6 @@ function IOURequestStepScan({
                 showCameraAlert();
                 Log.warn('Error taking photo', error);
             });
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- askForPermissions is not needed
     }, [
         cameraPermissionStatus,
         isMultiScanEnabled,
@@ -431,10 +445,18 @@ function IOURequestStepScan({
         initialTransactionID,
         isEditing,
         receiptFiles,
+        setReceiptFiles,
         submitReceipts,
         updateScanAndNavigate,
         askForPermissions,
+        maybeCancelShutterSpan,
     ]);
+
+    const cameraLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'IOURequestStepScan',
+        cameraPermissionGranted: cameraPermissionStatus === RESULTS.GRANTED,
+        deviceAvailable: device != null,
+    };
 
     // Wait for camera permission status to render
     if (cameraPermissionStatus == null) {
@@ -488,6 +510,7 @@ function IOURequestStepScan({
                                 size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                                 style={[styles.flex1]}
                                 color={theme.textSupporting}
+                                reasonAttributes={cameraLoadingReasonAttributes}
                             />
                         </View>
                     )}
@@ -499,6 +522,7 @@ function IOURequestStepScan({
                                         ref={camera}
                                         device={device}
                                         format={format}
+                                        fps={fps}
                                         style={styles.flex1}
                                         zoom={device.neutralZoom}
                                         photo
@@ -509,7 +533,7 @@ function IOURequestStepScan({
                                     <Animated.View style={[styles.cameraFocusIndicator, cameraFocusIndicatorAnimatedStyle]} />
                                     <Animated.View
                                         pointerEvents="none"
-                                        style={[StyleSheet.absoluteFillObject, StyleUtils.getBackgroundColorStyle(theme.appBG), blinkStyle, styles.zIndex10]}
+                                        style={[StyleSheet.absoluteFill, StyleUtils.getBackgroundColorStyle(theme.appBG), blinkStyle, styles.zIndex10]}
                                     />
                                 </View>
                             </GestureDetector>
