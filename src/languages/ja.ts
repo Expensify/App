@@ -1071,7 +1071,21 @@ const translations: TranslationDeepObject<typeof en> = {
         singleFieldMultipleColumns: (fieldName: string) => `おっと！1 つのフィールド（「${fieldName}」）を複数の列に割り当てています。確認してもう一度お試しください。`,
         emptyMappedField: (fieldName: string) => `おっと！フィールド（「${fieldName}」）に1つ以上の空の値が含まれています。確認してもう一度お試しください。`,
         importSuccessfulTitle: 'インポートに成功しました',
-        importCategoriesSuccessfulDescription: ({categories}: {categories: number}) => (categories > 1 ? `${categories} 個のカテゴリーを追加しました。` : 'カテゴリが1件追加されました。'),
+        importCategoriesSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
+            if (!added && !updated) {
+                return 'カテゴリーは追加も更新もされていません。';
+            }
+
+            if (added && updated) {
+                return `${added}件のカテゴリーを追加し、${updated}件のカテゴリーを更新しました。`;
+            }
+
+            if (added) {
+                return added === 1 ? 'カテゴリーを1件追加しました。' : `${added}件のカテゴリーを追加しました。`;
+            }
+
+            return updated === 1 ? 'カテゴリーを1件更新しました。' : `${updated}件のカテゴリーを更新しました。`;
+        },
         importCompanyCardTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
             transactions > 1 ? `${transactions} 件の取引が追加されました。` : '1 件の取引が追加されました。',
         importMembersSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
@@ -1412,6 +1426,11 @@ const translations: TranslationDeepObject<typeof en> = {
             manySplitsProvided: `分割できる最大数は${CONST.IOU.SPLITS_LIMIT}件です。`,
             dateRangeExceedsMaxDays: `日付範囲は${CONST.IOU.SPLITS_LIMIT}日を超えることはできません。`,
             stitchOdometerImagesFailed: '走行距離計の画像を結合できませんでした。後でもう一度お試しください。',
+            nonReimbursablePayment: 'Expensify経由では支払えません',
+            nonReimbursablePaymentDescription: (isMultiple?: boolean) =>
+                isMultiple
+                    ? '1つ以上の選択したレポートには精算可能な経費がありません。経費を再確認するか、手動で支払い済みにしてください。'
+                    : 'このレポートには精算可能な経費がありません。経費を再確認するか、手動で支払い済みにしてください。',
         },
         dismissReceiptError: 'エラーを閉じる',
         dismissReceiptErrorConfirmation: 'ご注意ください！このエラーを閉じると、アップロード済みのレシートが完全に削除されます。本当に続行しますか？',
