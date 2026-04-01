@@ -39,8 +39,15 @@ import {
     requestMoney,
     resetDraftTransactionsCustomUnit,
     retractReport,
+    setMoneyRequestAmount,
+    setMoneyRequestBillable,
     setMoneyRequestCategory,
+    setMoneyRequestCreated,
+    setMoneyRequestDateAttribute,
+    setMoneyRequestDescription,
     setMoneyRequestDistanceRate,
+    setMoneyRequestMerchant,
+    setMoneyRequestTag,
     shouldOptimisticallyUpdateSearch,
     submitReport,
     trackExpense,
@@ -17491,6 +17498,67 @@ describe('actions/IOU', () => {
             const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
             expect(updatedTransaction?.comment?.customUnit?.name).toBe(CONST.CUSTOM_UNITS.NAME_DISTANCE);
             expect(updatedTransaction?.comment?.customUnit?.quantity).toBe(100);
+        });
+    });
+
+    describe('setMoneyRequest helpers', () => {
+        const transactionID = 'testTransaction123';
+
+        afterEach(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdates();
+        });
+
+        it('setMoneyRequestAmount should set amount, currency, and shouldShowOriginalAmount on transaction draft', async () => {
+            setMoneyRequestAmount(transactionID, 500, 'EUR', true);
+            await waitForBatchedUpdates();
+            const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+            expect(draft?.amount).toBe(500);
+            expect(draft?.currency).toBe('EUR');
+            expect(draft?.shouldShowOriginalAmount).toBe(true);
+        });
+
+        it('setMoneyRequestCreated should set created on transaction draft', async () => {
+            setMoneyRequestCreated(transactionID, '2024-01-15', true);
+            await waitForBatchedUpdates();
+            const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+            expect(draft?.created).toBe('2024-01-15');
+        });
+
+        it('setMoneyRequestDateAttribute should set date attributes on transaction draft', async () => {
+            setMoneyRequestDateAttribute(transactionID, '2024-01-01', '2024-01-31');
+            await waitForBatchedUpdates();
+            const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+            expect(draft?.comment?.customUnit?.attributes?.dates?.start).toBe('2024-01-01');
+            expect(draft?.comment?.customUnit?.attributes?.dates?.end).toBe('2024-01-31');
+        });
+
+        it('setMoneyRequestDescription should set comment on transaction draft', async () => {
+            setMoneyRequestDescription(transactionID, '  Lunch with team  ', true);
+            await waitForBatchedUpdates();
+            const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+            expect(draft?.comment?.comment).toBe('Lunch with team');
+        });
+
+        it('setMoneyRequestMerchant should set merchant on transaction draft', async () => {
+            setMoneyRequestMerchant(transactionID, 'Coffee Shop', true);
+            await waitForBatchedUpdates();
+            const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+            expect(draft?.merchant).toBe('Coffee Shop');
+        });
+
+        it('setMoneyRequestTag should set tag on transaction draft', async () => {
+            setMoneyRequestTag(transactionID, 'Engineering');
+            await waitForBatchedUpdates();
+            const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+            expect(draft?.tag).toBe('Engineering');
+        });
+
+        it('setMoneyRequestBillable should set billable on transaction draft', async () => {
+            setMoneyRequestBillable(transactionID, true);
+            await waitForBatchedUpdates();
+            const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+            expect(draft?.billable).toBe(true);
         });
     });
 });
