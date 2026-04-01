@@ -35,12 +35,14 @@ import {
     payMoneyRequest,
     rejectExpenseReport,
     rejectMoneyRequest,
+    removeMoneyRequestOdometerImage,
     replaceReceipt,
     requestMoney,
     resetDraftTransactionsCustomUnit,
     retractReport,
     setMoneyRequestCategory,
     setMoneyRequestDistanceRate,
+    setMoneyRequestOdometerImage,
     shouldOptimisticallyUpdateSearch,
     submitReport,
     trackExpense,
@@ -17514,6 +17516,87 @@ describe('actions/IOU', () => {
             const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
             expect(updatedTransaction?.comment?.customUnit?.name).toBe(CONST.CUSTOM_UNITS.NAME_DISTANCE);
             expect(updatedTransaction?.comment?.customUnit?.quantity).toBe(100);
+        });
+    });
+
+    describe('setMoneyRequestOdometerImage and removeMoneyRequestOdometerImage', () => {
+        beforeEach(() => {
+            jest.mock('@libs/OdometerImageUtils', () => ({
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                __esModule: true,
+                default: jest.fn(),
+            }));
+        });
+
+        afterEach(() => {
+            jest.unmock('@libs/OdometerImageUtils');
+        });
+        it('should set odometer start image on a draft transaction', async () => {
+            const transaction = createRandomTransaction(1);
+            const transactionID = transaction.transactionID;
+            const file = {uri: 'image.uri', name: 'image.jpg', type: 'image/jpeg', size: 1234};
+            const imageType = CONST.IOU.ODOMETER_IMAGE_TYPE.START;
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, transaction);
+
+            setMoneyRequestOdometerImage(transaction, imageType, file, true, false);
+            await waitForBatchedUpdates();
+
+            const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+            expect(draftTransaction?.comment?.odometerStartImage).toEqual(file);
+        });
+
+        it('should set odometer end image on a non-draft transaction', async () => {
+            const transaction = createRandomTransaction(1);
+            const transactionID = transaction.transactionID;
+            const file = {uri: 'image.uri', name: 'image.jpg', type: 'image/jpeg', size: 1234};
+            const imageType = CONST.IOU.ODOMETER_IMAGE_TYPE.END;
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+
+            setMoneyRequestOdometerImage(transaction, imageType, file, false, false);
+            await waitForBatchedUpdates();
+
+            const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(updatedTransaction?.comment?.odometerEndImage).toEqual(file);
+        });
+
+        it('should remove odometer start image from a draft transaction', async () => {
+            const transaction = {
+                ...createRandomTransaction(1),
+                comment: {
+                    odometerStartImage: {uri: 'image.uri'},
+                },
+            } as Transaction;
+            const transactionID = transaction.transactionID;
+            const imageType = CONST.IOU.ODOMETER_IMAGE_TYPE.START;
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, transaction);
+
+            removeMoneyRequestOdometerImage(transaction, imageType, true, false);
+            await waitForBatchedUpdates();
+
+            const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+            expect(draftTransaction?.comment?.odometerStartImage).toBeUndefined();
+        });
+
+        it('should remove odometer end image from a non-draft transaction', async () => {
+            const transaction = {
+                ...createRandomTransaction(1),
+                comment: {
+                    odometerEndImage: {uri: 'image.uri'},
+                },
+            } as Transaction;
+            const transactionID = transaction.transactionID;
+            const imageType = CONST.IOU.ODOMETER_IMAGE_TYPE.END;
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+
+            removeMoneyRequestOdometerImage(transaction, imageType, false, false);
+            await waitForBatchedUpdates();
+
+            const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(updatedTransaction?.comment?.odometerEndImage).toBeUndefined();
         });
     });
 });
