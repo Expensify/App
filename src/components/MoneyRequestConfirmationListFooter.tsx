@@ -20,8 +20,7 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {setMoneyRequestAmount} from '@libs/actions/IOU';
-import {setMoneyRequestDescription, setMoneyRequestMerchant} from '@libs/actions/IOU';
+import {setMoneyRequestAmount, setMoneyRequestDescription, setMoneyRequestMerchant} from '@libs/actions/IOU';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {convertToBackendAmount, convertToDisplayString, convertToFrontendAmountAsString, getCurrencyDecimals, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -707,7 +706,7 @@ function MoneyRequestConfirmationListFooter({
 
             setMoneyRequestAmount(transactionID, parsedAmount, currency);
         },
-        [transactionID, getBackendAmountFromInput, isEditingSplitBill, splitDraftTransaction, transaction?.splitShares, currentUserAccountID, currency],
+        [transactionID, getBackendAmountFromInput, isEditingSplitBill, splitDraftTransaction, transaction, currentUserAccountID, currency],
     );
 
     const shouldShowAmountRequiredError = useMemo(() => {

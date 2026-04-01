@@ -444,7 +444,7 @@ function NumberWithSymbolForm({
                 )}
             </View>
         );
-    }, [shouldShowFlipButton, shouldShowCurrencyButton, styles, icons, handleFlipPress, onCurrencyButtonPress, currency, translate]);
+    }, [shouldShowFlipButton, allowNegativeInput, disabled, shouldShowCurrencyButton, styles, icons, handleFlipPress, onCurrencyButtonPress, currency, translate]);
 
     if (displayAsTextInput) {
         return (

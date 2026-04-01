@@ -1216,6 +1216,7 @@ function MoneyRequestConfirmationList({
             currentUserPersonalDetails,
             isTimeRequest,
             getCurrencyDecimals,
+            isNewManualExpenseFlowEnabled,
         ],
     );
 
