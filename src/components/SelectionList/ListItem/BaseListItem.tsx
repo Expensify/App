@@ -109,17 +109,14 @@ function BaseListItem<TItem extends ListItem>({
     // Enter activation here at the item level so each row can still be activated individually
     // without interfering with other focusable controls (e.g. footer inputs) on the same screen.
     const handleKeyDown = (event: React.KeyboardEvent) => {
-        const target = event.target as HTMLElement;
         if (
             shouldPreventEnterKeySubmit ||
+            accessible === false ||
             event.key !== CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey ||
             event.shiftKey ||
             event.metaKey ||
             event.ctrlKey ||
-            item.isInteractive === false ||
-            target?.tagName === CONST.ELEMENT_NAME.INPUT ||
-            target?.tagName === CONST.ELEMENT_NAME.TEXTAREA ||
-            target?.contentEditable === 'true'
+            item.isInteractive === false
         ) {
             return;
         }
