@@ -39,8 +39,6 @@ import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {getMimeTypeFromUri, isLocalFile as isLocalFileFileUtils} from '@libs/fileDownload/FileUtils';
-import validateReceiptFile from '@libs/fileDownload/validateReceiptFile';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
@@ -66,7 +64,6 @@ import {
     isReportOutstanding,
     isSelectedManagerMcTest,
 } from '@libs/ReportUtils';
-import stitchOdometerImages from '@libs/stitchOdometerImages';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import getSubmitExpenseScenario from '@libs/telemetry/getSubmitExpenseScenario';
 import markSubmitExpenseEnd from '@libs/telemetry/markSubmitExpenseEnd';
@@ -101,7 +98,7 @@ import {submitPerDiemExpenseForSelfDM, submitPerDiemExpense as submitPerDiemExpe
 import {getReceiverType, sendInvoice} from '@userActions/IOU/SendInvoice';
 import {sendMoneyElsewhere, sendMoneyWithWallet} from '@userActions/IOU/SendMoney';
 import {splitBill, splitBillAndOpenReport, startSplitBill} from '@userActions/IOU/Split';
-import {removeDraftTransaction, removeDraftTransactionsByIDs, replaceDefaultDraftTransaction} from '@userActions/TransactionEdit';
+import {removeDraftTransaction, replaceDefaultDraftTransaction} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -118,6 +115,8 @@ import CategoryDefaultsSetter from './confirmation/CategoryDefaultsSetter';
 import DraftWorkspaceOpener from './confirmation/DraftWorkspaceOpener';
 import ExpenseDefaultsSetter from './confirmation/ExpenseDefaultsSetter';
 import MoneyRequestInitializer from './confirmation/MoneyRequestInitializer';
+import OdometerReceiptStitcher from './confirmation/OdometerReceiptStitcher';
+import ReceiptFileValidator from './confirmation/ReceiptFileValidator';
 import TelemetrySpanManager from './confirmation/TelemetrySpanManager';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
@@ -374,63 +373,6 @@ function IOURequestStepConfirmation({
     const odometerStartImage = transaction?.comment?.odometerStartImage;
     const odometerEndImage = transaction?.comment?.odometerEndImage;
 
-    useEffect(() => {
-        if (!isOdometerDistanceRequest) {
-            return;
-        }
-
-        const getImageUri = (img: FileObject | string | null | undefined): string => (typeof img === 'string' ? img : (img?.uri ?? ''));
-        const getImageName = (img: FileObject | string | null | undefined): string => (typeof img === 'string' ? (img.split('/').pop() ?? '') : (img?.name ?? ''));
-        const getImageType = (img: FileObject | string | null | undefined): string | undefined =>
-            typeof img === 'string' ? getMimeTypeFromUri(img) : (img?.type ?? getMimeTypeFromUri(img?.uri ?? ''));
-
-        if (!odometerStartImage || !odometerEndImage) {
-            const singleImage = odometerStartImage ?? odometerEndImage;
-
-            if (!singleImage) {
-                return;
-            }
-
-            setMoneyRequestReceipt(currentTransactionID, getImageUri(singleImage), getImageName(singleImage), shouldUseTransactionDraft(action, iouType), getImageType(singleImage));
-            return;
-        }
-
-        let ignore = false;
-        setIsStitchingReceipt(true);
-        setStitchError('');
-
-        stitchOdometerImages(odometerStartImage, odometerEndImage)
-            .then((stitchedImage) => {
-                if (ignore || !stitchedImage) {
-                    return;
-                }
-                setMoneyRequestReceipt(
-                    currentTransactionID,
-                    getImageUri(stitchedImage),
-                    getImageName(stitchedImage),
-                    shouldUseTransactionDraft(action, iouType),
-                    getImageType(stitchedImage),
-                );
-            })
-            .catch((error: unknown) => {
-                if (ignore) {
-                    return;
-                }
-                Log.warn('stitchOdometerImages failed', {error});
-                setStitchError(translate('iou.error.stitchOdometerImagesFailed'));
-            })
-            .finally(() => {
-                if (ignore) {
-                    return;
-                }
-                setIsStitchingReceipt(false);
-            });
-
-        return () => {
-            ignore = true;
-        };
-    }, [isOdometerDistanceRequest, currentTransactionID, odometerStartImage, odometerEndImage, action, translate, iouType]);
-
     const navigateBack = useCallback(() => {
         if (backTo) {
             Navigation.goBack(backTo);
@@ -494,67 +436,6 @@ function IOURequestStepConfirmation({
         backTo,
         backToReport,
     ]);
-
-    // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
-    // This is because until the request is saved, the receipt file is only stored in the browsers memory as a blob:// and if the browser is refreshed, then
-    // the image ceases to exist. The best way for the user to recover from this is to start over from the start of the request process.
-    // skip this in case user is moving the transaction as the receipt path will be valid in that case
-    useEffect(() => {
-        let newReceiptFiles: Record<string, Receipt> = {};
-        let isScanFilesCanBeRead = true;
-
-        Promise.all(
-            transactions.map((item) => {
-                const itemReceiptFilename = item.receipt?.filename;
-                const itemReceiptPath = item.receipt?.source;
-                const itemReceiptType = item.receipt?.type;
-                const isLocalFile = isLocalFileFileUtils(itemReceiptPath);
-
-                if (!isLocalFile) {
-                    if (item.receipt) {
-                        newReceiptFiles = {...newReceiptFiles, [item.transactionID]: item.receipt};
-                    }
-                    return Promise.resolve();
-                }
-
-                const onSuccess = (file: File) => {
-                    const receipt: Receipt = file;
-                    if (item?.receipt?.isTestReceipt) {
-                        receipt.isTestReceipt = true;
-                        receipt.state = CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE;
-                    } else if (item?.receipt?.isTestDriveReceipt) {
-                        receipt.isTestDriveReceipt = true;
-                        receipt.state = CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE;
-                    } else {
-                        receipt.state = file && requestType === CONST.IOU.REQUEST_TYPE.MANUAL ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCAN_READY;
-                    }
-
-                    newReceiptFiles = {...newReceiptFiles, [item.transactionID]: receipt};
-                };
-
-                const onFailure = () => {
-                    isScanFilesCanBeRead = false;
-                    if (initialTransactionID === item.transactionID) {
-                        setMoneyRequestReceipt(item.transactionID, '', '', true, '');
-                    }
-                };
-
-                return validateReceiptFile(itemReceiptFilename, itemReceiptPath, itemReceiptType, onSuccess, onFailure) ?? Promise.resolve();
-            }),
-        ).then(() => {
-            if (isScanFilesCanBeRead) {
-                setReceiptFiles(newReceiptFiles);
-                return;
-            }
-            if (requestType === CONST.IOU.REQUEST_TYPE.MANUAL) {
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, initialTransactionID, reportID, Navigation.getActiveRouteWithoutParams()));
-                return;
-            }
-            removeDraftTransactionsByIDs(draftTransactionIDs, true);
-            navigateToStartMoneyRequestStep(requestType, iouType, initialTransactionID, reportID);
-        });
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- draftTransactionIDs is intentionally excluded to avoid re-running on draft changes
-    }, [requestType, iouType, initialTransactionID, reportID, action, report, transactions, participants]);
 
     const requestMoney = useCallback(
         (selectedParticipants: Participant[], gpsPoint?: GpsPoint) => {
@@ -1532,6 +1413,28 @@ function IOURequestStepConfirmation({
                 isDistanceRequest={isDistanceRequest}
                 requestType={requestType}
                 isMovingTransactionFromTrackExpense={isMovingTransactionFromTrackExpense}
+            />
+            <OdometerReceiptStitcher
+                isOdometerDistanceRequest={isOdometerDistanceRequest}
+                currentTransactionID={currentTransactionID}
+                odometerStartImage={odometerStartImage}
+                odometerEndImage={odometerEndImage}
+                action={action}
+                iouType={iouType}
+                onStitchingChange={setIsStitchingReceipt}
+                onStitchError={setStitchError}
+            />
+            <ReceiptFileValidator
+                transactions={transactions}
+                requestType={requestType}
+                iouType={iouType}
+                initialTransactionID={initialTransactionID}
+                reportID={reportID}
+                action={action}
+                report={report}
+                participants={participants}
+                draftTransactionIDs={draftTransactionIDs}
+                onReceiptFilesChange={setReceiptFiles}
             />
             <DragAndDropProvider isDisabled={!showReceiptEmptyState || isOdometerDistanceRequest}>
                 <View style={styles.flex1}>
