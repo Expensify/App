@@ -102,9 +102,10 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
 
     const onDownloadAttachment = useDownloadAttachment({
         isAuthTokenRequired,
+        type,
     });
 
-    const source = useMemo(() => getValidatedImageSource(sourceParam), [sourceParam]);
+    const source = useMemo(() => getValidatedImageSource(sourceParam, false), [sourceParam]);
     const modalType = useReportAttachmentModalType(source);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
