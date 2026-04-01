@@ -1,0 +1,7 @@
+import type {SubPageProps} from '@hooks/useSubPage/types';
+import type {Country} from '@src/CONST';
+
+type BusinessInfoSubPageProps = SubPageProps & {currency: string; country: Country | ''};
+
+// eslint-disable-next-line import/prefer-default-export
+export type {BusinessInfoSubPageProps};
