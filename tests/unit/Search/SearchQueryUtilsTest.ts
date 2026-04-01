@@ -1,11 +1,13 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 // we need "dirty" object key names in these tests
 import type {OnyxCollection} from 'react-native-onyx';
+import type {ASTNode} from '@components/Search/types';
 import {generatePolicyID} from '@libs/actions/Policy/Policy';
 // eslint-disable-next-line no-restricted-syntax
 import type * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 import {
+    applyContainsOperatorToTextFields,
     buildFilterFormValuesFromQuery,
     buildFilterQueryWithSortDefaults,
     buildQueryStringFromFilterFormValues,
@@ -15,6 +17,7 @@ import {
     getDisplayQueryFiltersForKey,
     getFilterDisplayValue,
     getQueryWithUpdatedValues,
+    serializeQueryJSONForBackend,
     shouldHighlight,
     shouldResetSort,
     shouldResetSortForViewChange,
@@ -349,7 +352,7 @@ describe('SearchQueryUtils', () => {
                 expect(result).not.toContain('limit:');
             });
 
-            test('quotes limit value containing spaces to prevent keyword contamination', () => {
+            test('non-integer limit value is discarded to prevent keyword contamination', () => {
                 const filterValues: Partial<SearchAdvancedFiltersForm> = {
                     type: 'expense',
                     keyword: 'hi',
@@ -358,27 +361,69 @@ describe('SearchQueryUtils', () => {
 
                 const result = buildQueryStringFromFilterFormValues(filterValues);
 
-                expect(result).toContain('limit:"10 90"');
-                expect(result).toEqual('type:expense hi limit:"10 90"');
+                // "10 90" is not a valid positive integer, so limit is dropped entirely
+                expect(result).not.toContain('limit');
+                expect(result).toEqual('type:expense hi');
             });
 
-            test('limit value with spaces does not leak into keyword when round-tripped through parser', () => {
+            test('non-numeric limit value (JSON-like) is discarded to prevent keyword contamination', () => {
                 const filterValues: Partial<SearchAdvancedFiltersForm> = {
                     type: 'expense',
                     keyword: 'hi',
-                    limit: '10 90',
+                    limit: '{ "keyword": "hi", "limit": 10 }',
                 };
 
-                const queryString = buildQueryStringFromFilterFormValues(filterValues);
-                const queryJSON = buildSearchQueryJSON(queryString);
+                const result = buildQueryStringFromFilterFormValues(filterValues);
 
-                // "10 90" is not a valid integer, so limit is normalized to undefined
+                // JSON-like string is not a valid positive integer, so limit is dropped
+                expect(result).not.toContain('limit');
+                expect(result).toEqual('type:expense hi');
+
+                // Round-trip: keyword must NOT be contaminated
+                const queryJSON = buildSearchQueryJSON(result);
                 expect(queryJSON?.limit).toBeUndefined();
-
-                // The keyword must NOT be contaminated with "90" from the limit value
                 const keywordFilter = queryJSON?.flatFilters.find((filter) => filter.key === 'keyword');
                 expect(keywordFilter?.filters).toHaveLength(1);
                 expect(keywordFilter?.filters.at(0)?.value).toBe('hi');
+            });
+
+            test('valid integer limit is included in query string', () => {
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: 'expense',
+                    limit: '25',
+                };
+
+                const result = buildQueryStringFromFilterFormValues(filterValues);
+                expect(result).toContain('limit:25');
+            });
+
+            test('valid limit round-trips through parser without keyword contamination', () => {
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: 'expense',
+                    keyword: 'hello',
+                    limit: '50',
+                };
+
+                const queryString = buildQueryStringFromFilterFormValues(filterValues);
+                expect(queryString).toEqual('type:expense hello limit:50');
+
+                const queryJSON = buildSearchQueryJSON(queryString);
+                expect(queryJSON?.limit).toBe(50);
+
+                const keywordFilter = queryJSON?.flatFilters.find((filter) => filter.key === 'keyword');
+                expect(keywordFilter?.filters).toHaveLength(1);
+                expect(keywordFilter?.filters.at(0)?.value).toBe('hello');
+            });
+
+            test('form limit takes priority over options limit', () => {
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: 'expense',
+                    limit: '30',
+                };
+
+                const result = buildQueryStringFromFilterFormValues(filterValues, {limit: 10});
+                expect(result).toContain('limit:30');
+                expect(result).not.toContain('limit:10');
             });
         });
 
@@ -1028,6 +1073,37 @@ describe('SearchQueryUtils', () => {
             expect(queryJSONa?.similarSearchHash).not.toEqual(queryJSONb?.similarSearchHash);
         });
 
+        it('should return different primary hash for queries with different explicit views but the same similarSearchHash', () => {
+            const queryJSONa = buildSearchQueryJSON('type:expense groupBy:category view:pie');
+            const queryJSONb = buildSearchQueryJSON('type:expense groupBy:category view:bar');
+
+            expect(queryJSONa?.similarSearchHash).toEqual(queryJSONb?.similarSearchHash);
+            expect(queryJSONa?.hash).not.toEqual(queryJSONb?.hash);
+        });
+
+        it('should return different primary hash for implicit table view and explicit view:table', () => {
+            const queryJSONa = buildSearchQueryJSON('type:expense groupBy:category');
+            const queryJSONb = buildSearchQueryJSON('type:expense groupBy:category view:table', 'type:expense groupBy:category view:table');
+
+            expect(queryJSONa?.similarSearchHash).toEqual(queryJSONb?.similarSearchHash);
+            expect(queryJSONa?.hash).not.toEqual(queryJSONb?.hash);
+        });
+
+        it('should not include view in query string when groupBy is removed after chart drill-down', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense date:this-month groupBy:category view:bar');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            queryJSON.groupBy = undefined;
+            queryJSON.view = CONST.SEARCH.VIEW.TABLE;
+
+            const result = buildSearchQueryString(queryJSON);
+
+            expect(result).not.toContain('view:');
+        });
+
         describe('limit filter hashing', () => {
             it('should return same similarSearchHash for queries with different limit values', () => {
                 const queryJSONa = buildSearchQueryJSON('type:expense limit:10');
@@ -1382,7 +1458,7 @@ describe('SearchQueryUtils', () => {
         });
 
         test('includes view when explicitly set to table in rawFilterList', () => {
-            const queryJSON = buildSearchQueryJSON('type:expense view:table', 'type:expense view:table');
+            const queryJSON = buildSearchQueryJSON('type:expense groupBy:category view:table', 'type:expense groupBy:category view:table');
 
             const result = buildSearchQueryString(queryJSON);
 
@@ -2101,6 +2177,127 @@ describe('SearchQueryUtils', () => {
             });
 
             expect(result.endsWith(' ')).toBe(true);
+        });
+    });
+
+    function findNode(node: ASTNode, field: string): ASTNode | null {
+        if (typeof node.left === 'string' && node.left === field) {
+            return node;
+        }
+        if (typeof node.left === 'object' && node.left) {
+            const found = findNode(node.left, field);
+            if (found) {
+                return found;
+            }
+        }
+        if (typeof node.right === 'object' && !Array.isArray(node.right) && node.right) {
+            const found = findNode(node.right, field);
+            if (found) {
+                return found;
+            }
+        }
+        return null;
+    }
+
+    describe('applyContainsOperatorToTextFields', () => {
+        it('should transform merchant eq to contains', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense merchant:coffee');
+            if (!queryJSON?.filters) {
+                throw new Error('Expected filters to be defined');
+            }
+            const transformed = applyContainsOperatorToTextFields(queryJSON.filters);
+            const merchantNode = findNode(transformed, 'merchant');
+            if (!merchantNode) {
+                throw new Error('Expected merchant node to be found in AST');
+            }
+            expect(merchantNode.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
+            expect(merchantNode.right).toBe('coffee');
+        });
+
+        it('should transform description eq to contains', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense description:lunch');
+            if (!queryJSON?.filters) {
+                throw new Error('Expected filters to be defined');
+            }
+            const transformed = applyContainsOperatorToTextFields(queryJSON.filters);
+            const descriptionNode = findNode(transformed, 'description');
+            if (!descriptionNode) {
+                throw new Error('Expected description node to be found in AST');
+            }
+            expect(descriptionNode.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
+        });
+
+        it('should not transform non-text fields like category', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense category:food');
+            if (!queryJSON?.filters) {
+                throw new Error('Expected filters to be defined');
+            }
+            const transformed = applyContainsOperatorToTextFields(queryJSON.filters);
+            const categoryNode = findNode(transformed, 'category');
+            if (!categoryNode) {
+                throw new Error('Expected category node to be found in AST');
+            }
+            expect(categoryNode.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
+        });
+
+        it('should not transform negated merchant operator', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense -merchant:coffee');
+            if (!queryJSON?.filters) {
+                throw new Error('Expected filters to be defined');
+            }
+            const transformed = applyContainsOperatorToTextFields(queryJSON.filters);
+            const merchantNode = findNode(transformed, 'merchant');
+            if (!merchantNode) {
+                throw new Error('Expected merchant node to be found in AST');
+            }
+            expect(merchantNode.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO);
+        });
+
+        it('should transform merchant but not category in a compound query', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense merchant:coffee category:travel');
+            if (!queryJSON?.filters) {
+                throw new Error('Expected filters to be defined');
+            }
+            const transformed = applyContainsOperatorToTextFields(queryJSON.filters);
+
+            const merchantNode = findNode(transformed, 'merchant');
+            if (!merchantNode) {
+                throw new Error('Expected merchant node to be found in AST');
+            }
+            expect(merchantNode.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
+
+            const categoryNode = findNode(transformed, 'category');
+            if (!categoryNode) {
+                throw new Error('Expected category node to be found in AST');
+            }
+            expect(categoryNode.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
+        });
+    });
+
+    describe('serializeQueryJSONForBackend', () => {
+        it('should apply contains to merchant in AST filters', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense merchant:coffee');
+            if (!queryJSON) {
+                throw new Error('Expected queryJSON to be defined');
+            }
+            const serialized = JSON.parse(serializeQueryJSONForBackend(queryJSON)) as {filters: ASTNode};
+            const merchantNode = findNode(serialized.filters, 'merchant');
+            if (!merchantNode) {
+                throw new Error('Expected merchant node to be found in AST');
+            }
+            expect(merchantNode.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
+        });
+
+        it('should apply contains to merchant in rawFilterList', () => {
+            const rawFilterList = [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'coffee'}];
+            const serialized = JSON.parse(serializeQueryJSONForBackend({filters: undefined, rawFilterList})) as {rawFilterList: typeof rawFilterList};
+            expect(serialized.rawFilterList.at(0)?.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
+        });
+
+        it('should not affect non-text fields in rawFilterList', () => {
+            const rawFilterList = [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'food'}];
+            const serialized = JSON.parse(serializeQueryJSONForBackend({filters: undefined, rawFilterList})) as {rawFilterList: typeof rawFilterList};
+            expect(serialized.rawFilterList.at(0)?.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
         });
     });
 });

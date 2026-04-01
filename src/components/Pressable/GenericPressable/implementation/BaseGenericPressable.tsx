@@ -202,6 +202,7 @@ function GenericPressable({
             aria-disabled={isDisabled}
             aria-checked={accessibilityState?.checked}
             aria-selected={accessibilityState?.selected}
+            aria-expanded={accessibilityState?.expanded}
             aria-keyshortcuts={keyboardShortcut && `${keyboardShortcut.modifiers.join('')}+${keyboardShortcut.shortcutKey}`}
             // ios-only form of inputs
             onMagicTap={!isDisabled ? voidOnPressHandler : undefined}
