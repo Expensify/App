@@ -1,4 +1,5 @@
 import React from 'react';
+import type {MeasureInWindowOnSuccessCallback} from 'react-native';
 import useIsScrollLikelyLayoutTriggered from '@hooks/useIsScrollLikelyLayoutTriggered';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -7,8 +8,7 @@ import {chatIncludesChronos, chatIncludesConcierge} from '@libs/ReportUtils';
 import {isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {useComposerBox} from './ComposerBox';
-import {useComposerActions, useComposerMeta, useComposerMetaActions, useComposerSendState, useComposerState} from './ComposerContext';
+import {useComposerActions, useComposerMetaActions, useComposerMetaState, useComposerSendState, useComposerState} from './ComposerContext';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
 
 type ComposerInputWrapperProps = {
@@ -20,9 +20,12 @@ function ComposerInputWrapper({reportID}: ComposerInputWrapperProps) {
     const {isComposerFullSize, isMenuVisible} = useComposerState();
     const {isBlockedFromConcierge} = useComposerSendState();
     const {setIsFullComposerAvailable, handleSendMessage, onValueChange} = useComposerActions();
-    const {suggestionsRef, isNextModalWillOpenRef, shouldShowComposeInput, userBlockedFromConcierge} = useComposerMeta();
+    const {containerRef, suggestionsRef, isNextModalWillOpenRef, shouldShowComposeInput, userBlockedFromConcierge} = useComposerMetaState();
     const {onBlur, onFocus, submitForm, validateAttachments, setComposerRef} = useComposerMetaActions();
-    const {measureContainer} = useComposerBox();
+
+    const measureContainer = (callback: MeasureInWindowOnSuccessCallback) => {
+        containerRef.current?.measureInWindow(callback);
+    };
 
     const {isScrollLayoutTriggered, raiseIsScrollLayoutTriggered} = useIsScrollLikelyLayoutTriggered();
 

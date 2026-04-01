@@ -48,6 +48,7 @@ type ComposerActions = {
 };
 
 type ComposerMeta = {
+    containerRef: RefObject<View | null>;
     composerRef: RefObject<ComposerRef | null>;
     suggestionsRef: RefObject<SuggestionsRef | null>;
     actionButtonRef: RefObject<View | HTMLDivElement | null>;
@@ -126,7 +127,7 @@ function useComposerActions() {
     return useContext(ComposerActionsContext);
 }
 
-function useComposerMeta() {
+function useComposerMetaState() {
     const ctx = useContext(ComposerMetaContext);
     if (!ctx) {
         throw new Error('useComposerMeta must be used inside ComposerProvider');
@@ -153,7 +154,7 @@ export {
     useComposerState,
     useComposerSendState,
     useComposerActions,
-    useComposerMeta,
+    useComposerMetaState,
     useComposerMetaActions,
 };
 export type {SuggestionsRef, ComposerState, ComposerSendState, ComposerActions, ComposerMeta, ComposerMetaActions};

@@ -83,6 +83,7 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
 
     const debouncedValidate = lodashDebounce(validateMaxLength, CONST.TIMING.COMMENT_LENGTH_DEBOUNCE_TIME, {leading: true});
 
+    const containerRef = useRef<View>(null);
     const suggestionsRef = useRef<SuggestionsRef>(null);
     const composerRef = useRef<ComposerRef | null>(null);
     const actionButtonRef = useRef<View | HTMLDivElement | null>(null);
@@ -186,6 +187,7 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
     };
 
     const composerMetaState = {
+        containerRef,
         composerRef,
         suggestionsRef,
         actionButtonRef,

@@ -5,7 +5,7 @@ import useOnyx from '@hooks/useOnyx';
 import {chatIncludesConcierge} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
-import {useComposerActions, useComposerMeta, useComposerMetaActions, useComposerSendState, useComposerState} from './ComposerContext';
+import {useComposerActions, useComposerMetaActions, useComposerMetaState, useComposerSendState, useComposerState} from './ComposerContext';
 
 type ComposerActionMenuProps = {
     reportID: string;
@@ -16,7 +16,7 @@ function ComposerActionMenu({reportID}: ComposerActionMenuProps) {
     const {isComposerFullSize, isFullComposerAvailable, isMenuVisible} = useComposerState();
     const {isBlockedFromConcierge, exceededMaxLength} = useComposerSendState();
     const {setMenuVisibility, focus} = useComposerActions();
-    const {actionButtonRef, shouldFocusComposerOnScreenFocus} = useComposerMeta();
+    const {actionButtonRef, shouldFocusComposerOnScreenFocus} = useComposerMetaState();
     const {onAddActionPressed, onItemSelected, onTriggerAttachmentPicker, validateAttachments} = useComposerMetaActions();
 
     const {raiseIsScrollLayoutTriggered} = useIsScrollLikelyLayoutTriggered();
