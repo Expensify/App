@@ -104,9 +104,6 @@ type ButtonProps = WithSentryLabel &
     ButtonEventsProps &
     ButtonBehaviorProps &
     ButtonStyleProps & {
-        /** Sub-components to render inside the button */
-        children: React.ReactNode;
-
         /** Id to use for this button */
         id?: string;
 
@@ -121,6 +118,11 @@ type ButtonProps = WithSentryLabel &
          */
         ref?: ForwardedRef<View>;
     };
+
+type ComposedButtonProps = ButtonProps & {
+    /** The content of the button, can be a string or a combination of Button.Icon and Button.Text */
+    children: React.ReactNode;
+};
 
 type KeyboardShortcutComponentProps = Pick<ButtonProps, 'isDisabled' | 'isLoading' | 'onPress' | 'pressOnEnter' | 'allowBubble' | 'enterKeyEventListenerPriority' | 'isPressOnEnterActive'>;
 
@@ -199,7 +201,7 @@ function Button({
     shouldStayNormalOnDisable = false,
     sentryLabel,
     ref,
-}: ButtonProps) {
+}: ComposedButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const [isHovered, setIsHovered] = useState(false);
@@ -255,6 +257,8 @@ function Button({
             buttonVariantStyles,
             shouldRemoveBorderRadius === 'right' || shouldRemoveBorderRadius === 'all' ? styles.noRightBorderRadius : undefined,
             shouldRemoveBorderRadius === 'left' || shouldRemoveBorderRadius === 'all' ? styles.noLeftBorderRadius : undefined,
+            buttonVariantStyles,
+            styles.alignItemsStretch,
             innerStyles,
         ],
         [styles, buttonVariantStyles, shouldRemoveBorderRadius, buttonSizeStyle, innerStyles],
@@ -357,7 +361,7 @@ function Button({
             >
                 {shouldBlendOpacity && <View style={[StyleSheet.absoluteFill, buttonBlendForegroundStyle]} />}
                 <ButtonContext.Provider value={contextValue}>
-                    <View style={[styles.flexRow, styles.alignItemsCenter, contentContainerStyle, styles.mw100]}>{children}</View>
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, contentContainerStyle, styles.mw100]}>{children}</View>
                 </ButtonContext.Provider>
                 {isLoading && (
                     <ActivityIndicator

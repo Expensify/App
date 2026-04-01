@@ -11,12 +11,12 @@ import ButtonText from './ButtonText';
 
 type ButtonWithIconsProps = ButtonProps & {
     // ICON LEFT PROPS
-    iconLeft: IconAsset;
+    iconLeft?: IconAsset;
     iconLeftFill?: string;
     iconLeftHoverFill?: string;
     iconLeftStyles?: StyleProp<ViewStyle>;
     // TEXT PROPS
-    text: string;
+    text?: string;
     textHoverStyles?: StyleProp<TextStyle>;
     textStyles?: StyleProp<TextStyle>;
     textNumberOfLines?: number;
@@ -30,7 +30,7 @@ type ButtonWithIconsProps = ButtonProps & {
 function ButtonWithIcons({
     allowBubble = false,
     contentContainerStyle = [],
-    size,
+    size = CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
     isLoading = false,
     isDisabled = false,
     onLayout = () => {},
@@ -64,7 +64,7 @@ function ButtonWithIcons({
     iconLeftFill,
     iconLeftHoverFill,
     iconLeftStyles = [],
-    text,
+    text = '',
     textHoverStyles = [],
     textStyles = [],
     textNumberOfLines = 1,
@@ -82,7 +82,7 @@ function ButtonWithIcons({
         size === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
         size === CONST.DROPDOWN_BUTTON_SIZE.LARGE,
         !!iconLeft,
-        !!text,
+        text?.length > 0,
         !!iconRight,
     );
     return (

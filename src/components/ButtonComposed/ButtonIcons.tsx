@@ -62,7 +62,7 @@ function ButtonIconRight({src, style, hoverFill, fill}: ButtonIconProps) {
     return (
         <ButtonIconBase
             {...{src, hoverFill, fill}}
-            style={[styles.flex1, styles.alignItemsEnd, size === CONST.DROPDOWN_BUTTON_SIZE.LARGE ? styles.ml2 : styles.ml1, style]}
+            style={[styles.flex1, styles.flexShrink0, {flexBasis: 'auto'}, styles.alignItemsEnd, size === CONST.DROPDOWN_BUTTON_SIZE.LARGE ? styles.ml2 : styles.ml1, style]}
         />
     );
 }
