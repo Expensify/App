@@ -1273,7 +1273,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         firstTransaction,
         firstTransactionPolicy,
         handleDeleteSelectedTransactions,
-        currentUserPersonalDetails?.email,
         theme.icon,
         styles.colorMuted,
         styles.fontWeightNormal,
