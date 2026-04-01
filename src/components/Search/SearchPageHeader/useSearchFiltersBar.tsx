@@ -35,7 +35,7 @@ import {
     getFeedOptions,
     getGroupByOptions,
     getGroupBySections,
-    getGroupCurrencyOptions,
+    getCurrencyOptions,
     getHasOptions,
     getStatusOptions,
     getTypeOptions,
@@ -173,7 +173,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     const viewOptions = getViewOptions(translate);
     const viewValue = viewOptions.find((option) => option.value === unsafeView) ?? viewOptions.at(0) ?? null;
 
-    const groupCurrencyOptions = getGroupCurrencyOptions(currencyList, getCurrencySymbol);
+    const groupCurrencyOptions = getCurrencyOptions(currencyList, getCurrencySymbol);
     const groupCurrency = groupCurrencyOptions.find((option) => option.value === searchAdvancedFiltersForm.groupCurrency) ?? null;
 
     const feedFilterValues = flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED)?.filters?.map((filter) => filter.value);
