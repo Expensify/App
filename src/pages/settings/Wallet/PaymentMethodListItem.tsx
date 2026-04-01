@@ -139,11 +139,11 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
         }
     };
 
+    // Account-level status badges (right side of the row)
     const badgeText = useMemo(() => {
         if (isInLockedState) {
             return translate('common.locked');
         }
-
         if (isInSetupState) {
             return translate('common.actionRequired');
         }
@@ -157,26 +157,30 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
         return undefined;
     }, [icons.DotIndicator, isInSetupState, isInLockedState]);
 
-    let descriptionAddon;
-    if (item.isCardFrozen) {
-        descriptionAddon = (
-            <Badge
-                text={translate('cardPage.frozen')}
-                icon={icons.FreezeCard}
-                isCondensed
-                badgeStyles={[styles.ml0]}
-                iconStyles={[styles.mr1]}
-            />
-        );
-    } else if (item.isSuspended) {
-        descriptionAddon = (
-            <Badge
-                text={translate('walletPage.cardInactive')}
-                isCondensed
-                badgeStyles={[styles.ml0]}
-            />
-        );
-    }
+    // Card state pills (below title, next to description)
+    const descriptionAddon = useMemo(() => {
+        if (item.isCardFrozen) {
+            return (
+                <Badge
+                    text={translate('cardPage.frozen')}
+                    icon={icons.FreezeCard}
+                    isCondensed
+                    badgeStyles={[styles.ml0]}
+                    iconStyles={[styles.mr1]}
+                />
+            );
+        }
+        if (item.isSuspended) {
+            return (
+                <Badge
+                    text={translate('walletPage.cardInactive')}
+                    isCondensed
+                    badgeStyles={[styles.ml0]}
+                />
+            );
+        }
+        return undefined;
+    }, [item.isCardFrozen, item.isSuspended, icons.FreezeCard, styles.ml0, styles.mr1, translate]);
 
     return (
         <OfflineWithFeedback
