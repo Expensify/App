@@ -997,7 +997,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             options.push({
                 icon: expensifyIcons.Send,
                 text:
-                    isTrackIntentUser && selectedReports.every((report) => isSubmitAndClose(policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`]))
+                    isTrackIntentUser && selectedReports.length > 0 && selectedReports.every((report) => isSubmitAndClose(policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`]))
                         ? translate('common.markAsDone')
                         : translate('common.submit'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT,
