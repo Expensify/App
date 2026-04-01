@@ -293,7 +293,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                 accessibilityLabel={textInputOptions?.label}
                 options={textInputOptions}
                 onSubmit={selectFocusedItem}
-                dataLength={flattenedData.length}
+                dataLength={itemsCount}
                 isLoading={isLoadingNewOptions}
                 onFocusChange={(v: boolean) => (isTextInputFocusedRef.current = v)}
                 shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}

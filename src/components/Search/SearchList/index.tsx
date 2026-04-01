@@ -27,6 +27,7 @@ import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useUndeleteTransactions from '@hooks/useUndeleteTransactions';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import DateUtils from '@libs/DateUtils';
@@ -126,12 +127,6 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     /** Custom card names */
     customCardNames?: Record<number, string>;
 
-    /** Callback to fire when DEW modal should be opened */
-    onDEWModalOpen?: () => void;
-
-    /** Whether the DEW beta flag is enabled */
-    isDEWBetaEnabled?: boolean;
-
     /** Selected transactions for determining isSelected state */
     selectedTransactions: SelectedTransactions;
 
@@ -220,8 +215,6 @@ function SearchList({
     newTransactions = [],
     violations,
     customCardNames,
-    onDEWModalOpen,
-    isDEWBetaEnabled,
     selectedTransactions,
     hasLoadedAllTransactions,
     ref,
@@ -309,6 +302,9 @@ function SearchList({
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
+    const undeleteTransactions = useUndeleteTransactions();
+
+    const handleUndelete = (transactionID: string) => undeleteTransactions([transactionID]);
 
     const route = useRoute();
     const {getScrollOffset} = useContext(ScrollOffsetContext);
@@ -447,8 +443,6 @@ function SearchList({
                         isDisabled={isDisabled}
                         groupBy={groupBy}
                         searchType={type}
-                        onDEWModalOpen={onDEWModalOpen}
-                        isDEWBetaEnabled={isDEWBetaEnabled}
                         lastPaymentMethod={lastPaymentMethod}
                         personalPolicyID={personalPolicyID}
                         userWalletTierName={userWalletTierName}
@@ -460,6 +454,7 @@ function SearchList({
                         customCardNames={customCardNames}
                         onFocus={onFocus}
                         newTransactionID={newTransactionID}
+                        onUndelete={handleUndelete}
                         keyForList={item.keyForList}
                     />
                 </Animated.View>
@@ -488,12 +483,11 @@ function SearchList({
             userBillingFundID,
             isOffline,
             violations,
-            onDEWModalOpen,
-            isDEWBetaEnabled,
             lastPaymentMethod,
             personalPolicyID,
             customCardNames,
             selectedTransactions,
+            handleUndelete,
         ],
     );
 

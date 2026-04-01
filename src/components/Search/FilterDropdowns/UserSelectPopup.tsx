@@ -47,7 +47,7 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const initialSelectedOptions = useMemo(() => {
         return value.reduce<OptionData[]>((options, id) => {
             const participant = personalDetails?.[id];

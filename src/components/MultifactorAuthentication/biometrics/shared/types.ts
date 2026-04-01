@@ -52,6 +52,9 @@ type UseBiometricsReturn = {
     /** Check if device supports the authentication method */
     doesDeviceSupportAuthenticationMethod: () => boolean;
 
+    /** Reason to use when doesDeviceSupportAuthenticationMethod() returns false (platform-specific) */
+    deviceCheckFailureReason: MultifactorAuthenticationReason;
+
     /** Check if device has biometric credentials stored locally */
     hasLocalCredentials: () => Promise<boolean>;
 

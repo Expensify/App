@@ -1,4 +1,5 @@
 import type {FileObject} from '@src/types/utils/Attachment';
+import STITCHED_ODOMETER_FILENAME_PREFIX from './constants';
 import calculateStitchLayout from './stitchLayout';
 
 // Tracks the single active stitched blob URL so that we can revoke it on the next call so at most one blob URL exists at a time
@@ -45,7 +46,7 @@ function stitchOdometerImages(image1: FileObject | string | undefined, image2: F
                 }
                 const uri = URL.createObjectURL(blob);
                 previousBlobUrl = uri;
-                resolve({uri, name: 'stitched_odometer.jpg', type: 'image/jpeg'});
+                resolve({uri, name: `${STITCHED_ODOMETER_FILENAME_PREFIX}.jpg`, type: 'image/jpeg'});
             }, 'image/jpeg');
         });
     });

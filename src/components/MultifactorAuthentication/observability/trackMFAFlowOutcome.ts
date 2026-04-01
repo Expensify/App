@@ -20,6 +20,12 @@ function classifyFailure(reason: MultifactorAuthenticationReason | undefined): F
     return 'unclassified';
 }
 
+type CredentialsState = {
+    hasServerCredentials: boolean;
+    hasLocalCredentials: boolean;
+    hasEverAcceptedSoftPrompt: boolean;
+};
+
 type MFAFlowOutcomeContext = {
     isSuccessful: boolean;
     scenario: string | undefined;
@@ -29,6 +35,8 @@ type MFAFlowOutcomeContext = {
     isRegistrationComplete: boolean;
     isAuthorizationComplete: boolean;
     softPromptApproved: boolean;
+    startState: CredentialsState;
+    endState: CredentialsState;
 };
 
 function trackMFAFlowOutcome(context: MFAFlowOutcomeContext): void {
@@ -37,10 +45,10 @@ function trackMFAFlowOutcome(context: MFAFlowOutcomeContext): void {
 
         const tags: Record<string, string> = {};
         if (context.scenario) {
-            tags[CONST.TELEMETRY.TAG_MFA_SCENARIO] = context.scenario;
+            tags[CONST.TELEMETRY.TAGS.MFA_SCENARIO] = context.scenario;
         }
         if (!context.isSuccessful && context.error?.reason) {
-            tags[CONST.TELEMETRY.TAG_MFA_ERROR_REASON] = context.error.reason;
+            tags[CONST.TELEMETRY.TAGS.MFA_ERROR_REASON] = context.error.reason;
         }
 
         const eventMessage = context.isSuccessful ? 'MFA Flow Success' : `MFA Flow Error: ${context.error?.reason ?? ''}`;
@@ -64,20 +72,20 @@ function trackMFAFlowOutcome(context: MFAFlowOutcomeContext): void {
             isRegistrationComplete: context.isRegistrationComplete,
             isAuthorizationComplete: context.isAuthorizationComplete,
             softPromptApproved: context.softPromptApproved,
-            timestamp: Date.now(),
+            startState: context.startState,
+            endState: context.endState,
         };
 
-        Sentry.captureMessage(eventMessage, {
-            level,
-            tags,
-            extra,
-            fingerprint: ['mfa-flow-outcome', context.isSuccessful ? 'success' : 'error', context.error?.reason ?? context.scenarioResponse?.reason ?? 'unknown'],
-        });
-
         if (level === 'error') {
-            Log.warn(`[MFA] ${eventMessage}`, extra);
+            Sentry.captureMessage(eventMessage, {
+                level,
+                tags,
+                extra,
+                fingerprint: ['mfa-flow-outcome', 'error', context.error?.reason ?? context.scenarioResponse?.reason ?? 'unknown'],
+            });
+            Log.warn(`[MFA] ${eventMessage}`, {mfa: extra});
         } else {
-            Log.info(`[MFA] ${eventMessage}`, false, extra);
+            Log.info(`[MFA] ${eventMessage}`, false, {mfa: extra});
         }
     } catch (sentryError) {
         Log.warn('[trackMFAFlowOutcome] Failed to track MFA flow outcome', {sentryError, originalContext: context});
@@ -85,3 +93,4 @@ function trackMFAFlowOutcome(context: MFAFlowOutcomeContext): void {
 }
 
 export default trackMFAFlowOutcome;
+export type {CredentialsState};

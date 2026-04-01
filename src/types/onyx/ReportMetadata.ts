@@ -54,6 +54,9 @@ type ReportMetadata = {
 
     /** Pending expense action for DEW policies (e.g., SUBMIT or APPROVE in progress) */
     pendingExpenseAction?: ValueOf<typeof CONST.EXPENSE_PENDING_ACTION>;
+
+    /** The newest report action ID from the last pagination response (excludes Pusher-delivered actions) */
+    newestFetchedReportActionID?: string;
 };
 
 export default ReportMetadata;
