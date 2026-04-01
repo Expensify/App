@@ -105,9 +105,9 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
         type,
     });
 
-    // The attachment route already provides a decoded/resolved source from the preview renderer.
-    // Re-resolving it from API root here can change the original attachment URL, so we only decode it.
-    const source = useMemo(() => getValidatedImageSource(sourceParam, false), [sourceParam]);
+    // Skip API root normalization for search attachments because this route is only opened from preview,
+    // which already passes a resolved source. Keep normalization for other types to support email entry points.
+    const source = useMemo(() => getValidatedImageSource(sourceParam, type !== CONST.ATTACHMENT_TYPE.SEARCH), [sourceParam, type]);
     const modalType = useReportAttachmentModalType(source);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
