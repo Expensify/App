@@ -1,6 +1,6 @@
 import {PortalHost} from '@gorhom/portal';
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {ViewStyle} from 'react-native';
 // We use Animated for all functionality related to wide RHP to make it easier
 // to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
@@ -24,6 +24,7 @@ import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
+import useIsOwnWorkspaceChatRef from '@hooks/useIsOwnWorkspaceChatRef';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import useNetwork from '@hooks/useNetwork';
 import useNewTransactions from '@hooks/useNewTransactions';
@@ -354,19 +355,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     });
     const isDeletedTransactionThread = isReportTransactionThread(report) && (isParentActionDeleted || isParentActionMissingAfterLoad);
     const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
-
-    // Track whether the current route is an own workspace chat (isOwnPolicyExpenseChat).
-    // Must be a ref set synchronously during render — by the time the navigation effects fire
-    // after a delegate split, the server SET has wiped report/prevReport in Onyx so we can't
-    // rely on live state or usePrevious. See issue #84248.
-    const isCurrentRouteOwnWorkspaceChatRef = useRef(false);
-    if (report?.reportID && report.reportID === reportIDFromRoute) {
-        isCurrentRouteOwnWorkspaceChatRef.current = !!report.isOwnPolicyExpenseChat;
-    } else if (!report?.reportID) {
-        // Report wiped by Onyx SET — intentionally keep the last known value.
-    } else {
-        isCurrentRouteOwnWorkspaceChatRef.current = false;
-    }
+    // Track whether the current route is an own workspace chat. See issue #84248.
+    const isCurrentRouteOwnWorkspaceChatRef = useIsOwnWorkspaceChatRef(report, reportIDFromRoute);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundLinkedAction =
@@ -583,11 +573,36 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
 
-        // Do not navigate away for own workspace chats — a delegate split causes a temporary
-        // Onyx wipe that looks like a deletion but the chat was never actually removed.
-        // See issue #84248.
+        // For own workspace chats, a vacation delegate split sends a temporary Onyx SET that
+        // wipes the report — triggering this effect — but the re-fetch in ReportFetchHandler
+        // restores the data shortly after. We delay navigation to allow the re-fetch to settle.
+        // If the wipe is temporary, reportWasDeleted resets to false before the timer fires and
+        // the delayed navigation never executes.
+        // If the workspace was genuinely removed (e.g. policy access revoked), the report stays
+        // gone after the delay and we navigate away correctly. See issue #84248.
         if (isCurrentRouteOwnWorkspaceChatRef.current) {
-            return;
+            const timer = setTimeout(() => {
+                // Re-check after delay: if report came back (re-fetch succeeded), skip navigation.
+                if (!reportWasDeleted) {
+                    return;
+                }
+                Navigation.dismissModal();
+                if (Navigation.getTopmostReportId() === reportIDFromRoute) {
+                    Navigation.isNavigationReady().then(() => {
+                        Navigation.popToSidebar();
+                    });
+                }
+                if (deletedReportParentID && !isMoneyRequestReportPendingDeletion(deletedReportParentID)) {
+                    Navigation.isNavigationReady().then(() => {
+                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(deletedReportParentID));
+                    });
+                    return;
+                }
+                Navigation.isNavigationReady().then(() => {
+                    navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas);
+                });
+            }, 500);
+            return () => clearTimeout(timer);
         }
 
         // Clean up the navigation stack before redirecting to prevent an infinite loop where

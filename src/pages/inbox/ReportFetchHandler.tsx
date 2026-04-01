@@ -4,6 +4,7 @@ import {InteractionManager} from 'react-native';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
+import useIsOwnWorkspaceChatRef from '@hooks/useIsOwnWorkspaceChatRef';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
@@ -68,12 +69,6 @@ function ReportFetchHandler() {
     const hasCreatedLegacyThreadRef = useRef(false);
     const didSubscribeToReportLeavingEvents = useRef(false);
 
-    // Track whether the current route is an own workspace chat synchronously during render.
-    // After a delegate split the server sends an Onyx SET that wipes the report; by the time a
-    // useEffect fires, report is undefined and we can no longer detect the chat type. See #84248.
-    const isCurrentRouteOwnWorkspaceChatRef = useRef(false);
-    // (Updated below after reportOnyx is read.)
-
     const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportOnyx?.chatReportID}`);
     const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`);
@@ -104,15 +99,8 @@ function ReportFetchHandler() {
 
     const isTransactionThreadView = isReportTransactionThread(report);
 
-    // Update the ref synchronously each render so the re-fetch effect below can read it
-    // even after the Onyx wipe has cleared `report`.
-    if (report?.reportID && report.reportID === reportIDFromRoute) {
-        isCurrentRouteOwnWorkspaceChatRef.current = !!report.isOwnPolicyExpenseChat;
-    } else if (!report?.reportID) {
-        // Report wiped — intentionally keep the last known value.
-    } else {
-        isCurrentRouteOwnWorkspaceChatRef.current = false;
-    }
+    // Track whether the current route is an own workspace chat. See issue #84248.
+    const isCurrentRouteOwnWorkspaceChatRef = useIsOwnWorkspaceChatRef(report, reportIDFromRoute);
 
     const indexOfLinkedMessage = reportActionIDFromRoute ? reportActions.findIndex((obj) => String(obj.reportActionID) === String(reportActionIDFromRoute)) : -1;
     const doesCreatedActionExists = !!reportActions?.findLast((action) => isCreatedAction(action));
@@ -183,6 +171,7 @@ function ReportFetchHandler() {
             return;
         }
         fetchReport();
+        // fetchReport is a stable useEffectEvent callback and does not need to be listed as a dependency.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [report?.reportID, prevReportID, reportIDFromRoute]);
 
