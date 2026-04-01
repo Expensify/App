@@ -15864,6 +15864,7 @@ describe('actions/IOU', () => {
             // Admin approves the report
             approveMoneyRequest({
                 expenseReport,
+                expenseReportPolicy: policy,
                 policy,
                 currentUserAccountIDParam: adminAccountID,
                 currentUserEmailParam: adminEmail,
@@ -15914,6 +15915,7 @@ describe('actions/IOU', () => {
             // Manager approves the report
             approveMoneyRequest({
                 expenseReport,
+                expenseReportPolicy: policy,
                 policy,
                 currentUserAccountIDParam: managerAccountID,
                 currentUserEmailParam: managerEmail,
@@ -15960,6 +15962,7 @@ describe('actions/IOU', () => {
             // Admin approves the report
             approveMoneyRequest({
                 expenseReport,
+                expenseReportPolicy: policy,
                 policy,
                 currentUserAccountIDParam: adminAccountID,
                 currentUserEmailParam: adminEmail,
@@ -16082,6 +16085,7 @@ describe('actions/IOU', () => {
             // Manager approves the report (no take control actions)
             approveMoneyRequest({
                 expenseReport,
+                expenseReportPolicy: policy,
                 policy,
                 currentUserAccountIDParam: managerAccountID,
                 currentUserEmailParam: managerEmail,
@@ -16111,6 +16115,7 @@ describe('actions/IOU', () => {
 
             approveMoneyRequest({
                 expenseReport,
+                expenseReportPolicy: policy,
                 policy,
                 currentUserAccountIDParam: managerAccountID,
                 currentUserEmailParam: managerEmail,
@@ -16138,6 +16143,7 @@ describe('actions/IOU', () => {
 
             approveMoneyRequest({
                 expenseReport: updatedReport,
+                expenseReportPolicy: policy,
                 policy,
                 currentUserAccountIDParam: adminAccountID,
                 currentUserEmailParam: adminEmail,
@@ -16195,6 +16201,7 @@ describe('actions/IOU', () => {
             // Manager approves the report
             approveMoneyRequest({
                 expenseReport: singleApproverReport,
+                expenseReportPolicy: singleApproverPolicy,
                 policy: singleApproverPolicy,
                 currentUserAccountIDParam: managerAccountID,
                 currentUserEmailParam: managerEmail,
@@ -16308,6 +16315,7 @@ describe('actions/IOU', () => {
 
             const newExpenseReportID = approveMoneyRequest({
                 expenseReport,
+                expenseReportPolicy: policy,
                 policy,
                 currentUserAccountIDParam: adminAccountID,
                 currentUserEmailParam: adminEmail,
