@@ -138,7 +138,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         transaction &&
         isSplitAction(currentReport, [transaction], originalTransaction, currentUserPersonalDetails.login ?? '', currentUserPersonalDetails.accountID, currentPolicy, parentReport);
 
-    const transactionDetails: Partial<TransactionDetails> = getTransactionDetails(transaction, undefined, currentPolicy) ?? {};
+    const transactionDetails: Partial<TransactionDetails> = getTransactionDetails(transaction, undefined, currentPolicy, true) ?? {};
     const transactionDetailsAmount = useMemo(() => {
         if (typeof transactionDetails?.amount !== 'number') {
             return 0;
