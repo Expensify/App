@@ -485,7 +485,6 @@ function MoneyRequestConfirmationListFooter({
 
     const merchantErrorText = useMemo(() => {
         const merchantValue = iouMerchant ?? '';
-        const trimmedMerchant = merchantValue.trim();
         const {isValid, byteLength} = isValidInputLength(merchantValue, CONST.MERCHANT_NAME_MAX_BYTES);
 
         if (!isValid) {
