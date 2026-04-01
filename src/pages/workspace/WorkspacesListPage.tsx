@@ -22,7 +22,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SearchBar from '@components/SearchBar';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
-import useAccountIDToLogin from '@hooks/useAccountIDToLogin';
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -74,6 +73,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {accountIDToLoginSelector} from '@src/selectors/PersonalDetails';
 import {ownerPoliciesSelector} from '@src/selectors/Policy';
 import {reimbursementAccountErrorSelector} from '@src/selectors/ReimbursementAccount';
 import type {Policy as PolicyType} from '@src/types/onyx';
@@ -136,7 +136,6 @@ function WorkspacesListPage() {
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Building', 'Exit', 'Copy', 'Star', 'Trashcan', 'Transfer', 'Plus', 'FallbackWorkspaceAvatar']);
     const {translate, localeCompare} = useLocalize();
     useDocumentTitle(translate('common.workspaces'));
-    const accountIDToLogin = useAccountIDToLogin();
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -204,6 +203,7 @@ function WorkspacesListPage() {
             policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDToDelete}`]?.workspaceAccountID);
     const hasExpensifyCard = !!policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDToDelete}`]?.areExpensifyCardsEnabled && !isEmptyObject(cardsList);
     const personalDetails = usePersonalDetails();
+    const [accountIDToLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: accountIDToLoginSelector(reportsToArchive)});
     const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
     const [isCannotLeaveWorkspaceModalOpen, setIsCannotLeaveWorkspaceModalOpen] = useState(false);
     const [policyIDToLeave, setPolicyIDToLeave] = useState<string>();
@@ -244,7 +244,7 @@ function WorkspacesListPage() {
             personalPolicyID,
             hasDeleteWorkspaceExpensifyCardsError,
             currentUserAccountID: currentUserPersonalDetails.accountID,
-            accountIDToLogin,
+            accountIDToLogin: accountIDToLogin ?? {},
         });
         if (isOffline) {
             setIsDeleteModalOpen(false);

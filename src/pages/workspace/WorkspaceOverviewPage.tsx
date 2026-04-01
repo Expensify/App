@@ -14,7 +14,6 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import Section from '@components/Section';
-import useAccountIDToLogin from '@hooks/useAccountIDToLogin';
 import useCardFeeds from '@hooks/useCardFeeds';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -71,6 +70,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {accountIDToLoginSelector} from '@src/selectors/PersonalDetails';
 import {ownerPoliciesSelector} from '@src/selectors/Policy';
 import {reimbursementAccountErrorSelector} from '@src/selectors/ReimbursementAccount';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -86,7 +86,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {getCurrencySymbol} = useCurrencyListActions();
-    const accountIDToLogin = useAccountIDToLogin();
     const illustrationIcons = useMemoizedLazyIllustrations(['Building']);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Exit', 'FallbackWorkspaceAvatar', 'ImageCropSquareMask', 'QrCode', 'Transfer', 'Trashcan', 'UserPlus']);
 
@@ -184,6 +183,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const personalDetails = usePersonalDetails();
+    const [accountIDToLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: accountIDToLoginSelector(reportsToArchive)});
     const [isCannotLeaveWorkspaceModalOpen, setIsCannotLeaveWorkspaceModalOpen] = useState(false);
     const privateSubscription = usePrivateSubscription();
     const accountID = currentUserPersonalDetails?.accountID;
@@ -270,7 +270,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             personalPolicyID,
             hasDeleteWorkspaceExpensifyCardsError,
             currentUserAccountID: accountID,
-            accountIDToLogin,
+            accountIDToLogin: accountIDToLogin ?? {},
         });
         if (isOffline) {
             setIsDeleteModalOpen(false);
