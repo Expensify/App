@@ -5,12 +5,13 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ComposerActionMenu from './ComposerActionMenu';
 import ComposerBox from './ComposerBox';
-import ComposerBoxContent from './ComposerBoxContent';
 import type {SuggestionsRef} from './ComposerContext';
 import ComposerDropZone from './ComposerDropZone';
 import ComposerEmojiPicker from './ComposerEmojiPicker';
 import ComposerFooter from './ComposerFooter';
+import ComposerInputWrapper from './ComposerInputWrapper';
 import ComposerLocalTime from './ComposerLocalTime';
 import ComposerProvider from './ComposerProvider';
 import ComposerSendButton from './ComposerSendButton';
@@ -33,7 +34,8 @@ function Composer({reportID}: ReportActionComposeProps) {
                 <View style={isComposerFullSize ? styles.flex1 : {}}>
                     <Composer.DropZone reportID={reportID}>
                         <Composer.Box reportID={reportID}>
-                            <ComposerBoxContent reportID={reportID} />
+                            <Composer.ActionMenu reportID={reportID} />
+                            <Composer.Input reportID={reportID} />
                             <Composer.EmojiPicker reportID={reportID} />
                             <Composer.SendButton />
                         </Composer.Box>
@@ -53,6 +55,8 @@ function Composer({reportID}: ReportActionComposeProps) {
 Composer.LocalTime = ComposerLocalTime;
 Composer.Box = ComposerBox;
 Composer.DropZone = ComposerDropZone;
+Composer.ActionMenu = ComposerActionMenu;
+Composer.Input = ComposerInputWrapper;
 Composer.EmojiPicker = ComposerEmojiPicker;
 Composer.SendButton = ComposerSendButton;
 Composer.Footer = ComposerFooter;
