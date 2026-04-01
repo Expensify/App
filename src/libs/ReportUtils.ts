@@ -5971,6 +5971,7 @@ function getReportName(reportNameInformation: GetReportNameParams): string {
                 // eslint-disable-next-line @typescript-eslint/no-deprecated -- translateLocal is deprecated; getReportName is non-React code that cannot use the translate hook
                 translate: translateLocal,
                 reportAction: parentReportAction,
+                policy,
                 movedFromReport,
                 movedToReport,
                 // Temporarily retrieves current user email from getCurrentUserEmail, since getReportName is deprecated and no longer requires this parameter to be passed explicitly.
