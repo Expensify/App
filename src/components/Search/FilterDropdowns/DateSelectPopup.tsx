@@ -1,5 +1,7 @@
 import React, {useCallback, useRef, useState} from 'react';
 import {View} from 'react-native';
+import {ViewStyle} from 'react-native';
+import {StyleProp} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import DatePresetFilterBase from '@components/Search/FilterComponents/DatePresetFilterBase';
@@ -14,13 +16,14 @@ import CONST from '@src/CONST';
 
 type DateSelectPopupProps = {
     /** The label to show when in an overlay on mobile */
-    label: string;
+    label?: string;
 
     /** The current date values */
     value: SearchDateValues;
 
     /** The date presets */
     presets?: SearchDatePreset[];
+    style?: StyleProp<ViewStyle>;
 
     /** Function to call when changes are applied */
     onChange: (value: SearchDateValues) => void;
@@ -29,7 +32,7 @@ type DateSelectPopupProps = {
     closeOverlay: () => void;
 };
 
-function DateSelectPopup({label, value, presets, closeOverlay, onChange}: DateSelectPopupProps) {
+function DateSelectPopup({label, value, presets, style, closeOverlay, onChange}: DateSelectPopupProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
@@ -75,8 +78,8 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange}: DateSe
     }, [closeOverlay, onChange, selectedDateModifier]);
 
     return (
-        <View style={[!isSmallScreenWidth && styles.pv4, styles.gap2]}>
-            {isSmallScreenWidth && !selectedDateModifier && <Text style={[styles.textLabel, styles.textSupporting, styles.ph5, styles.pv1]}>{label}</Text>}
+        <View style={[!isSmallScreenWidth && styles.pv4, styles.gap2, style]}>
+            {isSmallScreenWidth && !selectedDateModifier && label && <Text style={[styles.textLabel, styles.textSupporting, styles.ph5, styles.pv1]}>{label}</Text>}
             <View>
                 {!!selectedDateModifier && (
                     <HeaderWithBackButton
