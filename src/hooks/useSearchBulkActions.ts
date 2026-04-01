@@ -726,8 +726,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     value: CONST.SEARCH.BULK_ACTION_TYPES.UNDELETE,
                     shouldCloseModalOnSelect: true,
                     onSelected: () => {
+                        const totalTransactionsInResults = Object.keys(currentSearchResults?.data ?? {}).filter((key) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)).length;
                         undeleteTransactions(selectedTransactionsKeys);
-                        clearSelectedTransactions();
+                        clearSelectedTransactions(undefined, selectedTransactionsKeys.length >= totalTransactionsInResults);
                     },
                 },
             ];
