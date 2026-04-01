@@ -90,9 +90,9 @@ function Composer({
 
     const pasteFile = useCallback(
         (e: NativeSyntheticEvent<TextInputPasteEventData>) => {
-            const filePromises: Array<Promise<FileObject | undefined>> = e.nativeEvent.items.map(async (clipboardContent) => {
-                const mimeType = clipboardContent?.type ?? '';
-                const fileURI = clipboardContent?.data;
+            const filePromises: Array<Promise<FileObject | undefined>> = e.nativeEvent.items.map(async (clipboardFile) => {
+                const mimeType = clipboardFile?.type ?? '';
+                const fileURI = clipboardFile?.data;
                 const baseFileName = fileURI?.split('/').pop() ?? 'file';
                 const {fileName: stem, fileExtension: originalFileExtension} = splitExtensionFromFileName(baseFileName);
                 const fileExtension = originalFileExtension || (mimeDb[mimeType].extensions?.[0] ?? 'bin');
