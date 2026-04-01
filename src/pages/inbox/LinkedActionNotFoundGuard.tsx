@@ -1,18 +1,19 @@
 import {useRoute} from '@react-navigation/native';
 import type {ReactNode} from 'react';
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
-import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
-import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
-import {getFilteredReportActionsForReportView, isReportActionVisible, isWhisperAction} from '@libs/ReportActionsUtils';
+import {isReportActionVisible, isWhisperAction} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {getReportActionByIDSelector} from '@src/selectors/ReportAction';
 import {isLoadingInitialReportActionsSelector} from '@src/selectors/ReportMetaData';
+import type {ReportActions} from '@src/types/onyx';
 
 type LinkedActionNotFoundGuardProps = {
     children: ReactNode;
@@ -55,39 +56,49 @@ function LinkedActionNotFoundGate({reportActionIDFromRoute, children}: LinkedAct
     const [isLoadingInitialReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {
         selector: isLoadingInitialReportActionsSelector,
     });
+    const [linkedAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDFromRoute}`, {
+        selector: (actions: OnyxEntry<ReportActions>) => getReportActionByIDSelector(actions, reportActionIDFromRoute),
+    });
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
 
-    const reportID = report?.reportID;
-    const isReportArchived = useReportIsArchived(report?.reportID);
-
-    const {reportActions: unfilteredReportActions, linkedAction, sortedAllReportActions} = usePaginatedReportActions(reportID, reportActionIDFromRoute);
-    const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
+    const isReportArchived = useReportIsArchived(reportIDFromRoute);
 
     // --- Linked action status ---
-    const actionReportID = linkedAction?.reportID ?? reportID;
+    const actionReportID = linkedAction?.reportID ?? reportIDFromRoute;
     const hasNoActionReportID = !!linkedAction && !actionReportID;
     const isActionHidden =
         !!linkedAction && !!actionReportID && !isReportActionVisible(linkedAction, actionReportID, canUserPerformWriteAction(report, isReportArchived), visibleReportActionsData);
     const isLinkedActionDeleted = hasNoActionReportID || isActionHidden;
 
-    const prevIsLinkedActionDeleted = usePrevious(linkedAction ? isLinkedActionDeleted : undefined);
-
     const isLinkedActionInaccessibleWhisper = !!linkedAction && isWhisperAction(linkedAction) && !(linkedAction?.whisperedToAccountIDs ?? []).includes(currentUserAccountID);
 
-    const isNavigatedToDeletedAction = isLinkedActionDeleted && prevIsLinkedActionDeleted !== false;
+    // Track whether the linked action was ever loaded and visible during this mount.
+    // Set during render (React-supported pattern for adjusting state based on props).
+    // The key={reportActionIDFromRoute} on the gate ensures this resets on navigation to a different action.
+    const [wasEverVisible, setWasEverVisible] = useState(false);
+    if (linkedAction && !isLinkedActionDeleted && !wasEverVisible) {
+        setWasEverVisible(true);
+    }
 
+    // Show "comment not found" when:
+    // 1. The linked action doesn't exist in the report's actions collection (after loading completes)
+    // 2. The linked action exists but is deleted/hidden, and was never visible during this mount
+    //    (if it gets deleted while viewing, the effect below navigates away instead)
+    // Note: the inaccessible whisper case is handled separately by the whisper effect.
+    //
+    // This intentionally does NOT guard against "report actions exist but the filtered/paginated
+    // view is empty" — that's a report view concern, not a linked-action-not-found concern.
+    // Showing "comment not found" for an action that exists in the collection is incorrect.
     // eslint-disable-next-line rulesdir/no-negated-variables
-    const shouldShowNotFoundLinkedAction =
-        (!isLinkedActionInaccessibleWhisper && isNavigatedToDeletedAction) ||
-        (!isLoadingInitialReportActions && !!reportActionIDFromRoute && !!sortedAllReportActions && sortedAllReportActions?.length > 0 && reportActions.length === 0);
+    const shouldShowNotFoundLinkedAction = (!isLinkedActionInaccessibleWhisper && isLinkedActionDeleted && !wasEverVisible) || (!isLoadingInitialReportActions && !linkedAction);
 
     // Action was deleted while we were viewing it — navigate away
     useEffect(() => {
-        if (!isLinkedActionDeleted || prevIsLinkedActionDeleted !== false) {
+        if (!isLinkedActionDeleted || !wasEverVisible) {
             return;
         }
         Navigation.setParams({reportActionID: ''});
-    }, [isLinkedActionDeleted, prevIsLinkedActionDeleted]);
+    }, [isLinkedActionDeleted, wasEverVisible]);
 
     // Handle inaccessible whisper
     useEffect(() => {
