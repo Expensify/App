@@ -12,6 +12,8 @@ import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
+import getContextMenuAccessibilityHint from '@components/utils/getContextMenuAccessibilityHint';
+import getContextMenuAccessibilityProps from '@components/utils/getContextMenuAccessibilityProps';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -56,6 +58,7 @@ function OptionRowLHN({
     isScreenFocused = false,
     testID,
     conciergeReportID,
+    isApprovalDisabledForReport,
 }: OptionRowLHNProps) {
     const {isProduction} = useEnvironment();
     const theme = useTheme();
@@ -161,12 +164,17 @@ function OptionRowLHN({
     }
 
     const brickRoadIndicator = optionItem.brickRoadIndicator;
-    const actionBadgeText = !isProduction && optionItem.actionBadge ? translate(`common.actionBadge.${optionItem.actionBadge}`) : '';
+    const isTrackIntentUser = onboardingPurpose === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE || onboardingPurpose === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND;
+    const shouldUseMarkAsDone = isTrackIntentUser && isApprovalDisabledForReport && optionItem.actionBadge === CONST.REPORT.ACTION_BADGE.SUBMIT;
+    let actionBadgeText = '';
+    if (!isProduction && optionItem.actionBadge) {
+        actionBadgeText = shouldUseMarkAsDone ? translate('common.markAsDone') : translate(`common.actionBadge.${optionItem.actionBadge}`);
+    }
     let accessibilityLabelForBadge = '';
     if (brickRoadIndicator) {
-        accessibilityLabelForBadge = `. ${translate('common.yourReviewIsRequired')}, ${actionBadgeText}`;
+        accessibilityLabelForBadge = [translate('common.yourReviewIsRequired'), actionBadgeText].filter(Boolean).join(', ');
     } else if (optionItem.isPinned) {
-        accessibilityLabelForBadge = `. ${translate('common.pinned')}`;
+        accessibilityLabelForBadge = translate('common.pinned');
     }
     const textStyle = isOptionFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
     const textUnreadStyle = shouldUseBoldText(optionItem) ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
@@ -237,6 +245,20 @@ function OptionRowLHN({
         hideProductTrainingTooltip();
         onSelectRow(optionItem, popoverAnchor);
     };
+    const accessibilityLabel = [
+        `${translate('accessibilityHints.navigatesToChat')} ${optionItem.text}`,
+        optionItem.isUnread ? translate('common.unread') : '',
+        optionItem.alternateText ?? '',
+        accessibilityLabelForBadge,
+    ]
+        .filter(Boolean)
+        .join('. ');
+    const contextMenuHint = getContextMenuAccessibilityHint({translate});
+    const {accessibilityLabel: accessibilityLabelWithContextMenuHint, accessibilityHint} = getContextMenuAccessibilityProps({
+        accessibilityLabel,
+        nativeAccessibilityHint: accessibilityLabel,
+        contextMenuHint,
+    });
 
     return (
         <OfflineWithFeedback
@@ -303,7 +325,8 @@ function OptionRowLHN({
                                         (hovered || isContextMenuActive) && !isOptionFocused ? styles.sidebarLinkHover : null,
                                     ]}
                                     role={CONST.ROLE.BUTTON}
-                                    accessibilityLabel={`${translate('accessibilityHints.navigatesToChat')} ${optionItem.text}. ${optionItem.isUnread ? `${translate('common.unread')}.` : ''} ${optionItem.alternateText}${accessibilityLabelForBadge}`}
+                                    accessibilityLabel={accessibilityLabelWithContextMenuHint}
+                                    accessibilityHint={accessibilityHint}
                                     onLayout={onLayout}
                                     needsOffscreenAlphaCompositing={(optionItem?.icons?.length ?? 0) >= 2}
                                     sentryLabel={CONST.SENTRY_LABEL.LHN.OPTION_ROW}
