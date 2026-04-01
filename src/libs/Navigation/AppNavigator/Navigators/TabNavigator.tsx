@@ -4,17 +4,45 @@
 import type {BottomTabBarProps} from '@react-navigation/bottom-tabs';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {findFocusedRoute, useNavigation, useNavigationState} from '@react-navigation/native';
-import React, {useEffect} from 'react';
+import React, {lazy, Suspense, useEffect} from 'react';
+import {View} from 'react-native';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useThemeStyles from '@hooks/useThemeStyles';
 import type {TabNavigatorParamList} from '@libs/Navigation/types';
 import HomePage from '@pages/home/HomePage';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
-import ReportsSplitNavigator from './ReportsSplitNavigator';
-import SearchFullscreenNavigator from './SearchFullscreenNavigator';
-import SettingsSplitNavigator from './SettingsSplitNavigator';
 import TabNavigatorBar from './TabNavigatorBar';
-import WorkspaceNavigator from './WorkspaceNavigator';
+
+const LazyReportsSplitNavigator = lazy(() => import('./ReportsSplitNavigator'));
+const LazySearchFullscreenNavigator = lazy(() => import('./SearchFullscreenNavigator'));
+const LazySettingsSplitNavigator = lazy(() => import('./SettingsSplitNavigator'));
+const LazyWorkspaceNavigator = lazy(() => import('./WorkspaceNavigator'));
+
+function withSuspense<P extends Record<string, unknown>>(LazyComponent: React.LazyExoticComponent<React.ComponentType<P>>) {
+    function SuspenseWrapper(props: P) {
+        const styles = useThemeStyles();
+        return (
+            <Suspense
+                fallback={
+                    <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.appBG]}>
+                        <FullScreenLoadingIndicator reasonAttributes={{context: 'TabNavigator.LazyTab'}} />
+                    </View>
+                }
+            >
+                {/* eslint-disable-next-line react/jsx-props-no-spreading */}
+                <LazyComponent {...props} />
+            </Suspense>
+        );
+    }
+    return SuspenseWrapper;
+}
+
+const ReportsSplitNavigatorScreen = withSuspense(LazyReportsSplitNavigator);
+const SearchFullscreenNavigatorScreen = withSuspense(LazySearchFullscreenNavigator);
+const SettingsSplitNavigatorScreen = withSuspense(LazySettingsSplitNavigator);
+const WorkspaceNavigatorScreen = withSuspense(LazyWorkspaceNavigator);
 
 const renderTabBar = ({state}: BottomTabBarProps) => <TabNavigatorBar state={state} />;
 
@@ -71,19 +99,19 @@ function TabNavigator() {
             />
             <Tab.Screen
                 name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
-                component={ReportsSplitNavigator}
+                component={ReportsSplitNavigatorScreen}
             />
             <Tab.Screen
                 name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
-                component={SearchFullscreenNavigator}
+                component={SearchFullscreenNavigatorScreen}
             />
             <Tab.Screen
                 name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
-                component={SettingsSplitNavigator}
+                component={SettingsSplitNavigatorScreen}
             />
             <Tab.Screen
                 name={NAVIGATORS.WORKSPACE_NAVIGATOR}
-                component={WorkspaceNavigator}
+                component={WorkspaceNavigatorScreen}
             />
         </Tab.Navigator>
     );
