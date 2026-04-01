@@ -1491,7 +1491,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                     if (!transaction?.transactionID) {
                         return;
                     }
-                    markRejectViolationAsResolved(transaction?.transactionID, transactionThreadReport?.reportID);
+                    markRejectViolationAsResolved(transaction?.transactionID, isOffline, transactionThreadReport?.reportID);
                 }}
                 text={translate('iou.reject.markAsResolved')}
             />
