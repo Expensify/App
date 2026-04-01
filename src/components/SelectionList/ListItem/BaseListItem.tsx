@@ -115,6 +115,8 @@ function BaseListItem<TItem extends ListItem>({
                 shouldPreventEnterKeySubmit ||
                 event.key !== CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey ||
                 event.shiftKey ||
+                event.metaKey ||
+                event.ctrlKey ||
                 item.isInteractive === false ||
                 target?.tagName === CONST.ELEMENT_NAME.INPUT ||
                 target?.tagName === CONST.ELEMENT_NAME.TEXTAREA ||
