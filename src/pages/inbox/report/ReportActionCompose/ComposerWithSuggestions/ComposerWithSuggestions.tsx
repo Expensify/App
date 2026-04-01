@@ -22,6 +22,7 @@ import Composer from '@components/Composer';
 import type {CustomSelectionChangeEvent, TextSelection} from '@components/Composer/types';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -263,6 +264,7 @@ function ComposerWithSuggestions({
     const mobileInputScrollPosition = useRef(0);
     const cursorPositionValue = useSharedValue({x: 0, y: 0});
     const tag = useSharedValue(-1);
+    const isInSidePanel = useIsInSidePanel();
     const [draftComment = ''] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`);
     const [value, setValue] = useState(() => {
         if (draftComment) {
@@ -325,13 +327,16 @@ function ComposerWithSuggestions({
         (el: TextInput) => {
             if (isFocused) {
                 ReportActionComposeFocusManager.composerRef.current = el;
+                if (isInSidePanel && el !== ReportActionComposeFocusManager.sidePanelComposerRef.current && !!ReportActionComposeFocusManager.sidePanelComposerRef.current) {
+                    ReportActionComposeFocusManager.sidePanelComposerRef.current = el;
+                }
             }
             textInputRef.current = el;
             if (typeof animatedRef === 'function') {
                 animatedRef(el);
             }
         },
-        [animatedRef, isFocused],
+        [animatedRef, isFocused, isInSidePanel],
     );
 
     const resetKeyboardInput = useCallback(() => {
@@ -761,11 +766,6 @@ function ComposerWithSuggestions({
     }, []);
 
     useEffect(() => {
-        // On large screens there can be 2 Composers at the same time (Report & Concierge anywhere).
-        // This prevents composer that hasn't been active last from "stealing" focus between them when another input (ex. in search / emoji modals).
-        if (isExtraLargeScreenWidth && ReportActionComposeFocusManager.composerRef.current !== textInputRef.current) {
-            return;
-        }
         const unsubscribeNavigationBlur = navigation.addListener('blur', () => removeKeyDownPressListener(focusComposerOnKeyPress));
         const unsubscribeNavigationFocus = navigation.addListener('focus', () => {
             addKeyDownPressListener(focusComposerOnKeyPress);
@@ -802,6 +802,11 @@ function ComposerWithSuggestions({
             return;
         }
 
+        // Do not focus side panels composer if it wasn't focused before
+        if (isInSidePanel && ReportActionComposeFocusManager.sidePanelComposerRef.current !== textInputRef.current) {
+            return;
+        }
+
         // Do not focus the composer if the Side Panel is visible
         if (!isSidePanelHiddenOrLargeScreen) {
             return;
@@ -819,7 +824,7 @@ function ComposerWithSuggestions({
             return;
         }
         focus(true);
-    }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal?.isVisible, isNextModalWillOpenRef, shouldAutoFocus, isSidePanelHiddenOrLargeScreen]);
+    }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal?.isVisible, isNextModalWillOpenRef, shouldAutoFocus, isSidePanelHiddenOrLargeScreen, isInSidePanel]);
 
     useEffect(() => {
         // Scrolls the composer to the bottom and sets the selection to the end, so that longer drafts are easier to edit
@@ -918,10 +923,23 @@ function ComposerWithSuggestions({
     );
 
     const handleFocus = useCallback(() => {
-        // The last composer that had focus should re-gain focus
-        setUpComposeFocusManager(true);
+        if (!isInSidePanel) {
+            ReportActionComposeFocusManager.sidePanelComposerRef.current = null;
+        } else {
+            ReportActionComposeFocusManager.sidePanelComposerRef.current = textInputRef.current;
+        }
+        setUpComposeFocusManager(!isInSidePanel);
         onFocus();
-    }, [onFocus, setUpComposeFocusManager]);
+    }, [onFocus, setUpComposeFocusManager, isInSidePanel]);
+
+    useEffect(() => {
+        return () => {
+            if (!isInSidePanel || !ReportActionComposeFocusManager.sidePanelComposerRef?.current) {
+                return;
+            }
+            ReportActionComposeFocusManager.sidePanelComposerRef.current = null;
+        };
+    }, [isInSidePanel]);
 
     // When using the suggestions box (Suggestions) we need to imperatively
     // set the cursor to the end of the suggestion/mention after it's selected.

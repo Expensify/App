@@ -12,6 +12,10 @@ type ComposerType = 'main' | 'edit';
 type FocusCallback = (shouldFocusForNonBlurInputOnTapOutside?: boolean) => void;
 
 const composerRef: RefObject<TextInput | null> = React.createRef<TextInput>();
+/**
+ * There can be 2 composers present at the same time. This ref is for the side panel.
+ */
+const sidePanelComposerRef: RefObject<TextInput | null> = React.createRef<TextInput>();
 
 // There are two types of composer: general composer (edit composer) and main composer.
 // The general composer callback will take priority if it exists.
@@ -104,6 +108,7 @@ function preventEditComposerFocusOnFirstResponderOnce() {
 
 export default {
     composerRef,
+    sidePanelComposerRef,
     onComposerFocus,
     focus,
     clear,
