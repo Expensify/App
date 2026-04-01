@@ -18,6 +18,7 @@ import useOnyx from '@hooks/useOnyx';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getSpendRuleFormValuesFromCardRule} from '@libs/actions/Card';
 import {updateDraftSpendRule} from '@libs/actions/User';
 import {filterCardsByPersonalDetails, filterInactiveCards, getCardFeedIcon, sortCardsByCardholderName} from '@libs/CardUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -34,7 +35,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Card, ExpensifyCardSettings, WorkspaceCardsList} from '@src/types/onyx';
-import type {ExpensifyCardRule, ExpensifyCardRuleFilter} from '@src/types/onyx/ExpensifyCardSettings';
 
 type ExpensifyCardListItem = ListItem &
     AdditionalCardProps & {
@@ -43,28 +43,20 @@ type ExpensifyCardListItem = ListItem &
 
 type SpendRuleCardPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_SPEND_CARD>;
 
-function getCardIDsWithSpendRules(cardRules: Record<string, ExpensifyCardRule> | undefined): Set<number> {
+function getCardIDsWithSpendRules(cardRules: Record<string, string> | undefined): Set<number> {
     const cardIDs = new Set<number>();
     if (!cardRules) {
         return cardIDs;
     }
 
-    const traverseFilters = (filters: ExpensifyCardRuleFilter) => {
-        if (filters.operator === CONST.SEARCH.SYNTAX_OPERATORS.AND || filters.operator === CONST.SEARCH.SYNTAX_OPERATORS.OR) {
-            traverseFilters(filters.left as ExpensifyCardRuleFilter);
-            traverseFilters(filters.right as ExpensifyCardRuleFilter);
-            return;
-        }
-
-        if (filters.left === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID && filters.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && Array.isArray(filters.right)) {
-            for (const cardID of filters.right) {
-                cardIDs.add(cardID);
+    for (const rule of Object.values(cardRules)) {
+        const formValues = getSpendRuleFormValuesFromCardRule(rule);
+        for (const cardID of formValues?.cardIDs ?? []) {
+            const numericCardID = Number(cardID);
+            if (Number.isFinite(numericCardID)) {
+                cardIDs.add(numericCardID);
             }
         }
-    };
-
-    for (const rule of Object.values(cardRules)) {
-        traverseFilters(rule.filters);
     }
 
     return cardIDs;

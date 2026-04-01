@@ -1569,6 +1569,10 @@ type SpendRuleAST = {
     filters: SpendRuleASTNode;
 };
 
+function isSpendRuleASTNode(value: unknown): value is SpendRuleASTNode {
+    return !!value && typeof value === 'object' && 'left' in value && 'operator' in value && 'right' in value;
+}
+
 function combineSpendRuleASTNodes(nodes: SpendRuleASTNode[], operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>): SpendRuleASTNode | undefined {
     const [firstNode, ...remainingNodes] = nodes;
     if (!firstNode) {
@@ -1650,6 +1654,75 @@ function buildSpendRuleAST(spendRuleValues: SpendRuleForm): SpendRuleAST | undef
         action: spendRuleValues.restrictionAction ?? CONST.SPEND_CARD_RULE.ACTION.ALLOW,
         filters,
     };
+}
+
+function getSpendRuleFormValuesFromCardRule(cardRule: string): SpendRuleForm | undefined {
+    let parsedRule: unknown;
+
+    try {
+        parsedRule = JSON.parse(cardRule);
+    } catch {
+        return undefined;
+    }
+
+    if (!parsedRule || typeof parsedRule !== 'object' || !('filters' in parsedRule) || !('action' in parsedRule)) {
+        return undefined;
+    }
+
+    const rule = parsedRule as {filters: unknown; action: ValueOf<typeof CONST.SPEND_CARD_RULE.ACTION>};
+    if (!isSpendRuleASTNode(rule.filters)) {
+        return undefined;
+    }
+
+    const formValues: SpendRuleForm = {
+        cardIDs: [],
+        restrictionAction: rule.action,
+        merchantNames: [],
+        merchantMatchTypes: [],
+        categories: [],
+        maxAmount: '',
+    };
+
+    const traverseFilters = (filterNode: SpendRuleASTNode) => {
+        const {left, operator, right} = filterNode;
+
+        if (isSpendRuleASTNode(left)) {
+            traverseFilters(left);
+        }
+
+        if (isSpendRuleASTNode(right)) {
+            traverseFilters(right);
+            return;
+        }
+
+        if (typeof left !== 'string' || !Array.isArray(right)) {
+            return;
+        }
+
+        if (left === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
+            formValues.cardIDs = right;
+            return;
+        }
+
+        if (left === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
+            formValues.maxAmount = right.at(0) ?? '';
+            return;
+        }
+
+        if (left === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY) {
+            formValues.categories = right;
+            return;
+        }
+
+        if (left === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT) {
+            formValues.merchantNames = [...formValues.merchantNames, ...right];
+            formValues.merchantMatchTypes = [...formValues.merchantMatchTypes, ...right.map(() => operator)];
+        }
+    };
+
+    traverseFilters(rule.filters);
+
+    return formValues;
 }
 
 function setExpensifyCardRule(domainAccountID: number, cardRuleID: string, spendRuleValues: SpendRuleForm) {
@@ -1809,5 +1882,6 @@ export {
     resolveFraudAlert,
     setExpensifyCardRule,
     getSpendCardRuleValueJSON,
+    getSpendRuleFormValuesFromCardRule,
 };
 export type {ReplacementReason};
