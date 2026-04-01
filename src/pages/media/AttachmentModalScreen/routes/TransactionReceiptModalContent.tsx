@@ -284,7 +284,11 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const allowDownload = !isEReceipt;
 
     const applyDurableReceipt = useCallback(
-        (txnID: string, imageUri: string, filename: string, file: File, isSameReceipt?: boolean) => {
+        (imageUri: string, filename: string, file: File, isSameReceipt?: boolean) => {
+            const txnID = transaction?.transactionID;
+            if (!txnID) {
+                return Promise.resolve();
+            }
             return moveReceiptToDurableStorage(imageUri, filename).then((durableUri) => {
                 const durableFile = Object.assign(new File([file], file.name || filename, {type: file.type}), {uri: durableUri, source: durableUri});
                 if (isOdometerImage) {
@@ -303,7 +307,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 }
             });
         },
-        [isDraftTransaction, isOdometerImage, imageType, fileType, policyCategories, policy, transaction?.receipt?.state],
+        [transaction?.transactionID, transaction?.receipt?.state, isDraftTransaction, isOdometerImage, imageType, fileType, policyCategories, policy],
     );
 
     const rotateReceipt = useCallback(() => {
@@ -332,7 +336,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 const file = rotatedImage as File;
                 const rotatedFilename = file.name ?? receiptFilename;
 
-                return applyDurableReceipt(transaction.transactionID, imageUriResult, rotatedFilename, file, true).then(() => {
+                return applyDurableReceipt(imageUriResult, rotatedFilename, file, true).then(() => {
                     setIsRotating(false);
                 });
             })
@@ -406,7 +410,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 const file = croppedImage as File;
                 const croppedFilename = file.name ?? receiptFilename;
 
-                return applyDurableReceipt(transaction.transactionID, imageUriResult, croppedFilename, file).then(() => {
+                return applyDurableReceipt(imageUriResult, croppedFilename, file).then(() => {
                     setIsCropSaving(false);
                     exitCropMode();
                 });
