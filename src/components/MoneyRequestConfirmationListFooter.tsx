@@ -21,10 +21,11 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {setMoneyRequestAmount} from '@libs/actions/IOU';
+import {setMoneyRequestDescription, setMoneyRequestMerchant} from '@libs/actions/IOU';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {convertToBackendAmount, convertToDisplayString, convertToFrontendAmountAsString, getCurrencyDecimals, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {isMovingTransactionFromTrackExpense, shouldShowReceiptEmptyState} from '@libs/IOUUtils';
+import {calculateAmount, isMovingTransactionFromTrackExpense, shouldShowReceiptEmptyState} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDestinationForDisplay, getSubratesFields, getSubratesForDisplay, getTimeDifferenceIntervals, getTimeForDisplay} from '@libs/PerDiemRequestUtils';
 import {canSendInvoice, getPerDiemCustomUnit} from '@libs/PolicyUtils';
@@ -38,6 +39,7 @@ import {
     getTagForDisplay,
     getTaxAmount,
     getTaxRateTitle,
+    hasReceipt,
     isAmountMissing,
     isCreatedMissing,
     isFetchingWaypointsFromServer,
@@ -47,9 +49,11 @@ import {
     willFieldBeAutomaticallyFilled,
 } from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+import {isInvalidMerchantValue, isValidInputLength} from '@libs/ValidationUtils';
 import IOURequestStepCurrencyModal from '@pages/iou/request/step/IOURequestStepCurrencyModal';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import variables from '@styles/variables';
+import {resetSplitShares, setDraftSplitTransaction} from '@userActions/IOU/Split';
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -76,6 +80,7 @@ import ReceiptEmptyState from './ReceiptEmptyState';
 import ReceiptImage from './ReceiptImage';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from './ShowContextMenuContext';
 import Text from './Text';
+import TextInput from './TextInput';
 
 type MoneyRequestConfirmationListFooterProps = {
     /** The action to perform */
@@ -359,6 +364,29 @@ function MoneyRequestConfirmationListFooter({
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isCreatingTrackExpense = action === CONST.IOU.ACTION.CREATE && iouType === CONST.IOU.TYPE.TRACK;
 
+    const handleMerchantInputChange = useCallback(
+        (newMerchant: string) => {
+            if (!transactionID) {
+                return;
+            }
+
+            const merchantToSave = newMerchant;
+            setMoneyRequestMerchant(transactionID, merchantToSave, true, hasReceipt(transaction));
+        },
+        [transactionID, transaction],
+    );
+
+    const handleDescriptionInputChange = useCallback(
+        (newDescription: string) => {
+            if (!transactionID) {
+                return;
+            }
+
+            setMoneyRequestDescription(transactionID, newDescription.trim(), true, hasReceipt(transaction));
+        },
+        [transactionID, transaction],
+    );
+
     const decodedCategoryName = useMemo(() => getDecodedCategoryName(iouCategory), [iouCategory]);
     const isScan = isScanRequest(transaction);
 
@@ -448,8 +476,28 @@ function MoneyRequestConfirmationListFooter({
     // Get the tax rate title based on the policy and transaction
     const taxRateTitle = getTaxRateTitle(policy, transaction, isMovingCurrentTransactionFromTrackExpense, policyForMovingExpenses);
 
+    const merchantErrorText = useMemo(() => {
+        const merchantValue = iouMerchant ?? '';
+        const trimmedMerchant = merchantValue.trim();
+        const {isValid, byteLength} = isValidInputLength(merchantValue, CONST.MERCHANT_NAME_MAX_BYTES);
+
+        if (!isValid) {
+            return translate('common.error.characterLimitExceedCounter', byteLength, CONST.MERCHANT_NAME_MAX_BYTES);
+        }
+
+        if ((shouldDisplayFieldError || formError === 'iou.error.invalidMerchant') && isMerchantRequired && !trimmedMerchant) {
+            return translate('common.error.fieldRequired');
+        }
+
+        if ((shouldDisplayFieldError || formError === 'iou.error.invalidMerchant') && trimmedMerchant && isInvalidMerchantValue(trimmedMerchant)) {
+            return translate('iou.error.invalidMerchant');
+        }
+
+        return '';
+    }, [formError, iouMerchant, isMerchantRequired, shouldDisplayFieldError, translate]);
+
     // Determine if the merchant error should be displayed
-    const shouldDisplayMerchantError = isMerchantRequired && (shouldDisplayFieldError || formError === 'iou.error.invalidMerchant') && isMerchantEmpty;
+    const shouldDisplayMerchantError = !!merchantErrorText;
     const shouldDisplayDistanceRateError = formError === 'iou.error.invalidRate';
     const shouldDisplayTagError = formError === 'violations.tagOutOfPolicy';
     const shouldDisplayTaxRateError = formError === 'violations.taxOutOfPolicy';
@@ -657,6 +705,20 @@ function MoneyRequestConfirmationListFooter({
                     <ShowContextMenuStateContext.Provider value={contextMenuStateValue}>
                         <ShowContextMenuActionsContext.Provider value={contextMenuActionsValue}>
                             <MentionReportContext.Provider value={mentionReportContextValue}>
+                                {isNewManualExpenseFlowEnabled && !didConfirm && !isReadOnly ? (
+                                    <View style={[styles.mh4, styles.mv2]}>
+                                        <TextInput
+                                            value={iouComment ?? ''}
+                                            onChangeText={handleDescriptionInputChange}
+                                            label={translate('common.description')}
+                                            accessibilityLabel={translate('common.description')}
+                                            autoGrowHeight
+                                            maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
+                                            type="markdown"
+                                            excludedMarkdownStyles={!policy ? ['mentionReport'] : []}
+                                        />
+                                    </View>
+                                ) : (
                                 <MenuItemWithTopDescription
                                     shouldShowRightIcon={!isReadOnly}
                                     shouldParseTitle
@@ -680,6 +742,7 @@ function MoneyRequestConfirmationListFooter({
                                     rightLabel={isDescriptionRequired ? translate('common.required') : ''}
                                     sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DESCRIPTION_FIELD}
                                 />
+                                )}
                             </MentionReportContext.Provider>
                         </ShowContextMenuActionsContext.Provider>
                     </ShowContextMenuStateContext.Provider>
@@ -764,7 +827,18 @@ function MoneyRequestConfirmationListFooter({
             shouldShowAboveShowMore: false,
         },
         {
-            item: (
+            item:
+                isNewManualExpenseFlowEnabled && !isReadOnly ? (
+                    <View style={[styles.mh4, styles.mv2]}>
+                        <TextInput
+                            value={isMerchantEmpty ? '' : (iouMerchant ?? '')}
+                            onChangeText={handleMerchantInputChange}
+                            label={translate('common.merchant')}
+                            accessibilityLabel={translate('common.merchant')}
+                            errorText={merchantErrorText}
+                        />
+                    </View>
+                ) : (
                 <MenuItemWithTopDescription
                     key={translate('common.merchant')}
                     shouldShowRightIcon={!isReadOnly}
