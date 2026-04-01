@@ -158,7 +158,8 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
         const currentState = navigationRef.getRootState();
 
         // There is a brief moment when the RHP is not in the state anymore but the overlay is still visible (closing RHP animation)
-        // We need to block overlay press function in such case because it would go back from the currently active  full screen.
+        // We need to block overlay press function in such case because it would go back from the currently active full screen.
+        // Without this, the bug described in https://github.com/Expensify/App/issues/78440 would occur.
         if (currentState.routes.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
             navigation.goBack();
             setTimeout(() => {
