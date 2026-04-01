@@ -882,6 +882,7 @@ function getSecondaryReportActions({
     if (
         isPrimaryPayAction({
             report,
+            reportTransactions,
             currentUserAccountID,
             currentUserLogin,
             bankAccountList,
@@ -889,7 +890,6 @@ function getSecondaryReportActions({
             reportNameValuePairs,
             isChatReportArchived,
             reportActions,
-            reportTransactions,
             isSecondaryAction: true,
         }) &&
         (hasOnlyHeldExpenses(report?.reportID) || didExportFail)

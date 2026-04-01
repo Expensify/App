@@ -1,6 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import type {ReactNode} from 'react';
-import React, {useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -33,7 +33,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type IconAsset from '@src/types/utils/IconAsset';
 import BrokenConnectionDescription from './BrokenConnectionDescription';
-import DecisionModal from './DecisionModal';
 import HeaderLoadingBar from './HeaderLoadingBar';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import Icon from './Icon';
@@ -72,13 +71,11 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
 
-    const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
-
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
     const {email, accountID} = useCurrentUserPersonalDetails();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Flag', 'Hourglass', 'Stopwatch'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Flag', 'Hourglass', 'Stopwatch']);
     const icons = useMemoizedLazyExpensifyIcons(['CreditCardHourglass', 'ReceiptScan']);
     const {wideRHPRouteKeys} = useWideRHPState();
 
@@ -198,15 +195,6 @@ function MoneyRequestHeader({reportID: reportIDProp, onBackButtonPress}: MoneyRe
                 </View>
             )}
             <HeaderLoadingBar />
-            <DecisionModal
-                title={translate('common.downloadFailedTitle')}
-                prompt={translate('common.downloadFailedDescription')}
-                isSmallScreenWidth={isSmallScreenWidth}
-                onSecondOptionSubmit={() => setDownloadErrorModalVisible(false)}
-                secondOptionText={translate('common.buttonConfirm')}
-                isVisible={downloadErrorModalVisible}
-                onClose={() => setDownloadErrorModalVisible(false)}
-            />
         </View>
     );
 }

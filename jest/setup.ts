@@ -375,3 +375,10 @@ jest.mock('@src/hooks/useDomainDocumentTitle', () => ({
     __esModule: true,
     default: jest.fn(),
 }));
+
+jest.mock('react-native-vision-camera', () => ({
+    Camera: 'Camera',
+    useCameraDevice: jest.fn(() => null),
+    useCameraFormat: jest.fn(() => null),
+    useCameraPermission: jest.fn(() => ({hasPermission: false, requestPermission: jest.fn()})),
+}));

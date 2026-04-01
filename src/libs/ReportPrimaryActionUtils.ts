@@ -33,6 +33,7 @@ import {
     hasExportError as hasExportErrorUtil,
     hasHeldExpenses,
     hasOnlyHeldExpenses,
+    hasOnlyNonReimbursableTransactions,
     isArchivedReport,
     isClosedReport as isClosedReportUtils,
     isCurrentUserSubmitter,
@@ -82,6 +83,20 @@ type GetReportPrimaryActionParams = {
     isPaidAnimationRunning?: boolean;
     isApprovedAnimationRunning?: boolean;
     isSubmittingAnimationRunning?: boolean;
+};
+
+type IsPrimaryPayActionParams = {
+    report: Report;
+    reportTransactions: Transaction[];
+    currentUserAccountID: number;
+    currentUserLogin: string;
+    bankAccountList: OnyxEntry<BankAccountList>;
+    policy?: Policy;
+    reportNameValuePairs?: ReportNameValuePairs;
+    isChatReportArchived?: boolean;
+    invoiceReceiverPolicy?: Policy;
+    reportActions?: ReportAction[];
+    isSecondaryAction?: boolean;
 };
 
 function isAddExpenseAction(report: Report, reportTransactions: Transaction[], isChatReportArchived: boolean) {
@@ -223,6 +238,7 @@ function isApproveAction(
 
 function isPrimaryPayAction({
     report,
+    reportTransactions,
     currentUserAccountID,
     currentUserLogin,
     bankAccountList,
@@ -231,21 +247,8 @@ function isPrimaryPayAction({
     isChatReportArchived,
     invoiceReceiverPolicy,
     reportActions,
-    reportTransactions,
     isSecondaryAction,
-}: {
-    report: Report;
-    currentUserAccountID: number;
-    currentUserLogin: string;
-    bankAccountList: OnyxEntry<BankAccountList>;
-    policy?: Policy;
-    reportNameValuePairs?: ReportNameValuePairs;
-    isChatReportArchived?: boolean;
-    invoiceReceiverPolicy?: Policy;
-    reportActions?: ReportAction[];
-    reportTransactions?: Transaction[];
-    isSecondaryAction?: boolean;
-}) {
+}: IsPrimaryPayActionParams) {
     if (isArchivedReport(reportNameValuePairs) || isChatReportArchived) {
         return false;
     }
@@ -278,7 +281,16 @@ function isPrimaryPayAction({
     const isAutoReimbursable = canBeAutoReimbursed(report, policy);
     const isPayAtEnd = isPayAtEndExpenseReportUtils(report, reportTransactions);
 
-    if (isReportPayer && isExpenseReport && arePaymentsEnabled && isReportFinished && !isReportSettled && reimbursableSpend > 0 && !isAutoReimbursable && !isPayAtEnd) {
+    if (
+        isReportPayer &&
+        isExpenseReport &&
+        arePaymentsEnabled &&
+        isReportFinished &&
+        !isReportSettled &&
+        (reimbursableSpend > 0 || hasOnlyNonReimbursableTransactions(report?.reportID, reportTransactions)) &&
+        !isAutoReimbursable &&
+        !isPayAtEnd
+    ) {
         return isSecondaryAction ?? !didExportFail;
     }
 
@@ -534,6 +546,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
     const isPayActionWithAllExpensesHeld =
         isPrimaryPayAction({
             report,
+            reportTransactions,
             currentUserAccountID,
             currentUserLogin,
             bankAccountList,
@@ -542,7 +555,6 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
             isChatReportArchived,
             invoiceReceiverPolicy,
             reportActions,
-            reportTransactions,
         }) && hasOnlyHeldExpenses(report?.reportID);
     const expensesToHold = getAllExpensesToHoldIfApplicable(report, reportActions, reportTransactions, policy);
 
@@ -573,6 +585,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
     if (
         isPrimaryPayAction({
             report,
+            reportTransactions,
             currentUserAccountID,
             currentUserLogin,
             bankAccountList,
@@ -581,7 +594,6 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
             isChatReportArchived,
             invoiceReceiverPolicy,
             reportActions,
-            reportTransactions,
         })
     ) {
         return CONST.REPORT.PRIMARY_ACTIONS.PAY;
