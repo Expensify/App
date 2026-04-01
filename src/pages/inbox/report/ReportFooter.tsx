@@ -29,12 +29,12 @@ import {
 } from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {isLoadingInitialReportActionsSelector} from '@src/selectors/ReportMetaData';
 import type * as OnyxTypes from '@src/types/onyx';
 import ReportActionCompose from './ReportActionCompose/ReportActionCompose';
 import SystemChatReportFooterMessage from './SystemChatReportFooterMessage';
 
 const policyRoleSelector = (policy: OnyxEntry<OnyxTypes.Policy>) => policy?.role;
-const isLoadingInitialReportActionsSelector = (reportMetadata: OnyxEntry<OnyxTypes.ReportMetadata>) => reportMetadata?.isLoadingInitialReportActions;
 
 /**
  * Footer component that decides between the composer and

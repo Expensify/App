@@ -14,16 +14,7 @@ import {isReportTransactionThread, isValidReportIDFromPath} from '@libs/ReportUt
 import {getParentReportActionDeletionStatus} from '@libs/TransactionNavigationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-
-const defaultReportMetadata = {
-    hasOnceLoadedReportActions: false,
-    isLoadingInitialReportActions: true,
-    isLoadingOlderReportActions: false,
-    hasLoadingOlderReportActionsError: false,
-    isLoadingNewerReportActions: false,
-    hasLoadingNewerReportActionsError: false,
-    isOptimisticReport: false,
-};
+import {isLoadingInitialReportActionsSelector} from '@src/selectors/ReportMetaData';
 
 type ReportNotFoundGuardProps = {
     children: ReactNode;
@@ -42,7 +33,9 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const [parentReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.parentReportID}`);
     const [userLeavingStatus = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportIDFromRoute}`);
-    const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`);
+    const [isLoadingInitialReportActions = true] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {
+        selector: isLoadingInitialReportActionsSelector,
+    });
     const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
@@ -60,10 +53,8 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
     });
     const isDeletedTransactionThread = isReportTransactionThread(report) && (isParentActionDeleted || isParentActionMissingAfterLoad);
 
-    const currentReportIDFormRoute = (route.params as {reportID?: string} | undefined)?.reportID;
-
-    const isInvalidReportPath = !!currentReportIDFormRoute && !isValidReportIDFromPath(currentReportIDFormRoute);
-    const isLoading = isLoadingApp !== false || isLoadingReportData || (!isOffline && !!reportMetadata?.isLoadingInitialReportActions);
+    const isInvalidReportPath = !!routeParams?.reportID && !isValidReportIDFromPath(routeParams.reportID);
+    const isLoading = isLoadingApp !== false || isLoadingReportData || (!isOffline && !!isLoadingInitialReportActions);
     const reportExists = !!reportID || (!isDeletedTransactionThread && isOptimisticDelete) || userLeavingStatus;
 
     // eslint-disable-next-line rulesdir/no-negated-variables
@@ -78,11 +69,11 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
             isLoadingApp,
             isLoadingReportData,
             isOffline,
-            isLoadingInitialReportActions: reportMetadata?.isLoadingInitialReportActions,
+            isLoadingInitialReportActions,
             reportID,
             isOptimisticDelete,
             userLeavingStatus,
-            currentReportIDFormRoute,
+            reportIDFromPath: routeParams?.reportID,
             deleteTransactionNavigateBackUrl,
             isDeletedTransactionThread,
             isParentActionDeleted,
@@ -93,11 +84,11 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
         isLoadingApp,
         isLoadingReportData,
         isOffline,
-        reportMetadata?.isLoadingInitialReportActions,
+        isLoadingInitialReportActions,
         reportID,
         isOptimisticDelete,
         userLeavingStatus,
-        currentReportIDFormRoute,
+        routeParams?.reportID,
         deleteTransactionNavigateBackUrl,
         isDeletedTransactionThread,
         isParentActionDeleted,
