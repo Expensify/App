@@ -6,6 +6,7 @@ import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {ButtonProps} from './Button';
 import Button from './Button';
+import ButtonDoubleLineText from './primitives/ButtonDoubleLineText';
 import {ButtonIconLeft, ButtonIconRight} from './primitives/ButtonIcons';
 import ButtonText from './primitives/ButtonText';
 
@@ -17,6 +18,7 @@ type ButtonWithIconsProps = ButtonProps & {
     iconLeftStyles?: StyleProp<ViewStyle>;
     // Text Props
     text?: string;
+    secondLineText?: string;
     textHoverStyles?: StyleProp<TextStyle>;
     textStyles?: StyleProp<TextStyle>;
     textNumberOfLines?: number;
@@ -64,6 +66,7 @@ function ButtonWithIcons({
     iconLeftHoverFill,
     iconLeftStyles = [],
     text = '',
+    secondLineText,
     textHoverStyles = [],
     textStyles = [],
     textNumberOfLines = 1,
@@ -126,14 +129,24 @@ function ButtonWithIcons({
                     style={[!text && styles.mr0, iconLeftStyles]}
                 />
             )}
-            {!!text && (
-                <ButtonText
+            {secondLineText ? (
+                <ButtonDoubleLineText
+                    primaryText={text}
+                    secondLineText={secondLineText}
                     hoverStyle={textHoverStyles}
-                    style={[!!iconLeft && styles.textAlignLeft, textStyles]}
-                    numberOfLines={textNumberOfLines}
-                >
-                    {text}
-                </ButtonText>
+                    textStyle={textStyles}
+                    primaryTextNumberOfLines={textNumberOfLines}
+                />
+            ) : (
+                !!text && (
+                    <ButtonText
+                        hoverStyle={textHoverStyles}
+                        style={[!!iconLeft && styles.textAlignLeft, textStyles]}
+                        numberOfLines={textNumberOfLines}
+                    >
+                        {text}
+                    </ButtonText>
+                )
             )}
             {!!iconRight && (
                 <ButtonIconRight

@@ -1,12 +1,12 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import {useButtonContext} from '@components/ButtonComposed/context';
 import Icon from '@components/Icon';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
-import {useButtonContext} from '../context';
 
 type ButtonIconProps = {
     /** The icon asset to display */

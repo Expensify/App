@@ -6,7 +6,6 @@ import Button from '@components/Button';
 import ButtonComposed from '@components/ButtonComposed';
 import Icon from '@components/Icon';
 import PopoverMenu from '@components/PopoverMenu';
-import Text from '@components/Text';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import usePopoverPosition from '@hooks/usePopoverPosition';
@@ -198,17 +197,11 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                     >
                         {iconLeft}
                         {secondLineText ? (
-                            <View style={[styles.alignItemsCenter, styles.flexColumn, styles.flexShrink1, styles.mw100]}>
-                                <ButtonComposed.Text style={[isTextTooLong && shouldUseShortForm ? {...styles.textExtraSmall, ...styles.textBold} : {}, styles.noPaddingBottom]}>
-                                    {customText ?? selectedItem?.text ?? ''}
-                                </ButtonComposed.Text>
-                                <Text
-                                    style={[styles.pointerEventsNone, styles.fontWeightNormal, styles.textDoubleDecker, styles.textExtraSmallSupporting, styles.textWhite, styles.textBold]}
-                                    numberOfLines={1}
-                                >
-                                    {secondLineText}
-                                </Text>
-                            </View>
+                            <ButtonComposed.DoubleLineText
+                                primaryText={customText ?? selectedItem?.text ?? ''}
+                                secondLineText={secondLineText}
+                                textStyle={isTextTooLong && shouldUseShortForm ? {...styles.textExtraSmall, ...styles.textBold} : undefined}
+                            />
                         ) : (
                             <ButtonComposed.Text style={isTextTooLong && shouldUseShortForm ? {...styles.textExtraSmall, ...styles.textBold} : {}}>
                                 {customText ?? selectedItem?.text ?? ''}
@@ -288,15 +281,10 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                         ? !!firstOptionIcon && <ButtonComposed.IconLeft src={firstOptionIcon} />
                         : !!icon && <ButtonComposed.IconLeft src={icon} />}
                     {secondLineText ? (
-                        <View style={[styles.alignItemsCenter, styles.flexColumn, styles.flexShrink1, styles.mw100]}>
-                            <ButtonComposed.Text style={styles.noPaddingBottom}>{selectedItem?.text ?? ''}</ButtonComposed.Text>
-                            <Text
-                                style={[styles.pointerEventsNone, styles.fontWeightNormal, styles.textDoubleDecker, styles.textExtraSmallSupporting, styles.textWhite, styles.textBold]}
-                                numberOfLines={1}
-                            >
-                                {secondLineText}
-                            </Text>
-                        </View>
+                        <ButtonComposed.DoubleLineText
+                            primaryText={selectedItem?.text ?? ''}
+                            secondLineText={secondLineText}
+                        />
                     ) : (
                         <ButtonComposed.Text style={isTextTooLong && shouldUseShortForm ? {...styles.textExtraSmall, ...styles.textBold} : {}}>
                             {selectedItem?.text ?? ''}
