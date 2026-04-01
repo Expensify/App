@@ -1865,7 +1865,6 @@ function PureReportActionItem({
                                         draftMessage={draftMessage}
                                         reportID={reportID}
                                         originalReportID={originalReportID}
-                                        policyID={report?.policyID}
                                         index={index}
                                         ref={composerTextInputRef}
                                         shouldDisableEmojiPicker={

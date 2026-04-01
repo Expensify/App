@@ -984,8 +984,6 @@ function ComposerWithSuggestions({
                 isComposerFocused={textInputRef.current?.isFocused()}
                 updateComment={updateComment}
                 measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
-                isGroupPolicyReport={isGroupPolicyReport}
-                policyID={policyID}
                 // Input
                 value={value}
                 selection={selection}

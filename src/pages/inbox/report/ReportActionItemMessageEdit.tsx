@@ -73,9 +73,6 @@ type ReportActionItemMessageEditProps = {
     /** ID of the original report from which the given reportAction is first created */
     originalReportID: string;
 
-    /** PolicyID of the policy the report belongs to */
-    policyID?: string;
-
     /** Position index of the report action in the overall report FlatList view */
     index: number;
 
@@ -104,7 +101,6 @@ function ReportActionItemMessageEdit({
     draftMessage,
     reportID,
     originalReportID,
-    policyID,
     index,
     isGroupPolicyReport,
     shouldDisableEmojiPicker = false,
@@ -594,8 +590,6 @@ function ReportActionItemMessageEdit({
                         isComposerFocused={textInputRef.current?.isFocused()}
                         updateComment={updateDraft}
                         measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
-                        isGroupPolicyReport={isGroupPolicyReport}
-                        policyID={policyID}
                         value={draft}
                         selection={selection}
                         setSelection={setSelection}

@@ -89,8 +89,6 @@ function renderSuggestionMention(value: string, updateComment = jest.fn(), selec
             isAutoSuggestionPickerLarge
             measureParentContainerAndReportCursor={() => {}}
             isComposerFocused
-            isGroupPolicyReport={false}
-            policyID="policyID"
         />,
     );
 

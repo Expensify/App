@@ -1,5 +1,5 @@
 import type {ForwardedRef} from 'react';
-import React, {useCallback, useEffect, useImperativeHandle, useRef} from 'react';
+import React, {useEffect, useImperativeHandle, useRef} from 'react';
 import type {TextInputSelectionChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import type {MeasureParentContainerAndCursorCallback} from '@components/AutoCompleteSuggestions/types';
@@ -38,12 +38,6 @@ type SuggestionProps = {
     /** The height of the composer */
     composerHeight?: number;
 
-    /** If current composer is connected with report from group policy */
-    isGroupPolicyReport: boolean;
-
-    /** The policyID of the report connected to current composer */
-    policyID?: string;
-
     /** Reference to the outer element */
     ref?: ForwardedRef<SuggestionsRef>;
 };
@@ -62,8 +56,6 @@ function Suggestions({
     measureParentContainerAndReportCursor,
     isAutoSuggestionPickerLarge = true,
     isComposerFocused,
-    isGroupPolicyReport,
-    policyID,
     ref,
 }: SuggestionProps) {
     const suggestionEmojiRef = useRef<SuggestionsRef>(null);
@@ -71,7 +63,7 @@ function Suggestions({
     const {isDraggingOver} = useDragAndDropState();
     const prevIsDraggingOver = usePrevious(isDraggingOver);
 
-    const getSuggestions = useCallback(() => {
+    function getSuggestions() {
         if (suggestionEmojiRef.current?.getSuggestions) {
             const emojiSuggestions = suggestionEmojiRef.current.getSuggestions();
             if (emojiSuggestions.length > 0) {
@@ -87,59 +79,56 @@ function Suggestions({
         }
 
         return [];
-    }, []);
+    }
 
     /**
      * Clean data related to EmojiSuggestions
      */
-    const resetSuggestions = useCallback(() => {
+    function resetSuggestions() {
         suggestionEmojiRef.current?.resetSuggestions();
         suggestionMentionRef.current?.resetSuggestions();
-    }, []);
+    }
 
     /**
      * Listens for keyboard shortcuts and applies the action
      */
-    const triggerHotkeyActions = useCallback((e: KeyboardEvent) => {
+    function triggerHotkeyActions(e: KeyboardEvent) {
         const emojiHandler = suggestionEmojiRef.current?.triggerHotkeyActions(e);
         const mentionHandler = suggestionMentionRef.current?.triggerHotkeyActions(e);
         return emojiHandler ?? mentionHandler;
-    }, []);
+    }
 
-    const onSelectionChange = useCallback((e: TextInputSelectionChangeEvent) => {
+    function onSelectionChange(e: TextInputSelectionChangeEvent) {
         const emojiHandler = suggestionEmojiRef.current?.onSelectionChange?.(e);
         suggestionMentionRef.current?.onSelectionChange?.(e);
         return emojiHandler;
-    }, []);
+    }
 
-    const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
+    function updateShouldShowSuggestionMenuToFalse() {
         suggestionEmojiRef.current?.updateShouldShowSuggestionMenuToFalse();
         suggestionMentionRef.current?.updateShouldShowSuggestionMenuToFalse();
-    }, []);
+    }
 
-    const setShouldBlockSuggestionCalc = useCallback((shouldBlock: boolean) => {
+    function setShouldBlockSuggestionCalc(shouldBlock: boolean) {
         suggestionEmojiRef.current?.setShouldBlockSuggestionCalc(shouldBlock);
         suggestionMentionRef.current?.setShouldBlockSuggestionCalc(shouldBlock);
-    }, []);
-    const getIsSuggestionsMenuVisible = useCallback((): boolean => {
+    }
+
+    function getIsSuggestionsMenuVisible(): boolean {
         const isEmojiVisible = suggestionEmojiRef.current?.getIsSuggestionsMenuVisible() ?? false;
         const isSuggestionVisible = suggestionMentionRef.current?.getIsSuggestionsMenuVisible() ?? false;
         return isEmojiVisible || isSuggestionVisible;
-    }, []);
+    }
 
-    useImperativeHandle(
-        ref,
-        () => ({
-            resetSuggestions,
-            onSelectionChange,
-            triggerHotkeyActions,
-            updateShouldShowSuggestionMenuToFalse,
-            setShouldBlockSuggestionCalc,
-            getSuggestions,
-            getIsSuggestionsMenuVisible,
-        }),
-        [onSelectionChange, resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse, getSuggestions, getIsSuggestionsMenuVisible],
-    );
+    useImperativeHandle(ref, () => ({
+        resetSuggestions,
+        onSelectionChange,
+        triggerHotkeyActions,
+        updateShouldShowSuggestionMenuToFalse,
+        setShouldBlockSuggestionCalc,
+        getSuggestions,
+        getIsSuggestionsMenuVisible,
+    }));
 
     useEffect(() => {
         if (!(!prevIsDraggingOver && isDraggingOver)) {
@@ -156,8 +145,6 @@ function Suggestions({
         isAutoSuggestionPickerLarge,
         measureParentContainerAndReportCursor,
         isComposerFocused,
-        isGroupPolicyReport,
-        policyID,
     };
 
     return (
