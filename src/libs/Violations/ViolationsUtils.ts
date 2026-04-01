@@ -498,7 +498,7 @@ const ViolationsUtils = {
             !isInvoiceTransaction && policyCategories?.[categoryName ?? '']?.areCommentsRequired && !updatedTransaction.comment?.comment && isControlPolicy && policy?.areRulesEnabled;
         const rawAttendees = updatedTransaction.modifiedAttendees ?? updatedTransaction.comment?.attendees;
         const attendees = Array.isArray(rawAttendees) ? rawAttendees : [];
-        const isAttendeeTrackingEnabled = policy.isAttendeeTrackingEnabled ?? false;
+        const isAttendeeTrackingEnabled = policy.isAttendeeTrackingEnabled ?? true;
         // Filter out the owner/creator when checking attendance count - expense is valid if at least one non-owner attendee is present
         const ownerAccountID = iouReport?.ownerAccountID;
         // Calculate attendees minus owner. When ownerAccountID is known, filter by accountID.

@@ -96,7 +96,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     // Sync missingAttendees violation at render time for each transaction in the report
     // This ensures violations show immediately when category settings change, without needing to click the row
     const hasSyncedMissingAttendeesViolation = useMemo(() => {
-        if (!policyForViolations?.isAttendeeTrackingEnabled || policyForViolations?.type !== CONST.POLICY.TYPE.CORPORATE) {
+        if (!(policyForViolations?.isAttendeeTrackingEnabled ?? true) || policyForViolations?.type !== CONST.POLICY.TYPE.CORPORATE) {
             return false;
         }
 
@@ -114,7 +114,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
                 transaction.category ?? '',
                 transaction.attendees,
                 currentUserDetails,
-                policyForViolations.isAttendeeTrackingEnabled ?? false,
+                policyForViolations.isAttendeeTrackingEnabled ?? true,
                 policyForViolations.type === CONST.POLICY.TYPE.CORPORATE,
                 isInvoice,
             );

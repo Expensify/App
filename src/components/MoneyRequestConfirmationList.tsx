@@ -490,7 +490,7 @@ function MoneyRequestConfirmationList({
         policyTaxRates: policy?.taxRates?.taxes,
         iouAttendees,
         currentUserPersonalDetails,
-        isAttendeeTrackingEnabled: policy?.isAttendeeTrackingEnabled,
+        isAttendeeTrackingEnabled: policy?.isAttendeeTrackingEnabled ?? true,
         isControlPolicy: policy?.type === CONST.POLICY.TYPE.CORPORATE,
     });
 
@@ -1074,7 +1074,7 @@ function MoneyRequestConfirmationList({
                     iouCategory,
                     iouAttendees,
                     currentUserPersonalDetails,
-                    policy?.isAttendeeTrackingEnabled,
+                    policy?.isAttendeeTrackingEnabled ?? true,
                     policy?.type === CONST.POLICY.TYPE.CORPORATE,
                 );
             if (isMissingAttendeesViolation) {

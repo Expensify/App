@@ -199,7 +199,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
 
     // For backwards compatibility with Expensify Classic, we assume that Attendee Tracking is enabled by default on
     // Control policies if the policy does not contain the attribute
-    const isAttendeeTrackingEnabled = policy?.isAttendeeTrackingEnabled ?? false;
+    const isAttendeeTrackingEnabled = policy?.isAttendeeTrackingEnabled ?? true;
 
     return (
         <Section

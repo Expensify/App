@@ -143,7 +143,7 @@ function TransactionListItem<TItem extends ListItem>({
         transaction?.category ?? transactionItem.category ?? '',
         transaction?.comment?.attendees ?? transactionItem.attendees,
         currentUserDetails,
-        policyForViolations?.isAttendeeTrackingEnabled ?? false,
+        policyForViolations?.isAttendeeTrackingEnabled ?? true,
         policyForViolations?.type === CONST.POLICY.TYPE.CORPORATE,
         isInvoice,
     );

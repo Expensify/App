@@ -155,11 +155,11 @@ function CategorySettingsPage({
         if (!policyCategory) {
             return '';
         }
-        return formatRequiredFieldsTitle(translate, policyCategory, policy?.isAttendeeTrackingEnabled);
+        return formatRequiredFieldsTitle(translate, policyCategory, policy?.isAttendeeTrackingEnabled ?? true);
     }, [policyCategory, translate, policy?.isAttendeeTrackingEnabled]);
 
     const requireFieldsPendingAction = useMemo(() => {
-        if (policy?.isAttendeeTrackingEnabled) {
+        if (policy?.isAttendeeTrackingEnabled ?? true) {
             // Pending fields are objects so we can't use nullish coalescing
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             return policyCategory?.pendingFields?.areAttendeesRequired || policyCategory?.pendingFields?.areCommentsRequired;

@@ -1014,6 +1014,10 @@ function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFe
     if (featureName === CONST.POLICY.MORE_FEATURES.IS_TIME_TRACKING_ENABLED) {
         return isTimeTrackingEnabled(policy);
     }
+    // For backwards compatibility with Expensify Classic, attendee tracking defaults to enabled
+    if (featureName === CONST.POLICY.MORE_FEATURES.IS_ATTENDEE_TRACKING_ENABLED) {
+        return policy?.isAttendeeTrackingEnabled ?? true;
+    }
 
     return !!policy?.[featureName];
 }
