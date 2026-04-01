@@ -2654,6 +2654,11 @@ const staticStyles = (theme: ThemeColors) =>
             flex: undefined,
         },
 
+        selectBankStepIconSize: {
+            width: variables.iconSizeExtraLarge,
+            height: variables.iconSizeExtraLarge,
+        },
+
         forcedBlockingViewContainer: {
             ...positioning.pFixed,
             top: 0,

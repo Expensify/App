@@ -266,7 +266,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         if (!transaction?.transactionID || !imageType) {
             return;
         }
-        removeMoneyRequestOdometerImage(transaction.transactionID, imageType, isDraftTransaction);
+        removeMoneyRequestOdometerImage(transaction.transactionID, imageType, isDraftTransaction, !isEditingConfirmation);
         const odometerGoBackRoute =
             isOdometerImage &&
             (isEditingConfirmation === true
@@ -309,7 +309,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 const rotatedFilename = file.name ?? receiptFilename;
 
                 if (isOdometerImage) {
-                    setMoneyRequestOdometerImage(transaction.transactionID, imageType, file, isDraftTransaction);
+                    setMoneyRequestOdometerImage(transaction.transactionID, imageType, file, isDraftTransaction, !isEditingConfirmation);
                 } else if (isDraftTransaction) {
                     setMoneyRequestReceipt(transaction.transactionID, imageUriResult, rotatedFilename, isDraftTransaction, fileType);
                 } else {
@@ -328,7 +328,21 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             .catch(() => {
                 setIsRotating(false);
             });
-    }, [transaction?.transactionID, isDraftTransaction, isOdometerImage, imageType, sourceUri, isImage, receiptFilename, fileName, fileType, policyCategories, transaction?.receipt, policy]);
+    }, [
+        transaction?.transactionID,
+        isDraftTransaction,
+        isOdometerImage,
+        imageType,
+        sourceUri,
+        isImage,
+        receiptFilename,
+        fileName,
+        fileType,
+        policyCategories,
+        transaction?.receipt,
+        policy,
+        isEditingConfirmation,
+    ]);
 
     const shouldShowRotateAndCropReceiptButton = useMemo(
         () =>
@@ -367,10 +381,10 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             [
                 {
                     crop: {
-                        originX: cropRect.x,
-                        originY: cropRect.y,
-                        width: cropRect.width,
-                        height: cropRect.height,
+                        originX: Math.max(0, Math.floor(cropRect.x)),
+                        originY: Math.max(0, Math.floor(cropRect.y)),
+                        width: Math.max(1, Math.floor(cropRect.width)),
+                        height: Math.max(1, Math.floor(cropRect.height)),
                     },
                 },
             ],
@@ -396,7 +410,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 const croppedFilename = file.name ?? receiptFilename;
 
                 if (isOdometerImage) {
-                    setMoneyRequestOdometerImage(transaction.transactionID, imageType, file, isDraftTransaction);
+                    setMoneyRequestOdometerImage(transaction.transactionID, imageType, file, isDraftTransaction, !isEditingConfirmation);
                 } else if (isDraftTransaction) {
                     setMoneyRequestReceipt(transaction.transactionID, imageUriResult, croppedFilename, isDraftTransaction, fileType);
                 } else {
@@ -428,6 +442,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         policyCategories,
         policy,
         exitCropMode,
+        isEditingConfirmation,
     ]);
 
     const threeDotsMenuItems: ThreeDotsMenuItemFactory = useCallback(
