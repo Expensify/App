@@ -1,10 +1,17 @@
 import {useEffect} from 'react';
+import useAdminPoliciesConnectedToQBD from '@hooks/useAdminPoliciesConnectedToQBD';
 import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 import type {ConnectToQuickbooksDesktopFlowProps} from './types';
 
 function ConnectToQuickbooksDesktopFlow({policyID}: ConnectToQuickbooksDesktopFlowProps) {
+    const hasPoliciesConnectedToQBD = !!useAdminPoliciesConnectedToQBD()?.length;
+
     useEffect(() => {
+        if (hasPoliciesConnectedToQBD) {
+            Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXISTING_CONNECTIONS.getRoute(policyID));
+            return;
+        }
         Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_SETUP_REQUIRED_DEVICE_MODAL.getRoute(policyID));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
