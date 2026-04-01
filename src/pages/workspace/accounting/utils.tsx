@@ -46,7 +46,7 @@ function getAccountingIntegrationData(
     connectionName: PolicyConnectionName,
     policyID: string,
     translate: LocaleContextProps['translate'],
-    hasPoliciesConnectedToSageIntacct: boolean,
+    existingConnections: {sageIntacct: boolean; qbd: boolean},
     policy?: Policy,
     key?: number,
     integrationToDisconnect?: ConnectionName,
@@ -61,7 +61,7 @@ function getAccountingIntegrationData(
         if (integrationToDisconnect) {
             return ROUTES.POLICY_ACCOUNTING.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting);
         }
-        if (hasPoliciesConnectedToSageIntacct) {
+        if (existingConnections.sageIntacct) {
             return ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXISTING_CONNECTIONS.getRoute(policyID);
         }
         return ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES.getRoute(policyID);
@@ -69,6 +69,9 @@ function getAccountingIntegrationData(
     const getBackToAfterWorkspaceUpgradeRouteForQBD = () => {
         if (integrationToDisconnect) {
             return ROUTES.POLICY_ACCOUNTING.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting);
+        }
+        if (existingConnections.qbd) {
+            return ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXISTING_CONNECTIONS.getRoute(policyID);
         }
         if (isMobile) {
             return ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_SETUP_REQUIRED_DEVICE_MODAL.getRoute(policyID);
