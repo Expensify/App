@@ -1,6 +1,7 @@
 import RNFS from 'react-native-fs';
 import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
 import Log from '@libs/Log';
+import {rand64} from '@libs/NumberUtils';
 import type MoveReceiptToDurableStorage from './types';
 
 /**
@@ -26,7 +27,7 @@ const moveReceiptToDurableStorage: MoveReceiptToDurableStorage = async (sourceUr
 
         const sourcePath = sourceUri.replace('file://', '');
         const extension = fileName.includes('.') ? `.${fileName.split('.').pop()}` : '';
-        const uniqueName = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}${extension}`;
+        const uniqueName = `${rand64()}${extension}`;
         const destPath = `${uploadFolder}/${uniqueName}`;
 
         await RNFS.moveFile(sourcePath, destPath);
