@@ -92,6 +92,12 @@ function TransactionListItem<TItem extends ListItem>({
         transactionItem,
     ]);
     const currentUserDetails = useCurrentUserPersonalDetails();
+
+    // When bulk-editing transactions, `pendingFields` are set optimistically on the live Onyx
+    // transaction object. The search list items rely on snapshot data, so they would not see
+    // these pending edits without this live-Onyx fallback.
+    const hasPendingTransaction = !!transaction?.pendingFields && Object.keys(transaction.pendingFields).length > 0;
+
     const transactionPreviewData: TransactionPreviewData = {
         hasParentReport: !!parentReport,
         hasTransaction: !!transaction,
@@ -177,7 +183,9 @@ function TransactionListItem<TItem extends ListItem>({
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
     return (
-        <OfflineWithFeedback pendingAction={item.pendingAction}>
+        <OfflineWithFeedback
+            pendingAction={item.pendingAction ?? (hasPendingTransaction ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined)}
+        >
             <PressableWithFeedback
                 ref={pressableRef}
                 onLongPress={() => onLongPressRow?.(item)}
