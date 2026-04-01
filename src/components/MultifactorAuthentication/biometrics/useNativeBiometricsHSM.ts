@@ -2,7 +2,7 @@ import {createKeys, deleteKeys, getAllKeys, InputEncoding, isSensorAvailable, si
 import addMFABreadcrumb from '@components/MultifactorAuthentication/observability/breadcrumbs';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import {buildSigningData, getKeyAlias, mapAuthTypeNumber, mapLibraryError, mapSignErrorCode} from '@libs/MultifactorAuthentication/NativeBiometricsHSM/helpers';
+import {buildSigningData, getKeyAlias, mapAuthTypeNumber, mapLibraryErrorToReason, mapSignErrorCodeToReason} from '@libs/MultifactorAuthentication/NativeBiometricsHSM/helpers';
 import type NativeBiometricsHSMKeyInfo from '@libs/MultifactorAuthentication/NativeBiometricsHSM/types';
 import VALUES from '@libs/MultifactorAuthentication/VALUES';
 import CONST from '@src/CONST';
@@ -29,13 +29,13 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
         try {
             const keyAlias = getKeyAlias(accountID);
             const {keys} = await getAllKeys(keyAlias);
-            const entry = keys.find((k) => k.alias === keyAlias);
+            const entry = keys.find((key) => key.alias === keyAlias);
             if (!entry) {
                 return undefined;
             }
             return Base64URL.base64ToBase64url(entry.publicKey);
-        } catch (e) {
-            addMFABreadcrumb('Failed to get local credential ID', {reason: mapLibraryError(e) ?? VALUES.REASON.HSM.GENERIC}, 'error');
+        } catch (error) {
+            addMFABreadcrumb('Failed to get local credential ID', {reason: mapLibraryErrorToReason(error) ?? VALUES.REASON.HSM.GENERIC}, 'error');
             return undefined;
         }
     };
@@ -49,8 +49,8 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
         try {
             const keyAlias = getKeyAlias(accountID);
             await deleteKeys(keyAlias);
-        } catch (e) {
-            addMFABreadcrumb('Failed to delete local keys', {reason: mapLibraryError(e) ?? VALUES.REASON.HSM.GENERIC}, 'error');
+        } catch (error) {
+            addMFABreadcrumb('Failed to delete local keys', {reason: mapLibraryErrorToReason(error) ?? VALUES.REASON.HSM.GENERIC}, 'error');
         }
     };
 
@@ -88,10 +88,10 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
                 reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.LOCAL_REGISTRATION_COMPLETE,
                 keyInfo,
             });
-        } catch (e) {
+        } catch (error) {
             onResult({
                 success: false,
-                reason: mapLibraryError(e) ?? VALUES.REASON.HSM.KEY_CREATION_FAILED,
+                reason: mapLibraryErrorToReason(error) ?? VALUES.REASON.HSM.KEY_CREATION_FAILED,
             });
         }
     };
@@ -124,7 +124,7 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
             if (!signResult.success || !signResult.signature) {
                 onResult({
                     success: false,
-                    reason: mapSignErrorCode(signResult.errorCode) ?? VALUES.REASON.HSM.GENERIC,
+                    reason: mapSignErrorCodeToReason(signResult.errorCode) ?? VALUES.REASON.HSM.GENERIC,
                 });
                 return;
             }
@@ -149,10 +149,10 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
                 },
                 authenticationMethod: authType,
             });
-        } catch (e) {
+        } catch (error) {
             onResult({
                 success: false,
-                reason: mapLibraryError(e) ?? VALUES.REASON.HSM.GENERIC,
+                reason: mapLibraryErrorToReason(error) ?? VALUES.REASON.HSM.GENERIC,
             });
         }
     };

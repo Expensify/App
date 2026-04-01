@@ -64,7 +64,7 @@ const SIGN_ERROR_CODE_MAP: Record<string, MultifactorAuthenticationReason> = {
     [NATIVE_BIOMETRIC_HSM_VALUES.ERROR_CODE.KEY_ACCESS_FAILED]: VALUES.REASON.HSM.KEY_ACCESS_FAILED,
 };
 
-function mapSignErrorCode(errorCode?: string): MultifactorAuthenticationReason | undefined {
+function mapSignErrorCodeToReason(errorCode?: string): MultifactorAuthenticationReason | undefined {
     if (!errorCode) {
         return undefined;
     }
@@ -86,7 +86,7 @@ const LIBRARY_ERROR_CODE_MAP: Record<string, MultifactorAuthenticationReason> = 
 /**
  * Maps caught exceptions from the library to REASON values.
  */
-function mapLibraryError(error: unknown): MultifactorAuthenticationReason | undefined {
+function mapLibraryErrorToReason(error: unknown): MultifactorAuthenticationReason | undefined {
     const code = error instanceof Error ? (error as Error & {code?: string}).code : undefined;
     if (code) {
         return LIBRARY_ERROR_CODE_MAP[code];
@@ -121,4 +121,4 @@ async function buildSigningData(rpId: string, challenge: string): Promise<{authe
     return {authenticatorData, clientDataJSON, dataToSignB64};
 }
 
-export {getKeyAlias, mapAuthTypeNumber, mapSignErrorCode, mapLibraryError, buildSigningData};
+export {getKeyAlias, mapAuthTypeNumber, mapSignErrorCodeToReason, mapLibraryErrorToReason, buildSigningData};
