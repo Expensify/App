@@ -5,6 +5,7 @@ import {useSharedValue} from 'react-native-reanimated';
 import {scheduleOnUI} from 'react-native-worklets';
 import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
 import useHandleExceedMaxTaskTitleLength from '@hooks/useHandleExceedMaxTaskTitleLength';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {chatIncludesConcierge} from '@libs/ReportUtils';
@@ -18,18 +19,19 @@ import type {ComposerRef} from './ComposerWithSuggestions/ComposerWithSuggestion
 import useAttachmentUploadValidation from './useAttachmentUploadValidation';
 import useComposerFocus from './useComposerFocus';
 import useComposerSubmit from './useComposerSubmit';
+import useShouldAddOrReplaceReceipt from './useShouldAddOrReplaceReceipt';
 
 const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
 type ComposerProviderProps = {
     reportID: string;
     transactionThreadReportID?: string;
-    shouldAddOrReplaceReceipt: boolean;
-    transactionID: string | undefined;
     children: React.ReactNode;
 };
 
-function ComposerProvider({children, reportID, transactionThreadReportID, shouldAddOrReplaceReceipt, transactionID}: ComposerProviderProps) {
+function ComposerProvider({children, reportID, transactionThreadReportID}: ComposerProviderProps) {
+    const {isOffline} = useNetwork();
+    const {shouldAddOrReplaceReceipt, transactionID} = useShouldAddOrReplaceReceipt(reportID, isOffline);
     const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
     const [shouldShowComposeInput = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT);
     const [initialModalState] = useOnyx(ONYXKEYS.MODAL);

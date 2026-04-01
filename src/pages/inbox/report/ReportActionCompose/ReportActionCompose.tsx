@@ -8,32 +8,15 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
-import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DomUtils from '@libs/DomUtils';
 import FS from '@libs/Fullstory';
-import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
-import {
-    getFilteredReportActionsForReportView,
-    getLinkedTransactionID,
-    getOneTransactionThreadReportID,
-    getReportAction,
-    isMoneyRequestAction,
-    isSentMoneyReportAction,
-} from '@libs/ReportActionsUtils';
-import {
-    canEditFieldOfMoneyRequest,
-    canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
-    chatIncludesChronos,
-    chatIncludesConcierge,
-    getReportOfflinePendingActionAndErrors,
-    isReportTransactionThread,
-} from '@libs/ReportUtils';
-import {getTransactionID} from '@libs/TransactionUtils';
+import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, isSentMoneyReportAction} from '@libs/ReportActionsUtils';
+import {chatIncludesChronos, chatIncludesConcierge, getReportOfflinePendingActionAndErrors} from '@libs/ReportUtils';
 import {isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -176,23 +159,6 @@ function ComposerBoxContent({reportID}: ComposerBoxContentProps) {
 }
 
 // ---------------------------------------------------------------------------
-// Thin wrappers that bridge context → existing child components.
-// ---------------------------------------------------------------------------
-
-function ComposerDropZoneWrapper({reportID, shouldAddOrReplaceReceipt, transactionID}: {reportID: string; shouldAddOrReplaceReceipt: boolean; transactionID: string | undefined}) {
-    const {validateAttachments, onReceiptDropped} = useComposerInternalsActions();
-    return (
-        <ComposerDropZone
-            reportID={reportID}
-            shouldAddOrReplaceReceipt={shouldAddOrReplaceReceipt}
-            transactionID={transactionID}
-            onAttachmentDrop={(dragEvent) => validateAttachments({dragEvent})}
-            onReceiptDrop={onReceiptDropped}
-        />
-    );
-}
-
-// ---------------------------------------------------------------------------
 // Orchestrator — layout + report-level data resolution.
 // ---------------------------------------------------------------------------
 
@@ -207,7 +173,7 @@ function Composer({reportID}: ReportActionComposeProps) {
 
     const {reportPendingAction: pendingAction} = getReportOfflinePendingActionAndErrors(report);
 
-    // --- Report actions & transaction resolution ---
+    // --- Report actions & transaction resolution (for effectiveTransactionThreadReportID) ---
     const {reportActions: unfilteredReportActions} = usePaginatedReportActions(report?.reportID);
     const filteredReportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
 
@@ -220,26 +186,6 @@ function Composer({reportID}: ReportActionComposeProps) {
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, filteredReportActions, isOffline, reportTransactionIDs);
     const effectiveTransactionThreadReportID = isSentMoneyReport ? undefined : transactionThreadReportID;
 
-    // --- shouldAddOrReplaceReceipt & transactionID ---
-    const isReportArchived = useReportIsArchived(report?.reportID);
-    const isTransactionThreadView = isReportTransactionThread(report);
-    const isExpensesReport = reportTransactions && reportTransactions.length > 1;
-
-    const [rawReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`, {canEvict: false});
-    const iouAction = rawReportActions ? Object.values(rawReportActions).find((action) => isMoneyRequestAction(action)) : null;
-    const linkedTransactionID = iouAction && !isExpensesReport ? getLinkedTransactionID(iouAction) : undefined;
-    const transactionID = getTransactionID(report) ?? linkedTransactionID;
-
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
-    const isSingleTransactionView = !!transaction && !!reportTransactions && reportTransactions.length === 1;
-    const effectiveParentReportAction = isSingleTransactionView ? iouAction : getReportAction(report?.parentReportID, report?.parentReportActionID);
-    const canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(report, isReportArchived);
-    const canEditReceipt =
-        canUserPerformWriteAction &&
-        canEditFieldOfMoneyRequest({reportAction: effectiveParentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, transaction}) &&
-        !transaction?.receipt?.isTestDriveReceipt;
-    const shouldAddOrReplaceReceipt = (isTransactionThreadView || isSingleTransactionView) && canEditReceipt;
-
     if (!report) {
         return null;
     }
@@ -249,8 +195,6 @@ function Composer({reportID}: ReportActionComposeProps) {
             <ComposerProvider
                 reportID={reportID}
                 transactionThreadReportID={effectiveTransactionThreadReportID}
-                shouldAddOrReplaceReceipt={shouldAddOrReplaceReceipt}
-                transactionID={transactionID}
             >
                 <Composer.LocalTime
                     reportID={reportID}
@@ -258,18 +202,15 @@ function Composer({reportID}: ReportActionComposeProps) {
                     isComposerFullSize={isComposerFullSize}
                 />
                 <View style={isComposerFullSize ? styles.flex1 : {}}>
-                    <Composer.Box
-                        reportID={reportID}
-                        isComposerFullSize={isComposerFullSize}
-                        pendingAction={pendingAction}
-                    >
-                        <ComposerBoxContent reportID={reportID} />
-                        <Composer.DropZone
+                    <Composer.DropZone reportID={reportID}>
+                        <Composer.Box
                             reportID={reportID}
-                            shouldAddOrReplaceReceipt={shouldAddOrReplaceReceipt}
-                            transactionID={transactionID}
-                        />
-                    </Composer.Box>
+                            isComposerFullSize={isComposerFullSize}
+                            pendingAction={pendingAction}
+                        >
+                            <ComposerBoxContent reportID={reportID} />
+                        </Composer.Box>
+                    </Composer.DropZone>
                     <Composer.Footer reportID={reportID} />
                     {!isSmallScreenWidth && (
                         <View style={[styles.mln5, styles.mrn5]}>
@@ -284,7 +225,7 @@ function Composer({reportID}: ReportActionComposeProps) {
 
 Composer.LocalTime = ComposerLocalTime;
 Composer.Box = ComposerBox;
-Composer.DropZone = ComposerDropZoneWrapper;
+Composer.DropZone = ComposerDropZone;
 Composer.Footer = ComposerFooter;
 
 export default Composer;
