@@ -282,6 +282,7 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
             items={typeOptions}
             closeOverlay={closeOverlay}
             onChange={(item) => updateFilterForm({type: item?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE})}
+            selectionListStyle={{listItemWrapperStyle: styles.optionRowCompact}}
         />
     );
 

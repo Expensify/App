@@ -195,7 +195,6 @@ function BaseListItem<TItem extends ListItem>({
                     testID={`${CONST.BASE_LIST_ITEM_TEST_ID}${item.keyForList}`}
                     accessibilityState={accessibilityState ?? {selected: !!isFocused}}
                     style={[
-                        wrapperStyle,
                         isFocused &&
                             StyleUtils.getItemBackgroundColorStyle(
                                 shouldHighlightSelectedItem && !!item.isSelected,
@@ -204,6 +203,7 @@ function BaseListItem<TItem extends ListItem>({
                                 theme.activeComponentBG,
                                 theme.hoverComponentBG,
                             ),
+                        wrapperStyle,
                     ]}
                     fsClass={forwardedFSClass}
                 >
