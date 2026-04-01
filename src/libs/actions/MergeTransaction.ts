@@ -1,6 +1,7 @@
 import {deepEqual} from 'fast-equals';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxMergeInput, OnyxUpdate} from 'react-native-onyx';
+import type {CurrencyListActionsContextType} from '@components/CurrencyListContextProvider';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as API from '@libs/API';
 import type {GetTransactionsForMergingParams, MergeTransactionParams} from '@libs/API/parameters';
@@ -53,6 +54,7 @@ function setupMergeTransactionDataAndNavigate(
     navigationTransactionID: string,
     transactions: Transaction[],
     localeCompare: LocaleContextProps['localeCompare'],
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     searchReports?: Report[],
     isSelectingSourceTransaction?: boolean,
     isOnSearch?: boolean,
@@ -101,6 +103,7 @@ function setupMergeTransactionDataAndNavigate(
             targetTransaction,
             sourceTransaction,
             localeCompare,
+            getCurrencyDecimals,
             searchReports,
             targetTransactionPolicy,
             sourceTransactionPolicy,

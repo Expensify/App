@@ -396,7 +396,7 @@ describe('SubscriptionUtils', () => {
             expect(shouldRestrictUserBillableActions(policyID, getUnixTime(subDays(new Date(), 3)), undefined)).toBeFalsy();
         });
 
-        it('should restrict when ownerBillingGraceEndPeriod is passed directly as 3rd param and is past due', async () => {
+        it('should restrict when ownerBillingGracePeriodEnd is passed directly as 3rd param and is past due', async () => {
             const accountID = 1;
             const policyID = '1001';
 
@@ -428,7 +428,7 @@ describe('SubscriptionUtils', () => {
             expect(shouldRestrictUserBillableActions(policyID, getUnixTime(subDays(new Date(), 3)), undefined)).toBeFalsy();
         });
 
-        it('should restrict when ownerBillingGraceEndPeriod is passed directly as 4th param and is past due', async () => {
+        it('should restrict when ownerBillingGracePeriodEnd is passed directly as 4th param and is past due', async () => {
             const accountID = 1;
             const policyID = '1001';
 
@@ -444,7 +444,7 @@ describe('SubscriptionUtils', () => {
             expect(shouldRestrictUserBillableActions(policyID, getUnixTime(subDays(new Date(), 3)), undefined)).toBeTruthy();
         });
 
-        it('should not restrict when ownerBillingGraceEndPeriod is passed directly as 4th param but is not past due', async () => {
+        it('should not restrict when ownerBillingGracePeriodEnd is passed directly as 4th param but is not past due', async () => {
             const accountID = 1;
             const policyID = '1001';
 
@@ -460,7 +460,7 @@ describe('SubscriptionUtils', () => {
             expect(shouldRestrictUserBillableActions(policyID, getUnixTime(addDays(new Date(), 3)), undefined)).toBeFalsy();
         });
 
-        it('should not restrict when ownerBillingGraceEndPeriod is passed directly as 4th param but amount owed is 0', async () => {
+        it('should not restrict when ownerBillingGracePeriodEnd is passed directly as 4th param but amount owed is 0', async () => {
             const accountID = 1;
             const policyID = '1001';
 
@@ -787,11 +787,11 @@ describe('SubscriptionUtils', () => {
             await Onyx.clear();
         });
 
-        it('should return POLICY_OWNER_WITH_AMOUNT_OWED status when ownerBillingGraceEndPeriod is passed as parameter', async () => {
+        it('should return POLICY_OWNER_WITH_AMOUNT_OWED status when ownerBillingGracePeriodEnd is passed as parameter', async () => {
             // Set only amount owed via Onyx, but pass grace period as parameter
             await Onyx.set(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, AMOUNT_OWED);
 
-            // Pass ownerBillingGraceEndPeriod as parameter instead of Onyx
+            // Pass ownerBillingGracePeriodEnd as parameter instead of Onyx
             expect(getSubscriptionStatus(stripeCustomerId, false, undefined, undefined, undefined, undefined, AMOUNT_OWED, GRACE_PERIOD_DATE)).toEqual({
                 status: PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED,
                 isError: true,
@@ -802,7 +802,7 @@ describe('SubscriptionUtils', () => {
             // Set only amount owed via Onyx, but pass grace period as parameter
             await Onyx.set(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, AMOUNT_OWED);
 
-            // Pass overdue ownerBillingGraceEndPeriod as parameter
+            // Pass overdue ownerBillingGracePeriodEnd as parameter
             expect(getSubscriptionStatus(stripeCustomerId, false, undefined, undefined, undefined, undefined, AMOUNT_OWED, GRACE_PERIOD_DATE_OVERDUE)).toEqual({
                 status: PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED_OVERDUE,
                 isError: true,
@@ -813,7 +813,7 @@ describe('SubscriptionUtils', () => {
             // No amount owed set
             await Onyx.set(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 0);
 
-            // Pass ownerBillingGraceEndPeriod as parameter
+            // Pass ownerBillingGracePeriodEnd as parameter
             expect(getSubscriptionStatus(stripeCustomerId, false, undefined, undefined, undefined, undefined, 0, GRACE_PERIOD_DATE)).toEqual({
                 status: PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING,
                 isError: true,
@@ -834,11 +834,11 @@ describe('SubscriptionUtils', () => {
             await Onyx.clear();
         });
 
-        it('should return true when ownerBillingGraceEndPeriod is passed as parameter with amount owed', async () => {
+        it('should return true when ownerBillingGracePeriodEnd is passed as parameter with amount owed', async () => {
             // Set only amount owed via Onyx, pass grace period as parameter
             await Onyx.set(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, AMOUNT_OWED);
 
-            // Pass ownerBillingGraceEndPeriod as parameter - should return true (isError)
+            // Pass ownerBillingGracePeriodEnd as parameter - should return true (isError)
             expect(hasSubscriptionRedDotError(stripeCustomerId, false, undefined, undefined, undefined, undefined, AMOUNT_OWED, GRACE_PERIOD_DATE)).toBe(true);
         });
 
@@ -846,7 +846,7 @@ describe('SubscriptionUtils', () => {
             // Set only amount owed via Onyx, pass grace period as parameter
             await Onyx.set(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, AMOUNT_OWED);
 
-            // Pass overdue ownerBillingGraceEndPeriod as parameter - should return true (isError)
+            // Pass overdue ownerBillingGracePeriodEnd as parameter - should return true (isError)
             expect(hasSubscriptionRedDotError(stripeCustomerId, false, undefined, undefined, undefined, undefined, AMOUNT_OWED, GRACE_PERIOD_DATE_OVERDUE)).toBe(true);
         });
 
@@ -854,7 +854,7 @@ describe('SubscriptionUtils', () => {
             // No amount owed
             await Onyx.set(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 0);
 
-            // Pass ownerBillingGraceEndPeriod as parameter - should return true (isError for under invoicing)
+            // Pass ownerBillingGracePeriodEnd as parameter - should return true (isError for under invoicing)
             expect(hasSubscriptionRedDotError(stripeCustomerId, false, undefined, undefined, undefined, undefined, 0, GRACE_PERIOD_DATE)).toBe(true);
         });
 
@@ -877,11 +877,11 @@ describe('SubscriptionUtils', () => {
             await Onyx.clear();
         });
 
-        it('should return false when ownerBillingGraceEndPeriod is passed as parameter with amount owed (error state)', async () => {
+        it('should return false when ownerBillingGracePeriodEnd is passed as parameter with amount owed (error state)', async () => {
             // Set amount owed via Onyx, pass grace period as parameter
             await Onyx.set(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, AMOUNT_OWED);
 
-            // Pass ownerBillingGraceEndPeriod as parameter - should return false (isError=true means not green dot)
+            // Pass ownerBillingGracePeriodEnd as parameter - should return false (isError=true means not green dot)
             expect(hasSubscriptionGreenDotInfo(stripeCustomerId, false, undefined, undefined, undefined, undefined, AMOUNT_OWED, GRACE_PERIOD_DATE)).toBe(false);
         });
 

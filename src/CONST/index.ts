@@ -272,6 +272,12 @@ const CONST = {
     MAX_IMAGE_PIXEL_COUNT: 50000000,
     CHUNK_LOAD_ERROR: 'ChunkLoadError',
 
+    RECEIPT_CAMERA: {
+        PHOTO_WIDTH: 4032,
+        PHOTO_HEIGHT: 3024,
+        PHOTO_ASPECT_RATIO: 4 / 3,
+    },
+
     API_ATTACHMENT_VALIDATIONS: {
         // 24 megabytes in bytes, this is limit set on servers, do not update without wider internal discussion
         MAX_SIZE: 25165824,
@@ -843,7 +849,6 @@ const CONST = {
         EUR_BILLING: 'eurBilling',
         NO_OPTIMISTIC_TRANSACTION_THREADS: 'noOptimisticTransactionThreads',
         UBER_FOR_BUSINESS: 'uberForBusiness',
-        ODOMETER_EXPENSES: 'odometerExpenses',
         PAY_INVOICE_VIA_EXPENSIFY: 'payInvoiceViaExpensify',
         PERSONAL_CARD_IMPORT: 'personalCardImport',
         SUGGESTED_FOLLOWUPS: 'suggestedFollowups',
@@ -1319,6 +1324,17 @@ const CONST = {
             KEEP_THIS_ONE: 'keepThisOne',
             MARK_AS_CASH: 'markAsCash',
             MARK_AS_RESOLVED: 'markAsResolved',
+        },
+        STATUS_BAR_TYPE: {
+            MARK_AS_RESOLVED: 'markAsResolved',
+            BOOKING_PENDING: 'bookingPending',
+            BOOKING_ARCHIVED: 'bookingArchived',
+            ON_HOLD: 'onHold',
+            DUPLICATES: 'duplicates',
+            BROKEN_CONNECTION: 'brokenConnection',
+            PENDING_RTER: 'pendingRTER',
+            PENDING_TRANSACTIONS: 'pendingTransactions',
+            SCANNING_RECEIPT: 'scanningReceipt',
         },
         REPORT_PREVIEW_ACTIONS: {
             VIEW: 'view',
@@ -3012,14 +3028,6 @@ const CONST = {
         CREDIT_CARD: 'CREDIT_CARD_CHARGE',
         CHECK: 'CHECK',
         VENDOR_BILL: 'VENDOR_BILL',
-    },
-
-    UPDATE_PERSONAL_BANK_ACCOUNT: {
-        PAGE_NAME: {
-            LEGAL_NAME: 'legal-name',
-            ADDRESS: 'address',
-            PHONE_NUMBER: 'phone-number',
-        },
     },
 
     MISSING_PERSONAL_DETAILS: {
@@ -6352,7 +6360,7 @@ const CONST = {
     },
 
     /**
-     * Constants for maxToRenderPerBatch parameter that is used for FlatList or SectionList. This controls the amount of items rendered per batch, which is the next chunk of items
+     * Constants for maxToRenderPerBatch parameter that is used for FlatList. This controls the amount of items rendered per batch, which is the next chunk of items
      * rendered on every scroll.
      */
     MAX_TO_RENDER_PER_BATCH: {
@@ -8648,8 +8656,6 @@ const CONST = {
             ROTATE_BUTTON: 'Header-RotateButton',
             CLOSE_BUTTON: 'Header-CloseButton',
             MORE_BUTTON: 'Header-MoreButton',
-            PREVIOUS_BUTTON: 'Header-PreviousButton',
-            NEXT_BUTTON: 'Header-NextButton',
         },
         TOP_BAR: {
             CANCEL_BUTTON: 'TopBar-CancelButton',

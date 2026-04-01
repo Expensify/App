@@ -199,7 +199,7 @@ function WorkspacesListPage() {
         ((policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDToDelete}`]?.areExpensifyCardsEnabled ||
             policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDToDelete}`]?.areCompanyCardsEnabled) &&
             policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDToDelete}`]?.workspaceAccountID);
-
+    const hasExpensifyCard = !!policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDToDelete}`]?.areExpensifyCardsEnabled && !isEmptyObject(cardsList);
     const personalDetails = usePersonalDetails();
     const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
     const [isCannotLeaveWorkspaceModalOpen, setIsCannotLeaveWorkspaceModalOpen] = useState(false);
@@ -208,6 +208,7 @@ function WorkspacesListPage() {
 
     const policyToDeleteLatestErrorMessage = getLatestErrorMessage(policyToDelete);
     const isPendingDelete = isPendingDeletePolicy(policyToDelete);
+    const hasDeleteWorkspaceExpensifyCardsError = !!hasExpensifyCard && !!isOffline;
 
     const [prevIsPendingDelete, setPrevIsPendingDelete] = useState(isPendingDelete);
     if (prevIsPendingDelete !== isPendingDelete) {
@@ -238,11 +239,14 @@ function WorkspacesListPage() {
             lastUsedPaymentMethods: lastPaymentMethod,
             localeCompare,
             personalPolicyID,
+            hasDeleteWorkspaceExpensifyCardsError,
             currentUserAccountID: currentUserPersonalDetails.accountID,
         });
         if (isOffline) {
             setIsDeleteModalOpen(false);
-            setPolicyIDToDelete(undefined);
+            if (!hasDeleteWorkspaceExpensifyCardsError) {
+                setPolicyIDToDelete(undefined);
+            }
             setPolicyNameToDelete(undefined);
         }
     };
@@ -306,6 +310,23 @@ function WorkspacesListPage() {
         setLoadingSpinnerIconIndex(null);
     };
 
+    useEffect(() => {
+        // Handle showing error modal when offline and error occurs
+        if (isOffline && policyToDeleteLatestErrorMessage) {
+            setIsDeleteWorkspaceErrorModalOpen(true);
+            return;
+        }
+
+        if (!prevIsPendingDelete || isPendingDelete || !policyIDToDelete) {
+            return;
+        }
+        setIsDeleteModalOpen(false);
+        if (!isFocused || !policyToDeleteLatestErrorMessage) {
+            return;
+        }
+
+        setIsDeleteWorkspaceErrorModalOpen(true);
+    }, [isOffline, policyToDeleteLatestErrorMessage, isPendingDelete, prevIsPendingDelete, isFocused, policyIDToDelete]);
     const startChangeOwnershipFlow = (policyID: string | undefined) => {
         if (!policyID) {
             return;
