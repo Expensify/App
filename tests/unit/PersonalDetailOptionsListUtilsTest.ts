@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
+import FallbackAvatar from '@assets/images/avatars/fallback-avatar.svg';
 import DateUtils from '@libs/DateUtils';
 import {canCreateOptimisticPersonalDetailOption, createOption, createOptionList, filterOption, getValidOptions, matchesSearchTerms} from '@libs/PersonalDetailOptionsListUtils';
 import type {OptionData} from '@libs/PersonalDetailOptionsListUtils/types';
