@@ -6,6 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -18,13 +19,13 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {setPolicyTagGLCode} from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceTagForm';
 
 type EditTagGLCodePageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_GL_CODE>
-    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.SETTINGS_TAG_GL_CODE>;
+    | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.DYNAMIC_TAG_GL_CODE>;
 
 function TagGLCodePage({route}: EditTagGLCodePageProps) {
     const styles = useThemeStyles();
@@ -32,20 +33,18 @@ function TagGLCodePage({route}: EditTagGLCodePageProps) {
     const {inputCallbackRef} = useAutoFocusInput();
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
-    const backTo = route.params.backTo;
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
 
     const tagName = route.params.tagName;
     const orderWeight = route.params.orderWeight;
     const {tags} = getTagListByOrderWeight(policyTags, orderWeight);
     const glCode = tags?.[route.params.tagName]?.['GL Code'];
-    const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAG_GL_CODE;
+    const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.DYNAMIC_TAG_GL_CODE;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.SETTINGS_TAG_GL_CODE.path);
 
     const goBack = useCallback(() => {
-        Navigation.goBack(
-            isQuickSettingsFlow ? ROUTES.SETTINGS_TAG_SETTINGS.getRoute(policyID, orderWeight, tagName, backTo) : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, orderWeight, tagName),
-        );
-    }, [orderWeight, policyID, tagName, isQuickSettingsFlow, backTo]);
+        Navigation.goBack(isQuickSettingsFlow ? backPath : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, orderWeight, tagName));
+    }, [orderWeight, policyID, tagName, isQuickSettingsFlow, backPath]);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {

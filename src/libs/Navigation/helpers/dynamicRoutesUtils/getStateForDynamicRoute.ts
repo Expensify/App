@@ -3,6 +3,8 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {DynamicRouteSuffix} from '@src/ROUTES';
 import splitPathAndQuery from './splitPathAndQuery';
 
+type ParseConfig = Record<string, (value: string) => unknown>;
+
 type LeafRoute = {
     name: string;
     path: string;
@@ -26,7 +28,7 @@ const configEntries = Object.entries(normalizedConfigs);
  *
  * @private - Internal helper. Do not export or use outside this file.
  */
-function getParamsFromQuery(query: string | undefined): Record<string, string> | undefined {
+function getParamsFromQuery(query: string | undefined, parseConfig?: ParseConfig): Record<string, unknown> | undefined {
     if (!query) {
         return undefined;
     }
@@ -36,7 +38,21 @@ function getParamsFromQuery(query: string | undefined): Record<string, string> |
         return undefined;
     }
 
-    return Object.fromEntries(entries);
+    return Object.fromEntries(
+        entries.map(([key, value]) => {
+            const parser = parseConfig?.[key];
+
+            if (!parser) {
+                return [key, value];
+            }
+
+            try {
+                return [key, parser(value)];
+            } catch {
+                return [key, value];
+            }
+        }),
+    );
 }
 
 /**
@@ -44,10 +60,13 @@ function getParamsFromQuery(query: string | undefined): Record<string, string> |
  *
  * @private - Internal helper. Do not export or use outside this file.
  */
-function getRouteNamesForDynamicRoute(dynamicRouteName: DynamicRouteSuffix): string[] | null {
+function getRouteConfigForDynamicRoute(dynamicRouteName: DynamicRouteSuffix): {routeNames: string[]; parse?: ParseConfig} | null {
     for (const [, config] of configEntries) {
         if (config.path === dynamicRouteName) {
-            return config.routeNames;
+            return {
+                routeNames: config.routeNames,
+                parse: config.parse,
+            };
         }
     }
 
@@ -55,9 +74,9 @@ function getRouteNamesForDynamicRoute(dynamicRouteName: DynamicRouteSuffix): str
 }
 
 function getStateForDynamicRoute(path: string, dynamicRouteName: keyof typeof DYNAMIC_ROUTES, parentRouteParams?: Record<string, unknown>) {
-    const routeConfig = getRouteNamesForDynamicRoute(DYNAMIC_ROUTES[dynamicRouteName].path);
+    const routeConfig = getRouteConfigForDynamicRoute(DYNAMIC_ROUTES[dynamicRouteName].path);
     const [, query] = splitPathAndQuery(path);
-    const params = getParamsFromQuery(query);
+    const params = getParamsFromQuery(query, routeConfig?.parse);
 
     if (!routeConfig) {
         throw new Error(`No route configuration found for dynamic route '${dynamicRouteName}'`);
@@ -89,7 +108,7 @@ function getStateForDynamicRoute(path: string, dynamicRouteName: keyof typeof DY
     };
 
     // Start building from the first route
-    const rootRoute = {routes: [buildNestedState(routeConfig, 0)]};
+    const rootRoute = {routes: [buildNestedState(routeConfig.routeNames, 0)]};
 
     return rootRoute;
 }

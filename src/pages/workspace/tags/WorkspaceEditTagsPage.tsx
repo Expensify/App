@@ -30,7 +30,7 @@ type WorkspaceEditTagsPageProps =
 function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${route?.params?.policyID}`);
     const styles = useThemeStyles();
-    const orderWeight = Number(route.params.orderWeight);
+    const {orderWeight} = route.params;
 
     const {translate} = useLocalize();
     const tagListName = getTagListName(policyTags, orderWeight);

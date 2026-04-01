@@ -121,6 +121,35 @@ const DYNAMIC_ROUTES = {
         getRoute: (orderWeight: number) => `tags-edit?orderWeight=${orderWeight}`,
         queryParams: ['orderWeight'],
     },
+    SETTINGS_TAG_SETTINGS: {
+        path: 'tag-settings',
+        entryScreens: [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT, SCREENS.SETTINGS_TAGS.SETTINGS_TAG_LIST_VIEW, SCREENS.SETTINGS_TAGS.SETTINGS_TAG_APPROVER],
+        getRoute: (orderWeight: number, tagName: string, parentTagsFilter?: string) =>
+            getUrlWithParams('tag-settings', {
+                orderWeight,
+                tagName,
+                parentTagsFilter,
+            }),
+        queryParams: ['orderWeight', 'tagName', 'parentTagsFilter'],
+    },
+    SETTINGS_TAG_EDIT: {
+        path: 'tag-edit',
+        entryScreens: [SCREENS.SETTINGS_TAGS.DYNAMIC_TAG_SETTINGS],
+        getRoute: (orderWeight?: number, tagName?: string) =>
+            getUrlWithParams('tag-edit', {
+                orderWeight,
+                tagName,
+            }),
+    },
+    SETTINGS_TAG_GL_CODE: {
+        path: 'tag-gl-code',
+        entryScreens: [SCREENS.SETTINGS_TAGS.DYNAMIC_TAG_SETTINGS],
+        getRoute: (orderWeight?: number, tagName?: string) =>
+            getUrlWithParams('tag-gl-code', {
+                orderWeight,
+                tagName,
+            }),
+    },
     ADDRESS_COUNTRY: {
         path: 'country',
         entryScreens: [
@@ -1266,18 +1295,6 @@ const ROUTES = {
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (policyID: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/tags/settings` as const, backTo),
     },
-    SETTINGS_TAG_EDIT: {
-        route: 'settings/:policyID/tag/:orderWeight/:tagName/edit',
-        getRoute: (policyID: string, orderWeight: number, tagName: string, backTo = '') =>
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            getUrlWithBackToParam(`settings/${policyID}/tag/${orderWeight}/${encodeURIComponent(tagName)}/edit` as const, backTo),
-    },
-    SETTINGS_TAG_SETTINGS: {
-        route: 'settings/:policyID/tag/:orderWeight/:tagName',
-        getRoute: (policyID: string, orderWeight: number, tagName: string, backTo = '') =>
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            getUrlWithBackToParam(`settings/${policyID}/tag/${orderWeight}/${encodeURIComponent(tagName)}` as const, backTo),
-    },
     SETTINGS_TAG_APPROVER: {
         route: 'settings/:policyID/tag/:orderWeight/:tagName/approver',
         getRoute: (policyID: string, orderWeight: number, tagName: string, backTo = '') =>
@@ -1289,12 +1306,6 @@ const ROUTES = {
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (policyID: string, orderWeight: number, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/tag-list/${orderWeight}` as const, backTo),
-    },
-    SETTINGS_TAG_GL_CODE: {
-        route: 'settings/:policyID/tag/:orderWeight/:tagName/gl-code',
-        getRoute: (policyID: string, orderWeight: number, tagName: string, backTo = '') =>
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            getUrlWithBackToParam(`settings/${policyID}/tag/${orderWeight}/${encodeURIComponent(tagName)}/gl-code` as const, backTo),
     },
     SETTINGS_TAGS_IMPORT: {
         route: 'settings/:policyID/tags/import',
