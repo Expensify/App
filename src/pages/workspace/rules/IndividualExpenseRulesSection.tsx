@@ -11,6 +11,7 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCashExpenseReimbursableMode, setPolicyAttendeeTrackingEnabled, setPolicyRequireCompanyCardsEnabled, setWorkspaceEReceiptsEnabled} from '@libs/actions/Policy/Policy';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
+import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import type {ThemeStyles} from '@styles/index';
@@ -197,9 +198,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
     const requireCompanyCardsEnabled = policy?.requireCompanyCardsEnabled ?? false;
     const disableRequireCompanyCardToggle = !policy?.areCompanyCardsEnabled && !policy?.areExpensifyCardsEnabled;
 
-    // For backwards compatibility with Expensify Classic, we assume that Attendee Tracking is enabled by default on
-    // Control policies if the policy does not contain the attribute
-    const isAttendeeTrackingEnabled = policy?.isAttendeeTrackingEnabled ?? true;
+    const isAttendeeTrackingEnabledForPolicy = isAttendeeTrackingEnabled(policy);
 
     return (
         <Section
@@ -269,8 +268,8 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
                     shouldPlaceSubtitleBelowSwitch
                     titleStyle={styles.pv2}
                     subtitleStyle={styles.pt1}
-                    isActive={isAttendeeTrackingEnabled}
-                    onToggle={() => handleAttendeeTrackingToggle(!isAttendeeTrackingEnabled)}
+                    isActive={isAttendeeTrackingEnabledForPolicy}
+                    onToggle={() => handleAttendeeTrackingToggle(!isAttendeeTrackingEnabledForPolicy)}
                     pendingAction={policy?.pendingFields?.isAttendeeTrackingEnabled}
                 />
             </View>

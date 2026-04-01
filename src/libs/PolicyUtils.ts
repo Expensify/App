@@ -814,6 +814,14 @@ function isControlPolicy(policy: OnyxEntry<Policy>): boolean {
 }
 
 /**
+ * For backwards compatibility with Expensify Classic, attendee tracking defaults to enabled
+ * on Control policies when the property is undefined.
+ */
+function isAttendeeTrackingEnabled(policy: OnyxEntry<Policy>): boolean {
+    return (isControlPolicy(policy) && policy?.isAttendeeTrackingEnabled) ?? true;
+}
+
+/**
  * Whether the policy can access a feature based on plan level.
  * Corporate-only features are restricted to control (Corporate) policies.
  */
@@ -1014,9 +1022,8 @@ function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFe
     if (featureName === CONST.POLICY.MORE_FEATURES.IS_TIME_TRACKING_ENABLED) {
         return isTimeTrackingEnabled(policy);
     }
-    // For backwards compatibility with Expensify Classic, attendee tracking defaults to enabled
     if (featureName === CONST.POLICY.MORE_FEATURES.IS_ATTENDEE_TRACKING_ENABLED) {
-        return policy?.isAttendeeTrackingEnabled ?? true;
+        return isAttendeeTrackingEnabled(policy);
     }
 
     return !!policy?.[featureName];
@@ -2165,6 +2172,7 @@ export {
     getApprovalWorkflow,
     getReimburserAccountID,
     isControlPolicy,
+    isAttendeeTrackingEnabled,
     isCollectPolicy,
     isNetSuiteCustomSegmentRecord,
     getNameFromNetSuiteCustomField,

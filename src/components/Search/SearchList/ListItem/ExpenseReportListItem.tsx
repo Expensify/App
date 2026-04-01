@@ -22,6 +22,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {handleActionButtonPress} from '@libs/actions/Search';
 import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {isInvoiceReport, isOpenExpenseReport, isProcessingReport, isReportPendingDelete} from '@libs/ReportUtils';
 import {isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
@@ -96,7 +97,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     // Sync missingAttendees violation at render time for each transaction in the report
     // This ensures violations show immediately when category settings change, without needing to click the row
     const hasSyncedMissingAttendeesViolation = useMemo(() => {
-        if (!(policyForViolations?.isAttendeeTrackingEnabled ?? true) || policyForViolations?.type !== CONST.POLICY.TYPE.CORPORATE) {
+        if (!isAttendeeTrackingEnabled(policyForViolations)) {
             return false;
         }
 
@@ -114,7 +115,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
                 transaction.category ?? '',
                 transaction.attendees,
                 currentUserDetails,
-                policyForViolations.isAttendeeTrackingEnabled ?? true,
+                isAttendeeTrackingEnabled(policyForViolations),
                 policyForViolations.type === CONST.POLICY.TYPE.CORPORATE,
                 isInvoice,
             );
