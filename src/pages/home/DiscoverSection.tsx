@@ -35,7 +35,11 @@ function DiscoverSection() {
         hasOutstandingChildTask,
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR);
     const parentReportAction = useParentReportAction(viewTourTaskReport);
-    const [hasSeenTour = true] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [hasSeenTour] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+
+    if (hasSeenTour !== false) {
+        return null;
+    }
 
     if (hasSeenTour) {
         return null;
