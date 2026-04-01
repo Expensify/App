@@ -1,6 +1,8 @@
+import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {hasAccountingConnections, hasCustomCategories, hasNonDefaultRules} from '@libs/PolicyUtils';
+import {hasCompanyCardFeeds} from '@libs/CardUtils';
+import {hasAccountingConnections, hasCustomCategories, hasNonDefaultRules, isPaidGroupPolicy, isPendingDeletePolicy} from '@libs/PolicyUtils';
 import isWithinGettingStartedPeriod from '@pages/home/GettingStartedSection/utils/isWithinGettingStartedPeriod';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -36,6 +38,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
     const [reportedIntegration] = useOnyx(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${activePolicyID}`);
+    const [allCardFeeds] = useCardFeeds(activePolicyID);
 
     const emptyResult: UseGettingStartedItemsResult = {shouldShowSection: false, items: []};
 
@@ -44,7 +47,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         return emptyResult;
     }
 
-    if (!activePolicyID || !policy) {
+    if (!activePolicyID || !policy || isPendingDeletePolicy(policy) || !isPaidGroupPolicy(policy)) {
         return emptyResult;
     }
 
@@ -84,7 +87,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         items.push({
             key: 'linkCompanyCards',
             label: translate('homePage.gettingStartedSection.linkCompanyCards'),
-            isComplete: false,
+            isComplete: hasCompanyCardFeeds(allCardFeeds),
             route: ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(activePolicyID),
         });
     }

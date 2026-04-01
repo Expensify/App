@@ -620,6 +620,12 @@ function getCompanyFeeds(cardFeeds: OnyxEntry<CombinedCardFeeds>, shouldFilterOu
     );
 }
 
+function hasCompanyCardFeeds(cardFeeds: OnyxEntry<CombinedCardFeeds>): boolean {
+    return Object.values(cardFeeds ?? {}).some(
+        (value) => value.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !value.pending && !value.feed.includes(CONST.EXPENSIFY_CARD.BANK),
+    );
+}
+
 function getBankName(feedType: CardFeedWithNumber | CardFeedWithDomainID): string {
     const cacheKey = feedType ?? '';
     const cached = getBankNameCache.get(cacheKey);
@@ -1590,6 +1596,7 @@ export {
     isSelectedFeedExpired,
     isTravelCard,
     getCompanyFeeds,
+    hasCompanyCardFeeds,
     isPersonalCardBrokenConnection,
     isCustomFeed,
     isCSVFeedOrExpensifyCard,

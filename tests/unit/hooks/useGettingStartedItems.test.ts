@@ -25,6 +25,7 @@ function buildPolicy(overrides: Partial<Policy> = {}): Policy {
     return {
         ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM, 'Test Workspace'),
         id: POLICY_ID,
+        pendingAction: undefined,
         areCompanyCardsEnabled: false,
         areRulesEnabled: false,
         connections: undefined,
@@ -524,7 +525,7 @@ describe('useGettingStartedItems', () => {
     });
 
     describe('edge cases', () => {
-        it('should handle missing active policy ID gracefully', async () => {
+        it('should be hidden when active policy ID is missing', async () => {
             await Onyx.merge(ONYXKEYS.NVP_INTRO_SELECTED, {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM});
             await Onyx.merge(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, '2026-03-01');
             await Onyx.merge(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, '2026-04-01');
@@ -533,9 +534,22 @@ describe('useGettingStartedItems', () => {
             const {result} = renderHook(() => useGettingStartedItems());
 
             expect(result.current.shouldShowSection).toBe(false);
+            expect(result.current.items).toEqual([]);
         });
 
-        it('should handle missing policy data gracefully', async () => {
+        it('should be hidden when the policy is pending deletion', async () => {
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                policy: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+
+            expect(result.current.shouldShowSection).toBe(false);
+            expect(result.current.items).toEqual([]);
+        });
+
+        it('should be hidden when policy data does not exist', async () => {
             await Onyx.merge(ONYXKEYS.NVP_INTRO_SELECTED, {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM});
             await Onyx.merge(ONYXKEYS.NVP_ACTIVE_POLICY_ID, 'nonexistent-policy');
             await Onyx.merge(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, '2026-03-01');
@@ -545,6 +559,43 @@ describe('useGettingStartedItems', () => {
             const {result} = renderHook(() => useGettingStartedItems());
 
             expect(result.current.shouldShowSection).toBe(false);
+            expect(result.current.items).toEqual([]);
+        });
+
+        it('should be hidden when active policy is a personal policy', async () => {
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                policy: {type: CONST.POLICY.TYPE.PERSONAL},
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+
+            expect(result.current.shouldShowSection).toBe(false);
+            expect(result.current.items).toEqual([]);
+        });
+
+        it('should be visible when active policy is a collect (team) policy', async () => {
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                policy: {type: CONST.POLICY.TYPE.TEAM},
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+
+            expect(result.current.shouldShowSection).toBe(true);
+            expect(result.current.items.length).toBeGreaterThan(0);
+        });
+
+        it('should be visible when active policy is a control (corporate) policy', async () => {
+            await setupManageTeamScenario({
+                accounting: CONST.POLICY.CONNECTIONS.NAME.QBO,
+                policy: {type: CONST.POLICY.TYPE.CORPORATE},
+            });
+
+            const {result} = renderHook(() => useGettingStartedItems());
+
+            expect(result.current.shouldShowSection).toBe(true);
+            expect(result.current.items.length).toBeGreaterThan(0);
         });
 
         it('should prefer NVP_INTRO_SELECTED over ONBOARDING_PURPOSE_SELECTED when both are set', async () => {
