@@ -190,3 +190,28 @@ test('[SearchRouter] should react to text input changes', async () => {
         )
         .then(() => measureRenders(<SearchAutocompleteInputWrapper />, {scenario}));
 });
+
+test('[SearchRouter] should re-render minimally when typing into the full router with autocomplete list', async () => {
+    const scenario = async () => {
+        const input = await screen.findByTestId('search-autocomplete-text-input');
+        fireEvent.changeText(input, 'E');
+        fireEvent.changeText(input, 'Em');
+        fireEvent.changeText(input, 'Ema');
+        fireEvent.changeText(input, 'Emai');
+        fireEvent.changeText(input, 'Email');
+        fireEvent.changeText(input, 'Email F');
+        fireEvent.changeText(input, 'Email Fi');
+        fireEvent.changeText(input, 'Email Five');
+    };
+
+    return waitForBatchedUpdates()
+        .then(() =>
+            Onyx.multiSet({
+                ...mockedReports,
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+                [ONYXKEYS.BETAS]: mockedBetas,
+                [ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS]: true,
+            }),
+        )
+        .then(() => measureRenders(<SearchRouterWrapperWithCachedOptions />, {scenario}));
+});
