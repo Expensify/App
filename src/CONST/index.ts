@@ -6509,7 +6509,6 @@ const CONST = {
     ONBOARDING_RHP_VARIANT: {
         RHP_CONCIERGE_DM: 'rhpConciergeDm',
         RHP_ADMINS_ROOM: 'rhpAdminsRoom',
-        RHP_HOME_PAGE: 'rhpHomePage',
         TRACK_EXPENSES_WITH_CONCIERGE: 'trackExpensesWithConcierge',
         CONTROL: 'control',
     },

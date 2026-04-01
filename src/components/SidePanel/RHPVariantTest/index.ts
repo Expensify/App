@@ -42,16 +42,15 @@ const shouldOpenRHPVariant: ShouldOpenRHPVariant = (variantOverride) => {
     const isMicroCompany = onboardingCompanySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO;
 
     // Track expenses variant applies to all company sizes EXCEPT micro, which has its own
-    // RHP experiment variants (rhpConciergeDm, rhpAdminsRoom, rhpHomePage).
+    // RHP experiment variants (rhpConciergeDm, rhpAdminsRoom).
     // Micro users should fall through to normal navigation (e.g., #admins chat).
     if (variant === CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE) {
         return !isMicroCompany;
     }
     const isRHPConciergeDM = variant === CONST.ONBOARDING_RHP_VARIANT.RHP_CONCIERGE_DM;
     const isRHPAdminsRoom = variant === CONST.ONBOARDING_RHP_VARIANT.RHP_ADMINS_ROOM;
-    const isRHPHomePage = variant === CONST.ONBOARDING_RHP_VARIANT.RHP_HOME_PAGE;
 
-    return isMicroCompany && (isRHPConciergeDM || isRHPAdminsRoom || isRHPHomePage);
+    return isMicroCompany && (isRHPConciergeDM || isRHPAdminsRoom);
 };
 
 /**
@@ -62,7 +61,7 @@ const shouldOpenRHPVariant: ShouldOpenRHPVariant = (variantOverride) => {
  */
 const handleRHPVariantNavigation: HandleRHPVariantNavigation = (onboardingPolicyID, variantOverride) => {
     const variant = variantOverride ?? onboardingRHPVariant;
-    if (variant === CONST.ONBOARDING_RHP_VARIANT.RHP_HOME_PAGE || variant === CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE) {
+    if (variant === CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE) {
         Navigation.navigate(ROUTES.HOME);
         SidePanelActions.openSidePanel(true);
         return;
