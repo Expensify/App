@@ -17,7 +17,6 @@ import UserInfoCell from '@components/Search/SearchList/ListItem/UserInfoCell';
 import WorkspaceCell from '@components/Search/SearchList/ListItem/WorkspaceCell';
 import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
 import Text from '@components/Text';
-import TextWithTooltip from '@components/TextWithTooltip';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -26,7 +25,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isCategoryMissing} from '@libs/CategoryUtils';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
@@ -577,11 +575,10 @@ function TransactionItemRow({
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE, undefined, isAmountColumnWide)]}
                     >
                         {shouldShowAttendees && (
-                            <TextWithTooltip
-                                testID="TotalPerAttendeeCell"
-                                shouldShowTooltip
-                                text={convertToDisplayString(totalPerAttendee, getCurrency(transactionItem))}
-                                style={[styles.optionDisplayName, styles.pre, styles.justifyContentCenter, styles.textBold, styles.textAlignRight, styles.fontWeightNormal]}
+                            <AmountCell
+                                total={totalPerAttendee ?? 0}
+                                currency={getCurrency(transactionItem)}
+                                isScanning={isScanning(transactionItem)}
                             />
                         )}
                     </View>
