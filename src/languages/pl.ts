@@ -1165,7 +1165,6 @@ const translations: TranslationDeepObject<typeof en> = {
         flash: 'błysk',
         multiScan: 'wielokrotne skanowanie',
         shutter: 'migawka',
-        flipCamera: 'przełącz kamerę',
         gallery: 'galeria',
         deleteReceipt: 'Usuń paragon',
         deleteConfirmation: 'Czy na pewno chcesz usunąć ten paragon?',
@@ -2013,7 +2012,13 @@ const translations: TranslationDeepObject<typeof en> = {
         accountSettings: 'Ustawienia konta',
         account: 'Konto',
         general: 'Ogólne',
-        helpPage: {title: 'Pomoc i wsparcie', description: 'Jesteśmy tu, żeby pomagać ci 24/7', helpSite: 'Centrum pomocy'},
+        helpPage: {
+            title: 'Pomoc i wsparcie',
+            description: 'Jesteśmy tu, żeby pomagać ci 24/7',
+            helpSite: 'Centrum pomocy',
+            conciergeChat: 'Concierge',
+            conciergeChatDescription: 'Twój osobisty agent AI',
+        },
     },
     closeAccountPage: {
         closeAccount: 'Zamknij konto',

@@ -1150,7 +1150,6 @@ const translations: TranslationDeepObject<typeof en> = {
         flash: 'フラッシュ',
         multiScan: 'マルチスキャン',
         shutter: 'シャッター',
-        flipCamera: 'カメラ切替',
         gallery: 'ギャラリー',
         deleteReceipt: '領収書を削除',
         deleteConfirmation: 'この領収書を削除してもよろしいですか？',
@@ -1997,7 +1996,13 @@ const translations: TranslationDeepObject<typeof en> = {
         accountSettings: 'アカウント設定',
         account: 'アカウント',
         general: '一般',
-        helpPage: {title: 'ヘルプとサポート', description: '24時間365日いつでもサポートいたします', helpSite: 'ヘルプサイト'},
+        helpPage: {
+            title: 'ヘルプとサポート',
+            description: '24時間365日いつでもサポートいたします',
+            helpSite: 'ヘルプサイト',
+            conciergeChat: 'Concierge',
+            conciergeChatDescription: 'あなた専用のAIエージェント',
+        },
     },
     closeAccountPage: {
         closeAccount: 'アカウントを閉じる',

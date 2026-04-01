@@ -1169,7 +1169,6 @@ const translations: TranslationDeepObject<typeof en> = {
         flash: 'flash',
         multiScan: 'numérisation multiple',
         shutter: 'obturateur',
-        flipCamera: 'changer de caméra',
         gallery: 'galerie',
         deleteReceipt: 'Supprimer le reçu',
         deleteConfirmation: 'Voulez-vous vraiment supprimer ce reçu ?',
@@ -2022,7 +2021,13 @@ const translations: TranslationDeepObject<typeof en> = {
         accountSettings: 'Paramètres du compte',
         account: 'Compte',
         general: 'Général',
-        helpPage: {title: 'Aide et assistance', description: 'Nous sommes là pour vous aider 24 h/24, 7 j/7', helpSite: 'Site d’aide'},
+        helpPage: {
+            title: 'Aide et assistance',
+            description: 'Nous sommes là pour vous aider 24 h/24, 7 j/7',
+            helpSite: 'Site d’aide',
+            conciergeChat: 'Concierge',
+            conciergeChatDescription: 'Votre agent IA personnel',
+        },
     },
     closeAccountPage: {
         closeAccount: 'Fermer le compte',

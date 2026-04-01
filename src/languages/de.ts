@@ -1165,7 +1165,6 @@ const translations: TranslationDeepObject<typeof en> = {
         flash: 'Blitz',
         multiScan: 'Mehrfachscan',
         shutter: 'Verschluss',
-        flipCamera: 'Kamera wechseln',
         gallery: 'Galerie',
         deleteReceipt: 'Beleg löschen',
         deleteConfirmation: 'Sind Sie sicher, dass Sie diesen Beleg löschen möchten?',
@@ -2017,7 +2016,13 @@ const translations: TranslationDeepObject<typeof en> = {
         accountSettings: 'Kontoeinstellungen',
         account: 'Konto',
         general: 'Allgemein',
-        helpPage: {title: 'Hilfe und Support', description: 'Wir sind rund um die Uhr für Sie da', helpSite: 'Hilfeseite'},
+        helpPage: {
+            title: 'Hilfe und Support',
+            description: 'Wir sind rund um die Uhr für Sie da',
+            helpSite: 'Hilfeseite',
+            conciergeChat: 'Concierge',
+            conciergeChatDescription: 'Ihr persönlicher KI-Agent',
+        },
     },
     closeAccountPage: {
         closeAccount: 'Konto schließen',

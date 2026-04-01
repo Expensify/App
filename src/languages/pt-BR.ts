@@ -1165,7 +1165,6 @@ const translations: TranslationDeepObject<typeof en> = {
         flash: 'flash',
         multiScan: 'escaneamento múltiplo',
         shutter: 'obturador',
-        flipCamera: 'trocar câmera',
         gallery: 'galeria',
         deleteReceipt: 'Excluir recibo',
         deleteConfirmation: 'Tem certeza de que deseja excluir este recibo?',
@@ -2010,7 +2009,13 @@ const translations: TranslationDeepObject<typeof en> = {
         accountSettings: 'Configurações da conta',
         account: 'Conta',
         general: 'Geral',
-        helpPage: {title: 'Ajuda e suporte', description: 'Estamos aqui para ajudar você 24 horas por dia, 7 dias por semana', helpSite: 'Site de ajuda'},
+        helpPage: {
+            title: 'Ajuda e suporte',
+            description: 'Estamos aqui para ajudar você 24 horas por dia, 7 dias por semana',
+            helpSite: 'Site de ajuda',
+            conciergeChat: 'Concierge',
+            conciergeChatDescription: 'Seu agente de IA pessoal',
+        },
     },
     closeAccountPage: {
         closeAccount: 'Encerrar conta',

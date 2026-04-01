@@ -1271,7 +1271,6 @@ const CONST = {
         SHUTTER_SIZE: 90,
         MAX_REPORT_PREVIEW_RECEIPTS: 3,
         FLASH_DELAY_MS: 2000,
-        PHOTO_ASPECT_RATIO: 4 / 3,
     },
     RECEIPT_PREVIEW_TOP_BOTTOM_MARGIN: 120,
     REPORT: {
@@ -9374,6 +9373,7 @@ const CONST = {
             REQUEST_EARLY_CANCELLATION: 'SettingsSubscription-RequestEarlyCancellation',
         },
         SETTINGS_HELP: {
+            CONCIERGE_CHAT: 'SettingsHelp-ConciergeChat',
             HELP_DOCS: 'SettingsHelp-HelpDocs',
         },
         SETTINGS_ABOUT: {
