@@ -304,7 +304,7 @@ function SearchList({
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const undeleteTransactions = useUndeleteTransactions();
 
-    const handleUndelete = (transactionID: string) => undeleteTransactions([transactionID]);
+    const handleUndelete = (transaction: Transaction) => undeleteTransactions([transaction]);
 
     const route = useRoute();
     const {getScrollOffset} = useContext(ScrollOffsetContext);

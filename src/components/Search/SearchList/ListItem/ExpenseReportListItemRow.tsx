@@ -202,7 +202,7 @@ function ExpenseReportListItemRow({
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
                 <ActionCell
                     action={item.action}
-                    goToItem={onButtonPress}
+                    onButtonPress={onButtonPress}
                     isSelected={item.isSelected}
                     isLoading={isActionLoading}
                     policyID={item.policyID}
@@ -307,7 +307,7 @@ function ExpenseReportListItemRow({
                 <View style={[styles.pAbsolute, styles.t0, styles.r0, {width: variables.w72}, styles.alignItemsEnd]}>
                     <ActionCell
                         action={item.action}
-                        goToItem={onButtonPress}
+                        onButtonPress={onButtonPress}
                         isSelected={item.isSelected}
                         isLoading={isActionLoading}
                         policyID={item.policyID}

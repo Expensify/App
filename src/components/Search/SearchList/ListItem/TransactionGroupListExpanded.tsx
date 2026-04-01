@@ -24,7 +24,7 @@ import {getReportAction} from '@libs/ReportActionsUtils';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {createAndOpenSearchTransactionThread, getColumnsToShow, getTableMinWidth} from '@libs/SearchUIUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import {getTransactionViolations} from '@libs/TransactionUtils';
+import {getTransactionViolations, isDeletedTransaction} from '@libs/TransactionUtils';
 import type {TransactionPreviewData} from '@userActions/Search';
 import {setActiveTransactionIDs} from '@userActions/TransactionThreadNavigation';
 import CONST from '@src/CONST';
@@ -54,6 +54,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     searchTransactions,
     isInSingleTransactionReport,
     onLongPress,
+    onUndelete,
 }: TransactionGroupListExpandedProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -230,13 +231,17 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                         onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
                         columns={currentColumns}
                         onButtonPress={() => {
+                            if (transaction.action === CONST.SEARCH.ACTION_TYPES.UNDELETE) {
+                                onUndelete?.(transaction);
+                                return;
+                            }
                             openReportInRHP(transaction);
                         }}
                         style={[styles.noBorderRadius, styles.p3, isLargeScreenWidth && [styles.pv1Half], styles.flex1]}
                         isReportItemChild
                         isInSingleTransactionReport={isInSingleTransactionReport}
                         shouldShowBottomBorder={shouldShowBottomBorder}
-                        onArrowRightPress={() => openReportInRHP(transaction)}
+                        onArrowRightPress={isDeletedTransaction(transaction) ? undefined : () => openReportInRHP(transaction)}
                         shouldShowArrowRightOnNarrowLayout
                         reportActions={exportedReportActions}
                     />

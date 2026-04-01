@@ -11,7 +11,7 @@ import PayActionCell from './PayActionCell';
 type ActionCellProps = {
     action?: SearchTransactionAction;
     isSelected?: boolean;
-    goToItem: () => void;
+    onButtonPress: () => void;
     isChildListItem?: boolean;
     isLoading?: boolean;
     policyID?: string;
@@ -25,7 +25,7 @@ type ActionCellProps = {
 function ActionCell({
     action = CONST.SEARCH.ACTION_TYPES.VIEW,
     isSelected = false,
-    goToItem,
+    onButtonPress,
     isChildListItem = false,
     isLoading = false,
     policyID = '',
@@ -41,7 +41,7 @@ function ActionCell({
 
     const shouldUseViewAction = action === CONST.SEARCH.ACTION_TYPES.VIEW || action === CONST.SEARCH.ACTION_TYPES.PAID || action === CONST.SEARCH.ACTION_TYPES.DONE;
 
-    if (shouldUseViewAction || isChildListItem) {
+    if (shouldUseViewAction || (isChildListItem && action !== CONST.SEARCH.ACTION_TYPES.UNDELETE)) {
         const text = translate(actionTranslationsMap[CONST.SEARCH.ACTION_TYPES.VIEW]);
         const buttonInnerStyles = isSelected ? styles.buttonDefaultSelected : {};
 
@@ -49,7 +49,7 @@ function ActionCell({
             <Button
                 testID="ActionCell"
                 text={text}
-                onPress={goToItem}
+                onPress={onButtonPress}
                 small={!extraSmall}
                 extraSmall={extraSmall}
                 style={[styles.w100, shouldDisablePointerEvents && styles.pointerEventsNone]}
@@ -83,7 +83,7 @@ function ActionCell({
     return (
         <Button
             text={text}
-            onPress={goToItem}
+            onPress={onButtonPress}
             small={!extraSmall}
             extraSmall={extraSmall}
             style={[styles.w100, shouldDisablePointerEvents && styles.pointerEventsNone]}

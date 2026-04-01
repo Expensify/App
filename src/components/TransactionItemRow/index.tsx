@@ -416,7 +416,7 @@ function TransactionItemRow({
                                 action={transactionItem.action}
                                 isSelected={isSelected}
                                 isChildListItem={isReportItemChild}
-                                goToItem={onButtonPress}
+                                onButtonPress={onButtonPress}
                                 isLoading={isActionLoading}
                                 reportID={transactionItem.reportID}
                                 policyID={report?.policyID}
@@ -802,11 +802,12 @@ function TransactionItemRow({
                             />
                         </View>
                     )}
-                    {!!isLargeScreenWidth && !!onArrowRightPress && (
+                    {!!isLargeScreenWidth && (
                         <PressableWithFeedback
                             disabled={!!isDisabled}
                             onPress={() => onArrowRightPress?.()}
-                            style={[styles.p3Half, styles.pl0half, styles.pr0half, styles.justifyContentCenter, styles.alignItemsEnd]}
+                            style={[styles.p3Half, styles.pl0half, styles.pr0half, styles.justifyContentCenter, styles.alignItemsEnd, !onArrowRightPress && styles.opacity0]}
+                            accessible={!!onArrowRightPress}
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={CONST.ROLE.BUTTON}
                             sentryLabel={CONST.SENTRY_LABEL.TRANSACTION_ITEM_ROW.ARROW_RIGHT}
