@@ -41,16 +41,8 @@ function DiscoverSection() {
         return null;
     }
 
-    if (hasSeenTour) {
-        return null;
-    }
-
     const handlePress = () => {
         Linking.openURL(getTestDriveURL(shouldUseNarrowLayout, introSelected, isCurrentUserPolicyAdmin));
-
-        if (hasSeenTour) {
-            return;
-        }
 
         if (viewTourTaskReport && viewTourTaskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED) {
             completeTestDriveTask(
