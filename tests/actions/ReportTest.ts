@@ -5911,15 +5911,13 @@ describe('actions/Report', () => {
 
         it('should pass isSelfTourViewed=true to navigateToConciergeChat when selfTour has been viewed', async () => {
             const mockNavigateToConciergeChat = jest.fn();
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-return
             jest.mock('@userActions/Report', () => ({
-                ...jest.requireActual('@userActions/Report'),
+                ...jest.requireActual<Record<string, unknown>>('@userActions/Report'),
                 navigateToConciergeChat: mockNavigateToConciergeChat,
             }));
 
             jest.resetModules();
-            // eslint-disable-next-line @typescript-eslint/no-shadow
-            const handleWalletStatementNavigation = jest.requireActual<{default: typeof handleWalletStatementNavigationDefault}>(
+            const localHandleWalletStatementNavigation = jest.requireActual<{default: typeof handleWalletStatementNavigationDefault}>(
                 '@components/WalletStatementModal/walletNavigationUtils',
             ).default;
 
@@ -5928,7 +5926,7 @@ describe('actions/Report', () => {
             const isSelfTourViewed = true;
 
             expect(() => {
-                handleWalletStatementNavigation('123', testIntroSelected, TEST_USER_ACCOUNT_ID, isSelfTourViewed, undefined, CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE, undefined);
+                localHandleWalletStatementNavigation('123', testIntroSelected, TEST_USER_ACCOUNT_ID, isSelfTourViewed, undefined, CONST.WALLET.WEB_MESSAGE_TYPE.CONCIERGE, undefined);
             }).not.toThrow();
         });
 
