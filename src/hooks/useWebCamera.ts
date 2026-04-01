@@ -1,8 +1,8 @@
 import {useIsFocused} from '@react-navigation/native';
-import {useCallback, useEffect, useReducer, useRef, useState} from 'react';
+import {useEffect, useReducer, useRef, useState} from 'react';
 import type {LayoutRectangle} from 'react-native';
 import type Webcam from 'react-webcam';
-import {isMobileWebKit} from '@libs/Browser';
+import {isMobile, isMobileWebKit} from '@libs/Browser';
 import CONST from '@src/CONST';
 
 /**
@@ -63,7 +63,10 @@ function useWebCamera({onUnmount}: UseWebCameraOptions = {}) {
      * On phones that have ultra-wide lens, react-webcam uses ultra-wide by default.
      * The last deviceId is of regular lens camera.
      */
-    const requestCameraPermission = useCallback(() => {
+    const requestCameraPermission = () => {
+        if (!isMobile()) {
+            return;
+        }
         const defaultConstraints = {facingMode: {exact: 'environment'}};
         navigator.mediaDevices
             .getUserMedia({video: {facingMode: {exact: 'environment'}, zoom: {ideal: 1}}})
@@ -91,27 +94,32 @@ function useWebCamera({onUnmount}: UseWebCameraOptions = {}) {
                     setDeviceConstraints(defaultConstraints);
                     return;
                 }
-                navigator.mediaDevices.enumerateDevices().then((devices) => {
-                    let lastBackDeviceId = '';
-                    for (let i = devices.length - 1; i >= 0; i--) {
-                        const device = devices.at(i);
-                        if (device?.kind === 'videoinput') {
-                            lastBackDeviceId = device.deviceId;
-                            break;
+                navigator.mediaDevices
+                    .enumerateDevices()
+                    .then((devices) => {
+                        let lastBackDeviceId = '';
+                        for (let i = devices.length - 1; i >= 0; i--) {
+                            const device = devices.at(i);
+                            if (device?.kind === 'videoinput') {
+                                lastBackDeviceId = device.deviceId;
+                                break;
+                            }
                         }
-                    }
-                    if (!lastBackDeviceId) {
+                        if (!lastBackDeviceId) {
+                            setDeviceConstraints(defaultConstraints);
+                            return;
+                        }
+                        setDeviceConstraints({deviceId: lastBackDeviceId});
+                    })
+                    .catch(() => {
                         setDeviceConstraints(defaultConstraints);
-                        return;
-                    }
-                    setDeviceConstraints({deviceId: lastBackDeviceId});
-                });
+                    });
             })
             .catch(() => {
                 setDeviceConstraints(defaultConstraints);
                 setCameraPermissionState('denied');
             });
-    }, []);
+    };
 
     useEffect(() => {
         if (!isTabActive) {
@@ -130,8 +138,11 @@ function useWebCamera({onUnmount}: UseWebCameraOptions = {}) {
             .finally(() => {
                 setIsQueriedPermissionState(true);
             });
-        // Refresh permission state whenever this tab regains focus.
-    }, [isTabActive, requestCameraPermission]);
+        return () => {
+            setDeviceConstraints(undefined);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isTabActive]);
 
     useEffect(
         () => () => {
@@ -144,7 +155,7 @@ function useWebCamera({onUnmount}: UseWebCameraOptions = {}) {
         [onUnmount],
     );
 
-    const setupCameraPermissionsAndCapabilities = useCallback((stream: MediaStream) => {
+    const setupCameraPermissionsAndCapabilities = (stream: MediaStream) => {
         setCameraPermissionState('granted');
 
         const [track] = stream.getVideoTracks();
@@ -154,41 +165,37 @@ function useWebCamera({onUnmount}: UseWebCameraOptions = {}) {
             trackRef.current = track;
         }
         setIsTorchAvailable('torch' in capabilities && !!capabilities.torch);
-    }, []);
+    };
 
-    const clearTorchConstraints = useCallback(() => {
+    const clearTorchConstraints = () => {
         if (!trackRef.current) {
             return;
         }
         trackRef.current.applyConstraints({
             advanced: [{torch: false}],
         });
-    }, []);
+    };
 
-    const capturePhotoWithFlash = useCallback(
-        (getScreenshot: () => void) => {
-            if (trackRef.current && isFlashLightOn) {
-                trackRef.current
-                    .applyConstraints({
-                        advanced: [{torch: true}],
-                    })
-                    .then(() => {
-                        getScreenshotTimeoutRef.current = setTimeout(() => {
-                            getScreenshot();
-                            clearTorchConstraints();
-                        }, CONST.RECEIPT.FLASH_DELAY_MS);
-                    });
-                return;
-            }
+    const capturePhotoWithFlash = (getScreenshot: () => void) => {
+        if (trackRef.current && isFlashLightOn) {
+            trackRef.current
+                .applyConstraints({
+                    advanced: [{torch: true}],
+                })
+                .then(() => {
+                    getScreenshotTimeoutRef.current = setTimeout(() => {
+                        getScreenshot();
+                        clearTorchConstraints();
+                    }, CONST.RECEIPT.FLASH_DELAY_MS);
+                });
+            return;
+        }
 
-            getScreenshot();
-        },
-        [isFlashLightOn, clearTorchConstraints],
-    );
+        getScreenshot();
+    };
 
     return {
         cameraRef,
-        trackRef,
         viewfinderLayout,
         cameraPermissionState,
         setCameraPermissionState,
@@ -199,7 +206,6 @@ function useWebCamera({onUnmount}: UseWebCameraOptions = {}) {
         videoConstraints,
         requestCameraPermission,
         setupCameraPermissionsAndCapabilities,
-        clearTorchConstraints,
         capturePhotoWithFlash,
     };
 }

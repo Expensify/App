@@ -16,6 +16,7 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWebCamera from '@hooks/useWebCamera';
 import {isMobile} from '@libs/Browser';
 import {base64ToFile} from '@libs/fileDownload/FileUtils';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
@@ -24,7 +25,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import NavigationAwareCamera from '@pages/iou/request/step/IOURequestStepScan/components/NavigationAwareCamera/WebCamera';
 import {cropImageToAspectRatio} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
 import type {ImageObject} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
-import useWebCamera from '@pages/iou/request/step/IOURequestStepScan/hooks/useWebCamera';
 import StepScreenDragAndDropWrapper from '@pages/iou/request/step/StepScreenDragAndDropWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import type {WithFullTransactionOrNotFoundProps} from '@pages/iou/request/step/withFullTransactionOrNotFound';
@@ -72,8 +72,6 @@ function IOURequestStepOdometerImage({
         capturePhotoWithFlash,
     } = useWebCamera();
 
-    const [isInitialPermissionQueried, setIsInitialPermissionQueried] = useState(false);
-
     const lazyIcons = useMemoizedLazyExpensifyIcons(['OdometerStart', 'OdometerEnd', 'Bolt', 'Gallery']);
     const lazyIllustrations = useMemoizedLazyIllustrations(['Hand', 'Shutter']);
     const title = imageType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? translate('distance.odometer.startTitle') : translate('distance.odometer.endTitle');
@@ -104,14 +102,6 @@ function IOURequestStepOdometerImage({
         }
         handleImageSelected(file);
     });
-
-    // The odometer's own initial permission query for non-mobile (useWebCamera handles mobile)
-    useEffect(() => {
-        if (!isMobile() || isInitialPermissionQueried) {
-            return;
-        }
-        setIsInitialPermissionQueried(true);
-    }, [isInitialPermissionQueried]);
 
     const getScreenshot = () => {
         if (!cameraRef.current) {

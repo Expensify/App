@@ -10,6 +10,7 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Button from '@components/Button';
 import FeatureTrainingModal from '@components/FeatureTrainingModal';
+import {useFullScreenLoaderActions} from '@components/FullScreenLoaderContext';
 import Icon from '@components/Icon';
 import ImageSVG from '@components/ImageSVG';
 import LocationPermissionModal from '@components/LocationPermissionModal';
@@ -18,6 +19,7 @@ import Text from '@components/Text';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNativeCamera from '@hooks/useNativeCamera';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -45,7 +47,6 @@ import captureReceipt from './captureReceipt';
 import NavigationAwareCamera from './components/NavigationAwareCamera/Camera';
 import ReceiptPreviews from './components/ReceiptPreviews';
 import useMobileReceiptScan from './hooks/useMobileReceiptScan';
-import useNativeCamera from './hooks/useNativeCamera';
 import useReceiptScan from './hooks/useReceiptScan';
 import type IOURequestStepScanProps from './types';
 
@@ -94,8 +95,8 @@ function IOURequestStepScan({
         tapGesture,
         cameraFocusIndicatorAnimatedStyle,
         cameraLoadingReasonAttributes,
-        setIsLoaderVisible,
     } = useNativeCamera({context: 'IOURequestStepScan', onFocusStart, onFocusCleanup});
+    const {setIsLoaderVisible} = useFullScreenLoaderActions();
 
     const {windowWidth, windowHeight} = useWindowDimensions();
 

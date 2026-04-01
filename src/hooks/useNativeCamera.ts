@@ -8,8 +8,6 @@ import type {Camera, Point} from 'react-native-vision-camera';
 import {useCameraDevice} from 'react-native-vision-camera';
 import {scheduleOnRN} from 'react-native-worklets';
 import {useFullScreenLoaderActions, useFullScreenLoaderState} from '@components/FullScreenLoaderContext';
-import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import {showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
 import getPlatform from '@libs/getPlatform';
 import type Platform from '@libs/getPlatform/types';
@@ -18,6 +16,8 @@ import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan
 import CameraPermission from '@pages/iou/request/step/IOURequestStepScan/CameraPermission';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
+import useLocalize from './useLocalize';
+import useOnyx from './useOnyx';
 
 type UseNativeCameraOptions = {
     /** Context name for telemetry reason attributes */
@@ -160,7 +160,6 @@ function useNativeCamera({context, onFocusStart, onFocusCleanup}: UseNativeCamer
         tapGesture,
         cameraFocusIndicatorAnimatedStyle,
         cameraLoadingReasonAttributes,
-        setIsLoaderVisible,
     };
 }
 
