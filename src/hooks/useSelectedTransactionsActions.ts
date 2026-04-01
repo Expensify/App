@@ -35,7 +35,7 @@ import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
 import useAllTransactions from './useAllTransactions';
-import useArchivedReportsIdSet from './useArchivedReportsIdSet';
+import useArchivedReportsIdSet from './useArchivedReportsIDSet';
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDeleteTransactions from './useDeleteTransactions';

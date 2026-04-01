@@ -8,7 +8,7 @@ import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxInputOrEntry, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
-import useArchivedReportsIdSet from './useArchivedReportsIdSet';
+import useArchivedReportsIdSet from './useArchivedReportsIDSet';
 import useOnyx from './useOnyx';
 
 /**

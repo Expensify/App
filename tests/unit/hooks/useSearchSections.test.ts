@@ -48,7 +48,7 @@ jest.mock('@hooks/useActionLoadingReportIDs', () => ({
     default: () => new Set(),
 }));
 
-jest.mock('@hooks/useArchivedReportsIdSet', () => ({
+jest.mock('@hooks/useArchivedReportsIDSet', () => ({
     // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => new Set(),

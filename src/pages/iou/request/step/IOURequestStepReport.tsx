@@ -4,7 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import {useSearchActionsContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
-import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
+import useArchivedReportsIdSet from '@hooks/useArchivedReportsIDSet';
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
