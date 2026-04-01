@@ -61,15 +61,12 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
     const {hasExceededMaxCommentLength, validateCommentMaxLength, setHasExceededMaxCommentLength} = useHandleExceedMaxCommentLength();
     const {hasExceededMaxTaskTitleLength, validateTaskTitleMaxLength, setHasExceededMaxTitleLength} = useHandleExceedMaxTaskTitleLength();
 
-    const exceededMaxLength = (() => {
-        if (hasExceededMaxTaskTitleLength) {
-            return CONST.TITLE_CHARACTER_LIMIT;
-        }
-        if (hasExceededMaxCommentLength) {
-            return CONST.MAX_COMMENT_LENGTH;
-        }
-        return null;
-    })();
+    let exceededMaxLength: number | null = null;
+    if (hasExceededMaxTaskTitleLength) {
+        exceededMaxLength = CONST.TITLE_CHARACTER_LIMIT;
+    } else if (hasExceededMaxCommentLength) {
+        exceededMaxLength = CONST.MAX_COMMENT_LENGTH;
+    }
 
     const isSendDisabled = isEmpty || isBlockedFromConcierge || !!exceededMaxLength;
 

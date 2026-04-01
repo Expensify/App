@@ -88,13 +88,11 @@ function RichDropZone({reportID, shouldAddOrReplaceReceipt, transactionID, onAtt
 
     const hasReceipt = hasReceiptTransactionUtils(transaction);
 
-    const shouldDisplayDualDropZone = (() => {
-        const parentReport = getParentReport(report);
-        const isSettledOrApproved = isSettled(report) || isSettled(parentReport) || isReportApproved({report}) || isReportApproved({report: parentReport});
-        const hasMoneyRequestOptions = !!temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs, betas, isReportArchived, isRestrictedToPreferredPolicy).length;
-        const canModifyReceipt = shouldAddOrReplaceReceipt && !isSettledOrApproved;
-        return canModifyReceipt || hasMoneyRequestOptions;
-    })();
+    const parentReport = getParentReport(report);
+    const isSettledOrApproved = isSettled(report) || isSettled(parentReport) || isReportApproved({report}) || isReportApproved({report: parentReport});
+    const hasMoneyRequestOptions = !!temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs, betas, isReportArchived, isRestrictedToPreferredPolicy).length;
+    const canModifyReceipt = shouldAddOrReplaceReceipt && !isSettledOrApproved;
+    const shouldDisplayDualDropZone = canModifyReceipt || hasMoneyRequestOptions;
 
     if (shouldDisplayDualDropZone) {
         return (
