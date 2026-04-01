@@ -1054,7 +1054,18 @@ const translations: TranslationDeepObject<typeof en> = {
         singleFieldMultipleColumns: (fieldName: string) => `哎呀！你已将单个字段（“${fieldName}”）映射到多个列。请检查后重试。`,
         emptyMappedField: (fieldName: string) => `哎呀！字段（“${fieldName}”）包含一个或多个空值。请检查后重试。`,
         importSuccessfulTitle: '导入成功',
-        importCategoriesSuccessfulDescription: ({categories}: {categories: number}) => (categories > 1 ? `已添加 ${categories} 个类别。` : '已添加 1 个类别。'),
+        importCategoriesSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
+            if (!added && !updated) {
+                return '尚未添加或更新任何类别。';
+            }
+            if (added && updated) {
+                return `已添加 ${added} 个，${added === 1 ? '类别' : '类别'} 新增；已更新 ${updated} 个，${updated === 1 ? '类别' : '类别'} 更新。`;
+            }
+            if (added) {
+                return added === 1 ? '已添加 1 个类别。' : `已添加 ${added} 个类别。`;
+            }
+            return updated === 1 ? '1 个类别已更新。' : `已更新 ${updated} 个类别。`;
+        },
         importCompanyCardTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) => (transactions > 1 ? `已添加 ${transactions} 笔交易。` : '已添加 1 笔交易。'),
         importMembersSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
             if (!added && !updated) {
@@ -1385,6 +1396,9 @@ const translations: TranslationDeepObject<typeof en> = {
             manySplitsProvided: `允许的最大拆分数为 ${CONST.IOU.SPLITS_LIMIT}。`,
             dateRangeExceedsMaxDays: `日期范围不能超过 ${CONST.IOU.SPLITS_LIMIT} 天。`,
             stitchOdometerImagesFailed: '合并里程表图片失败。请稍后重试。',
+            nonReimbursablePayment: '无法通过 Expensify 付款',
+            nonReimbursablePaymentDescription: (isMultiple?: boolean) =>
+                isMultiple ? '一个或多个所选报告没有可报销的费用。请再次检查费用，或手动将其标记为已支付。' : '该报告没有可报销的费用。请再次检查费用，或手动将其标记为已支付。',
         },
         dismissReceiptError: '忽略错误',
         dismissReceiptErrorConfirmation: '提醒：关闭此错误将彻底删除你上传的收据。确定要继续吗？',
@@ -3278,11 +3292,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         confirmationStepHeader: '请检查您的信息。',
         confirmationStepSubHeader: '请仔细核对以下详细信息，并勾选条款复选框以确认。',
         toGetStarted: '添加个人银行账户以接收报销、支付发票或启用 Expensify 钱包。',
-        updatePersonalInfo: '更新银行账户',
-        updatePersonalInfoFailure: '无法更新银行账户信息。请稍后重试。',
-        updateSuccessTitle: '银行账户已更新！',
-        updateSuccessHeader: '银行账户已更新',
-        updateSuccessMessage: '恭喜，您的银行账户已设置完成，可以开始接收报销款了。',
     },
     addPersonalBankAccountPage: {
         enterPassword: '输入 Expensify 密码',
@@ -3975,6 +3984,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             defaultNote: `发送到 ${CONST.EMAIL.RECEIPTS} 的收据将显示在此工作区中。`,
             deleteConfirmation: '确定要删除此工作区吗？',
             deleteWithCardsConfirmation: '确定要删除此工作区吗？这将移除所有卡片数据源和已分配的卡片。',
+            deleteOpenExpensifyCardsError: '您的公司仍有未关闭的 Expensify 卡。',
             outstandingBalanceWarning: '您有一笔未结清的余额，必须在删除最后一个工作区之前结清。请前往订阅设置以解决付款问题。',
             settleBalance: '前往订阅',
             unavailable: '工作区不可用',
