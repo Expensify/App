@@ -1192,9 +1192,9 @@ describe('libs/NextStepUtils', () => {
             const result = getReportNextStep(undefined, report, [transaction] as Array<OnyxEntry<Transaction>>, undefined, transactionViolations, currentUserEmail, currentUserAccountID);
 
             expect(result).toEqual({
-                type: 'neutral',
                 icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                message: [{text: 'Waiting for '}, {text: 'you', type: 'strong'}, {text: ' to '}, {text: 'fix the issue(s)'}],
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES,
+                actorAccountID: report.ownerAccountID,
             });
         });
 
@@ -1303,9 +1303,9 @@ describe('libs/NextStepUtils', () => {
             const result = getReportNextStep(undefined, report, [transaction] as Array<OnyxEntry<Transaction>>, policy, transactionViolations, currentUserEmail, currentUserAccountID);
 
             expect(result).toEqual({
-                type: 'neutral',
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES,
                 icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                message: [{text: 'Waiting for '}, {text: 'you', type: 'strong'}, {text: ' to '}, {text: 'fix the issue(s)'}],
+                actorAccountID: report.ownerAccountID,
             });
         });
     });
