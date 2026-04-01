@@ -108,7 +108,7 @@ describe('ClearReportActionErrors UI', () => {
                                 currentUserAccountID={ACTOR_ACCOUNT_ID}
                                 betas={undefined}
                                 draftTransactionIDs={[]}
-                                userBillingGraceEndPeriods={undefined}
+                                userBillingGracePeriodEnds={undefined}
                                 clearAllRelatedReportActionErrors={clearErrorFn}
                                 originalReportID={originalReportID}
                             />
