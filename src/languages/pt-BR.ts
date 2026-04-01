@@ -1615,7 +1615,6 @@ const translations: TranslationDeepObject<typeof en> = {
         failedToAutoApproveViaDEW: (reason: string) => `falha ao aprovar pelas <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regras do workspace</a>. ${reason}`,
         failedToApproveViaDEW: (reason: string) => `falha ao aprovar. ${reason}`,
         cannotDuplicateDistanceExpense: 'Você não pode duplicar despesas de distância entre espaços de trabalho porque as tarifas podem ser diferentes entre eles.',
-        deleted: 'Excluído',
     },
     transactionMerge: {
         listPage: {
@@ -7358,7 +7357,6 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             unhold: 'Remover bloqueio',
             reject: 'Rejeitar',
             noOptionsAvailable: 'Nenhuma opção disponível para o grupo de despesas selecionado.',
-            undelete: 'Restaurar',
         },
         filtersHeader: 'Filtros',
         filters: {

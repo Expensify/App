@@ -1629,7 +1629,6 @@ const translations: TranslationDeepObject<typeof en> = {
             `impossible d’approuver via les <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">règles de l’espace de travail</a>. ${reason}`,
         failedToApproveViaDEW: (reason: string) => `échec de l’approbation. ${reason}`,
         cannotDuplicateDistanceExpense: 'Vous ne pouvez pas dupliquer des dépenses de distance entre espaces de travail, car les taux peuvent différer d’un espace de travail à l’autre.',
-        deleted: 'Supprimé',
     },
     transactionMerge: {
         listPage: {
@@ -7425,7 +7424,6 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             unhold: 'Supprimer la mise en attente',
             reject: 'Rejeter',
             noOptionsAvailable: 'Aucune option n’est disponible pour le groupe de dépenses sélectionné.',
-            undelete: 'Restaurer',
         },
         filtersHeader: 'Filtres',
         filters: {
