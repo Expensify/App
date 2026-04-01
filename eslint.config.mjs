@@ -1,4 +1,3 @@
-import importAlias from '@dword-design/eslint-plugin-import-alias';
 import {FlatCompat} from '@eslint/eslintrc';
 import tsParser from '@typescript-eslint/parser';
 import expensifyConfig from 'eslint-config-expensify';
