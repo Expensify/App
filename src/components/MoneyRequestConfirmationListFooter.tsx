@@ -492,7 +492,7 @@ function MoneyRequestConfirmationListFooter({
             return translate('common.error.characterLimitExceedCounter', byteLength, CONST.MERCHANT_NAME_MAX_BYTES);
         }
 
-        if ((shouldDisplayFieldError || formError === 'iou.error.invalidMerchant') && isMerchantRequired && !trimmedMerchant) {
+        if ((shouldDisplayFieldError || formError === 'iou.error.invalidMerchant') && isMerchantRequired) {
             return translate('common.error.fieldRequired');
         }
 
@@ -903,6 +903,7 @@ function MoneyRequestConfirmationListFooter({
                     <View style={[styles.mh4, styles.mv2]}>
                         <TextInput
                             value={isMerchantEmpty ? '' : (iouMerchant ?? '')}
+                            readOnly={didConfirm}
                             onChangeText={handleMerchantInputChange}
                             label={translate('common.merchant')}
                             accessibilityLabel={translate('common.merchant')}
