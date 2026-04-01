@@ -1793,6 +1793,14 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         ...(isLastItem ? styles.searchTableBottomRadius : {}),
     }),
 
+    getSearchTableRowPressableStyle: (isLastItem?: boolean, isSelected?: boolean): ViewStyle => ({
+        minHeight: variables.tableRowHeight,
+        borderRadius: 0,
+        borderBottomWidth: isLastItem ? 0 : 1,
+        borderColor: isSelected ? theme.buttonHoveredBG : theme.border,
+        ...(isLastItem ? styles.searchTableBottomRadius : {}),
+    }),
+
     getReportTableColumnStyles: (
         columnName: string,
         isDateColumnWide = false,

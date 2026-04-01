@@ -174,8 +174,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             styles.mh0,
             isPendingDelete && styles.cursorDisabled,
             isLargeScreenWidth && {
-                ...styles.searchTableRowHeight,
-                ...StyleUtils.getSearchTableRowBorderStyle(isLastItem, item.isSelected),
+                ...StyleUtils.getSearchTableRowPressableStyle(!!isLastItem, item.isSelected),
                 paddingVertical: 8,
             },
         ],

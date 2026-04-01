@@ -42,8 +42,7 @@ function TaskListItem<TItem extends ListItem>({
         item.isSelected && styles.activeComponentBG,
         styles.mh0,
         isLargeScreenWidth && {
-            ...styles.searchTableRowHeight,
-            ...StyleUtils.getSearchTableRowBorderStyle(isLastItem, item.isSelected),
+            ...StyleUtils.getSearchTableRowPressableStyle(!!isLastItem, item.isSelected),
             paddingVertical: 8,
         },
     ];

@@ -47,8 +47,7 @@ function TableListItem<TItem extends ListItem>({
 
     const compactRowStyle = isLargeScreenWidth
         ? {
-              ...styles.searchTableRowHeight,
-              ...StyleUtils.getSearchTableRowBorderStyle(isLastItem, item.isSelected),
+              ...StyleUtils.getSearchTableRowPressableStyle(!!isLastItem, !!item.isSelected),
               paddingVertical: 8,
               paddingHorizontal: 12,
           }

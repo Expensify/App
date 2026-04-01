@@ -110,8 +110,7 @@ function TransactionListItem<TItem extends ListItem>({
                   ...styles.flexRow,
                   ...styles.justifyContentBetween,
                   ...styles.alignItemsCenter,
-                  ...styles.searchTableRowHeight,
-                  ...StyleUtils.getSearchTableRowBorderStyle(isLastItem, item.isSelected),
+                  ...StyleUtils.getSearchTableRowPressableStyle(!!isLastItem, item.isSelected),
               }
             : {...styles.flexColumn, ...styles.alignItemsStretch},
     ];
