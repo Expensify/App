@@ -64,7 +64,7 @@ function isPreloadAction(action: RootStackNavigatorAction): action is PreloadAct
     return action.type === CONST.NAVIGATION.ACTION_TYPE.PRELOAD;
 }
 
-const MODAL_GUARD_REDIRECT_TARGETS: Set<string> = new Set([NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR, NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR]);
+const MODAL_GUARD_REDIRECT_TARGETS = new Set<string>([NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR, NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR]);
 
 function isModalGuardRedirectTarget(name: string) {
     return MODAL_GUARD_REDIRECT_TARGETS.has(name);
