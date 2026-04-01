@@ -28,6 +28,7 @@ function HelpPage() {
             icon: icons.Monitor,
             iconRight: icons.NewWindow,
             onPress: () => openExternalLink(CONST.NEWHELP_URL),
+            link: CONST.NEWHELP_URL,
             shouldShowRightIcon: true,
             wrapperStyle: [styles.sectionMenuItemTopDescription],
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.HELP_DOCS,
