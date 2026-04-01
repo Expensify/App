@@ -2,6 +2,7 @@ import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import GoogleTagManager from '@libs/GoogleTagManager';
 // eslint-disable-next-line no-restricted-syntax
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 // eslint-disable-next-line no-restricted-syntax -- this is needed to allow mocking
@@ -35,6 +36,8 @@ const TEST_PHONE_NUMBER = '1234567890';
 const TEST_NON_PUBLIC_DOMAIN_EMAIL = 'esh@example.com';
 const TEST_SMS_DOMAIN_EMAIL = 'esh@expensify.sms';
 
+jest.mock('@libs/GoogleTagManager');
+
 OnyxUpdateManager();
 describe('actions/Policy', () => {
     beforeAll(() => {
@@ -48,6 +51,7 @@ describe('actions/Policy', () => {
         global.fetch = TestHelper.getGlobalFetchMock();
         mockFetch = fetch as MockFetch;
         IntlStore.load(CONST.LOCALES.EN);
+        jest.clearAllMocks();
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
@@ -81,6 +85,7 @@ describe('actions/Policy', () => {
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
                 isSelfTourViewed: false,
+                hasActiveAdminPolicies: false,
             });
             await waitForBatchedUpdates();
 
@@ -183,7 +188,7 @@ describe('actions/Policy', () => {
 
             // After filtering, two actions are added to the list =- signoff message (+1) and default create action (+1)
             const expectedReportActionsOfTypeCreatedCount = 1;
-            const expectedSignOffMessagesCount = 0;
+            const expectedSignOffMessagesCount = 1;
             expect(adminReportActions.length).toBe(expectedManageTeamDefaultTasksCount + expectedReportActionsOfTypeCreatedCount + expectedSignOffMessagesCount);
 
             let reportActionsOfTypeCreatedCount = 0;
@@ -524,6 +529,7 @@ describe('actions/Policy', () => {
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
                 isSelfTourViewed: false,
+                hasActiveAdminPolicies: false,
             });
             await waitForBatchedUpdates();
 
@@ -553,6 +559,7 @@ describe('actions/Policy', () => {
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
                 isSelfTourViewed: false,
+                hasActiveAdminPolicies: false,
                 betas: [CONST.BETAS.SUGGESTED_FOLLOWUPS],
             });
             await waitForBatchedUpdates();
@@ -585,6 +592,7 @@ describe('actions/Policy', () => {
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
                 isSelfTourViewed: false,
+                hasActiveAdminPolicies: false,
             });
             await waitForBatchedUpdates();
 
@@ -619,6 +627,7 @@ describe('actions/Policy', () => {
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
                 isSelfTourViewed: false,
+                hasActiveAdminPolicies: false,
             });
             await waitForBatchedUpdates();
 
@@ -649,6 +658,7 @@ describe('actions/Policy', () => {
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
                 isSelfTourViewed: false,
+                hasActiveAdminPolicies: false,
             });
             await waitForBatchedUpdates();
 
@@ -676,6 +686,7 @@ describe('actions/Policy', () => {
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
                 isSelfTourViewed: false,
+                hasActiveAdminPolicies: false,
             });
             await waitForBatchedUpdates();
 
@@ -704,6 +715,7 @@ describe('actions/Policy', () => {
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
                 isSelfTourViewed: false,
+                hasActiveAdminPolicies: false,
             });
             await waitForBatchedUpdates();
 
@@ -730,6 +742,7 @@ describe('actions/Policy', () => {
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
                 isSelfTourViewed: false,
+                hasActiveAdminPolicies: false,
             });
             await waitForBatchedUpdates();
 
@@ -756,6 +769,7 @@ describe('actions/Policy', () => {
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
                 isSelfTourViewed: false,
+                hasActiveAdminPolicies: false,
             });
             await waitForBatchedUpdates();
 
@@ -782,6 +796,7 @@ describe('actions/Policy', () => {
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
                 isSelfTourViewed: false,
+                hasActiveAdminPolicies: false,
             });
             await waitForBatchedUpdates();
 
@@ -808,6 +823,7 @@ describe('actions/Policy', () => {
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
                 isSelfTourViewed: false,
+                hasActiveAdminPolicies: false,
             });
             await waitForBatchedUpdates();
 
@@ -846,6 +862,7 @@ describe('actions/Policy', () => {
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
                 isSelfTourViewed: false,
+                hasActiveAdminPolicies: false,
             });
             await waitForBatchedUpdates();
 
@@ -879,6 +896,7 @@ describe('actions/Policy', () => {
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
                 isSelfTourViewed: true,
+                hasActiveAdminPolicies: false,
             });
             await waitForBatchedUpdates();
 
@@ -912,6 +930,7 @@ describe('actions/Policy', () => {
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
                 isSelfTourViewed: false,
+                hasActiveAdminPolicies: false,
             });
             await waitForBatchedUpdates();
 
@@ -947,6 +966,7 @@ describe('actions/Policy', () => {
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
                 isSelfTourViewed: true,
+                hasActiveAdminPolicies: false,
             });
             await waitForBatchedUpdates();
 
@@ -987,6 +1007,7 @@ describe('actions/Policy', () => {
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
                 isSelfTourViewed: false,
+                hasActiveAdminPolicies: false,
             });
             await waitForBatchedUpdates();
 
@@ -1028,6 +1049,7 @@ describe('actions/Policy', () => {
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
                 isSelfTourViewed: false,
+                hasActiveAdminPolicies: false,
                 adminParticipant: {login: adminEmail, accountID: adminAccountID},
             });
             await waitForBatchedUpdates();
@@ -1065,6 +1087,7 @@ describe('actions/Policy', () => {
                 currentUserAccountIDParam: ESH_ACCOUNT_ID,
                 currentUserEmailParam: ESH_EMAIL,
                 isSelfTourViewed: false,
+                hasActiveAdminPolicies: false,
             });
             await waitForBatchedUpdates();
 
@@ -1078,6 +1101,41 @@ describe('actions/Policy', () => {
             );
 
             apiWriteSpy.mockRestore();
+        });
+
+        it('should publish a workspace created event if this is their first policy', () => {
+            Policy.createWorkspace({
+                policyOwnerEmail: ESH_EMAIL,
+                makeMeAdmin: true,
+                policyName: WORKSPACE_NAME,
+                policyID: '1',
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
+                isSelfTourViewed: false,
+                hasActiveAdminPolicies: false,
+            });
+
+            expect(GoogleTagManager.publishEvent).toHaveBeenCalledTimes(1);
+            expect(GoogleTagManager.publishEvent).toHaveBeenCalledWith(CONST.ANALYTICS.EVENT.WORKSPACE_CREATED, ESH_ACCOUNT_ID);
+        });
+
+        it('should not publish a workspace created event if this is not their first policy', () => {
+            Policy.createWorkspace({
+                policyOwnerEmail: ESH_EMAIL,
+                makeMeAdmin: true,
+                policyName: WORKSPACE_NAME,
+                policyID: '1',
+                engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
+                isSelfTourViewed: false,
+                hasActiveAdminPolicies: true,
+            });
+
+            expect(GoogleTagManager.publishEvent).not.toHaveBeenCalled();
         });
     });
 
@@ -1799,7 +1857,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
 
             // When a policy is upgradeToCorporate
-            Policy.upgradeToCorporate(fakePolicy.id);
+            Policy.upgradeToCorporate(fakePolicy);
             await waitForBatchedUpdates();
 
             const policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
@@ -1827,7 +1885,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
 
             // When upgrading to corporate
-            Policy.upgradeToCorporate(fakePolicy.id);
+            Policy.upgradeToCorporate(fakePolicy);
             await waitForBatchedUpdates();
 
             const policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
@@ -1854,7 +1912,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
 
             // When upgrading to corporate
-            Policy.upgradeToCorporate(fakePolicy.id);
+            Policy.upgradeToCorporate(fakePolicy);
             await waitForBatchedUpdates();
 
             const policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
@@ -1871,6 +1929,59 @@ describe('actions/Policy', () => {
         });
     });
 
+    describe('downgradeToTeam', () => {
+        it('should downgrade to team optimistically and succeed', async () => {
+            // Given a policy with type corporate
+            const policyID = '1';
+            const fakePolicy = {
+                id: policyID,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                isAttendeeTrackingEnabled: true,
+            };
+            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            // When downgradeToTeam is called
+            mockFetch.pause();
+            Policy.downgradeToTeam(policyID, fakePolicy.type, fakePolicy.isAttendeeTrackingEnabled);
+            await waitForBatchedUpdates();
+
+            // Then type should be team optimistically
+            let updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.type).toBe(CONST.POLICY.TYPE.TEAM);
+            expect(updatedPolicy?.isPendingDowngrade).toBe(true);
+
+            // When the fetch resumes and succeeds
+            await mockFetch.resume();
+
+            // And the success data should clear the pending downgrade
+            updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.isPendingDowngrade).toBe(false);
+        });
+
+        it('should revert downgrade when fail', async () => {
+            // Given a policy with type corporate
+            const policyID = '1';
+            const fakePolicy = {
+                id: policyID,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                isAttendeeTrackingEnabled: true,
+            };
+            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            // When downgradeToTeam is called and fails
+            mockFetch.fail();
+            Policy.downgradeToTeam(policyID, fakePolicy.type, fakePolicy.isAttendeeTrackingEnabled);
+            await waitForBatchedUpdates();
+
+            // Then type should be reverted to corporate
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.type).toBe(CONST.POLICY.TYPE.CORPORATE);
+            expect(updatedPolicy?.isPendingDowngrade).toBe(false);
+        });
+    });
+
     describe('enablePolicyRules', () => {
         it('should not reset preventSelfApproval when the rule feature is turned off', async () => {
             (fetch as MockFetch)?.pause?.();
@@ -1884,7 +1995,7 @@ describe('actions/Policy', () => {
             await waitForBatchedUpdates();
 
             // Disable the rule feature
-            Policy.enablePolicyRules(fakePolicy.id, false);
+            Policy.enablePolicyRules(fakePolicy, false);
             await waitForBatchedUpdates();
 
             let policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
@@ -1950,7 +2061,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            Policy.setWorkspaceApprovalMode(policyID, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL);
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL);
             await waitForBatchedUpdates();
 
             let policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
@@ -2023,7 +2134,7 @@ describe('actions/Policy', () => {
             // eslint-disable-next-line @typescript-eslint/no-deprecated -- We need a minimal ReportNextStepDeprecated shape to simulate rollback on failure.
             const currentNextStep2 = {type: 'neutral', icon: CONST.NEXT_STEP.ICONS.CHECKMARK, message: [{text: 'Old next step 2'}]} as never;
 
-            Policy.setWorkspaceApprovalMode(policyID, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, {
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL, {
                 reportNextSteps: {
                     [nextStepKey1]: currentNextStep1,
                     [nextStepKey2]: currentNextStep2,
@@ -2076,7 +2187,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            Policy.setWorkspaceApprovalMode(policyID, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL);
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL);
             await waitForBatchedUpdates();
 
             expect(getAllPolicyReportsSpy).not.toHaveBeenCalled();
@@ -2124,7 +2235,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            Policy.setWorkspaceApprovalMode(policyID, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL);
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL);
             await waitForBatchedUpdates();
 
             const policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
@@ -2171,7 +2282,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            Policy.setWorkspaceApprovalMode(policyID, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL);
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL);
             await waitForBatchedUpdates();
 
             expect(apiWriteSpy).toHaveBeenCalledWith(WRITE_COMMANDS.DISABLE_POLICY_APPROVALS, expect.objectContaining({policyID}), expect.anything());
@@ -2196,7 +2307,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            Policy.setWorkspaceApprovalMode(policyID, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
             await waitForBatchedUpdates();
 
             expect(apiWriteSpy).toHaveBeenCalledWith(WRITE_COMMANDS.SET_WORKSPACE_APPROVAL_MODE, expect.objectContaining({policyID}), expect.anything());
@@ -2238,7 +2349,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            Policy.setWorkspaceApprovalMode(policyID, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
             await waitForBatchedUpdates();
 
             // optimisticMembersState should be empty for non-OPTIONAL mode
@@ -2283,7 +2394,7 @@ describe('actions/Policy', () => {
             // Simulate API failure
             mockFetch?.fail?.();
 
-            Policy.setWorkspaceApprovalMode(policyID, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL);
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL);
             await waitForBatchedUpdates();
 
             const policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
@@ -2340,7 +2451,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            Policy.setWorkspaceApprovalMode(policyID, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL);
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL);
             await waitForBatchedUpdates();
 
             const writeOptions = apiWriteSpy.mock.calls.at(0)?.at(2) as
@@ -2390,7 +2501,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            Policy.setWorkspaceApprovalMode(policyID, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL);
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL);
             await waitForBatchedUpdates();
 
             const writeOptions = apiWriteSpy.mock.calls.at(0)?.at(2) as
@@ -2427,7 +2538,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            Policy.setWorkspaceApprovalMode(policyID, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
             await waitForBatchedUpdates();
 
             let policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
@@ -2483,7 +2594,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            Policy.setWorkspaceApprovalMode(policyID, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL);
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL);
             await waitForBatchedUpdates();
 
             let policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
@@ -2536,7 +2647,7 @@ describe('actions/Policy', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            Policy.setWorkspaceApprovalMode(policyID, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL);
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL);
             await waitForBatchedUpdates();
 
             let policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
@@ -2593,7 +2704,7 @@ describe('actions/Policy', () => {
 
             mockFetch?.fail?.();
 
-            Policy.setWorkspaceApprovalMode(policyID, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL);
+            Policy.setWorkspaceApprovalMode(fakePolicy, ESH_EMAIL, CONST.POLICY.APPROVAL_MODE.OPTIONAL);
             await waitForBatchedUpdates();
 
             const policy: OnyxEntry<PolicyType> = await new Promise((resolve) => {
@@ -2644,6 +2755,7 @@ describe('actions/Policy', () => {
                 reimbursementAccountError: {},
                 lastUsedPaymentMethods: undefined,
                 localeCompare: TestHelper.localeCompare,
+                currentUserAccountID: ESH_ACCOUNT_ID,
             });
 
             await waitForBatchedUpdates();
@@ -2742,6 +2854,7 @@ describe('actions/Policy', () => {
                 reimbursementAccountError: undefined,
                 lastUsedPaymentMethods: undefined,
                 localeCompare: TestHelper.localeCompare,
+                currentUserAccountID: ESH_ACCOUNT_ID,
             });
 
             await waitForBatchedUpdates();
@@ -2798,6 +2911,7 @@ describe('actions/Policy', () => {
                 reimbursementAccountError: undefined,
                 lastUsedPaymentMethods: undefined,
                 localeCompare: TestHelper.localeCompare,
+                currentUserAccountID: ESH_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
 
@@ -2835,6 +2949,7 @@ describe('actions/Policy', () => {
                 reimbursementAccountError: undefined,
                 lastUsedPaymentMethods: undefined,
                 localeCompare: TestHelper.localeCompare,
+                currentUserAccountID: ESH_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
 
@@ -2874,6 +2989,7 @@ describe('actions/Policy', () => {
                 reimbursementAccountError: undefined,
                 lastUsedPaymentMethods: undefined,
                 localeCompare: TestHelper.localeCompare,
+                currentUserAccountID: ESH_ACCOUNT_ID,
             });
             await waitForBatchedUpdates();
 
@@ -3199,6 +3315,8 @@ describe('actions/Policy', () => {
 
             Policy.setWorkspaceReimbursement({
                 policyID: FAKE_POLICY_ID,
+                currentAchAccount: fakePolicy.achAccount,
+                currentReimbursementChoice: fakePolicy.reimbursementChoice,
                 reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
                 bankAccountID: FAKE_BANK_ACCOUNT_ID,
                 reimburserEmail: FAKE_REIMBURSER_EMAIL,
@@ -3235,6 +3353,8 @@ describe('actions/Policy', () => {
 
             Policy.setWorkspaceReimbursement({
                 policyID: FAKE_POLICY_ID,
+                currentAchAccount: fakePolicy.achAccount,
+                currentReimbursementChoice: fakePolicy.reimbursementChoice,
                 reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
                 bankAccountID: FAKE_BANK_ACCOUNT_ID,
                 reimburserEmail: FAKE_REIMBURSER_EMAIL,
@@ -3267,6 +3387,8 @@ describe('actions/Policy', () => {
 
             Policy.setWorkspaceReimbursement({
                 policyID: FAKE_POLICY_ID,
+                currentAchAccount: fakePolicy.achAccount,
+                currentReimbursementChoice: fakePolicy.reimbursementChoice,
                 reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
                 bankAccountID: FAKE_BANK_ACCOUNT_ID,
                 reimburserEmail: FAKE_REIMBURSER_EMAIL,
@@ -3301,6 +3423,8 @@ describe('actions/Policy', () => {
 
             Policy.setWorkspaceReimbursement({
                 policyID: FAKE_POLICY_ID,
+                currentAchAccount: fakePolicy.achAccount,
+                currentReimbursementChoice: fakePolicy.reimbursementChoice,
                 reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
                 bankAccountID: FAKE_BANK_ACCOUNT_ID,
                 reimburserEmail: FAKE_REIMBURSER_EMAIL,
@@ -3332,6 +3456,8 @@ describe('actions/Policy', () => {
 
             Policy.setWorkspaceReimbursement({
                 policyID: FAKE_POLICY_ID,
+                currentAchAccount: fakePolicy.achAccount,
+                currentReimbursementChoice: fakePolicy.reimbursementChoice,
                 reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
                 bankAccountID: FAKE_BANK_ACCOUNT_ID,
                 reimburserEmail: FAKE_REIMBURSER_EMAIL,
@@ -3359,6 +3485,8 @@ describe('actions/Policy', () => {
 
             Policy.setWorkspaceReimbursement({
                 policyID: FAKE_POLICY_ID,
+                currentAchAccount: fakePolicy.achAccount,
+                currentReimbursementChoice: fakePolicy.reimbursementChoice,
                 reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
                 bankAccountID: FAKE_BANK_ACCOUNT_ID,
                 reimburserEmail: FAKE_REIMBURSER_EMAIL,
@@ -3383,6 +3511,758 @@ describe('actions/Policy', () => {
                     bankAccountID: String(FAKE_BANK_ACCOUNT_ID),
                 }),
             );
+        });
+    });
+
+    describe('enablePolicyTaxes', () => {
+        it('should enable policy taxes optimistically and succeed', async () => {
+            // Given a policy with taxes disabled
+            const policyID = '1';
+            const fakePolicy = {
+                id: policyID,
+                tax: {
+                    trackingEnabled: false,
+                },
+            };
+            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            // When enablePolicyTaxes is called to enable taxes
+            mockFetch.pause();
+            Policy.enablePolicyTaxes(policyID, true, undefined);
+            await waitForBatchedUpdates();
+
+            // Then the policy tax tracking should be updated optimistically
+            let updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.tax?.trackingEnabled).toBe(true);
+            expect(updatedPolicy?.pendingFields?.tax).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            // And taxRates should be updated with default taxes
+            expect(updatedPolicy?.taxRates?.taxes).toBeDefined();
+
+            // When the fetch resumes and succeeds
+            await mockFetch.resume();
+
+            // And the success data should clear the pending fields
+            updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.pendingFields?.tax).toBeUndefined();
+            for (const tax of Object.values(updatedPolicy?.taxRates?.taxes ?? {})) {
+                expect(tax.pendingAction).toBeUndefined();
+            }
+        });
+
+        it('should revert policy taxes when fail', async () => {
+            // Given a policy with taxes disabled
+            const policyID = '1';
+            const fakePolicy = {
+                id: policyID,
+                tax: {
+                    trackingEnabled: false,
+                },
+                taxRates: {},
+            };
+            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            // When enablePolicyTaxes is called and fails
+            mockFetch.fail();
+            Policy.enablePolicyTaxes(policyID, true, undefined);
+            await waitForBatchedUpdates();
+
+            // Then the policy tax tracking should be reverted
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.tax?.trackingEnabled).toBe(false);
+            expect(updatedPolicy?.pendingFields?.tax).toBeUndefined();
+            expect(updatedPolicy?.taxRates).toBeUndefined();
+        });
+    });
+    describe('enablePolicyWorkflows', () => {
+        it('should enable policy workflows optimistically and succeed', async () => {
+            // Given a policy with workflows disabled
+            const policyID = '1';
+            const fakePolicy = {
+                id: policyID,
+                areWorkflowsEnabled: false,
+            };
+            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            // When enablePolicyWorkflows is called to enable workflows
+            mockFetch.pause();
+            Policy.enablePolicyWorkflows(policyID, true, undefined, undefined, undefined, undefined);
+            await waitForBatchedUpdates();
+
+            // Then workflows should be enabled optimistically
+            let updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.areWorkflowsEnabled).toBe(true);
+            expect(updatedPolicy?.pendingFields?.areWorkflowsEnabled).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            // When the fetch resumes and succeeds
+            await mockFetch.resume();
+
+            // And the success data should clear the pending fields
+            updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.pendingFields?.areWorkflowsEnabled).toBeUndefined();
+        });
+
+        it('should revert policy workflows when fail', async () => {
+            // Given a policy with workflows enabled
+            const policyID = '1';
+            const fakePolicy = {
+                id: policyID,
+                areWorkflowsEnabled: true,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                autoReporting: true,
+                harvesting: {enabled: true, jobID: 123},
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+            };
+            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            // When enablePolicyWorkflows is called to disable workflows and fails
+            mockFetch.fail();
+            Policy.enablePolicyWorkflows(policyID, false, fakePolicy.approvalMode, fakePolicy.autoReporting, fakePolicy.harvesting, fakePolicy.reimbursementChoice);
+            await waitForBatchedUpdates();
+
+            // Then workflows should be reverted to enabled and other fields restored
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.areWorkflowsEnabled).toBe(true);
+            expect(updatedPolicy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.ADVANCED);
+            expect(updatedPolicy?.autoReporting).toBe(true);
+            expect(updatedPolicy?.harvesting?.enabled).toBe(true);
+            expect(updatedPolicy?.reimbursementChoice).toBe(CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES);
+            expect(updatedPolicy?.pendingFields?.areWorkflowsEnabled).toBeUndefined();
+        });
+    });
+    describe('enableDistanceRequestTax', () => {
+        it('should enable distance request tax optimistically and succeed', async () => {
+            // Given a policy with a custom unit and tax disabled
+            const policyID = '1';
+            const customUnitID = 'unit_1';
+            const customUnitName = 'Distance';
+            const initialAttributes = {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, taxEnabled: false};
+            const fakePolicy = {
+                id: policyID,
+                customUnits: {
+                    [customUnitID]: {
+                        customUnitID,
+                        name: customUnitName,
+                        attributes: initialAttributes,
+                    },
+                },
+            };
+            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            // When enableDistanceRequestTax is called to enable tax
+            mockFetch.pause();
+            const newAttributes = {...initialAttributes, taxEnabled: true};
+            Policy.enableDistanceRequestTax(policyID, customUnitName, customUnitID, newAttributes, initialAttributes);
+            await waitForBatchedUpdates();
+
+            // Then taxEnabled should be true optimistically
+            let updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.customUnits?.[customUnitID]?.attributes?.taxEnabled).toBe(true);
+            expect(updatedPolicy?.customUnits?.[customUnitID]?.pendingFields?.taxEnabled).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            // When the fetch resumes and succeeds
+            await mockFetch.resume();
+
+            // And the success data should clear the pending fields
+            updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.customUnits?.[customUnitID]?.pendingFields?.taxEnabled).toBeUndefined();
+        });
+
+        it('should revert distance request tax when fail', async () => {
+            // Given a policy with a custom unit and tax enabled
+            const policyID = '1';
+            const customUnitID = 'unit_1';
+            const customUnitName = 'Distance';
+            const initialAttributes = {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, taxEnabled: true};
+            const fakePolicy = {
+                id: policyID,
+                customUnits: {
+                    [customUnitID]: {
+                        customUnitID,
+                        name: customUnitName,
+                        attributes: initialAttributes,
+                    },
+                },
+            };
+            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            // When enableDistanceRequestTax is called to disable tax and fails
+            mockFetch.fail();
+            const newAttributes = {...initialAttributes, taxEnabled: false};
+            Policy.enableDistanceRequestTax(policyID, customUnitName, customUnitID, newAttributes, initialAttributes);
+            await waitForBatchedUpdates();
+
+            // Then taxEnabled should be reverted to true
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.customUnits?.[customUnitID]?.attributes?.taxEnabled).toBe(true);
+        });
+    });
+
+    describe('updateInvoiceCompanyName', () => {
+        it('should update invoice company name optimistically and succeed', async () => {
+            // Given a policy with an invoice company name
+            const policyID = '1';
+            const initialCompanyName = 'Initial Corp';
+            const fakePolicy = {
+                id: policyID,
+                invoice: {
+                    companyName: initialCompanyName,
+                },
+            };
+            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            // When updateInvoiceCompanyName is called
+            mockFetch.pause();
+            const newCompanyName = 'New Corp';
+            Policy.updateInvoiceCompanyName(policyID, newCompanyName, initialCompanyName);
+            await waitForBatchedUpdates();
+
+            // Then companyName should be updated optimistically
+            let updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.invoice?.companyName).toBe(newCompanyName);
+            expect(updatedPolicy?.invoice?.pendingFields?.companyName).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            // When the fetch resumes and succeeds
+            await mockFetch.resume();
+
+            // And the success data should clear the pending fields
+            updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.invoice?.pendingFields?.companyName).toBeUndefined();
+        });
+
+        it('should revert invoice company name when fail', async () => {
+            // Given a policy with an invoice company name
+            const policyID = '1';
+            const initialCompanyName = 'Initial Corp';
+            const fakePolicy = {
+                id: policyID,
+                invoice: {
+                    companyName: initialCompanyName,
+                },
+            };
+            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            // When updateInvoiceCompanyName is called and fails
+            mockFetch.fail();
+            const newCompanyName = 'New Corp';
+            Policy.updateInvoiceCompanyName(policyID, newCompanyName, initialCompanyName);
+            await waitForBatchedUpdates();
+
+            // Then companyName should be reverted
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.invoice?.companyName).toBe(initialCompanyName);
+            expect(updatedPolicy?.invoice?.pendingFields?.companyName).toBeUndefined();
+        });
+    });
+
+    describe('updateInvoiceCompanyWebsite', () => {
+        it('should update invoice company website optimistically and succeed', async () => {
+            // Given a policy with an invoice company website
+            const policyID = '1';
+            const initialWebsite = 'https://initial.com';
+            const fakePolicy = {
+                id: policyID,
+                invoice: {
+                    companyWebsite: initialWebsite,
+                },
+            };
+            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            // When updateInvoiceCompanyWebsite is called
+            mockFetch.pause();
+            const newWebsite = 'https://new.com';
+            Policy.updateInvoiceCompanyWebsite(policyID, newWebsite, initialWebsite);
+            await waitForBatchedUpdates();
+
+            // Then companyWebsite should be updated optimistically
+            let updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.invoice?.companyWebsite).toBe(newWebsite);
+            expect(updatedPolicy?.invoice?.pendingFields?.companyWebsite).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            // When the fetch resumes and succeeds
+            await mockFetch.resume();
+
+            // And the success data should clear the pending fields
+            updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.invoice?.pendingFields?.companyWebsite).toBeUndefined();
+        });
+
+        it('should revert invoice company website when fail', async () => {
+            // Given a policy with an invoice company website
+            const policyID = '1';
+            const initialWebsite = 'https://initial.com';
+            const fakePolicy = {
+                id: policyID,
+                invoice: {
+                    companyWebsite: initialWebsite,
+                },
+            };
+            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            // When updateInvoiceCompanyWebsite is called and fails
+            mockFetch.fail();
+            const newWebsite = 'https://new.com';
+            Policy.updateInvoiceCompanyWebsite(policyID, newWebsite, initialWebsite);
+            await waitForBatchedUpdates();
+
+            // Then companyWebsite should be reverted
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.invoice?.companyWebsite).toBe(initialWebsite);
+            expect(updatedPolicy?.invoice?.pendingFields?.companyWebsite).toBeUndefined();
+        });
+    });
+
+    describe('setWorkspaceAutoReportingFrequency', () => {
+        it('should update auto reporting frequency optimistically and succeed', async () => {
+            // Given a workspace with immediate reporting frequency
+            const policy = {
+                ...createRandomPolicy(0),
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
+                harvesting: {enabled: true},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            mockFetch.pause();
+
+            // When setting auto reporting frequency to monthly
+            Policy.setWorkspaceAutoReportingFrequency(policy.id, CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY, policy.autoReportingFrequency, policy.harvesting);
+
+            // Then optimistic data should be set in Onyx
+            await waitForBatchedUpdates();
+            let updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY);
+            expect(updatedPolicy?.pendingFields?.autoReportingFrequency).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            // When the fetch resumes and succeeds
+            await mockFetch.resume();
+
+            // Then pendingFields should be cleared
+            updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.pendingFields?.autoReportingFrequency).toBeUndefined();
+        });
+
+        it('should revert auto reporting frequency when fail', async () => {
+            // Given a workspace with immediate reporting frequency
+            const policy = {
+                ...createRandomPolicy(0),
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
+                harvesting: {enabled: true},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            // When setting auto reporting frequency to monthly but fail
+            mockFetch.fail();
+            Policy.setWorkspaceAutoReportingFrequency(policy.id, CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY, policy.autoReportingFrequency, policy.harvesting);
+            await waitForBatchedUpdates();
+
+            // Then the frequency should be reverted
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE);
+            expect(updatedPolicy?.pendingFields?.autoReportingFrequency).toBeUndefined();
+            expect(updatedPolicy?.errorFields?.autoReportingFrequency).toBeTruthy();
+        });
+    });
+
+    describe('setWorkspaceAutoReportingMonthlyOffset', () => {
+        it('should update auto reporting monthly offset optimistically and succeed', async () => {
+            // Given a workspace with offset 1
+            const policy = {
+                ...createRandomPolicy(0),
+                autoReportingOffset: 1,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            mockFetch.pause();
+
+            // When setting auto reporting offset to 2
+            Policy.setWorkspaceAutoReportingMonthlyOffset(policy.id, 2, policy.autoReportingOffset);
+
+            // Then optimistic data should be set in Onyx
+            await waitForBatchedUpdates();
+            let updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.autoReportingOffset).toBe(2);
+            expect(updatedPolicy?.pendingFields?.autoReportingOffset).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            // When the fetch resumes and succeeds
+            await mockFetch.resume();
+
+            // Then pendingFields should be cleared
+            updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.pendingFields?.autoReportingOffset).toBeUndefined();
+        });
+
+        it('should revert auto reporting monthly offset when fail', async () => {
+            // Given a workspace with offset 1
+            const policy = {
+                ...createRandomPolicy(0),
+                autoReportingOffset: 1,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            // When setting auto reporting offset to 2 but fail
+            mockFetch.fail();
+            Policy.setWorkspaceAutoReportingMonthlyOffset(policy.id, 2, policy.autoReportingOffset);
+            await waitForBatchedUpdates();
+
+            // Then the offset should be reverted
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.autoReportingOffset).toBe(1);
+            expect(updatedPolicy?.pendingFields?.autoReportingOffset).toBeUndefined();
+            expect(updatedPolicy?.errorFields?.autoReportingOffset).toBeTruthy();
+        });
+    });
+
+    describe('setWorkspacePayer', () => {
+        it('should update workspace payer optimistically and succeed', async () => {
+            // Given a workspace with a payer
+            const policy = {
+                ...createRandomPolicy(0),
+                reimburser: 'old@test.com',
+                achAccount: {reimburser: 'old@test.com'},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            mockFetch.pause();
+
+            // When setting workspace payer to new@test.com
+            Policy.setWorkspacePayer(policy.id, 'new@test.com', policy.reimburser);
+
+            // Then optimistic data should be set in Onyx
+            await waitForBatchedUpdates();
+            let updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.reimburser).toBe('new@test.com');
+            expect(updatedPolicy?.achAccount?.reimburser).toBe('new@test.com');
+            expect(updatedPolicy?.pendingFields?.reimburser).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            // When the fetch resumes and succeeds
+            await mockFetch.resume();
+
+            // Then pendingFields should be cleared
+            updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.pendingFields?.reimburser).toBeUndefined();
+        });
+
+        it('should revert workspace payer when fail', async () => {
+            // Given a workspace with a payer
+            const policy = {
+                ...createRandomPolicy(0),
+                reimburser: 'old@test.com',
+                achAccount: {reimburser: 'old@test.com'},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            // When setting workspace payer to new@test.com but fail
+            mockFetch.fail();
+            Policy.setWorkspacePayer(policy.id, 'new@test.com', policy.reimburser);
+            await waitForBatchedUpdates();
+
+            // Then the payer should be reverted
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.achAccount?.reimburser).toBe('old@test.com');
+            expect(updatedPolicy?.pendingFields?.reimburser).toBeUndefined();
+            expect(updatedPolicy?.errorFields?.reimburser).toBeTruthy();
+        });
+    });
+
+    describe('setPolicyPreventSelfApproval', () => {
+        it('should update prevent self approval optimistically and succeed', async () => {
+            // Given a workspace with prevent self approval disabled
+            const policy = {
+                ...createRandomPolicy(0),
+                preventSelfApproval: false,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            mockFetch.pause();
+
+            // When enabling prevent self approval
+            Policy.setPolicyPreventSelfApproval(policy.id, true, policy.preventSelfApproval);
+
+            // Then optimistic data should be set in Onyx
+            await waitForBatchedUpdates();
+            let updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.preventSelfApproval).toBe(true);
+            expect(updatedPolicy?.pendingFields?.preventSelfApproval).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            // When the fetch resumes and succeeds
+            await mockFetch.resume();
+
+            // Then pendingFields should be cleared
+            updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.pendingFields?.preventSelfApproval).toBeUndefined();
+        });
+
+        it('should revert prevent self approval when fail', async () => {
+            // Given a workspace with prevent self approval disabled
+            const policy = {
+                ...createRandomPolicy(0),
+                preventSelfApproval: false,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            // When enabling prevent self approval but fail
+            mockFetch.fail();
+            Policy.setPolicyPreventSelfApproval(policy.id, true, policy.preventSelfApproval);
+            await waitForBatchedUpdates();
+
+            // Then it should be reverted
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.preventSelfApproval).toBe(false);
+            expect(updatedPolicy?.pendingFields?.preventSelfApproval).toBeUndefined();
+            expect(updatedPolicy?.errorFields?.preventSelfApproval).toBeTruthy();
+        });
+    });
+
+    describe('setPolicyAutomaticApprovalLimit', () => {
+        it('should update automatic approval limit optimistically and succeed', async () => {
+            // Given a workspace with auto approval limit 100
+            const policy = {
+                ...createRandomPolicy(0),
+                autoApproval: {limit: 10000},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            mockFetch.pause();
+
+            // When setting automatic approval limit to 200
+            Policy.setPolicyAutomaticApprovalLimit(policy.id, '200', policy.autoApproval.limit);
+
+            // Then optimistic data should be set in Onyx
+            await waitForBatchedUpdates();
+            let updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.autoApproval?.limit).toBe(20000);
+            expect(updatedPolicy?.autoApproval?.pendingFields?.limit).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            // When the fetch resumes and succeeds
+            await mockFetch.resume();
+
+            // Then pendingFields should be cleared
+            updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.autoApproval?.pendingFields?.limit).toBeUndefined();
+        });
+
+        it('should revert automatic approval limit when fail', async () => {
+            // Given a workspace with auto approval limit 100
+            const policy = {
+                ...createRandomPolicy(0),
+                autoApproval: {limit: 10000},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            // When setting automatic approval limit to 200 but fail
+            mockFetch.fail();
+            Policy.setPolicyAutomaticApprovalLimit(policy.id, '200', policy.autoApproval.limit);
+            await waitForBatchedUpdates();
+
+            // Then it should be reverted
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.autoApproval?.limit).toBe(10000);
+            expect(updatedPolicy?.autoApproval?.pendingFields?.limit).toBeUndefined();
+            expect(updatedPolicy?.errorFields?.autoApproval).toBeTruthy();
+        });
+    });
+
+    describe('setPolicyAutomaticApprovalRate', () => {
+        it('should update automatic approval rate optimistically and succeed', async () => {
+            // Given a workspace with auto approval audit rate 0.5
+            const policy = {
+                ...createRandomPolicy(0),
+                autoApproval: {auditRate: 0.5},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            mockFetch.pause();
+
+            // When setting automatic approval rate to 80%
+            Policy.setPolicyAutomaticApprovalRate(policy.id, '80', policy.autoApproval.auditRate);
+
+            // Then optimistic data should be set in Onyx
+            await waitForBatchedUpdates();
+            let updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.autoApproval?.auditRate).toBe(0.8);
+            expect(updatedPolicy?.autoApproval?.pendingFields?.auditRate).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            // When the fetch resumes and succeeds
+            await mockFetch.resume();
+
+            // Then pendingFields should be cleared
+            updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.autoApproval?.pendingFields?.auditRate).toBeUndefined();
+        });
+
+        it('should revert automatic approval rate when fail', async () => {
+            // Given a workspace with auto approval audit rate 0.5
+            const policy = {
+                ...createRandomPolicy(0),
+                autoApproval: {auditRate: 0.5},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            // When setting automatic approval rate to 80% but fail
+            mockFetch.fail();
+            Policy.setPolicyAutomaticApprovalRate(policy.id, '80', policy.autoApproval.auditRate);
+            await waitForBatchedUpdates();
+
+            // Then it should be reverted
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.autoApproval?.auditRate).toBe(0.5);
+            expect(updatedPolicy?.autoApproval?.pendingFields?.auditRate).toBeUndefined();
+            expect(updatedPolicy?.errorFields?.autoApproval).toBeTruthy();
+        });
+    });
+
+    describe('enableAutoApprovalOptions', () => {
+        it('should enable auto approval options optimistically and succeed', async () => {
+            // Given a workspace with auto approval options disabled
+            const policy = {
+                ...createRandomPolicy(0),
+                shouldShowAutoApprovalOptions: false,
+                autoApproval: {limit: 0, auditRate: 0},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            mockFetch.pause();
+
+            // When enabling auto approval options
+            Policy.enableAutoApprovalOptions(policy.id, true, policy.shouldShowAutoApprovalOptions, policy.autoApproval.limit, policy.autoApproval.auditRate);
+
+            // Then optimistic data should be set in Onyx
+            await waitForBatchedUpdates();
+            let updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.shouldShowAutoApprovalOptions).toBe(true);
+            expect(updatedPolicy?.autoApproval?.limit).toBe(CONST.POLICY.AUTO_APPROVE_REPORTS_UNDER_SUGGESTED_CENTS);
+            expect(updatedPolicy?.autoApproval?.auditRate).toBe(CONST.POLICY.RANDOM_AUDIT_SUGGESTED_PERCENTAGE);
+            expect(updatedPolicy?.pendingFields?.shouldShowAutoApprovalOptions).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            // When the fetch resumes and succeeds
+            await mockFetch.resume();
+
+            // Then pendingFields should be cleared
+            updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.pendingFields?.shouldShowAutoApprovalOptions).toBeUndefined();
+        });
+
+        it('should revert auto approval options when fail', async () => {
+            // Given a workspace with auto approval options disabled
+            const policy = {
+                ...createRandomPolicy(0),
+                shouldShowAutoApprovalOptions: false,
+                autoApproval: {limit: 0, auditRate: 0},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            // When enabling auto approval options but fail
+            mockFetch.fail();
+            Policy.enableAutoApprovalOptions(policy.id, true, policy.shouldShowAutoApprovalOptions, policy.autoApproval.limit, policy.autoApproval.auditRate);
+            await waitForBatchedUpdates();
+
+            // Then it should be reverted
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.shouldShowAutoApprovalOptions).toBe(false);
+            expect(updatedPolicy?.autoApproval?.limit).toBe(0);
+            expect(updatedPolicy?.autoApproval?.auditRate).toBe(0);
+            expect(updatedPolicy?.pendingFields?.shouldShowAutoApprovalOptions).toBeUndefined();
+        });
+    });
+
+    describe('setPolicyAutoReimbursementLimit', () => {
+        it('should update auto reimbursement limit optimistically and succeed', async () => {
+            // Given a workspace with auto reimbursement limit 100
+            const policy = {
+                ...createRandomPolicy(0),
+                autoReimbursement: {limit: 10000},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            mockFetch.pause();
+
+            // When setting auto reimbursement limit to 200
+            Policy.setPolicyAutoReimbursementLimit(policy.id, '200', policy.autoReimbursement.limit);
+
+            // Then optimistic data should be set in Onyx
+            await waitForBatchedUpdates();
+            let updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.autoReimbursement?.limit).toBe(20000);
+            expect(updatedPolicy?.autoReimbursement?.pendingFields?.limit).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            // When the fetch resumes and succeeds
+            await mockFetch.resume();
+
+            // Then pendingFields should be cleared
+            updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.autoReimbursement?.pendingFields?.limit).toBeUndefined();
+        });
+
+        it('should revert auto reimbursement limit when fail', async () => {
+            // Given a workspace with auto reimbursement limit 100
+            const policy = {
+                ...createRandomPolicy(0),
+                autoReimbursement: {limit: 10000},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            // When setting auto reimbursement limit to 200 but fail
+            mockFetch.fail();
+            Policy.setPolicyAutoReimbursementLimit(policy.id, '200', policy.autoReimbursement.limit);
+            await waitForBatchedUpdates();
+
+            // Then it should be reverted
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.autoReimbursement?.limit).toBe(10000);
+            expect(updatedPolicy?.autoReimbursement?.pendingFields?.limit).toBeUndefined();
+            expect(updatedPolicy?.errorFields?.autoReimbursement).toBeTruthy();
+        });
+    });
+
+    describe('enablePolicyAutoReimbursementLimit', () => {
+        it('should enable auto reimbursement limit option optimistically and succeed', async () => {
+            // Given a workspace with auto reimbursement limit option disabled
+            const policy = {
+                ...createRandomPolicy(0),
+                shouldShowAutoReimbursementLimitOption: false,
+                autoReimbursement: {limit: 0},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            mockFetch.pause();
+
+            // When enabling auto reimbursement limit option
+            Policy.enablePolicyAutoReimbursementLimit(policy.id, true, policy.shouldShowAutoReimbursementLimitOption, policy.autoReimbursement.limit);
+
+            // Then optimistic data should be set in Onyx
+            await waitForBatchedUpdates();
+            let updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.shouldShowAutoReimbursementLimitOption).toBe(true);
+            expect(updatedPolicy?.autoReimbursement?.limit).toBe(CONST.POLICY.AUTO_REIMBURSEMENT_LIMIT_SUGGESTED_CENTS);
+            expect(updatedPolicy?.pendingFields?.shouldShowAutoReimbursementLimitOption).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            // When the fetch resumes and succeeds
+            await mockFetch.resume();
+
+            // Then pendingFields should be cleared
+            updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.pendingFields?.shouldShowAutoReimbursementLimitOption).toBeUndefined();
+        });
+
+        it('should revert auto reimbursement limit option when fail', async () => {
+            // Given a workspace with auto reimbursement limit option disabled
+            const policy = {
+                ...createRandomPolicy(0),
+                shouldShowAutoReimbursementLimitOption: false,
+                autoReimbursement: {limit: 0},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            // When enabling auto reimbursement limit option but fail
+            mockFetch.fail();
+            Policy.enablePolicyAutoReimbursementLimit(policy.id, true, policy.shouldShowAutoReimbursementLimitOption, policy.autoReimbursement.limit);
+            await waitForBatchedUpdates();
+
+            // Then it should be reverted
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.shouldShowAutoReimbursementLimitOption).toBe(false);
+            expect(updatedPolicy?.autoReimbursement?.limit).toBe(0);
+            expect(updatedPolicy?.pendingFields?.shouldShowAutoReimbursementLimitOption).toBeUndefined();
         });
     });
 });

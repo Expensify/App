@@ -147,6 +147,9 @@ type OriginalMessageActionableMentionWhisper = {
 
     /** Collection of accountIDs of users mentioned in message */
     whisperedTo?: number[];
+
+    /** Timestamp of when the whisper was deleted (set by the backend when the parent comment is deleted) */
+    deleted?: string | null;
 };
 
 /** Model of `actionable card fraud alert` report action */
@@ -189,6 +192,12 @@ type OriginalMessageActionableReportMentionWhisper = {
 
     /** Collection of accountIDs of users mentioned in message */
     whisperedTo?: number[];
+
+    /** Timestamp of when the whisper was deleted (set by the backend when the parent comment is deleted) */
+    deleted?: string | null;
+
+    /** The reportActionID of the parent comment that triggered this whisper */
+    reportActionID?: number;
 };
 
 /** Model of `welcome whisper` report action */
@@ -719,6 +728,27 @@ type OriginalMessagePolicyChangeLog = {
         /** The accountID of the previous reimburser */
         accountID: number;
     };
+
+    /** Name of company card feed */
+    feedName?: string;
+
+    /** Last four digits of a company card */
+    cardLastFour?: string;
+
+    /** Old name of a company card feed */
+    oldFeedName?: string;
+
+    /** Company card feed liability type */
+    liabilityType?: string;
+
+    /** Statement period end day for a company card feed */
+    statementPeriodEndDay?: string;
+
+    /** Previous statement period end day for a company card feed */
+    previousStatementPeriodEndDay?: string;
+
+    /** Whether the user joined the workspace via joining link */
+    didJoinPolicy?: boolean;
 };
 
 /** Model of `join policy` report action */

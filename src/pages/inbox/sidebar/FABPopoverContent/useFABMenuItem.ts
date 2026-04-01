@@ -32,7 +32,7 @@ function useFABMenuItem(itemId: string, isVisible = true): FABMenuItemResult {
     }, [isVisible, itemId, registerItem, unregisterItem]);
 
     const itemIndex = registeredItems.indexOf(itemId);
-    const isFocused = focusedIndex === itemIndex;
+    const isFocused = focusedIndex !== -1 && focusedIndex === itemIndex;
     const wrapperStyle = StyleUtils.getItemBackgroundColorStyle(false, isFocused, false, theme.activeComponentBG, theme.hoverComponentBG);
 
     return {itemIndex, isFocused, wrapperStyle, setFocusedIndex, onItemPress};

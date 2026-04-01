@@ -32,6 +32,7 @@ function resolveSuggestedFollowup(
     selectedFollowup: Followup,
     timezoneParam: Timezone,
     currentUserAccountID: number,
+    currentUserEmail: string | undefined,
     ancestors: Ancestor[] = [],
 ) {
     const reportID = report?.reportID;
@@ -80,8 +81,12 @@ function resolveSuggestedFollowup(
     const optimisticConciergeAction = buildOptimisticAddCommentReportAction({
         text: selectedFollowup.response,
         actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+        createdOffset: 1,
         reportActionID: optimisticConciergeReportActionID,
         reportID,
+        isHTML: true,
+        currentUserEmail,
+        currentUserAccountID,
     });
 
     addOptimisticConciergeActionWithDelay(reportID, optimisticConciergeAction);
@@ -117,7 +122,7 @@ function addOptimisticConciergeActionWithDelay(reportID: string, optimisticConci
  * Discards a stale pending concierge response and clears the typing indicator.
  * Called when the response has been pending too long (e.g. app was killed and restarted).
  */
-function discardPendingConciergeAction(reportID: string) {
+function discardPendingConciergeAction(reportID: string | undefined) {
     Onyx.update([
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -136,7 +141,7 @@ function discardPendingConciergeAction(reportID: string) {
  * Applies a pending concierge response by moving it to REPORT_ACTIONS
  * and clearing the pending state and typing indicator.
  */
-function applyPendingConciergeAction(reportID: string, reportAction: ReportAction) {
+function applyPendingConciergeAction(reportID: string | undefined, reportAction: ReportAction) {
     Onyx.update([
         {
             onyxMethod: Onyx.METHOD.SET,

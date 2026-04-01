@@ -76,9 +76,10 @@ function ProcessMoneyReportHoldMenu({
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const activePolicy = usePolicy(activePolicyID);
     const policy = usePolicy(moneyRequestReport?.policyID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -109,8 +110,9 @@ function ProcessMoneyReportHoldMenu({
                 isASAPSubmitBetaEnabled,
                 expenseReportCurrentNextStepDeprecated: moneyRequestReportNextStep,
                 betas,
-                userBillingGraceEndPeriods,
+                userBillingGracePeriodEnds,
                 amountOwed,
+                ownerBillingGracePeriodEnd,
                 full,
                 onApproved: startAnimation,
             });
@@ -127,8 +129,9 @@ function ProcessMoneyReportHoldMenu({
                 policy,
                 betas,
                 isSelfTourViewed,
-                userBillingGraceEndPeriods,
+                userBillingGracePeriodEnds,
                 amountOwed,
+                ownerBillingGracePeriodEnd,
                 methodID,
                 onPaid: startAnimation,
             });

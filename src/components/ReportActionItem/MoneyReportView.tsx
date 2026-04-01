@@ -13,7 +13,6 @@ import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useOnyx from '@hooks/useOnyx';
 import useReportTransactions from '@hooks/useReportTransactions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -46,7 +45,6 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import {clearReportFieldKeyErrors} from '@src/libs/actions/Report';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -115,8 +113,6 @@ function MoneyReportView({
         StyleUtils.getColorStyle(theme.textSupporting),
     ];
 
-    const [violations] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${report?.reportID}`);
-
     const {sortedPolicyReportFields, fieldValues, fieldsByName} = useMemo(() => {
         const {fieldValues: values, fieldsByName: byName} = getReportFieldMaps(report, policy?.fieldList ?? {});
         const sorted = Object.values(byName)
@@ -156,7 +152,7 @@ function MoneyReportView({
             ),
         [shouldHideThreadDividerLine, report?.reportID, styles.reportHorizontalRule],
     );
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
 
     return (
         <>
@@ -165,7 +161,7 @@ function MoneyReportView({
                 {!isClosedExpenseReportWithNoExpenses && (
                     <>
                         {(isPaidGroupPolicyExpenseReport || isInvoiceReport) &&
-                            policy?.areReportFieldsEnabled &&
+                            !!policy?.areReportFieldsEnabled &&
                             (!isCombinedReport || !isOnlyTitleFieldEnabled) &&
                             sortedPolicyReportFields.map((reportField) => {
                                 if (shouldHideSingleReportField(reportField)) {
@@ -176,7 +172,7 @@ function MoneyReportView({
                                 const isFieldDisabled = isReportFieldDisabledForUser(report, reportField, policy);
                                 const fieldKey = getReportFieldKey(reportField.fieldID);
 
-                                const violation = isFieldDisabled ? undefined : getFieldViolation(violations, reportField);
+                                const violation = isFieldDisabled ? undefined : getFieldViolation(reportField);
                                 const violationTranslation = getFieldViolationTranslation(reportField, violation);
 
                                 return (
