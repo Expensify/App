@@ -82,7 +82,7 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
     }, [reportActions]);
 
     const submitterAccountID = report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const hasPreviousApprover = previousApprover !== null;
+    const hasPreviousApprover = previousApprover !== null && previousApprover.accountID !== currentUserPersonalDetails?.accountID;
 
     const options = [];
 
