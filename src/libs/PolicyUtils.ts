@@ -327,7 +327,7 @@ function getCustomUnitsForDuplication(
         }
         return {
             ...customUnit,
-            rates: Object.fromEntries(Object.entries(customUnit.rates).filter(([_, rate]) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)),
+            rates: Object.fromEntries(Object.entries(customUnit.rates).filter(([, rate]) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)),
         };
     };
 

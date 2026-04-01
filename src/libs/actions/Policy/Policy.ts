@@ -3105,7 +3105,7 @@ function buildOptimisticDuplicatePolicy(sourcePolicy: Policy, policyOptions: Dup
               ) as Record<string, T>)
             : undefined;
 
-    const condingRulesWithoutPendingDelete = filterPendingDeleteData(sourcePolicy?.rules?.codingRules);
+    const codingRulesWithoutPendingDelete = filterPendingDeleteData(sourcePolicy?.rules?.codingRules);
     const employeeListWithoutPendingDelete = filterPendingDeleteData(sourcePolicy?.employeeList);
     const fieldListWithoutPendingDelete = filterPendingDeleteData(sourcePolicy?.fieldList);
     const connectionsWithoutPendingDelete = filterPendingDeleteData(sourcePolicy?.connections);
@@ -3139,7 +3139,7 @@ function buildOptimisticDuplicatePolicy(sourcePolicy: Policy, policyOptions: Dup
             perDiemCustomUnitID: duplicatedPerDiemCustomUnitID,
         }),
         taxRates: isTaxesFeatureSelected ? taxRatesWithoutPendingDelete : undefined,
-        rules: isCodingRulesFeatureSelected ? {codingRules: condingRulesWithoutPendingDelete} : undefined,
+        rules: isCodingRulesFeatureSelected ? {codingRules: codingRulesWithoutPendingDelete} : undefined,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         pendingFields: {
             autoReporting: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
