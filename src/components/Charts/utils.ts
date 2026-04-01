@@ -407,6 +407,33 @@ function isCursorOverChartLabel({cursorX, cursorY, targetX, labelY, angleRad, ha
     return cursorX >= targetX - padding && cursorX <= targetX + padding && cursorY >= yMin90 && cursorY <= yMax90;
 }
 
+/**
+ * Predicts the highest Y-axis tick value that Victory-native will generate.
+ *
+ * Victory (via D3) applies a "nice" algorithm that rounds the domain upper bound up
+ * to the next clean tick step. If we measure label width against the raw data max we
+ * can underestimate padding — e.g. data max 950 → Victory tick at 1000 whose label is
+ * wider. This function mirrors D3's tickStep logic so the left-padding calculation uses
+ * the same value Victory will actually render.
+ */
+function getNiceUpperBound(rawMax: number, tickCount: number): number {
+    if (rawMax <= 0 || tickCount <= 1) {
+        return rawMax;
+    }
+    const intervals = tickCount - 1;
+    const roughStep = rawMax / intervals;
+    const magnitude = 10 ** Math.floor(Math.log10(roughStep));
+    const normalized = roughStep / magnitude;
+    // D3 nice steps: 1, 2, 5, 10 (powers of 10)
+    let niceStep = magnitude;
+    if (normalized >= 5) {
+        niceStep = 5 * magnitude;
+    } else if (normalized >= 2) {
+        niceStep = 2 * magnitude;
+    }
+    return Math.ceil(rawMax / niceStep) * niceStep;
+}
+
 export {
     getChartColor,
     DEFAULT_CHART_COLOR,
@@ -430,6 +457,7 @@ export {
     edgeMaxLabelWidth,
     isCursorInSkewedLabel,
     isCursorOverChartLabel,
+    getNiceUpperBound,
 };
 
 export type {ChartLabelHitTestParams};

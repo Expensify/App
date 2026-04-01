@@ -13,7 +13,7 @@ import {AXIS_LABEL_GAP, CHART_CONTENT_MIN_HEIGHT, CHART_PADDING, GLYPH_PADDING, 
 import type {ComputeGeometryFn, HitTestArgs} from '@components/Charts/hooks';
 import {useChartFontManager, useChartInteractions, useChartLabelFormats, useChartLabelLayout, useDynamicYDomain, useLabelHitTesting, useTooltipData} from '@components/Charts/hooks';
 import type {CartesianChartProps, ChartDataPoint} from '@components/Charts/types';
-import {calculateMinDomainPadding, DEFAULT_CHART_COLOR, getAdditionalOffset, getChartColor, measureTextWidth, rotatedLabelYOffset} from '@components/Charts/utils';
+import {calculateMinDomainPadding, DEFAULT_CHART_COLOR, getAdditionalOffset, getChartColor, getNiceUpperBound, measureTextWidth, rotatedLabelYOffset} from '@components/Charts/utils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -229,9 +229,9 @@ function BarChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left'
 
     const labelSpace = AXIS_LABEL_GAP + (xAxisLabelHeight ?? 0);
     const dynamicChartStyle = {height: CHART_CONTENT_MIN_HEIGHT + labelSpace};
-    const maxYAxisTickValue = Math.max(...data.map((p) => Math.abs(p.total)), 0);
+    const maxYAxisTickValue = getNiceUpperBound(Math.max(...data.map((p) => Math.abs(p.total)), 0), Y_AXIS_TICK_COUNT);
     const yAxisLabelWidth = fontMgr ? measureTextWidth(formatValue(maxYAxisTickValue), fontMgr, variables.iconSizeExtraSmall) : 0;
-    const chartPadding = {...CHART_PADDING, bottom: labelSpace + CHART_PADDING.bottom + variables.iconSizeExtraSmall, left: yAxisLabelWidth - GLYPH_PADDING};
+    const chartPadding = {...CHART_PADDING, bottom: labelSpace + CHART_PADDING.bottom + variables.iconSizeExtraSmall, left: yAxisLabelWidth + GLYPH_PADDING / 2};
 
     if (isLoading || !fontMgr) {
         const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'BarChartContent', isLoading, isFontLoading: !fontMgr};
