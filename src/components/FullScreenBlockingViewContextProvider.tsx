@@ -29,7 +29,7 @@ const FullScreenBlockingViewActionsContext = createContext<FullScreenBlockingVie
  * This context allows the blocking view to add or remove route keys, which determine
  * whether the blocking view is displayed on a screen. If there are any route keys present,
  * the blocking view is considered visible.
- * This information is necessary because we don't want to show the TopLevelNavigationTabBar when the blocking view is visible.
+ * This information is necessary because we don't want to show the NavigationTabBar when the blocking view is visible.
  */
 function FullScreenBlockingViewContextProvider({children}: FullScreenBlockingViewContextProviderProps) {
     const [routeKeys, setRouteKeys] = useState<Set<string>>(new Set());

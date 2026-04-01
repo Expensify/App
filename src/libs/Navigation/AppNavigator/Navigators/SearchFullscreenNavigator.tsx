@@ -1,9 +1,8 @@
 import React from 'react';
-import usePreloadFullScreenNavigators from '@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators';
 import useSplitNavigatorScreenOptions from '@libs/Navigation/AppNavigator/useSplitNavigatorScreenOptions';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {AuthScreensParamList, SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
+import type {SearchFullscreenNavigatorParamList, TabNavigatorParamList} from '@libs/Navigation/types';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import createSearchFullscreenNavigator from '@navigation/AppNavigator/createSearchFullscreenNavigator';
 import FreezeWrapper from '@navigation/AppNavigator/FreezeWrapper';
@@ -15,12 +14,9 @@ const loadSearchPage = () => require<ReactComponentModule>('@pages/Search/Search
 
 const Stack = createSearchFullscreenNavigator<SearchFullscreenNavigatorParamList>();
 
-function SearchFullscreenNavigator({route}: PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR>) {
+function SearchFullscreenNavigator({route}: PlatformStackScreenProps<TabNavigatorParamList, typeof NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR>) {
     // These options can be used here because the full screen navigator has the same structure as the split navigator in terms of the central screens, but it does not have a sidebar.
     const {centralScreen: centralScreenOptions} = useSplitNavigatorScreenOptions();
-
-    // This hook preloads the screens of adjacent tabs to make changing tabs faster.
-    usePreloadFullScreenNavigators();
 
     return (
         <FreezeWrapper>

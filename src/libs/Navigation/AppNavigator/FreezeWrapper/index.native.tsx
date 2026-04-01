@@ -1,21 +1,11 @@
-import {useNavigation, useRoute} from '@react-navigation/native';
-import React, {useEffect, useState} from 'react';
-import {Freeze} from 'react-freeze';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import getIsScreenBlurred from './getIsScreenBlurred';
 
+// On native, tab-level freezing is handled by the TabNavigator's `freezeOnBlur: true` option,
+// which uses react-native-screens to natively freeze inactive tabs.
+// On web, react-native-screens only sets `display: none` without actually freezing the React tree,
+// so the web FreezeWrapper uses `react-freeze` to suspend rendering of background tabs.
 function FreezeWrapper({children}: ChildrenProps) {
-    const navigation = useNavigation();
-    const currentRoute = useRoute();
-
-    const [isScreenBlurred, setIsScreenBlurred] = useState(false);
-
-    useEffect(() => {
-        const unsubscribe = navigation.addListener('state', (e) => setIsScreenBlurred(getIsScreenBlurred(e.data.state, currentRoute.key)));
-        return () => unsubscribe();
-    }, [currentRoute.key, navigation]);
-
-    return <Freeze freeze={isScreenBlurred}>{children}</Freeze>;
+    return children;
 }
 
 export default FreezeWrapper;

@@ -1144,14 +1144,17 @@ function dismissModalAndOpenReportInInboxTab(reportID?: string, isInvoice?: bool
         return;
     }
     if (hasSubmitToDestinationVisibleSpan) {
-        Navigation.dismissModalWithReport({reportID}, undefined, {
-            onBeforeNavigate: (willOpenReport) => {
-                setPendingSubmitFollowUpAction(
-                    willOpenReport ? CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT : CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY,
-                    reportID,
-                );
+        Navigation.dismissModalWithReport(
+            {reportID},
+            {
+                onBeforeNavigate: (willOpenReport) => {
+                    setPendingSubmitFollowUpAction(
+                        willOpenReport ? CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT : CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY,
+                        reportID,
+                    );
+                },
             },
-        });
+        );
     } else {
         Navigation.dismissModalWithReport({reportID});
     }
@@ -1220,7 +1223,11 @@ function handleNavigateAfterExpenseCreate({
     const queryString = buildCannedSearchQuery({type});
     Navigation.isNavigationReady().then(() => {
         if (getIsNarrowLayout()) {
-            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {forceReplace: true});
+            Navigation.dismissModal({
+                callback: () => {
+                    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}));
+                },
+            });
         } else {
             Navigation.revealRouteBeforeDismissingModal(ROUTES.SEARCH_ROOT.getRoute({query: queryString}));
         }

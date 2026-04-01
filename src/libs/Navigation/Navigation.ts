@@ -31,8 +31,9 @@ import findMatchingDynamicSuffix from './helpers/dynamicRoutesUtils/findMatching
 import getPathFromState from './helpers/getPathFromState';
 import getStateFromPath from './helpers/getStateFromPath';
 import getTopmostReportParams from './helpers/getTopmostReportParams';
-import {isFullScreenName, isOnboardingFlowName, isSplitNavigatorName} from './helpers/isNavigatorName';
+import {isOnboardingFlowName, isSplitNavigatorName} from './helpers/isNavigatorName';
 import isReportOpenInRHP from './helpers/isReportOpenInRHP';
+import isReportTopmostSplitNavigator from './helpers/isReportTopmostSplitNavigator';
 import isSideModalNavigator from './helpers/isSideModalNavigator';
 import linkTo from './helpers/linkTo';
 import getMinimalAction from './helpers/linkTo/getMinimalAction';
@@ -524,10 +525,21 @@ function popToSidebar() {
         return;
     }
 
-    // WorkspaceSplitNavigator and DomainSplitNavigator are nested inside WorkspaceNavigator.
-    const activeRoute = currentRoute.name === NAVIGATORS.WORKSPACE_NAVIGATOR ? currentRoute.state?.routes.at(-1) : currentRoute;
+    // Split navigators can be nested inside TAB_NAVIGATOR → WORKSPACE_NAVIGATOR.
+    // Drill through the nesting to find the actual split navigator.
+    // Drill through TAB_NAVIGATOR → WORKSPACE_NAVIGATOR to find the active split navigator.
+    let activeRoute = currentRoute as typeof currentRoute | undefined;
+    if (currentRoute.name === NAVIGATORS.TAB_NAVIGATOR) {
+        const tabRoutes = currentRoute.state?.routes;
+        const activeTab = tabRoutes?.[currentRoute.state?.index ?? 0];
+        if (activeTab?.name === NAVIGATORS.WORKSPACE_NAVIGATOR) {
+            activeRoute = activeTab.state?.routes?.at(-1) as typeof currentRoute | undefined;
+        } else {
+            activeRoute = activeTab as typeof currentRoute | undefined;
+        }
+    }
 
-    if (!isSplitNavigatorName(activeRoute?.name)) {
+    if (!activeRoute || !isSplitNavigatorName(activeRoute.name)) {
         Log.hmmm('[popToSidebar] must be invoked only from SplitNavigator');
         return;
     }
@@ -769,7 +781,6 @@ const dismissModal = ({ref = navigationRef, callback}: {ref?: NavigationRef; cal
  */
 const dismissModalWithReport = (
     {reportID, reportActionID, referrer, backTo}: ReportsSplitNavigatorParamList[typeof SCREENS.REPORT],
-    ref = navigationRef,
     options?: {onBeforeNavigate?: (willOpenReport: boolean) => void},
 ) => {
     isNavigationReady().then(() => {
@@ -784,7 +795,7 @@ const dismissModalWithReport = (
 
         const topmostReportID = getTopmostReportId();
         areReportsIDsDefined = !!topmostReportID && !!reportID;
-        const isReportsSplitTopmostFullScreen = ref.getRootState().routes.findLast((route) => isFullScreenName(route.name))?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR;
+        const isReportsSplitTopmostFullScreen = isReportTopmostSplitNavigator();
         if (topmostReportID === reportID && areReportsIDsDefined && isReportsSplitTopmostFullScreen) {
             options?.onBeforeNavigate?.(false);
             dismissModal();
@@ -792,10 +803,6 @@ const dismissModalWithReport = (
         }
         options?.onBeforeNavigate?.(true);
         const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(reportID, reportActionID, referrer, backTo);
-        if (getIsNarrowLayout()) {
-            navigate(reportRoute, {forceReplace: true});
-            return;
-        }
         dismissModal();
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {

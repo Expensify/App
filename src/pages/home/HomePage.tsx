@@ -1,8 +1,8 @@
 import React, {useRef} from 'react';
 import {View} from 'react-native';
-import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import QuickCreationActionsBar from '@components/Navigation/QuickCreationActionsBar';
+import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
 import TopBar from '@components/Navigation/TopBar';
 import ReceiptScanDropZone from '@components/ReceiptScanDropZone';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -13,7 +13,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import usePreloadFullScreenNavigators from '@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import AnnouncementSection from './AnnouncementSection';
@@ -27,7 +26,6 @@ import UpcomingTravelSection from './UpcomingTravelSection';
 
 function HomePage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const shouldDisplayLHB = !shouldUseNarrowLayout;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     useDocumentTitle(translate('common.home'));
@@ -40,58 +38,46 @@ function HomePage() {
     // to make sure everything loads properly
     useConfirmReadyToOpenApp();
 
-    // This hook preloads the screens of adjacent tabs to make changing tabs faster.
-    usePreloadFullScreenNavigators();
-
     return (
-        <View style={styles.flex1}>
-            <View
-                ref={receiptDropTargetRef}
-                style={styles.flex1}
+        <View
+            ref={receiptDropTargetRef}
+            style={styles.flex1}
+        >
+            <ScreenWrapper
+                shouldEnablePickerAvoiding={false}
+                shouldShowOfflineIndicatorInWideScreen
+                testID="HomePage"
+                enableEdgeToEdgeBottomSafeAreaPadding={false}
+                bottomContent={<TabBarBottomContent selectedTab={NAVIGATION_TABS.HOME} />}
+                bottomContentStyle={styles.overflowVisible}
             >
-                <ScreenWrapper
-                    shouldEnablePickerAvoiding={false}
-                    shouldShowOfflineIndicatorInWideScreen
-                    testID="HomePage"
-                    enableEdgeToEdgeBottomSafeAreaPadding={false}
-                    bottomContent={
-                        shouldUseNarrowLayout && (
-                            <NavigationTabBar
-                                selectedTab={NAVIGATION_TABS.HOME}
-                                shouldShowFloatingButtons
-                            />
-                        )
-                    }
+                <TopBar
+                    breadcrumbLabel={translate('common.home')}
+                    shouldShowLoadingBar={isForYouLoading}
+                    shouldDisplayHelpButton
+                />
+                <ScrollView
+                    contentContainerStyle={styles.homePageContentContainer}
+                    addBottomSafeAreaPadding
                 >
-                    <TopBar
-                        breadcrumbLabel={translate('common.home')}
-                        shouldShowLoadingBar={isForYouLoading}
-                        shouldDisplayHelpButton
-                    />
-                    <ScrollView
-                        contentContainerStyle={styles.homePageContentContainer}
-                        addBottomSafeAreaPadding
-                    >
-                        {!shouldUseNarrowLayout && <QuickCreationActionsBar />}
-                        <View style={styles.homePageMainLayout(shouldUseNarrowLayout)}>
-                            {/* Widgets handle their own visibility and may return null to avoid duplicating visibility logic here */}
-                            <View style={styles.homePageLeftColumn(shouldUseNarrowLayout)}>
-                                <TimeSensitiveSection />
-                                <ForYouSection />
-                                <SpendOverTimeSection />
-                                <DiscoverSection />
-                            </View>
-                            <View style={styles.homePageRightColumn(shouldUseNarrowLayout)}>
-                                <FreeTrialSection />
-                                <UpcomingTravelSection />
-                                <AssignedCardsSection />
-                                <AnnouncementSection />
-                            </View>
+                    {!shouldUseNarrowLayout && <QuickCreationActionsBar />}
+                    <View style={styles.homePageMainLayout(shouldUseNarrowLayout)}>
+                        {/* Widgets handle their own visibility and may return null to avoid duplicating visibility logic here */}
+                        <View style={styles.homePageLeftColumn(shouldUseNarrowLayout)}>
+                            <TimeSensitiveSection />
+                            <ForYouSection />
+                            <SpendOverTimeSection />
+                            <DiscoverSection />
                         </View>
-                    </ScrollView>
-                    {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.HOME} />}
-                </ScreenWrapper>
-            </View>
+                        <View style={styles.homePageRightColumn(shouldUseNarrowLayout)}>
+                            <FreeTrialSection />
+                            <UpcomingTravelSection />
+                            <AssignedCardsSection />
+                            <AnnouncementSection />
+                        </View>
+                    </View>
+                </ScrollView>
+            </ScreenWrapper>
             <ReceiptScanDropZone
                 targetRef={receiptDropTargetRef}
                 dropWrapperStyle={shouldUseNarrowLayout ? {marginBottom: variables.bottomTabHeight} : undefined}

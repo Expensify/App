@@ -35,8 +35,6 @@ jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
     },
 }));
 
-jest.mock('@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators', () => jest.fn());
-
 jest.mock('@react-navigation/native');
 
 // Mock Avatar component to prevent act() warnings from state updates during render

@@ -1,14 +1,12 @@
 import type {CommonActions, RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
 import {StackActions} from '@react-navigation/native';
 import type {ParamListBase, Router} from '@react-navigation/routers';
-import SCREENS_WITH_NAVIGATION_TAB_BAR from '@components/Navigation/TopLevelNavigationTabBar/SCREENS_WITH_NAVIGATION_TAB_BAR';
-import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
-import {isFullScreenName, isSplitNavigatorName} from '@libs/Navigation/helpers/isNavigatorName';
+import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import isSideModalNavigator from '@libs/Navigation/helpers/isSideModalNavigator';
 import shouldStripRHPOnFullscreenPush from '@libs/Navigation/helpers/shouldStripRHPOnFullscreenPush';
-import {SPLIT_TO_SIDEBAR} from '@libs/Navigation/linkingConfig/RELATIONS';
+import {SIDEBAR_TO_SPLIT} from '@libs/Navigation/linkingConfig/RELATIONS';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
@@ -20,6 +18,15 @@ import type {
     ReplaceFullscreenUnderRHPActionType,
     ToggleSidePanelWithHistoryActionType,
 } from './types';
+
+const SCREENS_WITH_NAVIGATION_TAB_BAR = new Set([
+    ...Object.keys(SIDEBAR_TO_SPLIT),
+    NAVIGATORS.WORKSPACE_NAVIGATOR,
+    NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
+    SCREENS.SEARCH.ROOT,
+    SCREENS.WORKSPACES_LIST,
+    SCREENS.HOME,
+]);
 
 const MODAL_ROUTES_TO_DISMISS = new Set<string>([
     NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
@@ -61,32 +68,47 @@ function prepareStateUnderWorkspaceOrDomainNavigator(
     splitNavigatorName: typeof NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR | typeof NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR,
     splitNavigatorParams: Record<string, unknown>,
 ) {
-    const actionToPushWorkspaceNavigator = StackActions.push(NAVIGATORS.WORKSPACE_NAVIGATOR);
-    const stateWithWorkspaceNavigator = stackRouter.getStateForAction(state, actionToPushWorkspaceNavigator, configOptions);
+    const actionToPushRootTab = StackActions.push(NAVIGATORS.TAB_NAVIGATOR, {screen: NAVIGATORS.WORKSPACE_NAVIGATOR});
+    const stateWithRootTab = stackRouter.getStateForAction(state, actionToPushRootTab, configOptions);
 
-    if (!stateWithWorkspaceNavigator) {
-        Log.hmmm('[handleOpenWorkspaceOrDomainSplitAction] WorkspaceNavigator has not been found in the navigation state.');
+    if (!stateWithRootTab) {
+        Log.hmmm('[handleOpenWorkspaceOrDomainSplitAction] TabNavigator has not been found in the navigation state.');
         return null;
     }
 
-    const rehydratedState = stackRouter.getRehydratedState(stateWithWorkspaceNavigator, configOptions);
-    const workspaceNavigatorRoute = rehydratedState.routes.at(-1);
+    const rehydratedState = stackRouter.getRehydratedState(stateWithRootTab, configOptions);
+    const rootTabRoute = rehydratedState.routes.at(-1);
 
-    if (!workspaceNavigatorRoute || workspaceNavigatorRoute.name !== NAVIGATORS.WORKSPACE_NAVIGATOR) {
+    if (!rootTabRoute || rootTabRoute.name !== NAVIGATORS.TAB_NAVIGATOR) {
         Log.hmmm(`[handleOpenWorkspaceOrDomainSplitAction] ${splitNavigatorName} has not been found in the navigation state.`);
         return null;
     }
 
-    // Directly set the nested state so WorkspacesList is always present underneath the split navigator.
-    // React Navigation will rehydrate this partial state (generating route keys) when WorkspaceNavigator mounts.
+    // Find the WORKSPACE_NAVIGATOR within the tab state and set its nested state
+    // so WorkspacesList is always present underneath the split navigator.
+    const tabState = rootTabRoute.state;
+    const workspaceNavIndex = tabState?.routes?.findIndex((r) => r.name === NAVIGATORS.WORKSPACE_NAVIGATOR) ?? -1;
+
+    if (workspaceNavIndex < 0 || !tabState) {
+        Log.hmmm('[handleOpenWorkspaceOrDomainSplitAction] WorkspaceNavigator not found in tab state.');
+        return null;
+    }
+
+    const workspaceNavRoute = tabState.routes[workspaceNavIndex];
     const nestedWorkspacesState = {
         routes: [{name: SCREENS.WORKSPACES_LIST}, {name: splitNavigatorName, params: splitNavigatorParams}],
         index: 1,
     };
 
+    const updatedTabRoutes = [...tabState.routes];
+    updatedTabRoutes[workspaceNavIndex] = {...workspaceNavRoute, state: nestedWorkspacesState};
+
+    const updatedTabState = {...tabState, routes: updatedTabRoutes, index: workspaceNavIndex};
+    const updatedRootTabRoute = {...rootTabRoute, state: updatedTabState};
+
     return {
         ...rehydratedState,
-        routes: [...rehydratedState.routes.slice(0, -1), {...workspaceNavigatorRoute, state: nestedWorkspacesState}],
+        routes: [...rehydratedState.routes.slice(0, -1), updatedRootTabRoute],
     };
 }
 
@@ -122,20 +144,6 @@ function handleOpenDomainSplitAction(
     });
 }
 
-/**
- * Filters preloaded routes when navigating to a central screen of a split navigator on narrow layout.
- * This removes the sidebar screen from the state so only the central screen is shown.
- */
-function getStateWithFilteredPreloadedRoutes(state: StackNavigationState<ParamListBase>, navigatorName: string, targetScreen?: string) {
-    const shouldFilterPreloadedRoutes =
-        getIsNarrowLayout() &&
-        isSplitNavigatorName(navigatorName) &&
-        targetScreen !== SPLIT_TO_SIDEBAR[navigatorName] &&
-        state.preloadedRoutes?.some((preloadedRoute) => preloadedRoute.name === navigatorName);
-
-    return shouldFilterPreloadedRoutes ? {...state, preloadedRoutes: state.preloadedRoutes.filter((preloadedRoute) => preloadedRoute.name !== navigatorName)} : state;
-}
-
 function handlePushFullscreenAction(
     state: StackNavigationState<ParamListBase>,
     action: PushActionType,
@@ -148,10 +156,9 @@ function handlePushFullscreenAction(
     const lastRoute = state.routes.at(-1);
 
     // On native, strip the RHP before pushing to prevent react-native-screens from freezing it.
-    const stateWithoutModal =
+    const adjustedState =
         shouldStripRHPOnFullscreenPush && isSideModalNavigator(lastRoute?.name) ? {...state, routes: state.routes.slice(0, -1), index: state.index !== 0 ? state.index - 1 : 0} : state;
 
-    const adjustedState = getStateWithFilteredPreloadedRoutes(stateWithoutModal, navigatorName, targetScreen);
     const stateWithNavigator = stackRouter.getStateForAction(adjustedState, action, configOptions);
 
     if (!stateWithNavigator) {
@@ -162,7 +169,7 @@ function handlePushFullscreenAction(
     const lastFullScreenRoute = stateWithNavigator.routes.at(-1);
 
     // Transitioning to all central screens in each split should be animated
-    if (lastFullScreenRoute?.key && targetScreen && !SCREENS_WITH_NAVIGATION_TAB_BAR.includes(targetScreen)) {
+    if (lastFullScreenRoute?.key && targetScreen && !SCREENS_WITH_NAVIGATION_TAB_BAR.has(targetScreen)) {
         screensWithEnteringAnimation.add(lastFullScreenRoute.key);
     }
 
@@ -175,10 +182,7 @@ function handleReplaceReportsSplitNavigatorAction(
     configOptions: RouterConfigOptions,
     stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
 ) {
-    const targetScreen = action.payload?.params && 'screen' in action.payload.params ? (action.payload?.params?.screen as string) : undefined;
-    const navigatorName = action.payload.name;
-    const adjustedState = getStateWithFilteredPreloadedRoutes(state, navigatorName, targetScreen);
-    const stateWithReportsSplitNavigator = stackRouter.getStateForAction(adjustedState, action, configOptions);
+    const stateWithReportsSplitNavigator = stackRouter.getStateForAction(state, action, configOptions);
 
     if (!stateWithReportsSplitNavigator) {
         Log.hmmm('[handleReplaceReportsSplitNavigatorAction] ReportsSplitNavigator has not been found in the navigation state.');
