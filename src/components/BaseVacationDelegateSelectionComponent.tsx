@@ -187,6 +187,7 @@ function BaseVacationDelegateSelectionComponent({
                         onEndReached={onListEndReached}
                         shouldSingleExecuteRowSelect
                         shouldShowTextInput
+                        shouldShowRadioButton
                     />
                 </View>
             )}

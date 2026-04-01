@@ -1,10 +1,10 @@
 import {Str} from 'expensify-common';
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Icon from '@components/Icon';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ReportActionAvatars from '@components/ReportActionAvatars';
+import SelectionCheckbox from '@components/SelectionList/components/SelectionCheckbox';
 import {ListItemFocusContext} from '@components/SelectionList/ListItemFocusContext';
 import getAccessibilityLabel from '@components/SelectionList/utils/getAccessibilityLabel';
 import Text from '@components/Text';
@@ -42,6 +42,7 @@ function UserListItem<TItem extends ListItem>({
     shouldUseDefaultRightHandSideCheckmark,
     forwardedFSClass,
     shouldDisableHoverStyle,
+    shouldShowRadioButton,
 }: UserListItemProps<TItem>) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Checkmark']);
     const styles = useThemeStyles();
@@ -52,14 +53,6 @@ function UserListItem<TItem extends ListItem>({
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
     const subscriptAvatarBorderColor = isFocused ? focusedBackgroundColor : theme.sidebar;
     const hoveredBackgroundColor = !!styles.sidebarLinkHover && 'backgroundColor' in styles.sidebarLinkHover ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
-
-    const handleCheckboxPress = useCallback(() => {
-        if (onCheckboxPress) {
-            onCheckboxPress(item);
-        } else {
-            onSelectRow(item);
-        }
-    }, [item, onCheckboxPress, onSelectRow]);
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- some utils that are used to get reportID return empty string "", which would make subscription to the whole collection with nullish coalescing operator, example of this could be found in NewChatPage.tsx where some hooks return reportID as empty strings
     const [isReportInOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${item.reportID || undefined}`, {
@@ -99,6 +92,7 @@ function UserListItem<TItem extends ListItem>({
                     <Text style={[styles.ml9, styles.ph5, styles.pb3, styles.textLabelSupporting]}>{translate('workspace.people.invitedBySecondaryLogin', item.invitedSecondaryLogin)}</Text>
                 ) : undefined
             }
+            shouldUseDefaultRightHandSideCheckmark={false}
             keyForList={item.keyForList}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
@@ -116,26 +110,13 @@ function UserListItem<TItem extends ListItem>({
                         style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
                     >
                         {!shouldUseDefaultRightHandSideCheckmark && !!canSelectMultiple && (
-                            <PressableWithFeedback
-                                accessibilityLabel={item.text ?? ''}
-                                role={CONST.ROLE.BUTTON}
-                                sentryLabel={CONST.SENTRY_LABEL.USER_LIST_ITEM.CHECKBOX}
+                            <SelectionCheckbox
+                                item={item}
+                                onSelectRow={onCheckboxPress ?? onSelectRow}
                                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                 disabled={isDisabled || item.isDisabledCheckbox}
-                                onPress={handleCheckboxPress}
-                                style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled, styles.mr3]}
-                            >
-                                <View style={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}>
-                                    {!!item.isSelected && (
-                                        <Icon
-                                            src={icons.Checkmark}
-                                            fill={theme.textLight}
-                                            height={14}
-                                            width={14}
-                                        />
-                                    )}
-                                </View>
-                            </PressableWithFeedback>
+                                style={styles.mr3}
+                            />
                         )}
                         {(!!reportExists || !!itemAccountID || !!policyID) && (
                             <ReportActionAvatars
@@ -184,27 +165,15 @@ function UserListItem<TItem extends ListItem>({
                                 />
                             </View>
                         )}
-                        {!!shouldUseDefaultRightHandSideCheckmark && !!canSelectMultiple && (
-                            <PressableWithFeedback
-                                accessibilityLabel={item.text ?? ''}
-                                role={CONST.ROLE.BUTTON}
-                                sentryLabel={CONST.SENTRY_LABEL.USER_LIST_ITEM.CHECKBOX_RIGHT}
+                        {((!!shouldUseDefaultRightHandSideCheckmark && !!canSelectMultiple) || !!shouldShowRadioButton) && (
+                            <SelectionCheckbox
+                                item={item}
+                                onSelectRow={onCheckboxPress ?? onSelectRow}
                                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                 disabled={isDisabled || item.isDisabledCheckbox}
-                                onPress={handleCheckboxPress}
-                                style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled, styles.ml3]}
-                            >
-                                <View style={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}>
-                                    {!!item.isSelected && (
-                                        <Icon
-                                            src={icons.Checkmark}
-                                            fill={theme.textLight}
-                                            height={14}
-                                            width={14}
-                                        />
-                                    )}
-                                </View>
-                            </PressableWithFeedback>
+                                style={styles.ml3}
+                                isCircular={!canSelectMultiple}
+                            />
                         )}
                     </View>
                 );
