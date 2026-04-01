@@ -209,10 +209,6 @@ type MarkReimbursedFromIntegrationParams = {amount: string; currency: string};
 
 type ShareParams = {to: string};
 
-type UnsupportedFormulaValueErrorParams = {
-    value: string;
-};
-
 type UnshareParams = {to: string};
 
 type ConnectionNameParams = {
@@ -341,7 +337,6 @@ export type {
     MarkReimbursedFromIntegrationParams,
     ShareParams,
     UnshareParams,
-    UnsupportedFormulaValueErrorParams,
     ConnectionNameParams,
     ExportAgainModalDescriptionParams,
     UpdateRoleParams,
