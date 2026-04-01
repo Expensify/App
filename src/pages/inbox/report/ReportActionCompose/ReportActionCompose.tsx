@@ -201,19 +201,6 @@ function ComposerDropZoneWrapper({reportID, shouldAddOrReplaceReceipt, transacti
     );
 }
 
-function ComposerFooterWrapper({reportID}: {reportID: string}) {
-    const {isOffline} = useNetwork();
-    const {exceededMaxLength, hasExceededMaxTaskTitleLength} = useComposerSendState();
-    return (
-        <ComposerFooter
-            reportID={reportID}
-            exceededMaxLength={exceededMaxLength}
-            hasExceededMaxTaskTitleLength={hasExceededMaxTaskTitleLength}
-            isOffline={isOffline}
-        />
-    );
-}
-
 // ---------------------------------------------------------------------------
 // Orchestrator — layout + report-level data resolution.
 // ---------------------------------------------------------------------------
@@ -321,7 +308,7 @@ function Composer({reportID}: ReportActionComposeProps) {
 Composer.LocalTime = ComposerLocalTime;
 Composer.Box = ComposerBox;
 Composer.DropZone = ComposerDropZoneWrapper;
-Composer.Footer = ComposerFooterWrapper;
+Composer.Footer = ComposerFooter;
 
 export default Composer;
 export type {SuggestionsRef, ComposerRef, ReportActionComposeProps};
