@@ -25,7 +25,9 @@ const moveReceiptToDurableStorage: MoveReceiptToDurableStorage = async (sourceUr
         }
 
         const sourcePath = sourceUri.replace('file://', '');
-        const destPath = `${uploadFolder}/${fileName}`;
+        const extension = fileName.includes('.') ? `.${fileName.split('.').pop()}` : '';
+        const uniqueName = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}${extension}`;
+        const destPath = `${uploadFolder}/${uniqueName}`;
 
         await RNFS.moveFile(sourcePath, destPath);
 

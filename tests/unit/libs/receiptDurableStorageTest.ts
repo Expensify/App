@@ -1,7 +1,7 @@
 jest.mock('react-native-fs', () => ({
     exists: jest.fn(() => Promise.resolve(true)),
     mkdir: jest.fn(() => Promise.resolve()),
-    copyFile: jest.fn(() => Promise.resolve()),
+    moveFile: jest.fn(() => Promise.resolve()),
 }));
 
 const DURABLE_UPLOAD_DIR = '/var/mobile/Documents/Receipts-Upload';
@@ -40,6 +40,18 @@ describe('Receipt flows should persist to durable storage after crop/rotate', ()
 
         expect(result).toContain('Receipts-Upload');
         expect(result).not.toContain('Library/Caches');
+    });
+
+    it('should generate unique destination paths to avoid filename collisions', async () => {
+        const cachePath1 = 'file:///var/mobile/Library/Caches/ImageManipulator/img1.jpg';
+        const cachePath2 = 'file:///var/mobile/Library/Caches/ImageManipulator/img2.jpg';
+
+        const result1 = await moveReceiptToDurableStorage(cachePath1, 'receipt.jpg');
+        const result2 = await moveReceiptToDurableStorage(cachePath2, 'receipt.jpg');
+
+        expect(result1).not.toBe(result2);
+        expect(result1).toMatch(/\.jpg$/);
+        expect(result2).toMatch(/\.jpg$/);
     });
 
     it('should preserve receipts already in a durable directory', async () => {
