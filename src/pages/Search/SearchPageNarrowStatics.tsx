@@ -3,7 +3,6 @@ import {FlatList, View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import Button from '@components/Button';
 import CaretWrapper from '@components/CaretWrapper';
-import PulsingView from '@components/PulsingView';
 import SearchFiltersBar from '@components/Search/SearchPageHeader/SearchFiltersBar';
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
 import type {SearchQueryJSON} from '@components/Search/types';
@@ -230,11 +229,7 @@ type SearchFiltersBarProps = {
 
 const TabSelectorSwitch = React.memo(({showStatic, ...props}: SearchPageTabSelectorProps & {showStatic: boolean}) => {
     if (showStatic) {
-        return props.queryJSON ? (
-            <PulsingView shouldPulse>
-                <StaticTabSelector queryJSON={props.queryJSON} />
-            </PulsingView>
-        ) : null;
+        return props.queryJSON ? <StaticTabSelector queryJSON={props.queryJSON} /> : null;
     }
     // eslint-disable-next-line react/jsx-props-no-spreading -- thin wrapper forwarding exact SearchPageTabSelectorProps
     return <SearchPageTabSelector {...props} />;
@@ -243,11 +238,7 @@ TabSelectorSwitch.displayName = 'TabSelectorSwitch';
 
 const SearchPageHeaderSwitch = React.memo(({showStatic, ...props}: SearchPageHeaderProps & {showStatic: boolean}) => {
     if (showStatic) {
-        return (
-            <PulsingView shouldPulse>
-                <StaticSearchPageHeader />
-            </PulsingView>
-        );
+        return <StaticSearchPageHeader />;
     }
     // eslint-disable-next-line react/jsx-props-no-spreading -- thin wrapper forwarding exact SearchPageHeaderProps
     return <SearchPageHeader {...props} />;
@@ -256,11 +247,7 @@ SearchPageHeaderSwitch.displayName = 'SearchPageHeaderSwitch';
 
 const FiltersBarSwitch = React.memo(({showStatic, ...props}: SearchFiltersBarProps & {showStatic: boolean}) => {
     if (showStatic) {
-        return (
-            <PulsingView shouldPulse>
-                <StaticFiltersBar queryJSON={props.queryJSON} />
-            </PulsingView>
-        );
+        return <StaticFiltersBar queryJSON={props.queryJSON} />;
     }
     // eslint-disable-next-line react/jsx-props-no-spreading -- thin wrapper forwarding exact SearchFiltersBarProps
     return <SearchFiltersBar {...props} />;

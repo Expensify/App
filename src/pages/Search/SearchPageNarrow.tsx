@@ -1,6 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useRef, useState, useTransition} from 'react';
-import {StyleSheet, View} from 'react-native';
+import {View} from 'react-native';
 import Animated, {clamp, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -9,6 +9,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TopBar from '@components/Navigation/TopBar';
+import PulsingView from '@components/PulsingView';
 import ReceiptScanDropZone from '@components/ReceiptScanDropZone';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
@@ -152,23 +153,28 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
 
     const [useStaticRendering] = useState(() => !!getPendingSubmitFollowUpAction());
     const [isInteractive, setIsInteractive] = useState(!useStaticRendering);
-    const [isSearchReady, setIsSearchReady] = useState(!useStaticRendering);
     const [isHeaderInteractive, setIsHeaderInteractive] = useState(!useStaticRendering);
+    const isHeaderInteractiveRef = useRef(isHeaderInteractive);
     const [, startTransition] = useTransition();
+    useEffect(() => {
+        isHeaderInteractiveRef.current = isHeaderInteractive;
+    }, [isHeaderInteractive]);
     const onSearchLayout = useCallback(() => {
-        if (isInteractive) {
+        if (isHeaderInteractiveRef.current) {
+            return;
+        }
+        startTransition(() => {
+            setIsHeaderInteractive(true);
+        });
+    }, [startTransition]);
+    useEffect(() => {
+        if (!isHeaderInteractive || isInteractive) {
             return;
         }
         startTransition(() => {
             setIsInteractive(true);
         });
-    }, [isInteractive, startTransition]);
-    const onSearchContentReady = useCallback(() => {
-        setIsSearchReady(true);
-        startTransition(() => {
-            setIsHeaderInteractive(true);
-        });
-    }, [startTransition]);
+    }, [isHeaderInteractive, isInteractive, startTransition]);
 
     if (!queryJSON) {
         return (
@@ -191,36 +197,38 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
     const shouldShowLoadingState = !isOffline && (!isDataLoaded || !!metadata?.isLoading);
     const contentContainerStyle = !isMobileSelectionModeEnabled ? styles.searchListContentContainerStyles : undefined;
 
-    // Static list: lightweight FlatList rendered immediately after expense submission for fast perceived performance.
-    // Dynamic list: full-featured Search component with selection, sorting, pagination, etc.
-    // The static list is shown first and swapped out once the dynamic Search component is ready.
-    const renderStaticSearchList = () => (
-        <>
-            {isInteractive && (
-                <Search
-                    searchResults={searchResults}
-                    queryJSON={queryJSON}
-                    key={queryJSON.hash}
-                    contentContainerStyle={contentContainerStyle}
-                    handleSearch={handleSearchAction}
-                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                    onSearchListScroll={scrollHandler}
-                    searchRequestResponseStatusCode={searchRequestResponseStatusCode}
-                    onContentReady={onSearchContentReady}
-                />
-            )}
-            {!isSearchReady && (
-                <View style={[StyleSheet.absoluteFill, styles.appBG]}>
-                    <SearchStaticList
-                        searchResults={searchResults}
-                        queryJSON={queryJSON}
-                        contentContainerStyle={contentContainerStyle}
-                        onLayout={onSearchLayout}
-                    />
-                </View>
-            )}
-        </>
+    // Single element used in both phases so React.memo sees stable props.
+    // Phase 1: Rendered directly for fast perceived performance.
+    // Phase 2: Passed as initialContent to Search (onLayout is a no-op via the ref guard).
+    // Phase 3: Search transitions to the full FlashList once deferred work completes.
+    const staticListContent = (
+        <SearchStaticList
+            searchResults={searchResults}
+            queryJSON={queryJSON}
+            contentContainerStyle={contentContainerStyle}
+            onLayout={onSearchLayout}
+        />
     );
+
+    const renderStaticSearchList = () => {
+        if (!isInteractive) {
+            return staticListContent;
+        }
+
+        return (
+            <Search
+                searchResults={searchResults}
+                queryJSON={queryJSON}
+                key={queryJSON.hash}
+                contentContainerStyle={contentContainerStyle}
+                handleSearch={handleSearchAction}
+                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                onSearchListScroll={scrollHandler}
+                searchRequestResponseStatusCode={searchRequestResponseStatusCode}
+                initialContent={staticListContent}
+            />
+        );
+    };
 
     const renderDynamicSearchList = () => {
         if (shouldShowLoadingSkeleton) {
@@ -289,39 +297,45 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
                                         styles.searchTopBarZIndexStyle,
                                     ]}
                                 >
-                                    <TabSelectorSwitch
-                                        showStatic={!isHeaderInteractive}
-                                        queryJSON={queryJSON}
-                                        onTabPress={() => {
-                                            setSearchRouterListVisible(false);
-                                        }}
-                                    />
-                                    <View style={[styles.flex1, styles.pt2, styles.appBG]}>
-                                        <SearchPageHeaderSwitch
+                                    <PulsingView
+                                        shouldPulse={!isHeaderInteractive}
+                                        style={styles.flex1}
+                                        wrapperStyle={[styles.flex1, styles.appBG]}
+                                    >
+                                        <TabSelectorSwitch
                                             showStatic={!isHeaderInteractive}
                                             queryJSON={queryJSON}
-                                            searchRouterListVisible={searchRouterListVisible}
-                                            hideSearchRouterList={() => {
+                                            onTabPress={() => {
                                                 setSearchRouterListVisible(false);
                                             }}
-                                            onSearchRouterFocus={() => {
-                                                topBarOffset.set(StyleUtils.searchHeaderDefaultOffset);
-                                                setSearchRouterListVisible(true);
-                                            }}
-                                            handleSearch={handleSearchAction}
-                                            isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                                            skipInputSkeleton={useStaticRendering}
                                         />
-                                    </View>
-                                    <View style={[styles.appBG]}>
-                                        {!searchRouterListVisible && (
-                                            <FiltersBarSwitch
+                                        <View style={[styles.flex1, styles.pt2, styles.appBG]}>
+                                            <SearchPageHeaderSwitch
                                                 showStatic={!isHeaderInteractive}
                                                 queryJSON={queryJSON}
+                                                searchRouterListVisible={searchRouterListVisible}
+                                                hideSearchRouterList={() => {
+                                                    setSearchRouterListVisible(false);
+                                                }}
+                                                onSearchRouterFocus={() => {
+                                                    topBarOffset.set(StyleUtils.searchHeaderDefaultOffset);
+                                                    setSearchRouterListVisible(true);
+                                                }}
+                                                handleSearch={handleSearchAction}
                                                 isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                                skipInputSkeleton={useStaticRendering}
                                             />
-                                        )}
-                                    </View>
+                                        </View>
+                                        <View style={[styles.appBG]}>
+                                            {!searchRouterListVisible && (
+                                                <FiltersBarSwitch
+                                                    showStatic={!isHeaderInteractive}
+                                                    queryJSON={queryJSON}
+                                                    isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                                />
+                                            )}
+                                        </View>
+                                    </PulsingView>
                                 </Animated.View>
                             </View>
                         </View>

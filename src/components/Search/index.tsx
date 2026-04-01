@@ -90,6 +90,9 @@ type SearchProps = {
     isMobileSelectionModeEnabled: boolean;
     searchRequestResponseStatusCode?: number | null;
     onContentReady?: () => void;
+
+    /** Pre-rendered content shown on the first frame while hooks initialize and heavy work is deferred. */
+    initialContent?: React.ReactNode;
 };
 
 // Max time (ms) to keep the optimistic item cache/skeleton alive before
@@ -216,6 +219,7 @@ function Search({
     onSortPressedCallback,
     searchRequestResponseStatusCode,
     onContentReady,
+    initialContent,
 }: SearchProps) {
     const {type, status, sortBy, sortOrder, hash, similarSearchHash, groupBy, view} = queryJSON;
     // Deferred write: API.write() is postponed so the skeleton renders instantly.
@@ -1443,6 +1447,19 @@ function Search({
     // The SearchPage skeleton (useSearchLoadingState) doesn't cover this case because
     // Search must mount for its onLayout to flush the deferred CreateMoneyRequest API write, which would block the JS thread causing a slowdown on post expense creation navigation
     if (shouldShowRowSkeleton) {
+        // When initialContent is provided (submit-expense flow), render it instead of the skeleton.
+        // This avoids a jarring "data, skeleton, data" flash. The user sees the same
+        // static list continuously until the FlashList is ready to take over.
+        if (initialContent) {
+            return (
+                <View
+                    style={styles.flex1}
+                    onLayout={onSkeletonLayout}
+                >
+                    {initialContent}
+                </View>
+            );
+        }
         return (
             <SearchRowSkeleton
                 shouldAnimate

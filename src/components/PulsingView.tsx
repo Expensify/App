@@ -1,5 +1,6 @@
 import React, {useEffect} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
+import {View} from 'react-native';
 import Animated, {cancelAnimation, Easing, useAnimatedReaction, useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming} from 'react-native-reanimated';
 import type {AnimatedStyle, SharedValue} from 'react-native-reanimated';
 import shouldRenderOffscreen from '@libs/shouldRenderOffscreen';
@@ -31,6 +32,9 @@ type PulsingViewProps = {
 
     /** Whether the view needs to be rendered offscreen (for Android only) */
     needsOffscreenAlphaCompositing?: boolean;
+
+    /** Style applied to a non-animated outer wrapper, useful for opaque backgrounds that shouldn't pulse */
+    wrapperStyle?: StyleProp<ViewStyle>;
 };
 
 function startPulse(opacity: SharedValue<number>, minOpacity: number) {
@@ -56,7 +60,7 @@ function stopPulse(opacity: SharedValue<number>) {
     opacity.set(withTiming(1, {duration: RECOVERY_DURATION, easing: EASING_OUT}));
 }
 
-function PulsingView({shouldPulse, children, style = [], minOpacity = 0.5, needsOffscreenAlphaCompositing = false}: PulsingViewProps) {
+function PulsingView({shouldPulse, children, style = [], minOpacity = 0.5, needsOffscreenAlphaCompositing = false, wrapperStyle}: PulsingViewProps) {
     const shouldPulseShared = useSharedValue(shouldPulse);
     useEffect(() => {
         shouldPulseShared.set(shouldPulse);
@@ -88,7 +92,7 @@ function PulsingView({shouldPulse, children, style = [], minOpacity = 0.5, needs
         opacity: opacity.get(),
     }));
 
-    return (
+    const animatedContent = (
         <Animated.View
             style={[animatedStyle, style]}
             needsOffscreenAlphaCompositing={shouldRenderOffscreen ? needsOffscreenAlphaCompositing : undefined}
@@ -96,6 +100,12 @@ function PulsingView({shouldPulse, children, style = [], minOpacity = 0.5, needs
             {children}
         </Animated.View>
     );
+
+    if (wrapperStyle) {
+        return <View style={wrapperStyle}>{animatedContent}</View>;
+    }
+
+    return animatedContent;
 }
 
 export default PulsingView;
