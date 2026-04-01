@@ -1223,7 +1223,11 @@ function handleNavigateAfterExpenseCreate({
     const queryString = buildCannedSearchQuery({type});
     Navigation.isNavigationReady().then(() => {
         if (getIsNarrowLayout()) {
-            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {forceReplace: true});
+            Navigation.dismissModal({
+                callback: () => {
+                    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}));
+                },
+            });
         } else {
             Navigation.revealRouteBeforeDismissingModal(ROUTES.SEARCH_ROOT.getRoute({query: queryString}));
         }
