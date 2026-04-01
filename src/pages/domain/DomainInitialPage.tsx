@@ -11,6 +11,7 @@ import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -31,6 +32,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import {isAdminSelector} from '@src/selectors/Domain';
 import type IconAsset from '@src/types/utils/IconAsset';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
@@ -58,11 +60,12 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
     const {translate} = useLocalize();
     const shouldDisplayLHB = !shouldUseNarrowLayout;
 
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const domainAccountID = route.params?.domainAccountID;
     const [domain, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`);
     const domainName = domain?.email ? Str.extractEmailDomain(domain.email) : undefined;
     useDocumentTitle(domainName ?? '');
-    const [isAdmin, adminMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${domainAccountID}`);
+    const isAdmin = isAdminSelector(currentUserAccountID)(domain);
     const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`);
 
     const domainMenuItems: DomainMenuItem[] = [
@@ -103,7 +106,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
 
     useConfirmReadyToOpenApp();
 
-    const shouldShowFullScreenLoadingIndicator = isLoadingOnyxValue(domainMetadata, adminMetadata);
+    const shouldShowFullScreenLoadingIndicator = isLoadingOnyxValue(domainMetadata);
 
     useEffect(() => {
         if (shouldShowFullScreenLoadingIndicator || (domain && isAdmin)) {

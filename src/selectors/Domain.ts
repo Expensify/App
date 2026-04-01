@@ -173,6 +173,25 @@ function groupsSelector(domain: OnyxEntry<Domain>): DomainSecurityGroupWithID[] 
 
 const accountLockSelector = (accountID: number) => (domain: OnyxEntry<Domain>) => domain?.[`${CONST.DOMAIN.PRIVATE_LOCKED_ACCOUNT_PREFIX}${accountID}`];
 
+/**
+ * Creates a selector that checks if a given account ID is an admin of the domain.
+ * It checks whether the account ID appears as a value in any expensify_adminPermissions_* entry.
+ *
+ * @param accountID - The account ID to check admin status for
+ * @returns A selector function that takes a domain and returns boolean
+ */
+function isAdminSelector(accountID: number) {
+    return (domain: OnyxEntry<Domain>): boolean => {
+        if (!domain || !accountID) {
+            return false;
+        }
+
+        return Object.entries(domain).some(
+            ([key, value]) => key.startsWith(CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX) && value !== undefined && value !== null && Number(value) === accountID,
+        );
+    };
+}
+
 export {
     domainMemberSettingsSelector,
     domainSettingsPrimaryContactSelector,
@@ -191,6 +210,7 @@ export {
     groupsSelector,
     vacationDelegateSelector,
     accountLockSelector,
+    isAdminSelector,
 };
 
 export {type DomainSecurityGroupWithID};
