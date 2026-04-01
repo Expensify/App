@@ -4290,30 +4290,37 @@ const DATE_FILTER_GROUP_MAP: Partial<Record<SearchAdvancedFiltersKey, DateFilter
     [FILTER_KEYS.DATE_ON]: {label: 'common.date', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE},
     [FILTER_KEYS.DATE_AFTER]: {label: 'common.date', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE},
     [FILTER_KEYS.DATE_BEFORE]: {label: 'common.date', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE},
+    [FILTER_KEYS.DATE_RANGE]: {label: 'common.date', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE},
 
     [FILTER_KEYS.SUBMITTED_ON]: {label: 'search.filters.submitted', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED},
     [FILTER_KEYS.SUBMITTED_AFTER]: {label: 'search.filters.submitted', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED},
     [FILTER_KEYS.SUBMITTED_BEFORE]: {label: 'search.filters.submitted', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED},
+    [FILTER_KEYS.SUBMITTED_RANGE]: {label: 'search.filters.submitted', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED},
 
     [FILTER_KEYS.APPROVED_ON]: {label: 'search.filters.approved', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED},
     [FILTER_KEYS.APPROVED_AFTER]: {label: 'search.filters.approved', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED},
     [FILTER_KEYS.APPROVED_BEFORE]: {label: 'search.filters.approved', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED},
+    [FILTER_KEYS.APPROVED_RANGE]: {label: 'search.filters.approved', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED},
 
     [FILTER_KEYS.PAID_ON]: {label: 'search.filters.paid', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID},
     [FILTER_KEYS.PAID_AFTER]: {label: 'search.filters.paid', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID},
     [FILTER_KEYS.PAID_BEFORE]: {label: 'search.filters.paid', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID},
+    [FILTER_KEYS.PAID_RANGE]: {label: 'search.filters.paid', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID},
 
     [FILTER_KEYS.EXPORTED_ON]: {label: 'search.filters.exported', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED},
     [FILTER_KEYS.EXPORTED_AFTER]: {label: 'search.filters.exported', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED},
     [FILTER_KEYS.EXPORTED_BEFORE]: {label: 'search.filters.exported', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED},
+    [FILTER_KEYS.EXPORTED_RANGE]: {label: 'search.filters.exported', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED},
 
     [FILTER_KEYS.POSTED_ON]: {label: 'search.filters.posted', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED},
     [FILTER_KEYS.POSTED_AFTER]: {label: 'search.filters.posted', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED},
     [FILTER_KEYS.POSTED_BEFORE]: {label: 'search.filters.posted', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED},
+    [FILTER_KEYS.POSTED_RANGE]: {label: 'search.filters.posted', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED},
 
     [FILTER_KEYS.WITHDRAWN_ON]: {label: 'search.filters.withdrawn', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN},
     [FILTER_KEYS.WITHDRAWN_AFTER]: {label: 'search.filters.withdrawn', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN},
     [FILTER_KEYS.WITHDRAWN_BEFORE]: {label: 'search.filters.withdrawn', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN},
+    [FILTER_KEYS.WITHDRAWN_RANGE]: {label: 'search.filters.withdrawn', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN},
 };
 
 function mapFiltersFormToLabelValueList<T extends Record<string, unknown>>(
