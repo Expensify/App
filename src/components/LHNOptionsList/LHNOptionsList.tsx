@@ -39,7 +39,7 @@ import useEmptyLHNIllustration from './useEmptyLHNIllustration';
 
 const keyExtractor = (item: Report) => `report_${item.reportID}`;
 
-function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optionMode, shouldDisableFocusOptions = false, onFirstItemRendered = () => {}}: LHNOptionsListProps) {
+function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optionMode, shouldDisableFocusOptions = false, onFirstItemRendered = () => {}, avatarSize}: LHNOptionsListProps) {
     const {saveScrollOffset, getScrollOffset, saveScrollIndex, getScrollIndex} = useContext(ScrollOffsetContext);
     const {isOffline} = useNetwork();
     const flashListRef = useRef<FlashListRef<Report>>(null);
@@ -239,6 +239,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     lastAction={lastAction}
                     lastActionReport={lastActionReport}
                     currentUserAccountID={currentUserAccountID}
+                    avatarSize={avatarSize}
                 />
             );
         },
@@ -265,6 +266,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             translate,
             visibleReportActionsData,
             currentUserAccountID,
+            avatarSize,
         ],
     );
 

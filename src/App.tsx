@@ -53,6 +53,7 @@ import CONST from './CONST';
 import Expensify from './Expensify';
 import {CurrentReportIDContextProvider} from './hooks/useCurrentReportID';
 import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
+import useTheme from './hooks/useTheme';
 import EffectiveWidthContext from './hooks/useWindowDimensions/EffectiveWidthContext';
 import HybridAppHandler from './HybridAppHandler';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
@@ -86,6 +87,7 @@ const FLOATING_PANEL_MARGIN = 20;
 function MainContent() {
     const {isOpen, isFloating} = useInboxPanelState();
     const {width: rawWindowWidth} = useRawWindowDimensions();
+    const theme = useTheme();
     const panelWidth = Math.max(rawWindowWidth * 0.2, 350);
 
     // Measured width of the main content container, provided to all children via
@@ -127,7 +129,7 @@ function MainContent() {
         flex: 1,
         transform: [{translateX: panelTranslateX.value}],
         borderLeftWidth: 1,
-        borderLeftColor: '#e5e5e5',
+        borderLeftColor: theme.border,
     }));
 
     // When floating, main content always takes the full viewport width.
@@ -173,7 +175,7 @@ function MainContent() {
                         borderRadius: 12,
                         overflow: 'hidden',
                         borderWidth: 1,
-                        borderColor: '#e5e5e5',
+                        borderColor: theme.border,
                         shadowColor: '#000',
                         shadowOffset: {width: 0, height: 8},
                         shadowOpacity: 0.15,
