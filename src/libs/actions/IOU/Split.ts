@@ -1244,6 +1244,8 @@ function updateSplitTransactions({
         });
     };
 
+    const newSelfDMSplitTransactions: OnyxTypes.Transaction[] = [];
+
     for (const [index, splitExpense] of splitExpenses.entries()) {
         const existingTransactionID = isReverseSplitOperation ? originalTransactionID : splitExpense.transactionID;
         const splitTransaction = allTransactionsList?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransactionID}`];
@@ -1534,6 +1536,11 @@ function updateSplitTransactions({
                     currentSplit.modifiedExpenseReportActionID = params.reportActionID;
                 }
                 updateMoneyRequestParamsOnyxData = moneyRequestParamsOnyxData;
+                updateMoneyRequestParamsOnyxData.optimisticData?.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransactionID}`,
+                    value: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                });
             }
 
             // For new split transactions, set the reportID once the transaction and associated report are created
@@ -1870,6 +1877,17 @@ function updateSplitTransactions({
             }
         }
 
+        if (isSelfDMSplit && optimisticTransactionFromGetMoneyRequest) {
+            // For initial splits, both optimistic transactions reuse originalTransactionID as their transactionID.
+            // Generate snapshot-only IDs so two distinct entries appear in Reports > Expenses while offline.
+            // When the user comes back online, the search refreshes and replaces these with server-generated IDs.
+            const snapshotTransactionID = isCreationOfSplits ? String(NumberUtils.rand64()) : optimisticTransactionFromGetMoneyRequest.transactionID;
+            newSelfDMSplitTransactions.push({
+                ...optimisticTransactionFromGetMoneyRequest,
+                transactionID: snapshotTransactionID,
+            });
+        }
+
         onyxData.optimisticData?.push(...(moneyRequestInformationOnyxData.optimisticData ?? []), ...(updateMoneyRequestParamsOnyxData.optimisticData ?? []), ...optimisticDataComments);
         onyxData.successData?.push(...(moneyRequestInformationOnyxData.successData ?? []), ...(updateMoneyRequestParamsOnyxData.successData ?? []), ...successDataComments);
         onyxData.failureData?.push(...(moneyRequestInformationOnyxData.failureData ?? []), ...(updateMoneyRequestParamsOnyxData.failureData ?? []), ...failureDataComments);
@@ -2044,6 +2062,28 @@ function updateSplitTransactions({
                 },
             },
         });
+
+        if (newSelfDMSplitTransactions.length > 0) {
+            const optimisticSnapshotData: Record<string, OnyxTypes.Transaction> = {};
+            const failureSnapshotData: Record<string, null> = {};
+            for (const tx of newSelfDMSplitTransactions) {
+                optimisticSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${tx.transactionID}`] = tx;
+                failureSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${tx.transactionID}`] = null;
+            }
+
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+            onyxData.optimisticData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchContext?.currentSearchHash}`,
+                value: {data: optimisticSnapshotData},
+            });
+
+            onyxData.failureData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchContext?.currentSearchHash}`,
+                value: {data: failureSnapshotData},
+            });
+        }
     } else {
         onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
