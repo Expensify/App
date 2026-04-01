@@ -45,7 +45,7 @@ function CreateDistanceRatePage({
     const customUnitRateID = generateCustomUnitID();
     const {inputCallbackRef} = useAutoFocusInput();
     const isDistanceRateUpgrade = transactionID && reportID;
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
+    const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(transactionID)}`);
 
     const FullPageBlockingView = !customUnitID ? FullPageOfflineBlockingView : View;
 
@@ -70,7 +70,7 @@ function CreateDistanceRatePage({
 
         createPolicyDistanceRate(policyID, customUnitID, newRate);
         if (isDistanceRateUpgrade) {
-            setMoneyRequestDistanceRate(transaction, customUnitRateID, policy, true);
+            setMoneyRequestDistanceRate(transactionDraft, customUnitRateID, policy, true);
             Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID), {compareParams: false});
             return;
         }

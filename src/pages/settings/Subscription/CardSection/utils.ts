@@ -36,7 +36,7 @@ type GetBillingStatusProps = {
     closeIcon?: IconAsset;
     fundList: OnyxEntry<FundList>;
     amountOwed: number;
-    ownerBillingGraceEndPeriod: OnyxEntry<number>;
+    ownerBillingGracePeriodEnd: OnyxEntry<number>;
 };
 
 function getBillingStatus({
@@ -51,7 +51,7 @@ function getBillingStatus({
     creditCardEyesIcon,
     closeIcon,
     fundList,
-    ownerBillingGraceEndPeriod,
+    ownerBillingGracePeriodEnd,
     amountOwed,
 }: GetBillingStatusProps): BillingStatusResult | undefined {
     const cardEnding = (accountData?.cardNumber ?? '')?.slice(-4);
@@ -64,10 +64,10 @@ function getBillingStatus({
         fundList,
         billingStatus,
         amountOwed,
-        ownerBillingGraceEndPeriod,
+        ownerBillingGracePeriodEnd,
     );
 
-    const endDate = ownerBillingGraceEndPeriod;
+    const endDate = ownerBillingGracePeriodEnd;
 
     const endDateFormatted = endDate ? DateUtils.formatWithUTCTimeZone(fromUnixTime(endDate).toUTCString(), CONST.DATE.MONTH_DAY_YEAR_FORMAT) : null;
 
