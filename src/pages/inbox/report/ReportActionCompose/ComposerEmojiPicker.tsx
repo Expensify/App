@@ -1,13 +1,11 @@
 import React, {useEffect} from 'react';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
-import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DomUtils from '@libs/DomUtils';
 import {hideEmojiPicker, isActive as isActiveEmojiPickerAction} from '@userActions/EmojiPickerAction';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import {useComposerActions, useComposerData, useComposerSendState} from './ComposerContext';
 
 type ComposerEmojiPickerProps = {
@@ -21,7 +19,6 @@ function ComposerEmojiPicker({reportID}: ComposerEmojiPickerProps) {
     const {isBlockedFromConcierge} = useComposerSendState();
     const {focus} = useComposerActions();
     const {composerRef} = useComposerData();
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
 
     const chatItemComposeSecondaryRowHeight = styles.chatItemComposeSecondaryRow.height + styles.chatItemComposeSecondaryRow.marginTop + styles.chatItemComposeSecondaryRow.marginBottom;
     const reportActionComposeHeight = styles.chatItemComposeBox.minHeight + chatItemComposeSecondaryRowHeight;
@@ -31,12 +28,12 @@ function ComposerEmojiPicker({reportID}: ComposerEmojiPickerProps) {
     // Hide emoji picker on unmount or when switching reports
     useEffect(
         () => () => {
-            if (!isActiveEmojiPickerAction(report?.reportID)) {
+            if (!isActiveEmojiPickerAction(reportID)) {
                 return;
             }
             hideEmojiPicker();
         },
-        [report?.reportID],
+        [reportID],
     );
 
     if (canUseTouchScreen() && isMediumScreenWidth) {
@@ -57,7 +54,7 @@ function ComposerEmojiPicker({reportID}: ComposerEmojiPickerProps) {
                 focus();
             }}
             onEmojiSelected={(...args) => composerRef.current?.replaceSelectionWithText(...args)}
-            emojiPickerID={report?.reportID}
+            emojiPickerID={reportID}
             shiftVertical={emojiShiftVertical}
         />
     );
