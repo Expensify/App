@@ -3433,11 +3433,6 @@ const translations = {
         confirmationStepHeader: 'Check your info.',
         confirmationStepSubHeader: 'Double check the details below, and check the terms box to confirm.',
         toGetStarted: 'Add a personal bank account to receive reimbursements, pay invoices, or enable the Expensify Wallet.',
-        updatePersonalInfo: 'Update bank account',
-        updatePersonalInfoFailure: 'Unable to update bank account information. Please try again later.',
-        updateSuccessTitle: 'Bank account updated!',
-        updateSuccessHeader: 'Bank account updated',
-        updateSuccessMessage: 'Congrats, your bank account is set up and ready to receive reimbursements.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Enter Expensify password',
@@ -4146,6 +4141,7 @@ const translations = {
             defaultNote: `Receipts sent to ${CONST.EMAIL.RECEIPTS} will appear in this workspace.`,
             deleteConfirmation: 'Are you sure you want to delete this workspace?',
             deleteWithCardsConfirmation: 'Are you sure you want to delete this workspace? This will remove all card feeds and assigned cards.',
+            deleteOpenExpensifyCardsError: 'Your company still has open Expensify Cards.',
             outstandingBalanceWarning:
                 'You have an outstanding balance that must be settled before deleting your last workspace. Please go to your subscription settings to resolve the payment.',
             settleBalance: 'Go to subscription',
