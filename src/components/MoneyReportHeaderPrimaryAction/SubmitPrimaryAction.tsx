@@ -1,3 +1,4 @@
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
 import AnimatedSubmitButton from '@components/AnimatedSubmitButton';
 import {useSearchStateContext} from '@components/Search/SearchContext';
@@ -16,7 +17,6 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isSubmitAndClose} from '@libs/PolicyUtils';
 import {getFilteredReportActionsForReportView} from '@libs/ReportActionsUtils';
 import {getNextApproverAccountID, hasViolations as hasViolationsReportUtils, isReportOwner, shouldBlockSubmitDueToStrictPolicyRules} from '@libs/ReportUtils';
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils} from '@libs/TransactionUtils';
 import {submitReport} from '@userActions/IOU';
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';

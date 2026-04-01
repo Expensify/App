@@ -1,3 +1,4 @@
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
 import Button from '@components/Button';
 import useLocalize from '@hooks/useLocalize';
@@ -5,7 +6,6 @@ import useOnyx from '@hooks/useOnyx';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isSubmitAndClose} from '@libs/PolicyUtils';
 import {getNextApproverAccountID, isReportOwner} from '@libs/ReportUtils';
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import useConfirmApproval from './useConfirmApproval';
