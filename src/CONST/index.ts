@@ -8744,6 +8744,8 @@ const CONST = {
             FILTER_POPUP_APPLY_USER: 'Search-FilterPopupApplyUser',
             FILTER_POPUP_RESET_REPORT: 'Search-FilterPopupResetReport',
             FILTER_POPUP_APPLY_REPORT: 'Search-FilterPopupApplyReport',
+            FILTER_POPUP_RESET_REPORT_FIELD: 'Search-FilterPopupResetReportField',
+            FILTER_POPUP_APPLY_REPORT_FIELD: 'Search-FilterPopupApplyReportField',
             FILTER_POPUP_RESET_CARD: 'Search-FilterPopupResetCard',
             FILTER_POPUP_APPLY_CARD: 'Search-FilterPopupApplyCard',
             TRANSACTION_LIST_ITEM_CHECKBOX: 'Search-TransactionListItemCheckbox',

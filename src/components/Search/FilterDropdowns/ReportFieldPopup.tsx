@@ -279,7 +279,7 @@ function ReportFieldPopup({closeOverlay, updateFilterForm}: ReportFieldPopupProp
                     style={[styles.flex1]}
                     text={translate('common.reset')}
                     onPress={resetChanges}
-                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_AMOUNT}
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_REPORT_FIELD}
                 />
                 <Button
                     success
@@ -287,7 +287,7 @@ function ReportFieldPopup({closeOverlay, updateFilterForm}: ReportFieldPopupProp
                     style={[styles.flex1]}
                     text={translate('common.apply')}
                     onPress={applyChanges}
-                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_AMOUNT}
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_REPORT_FIELD}
                 />
             </View>
         </View>
