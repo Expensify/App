@@ -1,5 +1,5 @@
 import React, {useEffect, useMemo, useRef} from 'react';
-import type {TextInput as RNTextInput, TextInputKeyPressEvent} from 'react-native';
+import type {TextInput as RNTextInput} from 'react-native';
 import {EditableCell, useInlineEditState} from '@components/Table/EditableCell';
 import type {EditableProps} from '@components/Table/EditableCell/types';
 import TextInput from '@components/TextInput';
@@ -9,7 +9,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {moveSelectionToEnd, scrollToBottom} from '@libs/InputUtils';
 import Parser from '@libs/Parser';
 import StringUtils from '@libs/StringUtils';
-import CONST from '@src/CONST';
 
 type MerchantOrDescriptionCellProps = {
     merchantOrDescription: string;
@@ -84,18 +83,6 @@ function MerchantOrDescriptionCell({merchantOrDescription, shouldShowTooltip, sh
         save();
     };
 
-    const handleKeyPress = (e: TextInputKeyPressEvent) => {
-        if (isMultilineInput) {
-            return;
-        }
-
-        // For single-line inputs (merchant), prevent Shift+Enter from inserting newlines
-        if (e.nativeEvent.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
-            e.preventDefault();
-            handleSubmitEditing();
-        }
-    };
-
     return (
         <EditableCell
             canEdit={canEdit}
@@ -107,7 +94,6 @@ function MerchantOrDescriptionCell({merchantOrDescription, shouldShowTooltip, sh
                     accessibilityLabel={isDescription ? 'Description input' : 'Merchant input'}
                     value={localValue}
                     onChangeText={handleChangeText}
-                    onKeyPress={handleKeyPress}
                     onBlur={handleBlur}
                     onSubmitEditing={handleSubmitEditing}
                     onFocus={handleFocus}
