@@ -9,7 +9,6 @@ import useOnyx from '@hooks/useOnyx';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import {isAnonymousUser} from '@libs/actions/Session';
 import getAccountTabScreenToOpen from '@libs/Navigation/helpers/getAccountTabScreenToOpen';
-import {getWorkspacesTabStateFromSessionStorage} from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
 import {TAB_TO_FULLSCREEN} from '@libs/Navigation/linkingConfig/RELATIONS';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -24,18 +23,8 @@ import {getPreservedNavigatorState} from './createSplitNavigator/usePreserveNavi
 // This timing is used to call the preload function after a tab change, when the initial tab screen has already been rendered.
 const TIMING_TO_CALL_PRELOAD = 1000;
 
-// Currently the Workspaces and Account tabs are preloaded, while Search and Inbox are not preloaded due to their potential complexity.
-const TABS_TO_PRELOAD = [NAVIGATION_TABS.WORKSPACES, NAVIGATION_TABS.SETTINGS];
-
-function preloadWorkspacesTab(navigation: PlatformStackNavigationProp<AuthScreensParamList>) {
-    const state = getWorkspacesTabStateFromSessionStorage() ?? navigation.getState();
-    const lastWorkspacesSplitNavigator = state.routes.findLast((route) => route.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR);
-
-    if (lastWorkspacesSplitNavigator) {
-        return;
-    }
-    navigation.preload(SCREENS.WORKSPACES_LIST, {});
-}
+// Currently only the Settings (Account) tab is preloaded. The remaining tabs will be handled by the upcoming tab navigator.
+const TABS_TO_PRELOAD = [NAVIGATION_TABS.SETTINGS];
 
 function preloadReportsTab(navigation: PlatformStackNavigationProp<AuthScreensParamList>) {
     const lastSearchNavigator = navigation.getState().routes.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
@@ -70,9 +59,6 @@ function preloadHomeTab(navigation: PlatformStackNavigationProp<AuthScreensParam
 
 function preloadTab(tabName: string, navigation: PlatformStackNavigationProp<AuthScreensParamList>, subscriptionPlan: ValueOf<typeof CONST.POLICY.TYPE> | null) {
     switch (tabName) {
-        case NAVIGATION_TABS.WORKSPACES:
-            preloadWorkspacesTab(navigation);
-            return;
         case NAVIGATION_TABS.SEARCH:
             preloadReportsTab(navigation);
             return;

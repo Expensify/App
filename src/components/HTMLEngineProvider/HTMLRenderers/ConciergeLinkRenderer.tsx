@@ -19,6 +19,7 @@ function ConciergeLinkRenderer({tnode, style}: ConciergeLinkRendererProps) {
     const styles = useThemeStyles();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
@@ -26,7 +27,7 @@ function ConciergeLinkRenderer({tnode, style}: ConciergeLinkRendererProps) {
      * Simple wrapper to create a stable reference without passing event args to navigation function.
      */
     const navigateToConciergeChat = () => {
-        navigateToConciergeChatAction(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, false);
+        navigateToConciergeChatAction(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false);
     };
 
     // Define link style based on context
