@@ -1,3 +1,4 @@
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -34,7 +35,7 @@ import initSplitExpense from '@libs/actions/SplitExpenses';
 import {setNameValuePair} from '@libs/actions/User';
 import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getConnectedIntegration} from '@libs/PolicyUtils';
+import {getConnectedIntegration, isSubmitAndClose} from '@libs/PolicyUtils';
 import {getSecondaryExportReportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
     canEditMultipleTransactions,
@@ -50,7 +51,7 @@ import {
 import {serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
 import {navigateToSearchRHP, shouldShowDeleteOption} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {hasTransactionBeenRejected, isDeletedTransaction} from '@libs/TransactionUtils';
+import {hasTransactionBeenRejected} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import {canIOUBePaid, dismissRejectUseExplanation, initBulkEditDraftTransaction} from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -72,7 +73,6 @@ import usePersonalPolicy from './usePersonalPolicy';
 import useSelfDMReport from './useSelfDMReport';
 import useTheme from './useTheme';
 import useThemeStyles from './useThemeStyles';
-import useUndeleteTransactions from './useUndeleteTransactions';
 
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
 
@@ -125,7 +125,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const {isBetaEnabled} = usePermissions();
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
-    const undeleteTransactions = useUndeleteTransactions();
 
     // Cache the last search results that had data, so the merge option remains available
     // while results are temporarily unset (e.g. during sorting/loading).
@@ -151,6 +150,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
     const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION);
     const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const isExpenseReportType = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
@@ -167,7 +167,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         'Exclamation',
         'MoneyBag',
         'ArrowSplit',
-        'RotateLeft',
         'QBOSquare',
         'XeroSquare',
         'NetSuiteSquare',
@@ -735,23 +734,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             return CONST.EMPTY_ARRAY as unknown as Array<DropdownOption<SearchHeaderOptionValue>>;
         }
 
-        const allSelectedAreDeleted = selectedTransactionsKeys.length > 0 && selectedTransactionsKeys.every((id) => isDeletedTransaction(selectedTransactions[id] ?? {}));
-
-        if (allSelectedAreDeleted) {
-            return [
-                {
-                    icon: expensifyIcons.RotateLeft,
-                    text: translate('search.bulkActions.undelete'),
-                    value: CONST.SEARCH.BULK_ACTION_TYPES.UNDELETE,
-                    shouldCloseModalOnSelect: true,
-                    onSelected: () => {
-                        undeleteTransactions(selectedTransactionsKeys);
-                        clearSelectedTransactions();
-                    },
-                },
-            ];
-        }
-
         const options: Array<DropdownOption<SearchHeaderOptionValue>> = [];
         const isAnyTransactionOnHold = Object.values(selectedTransactions).some((transaction) => transaction.isHeld);
 
@@ -1013,7 +995,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         if (shouldShowSubmitOption) {
             options.push({
                 icon: expensifyIcons.Send,
-                text: translate('common.submit'),
+                text:
+                    isTrackIntentUser && selectedReports.length > 0 && selectedReports.every((report) => isSubmitAndClose(policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`]))
+                        ? translate('common.markAsDone')
+                        : translate('common.submit'),
                 value: CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT,
                 shouldCloseModalOnSelect: true,
                 onSelected: () => {
@@ -1250,7 +1235,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         expensifyIcons.ArrowSplit,
         expensifyIcons.Pencil,
         expensifyIcons.Trashcan,
-        expensifyIcons.RotateLeft,
         expensifyIcons.Exclamation,
         translate,
         areAllMatchingItemsSelected,
@@ -1294,8 +1278,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         firstTransaction,
         firstTransactionPolicy,
         handleDeleteSelectedTransactions,
-        undeleteTransactions,
-        currentUserPersonalDetails?.email,
         theme.icon,
         styles.colorMuted,
         styles.fontWeightNormal,
@@ -1303,6 +1285,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         userBillingGracePeriodEnds,
         ownerBillingGracePeriodEnd,
         currentSearchKey,
+        isTrackIntentUser,
         getCurrencyDecimals,
         amountOwed,
         allTransactions,
