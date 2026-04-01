@@ -1,7 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useMemo, useState} from 'react';
-import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
+import type {AccessibilityState, GestureResponderEvent, LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import {getButtonRole} from '@components/Button/utils';
@@ -113,6 +113,9 @@ type ButtonProps = WithSentryLabel &
         /** Accessibility label for the component */
         accessibilityLabel?: string;
 
+        /** Accessibility state to pass to the pressable */
+        accessibilityState?: AccessibilityState;
+
         /**
          * Reference to the outer element.
          */
@@ -201,6 +204,7 @@ function Button({
     shouldStayNormalOnDisable = false,
     sentryLabel,
     ref,
+    accessibilityState,
 }: ComposedButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -303,6 +307,7 @@ function Button({
                 id={id}
                 testID={testID}
                 accessibilityLabel={accessibilityLabel}
+                accessibilityState={accessibilityState}
                 sentryLabel={sentryLabel}
                 role={getButtonRole(isNested)}
                 isNested={isNested}
