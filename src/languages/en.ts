@@ -6746,6 +6746,9 @@ const translations = {
                 currencyMismatchPrompt: 'To set a max amount, select cards that settle in the same currency.',
                 reviewSelectedCards: 'Review selected cards',
                 merchantsMoreCount: ({summary, count}: {summary: string; count: number}) => `${summary}, +${count} more`,
+                confirmErrorApplyAtLeastOneSpendRuleToOneCard: 'Apply at least one spend rule to one card',
+                confirmErrorCardRequired: 'Card is a required field',
+                confirmErrorApplyAtLeastOneSpendRule: 'Apply at least one spend rule',
             },
         },
         planTypePage: {

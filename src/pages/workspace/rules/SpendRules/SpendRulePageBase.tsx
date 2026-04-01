@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -35,6 +35,19 @@ type SpendRulePageBaseProps = {
 
 const MAX_SUMMARY_CHARS = 74;
 
+function getErrorMessage(hasSelectedCards: boolean, hasAnyRuleApplied: boolean, translate: (path: TranslationPaths) => string) {
+    if (!hasSelectedCards && !hasAnyRuleApplied) {
+        return translate('workspace.rules.spendRules.confirmErrorCardRequired');
+    }
+    if (!hasSelectedCards) {
+        return translate('workspace.rules.spendRules.confirmErrorApplyAtLeastOneSpendRuleToOneCard');
+    }
+    if (!hasAnyRuleApplied) {
+        return translate('workspace.rules.spendRules.confirmErrorApplyAtLeastOneSpendRule');
+    }
+    return '';
+}
+
 function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -43,11 +56,19 @@ function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps)
     const [spendRuleForm] = useOnyx(ONYXKEYS.FORMS.SPEND_RULE_FORM);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
+    const [isErrorVisible, setIsErrorVisible] = useState(false);
 
     useEffect(() => () => clearDraftSpendRule(), []);
 
     const cardIDs = spendRuleForm?.cardIDs;
     const restrictionAction = spendRuleForm?.restrictionAction ?? CONST.SPEND_CARD_RULE.ACTION.ALLOW;
+    const merchantNames = spendRuleForm?.merchantNames ?? [];
+    const categories = spendRuleForm?.categories ?? [];
+    const maxAmount = spendRuleForm?.maxAmount ?? '';
+
+    const clearError = () => {
+        setIsErrorVisible(false);
+    };
 
     const cardsMenuTitle = !cardIDs?.length
         ? ''
@@ -63,7 +84,7 @@ function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps)
               })
               .join(', ');
 
-    const categoriesMenuTitle = (spendRuleForm?.categories ?? []).map((categoryName) => getDecodedCategoryName(categoryName)).join(', ');
+    const categoriesMenuTitle = categories.map((categoryName) => getDecodedCategoryName(categoryName)).join(', ');
 
     const selectedCardsCurrencies = new Set<string>();
     for (const id of cardIDs ?? []) {
@@ -78,7 +99,7 @@ function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps)
 
     const hasCurrencyMismatch = !(cardIDs?.length ?? 0) || selectedCardsCurrencies.size > 1;
     const selectedCurrency = selectedCardsCurrencies.size === 1 ? Array.from(selectedCardsCurrencies).at(0) : undefined;
-    const parsedMaxAmount = Number.parseFloat(spendRuleForm?.maxAmount ?? '');
+    const parsedMaxAmount = Number.parseFloat(maxAmount);
     const maxAmountMenuTitle = Number.isFinite(parsedMaxAmount) ? convertToDisplayString(convertToBackendAmount(parsedMaxAmount), selectedCurrency ?? CONST.CURRENCY.USD) : '';
 
     const openCurrencyMismatchModal = async () => {
@@ -116,10 +137,20 @@ function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps)
         return text && hiddenCount > 0 ? translate('workspace.rules.spendRules.merchantsMoreCount', {summary: text, count: hiddenCount}) : text;
     }
 
+    const hasSelectedCards = !!cardIDs?.length;
+    const hasAnyMerchant = merchantNames.some((name) => name.trim() !== '');
+    const hasAnyCategory = categories.length > 0;
+    const hasMaxAmount = maxAmount.trim() !== '';
+    const hasAnyRuleApplied = hasAnyMerchant || hasAnyCategory || hasMaxAmount;
+    const errorMessage = getErrorMessage(hasSelectedCards, hasAnyRuleApplied, translate);
+
     const handleSaveRule = () => {
-        if (!cardIDs?.length) {
+        if (errorMessage) {
+            setIsErrorVisible(true);
             return;
         }
+
+        clearError();
         setExpensifyCardRule({
             domainAccountID,
             cardRuleID: String(rand64()),
@@ -145,7 +176,10 @@ function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps)
                     <Text style={[styles.textStrong, styles.ph5, styles.pv2]}>{translate('workspace.rules.spendRules.cardsSectionTitle')}</Text>
                     <MenuItemWithTopDescription
                         description={translate('workspace.rules.spendRules.chooseCards')}
-                        onPress={() => Navigation.navigate(ROUTES.RULES_SPEND_CARD.getRoute(policyID))}
+                        onPress={() => {
+                            clearError();
+                            Navigation.navigate(ROUTES.RULES_SPEND_CARD.getRoute(policyID));
+                        }}
                         shouldShowRightIcon
                         title={cardsMenuTitle}
                         titleStyle={styles.flex1}
@@ -155,12 +189,18 @@ function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps)
                     <View style={[styles.ph5, styles.pv3]}>
                         <SpendRuleRestrictionTypeToggle
                             restrictionAction={restrictionAction}
-                            onSelect={(action) => updateDraftSpendRule({restrictionAction: action})}
+                            onSelect={(action) => {
+                                clearError();
+                                updateDraftSpendRule({restrictionAction: action});
+                            }}
                         />
                     </View>
                     <MenuItemWithTopDescription
                         description={translate('common.merchant')}
-                        onPress={() => Navigation.navigate(ROUTES.RULES_SPEND_MERCHANTS.getRoute(policyID))}
+                        onPress={() => {
+                            clearError();
+                            Navigation.navigate(ROUTES.RULES_SPEND_MERCHANTS.getRoute(policyID));
+                        }}
                         shouldShowRightIcon
                         title={getMerchantMenuTitle(spendRuleForm?.merchantNames)}
                         numberOfLinesTitle={2}
@@ -169,7 +209,10 @@ function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps)
                     />
                     <MenuItemWithTopDescription
                         description={translate('workspace.rules.spendRules.spendCategory')}
-                        onPress={() => Navigation.navigate(ROUTES.RULES_SPEND_CATEGORY.getRoute(policyID))}
+                        onPress={() => {
+                            clearError();
+                            Navigation.navigate(ROUTES.RULES_SPEND_CATEGORY.getRoute(policyID));
+                        }}
                         shouldShowRightIcon
                         title={categoriesMenuTitle}
                         numberOfLinesTitle={2}
@@ -178,7 +221,14 @@ function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps)
                     />
                     <MenuItemWithTopDescription
                         description={translate('workspace.rules.spendRules.maxAmount')}
-                        onPress={() => (hasCurrencyMismatch ? openCurrencyMismatchModal() : Navigation.navigate(ROUTES.RULES_SPEND_MAX_AMOUNT.getRoute(policyID)))}
+                        onPress={() => {
+                            clearError();
+                            if (hasCurrencyMismatch) {
+                                openCurrencyMismatchModal();
+                                return;
+                            }
+                            Navigation.navigate(ROUTES.RULES_SPEND_MAX_AMOUNT.getRoute(policyID));
+                        }}
                         shouldShowRightIcon
                         title={maxAmountMenuTitle}
                         titleStyle={styles.flex1}
@@ -188,9 +238,9 @@ function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps)
                 <FormAlertWithSubmitButton
                     buttonText={translate('workspace.rules.spendRules.saveRule')}
                     containerStyles={[styles.m4, styles.mb5]}
-                    isAlertVisible={false}
+                    message={errorMessage}
+                    isAlertVisible={isErrorVisible}
                     onSubmit={handleSaveRule}
-                    isDisabled={!cardIDs?.length}
                     enabledWhenOffline
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_SAVE}
                 />
