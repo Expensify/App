@@ -150,8 +150,6 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
         badgeText = translate('common.locked');
     } else if (isNeedingAction) {
         badgeText = translate('common.actionRequired');
-    } else if (item.isCardFrozen) {
-        badgeText = translate('cardPage.frozen');
     } else if (shouldShowDefaultBadge) {
         badgeText = translate('paymentMethodList.defaultPaymentMethod');
     }
@@ -159,8 +157,6 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     let badgeIcon;
     if (isNeedingAction || isInLockedState) {
         badgeIcon = icons.DotIndicator;
-    } else if (item.isCardFrozen) {
-        badgeIcon = icons.FreezeCard;
     }
 
     let descriptionAddon;
