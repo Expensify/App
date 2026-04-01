@@ -31,6 +31,7 @@ import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import {getOdometerImageUri} from '@libs/OdometerImageUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CameraPermission from '@pages/iou/request/step/IOURequestStepScan/CameraPermission';
 import NavigationAwareCamera from '@pages/iou/request/step/IOURequestStepScan/components/NavigationAwareCamera/Camera';
@@ -187,7 +188,7 @@ function IOURequestStepOdometerImage({
         if (!file) {
             return;
         }
-        setMoneyRequestOdometerImage(transaction, imageType, file, isTransactionDraft);
+        setMoneyRequestOdometerImage(transaction, imageType, getOdometerImageUri(file), isTransactionDraft, false);
         navigateBack();
     };
 
@@ -251,6 +252,7 @@ function IOURequestStepOdometerImage({
                                         size: (file as FileObject | undefined)?.size,
                                     },
                                     isTransactionDraft,
+                                    false,
                                 );
                                 navigateBack();
                             })

@@ -148,7 +148,9 @@ const translations: TranslationDeepObject<typeof en> = {
         selectMultiple: 'Mehrfachauswahl',
         saveChanges: 'Änderungen speichern',
         submit: 'Senden',
+        markAsDone: 'Als erledigt markieren',
         submitted: 'Übermittelt',
+        markedAsDoneStatus: 'Als erledigt markiert',
         rotate: 'Drehen',
         zoom: 'Zoom',
         password: 'Passwort',
@@ -490,6 +492,7 @@ const translations: TranslationDeepObject<typeof en> = {
         on: 'Ein',
         before: 'Vor',
         after: 'Nach',
+        range: 'Bereich',
         reschedule: 'Verschieben',
         general: 'Allgemein',
         workspacesTabTitle: 'Workspaces',
@@ -876,6 +879,7 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistory: (users: string) => `Dieser Chat ist mit ${users}.`,
         beginningOfChatHistoryPolicyExpenseChat: (workspaceName: string, submitterDisplayName: string) =>
             `Hier reicht <strong>${submitterDisplayName}</strong> Auslagen bei <strong>${workspaceName}</strong> ein. Nutze einfach die +-Taste.`,
+        beginningOfChatHistoryPolicyExpenseChatTrack: 'Hier können Sie Ausgaben nachverfolgen',
         beginningOfChatHistorySelfDM: 'Dies ist dein persönlicher Bereich. Nutze ihn für Notizen, Aufgaben, Entwürfe und Erinnerungen.',
         beginningOfChatHistorySystemDM: 'Willkommen! Lassen Sie uns Ihre Einrichtung vornehmen.',
         chatWithAccountManager: 'Chatte hier mit deiner/deinem Account Manager',
@@ -1088,7 +1092,18 @@ const translations: TranslationDeepObject<typeof en> = {
         singleFieldMultipleColumns: (fieldName: string) => `Ups! Du hast ein einzelnes Feld („${fieldName}“) mehreren Spalten zugeordnet. Bitte überprüfe dies und versuche es erneut.`,
         emptyMappedField: (fieldName: string) => `Ups! Das Feld („${fieldName}“) enthält einen oder mehrere leere Werte. Bitte überprüfe es und versuche es erneut.`,
         importSuccessfulTitle: 'Import erfolgreich',
-        importCategoriesSuccessfulDescription: ({categories}: {categories: number}) => (categories > 1 ? `${categories} Kategorien wurden hinzugefügt.` : '1 Kategorie wurde hinzugefügt.'),
+        importCategoriesSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
+            if (!added && !updated) {
+                return 'Es wurden keine Kategorien hinzugefügt oder aktualisiert.';
+            }
+            if (added && updated) {
+                return `${added} ${added === 1 ? 'Kategorie' : 'Kategorien'} hinzugefügt, ${updated} ${updated === 1 ? 'Kategorie' : 'Kategorien'} aktualisiert.`;
+            }
+            if (added) {
+                return added === 1 ? '1 Kategorie wurde hinzugefügt.' : `${added} Kategorien wurden hinzugefügt.`;
+            }
+            return updated === 1 ? '1 Kategorie wurde aktualisiert.' : `${updated} Kategorien wurden aktualisiert.`;
+        },
         importCompanyCardTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
             transactions > 1 ? `${transactions} Transaktionen wurden hinzugefügt.` : '1 Transaktion wurde hinzugefügt.',
         importMembersSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
@@ -1337,6 +1352,7 @@ const translations: TranslationDeepObject<typeof en> = {
         sendInvoice: (amount: string) => `${amount}-Rechnung senden`,
         expenseAmount: (formattedAmount: string, comment?: string) => `${formattedAmount}${comment ? `für ${comment}` : ''}`,
         submitted: (memo?: string) => `eingereicht${memo ? `, mit dem Vermerk ${memo}` : ''}`,
+        markedAsDone: (memo) => `als erledigt markiert${memo ? `, mit dem Vermerk ${memo}` : ''}`,
         automaticallySubmitted: `eingereicht über <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">Einreichungen verzögern</a>`,
         queuedToSubmitViaDEW: 'zur Einreichung über benutzerdefinierten Genehmigungsworkflow eingereiht',
         queuedToApproveViaDEW: 'Zur Genehmigung über benutzerdefinierten Genehmigungsworkflow eingereiht',
@@ -1432,6 +1448,11 @@ const translations: TranslationDeepObject<typeof en> = {
             manySplitsProvided: `Die maximale Anzahl zulässiger Aufteilungen beträgt ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `Der Datumsbereich darf ${CONST.IOU.SPLITS_LIMIT} Tage nicht überschreiten.`,
             stitchOdometerImagesFailed: 'Kilometerzählerbilder konnten nicht zusammengeführt werden. Bitte versuchen Sie es später noch einmal.',
+            nonReimbursablePayment: 'Kann nicht über Expensify bezahlt werden',
+            nonReimbursablePaymentDescription: (isMultiple?: boolean) =>
+                isMultiple
+                    ? 'Einer oder mehrere ausgewählte Berichte enthalten keine erstattungsfähigen Ausgaben. Überprüfe die Ausgaben erneut oder markiere sie manuell als bezahlt.'
+                    : 'Der Bericht enthält keine erstattungsfähigen Ausgaben. Überprüfe die Ausgaben erneut oder markiere ihn manuell als bezahlt.',
         },
         dismissReceiptError: 'Fehler ausblenden',
         dismissReceiptErrorConfirmation: 'Achtung! Wenn du diesen Fehler schließt, wird deine hochgeladene Quittung vollständig entfernt. Bist du sicher?',
@@ -1624,7 +1645,6 @@ const translations: TranslationDeepObject<typeof en> = {
         failedToApproveViaDEW: (reason: string) => `Genehmigung fehlgeschlagen. ${reason}`,
         cannotDuplicateDistanceExpense:
             'Sie können Entfernungsausgaben nicht über mehrere Arbeitsbereiche hinweg duplizieren, da sich die Sätze zwischen den Arbeitsbereichen unterscheiden können.',
-        deleted: 'Gelöscht',
     },
     transactionMerge: {
         listPage: {
@@ -3368,11 +3388,6 @@ ${amount} für ${merchant} – ${date}`,
         confirmationStepHeader: 'Überprüfe deine Angaben.',
         confirmationStepSubHeader: 'Prüfen Sie die untenstehenden Angaben sorgfältig und aktivieren Sie das Kontrollkästchen für die Bedingungen, um zu bestätigen.',
         toGetStarted: 'Fügen Sie ein persönliches Bankkonto hinzu, um Erstattungen zu erhalten, Rechnungen zu bezahlen oder die Expensify Wallet zu aktivieren.',
-        updatePersonalInfo: 'Bankkonto aktualisieren',
-        updatePersonalInfoFailure: 'Die Bankkontoinformationen konnten nicht aktualisiert werden. Bitte versuchen Sie es später erneut.',
-        updateSuccessTitle: 'Bankkonto aktualisiert!',
-        updateSuccessHeader: 'Bankkonto aktualisiert',
-        updateSuccessMessage: 'Glückwunsch, dein Bankkonto ist eingerichtet und bereit, Rückerstattungen zu empfangen.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Expensify-Passwort eingeben',
@@ -7402,7 +7417,6 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
             unhold: 'Zurückhalten aufheben',
             reject: 'Ablehnen',
             noOptionsAvailable: 'Für die ausgewählte Ausgabengruppe sind keine Optionen verfügbar.',
-            undelete: 'Wiederherstellen',
         },
         filtersHeader: 'Filter',
         filters: {
@@ -7410,6 +7424,8 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 before: (date?: string) => `Vor ${date ?? ''}`,
                 after: (date?: string) => `Nach ${date ?? ''}`,
                 on: (date?: string) => `Am ${date ?? ''}`,
+                customDate: 'Benutzerdefiniertes Datum',
+                customRange: 'Benutzerdefinierter Bereich',
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Nie',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Letzter Monat',
@@ -7537,6 +7553,9 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
         exportAll: {
             selectAllMatchingItems: 'Alle passenden Einträge auswählen',
             allMatchingItemsSelected: 'Alle passenden Elemente ausgewählt',
+        },
+        errors: {
+            pleaseSelectDatesForBothFromAndTo: 'Bitte wähle Daten für Von und Bis',
         },
         spendOverTime: 'Ausgaben im Zeitverlauf',
     },
