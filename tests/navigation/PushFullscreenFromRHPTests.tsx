@@ -68,12 +68,14 @@ describe('Push fullscreen from RHP', () => {
             Navigation.navigate(ROUTES.WORKSPACES_LIST.getRoute());
         });
 
-        // Then the RHP should be stripped and Workspaces_List should be pushed
+        // Then the RHP should be stripped and WorkspaceNavigator (containing Workspaces_List) should be pushed
         const rootStateAfter = navigationRef.current?.getRootState();
         const lastRoute = rootStateAfter?.routes.at(-1);
 
-        // Workspaces_List should be on top
-        expect(lastRoute?.name).toBe(SCREENS.WORKSPACES_LIST);
+        // WorkspaceNavigator (with Workspaces_List as its initial screen) should be on top
+        expect(lastRoute?.name).toBe(NAVIGATORS.WORKSPACE_NAVIGATOR);
+        const nestedWorkspacesListRoute = lastRoute?.state?.routes?.at(-1);
+        expect(nestedWorkspacesListRoute?.name).toBe(SCREENS.WORKSPACES_LIST);
 
         // RHP should NOT be in the stack
         const hasRHP = rootStateAfter?.routes.some((route) => route.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
@@ -119,11 +121,13 @@ describe('Push fullscreen from RHP', () => {
             Navigation.navigate(ROUTES.WORKSPACES_LIST.getRoute(ROUTES.NEW_ROOM));
         });
 
-        // Then Workspaces_List should have the backTo param
+        // Then WorkspaceNavigator should be on top and Workspaces_List should have the backTo param
         const rootStateAfter = navigationRef.current?.getRootState();
         const lastRoute = rootStateAfter?.routes.at(-1);
-        expect(lastRoute?.name).toBe(SCREENS.WORKSPACES_LIST);
-        expect(lastRoute?.params).toMatchObject({backTo: ROUTES.NEW_ROOM});
+        expect(lastRoute?.name).toBe(NAVIGATORS.WORKSPACE_NAVIGATOR);
+        const nestedWorkspacesListRoute = lastRoute?.state?.routes?.at(-1);
+        expect(nestedWorkspacesListRoute?.name).toBe(SCREENS.WORKSPACES_LIST);
+        expect(nestedWorkspacesListRoute?.params).toMatchObject({backTo: ROUTES.NEW_ROOM});
     });
 
     it('does not strip non-RHP routes when navigating to a fullscreen screen', () => {
@@ -158,9 +162,11 @@ describe('Push fullscreen from RHP', () => {
             Navigation.navigate(ROUTES.WORKSPACES_LIST.getRoute());
         });
 
-        // Then Workspaces_List should be pushed on top without removing the ReportsSplitNavigator
+        // Then WorkspaceNavigator (containing Workspaces_List) should be pushed on top without removing the ReportsSplitNavigator
         const rootStateAfter = navigationRef.current?.getRootState();
-        expect(rootStateAfter?.routes.at(-1)?.name).toBe(SCREENS.WORKSPACES_LIST);
+        expect(rootStateAfter?.routes.at(-1)?.name).toBe(NAVIGATORS.WORKSPACE_NAVIGATOR);
+        const nestedWorkspacesListRoute = rootStateAfter?.routes.at(-1)?.state?.routes?.at(-1);
+        expect(nestedWorkspacesListRoute?.name).toBe(SCREENS.WORKSPACES_LIST);
         expect(rootStateAfter?.routes.at(0)?.name).toBe(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
         expect(rootStateAfter?.routes).toHaveLength(2);
     });
