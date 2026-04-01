@@ -1704,7 +1704,13 @@ function setMoneyRequestOdometerReading(transactionID: string, startReading: num
  * @param isDraft - Whether this is a draft transaction
  * @param shouldRevokeOldImage - Whether to revoke the previous blob URL immediately (always false on native where blob URLs don't exist; false on web when a backup transaction exists making the caller responsible for revoking)
  */
-function setMoneyRequestOdometerImage(transaction: OnyxEntry<OnyxTypes.Transaction>, imageType: OdometerImageType, file: FileObject | string, isDraft: boolean, shouldRevokeOldImage: boolean) {
+function setMoneyRequestOdometerImage(
+    transaction: OnyxEntry<OnyxTypes.Transaction>,
+    imageType: OdometerImageType,
+    file: FileObject | string,
+    isDraft: boolean,
+    shouldRevokeOldImage: boolean,
+) {
     const imageKey = imageType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? 'odometerStartImage' : 'odometerEndImage';
     const normalizedFile: FileObject | string =
         typeof file === 'string'
@@ -1734,7 +1740,7 @@ function setMoneyRequestOdometerImage(transaction: OnyxEntry<OnyxTypes.Transacti
  * @param isDraft - Whether this is a draft transaction
  * @param shouldRevokeOldImage - Whether to revoke the previous blob URL immediately (always false on native where blob URLs don't exist; false on web when a backup transaction exists making the caller responsible for revoking)
  */
-function removeMoneyRequestOdometerImage(transaction: OnyxEntry<OnyxTypes.Transaction>, imageType: OdometerImageType, isDraft: boolean,  shouldRevokeOldImage: boolean) {
+function removeMoneyRequestOdometerImage(transaction: OnyxEntry<OnyxTypes.Transaction>, imageType: OdometerImageType, isDraft: boolean, shouldRevokeOldImage: boolean) {
     if (!transaction?.transactionID) {
         return;
     }
