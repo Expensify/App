@@ -10,7 +10,7 @@ import {completeOnboarding, extractRHPVariantFromResponse} from '@userActions/Re
 import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OnboardingPurpose, Policy} from '@src/types/onyx';
+import type {OnboardingPurpose, OnboardingRHPVariant, Policy} from '@src/types/onyx';
 import useArchivedReportsIdSet from './useArchivedReportsIdSet';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useHasActiveAdminPolicies from './useHasActiveAdminPolicies';
@@ -86,6 +86,7 @@ function useAutoCreateTrackWorkspace() {
                   })
                 : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
 
+            let rhpVariant: OnboardingRHPVariant | undefined;
             try {
                 const response = await completeOnboarding({
                     engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
@@ -100,8 +101,10 @@ function useAutoCreateTrackWorkspace() {
                     betas,
                 });
 
-                const rhpVariant = extractRHPVariantFromResponse(response);
-
+                rhpVariant = extractRHPVariantFromResponse(response);
+            } catch (error) {
+                Log.warn('[useAutoCreateTrackWorkspace] Error completing onboarding', {error});
+            } finally {
                 setOnboardingAdminsChatReportID();
                 setOnboardingPolicyID();
 
@@ -115,8 +118,6 @@ function useAutoCreateTrackWorkspace() {
                     false,
                     rhpVariant,
                 );
-            } catch (error) {
-                Log.warn('[useAutoCreateTrackWorkspace] Error completing onboarding', {error});
             }
         },
         [
