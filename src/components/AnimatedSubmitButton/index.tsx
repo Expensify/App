@@ -1,3 +1,4 @@
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {View} from 'react-native';
 import Animated, {Keyframe, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -5,9 +6,12 @@ import {scheduleOnRN} from 'react-native-worklets';
 import Button from '@components/Button';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isSubmitAndClose} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 type AnimatedSubmitButtonProps = WithSentryLabel & {
@@ -28,11 +32,16 @@ type AnimatedSubmitButtonProps = WithSentryLabel & {
 
     // Whether the button should be disabled
     isDisabled?: boolean;
+
+    // The policy ID for the report, used to check approval mode
+    policyID?: string;
 };
 
-function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunning, onAnimationFinish, isDisabled, sentryLabel}: AnimatedSubmitButtonProps) {
+function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunning, onAnimationFinish, isDisabled, sentryLabel, policyID}: AnimatedSubmitButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [animationPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const isAnimationRunning = isSubmittingAnimationRunning;
     const buttonDuration = isSubmittingAnimationRunning ? CONST.ANIMATION_SUBMIT_DURATION : CONST.ANIMATION_SUBMITTED_DURATION;
     const gap = styles.expenseAndReportPreviewTextButtonContainer.gap;
@@ -120,7 +129,7 @@ function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunn
                 >
                     <Button
                         success={success}
-                        text={showLoading ? text : translate('common.submitted')}
+                        text={showLoading ? text : translate(isTrackIntentUser && isSubmitAndClose(animationPolicy) ? 'common.markedAsDoneStatus' : 'common.submitted')}
                         isLoading={showLoading}
                         icon={!showLoading ? icon : undefined}
                         isDisabled

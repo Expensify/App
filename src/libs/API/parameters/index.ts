@@ -151,7 +151,6 @@ export type {default as FlagCommentParams} from './FlagCommentParams';
 export type {default as UpdateReportPrivateNoteParams} from './UpdateReportPrivateNoteParams';
 export type {default as UpdateCompanyInformationForBankAccountParams} from './UpdateCompanyInformationForBankAccountParams';
 export type {default as UpdatePersonalDetailsForWalletParams} from './UpdatePersonalDetailsForWalletParams';
-export type {default as UpdatePersonalBankAccountInfoParams} from './UpdatePersonalBankAccountInfoParams';
 export type {default as VerifyIdentityParams} from './VerifyIdentityParams';
 export type {default as AcceptWalletTermsParams} from './AcceptWalletTermsParams';
 export type {default as ChronosRemoveOOOEventParams} from './ChronosRemoveOOOEventParams';
@@ -381,7 +380,7 @@ export type {default as RemovePolicyCategoryItemizedReceiptsRequiredParams} from
 export type {default as UpdateQuickbooksOnlineAutoCreateVendorParams} from './UpdateQuickbooksOnlineAutoCreateVendorParams';
 export type {default as ImportCategoriesSpreadsheetParams} from './ImportCategoriesSpreadsheet';
 export type {default as ImportMembersSpreadsheetParams} from './ImportMembersSpreadsheet';
-export type {default as ExportMembersSpreadsheetParams} from './ExportCategoriesSpreadsheet';
+export type {default as ExportMembersSpreadsheetParams} from './ExportMembersSpreadsheetParams';
 export type {default as ImportTagsSpreadsheetParams} from './ImportTagsSpreadsheet';
 export type {default as ExportCategoriesSpreadsheetParams} from './ExportCategoriesSpreadsheet';
 export type {default as ExportTagsSpreadsheetParams} from './ExportTagsSpreadsheet';

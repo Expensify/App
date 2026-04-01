@@ -55,7 +55,7 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
     const blockLabel = translate('workspace.rules.spendRules.block');
 
     const renderSectionTitle = () => (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
+        <View style={[styles.flexRow, styles.alignItemsCenter]}>
             <Text style={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, {color: theme.text}]}>{translate('workspace.rules.spendRules.title')}</Text>
             <Badge
                 text={translate('common.newFeature')}

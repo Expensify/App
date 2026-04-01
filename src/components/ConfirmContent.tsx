@@ -151,10 +151,11 @@ function ConfirmContent({
             {!!image && (
                 <View style={imageStyles}>
                     <ImageSVG
-                        contentFit="contain"
+                        contentFit={shouldFitImageToContainer ? 'cover' : 'contain'}
                         src={image}
-                        height={shouldFitImageToContainer ? undefined : CONST.CONFIRM_CONTENT_SVG_SIZE.HEIGHT}
-                        width={shouldFitImageToContainer ? undefined : CONST.CONFIRM_CONTENT_SVG_SIZE.WIDTH}
+                        height={CONST.CONFIRM_CONTENT_SVG_SIZE.HEIGHT}
+                        width={shouldFitImageToContainer ? '100%' : CONST.CONFIRM_CONTENT_SVG_SIZE.WIDTH}
+                        preserveAspectRatio={shouldFitImageToContainer ? 'xMidYMid slice' : undefined}
                         style={styles.alignSelfCenter}
                     />
                 </View>
