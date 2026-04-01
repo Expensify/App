@@ -37,7 +37,7 @@ title: No spread in list item's renderItem
 
 Flag ONLY when ALL of these are true:
 
-- Code is inside a renderItem function (function passed to FlatList, SectionList, etc.)
+- Code is inside a renderItem function (function passed to FlatList, etc.)
 - A spread operator (...) is used on an object
 - That object is being passed as a prop to a component
 - The spread creates a NEW object literal inline
