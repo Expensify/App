@@ -31,8 +31,9 @@ type SpendRulesSectionProps = {
 };
 
 type SpendRuleSummaryPart = {
-    actionLabel: string;
+    badgeLabel: string;
     text: string;
+    isNeutral?: boolean;
 };
 
 function getSpendRuleSummaryParts(
@@ -46,15 +47,15 @@ function getSpendRuleSummaryParts(
     const maxAmount = formValues.maxAmount.trim();
 
     if (merchantNames) {
-        summaryParts.push({actionLabel, text: `${translate('workspace.rules.spendRules.merchants')}: ${merchantNames}`});
+        summaryParts.push({badgeLabel: actionLabel, text: `${translate('workspace.rules.spendRules.merchants')}: ${merchantNames}`});
     }
 
     if (categories) {
-        summaryParts.push({actionLabel, text: `${translate('workspace.rules.spendRules.categories')}: ${categories}`});
+        summaryParts.push({badgeLabel: actionLabel, text: `${translate('workspace.rules.spendRules.categories')}: ${categories}`});
     }
 
     if (maxAmount) {
-        summaryParts.push({actionLabel, text: `${translate('iou.amount')}: ${maxAmount}`});
+        summaryParts.push({badgeLabel: 'Max', text: `${translate('iou.amount')}: ${maxAmount}`, isNeutral: true});
     }
 
     return summaryParts;
@@ -199,10 +200,10 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
                                     style={[styles.flexRow, styles.gap2, styles.alignItemsStart, styles.mb2]}
                                 >
                                     <Badge
-                                        text={part.actionLabel}
-                                        badgeStyles={[styles.ml0]}
-                                        error={rule.isBlock}
-                                        success={!rule.isBlock}
+                                        text={part.badgeLabel}
+                                        badgeStyles={[styles.ml0, styles.justifyContentCenter]}
+                                        error={!part.isNeutral && rule.isBlock}
+                                        success={!part.isNeutral && !rule.isBlock}
                                         isCondensed
                                     />
                                     <Text
@@ -221,7 +222,7 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
                             </Text>
                         </View>
                     }
-                    accessibilityLabel={`${rule.summaryParts.map((part) => `${part.actionLabel}. ${part.text}`).join('. ')}. ${rule.cardSummary}`}
+                    accessibilityLabel={`${rule.summaryParts.map((part) => `${part.badgeLabel}. ${part.text}`).join('. ')}. ${rule.cardSummary}`}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_ITEM}
                     interactive={false}
                 />
