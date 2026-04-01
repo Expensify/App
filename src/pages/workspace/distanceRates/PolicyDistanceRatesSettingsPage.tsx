@@ -80,7 +80,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
             return;
         }
         const attributes = {...customUnit?.attributes, taxEnabled: isOn};
-        enableDistanceRequestTax(policyID, customUnit.name, customUnit.customUnitID, attributes);
+        enableDistanceRequestTax(policyID, customUnit.name, customUnit.customUnitID, attributes, customUnit.attributes);
     };
 
     return (

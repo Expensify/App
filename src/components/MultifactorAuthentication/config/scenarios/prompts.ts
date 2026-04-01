@@ -1,4 +1,4 @@
-import * as Illustrations from '@components/Icon/Illustrations';
+import EncryptionPasskeys from '@assets/images/simple-illustrations/simple-illustration__encryption-passkeys.svg';
 import LottieAnimations from '@components/LottieAnimations';
 import type {MultifactorAuthenticationPrompt} from '@components/MultifactorAuthentication/config/types';
 import VALUES from '@libs/MultifactorAuthentication/VALUES';
@@ -14,7 +14,7 @@ export default {
         subtitle: 'multifactorAuthentication.enableQuickVerification.biometrics',
     },
     [VALUES.PROMPT.PASSKEYS]: {
-        illustration: Illustrations.EncryptionPasskeys,
+        illustration: EncryptionPasskeys,
         title: 'multifactorAuthentication.verifyYourself.passkeys',
         subtitle: 'multifactorAuthentication.enableQuickVerification.passkeys',
     },

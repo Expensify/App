@@ -179,6 +179,11 @@ function KYCWall({
                     return;
                 }
 
+                // If user has a locked account we exit early
+                if (policy !== undefined && policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.LOCKED) {
+                    return;
+                }
+
                 if (policy?.id !== undefined && doesPolicyHavePartiallySetupBankAccount(bankAccountList, policy.id)) {
                     navigateToBankAccountRoute({policyID: policy.id});
                     return;

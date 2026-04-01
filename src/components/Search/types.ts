@@ -76,6 +76,9 @@ type SelectedTransactionInfo = {
     /** The exchange rate of the transaction if the transaction is grouped. Defaults to the exchange rate against the active policy currency if group has no target currency */
     groupExchangeRate?: number;
 
+    /** The currency conversion rate from the transaction currency to the report currency */
+    currencyConversionRate?: string;
+
     /** Whether it is the only expense of the parent expense report */
     isFromOneTransactionReport: boolean;
 
@@ -163,6 +166,7 @@ type SearchContextData = {
     currentSearchKey: SearchKey | undefined;
     currentSearchQueryJSON: SearchQueryJSON | undefined;
     currentSearchResults: SearchResults | undefined;
+    currentSelectedTransactionReportID: string | undefined;
     selectedTransactions: SelectedTransactions;
     selectedTransactionIDs: string[];
     selectedReports: SelectedReports[];
@@ -176,7 +180,7 @@ type SearchStateContextValue = SearchContextData & {
     currentSearchResults: SearchResults | undefined;
     /** Whether we're on a main to-do search and should use live Onyx data instead of snapshots */
     shouldUseLiveData: boolean;
-    shouldShowFiltersBarLoading: boolean;
+    shouldShowActionsBarLoading: boolean;
     lastSearchType: string | undefined;
     shouldShowSelectAllMatchingItems: boolean;
     areAllMatchingItemsSelected: boolean;
@@ -188,13 +192,14 @@ type SearchActionsContextValue = {
         (selectedTransactionIDs: string[], unused?: undefined): void;
         (selectedTransactions: SelectedTransactions, data: TransactionListItemType[] | TransactionGroupListItemType[] | ReportActionListItemType[] | TaskListItemType[]): void;
     };
+    setCurrentSelectedTransactionReportID: (reportID: string | undefined) => void;
     /** If you want to clear `selectedTransactionIDs`, pass `true` as the first argument */
     clearSelectedTransactions: {
         (hash?: number, shouldTurnOffSelectionMode?: boolean): void;
         (clearIDs: true, unused?: undefined): void;
     };
     removeTransaction: (transactionID: string | undefined) => void;
-    setShouldShowFiltersBarLoading: (shouldShow: boolean) => void;
+    setShouldShowActionsBarLoading: (shouldShow: boolean) => void;
     setLastSearchType: (type: string | undefined) => void;
     setShouldShowSelectAllMatchingItems: (shouldShow: boolean) => void;
     selectAllMatchingItems: (on: boolean) => void;
@@ -300,6 +305,7 @@ type SearchQueryJSON = {
     /** Use similarSearchHash to test if two searchers are similar i.e. have same filters but not necessary same values */
     similarSearchHash: number;
     flatFilters: QueryFilters;
+    isViewExplicitlySet?: boolean;
 } & SearchQueryAST;
 
 type SearchAutocompleteResult = {
@@ -347,12 +353,6 @@ type GroupedItem =
 type SearchChartProps = {
     /** Grouped transaction data from search results */
     data: GroupedItem[];
-
-    /** Chart title */
-    title: string;
-
-    /** Chart title icon */
-    titleIcon: IconAsset;
 
     /** Function to extract label from grouped item */
     getLabel: (item: GroupedItem) => string;
