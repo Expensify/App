@@ -1,4 +1,3 @@
-import {useMemo} from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 
 /**
@@ -7,15 +6,13 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 function useAccountIDToLogin(): Record<number, string> {
     const personalDetails = usePersonalDetails();
 
-    return useMemo(() => {
-        const map: Record<number, string> = {};
-        for (const [id, details] of Object.entries(personalDetails ?? {})) {
-            if (details?.login) {
-                map[Number(id)] = details.login;
-            }
+    const map: Record<number, string> = {};
+    for (const [id, details] of Object.entries(personalDetails ?? {})) {
+        if (details?.login) {
+            map[Number(id)] = details.login;
         }
-        return map;
-    }, [personalDetails]);
+    }
+    return map;
 }
 
 export default useAccountIDToLogin;
