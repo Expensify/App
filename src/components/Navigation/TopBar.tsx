@@ -1,10 +1,10 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import InboxPanelToggleButton from '@components/InboxSidePanel/InboxPanelToggleButton';
 import LoadingBar from '@components/LoadingBar';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
-import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import Text from '@components/Text';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
 import useLocalize from '@hooks/useLocalize';
@@ -23,11 +23,12 @@ type TopBarProps = {
     shouldShowLoadingBar?: boolean;
     cancelSearch?: () => void;
     children?: React.ReactNode;
+    leftContent?: React.ReactNode;
 };
 
 const authTokenTypeSelector = (session: OnyxEntry<Session>) => session && {authTokenType: session.authTokenType};
 
-function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpButton = false, cancelSearch, shouldShowLoadingBar, children}: TopBarProps) {
+function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpButton = false, cancelSearch, shouldShowLoadingBar, children, leftContent}: TopBarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
@@ -46,6 +47,7 @@ function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpB
                 dataSet={{dragArea: true}}
             >
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.pr2]}>
+                    {leftContent}
                     <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                         <Text
                             numberOfLines={1}
@@ -71,7 +73,7 @@ function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpB
                     </PressableWithoutFeedback>
                 )}
                 {displaySearch && <SearchButton />}
-                {shouldDisplayHelpButton && <SidePanelButton />}
+                {shouldDisplayHelpButton && <InboxPanelToggleButton style={styles.mr2} />}
             </View>
             <LoadingBar shouldShow={!isWideRHPVisible && !!shouldShowLoadingBar} />
         </View>

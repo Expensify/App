@@ -9,6 +9,7 @@ import CaretWrapper from '@components/CaretWrapper';
 import DisplayNames from '@components/DisplayNames';
 import HeaderLoadingBar from '@components/HeaderLoadingBar';
 import Icon from '@components/Icon';
+import InboxPanelToggleButton from '@components/InboxSidePanel/InboxPanelToggleButton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import OnboardingHelpDropdownButton from '@components/OnboardingHelpDropdownButton';
 import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
@@ -16,7 +17,6 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
-import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
@@ -56,7 +56,6 @@ import {
     isChatRoom as isChatRoomReportUtils,
     isChatThread as isChatThreadReportUtils,
     isChatUsedForOnboarding as isChatUsedForOnboardingReportUtils,
-    isConciergeChatReport,
     isCurrentUserSubmitter,
     isDeprecatedGroupDM,
     isExpenseRequest,
@@ -242,8 +241,8 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     const shouldShowEarlyDiscountBanner = shouldShowDiscount && isChatUsedForOnboarding && !isInSidePanel;
     const latestScheduledCall = reportNameValuePairs?.calendlyCalls?.at(-1);
     const hasActiveScheduledCall = latestScheduledCall && !isPast(latestScheduledCall.eventTime) && latestScheduledCall.status !== CONST.SCHEDULE_CALL_STATUS.CANCELLED;
-    const shouldShowCloseButton = !!isInSidePanel && !shouldUseNarrowLayout && isConciergeChatReport(report);
-    const shouldShowBackButton = (shouldUseNarrowLayout || !!isInSidePanel) && !shouldShowCloseButton;
+    const shouldShowCloseButton = false;
+    const shouldShowBackButton = shouldUseNarrowLayout || !!isInSidePanel;
 
     const onboardingHelpDropdownButton = (
         <OnboardingHelpDropdownButton
@@ -404,7 +403,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                     </Tooltip>
                                 )}
                                 {shouldDisplaySearchRouter && <SearchButton style={styles.ml2} />}
-                                {!isInSidePanel && <SidePanelButton />}
+                                {!isInSidePanel && <InboxPanelToggleButton style={styles.ml2} />}
                             </View>
                         </View>
                     )}

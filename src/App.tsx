@@ -1,9 +1,12 @@
 import {PortalProvider} from '@gorhom/portal';
 import * as Sentry from '@sentry/react-native';
-import React from 'react';
-import {LogBox, View} from 'react-native';
+import React, {useCallback, useEffect, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import {LogBox, useWindowDimensions as useRawWindowDimensions, View} from 'react-native';
+import type {LayoutChangeEvent} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {PickerStateProvider} from 'react-native-picker-select';
+import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import '../wdyr';
 import {ActionSheetAwareScrollViewProvider} from './components/ActionSheetAwareScrollView';
@@ -18,6 +21,8 @@ import ErrorBoundary from './components/ErrorBoundary';
 import FullScreenBlockingViewContextProvider from './components/FullScreenBlockingViewContextProvider';
 import FullScreenLoaderContextProvider from './components/FullScreenLoaderContext';
 import HTMLEngineProvider from './components/HTMLEngineProvider';
+import InboxSidePanel from './components/InboxSidePanel';
+import {InboxPanelProvider, useInboxPanelState} from './components/InboxSidePanel/InboxPanelContext';
 import InitialURLContextProvider from './components/InitialURLContextProvider';
 import {InputBlurContextProvider} from './components/InputBlurContext';
 import {KeyboardDismissibleFlatListContextProvider} from './components/KeyboardDismissibleFlatList/KeyboardDismissibleFlatListContext';
@@ -48,6 +53,8 @@ import CONST from './CONST';
 import Expensify from './Expensify';
 import {CurrentReportIDContextProvider} from './hooks/useCurrentReportID';
 import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
+import useTheme from './hooks/useTheme';
+import EffectiveWidthContext from './hooks/useWindowDimensions/EffectiveWidthContext';
 import HybridAppHandler from './HybridAppHandler';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import './libs/HybridApp';
@@ -69,7 +76,118 @@ LogBox.ignoreLogs([
 
 const fill = {flex: 1};
 
+const PANEL_ANIMATION_DURATION = 300;
+
 const StrictModeWrapper = CONFIG.USE_REACT_STRICT_MODE_IN_DEV ? React.StrictMode : ({children}: {children: React.ReactElement}) => children;
+
+const FLOATING_PANEL_WIDTH = 375;
+const FLOATING_PANEL_HEIGHT = 520;
+const FLOATING_PANEL_MARGIN = 20;
+
+function MainContent() {
+    const {isOpen, isFloating} = useInboxPanelState();
+    const {width: rawWindowWidth} = useRawWindowDimensions();
+    const theme = useTheme();
+    const panelWidth = Math.max(rawWindowWidth * 0.2, 350);
+
+    // Measured width of the main content container, provided to all children via
+    // EffectiveWidthContext so useWindowDimensions returns the true available width.
+    const [mainContentWidth, setMainContentWidth] = useState(rawWindowWidth);
+    const onMainContentLayout = useCallback((e: LayoutChangeEvent) => {
+        setMainContentWidth(e.nativeEvent.layout.width);
+    }, []);
+
+    const panelWidthSV = useSharedValue(panelWidth);
+    const panelContainerWidthSV = useSharedValue(0);
+    const panelTranslateX = useSharedValue(panelWidth);
+
+    // Docked panel animation — only active when not floating.
+    useEffect(() => {
+        if (isFloating) {
+            // Collapse docked panel immediately when switching to floating.
+            panelContainerWidthSV.value = 0;
+            panelTranslateX.value = panelWidthSV.value;
+            return;
+        }
+        const pw = Math.max(rawWindowWidth * 0.2, 350);
+        panelWidthSV.value = pw;
+        panelContainerWidthSV.value = withTiming(isOpen ? pw : 0, {duration: PANEL_ANIMATION_DURATION});
+        panelTranslateX.value = withTiming(isOpen ? 0 : pw, {duration: PANEL_ANIMATION_DURATION});
+        // SharedValue refs are stable — intentionally omitted from deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isOpen, isFloating, rawWindowWidth]);
+
+    // Panel outer container grows in the flex row, pushing the main content narrower.
+    const panelContainerStyle = useAnimatedStyle(() => ({
+        width: panelContainerWidthSV.value,
+        overflow: 'hidden',
+    }));
+
+    // Panel inner stays at full panel width and slides in on x-axis — no text reflow.
+    const panelInnerStyle = useAnimatedStyle(() => ({
+        width: panelWidthSV.value,
+        flex: 1,
+        transform: [{translateX: panelTranslateX.value}],
+        borderLeftWidth: 1,
+        borderLeftColor: theme.border,
+    }));
+
+    // When floating, main content always takes the full viewport width.
+    const effectiveWidth = isFloating ? rawWindowWidth : mainContentWidth;
+
+    return (
+        <View style={{flex: 1, flexDirection: 'row'}}>
+            {/* EffectiveWidthContext provides the measured container width to every
+                child that calls useWindowDimensions, so layout-critical screens
+                (search, workspaces, settings, etc.) size themselves to the space
+                actually available rather than the raw viewport. */}
+            <EffectiveWidthContext.Provider value={effectiveWidth}>
+                <View
+                    style={fill}
+                    onLayout={onMainContentLayout}
+                >
+                    <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
+                        <ColorSchemeWrapper>
+                            <Expensify />
+                        </ColorSchemeWrapper>
+                    </ErrorBoundary>
+                </View>
+            </EffectiveWidthContext.Provider>
+            {/* Docked panel — hidden when floating */}
+            {!isFloating && (
+                <Animated.View style={panelContainerStyle}>
+                    <Animated.View style={panelInnerStyle}>
+                        <InboxSidePanel />
+                    </Animated.View>
+                </Animated.View>
+            )}
+            {/* Floating panel — fixed bottom-right overlay */}
+            {isFloating && isOpen && (
+                <View
+                    style={{
+                        // position: 'fixed' is valid on RN web and keeps the panel
+                        // in the viewport corner regardless of scroll position.
+                        position: 'fixed' as 'absolute',
+                        bottom: FLOATING_PANEL_MARGIN,
+                        right: FLOATING_PANEL_MARGIN,
+                        width: FLOATING_PANEL_WIDTH,
+                        height: FLOATING_PANEL_HEIGHT,
+                        borderRadius: 12,
+                        overflow: 'hidden',
+                        borderWidth: 1,
+                        borderColor: theme.border,
+                        shadowColor: '#000',
+                        shadowOffset: {width: 0, height: 8},
+                        shadowOpacity: 0.15,
+                        shadowRadius: 24,
+                    }}
+                >
+                    <InboxSidePanel />
+                </View>
+            )}
+        </View>
+    );
+}
 
 function App() {
     useDefaultDragAndDrop();
@@ -135,14 +253,11 @@ function App() {
                                         TravelCVVContextProvider,
                                         KYCWallContextProvider,
                                         WideRHPContextProvider,
+                                        InboxPanelProvider,
                                     ]}
                                 >
                                     <CustomStatusBarAndBackground />
-                                    <ErrorBoundary errorMessage="NewExpensify crash caught by error boundary">
-                                        <ColorSchemeWrapper>
-                                            <Expensify />
-                                        </ColorSchemeWrapper>
-                                    </ErrorBoundary>
+                                    <MainContent />
                                     <NavigationBar />
                                 </ComposeProviders>
                             </View>

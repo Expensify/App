@@ -6,10 +6,10 @@ import Avatar from '@components/Avatar';
 import AvatarWithDisplayName from '@components/AvatarWithDisplayName';
 import Header from '@components/Header';
 import Icon from '@components/Icon';
+import InboxPanelToggleButton from '@components/InboxSidePanel/InboxPanelToggleButton';
 import PinButton from '@components/PinButton';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
-import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import Tooltip from '@components/Tooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -70,8 +70,8 @@ function HeaderWithBackButton({
     shouldOverlayDots = false,
     shouldOverlay = false,
     shouldNavigateToTopMostReport = false,
-    shouldDisplayHelpButton = false,
     shouldDisplaySearchRouter = false,
+    shouldDisplayHelpButton = false,
     progressBarPercentage,
     style,
     subTitleLink = '',
@@ -358,7 +358,7 @@ function HeaderWithBackButton({
                     )}
                 </View>
                 {shouldDisplaySearchRouter && <SearchButton />}
-                {shouldDisplayHelpButton && <SidePanelButton />}
+                {shouldDisplayHelpButton && <InboxPanelToggleButton style={styles.ml2} />}
             </View>
         </View>
     );

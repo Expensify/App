@@ -2,7 +2,8 @@ import type {StackCardInterpolationProps} from '@react-navigation/stack';
 // We use Animated for all functionality related to wide RHP to make it easier
 // to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
 // eslint-disable-next-line no-restricted-imports
-import {Animated} from 'react-native';
+import {Animated, useWindowDimensions as useRawWindowDimensions} from 'react-native';
+import {useInboxPanelState} from '@components/InboxSidePanel/InboxPanelContext';
 import {expandedRHPProgress} from '@components/WideRHPContextProvider';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -45,6 +46,11 @@ const useRootNavigatorScreenOptions = () => {
     const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const themeStyles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
+    // Raw viewport width needed to compute the panel offset for position:fixed cards,
+    // which are relative to the viewport and ignore the flex container.
+    const {width: rawViewportWidth} = useRawWindowDimensions();
+    const {isOpen: isPanelOpen, isFloating: isPanelFloating} = useInboxPanelState();
+    const panelWidth = isPanelOpen && !isPanelFloating ? Math.max(rawViewportWidth * 0.2, 350) : 0;
 
     return {
         rightModalNavigator: {
@@ -105,7 +111,12 @@ const useRootNavigatorScreenOptions = () => {
             animation: Animations.NONE,
             web: {
                 cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true}),
-                cardStyle: StyleUtils.getNavigationModalCardStyle(),
+                cardStyle: {
+                    ...StyleUtils.getNavigationModalCardStyle(),
+                    // position:fixed cards are viewport-relative and escape flex constraints.
+                    // Explicitly cap the width so they don't extend under the inbox side panel.
+                    width: rawViewportWidth - panelWidth,
+                },
             },
         },
         fullScreen: {

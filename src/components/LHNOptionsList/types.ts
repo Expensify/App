@@ -31,6 +31,9 @@ type CustomLHNOptionsListProps = {
 
     /** Callback to fire when the list is laid out */
     onFirstItemRendered: () => void;
+
+    /** Override the avatar size for each row */
+    avatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
 };
 
 type LHNOptionsListProps = CustomLHNOptionsListProps;
@@ -90,6 +93,9 @@ type OptionRowLHNDataProps = {
     /** Whether the screen is focused */
     isScreenFocused?: boolean;
 
+    /** Override the avatar size */
+    avatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
+
     /** Function to compare locale strings */
     localeCompare: LocaleContextProps['localeCompare'];
 
@@ -147,6 +153,9 @@ type OptionRowLHNProps = {
 
     /** Whether the screen is focused */
     isScreenFocused?: boolean;
+
+    /** Override the avatar size */
+    avatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
 
     /** The testID of the row */
     testID: number;

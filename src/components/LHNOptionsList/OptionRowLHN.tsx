@@ -58,6 +58,7 @@ function OptionRowLHN({
     isScreenFocused = false,
     testID,
     conciergeReportID,
+    avatarSize,
 }: OptionRowLHNProps) {
     const {isProduction} = useEnvironment();
     const theme = useTheme();
@@ -331,7 +332,7 @@ function OptionRowLHN({
                                                 <LHNAvatar
                                                     icons={icons}
                                                     shouldShowSubscript={!!optionItem.shouldShowSubscript}
-                                                    size={isInFocusMode ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT}
+                                                    size={avatarSize ?? (isInFocusMode ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT)}
                                                     subscriptAvatarBorderColor={hovered && !isOptionFocused ? hoveredBackgroundColor : subscriptAvatarBorderColor}
                                                     useMidSubscriptSize={isInFocusMode}
                                                     secondaryAvatarBackgroundColor={secondaryAvatarBgColor}

@@ -57,7 +57,6 @@ function BaseSidebarScreen() {
                     <TopBarWithLoadingBar
                         breadcrumbLabel={translate('common.inbox')}
                         shouldDisplaySearch={shouldUseNarrowLayout}
-                        shouldDisplayHelpButton={shouldUseNarrowLayout}
                     />
                     <View style={[styles.flex1]}>
                         {shouldShowSkeleton ? (
