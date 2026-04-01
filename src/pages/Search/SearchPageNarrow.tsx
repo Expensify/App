@@ -153,7 +153,7 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
     const [useStaticRendering] = useState(() => !!getPendingSubmitFollowUpAction());
     const [isInteractive, setIsInteractive] = useState(!useStaticRendering);
     const [isSearchReady, setIsSearchReady] = useState(!useStaticRendering);
-    const [isChromeInteractive, setIsChromeInteractive] = useState(!useStaticRendering);
+    const [isHeaderInteractive, setIsHeaderInteractive] = useState(!useStaticRendering);
     const [, startTransition] = useTransition();
     const onSearchLayout = useCallback(() => {
         if (isInteractive) {
@@ -166,7 +166,7 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
     const onSearchContentReady = useCallback(() => {
         setIsSearchReady(true);
         startTransition(() => {
-            setIsChromeInteractive(true);
+            setIsHeaderInteractive(true);
         });
     }, [startTransition]);
 
@@ -191,6 +191,9 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
     const shouldShowLoadingState = !isOffline && (!isDataLoaded || !!metadata?.isLoading);
     const contentContainerStyle = !isMobileSelectionModeEnabled ? styles.searchListContentContainerStyles : undefined;
 
+    // Static list: lightweight FlatList rendered immediately after expense submission for fast perceived performance.
+    // Dynamic list: full-featured Search component with selection, sorting, pagination, etc.
+    // The static list is shown first and swapped out once the dynamic Search component is ready.
     const renderStaticSearchList = () => (
         <>
             {isInteractive && (
@@ -219,7 +222,7 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
         </>
     );
 
-    const renderStandardSearchList = () => {
+    const renderDynamicSearchList = () => {
         if (shouldShowLoadingSkeleton) {
             return (
                 <SearchLoadingSkeleton
@@ -287,7 +290,7 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
                                     ]}
                                 >
                                     <TabSelectorSwitch
-                                        showStatic={!isChromeInteractive}
+                                        showStatic={!isHeaderInteractive}
                                         queryJSON={queryJSON}
                                         onTabPress={() => {
                                             setSearchRouterListVisible(false);
@@ -295,7 +298,7 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
                                     />
                                     <View style={[styles.flex1, styles.pt2, styles.appBG]}>
                                         <SearchPageHeaderSwitch
-                                            showStatic={!isChromeInteractive}
+                                            showStatic={!isHeaderInteractive}
                                             queryJSON={queryJSON}
                                             searchRouterListVisible={searchRouterListVisible}
                                             hideSearchRouterList={() => {
@@ -313,7 +316,7 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
                                     <View style={[styles.appBG]}>
                                         {!searchRouterListVisible && (
                                             <FiltersBarSwitch
-                                                showStatic={!isChromeInteractive}
+                                                showStatic={!isHeaderInteractive}
                                                 queryJSON={queryJSON}
                                                 isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                                             />
@@ -333,7 +336,7 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
                                 }}
                             />
                             <SearchPageHeaderSwitch
-                                showStatic={!isChromeInteractive}
+                                showStatic={!isHeaderInteractive}
                                 queryJSON={queryJSON}
                                 handleSearch={handleSearchAction}
                                 isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
@@ -344,7 +347,7 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
                     {!searchRouterListVisible && (
                         <View style={[styles.flex1]}>
                             {useStaticRendering && renderStaticSearchList()}
-                            {!useStaticRendering && renderStandardSearchList()}
+                            {!useStaticRendering && renderDynamicSearchList()}
                         </View>
                     )}
                     {shouldShowFooter && !searchRouterListVisible && (
@@ -356,7 +359,7 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
                     )}
                 </View>
             </ScreenWrapper>
-            {(!useStaticRendering || isChromeInteractive) && (
+            {(!useStaticRendering || isHeaderInteractive) && (
                 <ReceiptScanDropZone
                     targetRef={receiptDropTargetRef}
                     dropWrapperStyle={{marginBottom: variables.bottomTabHeight}}

@@ -551,7 +551,7 @@ function search({
         });
     }
 
-    const fireRequest = () =>
+    const startRequest = () =>
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
         API.makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData})
             .then((result) => {
@@ -591,10 +591,10 @@ function search({
             });
 
     if (skipWaitForWrites) {
-        return fireRequest();
+        return startRequest();
     }
 
-    return waitForWrites(READ_COMMANDS.SEARCH).then(fireRequest);
+    return waitForWrites(READ_COMMANDS.SEARCH).then(startRequest);
 }
 
 function submitMoneyRequestOnSearch(hash: number, reportList: Report[], policy: Policy[], currentSearchKey?: SearchKey) {

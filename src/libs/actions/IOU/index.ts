@@ -1217,7 +1217,7 @@ function handleNavigateAfterExpenseCreate({
         alreadyOnSearchRoot && isSameSearchType ? CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY : CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH,
     );
     const queryString = buildCannedSearchQuery({type});
-    const doNavigate = () => {
+    const navigateToSearch = () => {
         if (getIsNarrowLayout()) {
             Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {forceReplace: true});
         } else {
@@ -1226,9 +1226,9 @@ function handleNavigateAfterExpenseCreate({
     };
 
     if (navigationRef.isReady()) {
-        doNavigate();
+        navigateToSearch();
     } else {
-        Navigation.isNavigationReady().then(doNavigate);
+        Navigation.isNavigationReady().then(navigateToSearch);
     }
 }
 

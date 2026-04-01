@@ -100,7 +100,7 @@ const OPTIMISTIC_TRACKING_TIMEOUT_MS = 10_000;
 // Grace period (ms) before clearing optimistic tracking after a cached item
 // disappears from sortedData. Short enough to clean up rolled-back items,
 // long enough to survive a brief stale-snapshot gap.
-const OPTIMISTIC_ROLLBACK_GRACE_MS = 3_000;
+const OPTIMISTIC_ROLLBACK_GRACE_MS = OPTIMISTIC_TRACKING_TIMEOUT_MS * 0.3;
 
 const hashToString = (queryHash?: number) => (queryHash || queryHash === 0 ? String(queryHash) : undefined);
 

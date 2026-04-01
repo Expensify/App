@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {FlatList, View} from 'react-native';
 import type {ListRenderItemInfo, StyleProp, ViewStyle} from 'react-native';
 import Button from '@components/Button';
@@ -65,7 +65,7 @@ function SearchStaticList({searchResults, queryJSON, contentContainerStyle, onLa
     const validGroupBy = getValidGroupBy(groupBy);
     const searchData = searchResults?.data;
 
-    const sortedData = useMemo(() => {
+    const sortedData = (() => {
         if (!searchData) {
             return [] as TransactionListItemType[];
         }
@@ -82,104 +82,100 @@ function SearchStaticList({searchResults, queryJSON, contentContainerStyle, onLa
             conciergeReportID: undefined,
         });
 
-        return (getSortedSections(type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy) as TransactionListItemType[]).slice(0, STATIC_LIST_MAX_ITEMS);
-    }, [searchData, type, status, sortBy, sortOrder, validGroupBy, accountID, email, translate, formatPhoneNumber, localeCompare]);
+        return getSortedSections(type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy)
+            .filter((item): item is TransactionListItemType => 'transactionID' in item)
+            .slice(0, STATIC_LIST_MAX_ITEMS);
+    })();
 
-    const onPressItem = useCallback(
-        (item: TransactionListItemType) => {
-            const backTo = Navigation.getActiveRoute();
+    const onPressItem = (item: TransactionListItemType) => {
+        const backTo = Navigation.getActiveRoute();
 
-            if (!item.reportAction?.childReportID) {
-                const shouldOpenTransactionThread = !isOneTransactionReport(item.report) || item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-                createAndOpenSearchTransactionThread(item, undefined, backTo, email ?? '', accountID, undefined, item.reportAction?.childReportID, undefined, shouldOpenTransactionThread);
-                if (shouldOpenTransactionThread) {
-                    return;
-                }
-            }
-
-            const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-            const isFromOneTransactionReport = isOneTransactionReport(item.report);
-
-            let reportID = item.reportID;
-            if (item.reportAction?.childReportID && (isFromSelfDM || !isFromOneTransactionReport)) {
-                reportID = item.reportAction.childReportID;
-            }
-
-            if (!reportID) {
+        if (!item.reportAction?.childReportID) {
+            const shouldOpenTransactionThread = !isOneTransactionReport(item.report) || item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+            createAndOpenSearchTransactionThread(item, undefined, backTo, email ?? '', accountID, undefined, item.reportAction?.childReportID, undefined, shouldOpenTransactionThread);
+            if (shouldOpenTransactionThread) {
                 return;
             }
+        }
 
-            requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
-        },
-        [email, accountID],
-    );
+        const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+        const isFromOneTransactionReport = isOneTransactionReport(item.report);
 
-    const renderItem = useCallback(
-        ({item}: ListRenderItemInfo<TransactionListItemType>) => {
-            if (!('transactionID' in item)) {
-                return null;
-            }
+        let reportID = item.reportID;
+        if (item.reportAction?.childReportID && (isFromSelfDM || !isFromOneTransactionReport)) {
+            reportID = item.reportAction.childReportID;
+        }
 
-            const hasFromSender = !!item.from?.accountID && !!item.from?.displayName;
-            const hasToRecipient = !!item.to?.accountID && !!item.to?.displayName;
-            const participantFromDisplayName = item.formattedFrom ?? item.from?.displayName ?? '';
-            const participantToDisplayName = item.formattedTo ?? item.to?.displayName ?? '';
-            const shouldShowToRecipient = hasFromSender && hasToRecipient && !!item.to?.accountID && !!isCorrectSearchUserName(participantToDisplayName);
-            const shouldShowUserInfo = !!item.from;
+        if (!reportID) {
+            return;
+        }
 
-            return (
-                <PressableWithoutFeedback
-                    sentryLabel="SearchStaticList-item"
-                    accessibilityRole="button"
-                    accessibilityLabel=""
-                    onPress={() => onPressItem(item)}
-                >
-                    <View style={[styles.mb2, styles.mh5, styles.flex1, styles.userSelectNone, {backgroundColor: theme.highlightBG, borderRadius: variables.componentBorderRadius}]}>
-                        <View style={[styles.transactionListItemStyle, styles.pt3, styles.flexColumn, styles.alignItemsStretch]}>
-                            <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2, styles.ph3]}>
-                                {shouldShowUserInfo && (
-                                    <UserInfoCellsWithArrow
-                                        shouldShowToRecipient={shouldShowToRecipient}
-                                        participantFrom={item.from}
-                                        participantFromDisplayName={participantFromDisplayName}
-                                        participantToDisplayName={participantToDisplayName}
-                                        participantTo={item.to}
-                                        avatarSize={CONST.AVATAR_SIZE.SMALL_SUBSCRIPT}
-                                        style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}
-                                        infoCellsTextStyle={{lineHeight: 14}}
-                                        infoCellsAvatarStyle={styles.pr1}
-                                        fromRecipientStyle={!shouldShowToRecipient ? styles.mw100 : undefined}
-                                        shouldUseArrowIcon={false}
-                                    />
-                                )}
-                                <View style={[{width: variables.w72}, styles.alignItemsEnd]}>
-                                    <StaticActionButton action={item.action} />
-                                </View>
+        requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo})));
+    };
+
+    const renderItem = ({item}: ListRenderItemInfo<TransactionListItemType>) => {
+        if (!('transactionID' in item)) {
+            return null;
+        }
+
+        const hasFromSender = !!item.from?.accountID && !!item.from?.displayName;
+        const hasToRecipient = !!item.to?.accountID && !!item.to?.displayName;
+        const participantFromDisplayName = item.formattedFrom ?? item.from?.displayName ?? '';
+        const participantToDisplayName = item.formattedTo ?? item.to?.displayName ?? '';
+        const shouldShowToRecipient = hasFromSender && hasToRecipient && !!item.to?.accountID && !!isCorrectSearchUserName(participantToDisplayName);
+        const shouldShowUserInfo = !!item.from;
+
+        return (
+            <PressableWithoutFeedback
+                sentryLabel="SearchStaticList-item"
+                accessibilityRole="button"
+                accessibilityLabel=""
+                onPress={() => onPressItem(item)}
+            >
+                <View style={[styles.mb2, styles.mh5, styles.flex1, styles.userSelectNone, {backgroundColor: theme.highlightBG, borderRadius: variables.componentBorderRadius}]}>
+                    <View style={[styles.transactionListItemStyle, styles.pt3, styles.flexColumn, styles.alignItemsStretch]}>
+                        <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2, styles.ph3]}>
+                            {shouldShowUserInfo && (
+                                <UserInfoCellsWithArrow
+                                    shouldShowToRecipient={shouldShowToRecipient}
+                                    participantFrom={item.from}
+                                    participantFromDisplayName={participantFromDisplayName}
+                                    participantToDisplayName={participantToDisplayName}
+                                    participantTo={item.to}
+                                    avatarSize={CONST.AVATAR_SIZE.SMALL_SUBSCRIPT}
+                                    style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}
+                                    infoCellsTextStyle={{lineHeight: 14}}
+                                    infoCellsAvatarStyle={styles.pr1}
+                                    fromRecipientStyle={!shouldShowToRecipient ? styles.mw100 : undefined}
+                                    shouldUseArrowIcon={false}
+                                />
+                            )}
+                            <View style={[{width: variables.w72}, styles.alignItemsEnd]}>
+                                <StaticActionButton action={item.action} />
                             </View>
-                            <TransactionItemRow
-                                transactionItem={item}
-                                shouldUseNarrowLayout
-                                isSelected={false}
-                                shouldShowTooltip={false}
-                                shouldShowCheckbox={false}
-                                shouldShowErrors={false}
-                                dateColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
-                                amountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
-                                taxAmountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
-                                style={[styles.p3, styles.pv2, styles.pt2]}
-                            />
                         </View>
+                        <TransactionItemRow
+                            transactionItem={item}
+                            shouldUseNarrowLayout
+                            isSelected={false}
+                            shouldShowTooltip={false}
+                            shouldShowCheckbox={false}
+                            shouldShowErrors={false}
+                            dateColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+                            amountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+                            taxAmountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+                            style={[styles.p3, styles.pv2, styles.pt2]}
+                        />
                     </View>
-                </PressableWithoutFeedback>
-            );
-        },
-        [styles, onPressItem, theme.highlightBG],
-    );
+                </View>
+            </PressableWithoutFeedback>
+        );
+    };
 
-    const keyExtractor = useCallback((item: TransactionListItemType) => item.keyForList ?? item.transactionID, []);
+    const keyExtractor = (item: TransactionListItemType) => item.keyForList;
 
     const hasEndedSpanRef = useRef(false);
-    const onLayout = useCallback(() => {
+    const onLayout = () => {
         if (hasEndedSpanRef.current) {
             return;
         }
@@ -194,9 +190,9 @@ function SearchStaticList({searchResults, queryJSON, contentContainerStyle, onLa
         }
 
         onLayoutProp?.();
-    }, [sortedData.length, onLayoutProp]);
+    };
 
-    const pendingExpenseReasonAttributes = useMemo(() => ({context: 'SearchStaticList.PendingExpensePlaceholder'}) as const, []);
+    const pendingExpenseReasonAttributes = {context: 'SearchStaticList.PendingExpensePlaceholder'} as const;
 
     if (sortedData.length === 0 && showPendingExpensePlaceholder) {
         return (

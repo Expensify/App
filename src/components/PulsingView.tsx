@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import Animated, {cancelAnimation, Easing, useAnimatedReaction, useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming} from 'react-native-reanimated';
 import type {AnimatedStyle, SharedValue} from 'react-native-reanimated';
@@ -58,10 +58,14 @@ function stopPulse(opacity: SharedValue<number>) {
 
 function PulsingView({shouldPulse, children, style = [], minOpacity = 0.5, needsOffscreenAlphaCompositing = false}: PulsingViewProps) {
     const shouldPulseShared = useSharedValue(shouldPulse);
-    shouldPulseShared.set(shouldPulse);
+    useEffect(() => {
+        shouldPulseShared.set(shouldPulse);
+    }, [shouldPulse, shouldPulseShared]);
 
     const minOpacityShared = useSharedValue(minOpacity);
-    minOpacityShared.set(minOpacity);
+    useEffect(() => {
+        minOpacityShared.set(minOpacity);
+    }, [minOpacity, minOpacityShared]);
 
     const opacity = useSharedValue(1);
 
