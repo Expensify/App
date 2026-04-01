@@ -17,21 +17,20 @@ const {triggerTransitionEnd, addListener} = isJestEnv
           addListener: () => {},
       };
 
-const realOrMockedUseNavigation = isJestEnv ? realReactNavigation.useNavigation : {};
-const useNavigation = () => ({
-    ...realOrMockedUseNavigation,
-    navigate: isJestEnv ? jest.fn() : () => {},
-    getState: () => ({
-        routes: [],
-    }),
-    addListener,
-});
+const useNavigation = isJestEnv
+    ? realReactNavigation.useNavigation
+    : {
+          navigate: isJestEnv ? jest.fn() : () => {},
+          getState: () => ({
+              routes: [],
+          }),
+          addListener,
+      };
 
 type NativeNavigationMock = typeof ReactNavigation & {
     triggerTransitionEnd: () => void;
 };
 
-export * from '@react-navigation/core';
 const Link = isJestEnv ? realReactNavigation.Link : () => null;
 const LinkingContext = isJestEnv ? realReactNavigation.LinkingContext : () => null;
 const NavigationContainer = isJestEnv ? realReactNavigation.NavigationContainer : () => null;
@@ -46,14 +45,16 @@ const useScrollToTop = isJestEnv ? realReactNavigation.useScrollToTop : () => nu
 const useRoute = isJestEnv ? realReactNavigation.useRoute : () => ({params: {}});
 const useFocusEffect = isJestEnv ? realReactNavigation.useFocusEffect : (callback: () => void) => callback();
 const usePreventRemove = isJestEnv ? jest.fn() : () => {};
+const useNavigationState = isJestEnv ? realReactNavigation.useNavigationState : () => {};
 
+export * from '@react-navigation/core';
 export {
     // Overridden modules
     useIsFocused,
     useTheme,
     useNavigation,
+    useNavigationState,
     useLocale,
-    triggerTransitionEnd,
 
     // Theme modules are left alone
     Link,
@@ -63,6 +64,7 @@ export {
     DarkTheme,
     DefaultTheme,
     ThemeProvider,
+    triggerTransitionEnd,
     useLinkBuilder,
     useLinkProps,
     useLinkTo,

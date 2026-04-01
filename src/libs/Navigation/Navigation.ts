@@ -4,6 +4,7 @@ import {CommonActions, StackActions} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 // eslint-disable-next-line you-dont-need-lodash-underscore/omit
 import omit from 'lodash/omit';
+import {nanoid} from 'nanoid/non-secure';
 import {DeviceEventEmitter, Dimensions, InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -26,6 +27,7 @@ import SCREENS, {PROTECTED_SCREENS} from '@src/SCREENS';
 import type {Account, SidePanel} from '@src/types/onyx';
 import getInitialSplitNavigatorState from './AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
 import originalCloseRHPFlow from './helpers/closeRHPFlow';
+import findMatchingDynamicSuffix from './helpers/dynamicRoutesUtils/findMatchingDynamicSuffix';
 import getPathFromState from './helpers/getPathFromState';
 import getStateFromPath from './helpers/getStateFromPath';
 import getTopmostReportParams from './helpers/getTopmostReportParams';
@@ -248,7 +250,7 @@ function getActiveRoute(): string {
 function getReportRHPActiveRoute(): string {
     // Safe handling when navigation is not yet initialized
     if (!navigationRef.isReady()) {
-        Log.warn('[src/libs/Navigation/Navigation.ts] NavigationRef is not ready. Returning empty string.');
+        Log.hmmm('[src/libs/Navigation/Navigation.ts] NavigationRef is not ready. Returning empty string.');
         return '';
     }
     if (isReportOpenInRHP(navigationRef.getRootState())) {
@@ -442,6 +444,22 @@ function goUp(backToRoute: Route, options?: GoBackOptions) {
 
     // If we need to pop more than one route from rootState, we replace the current route to not lose visited routes from the navigation state
     if (indexOfBackToRoute === -1 || (isRootNavigatorState(targetState) && distanceToPop > 1)) {
+        const actionPayload = minimalAction.payload as NavigationRoute;
+
+        // StackRouter's REPLACE drops `path`, use a targeted RESET for dynamic routes to preserve it.
+        if (actionPayload?.path && findMatchingDynamicSuffix(backToRoute)) {
+            const routes = targetState.routes.with(targetState.index ?? targetState.routes.length - 1, {
+                key: `${actionPayload.name}-${nanoid()}`,
+                name: actionPayload.name,
+                params: actionPayload.params,
+                path: actionPayload.path,
+            });
+
+            const resetAction = {type: CONST.NAVIGATION_ACTIONS.RESET, payload: {index: targetState.index, routes}, target: targetState.key} as NavigationAction;
+            navigationRef.current.dispatch(resetAction);
+            return;
+        }
+
         const replaceAction = {...minimalAction, type: CONST.NAVIGATION.ACTION_TYPE.REPLACE} as NavigationAction;
         navigationRef.current.dispatch(replaceAction);
         return;
@@ -506,17 +524,20 @@ function popToSidebar() {
         return;
     }
 
-    if (!isSplitNavigatorName(currentRoute?.name)) {
+    // WorkspaceSplitNavigator and DomainSplitNavigator are nested inside WorkspaceNavigator.
+    const activeRoute = currentRoute.name === NAVIGATORS.WORKSPACE_NAVIGATOR ? currentRoute.state?.routes.at(-1) : currentRoute;
+
+    if (!isSplitNavigatorName(activeRoute?.name)) {
         Log.hmmm('[popToSidebar] must be invoked only from SplitNavigator');
         return;
     }
 
-    const topRoute = currentRoute.state?.routes.at(0);
-    const lastRoute = currentRoute.state?.routes.at(-1);
+    const topRoute = activeRoute.state?.routes.at(0);
+    const lastRoute = activeRoute.state?.routes.at(-1);
 
-    const currentRouteName = currentRoute?.name as keyof typeof SPLIT_TO_SIDEBAR;
+    const currentRouteName = activeRoute.name as keyof typeof SPLIT_TO_SIDEBAR;
     if (topRoute?.name !== SPLIT_TO_SIDEBAR[currentRouteName]) {
-        const params = currentRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR || currentRoute.name === NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR ? {...lastRoute?.params} : undefined;
+        const params = activeRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR || activeRoute.name === NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR ? {...lastRoute?.params} : undefined;
 
         const sidebarName = SPLIT_TO_SIDEBAR[currentRouteName];
 

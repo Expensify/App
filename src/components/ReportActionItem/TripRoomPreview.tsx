@@ -21,7 +21,7 @@ import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ReservationData} from '@libs/TripReservationUtils';
-import {getReservationsFromTripReport, getTripReservationIcon, getTripTotal} from '@libs/TripReservationUtils';
+import {formatCancelledDescription, getReservationsFromTripReport, getTripReservationIcon, getTripTotal} from '@libs/TripReservationUtils';
 import type {ContextMenuAnchor} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -51,6 +51,9 @@ type TripRoomPreviewProps = {
     /** Whether the corresponding report action item is hovered */
     isHovered?: boolean;
 
+    /** ID of the original report from which the given reportAction is first created */
+    originalReportID?: string;
+
     /** Whether  context menu should be shown on press */
     shouldDisplayContextMenu?: boolean;
 };
@@ -58,22 +61,28 @@ type TripRoomPreviewProps = {
 type ReservationViewProps = {
     reservation: Reservation;
     onPress?: () => void;
+    isCancelled?: boolean;
 };
 
-function ReservationView({reservation, onPress}: ReservationViewProps) {
+function ReservationView({reservation, onPress, isCancelled}: ReservationViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plane', 'Bed', 'CarWithKey', 'Train', 'Luggage']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plane', 'PlaneCircleSlash', 'Bed', 'BedCircleSlash', 'CarWithKey', 'CarCircleSlash', 'Train', 'TrainCircleSlash', 'Luggage']);
 
-    const reservationIcon = getTripReservationIcon(expensifyIcons, reservation.type);
+    const reservationIcon = getTripReservationIcon(expensifyIcons, reservation.type, isCancelled);
     const title = reservation.type === CONST.RESERVATION_TYPE.CAR ? reservation.carInfo?.name : Str.recapitalize(reservation.start.longName ?? '');
+
+    const description = translate(`travel.${reservation.type}`);
+
+    const cancelledStyle = isCancelled ? styles.textSupporting : undefined;
 
     let titleComponent = (
         <Text
             numberOfLines={1}
             ellipsizeMode="tail"
+            style={cancelledStyle}
         >
             {title}
         </Text>
@@ -87,17 +96,21 @@ function ReservationView({reservation, onPress}: ReservationViewProps) {
             <Text
                 numberOfLines={2}
                 ellipsizeMode="tail"
+                style={cancelledStyle}
             >
                 {startName} {translate('common.to').toLowerCase()} {endName}
             </Text>
         );
     }
 
+    const displayDescription = formatCancelledDescription(translate('iou.canceled'), description, isCancelled);
+
     return (
         <MenuItemWithTopDescription
-            description={translate(`travel.${reservation.type}`)}
+            description={displayDescription}
             descriptionTextStyle={[styles.textLabelSupporting, styles.lh16]}
             titleComponent={titleComponent}
+            accessibilityLabel={isCancelled ? displayDescription : undefined}
             titleContainerStyle={styles.gap1}
             secondaryIcon={reservationIcon}
             secondaryIconFill={theme.icon}
@@ -123,6 +136,7 @@ function TripRoomPreview({
     isHovered = false,
     checkIfContextMenuActive = () => {},
     shouldDisplayContextMenu = true,
+    originalReportID,
 }: TripRoomPreviewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -154,6 +168,7 @@ function TripRoomPreview({
         <ReservationView
             reservation={item.reservation}
             onPress={navigateToTrip}
+            isCancelled={item.isCancelled}
         />
     );
 
@@ -172,9 +187,10 @@ function TripRoomPreview({
                         if (!shouldDisplayContextMenu) {
                             return;
                         }
-                        showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive);
+                        showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive, false, originalReportID);
                     }}
                     shouldUseHapticsOnLongPress
+                    sentryLabel={CONST.SENTRY_LABEL.TRIP_ROOM_PREVIEW.CARD}
                     style={[styles.flexRow, styles.justifyContentBetween, styles.reportPreviewBox]}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('iou.viewDetails')}
