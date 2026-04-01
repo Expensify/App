@@ -1,24 +1,20 @@
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import Button from '@components/Button';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import Icon from '@components/Icon';
-import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ScrollView from '@components/ScrollView';
 import DatePresetFilterBase from '@components/Search/FilterComponents/DatePresetFilterBase';
 import type {SearchDatePresetFilterBaseHandle} from '@components/Search/FilterComponents/DatePresetFilterBase';
 import type {SearchDatePreset} from '@components/Search/types';
 import Text from '@components/Text';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {SearchDateValues} from '@libs/SearchQueryUtils';
 import {getDateModifierTitle, getDateRangeDisplayValueFromFormValue} from '@libs/SearchQueryUtils';
 import type {SearchDateModifier} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
+import ActionButtons from './ActionButtons';
+import SelectedDateModifierHeader from './SelectedDateModifierHeader';
 
 type DateSelectPopupProps = {
     /** The label to show when in an overlay on mobile */
@@ -39,80 +35,6 @@ type DateSelectPopupProps = {
     /** Function to set the popover width dynamically */
     setPopoverWidth?: (width: number | undefined) => void;
 };
-
-type SelectedDateModifierHeaderProps = {
-    isCompact: boolean;
-    title: string;
-    onBackPress: () => void;
-};
-
-function SelectedDateModifierHeader({isCompact, title, onBackPress}: SelectedDateModifierHeaderProps) {
-    const styles = useThemeStyles();
-    const theme = useTheme();
-    const backArrowIcon = useMemoizedLazyExpensifyIcons(['BackArrow']);
-    const {translate} = useLocalize();
-
-    if (isCompact) {
-        return (
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.ph5, styles.pb2, styles.gap2]}>
-                <PressableWithoutFeedback
-                    onPress={onBackPress}
-                    role={CONST.ROLE.BUTTON}
-                    accessibilityLabel={translate('common.back')}
-                    sentryLabel="DateSelectPopup-Back"
-                >
-                    <Icon
-                        src={backArrowIcon.BackArrow}
-                        fill={theme.icon}
-                    />
-                </PressableWithoutFeedback>
-                <Text style={[styles.textLabelSupporting]}>{title}</Text>
-            </View>
-        );
-    }
-
-    return (
-        <HeaderWithBackButton
-            shouldDisplayHelpButton={false}
-            style={[styles.h10, styles.pb3]}
-            subtitle={title}
-            onBackButtonPress={onBackPress}
-        />
-    );
-}
-
-type ActionButtonsProps = {
-    containerStyle: React.ComponentProps<typeof View>['style'];
-    resetSentryLabel?: string;
-    applySentryLabel?: string;
-    onReset: () => void;
-    onApply: () => void;
-};
-
-function ActionButtons({containerStyle, resetSentryLabel, applySentryLabel, onReset, onApply}: ActionButtonsProps) {
-    const styles = useThemeStyles();
-    const {translate} = useLocalize();
-
-    return (
-        <View style={containerStyle}>
-            <Button
-                medium
-                style={[styles.flex1]}
-                text={translate('common.reset')}
-                onPress={onReset}
-                sentryLabel={resetSentryLabel}
-            />
-            <Button
-                success
-                medium
-                style={[styles.flex1]}
-                text={translate('common.apply')}
-                onPress={onApply}
-                sentryLabel={applySentryLabel}
-            />
-        </View>
-    );
-}
 
 function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopoverWidth}: DateSelectPopupProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
