@@ -1,6 +1,5 @@
 import React, {useLayoutEffect, useRef} from 'react';
-import type {View} from 'react-native';
-import type {Role} from 'react-native';
+import type {Role, View} from 'react-native';
 import type PressableProps from '@components/Pressable/GenericPressable/types';
 import mergeRefs from '@libs/mergeRefs';
 import GenericPressable from './BaseGenericPressable';
