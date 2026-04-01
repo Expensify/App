@@ -165,13 +165,14 @@ function MoneyRequestReportTransactionList({
     const currentUserDetails = useCurrentUserPersonalDetails();
     const isReportArchived = useReportIsArchived(report?.reportID);
     const shouldShowAddExpenseButton = canAddTransaction(report, isReportArchived) && isCurrentUserSubmitter(report);
-    const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const [reportLayoutGroupBy] = useOnyx(ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [reportDetailsColumns] = useOnyx(ONYXKEYS.NVP_REPORT_DETAILS_COLUMNS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
@@ -186,13 +187,13 @@ function MoneyRequestReportTransactionList({
                 icons: expensifyIcons,
                 iouReportID: report?.reportID,
                 policy,
-                userBillingGraceEndPeriods,
+                userBillingGracePeriodEnds,
                 draftTransactionIDs,
                 amountOwed,
-                ownerBillingGraceEndPeriod,
+                ownerBillingGracePeriodEnd,
                 lastDistanceExpenseType,
             }),
-        [translate, expensifyIcons, report?.reportID, policy, userBillingGraceEndPeriods, amountOwed, lastDistanceExpenseType, ownerBillingGraceEndPeriod, draftTransactionIDs],
+        [translate, expensifyIcons, report?.reportID, policy, userBillingGracePeriodEnds, amountOwed, lastDistanceExpenseType, ownerBillingGracePeriodEnd, draftTransactionIDs],
     );
 
     const hasPendingAction = useMemo(() => {
@@ -390,7 +391,15 @@ function MoneyRequestReportTransactionList({
 
             if (!reportIDToNavigate) {
                 const transaction = sortedTransactions.find((t) => t.transactionID === activeTransactionID);
-                const transactionThreadReport = createTransactionThreadReport(introSelected, currentUserDetails.email ?? '', currentUserDetails.accountID, report, iouAction, transaction);
+                const transactionThreadReport = createTransactionThreadReport(
+                    introSelected,
+                    currentUserDetails.email ?? '',
+                    currentUserDetails.accountID,
+                    betas,
+                    report,
+                    iouAction,
+                    transaction,
+                );
                 if (transactionThreadReport) {
                     reportIDToNavigate = transactionThreadReport.reportID;
                     routeParams.reportID = reportIDToNavigate;
@@ -408,7 +417,7 @@ function MoneyRequestReportTransactionList({
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(routeParams));
             });
         },
-        [reportActions, visualOrderTransactionIDs, sortedTransactions, report, markReportIDAsExpense, introSelected, currentUserDetails.email, currentUserDetails.accountID],
+        [reportActions, visualOrderTransactionIDs, sortedTransactions, report, markReportIDAsExpense, introSelected, betas, currentUserDetails.email, currentUserDetails.accountID],
     );
 
     const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {

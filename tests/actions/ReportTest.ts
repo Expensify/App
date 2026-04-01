@@ -574,7 +574,7 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 // Then the report will be unread
-                expect(ReportUtils.isUnread(report, undefined, undefined)).toBe(true);
+                expect(ReportUtils.isUnread(report, undefined, undefined, reportActions)).toBe(true);
 
                 // And show a green dot for unread mentions in the LHN
                 expect(ReportUtils.isUnreadWithMention(report)).toBe(true);
@@ -588,7 +588,7 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 // The report will be read
-                expect(ReportUtils.isUnread(report, undefined, undefined)).toBe(false);
+                expect(ReportUtils.isUnread(report, undefined, undefined, reportActions)).toBe(false);
                 expect(toZonedTime(report?.lastReadTime ?? '', UTC).getTime()).toBeGreaterThanOrEqual(toZonedTime(currentTime, UTC).getTime());
 
                 // And no longer show the green dot for unread mentions in the LHN
@@ -600,7 +600,7 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 // Then the report will be unread and show the green dot for unread mentions in LHN
-                expect(ReportUtils.isUnread(report, undefined, undefined)).toBe(true);
+                expect(ReportUtils.isUnread(report, undefined, undefined, reportActions)).toBe(true);
                 expect(ReportUtils.isUnreadWithMention(report)).toBe(true);
                 expect(report?.lastReadTime).toBe(DateUtils.subtractMillisecondsFromDateTime(reportActionCreatedDate, 1));
 
@@ -619,7 +619,7 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 // The report will be read, the green dot for unread mentions will go away, and the lastReadTime updated
-                expect(ReportUtils.isUnread(report, undefined, undefined)).toBe(false);
+                expect(ReportUtils.isUnread(report, undefined, undefined, reportActions)).toBe(false);
                 expect(ReportUtils.isUnreadWithMention(report)).toBe(false);
                 expect(toZonedTime(report?.lastReadTime ?? '', UTC).getTime()).toBeGreaterThanOrEqual(toZonedTime(currentTime, UTC).getTime());
                 expect(report?.lastMessageText).toBe('Current User Comment 1');
@@ -638,7 +638,7 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 // The report will be read and the lastReadTime updated
-                expect(ReportUtils.isUnread(report, undefined, undefined)).toBe(false);
+                expect(ReportUtils.isUnread(report, undefined, undefined, reportActions)).toBe(false);
                 expect(toZonedTime(report?.lastReadTime ?? '', UTC).getTime()).toBeGreaterThanOrEqual(toZonedTime(currentTime, UTC).getTime());
                 expect(report?.lastMessageText).toBe('Current User Comment 2');
 
@@ -656,7 +656,7 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 // The report will be read and the lastReadTime updated
-                expect(ReportUtils.isUnread(report, undefined, undefined)).toBe(false);
+                expect(ReportUtils.isUnread(report, undefined, undefined, reportActions)).toBe(false);
                 expect(toZonedTime(report?.lastReadTime ?? '', UTC).getTime()).toBeGreaterThanOrEqual(toZonedTime(currentTime, UTC).getTime());
                 expect(report?.lastMessageText).toBe('Current User Comment 3');
 
@@ -671,10 +671,23 @@ describe('actions/Report', () => {
                     reportID: REPORT_ID,
                 };
 
+                const USER_2_BASE_ACTION = {
+                    ...USER_1_BASE_ACTION,
+                    actorAccountID: USER_2_ACCOUNT_ID,
+                };
+
+                reportActionCreatedDate = DateUtils.getDBTime();
+
                 const optimisticReportActions: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
                     value: {
+                        100: {
+                            ...USER_2_BASE_ACTION,
+                            message: [{type: 'COMMENT', html: 'Other user comment', text: 'Other user comment'}],
+                            created: reportActionCreatedDate,
+                            reportActionID: '100',
+                        },
                         200: {
                             ...USER_1_BASE_ACTION,
                             message: [{type: 'COMMENT', html: 'Current User Comment 1', text: 'Current User Comment 1'}],
@@ -697,8 +710,6 @@ describe('actions/Report', () => {
                         },
                     },
                 };
-
-                reportActionCreatedDate = DateUtils.getDBTime();
 
                 const optimisticReportActionsValue = optimisticReportActions.value as Record<string, OnyxTypes.ReportAction>;
 
@@ -738,7 +749,7 @@ describe('actions/Report', () => {
             .then(() => {
                 // Then no change will occur
                 expect(report?.lastReadTime).toBe(reportActionCreatedDate);
-                expect(ReportUtils.isUnread(report, undefined, undefined)).toBe(false);
+                expect(ReportUtils.isUnread(report, undefined, undefined, reportActions)).toBe(false);
 
                 // When the user manually marks a message as "unread"
                 Report.markCommentAsUnread(REPORT_ID, reportActions, reportActions[400], USER_1_ACCOUNT_ID);
@@ -746,7 +757,7 @@ describe('actions/Report', () => {
             })
             .then(() => {
                 // Then we should expect the report to be to be unread
-                expect(ReportUtils.isUnread(report, undefined, undefined)).toBe(true);
+                expect(ReportUtils.isUnread(report, undefined, undefined, reportActions)).toBe(true);
                 expect(report?.lastReadTime).toBe(DateUtils.subtractMillisecondsFromDateTime(reportActions[400].created, 1));
 
                 rerender(report);
@@ -754,10 +765,59 @@ describe('actions/Report', () => {
                 Report.deleteReportComment(report, {...reportActions[400]}, ancestors.current, undefined, undefined, USER_1_LOGIN);
                 return waitForBatchedUpdates();
             })
+            .then(() => {
+                const lastVisibleActionCreated = reportActions[300].created;
+                const newerOtherUserActionCreated = DateUtils.getDBTime();
+
+                // Make report read by lastVisibleActionCreated, but keep a newer action from another user.
+                return Promise.all([
+                    Onyx.merge(
+                        `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}` as const,
+                        {
+                            lastMessageText: 'Current User Comment 2',
+                            lastVisibleActionCreated,
+                            lastReadTime: lastVisibleActionCreated,
+                        } as Partial<OnyxTypes.Report>,
+                    ),
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}` as const, {
+                        100: {
+                            ...reportActions['100'],
+                            created: newerOtherUserActionCreated,
+                            message: [{type: 'COMMENT', html: 'Other user comment', text: 'Other user comment'}],
+                        } as OnyxTypes.ReportAction,
+                    }),
+                ]);
+            })
+            .then(() => waitForBatchedUpdates())
+            .then(() => {
+                // IOU report should be unread when latest visible action is from current user, but a newer other-user action exists.
+                expect(ReportUtils.isUnread(report, undefined, undefined, reportActions)).toBe(true);
+
+                // Mark action 100 (other user) as deleted so latestReportActionFromOtherUsers is null.
+                const deletedMessage = [{type: 'COMMENT' as const, html: '', text: '', deleted: 'true' as const}];
+                return Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}` as const, {
+                    100: {
+                        ...reportActions['100'],
+                        message: deletedMessage,
+                    } as OnyxTypes.ReportAction,
+                });
+            })
+            .then(() => waitForBatchedUpdates())
+            .then(() => {
+                // With all other-user actions deleted, report should be read when lastReadTime >= lastVisibleActionCreated.
+                return Onyx.merge(
+                    `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}` as const,
+                    {
+                        lastReadTime: report?.lastVisibleActionCreated,
+                    } as Partial<OnyxTypes.Report>,
+                );
+            })
+            .then(() => waitForBatchedUpdates())
             .then(() => getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}` as const))
-            .then((updatedReport) => {
-                expect(ReportUtils.isUnread(updatedReport, undefined, undefined)).toBe(false);
-                expect(updatedReport?.lastMessageText).toBe('Current User Comment 2');
+            .then((currentReport) => {
+                report = currentReport ?? report;
+                expect(ReportUtils.isUnread(report, undefined, undefined, reportActions)).toBe(false);
+                expect(report?.lastMessageText).toBe('Current User Comment 2');
             });
         waitForBatchedUpdates(); // flushing onyx.set as it will be batched
         return setPromise;
@@ -2707,7 +2767,7 @@ describe('actions/Report', () => {
                             key: `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`,
                             callback: (reportVal) => {
                                 Onyx.disconnect(connection);
-                                resolve(ReportUtils.isUnread(reportVal, undefined, undefined));
+                                resolve(ReportUtils.isUnread(reportVal, undefined, undefined, undefined));
                             },
                         });
                     });
@@ -4218,7 +4278,7 @@ describe('actions/Report', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, testReport);
             await waitForBatchedUpdates();
 
-            Report.navigateToConciergeChatAndDeleteReport(REPORT_ID, CONCIERGE_REPORT_ID, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined);
+            Report.navigateToConciergeChatAndDeleteReport(REPORT_ID, CONCIERGE_REPORT_ID, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined);
 
             await waitForBatchedUpdates();
 
@@ -4232,7 +4292,7 @@ describe('actions/Report', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, testReport);
             await waitForBatchedUpdates();
 
-            Report.navigateToConciergeChatAndDeleteReport(REPORT_ID, CONCIERGE_REPORT_ID, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, true);
+            Report.navigateToConciergeChatAndDeleteReport(REPORT_ID, CONCIERGE_REPORT_ID, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined, true);
 
             await waitForBatchedUpdates();
 
@@ -4245,7 +4305,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.navigateToConciergeChatAndDeleteReport(undefined, CONCIERGE_REPORT_ID, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined);
+                Report.navigateToConciergeChatAndDeleteReport(undefined, CONCIERGE_REPORT_ID, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined);
             }).not.toThrow();
         });
 
@@ -4254,7 +4314,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.navigateToConciergeChatAndDeleteReport(REPORT_ID, undefined, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined);
+                Report.navigateToConciergeChatAndDeleteReport(REPORT_ID, undefined, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined);
             }).not.toThrow();
 
             await waitForBatchedUpdates();
@@ -4268,7 +4328,7 @@ describe('actions/Report', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, testReport);
             await waitForBatchedUpdates();
 
-            Report.navigateToConciergeChatAndDeleteReport(REPORT_ID, CONCIERGE_REPORT_ID, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, false, true);
+            Report.navigateToConciergeChatAndDeleteReport(REPORT_ID, CONCIERGE_REPORT_ID, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined, false, true);
 
             await waitForBatchedUpdates();
 
@@ -4281,7 +4341,7 @@ describe('actions/Report', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, testReport);
             await waitForBatchedUpdates();
 
-            Report.navigateToConciergeChatAndDeleteReport(REPORT_ID, CONCIERGE_REPORT_ID, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, true, true);
+            Report.navigateToConciergeChatAndDeleteReport(REPORT_ID, CONCIERGE_REPORT_ID, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined, true, true);
 
             await waitForBatchedUpdates();
 
@@ -4295,7 +4355,7 @@ describe('actions/Report', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, testReport);
             await waitForBatchedUpdates();
 
-            Report.navigateToConciergeChatAndDeleteReport(REPORT_ID, CONCIERGE_REPORT_ID, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined);
+            Report.navigateToConciergeChatAndDeleteReport(REPORT_ID, CONCIERGE_REPORT_ID, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, undefined, undefined);
 
             await waitForBatchedUpdates();
 
@@ -4310,12 +4370,26 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             expect(() => {
-                Report.navigateToConciergeChatAndDeleteReport(REPORT_ID, CONCIERGE_REPORT_ID, TEST_USER_ACCOUNT_ID, undefined, undefined);
+                Report.navigateToConciergeChatAndDeleteReport(REPORT_ID, CONCIERGE_REPORT_ID, TEST_USER_ACCOUNT_ID, undefined, undefined, undefined);
             }).not.toThrow();
 
             await waitForBatchedUpdates();
 
             expect(mockNavigation.goBack).toHaveBeenCalled();
+        });
+
+        it('should pass isSelfTourViewed to navigateToConciergeChat', async () => {
+            await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
+            const testReport = createRandomReport(Number(REPORT_ID), undefined);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, testReport);
+            await waitForBatchedUpdates();
+
+            Report.navigateToConciergeChatAndDeleteReport(REPORT_ID, CONCIERGE_REPORT_ID, TEST_USER_ACCOUNT_ID, INTRO_SELECTED, true, undefined);
+
+            await waitForBatchedUpdates();
+
+            expect(mockNavigation.goBack).toHaveBeenCalled();
+            expect(mockNavigation.navigate).toHaveBeenCalled();
         });
     });
 
@@ -6275,13 +6349,13 @@ describe('actions/Report', () => {
         });
 
         it('should return undefined when no valid report is provided', () => {
-            const result = Report.createTransactionThreadReport(TEST_INTRO_SELECTED, TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID, undefined, undefined);
+            const result = Report.createTransactionThreadReport(TEST_INTRO_SELECTED, TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID, undefined, undefined, undefined);
             expect(result).toBeUndefined();
         });
 
         it('should return undefined when report has no reportID', () => {
             const reportWithoutID = {} as OnyxTypes.Report;
-            const result = Report.createTransactionThreadReport(TEST_INTRO_SELECTED, TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID, reportWithoutID, undefined);
+            const result = Report.createTransactionThreadReport(TEST_INTRO_SELECTED, TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID, undefined, reportWithoutID, undefined);
             expect(result).toBeUndefined();
         });
 
@@ -6301,7 +6375,7 @@ describe('actions/Report', () => {
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
             };
 
-            const result = Report.createTransactionThreadReport(TEST_INTRO_SELECTED, TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID, parentReport, reportAction);
+            const result = Report.createTransactionThreadReport(TEST_INTRO_SELECTED, TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID, undefined, parentReport, reportAction);
 
             expect(result).toBeDefined();
             expect(result?.reportID).toBeDefined();
@@ -6330,7 +6404,7 @@ describe('actions/Report', () => {
             };
 
             // Should not throw when called with introSelected and return a valid thread report
-            const result = Report.createTransactionThreadReport(introSelected, TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID, parentReport, reportAction);
+            const result = Report.createTransactionThreadReport(introSelected, TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID, undefined, parentReport, reportAction);
             expect(result).toBeDefined();
             expect(result?.reportID).toBeDefined();
             expect(result?.parentReportID).toBe(parentReport.reportID);
@@ -6353,7 +6427,7 @@ describe('actions/Report', () => {
             };
 
             // Should work fine with undefined introSelected - it's OnyxEntry<IntroSelected> which allows undefined
-            const result = Report.createTransactionThreadReport(undefined, TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID, parentReport, reportAction);
+            const result = Report.createTransactionThreadReport(undefined, TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID, undefined, parentReport, reportAction);
             expect(result).toBeDefined();
             expect(result?.reportID).toBeDefined();
         });
@@ -6382,10 +6456,33 @@ describe('actions/Report', () => {
                 },
             ];
 
-            const result = Report.createTransactionThreadReport(TEST_INTRO_SELECTED, TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID, parentReport, reportAction, transaction, violations);
+            const result = Report.createTransactionThreadReport(TEST_INTRO_SELECTED, TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID, undefined, parentReport, reportAction, transaction, violations);
             expect(result).toBeDefined();
             expect(result?.reportID).toBeDefined();
             expect(result?.parentReportID).toBe(parentReport.reportID);
+        });
+
+        it('should pass betas through to openReport', async () => {
+            const parentReport: OnyxTypes.Report = {
+                ...createRandomReport(500, undefined),
+                reportID: '500',
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`, parentReport);
+            await waitForBatchedUpdates();
+
+            const reportAction: OnyxTypes.ReportAction = {
+                ...createRandomReportAction(5),
+                reportActionID: 'action-5',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            };
+
+            const testBetas = [CONST.BETAS.ALL];
+            Report.createTransactionThreadReport(TEST_INTRO_SELECTED, TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID, testBetas, parentReport, reportAction);
+            await waitForBatchedUpdates();
+
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
         });
     });
 });

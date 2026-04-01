@@ -961,15 +961,6 @@ const translations: TranslationDeepObject<typeof en> = {
         forYou: 'Per te',
         timeSensitiveSection: {
             title: 'Sensibile al tempo',
-            cta: 'Richiesta',
-            offer50off: {
-                title: 'Ottieni il 50% di sconto sul primo anno!',
-                subtitle: ({formattedTime}: {formattedTime: string}) => `${formattedTime} rimanenti`,
-            },
-            offer25off: {
-                title: 'Ottieni il 25% di sconto sul tuo primo anno!',
-                subtitle: ({days}: {days: number}) => `Restano ${days} ${days === 1 ? 'giorno' : 'giorni'}`,
-            },
             addShippingAddress: {title: 'Ci serve il tuo indirizzo di spedizione', subtitle: 'Fornisci un indirizzo per ricevere la tua Carta Expensify.', cta: 'Aggiungi indirizzo'},
             addPaymentCard: {title: 'Aggiungi una carta di pagamento per continuare a usare Expensify', subtitle: 'Account > Abbonamento', cta: 'Aggiungi'},
             activateCard: {title: 'Attiva la tua Carta Expensify', subtitle: 'Convalida la tua carta e inizia a spendere.', cta: 'Attiva'},
@@ -1057,6 +1048,19 @@ const translations: TranslationDeepObject<typeof en> = {
             inDays: () => ({one: 'Tra 1 giorno', other: (count: number) => `Tra ${count} giorni`}),
             today: 'Oggi',
         },
+        freeTrialSection: {
+            title: ({days}: {days: number}) => `Prova gratuita: ${days} ${days === 1 ? 'giorno' : 'giorni'} rimanenti!`,
+            offer50Body: 'Ottieni il 50% di sconto sul tuo primo anno!',
+            offer25Body: 'Ottieni il 25% di sconto sul tuo primo anno!',
+            addCardBody: 'Non aspettare! Aggiungi subito la tua carta di pagamento.',
+            ctaClaim: 'Richiesta',
+            ctaAdd: 'Aggiungi carta',
+            timeRemaining: ({formattedTime}: {formattedTime: string}) => `Tempo rimanente: ${formattedTime}`,
+            timeRemainingDays: () => ({
+                one: 'Tempo rimanente: 1 giorno',
+                other: (pluralCount: number) => `Tempo rimanente: ${pluralCount} giorni`,
+            }),
+        },
     },
     allSettingsScreen: {
         subscription: 'Abbonamento',
@@ -1085,7 +1089,23 @@ const translations: TranslationDeepObject<typeof en> = {
         singleFieldMultipleColumns: (fieldName: string) => `Ops! Hai associato un singolo campo ("${fieldName}") a più colonne. Controlla e riprova.`,
         emptyMappedField: (fieldName: string) => `Ops! Il campo ("${fieldName}") contiene uno o più valori vuoti. Controlla e riprova.`,
         importSuccessfulTitle: 'Importazione riuscita',
-        importCategoriesSuccessfulDescription: ({categories}: {categories: number}) => (categories > 1 ? `Sono state aggiunte ${categories} categorie.` : 'È stata aggiunta 1 categoria.'),
+        importCategoriesSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
+            if (!added && !updated) {
+                return 'Nessuna categoria è stata aggiunta o aggiornata.';
+            }
+
+            if (added && updated) {
+                return `${added} ${added === 1 ? 'categoria aggiunta' : 'categorie aggiunte'}, ${updated} ${updated === 1 ? 'categoria aggiornata' : 'categorie aggiornate'}.`;
+            }
+
+            if (added) {
+                return added === 1 ? 'È stata aggiunta 1 categoria.' : `Sono state aggiunte ${added} categorie.`;
+            }
+
+            return updated === 1 ? 'È stata aggiornata 1 categoria.' : `Sono state aggiornate ${updated} categorie.`;
+        },
+        importCompanyCardTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
+            transactions > 1 ? `${transactions} transazioni sono state aggiunte.` : '1 transazione è stata aggiunta.',
         importMembersSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
             if (!added && !updated) {
                 return 'Non è stato aggiunto o aggiornato alcun membro.';
@@ -1144,6 +1164,7 @@ const translations: TranslationDeepObject<typeof en> = {
         flash: 'flash',
         multiScan: 'scansione multipla',
         shutter: 'otturatore',
+        flipCamera: 'cambia fotocamera',
         gallery: 'galleria',
         deleteReceipt: 'Elimina ricevuta',
         deleteConfirmation: 'Sei sicuro di voler eliminare questa ricevuta?',
@@ -1424,6 +1445,11 @@ const translations: TranslationDeepObject<typeof en> = {
             manySplitsProvided: `Il numero massimo di suddivisioni consentite è ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `L’intervallo di date non può superare ${CONST.IOU.SPLITS_LIMIT} giorni.`,
             stitchOdometerImagesFailed: 'Impossibile combinare le immagini del contachilometri. Riprova più tardi.',
+            nonReimbursablePayment: 'Impossibile pagare tramite Expensify',
+            nonReimbursablePaymentDescription: (isMultiple?: boolean) =>
+                isMultiple
+                    ? 'Uno o più report selezionati non contengono spese rimborsabili. Ricontrolla le spese oppure contrassegnali manualmente come pagati.'
+                    : 'Il report non contiene spese rimborsabili. Ricontrolla le spese oppure contrassegnalo manualmente come pagato.',
         },
         dismissReceiptError: 'Ignora errore',
         dismissReceiptErrorConfirmation: 'Attenzione! Chiudere questo errore rimuoverà completamente la ricevuta che hai caricato. Sei sicuro?',
@@ -1557,6 +1583,18 @@ const translations: TranslationDeepObject<typeof en> = {
                 markedAsResolved: 'ha segnato il motivo del rifiuto come risolto',
             },
         },
+        rejectReport: {
+            title: 'Rifiuta rapporto',
+            description: 'Spiega perché non approverai questo report:',
+            rejectReason: 'Motivo del rifiuto',
+            selectTarget: 'Scegli il membro a cui rimandare questo report per la revisione:',
+            lastApprover: 'Ultimo approvatore',
+            submitter: 'Proponente',
+            rejectedReportMessage: 'Questo rendiconto è stato rifiutato.',
+            rejectedNextStep: 'Questo report è stato rifiutato. In attesa che tu risolva i problemi e lo invii di nuovo manualmente.',
+            selectMemberError: 'Seleziona un membro a cui rimandare indietro questo report per rifiutarlo.',
+            couldNotReject: 'Non è stato possibile rifiutare il report. Riprova.',
+        },
         moveExpenses: 'Sposta nel report',
         moveExpensesError: 'Non puoi spostare le spese di diaria nei report di altri spazi di lavoro, perché le tariffe di diaria possono variare tra gli spazi di lavoro.',
         changeApprover: {
@@ -1682,7 +1720,7 @@ const translations: TranslationDeepObject<typeof en> = {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `In attesa che <strong>tu</strong> aggiunga delle spese.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `In attesa che <strong>${actor}</strong> aggiunga delle spese.`;
+                        return `In attesa che <strong>${actor}</strong> aggiunga le spese.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `In attesa che un amministratore aggiunga delle spese.`;
                 }
@@ -1692,12 +1730,12 @@ const translations: TranslationDeepObject<typeof en> = {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `In attesa che <strong>tu</strong> invii le note spese.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `In attesa che <strong>${actor}</strong> invii le note spese.`;
+                        return `In attesa che <strong>${actor}</strong> invii le spese.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `In attesa che un amministratore invii le spese.`;
                 }
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_: NextStepParams) => `Nessun’altra azione richiesta!`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_: NextStepParams) => `Nessuna ulteriore azione richiesta!`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
@@ -1711,7 +1749,7 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: ({actor, actorType, eta, etaType}: NextStepParams) => {
                 let formattedETA = '';
                 if (eta) {
-                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` il ${eta} di ogni mese` : ` ${eta}`;
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `il ${eta} di ogni mese` : ` ${eta}`;
                 }
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
@@ -1719,13 +1757,13 @@ const translations: TranslationDeepObject<typeof en> = {
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `In attesa che le spese di <strong>${actor}</strong> vengano inviate automaticamente${formattedETA}.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `In attesa che le note spese di un amministratore vengano inviate automaticamente${formattedETA}.`;
+                        return `In attesa che le spese di un amministratore vengano inviate automaticamente${formattedETA}.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES]: ({actor, actorType}: NextStepParams) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `In attesa che <strong>tu</strong> risolva i problemi.`;
+                        return `In attesa che <strong>tu</strong> sistemi i problemi.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `In attesa che <strong>${actor}</strong> risolva i problemi.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
@@ -1759,13 +1797,13 @@ const translations: TranslationDeepObject<typeof en> = {
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `In attesa che <strong>${actor}</strong> rimborsi le spese.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `In attesa che un amministratore rimborsi le spese.`;
+                        return `In attesa che un admin rimborsi le spese.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `In attesa che <strong>tu</strong> completi la configurazione di un conto bancario aziendale.`;
+                        return `In attesa che <strong>tu</strong> finisca di configurare un conto bancario aziendale.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `In attesa che <strong>${actor}</strong> completi la configurazione di un conto bancario aziendale.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
@@ -1775,12 +1813,22 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: ({eta, etaType}: NextStepParams) => {
                 let formattedETA = '';
                 if (eta) {
-                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? ` entro le ${eta}` : ` ${eta}`;
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `entro le ${eta}` : ` ${eta}`;
                 }
                 return `In attesa che il pagamento venga completato${formattedETA}.`;
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (_: NextStepParams) =>
-                `Ops! Sembra che tu stia inviando il report a <strong>te stessə</strong>. L’approvazione dei propri report è <strong>vietata</strong> nel tuo spazio di lavoro. Invia questo report a un’altra persona oppure contatta il tuo amministratore per cambiare la persona a cui lo invii.`,
+                `Ops! Sembra che tu stia inviando il report a <strong>te stessə</strong>. L'approvazione dei tuoi stessi report è <strong>vietata</strong> dal tuo spazio di lavoro. Invia questo report a qualcun altro oppure contatta il tuo amministratore per modificare la persona a cui invii i report.`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: ({actor, actorType}: NextStepParams) => {
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Questo report è stato rifiutato. In attesa che <strong>tu</strong> corregga i problemi e lo invii di nuovo manualmente.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Questo report è stato rifiutato. In attesa che <strong>${actor}</strong> risolva i problemi e lo invii di nuovo manualmente.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Questo report è stato rifiutato. In attesa che un amministratore risolva i problemi e lo invii di nuovo manualmente.`;
+                }
+            },
         },
         eta: {
             [CONST.NEXT_STEP.ETA_KEY.SHORTLY]: 'presto',
@@ -2911,13 +2959,8 @@ ${amount} per ${merchant} - ${date}`,
                         4. Trova ${integrationName}.
                         5. Fai clic su *Connetti*.
 
-${
-    integrationName && CONST.connectionsVideoPaths[integrationName]
-        ? `[Portami alla contabilità](${workspaceAccountingLink}).
-
-                        ![Connetti a ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
-        : `[Portami alla contabilità](${workspaceAccountingLink}).`
-}`),
+                        [Portami alla contabilità](${workspaceAccountingLink}).
+                    `),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `Collega [le tue carte aziendali](${corporateCardLink})`,
@@ -4040,6 +4083,7 @@ ${
             defaultNote: `Le ricevute inviate a ${CONST.EMAIL.RECEIPTS} verranno visualizzate in questo workspace.`,
             deleteConfirmation: 'Sei sicuro di voler eliminare questo spazio di lavoro?',
             deleteWithCardsConfirmation: 'Sei sicuro di voler eliminare questo spazio di lavoro? Questa azione rimuoverà tutti i feed delle carte e le carte assegnate.',
+            deleteOpenExpensifyCardsError: 'La tua azienda ha ancora carte Expensify attive.',
             outstandingBalanceWarning:
                 'Hai un saldo in sospeso che deve essere saldato prima di eliminare il tuo ultimo workspace. Vai alle impostazioni dell’abbonamento per risolvere il pagamento.',
             settleBalance: 'Vai all’abbonamento',
@@ -4986,6 +5030,9 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
         companyCards: {
             addCards: 'Aggiungi carte',
             selectCards: 'Seleziona carte',
+            fromOtherWorkspaces: 'Da altri spazi di lavoro',
+            addWorkEmail: 'Aggiungi la tua email di lavoro',
+            addWorkEmailDescription: 'Aggiungi la tua email di lavoro per utilizzare i feed esistenti di altri spazi di lavoro.',
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Impossibile caricare i feed della carta',
                 workspaceFeedsCouldNotBeLoadedMessage:
@@ -4996,6 +5043,11 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             },
             addNewCard: {
                 other: 'Altro',
+                fileImport: 'Importa transazioni da file',
+                createFileFeedHelpText: `<muted-text>Segui questa <a href="${CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}">guida di supporto</a> per importare le spese della carta aziendale!</muted-text>`,
+                companyCardLayoutName: 'Nome layout carta aziendale',
+                cardLayoutNameRequired: 'Il nome del layout della carta aziendale è obbligatorio',
+                useAdvancedFields: 'Usa i campi avanzati (non consigliato)',
                 cardProviders: {
                     gl1025: 'Carte Corporate American Express',
                     cdf: 'Carte Commerciali Mastercard',
@@ -5074,6 +5126,24 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                     prompt: 'Abbiamo notato che non hai finito di aggiungere le tue carte. Se hai riscontrato un problema, faccelo sapere così possiamo aiutarti a rimettere le cose in carreggiata.',
                     confirmText: 'Segnala problema',
                     cancelText: 'Salta',
+                },
+                csvColumns: {
+                    cardNumber: 'Numero di carta',
+                    postedDate: 'Data',
+                    merchant: 'Esercente',
+                    amount: 'Importo',
+                    currency: 'Valuta',
+                    ignore: 'Ignora',
+                    originalTransactionDate: 'Data originale della transazione',
+                    originalAmount: 'Importo originale',
+                    originalCurrency: 'Valuta originale',
+                    comment: 'Commento',
+                    category: 'Categoria',
+                    tag: 'Tag',
+                },
+                csvErrors: {
+                    requiredColumns: (missingColumns: string) => `Assegna una colonna a ciascuno degli attributi: ${missingColumns}.`,
+                    duplicateColumns: (duplicateColumn: string) => `Ops! Hai associato un singolo campo ("${duplicateColumn}") a più colonne. Controlla e riprova.`,
                 },
             },
             statementCloseDate: {
@@ -7167,6 +7237,17 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             approvedReimbursedClosedSpend,
         }: UpdatedPolicyBudgetNotificationParams) =>
             `Attenzione! Questo spazio di lavoro ha un budget ${budgetFrequency} di "${budgetAmount}" per il ${budgetTypeForNotificationMessage} "${budgetName}". Al momento sei a ${approvedReimbursedClosedSpend}, che supera il ${thresholdPercentage}% del budget. Ci sono anche ${awaitingApprovalSpend} in attesa di approvazione e ${unsubmittedSpend} non ancora inviati, per un totale di ${totalSpend}. ${summaryLink ? `<a href="${summaryLink}">Ecco un resoconto</a> con tutte quelle spese per i tuoi archivi!` : ''}`,
+        addedCardFeed: (feedName: string) => `ha aggiunto il feed della carta "${feedName}"`,
+        removedCardFeed: (feedName: string) => `ha rimosso il feed carta "${feedName}"`,
+        renamedCardFeed: (newName: string, oldName: string) => `ha rinominato il feed della carta in "${newName}" (precedentemente "${oldName}")`,
+        assignedCompanyCard: (email: string, feedName: string, cardLastFour: string) =>
+            `ha assegnato ${email} ${feedName ? `"${feedName}" ` : ''}carta aziendale terminante in ${cardLastFour}`,
+        unassignedCompanyCard: (email: string, feedName: string, cardLastFour: string) =>
+            `carta aziendale ${feedName ? `"${feedName}" ` : ''}non assegnata ${email} che termina con ${cardLastFour}`,
+        updatedCardFeedLiability: (feedName: string, enabled: boolean) =>
+            `${enabled ? 'abilitato' : 'disabilitato'} titolari di carta per eliminare le transazioni della carta per il flusso di carte "${feedName}"`,
+        updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
+            `ha modificato il giorno di fine periodo dell’estratto conto del flusso carta "${feedName}"${newValue ? ` a "${newValue}"` : ''}${previousValue ? ` (in precedenza "${previousValue}")` : ''}`,
         addedReportField: ({fieldType, fieldName, defaultValue}: AddedOrDeletedPolicyReportFieldParams) =>
             `aggiunto campo di report ${fieldType} "${fieldName}"${defaultValue ? ` con valore predefinito "${defaultValue}"` : ''}`,
     },
@@ -7313,6 +7394,9 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
         topMerchants: 'Commercianti principali',
         groupedExpenses: 'spese raggruppate',
         bulkActions: {
+            editMultiple: 'Modifica multipli',
+            editMultipleTitle: 'Modifica più spese',
+            editMultipleDescription: 'Le modifiche verranno applicate a tutte le spese selezionate e sostituiranno i valori precedentemente impostati.',
             approve: 'Approva',
             pay: 'Paga',
             delete: 'Elimina',
