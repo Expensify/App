@@ -115,7 +115,11 @@ function setSustainedFailures(active: boolean) {
         // missed Onyx updates. Without this, a backend outage recovery (where NetInfo
         // never transitions false→true) would leave the UI online but stale.
         // Duplicate reconnectApp() calls are safe — SQ deduplicates them.
-        notifyReconnectListeners();
+
+        // Jitter (0–5s) staggers reconnection across clients after a server-wide outage
+        // to avoid a stampede of ReconnectApp calls hitting the backend simultaneously.
+        const jitter = Math.floor(Math.random() * CONST.NETWORK.RECONNECT_STAMPEDE_JITTER_MS);
+        setTimeout(() => notifyReconnectListeners(), jitter);
     }
 }
 
@@ -310,4 +314,4 @@ function refresh() {
     NetInfo.refresh();
 }
 
-export {getIsOffline, getLastOfflineAt, subscribe, onReachabilityConfirmed, setHasRadio, setSustainedFailures, setForceOffline, getDBTimeWithSkew, refresh};
+export {getIsOffline, getLastOfflineAt, subscribe, onReachabilityConfirmed, setHasRadio, setSustainedFailures, setForceOffline, getDBTimeWithSkew, refresh, simulatePoorConnection};
