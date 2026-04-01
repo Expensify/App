@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Text from '@components/Text';
@@ -27,16 +27,12 @@ type AttendeesCellProps = {
 
 function AttendeesCell({attendees, isHovered, isPressed}: AttendeesCellProps) {
     const defaultAvatars = useDefaultAvatars();
-    const attendeeIcons: IconType[] = useMemo(
-        () =>
-            attendees.map((attendee) => ({
-                id: attendee.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                name: attendee.displayName ?? attendee.email,
-                source: (attendee.avatarUrl || getDefaultAvatar({accountID: attendee.accountID, accountEmail: attendee.email, defaultAvatars})) ?? '',
-                type: CONST.ICON_TYPE_AVATAR,
-            })),
-        [defaultAvatars, attendees],
-    );
+    const attendeeIcons: IconType[] = attendees.map((attendee) => ({
+        id: attendee.accountID ?? CONST.DEFAULT_NUMBER_ID,
+        name: attendee.displayName ?? attendee.email,
+        source: (attendee.avatarUrl || getDefaultAvatar({accountID: attendee.accountID, accountEmail: attendee.email, defaultAvatars})) ?? '',
+        type: CONST.ICON_TYPE_AVATAR,
+    }));
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -54,7 +50,7 @@ function AttendeesCell({attendees, isHovered, isPressed}: AttendeesCellProps) {
     const avatarContainerStyles = StyleUtils.combineStyles([styles.alignItemsCenter, styles.flexRow, StyleUtils.getHeight(height), styles.overflowHidden]);
 
     const icons = sortIconsByName(attendeeIcons, personalDetails, localeCompare);
-    const tooltipTexts = useMemo(() => icons.map((icon) => getUserDetailTooltipText(Number(icon.id), formatPhoneNumber, icon.name)), [icons, formatPhoneNumber]);
+    const tooltipTexts = icons.map((icon) => getUserDetailTooltipText(Number(icon.id), formatPhoneNumber, icon.name));
 
     return (
         <View
