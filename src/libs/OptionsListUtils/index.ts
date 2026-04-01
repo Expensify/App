@@ -10,6 +10,7 @@ import FallbackAvatar from '@assets/images/avatars/fallback-avatar.svg';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
 import {getEnabledCategoriesCount} from '@libs/CategoryUtils';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import filterArrayByMatch from '@libs/filterArrayByMatch';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
@@ -109,6 +110,7 @@ import {
     isTaskAction,
     isThreadParentMessage,
     isUnapprovedAction,
+    shouldReportActionBeVisible,
     withDEWRoutedActionsArray,
 } from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
@@ -566,6 +568,34 @@ function hasHiddenDisplayNames(accountIDs: number[]) {
     return getPersonalDetailsByIDs({accountIDs, currentUserAccountID: 0}).some((personalDetail) => !getDisplayNameOrDefault(personalDetail, undefined, false));
 }
 
+function getCanonicalMoneyRequestPreviewText(
+    translate: LocalizedTranslate,
+    report: OnyxEntry<Report>,
+    reportID: string,
+    lastReportAction: OnyxEntry<ReportAction>,
+    isReportArchived: boolean,
+): string {
+    const canUserPerformWrite = canUserPerformWriteAction(report, isReportArchived);
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const latestMoneyRequestAction = deprecatedAllSortedReportActions[reportID]?.find(
+        (reportAction, key): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
+            shouldReportActionBeVisible(reportAction, key, canUserPerformWrite) &&
+            reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+            isMoneyRequestAction(reportAction),
+    );
+    const latestMoneyRequestOriginalMessage = latestMoneyRequestAction ? getOriginalMessage(latestMoneyRequestAction) : undefined;
+    const latestMoneyRequestAmount = latestMoneyRequestOriginalMessage?.amount;
+    const latestMoneyRequestCurrency = latestMoneyRequestOriginalMessage?.currency ?? report?.currency;
+    const latestMoneyRequestComment = Parser.htmlToText(latestMoneyRequestOriginalMessage?.comment ?? '').trim();
+
+    if (isExpenseReport(report) && typeof latestMoneyRequestAmount === 'number' && latestMoneyRequestCurrency) {
+        const formattedAmount = convertToDisplayString(Math.abs(latestMoneyRequestAmount), latestMoneyRequestCurrency);
+        return formatReportLastMessageText(translate('iou.lhnExpenseAmount', formattedAmount, latestMoneyRequestComment || undefined));
+    }
+
+    return formatReportLastMessageText(Parser.htmlToText(getReportPreviewMessage(report, latestMoneyRequestAction ?? lastReportAction, true, false, null, true)));
+}
+
 function getLastActorDisplayNameFromLastVisibleActions(
     report: OnyxEntry<Report>,
     lastActorDetails: Partial<PersonalDetails> | null,
@@ -953,7 +983,7 @@ function getLastMessageTextForReport({
         if (scanningTransactions.length > 0) {
             lastMessageTextFromReport = translate('iou.receiptScanning', {count: scanningTransactions.length});
         } else if (report?.transactionCount && report?.transactionCount > 0 && report?.currency) {
-            lastMessageTextFromReport = lastVisibleMessage?.lastMessageText;
+            lastMessageTextFromReport = getCanonicalMoneyRequestPreviewText(translate, report, reportID, lastReportAction, isReportArchived) || lastVisibleMessage?.lastMessageText;
         } else if (report?.transactionCount === 0) {
             lastMessageTextFromReport = translate('report.noActivityYet');
         }
