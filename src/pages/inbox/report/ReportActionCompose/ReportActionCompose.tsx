@@ -9,10 +9,8 @@ import {useSharedValue} from 'react-native-reanimated';
 import {scheduleOnUI} from 'react-native-worklets';
 import type {Emoji} from '@assets/emojis/types';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
-import ExceededCommentLength from '@components/ExceededCommentLength';
 import ImportedStateIndicator from '@components/ImportedStateIndicator';
 import type {Mention} from '@components/MentionSuggestions';
-import OfflineIndicator from '@components/OfflineIndicator';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useAncestors from '@hooks/useAncestors';
@@ -55,12 +53,10 @@ import {
 import {
     canEditFieldOfMoneyRequest,
     canEditReportAction,
-    canShowReportRecipientLocalTime,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     chatIncludesChronos,
     chatIncludesConcierge,
     getReportOfflinePendingActionAndErrors,
-    getReportRecipientAccountIDs,
     isReportTransactionThread,
 } from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
@@ -68,7 +64,6 @@ import {getTransactionID} from '@libs/TransactionUtils';
 import {generateAccountID} from '@libs/UserUtils';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import {useAgentZeroStatusActions} from '@pages/inbox/AgentZeroStatusContext';
-import ParticipantLocalTime from '@pages/inbox/report/ParticipantLocalTime';
 import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 import {hideEmojiPicker, isActive as isActiveEmojiPickerAction, isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
 import {addAttachmentWithComment, setIsComposerFullSize} from '@userActions/Report';
@@ -78,10 +73,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import AgentZeroAwareTypingIndicator from './AgentZeroAwareTypingIndicator';
 import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
 import ComposerDropZone from './ComposerDropZone';
+import ComposerFooter from './ComposerFooter';
+import ComposerLocalTime from './ComposerLocalTime';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
 import type {ComposerRef} from './ComposerWithSuggestions/ComposerWithSuggestions';
 import SendButton from './SendButton';
@@ -112,7 +107,7 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth, isMediumScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
     const {isOffline} = useNetwork();
     const isInSidePanel = useIsInSidePanel();
     const {kickoffWaitingIndicator} = useAgentZeroStatusActions();
@@ -212,8 +207,6 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
     const reportParticipantIDs = Object.keys(report?.participants ?? {})
         .map(Number)
         .filter((accountID) => accountID !== currentUserPersonalDetails.accountID);
-
-    const shouldShowReportRecipientLocalTime = canShowReportRecipientLocalTime(personalDetails, report, currentUserPersonalDetails.accountID) && !isComposerFullSize;
 
     const includesConcierge = chatIncludesConcierge({participants: report?.participants});
     const userBlockedFromConcierge = isBlockedFromConciergeUserAction(blockedFromConcierge);
@@ -433,11 +426,7 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
 
     // When we invite someone to a room they don't have the policy object, but we still want them to be able to mention other reports they are members of, so we only check if the policyID in the report is from a workspace
     const isGroupPolicyReport = !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE;
-    const reportRecipientAccountIDs = getReportRecipientAccountIDs(report, currentUserPersonalDetails.accountID);
-    const reportRecipient = personalDetails?.[reportRecipientAccountIDs[0]];
     const shouldUseFocusedColor = !isBlockedFromConcierge && isFocused;
-
-    const hasReportRecipient = !isEmptyObject(reportRecipient);
 
     const isSendDisabled = isCommentEmpty || isBlockedFromConcierge || !!exceededMaxLength;
 
@@ -512,10 +501,12 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
     const fsClass = FS.getChatFSClass(report);
 
     return (
-        <View style={[shouldShowReportRecipientLocalTime && !isOffline && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}>
-            <OfflineWithFeedback pendingAction={pendingAction}>
-                {shouldShowReportRecipientLocalTime && hasReportRecipient && <ParticipantLocalTime participant={reportRecipient} />}
-            </OfflineWithFeedback>
+        <View style={[styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}>
+            <ComposerLocalTime
+                reportID={reportID}
+                pendingAction={pendingAction}
+                isComposerFullSize={isComposerFullSize}
+            />
             <View style={isComposerFullSize ? styles.flex1 : {}}>
                 <OfflineWithFeedback
                     shouldDisableOpacity
@@ -621,23 +612,12 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
                         />
                     </View>
                     {ErrorModal}
-                    <View
-                        style={[
-                            styles.flexRow,
-                            styles.justifyContentBetween,
-                            styles.alignItemsCenter,
-                            (!isSmallScreenWidth || (isSmallScreenWidth && !isOffline)) && styles.chatItemComposeSecondaryRow,
-                        ]}
-                    >
-                        {!shouldUseNarrowLayout && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
-                        <AgentZeroAwareTypingIndicator reportID={reportID} />
-                        {!!exceededMaxLength && (
-                            <ExceededCommentLength
-                                maxCommentLength={exceededMaxLength}
-                                isTaskTitle={hasExceededMaxTaskTitleLength}
-                            />
-                        )}
-                    </View>
+                    <ComposerFooter
+                        reportID={reportID}
+                        exceededMaxLength={exceededMaxLength}
+                        hasExceededMaxTaskTitleLength={hasExceededMaxTaskTitleLength}
+                        isOffline={isOffline}
+                    />
                 </OfflineWithFeedback>
                 {!isSmallScreenWidth && (
                     <View style={[styles.mln5, styles.mrn5]}>
