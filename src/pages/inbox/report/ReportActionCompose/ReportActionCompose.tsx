@@ -133,7 +133,6 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
     const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
-    const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE);
     const [shouldShowComposeInput = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const {availableLoginsList} = useShortMentionsList();
@@ -176,7 +175,6 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [initialModalState] = useOnyx(ONYXKEYS.MODAL);
-    const [newParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
 
@@ -525,17 +523,13 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
     };
 
     const {validateAttachments, onReceiptDropped, PDFValidationComponent, ErrorModal} = useAttachmentUploadValidation({
-        policy,
         reportID,
+        report,
         addAttachment,
         onAttachmentPreviewClose,
         exceededMaxLength,
         shouldAddOrReplaceReceipt,
         transactionID,
-        report,
-        newParentReport,
-        currentDate,
-        currentUserPersonalDetails,
         isAttachmentPreviewActive,
         setIsAttachmentPreviewActive,
     });
