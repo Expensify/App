@@ -141,6 +141,9 @@ function getPersonalDetailsByIDs({
 }
 
 function getPersonalDetailByEmail(email: string): PersonalDetails | undefined {
+    if (!email) {
+        return undefined;
+    }
     return emailToPersonalDetailsCache[email.toLowerCase()];
 }
 
