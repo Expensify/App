@@ -293,7 +293,7 @@ describe('NativeBiometricsHSM helpers', () => {
             // When building signing data
             // Then signCount bytes (indices 33-36) should all be zero as we don't track sign counts
             const result = await buildSigningData(rpId, challenge);
-            expect(result.authenticatorData.slice(33, 37)).toEqual(Buffer.alloc(4));
+            expect(result.authenticatorData.subarray(33, 37)).toEqual(Buffer.alloc(4));
         });
 
         it('should embed rpIdHash as the first 32 bytes of authenticatorData', async () => {
@@ -301,7 +301,7 @@ describe('NativeBiometricsHSM helpers', () => {
             // When building signing data
             // Then the first 32 bytes of authenticatorData should match the sha256 of rpId
             const result = await buildSigningData(rpId, challenge);
-            expect(result.authenticatorData.slice(0, 32)).toEqual(Buffer.alloc(32, 0xaa));
+            expect(result.authenticatorData.subarray(0, 32)).toEqual(Buffer.alloc(32, 0xaa));
         });
 
         it('should return clientDataJSON as stringified JSON containing the challenge', async () => {
