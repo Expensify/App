@@ -6622,7 +6622,7 @@ ${amount} para ${merchant} - ${date}`,
             },
             spendRules: {
                 title: 'Gastos',
-                subtitle: 'Apruebe o rechace transacciones de la tarjeta Expensify en tiempo real.',
+                subtitle: 'Aprueba o rechaza transacciones de la tarjeta Expensify en tiempo real.',
                 defaultRuleDescription: 'Todas las tarjetas',
                 block: 'Bloquear',
                 defaultRuleTitle: 'Categorías: Servicios para adultos, cajeros automáticos, juegos de azar, transferencias de dinero',
