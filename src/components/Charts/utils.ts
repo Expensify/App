@@ -1,4 +1,4 @@
-import {FontWeight, Skia} from '@shopify/react-native-skia';
+import {FontStyle, FontWeight, Skia} from '@shopify/react-native-skia';
 import type {SkParagraph, SkTypefaceFontProvider} from '@shopify/react-native-skia';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
@@ -90,6 +90,34 @@ function getAdditionalOffset(angleRad: number): number {
     }
     return variables.iconSizeExtraSmall / 3;
 }
+/**
+ * Checks whether every character in `text` can be rendered by at least one font
+ * in the chart font chain (CHART_FONT_FAMILIES).
+ *
+ * For each character, iterates through each registered font family and calls
+ * `Typeface.getGlyphIDs()`. A glyph ID of 0 means the font has no glyph for
+ * that code point. If at least one font in the chain returns a non-zero
+ * ID for every character, the text is considered fully renderable.
+ *
+ * Returns `true` when `text` is empty/nullish (nothing to render).
+ */
+function canFontRenderText(text: string | undefined, fontMgr: SkTypefaceFontProvider): boolean {
+    if (!text) {
+        return true;
+    }
+
+    const typefaces = CHART_FONT_FAMILIES.map((family) => fontMgr.matchFamilyStyle(family, FontStyle.Normal));
+
+    for (const char of text) {
+        const isRenderable = typefaces.some((typeface) => typeface?.getGlyphIDs(char).some((id) => id !== 0));
+        if (!isRenderable) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 /**
  * Measures the rendered pixel width of a string using the Paragraph API.
  * Supports multi-font fallback via fontMgr (e.g. NotoSansSymbols for currency glyphs).
@@ -438,6 +466,7 @@ export {
     getChartColor,
     DEFAULT_CHART_COLOR,
     buildChartParagraph,
+    canFontRenderText,
     getAdditionalOffset,
     measureTextWidth,
     getFontLineMetrics,
