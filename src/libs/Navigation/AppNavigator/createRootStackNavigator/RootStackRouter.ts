@@ -64,6 +64,12 @@ function isPreloadAction(action: RootStackNavigatorAction): action is PreloadAct
     return action.type === CONST.NAVIGATION.ACTION_TYPE.PRELOAD;
 }
 
+const MODAL_GUARD_REDIRECT_TARGETS = new Set([NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR, NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR]);
+
+function isModalGuardRedirectTarget(name: string) {
+    return MODAL_GUARD_REDIRECT_TARGETS.has(name);
+}
+
 /**
  * Evaluates navigation guards and handles BLOCK/REDIRECT results
  *
@@ -94,9 +100,24 @@ function handleNavigationGuards(
             return null;
         }
 
+        // When a guard redirects to a modal route (e.g. onboarding, migrated user modal),
+        // merge the redirect routes with the existing state to preserve base app routes underneath.
+        // Without this, a RESET would wipe out base routes like ReportsSplitNavigator, leaving an empty background.
+        // For non-modal redirects (e.g. HOME), do a full replace as before.
+        const isModalRedirect = redirectState.routes.some((route) => isModalGuardRedirectTarget(route.name));
+
+        let routes;
+        if (isModalRedirect) {
+            const existingRouteNames = new Set(state.routes.map((route) => route.name));
+            const newRoutes = redirectState.routes.filter((route) => !existingRouteNames.has(route.name));
+            routes = [...state.routes, ...newRoutes];
+        } else {
+            routes = redirectState.routes;
+        }
+
         const resetAction = CommonActions.reset({
-            index: redirectState.index ?? redirectState.routes.length - 1,
-            routes: redirectState.routes,
+            index: routes.length - 1,
+            routes,
         });
 
         return stackRouter.getStateForAction(state, resetAction, configOptions);
