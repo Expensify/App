@@ -323,8 +323,8 @@ function ExpenseReportListItemRow({
     }
 
     return (
-        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, containerStyle]}>
-            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pr2]}>
+        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3, containerStyle]}>
+            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                 {!!canSelectMultiple && (
                     <Checkbox
                         onPress={onCheckboxPress}
@@ -354,15 +354,13 @@ function ExpenseReportListItemRow({
                     return <Fragment key={column}>{CellComponent}</Fragment>;
                 })}
             </View>
-            <View style={styles.ml2}>
-                <Icon
-                    src={expensifyIcons.ArrowRight}
-                    width={variables.iconSizeNormal}
-                    height={variables.iconSizeNormal}
-                    fill={theme.icon}
-                    additionalStyles={!isHovered && styles.opacitySemiTransparent}
-                />
-            </View>
+            <Icon
+                src={expensifyIcons.ArrowRight}
+                width={variables.iconSizeNormal}
+                height={variables.iconSizeNormal}
+                fill={theme.icon}
+                additionalStyles={!isHovered && styles.opacitySemiTransparent}
+            />
         </View>
     );
 }
