@@ -92,7 +92,7 @@ function IOURequestStepOdometerImage({
     };
 
     const handleImageSelected = (file: FileObject) => {
-        setMoneyRequestOdometerImage(transactionID, imageType, file as File, isTransactionDraft, isEditingConfirmation !== 'true');
+        setMoneyRequestOdometerImage(transaction, imageType, file as File, isTransactionDraft, isEditingConfirmation !== 'true');
         shouldRevokeOnUnmountRef.current = false;
         navigateBack();
     };
@@ -234,7 +234,7 @@ function IOURequestStepOdometerImage({
                 if (source !== imageObject.source) {
                     URL.revokeObjectURL(imageObject.source);
                 }
-                setMoneyRequestOdometerImage(transactionID, imageType, file ?? source, isTransactionDraft, isEditingConfirmation !== 'true');
+                setMoneyRequestOdometerImage(transaction, imageType, file ?? source, isTransactionDraft, isEditingConfirmation !== 'true');
                 navigateBack();
             })
             .catch((error: unknown) => {

@@ -68,6 +68,7 @@ function IOURequestStepOdometerImage({
     route: {
         params: {action, iouType, transactionID, reportID, backToReport, imageType, isEditingConfirmation},
     },
+    transaction,
 }: IOURequestStepOdometerImageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -187,7 +188,7 @@ function IOURequestStepOdometerImage({
         if (!file) {
             return;
         }
-        setMoneyRequestOdometerImage(transactionID, imageType, getOdometerImageUri(file), isTransactionDraft, false);
+        setMoneyRequestOdometerImage(transaction, imageType, getOdometerImageUri(file), isTransactionDraft, false);
         navigateBack();
     };
 
@@ -242,7 +243,7 @@ function IOURequestStepOdometerImage({
                         cropImageToAspectRatio(imageObject, viewfinderLayout.current?.width, viewfinderLayout.current?.height, undefined, photo.orientation)
                             .then(({file, filename, source}) => {
                                 setMoneyRequestOdometerImage(
-                                    transactionID,
+                                    transaction,
                                     imageType,
                                     {
                                         uri: source,
