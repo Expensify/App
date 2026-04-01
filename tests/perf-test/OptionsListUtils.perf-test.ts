@@ -95,7 +95,7 @@ jest.mock('@react-navigation/native', () => {
 });
 
 const EMPTY_PRIVATE_IS_ARCHIVED_MAP: PrivateIsArchivedMap = {};
-const options = createOptionList(personalDetails, MOCK_CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, reports, undefined);
+const options = createOptionList(personalDetails, EMPTY_PRIVATE_IS_ARCHIVED_MAP, reports, undefined);
 
 const ValidOptionsConfig = {
     betas: mockedBetas,
@@ -275,7 +275,7 @@ describe('OptionsListUtils', () => {
     test('[OptionsListUtils] createFilteredOptionList', async () => {
         await waitForBatchedUpdates();
         await measureFunction(() =>
-            createFilteredOptionList(personalDetails, mockedReportsMap, MOCK_CURRENT_USER_ACCOUNT_ID, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
+            createFilteredOptionList(personalDetails, mockedReportsMap, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
                 maxRecentReports: 500,
                 searchTerm: '',
             }),
@@ -285,7 +285,7 @@ describe('OptionsListUtils', () => {
     test('[OptionsListUtils] createFilteredOptionList with searchTerm', async () => {
         await waitForBatchedUpdates();
         await measureFunction(() =>
-            createFilteredOptionList(personalDetails, mockedReportsMap, MOCK_CURRENT_USER_ACCOUNT_ID, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
+            createFilteredOptionList(personalDetails, mockedReportsMap, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
                 maxRecentReports: 500,
                 searchTerm: SEARCH_VALUE,
             }),
@@ -294,7 +294,7 @@ describe('OptionsListUtils', () => {
 
     test('[OptionsListUtils] getSearchOptions with searchTerm', async () => {
         await waitForBatchedUpdates();
-        const optionLists = createFilteredOptionList(personalDetails, mockedReportsMap, MOCK_CURRENT_USER_ACCOUNT_ID, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
+        const optionLists = createFilteredOptionList(personalDetails, mockedReportsMap, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
             maxRecentReports: 500,
             searchTerm: SEARCH_VALUE,
         });
