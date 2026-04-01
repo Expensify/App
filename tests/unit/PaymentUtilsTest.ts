@@ -224,12 +224,12 @@ describe('PaymentUtils', () => {
             expect(mockOnPress).toHaveBeenCalledWith({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE});
         });
 
-        it('should pass amountOwed and ownerBillingGracePeriodEnd to shouldRestrictUserBillableActions', () => {
+        it('should pass amountOwed, ownerBillingGracePeriodEnd and policy to shouldRestrictUserBillableActions', () => {
             const params = {...baseParams, amountOwed: 42, ownerBillingGracePeriodEnd: 999};
 
             selectPaymentType(params);
 
-            expect(mockShouldRestrict).toHaveBeenCalledWith(testPolicyID, 999, params.userBillingGracePeriodEnds, 42);
+            expect(mockShouldRestrict).toHaveBeenCalledWith(testPolicyID, 999, params.userBillingGracePeriodEnds, 42, testPolicy);
         });
 
         it('should trigger KYC flow for EXPENSIFY payment type when user is validated', () => {
@@ -325,7 +325,7 @@ describe('PaymentUtils', () => {
 
             selectPaymentType(params);
 
-            expect(mockShouldRestrict).toHaveBeenCalledWith(testPolicyID, params.userBillingGracePeriodEnds, undefined, undefined);
+            expect(mockShouldRestrict).toHaveBeenCalledWith(testPolicyID, undefined, params.userBillingGracePeriodEnds, undefined, testPolicy);
         });
     });
 
