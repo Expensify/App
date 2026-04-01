@@ -63,7 +63,7 @@ function InteractiveStepSubHeader({stepNames, startStepIndex = 0, onStepSelected
         }),
         [],
     );
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
 
     const amountOfUnions = stepNames.length - 1;
 

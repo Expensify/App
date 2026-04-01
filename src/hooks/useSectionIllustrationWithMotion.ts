@@ -13,7 +13,7 @@ function useSectionIllustrationWithMotion(
     animationIllustrationStyle?: StyleProp<ViewStyle>,
 ): Pick<SectionProps, 'illustration' | 'illustrationStyle'> {
     const isReduceMotionEnabled = Accessibility.useReducedMotion();
-    const illustrations = useMemoizedLazyIllustrations([illustrationKey] as const);
+    const illustrations = useMemoizedLazyIllustrations([illustrationKey]);
 
     if (isReduceMotionEnabled) {
         return {

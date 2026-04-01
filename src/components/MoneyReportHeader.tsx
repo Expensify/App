@@ -13,6 +13,7 @@ import type {ValueOf} from 'type-fest';
 import useActiveAdminPolicies from '@hooks/useActiveAdminPolicies';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useConfirmPendingRTERAndProceed from '@hooks/useConfirmPendingRTERAndProceed';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
@@ -235,8 +236,8 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
     const personalDetails = usePersonalDetails();
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const activePolicyExpenseChat = getPolicyExpenseChat(accountID, defaultExpensePolicy?.id);
-    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
-    const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID}`);
     const {isOffline} = useNetwork();
     const allReportTransactions = useReportTransactionsCollection(reportIDProp);
@@ -261,6 +262,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`);
     const personalPolicy = usePersonalPolicy();
+    const {getCurrencyDecimals} = useCurrencyListActions();
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Building',
@@ -302,7 +304,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         'ReportCopy',
         'Printer',
         'DocumentMerge',
-    ] as const);
+    ]);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${moneyRequestReport?.reportID}`);
     const [transactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
@@ -755,9 +757,9 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                     policy,
                     betas,
                     isSelfTourViewed,
-                    userBillingGraceEndPeriods,
+                    userBillingGracePeriodEnds,
                     amountOwed,
-                    ownerBillingGraceEndPeriod,
+                    ownerBillingGracePeriodEnd,
                     methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
                     onPaid: () => {
                         if (isFromSelectionMode) {
@@ -803,10 +805,10 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
             currentSearchResults?.search?.isLoading,
             betas,
             isSelfTourViewed,
-            userBillingGraceEndPeriods,
+            userBillingGracePeriodEnds,
             clearSelectedTransactions,
             amountOwed,
-            ownerBillingGraceEndPeriod,
+            ownerBillingGracePeriodEnd,
         ],
     );
 
@@ -837,9 +839,9 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                     isASAPSubmitBetaEnabled,
                     expenseReportCurrentNextStepDeprecated: nextStep,
                     betas,
-                    userBillingGraceEndPeriods,
+                    userBillingGracePeriodEnds,
                     amountOwed,
-                    ownerBillingGraceEndPeriod,
+                    ownerBillingGracePeriodEnd,
                     full: true,
                     onApproved: () => {
                         if (skipAnimation) {
@@ -866,10 +868,10 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
             isASAPSubmitBetaEnabled,
             nextStep,
             betas,
-            userBillingGraceEndPeriods,
+            userBillingGracePeriodEnds,
             amountOwed,
             clearSelectedTransactions,
-            ownerBillingGraceEndPeriod,
+            ownerBillingGracePeriodEnd,
         ],
     );
 
@@ -894,7 +896,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                     hasViolations,
                     isASAPSubmitBetaEnabled,
                     expenseReportCurrentNextStepDeprecated: nextStep,
-                    userBillingGraceEndPeriods,
+                    userBillingGracePeriodEnds,
                     amountOwed,
                     onSubmitted: () => {
                         if (skipAnimation) {
@@ -902,7 +904,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                         }
                         startSubmittingAnimation();
                     },
-                    ownerBillingGraceEndPeriod,
+                    ownerBillingGracePeriodEnd,
                 });
                 if (currentSearchQueryJSON && !isOffline) {
                     search({
@@ -930,7 +932,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
             hasViolations,
             isASAPSubmitBetaEnabled,
             nextStep,
-            userBillingGraceEndPeriods,
+            userBillingGracePeriodEnds,
             amountOwed,
             currentSearchQueryJSON,
             isOffline,
@@ -939,7 +941,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
             currentSearchResults?.search?.isLoading,
             clearSelectedTransactions,
             confirmPendingRTERAndProceed,
-            ownerBillingGraceEndPeriod,
+            ownerBillingGracePeriodEnd,
         ],
     );
 
@@ -1130,7 +1132,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         setIsHoldEducationalModalVisible(false);
         setNameValuePair(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, true, false, !shouldFailAllRequests);
         if (requestParentReportAction) {
-            changeMoneyRequestHoldStatus(requestParentReportAction, transaction);
+            changeMoneyRequestHoldStatus(requestParentReportAction, transaction, isOffline);
         }
     };
 
@@ -1138,7 +1140,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD) {
             dismissRejectUseExplanation();
             if (requestParentReportAction) {
-                changeMoneyRequestHoldStatus(requestParentReportAction, transaction);
+                changeMoneyRequestHoldStatus(requestParentReportAction, transaction, isOffline);
             }
         } else if (rejectModalAction === CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK) {
             dismissRejectUseExplanation();
@@ -1279,13 +1281,13 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                 icons: expensifyIcons,
                 iouReportID: moneyRequestReport?.reportID,
                 policy,
-                userBillingGraceEndPeriods,
+                userBillingGracePeriodEnds,
                 draftTransactionIDs,
                 amountOwed,
-                ownerBillingGraceEndPeriod,
+                ownerBillingGracePeriodEnd,
                 lastDistanceExpenseType,
             }),
-        [moneyRequestReport?.reportID, policy, userBillingGraceEndPeriods, amountOwed, lastDistanceExpenseType, expensifyIcons, translate, ownerBillingGraceEndPeriod, draftTransactionIDs],
+        [moneyRequestReport?.reportID, policy, userBillingGracePeriodEnds, amountOwed, lastDistanceExpenseType, expensifyIcons, translate, ownerBillingGracePeriodEnd, draftTransactionIDs],
     );
 
     const exportSubmenuOptions: Record<string, DropdownOption<string>> = useMemo(() => {
@@ -1462,7 +1464,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
 
                     if (IOUActions.length) {
                         for (const action of IOUActions) {
-                            changeMoneyRequestHoldStatus(action, getLinkedIOUTransaction(action, transactions));
+                            changeMoneyRequestHoldStatus(action, getLinkedIOUTransaction(action, transactions), isOffline);
                         }
                         return;
                     }
@@ -1471,7 +1473,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                     if (!moneyRequestAction) {
                         return;
                     }
-                    changeMoneyRequestHoldStatus(moneyRequestAction, getLinkedIOUTransaction(moneyRequestAction, transactions));
+                    changeMoneyRequestHoldStatus(moneyRequestAction, getLinkedIOUTransaction(moneyRequestAction, transactions), isOffline);
                 }}
             />
         ),
@@ -1749,9 +1751,9 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                         hasViolations,
                         isASAPSubmitBetaEnabled,
                         expenseReportCurrentNextStepDeprecated: nextStep,
-                        userBillingGraceEndPeriods,
+                        userBillingGracePeriodEnds,
                         amountOwed,
-                        ownerBillingGraceEndPeriod,
+                        ownerBillingGracePeriodEnd,
                     });
                 });
             },
@@ -1831,7 +1833,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                 const isDismissed = isReportSubmitter ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
 
                 if (isDismissed || isChatReportDM) {
-                    changeMoneyRequestHoldStatus(requestParentReportAction, transaction);
+                    changeMoneyRequestHoldStatus(requestParentReportAction, transaction, isOffline);
                 } else if (isReportSubmitter) {
                     setIsHoldEducationalModalVisible(true);
                 } else {
@@ -1854,7 +1856,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                     return;
                 }
 
-                changeMoneyRequestHoldStatus(requestParentReportAction, transaction);
+                changeMoneyRequestHoldStatus(requestParentReportAction, transaction, isOffline);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.SPLIT]: {
@@ -1880,7 +1882,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                     return;
                 }
 
-                setupMergeTransactionDataAndNavigate(currentTransaction.transactionID, [currentTransaction], localeCompare);
+                setupMergeTransactionDataAndNavigate(currentTransaction.transactionID, [currentTransaction], localeCompare, getCurrencyDecimals);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE]: {
@@ -2171,7 +2173,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                 if (!moneyRequestReport?.reportID) {
                     return;
                 }
-                if (policy && shouldRestrictUserBillableActions(policy.id, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods)) {
+                if (policy && shouldRestrictUserBillableActions(policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
@@ -2352,9 +2354,9 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                 iouReport: moneyRequestReport,
                 iouReportNextStep: nextStep,
                 betas,
-                userBillingGraceEndPeriods,
+                userBillingGracePeriodEnds,
                 amountOwed,
-                ownerBillingGraceEndPeriod,
+                ownerBillingGracePeriodEnd,
             });
         },
         [
@@ -2370,9 +2372,9 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
             moneyRequestReport,
             nextStep,
             betas,
-            userBillingGraceEndPeriods,
+            userBillingGracePeriodEnds,
             amountOwed,
-            ownerBillingGraceEndPeriod,
+            ownerBillingGracePeriodEnd,
         ],
     );
 
