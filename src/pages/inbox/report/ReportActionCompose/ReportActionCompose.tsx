@@ -180,7 +180,7 @@ function Composer({reportID}: ReportActionComposeProps) {
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
     const allReportTransactions = useReportTransactionsCollection(reportID);
     const reportTransactions = getAllNonDeletedTransactions(allReportTransactions, filteredReportActions, isOffline, true);
-    const visibleTransactions = reportTransactions?.filter((transaction) => isOffline || transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const visibleTransactions = isOffline ? reportTransactions : reportTransactions?.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const reportTransactionIDs = visibleTransactions?.map((t) => t.transactionID);
     const isSentMoneyReport = filteredReportActions.some((action) => isSentMoneyReportAction(action));
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, filteredReportActions, isOffline, reportTransactionIDs);

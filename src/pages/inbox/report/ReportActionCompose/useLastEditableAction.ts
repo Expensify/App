@@ -27,7 +27,7 @@ function useLastEditableAction(reportID: string): OnyxEntry<ReportAction> {
 
     const allReportTransactions = useReportTransactionsCollection(reportID);
     const reportTransactions = getAllNonDeletedTransactions(allReportTransactions, filteredReportActions, isOffline, true);
-    const visibleTransactions = reportTransactions?.filter((transaction) => isOffline || transaction.pendingAction !== 'delete');
+    const visibleTransactions = isOffline ? reportTransactions : reportTransactions?.filter((transaction) => transaction.pendingAction !== 'delete');
     const reportTransactionIDs = visibleTransactions?.map((t) => t.transactionID);
 
     const isSentMoneyReport = filteredReportActions.some((action) => isSentMoneyReportAction(action));
