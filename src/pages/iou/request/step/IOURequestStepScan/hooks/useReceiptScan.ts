@@ -66,7 +66,8 @@ function useReceiptScan({
     const selfDMReport = useSelfDMReport();
     const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
@@ -158,7 +159,8 @@ function useReceiptScan({
             participants,
             participantsPolicyTags,
             amountOwed,
-            ownerBillingGraceEndPeriod,
+            userBillingGracePeriodEnds,
+            ownerBillingGracePeriodEnd,
         });
     }
 

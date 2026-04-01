@@ -332,28 +332,12 @@ function buildOptimisticNextStepForPreventSelfApprovalsEnabled() {
     return optimisticNextStep;
 }
 
-function buildOptimisticFixIssueNextStep() {
-    const optimisticNextStep: ReportNextStepDeprecated = {
-        type: 'neutral',
+function buildOptimisticFixIssueNextStep(ownerAccountID: number): ReportNextStep {
+    return {
+        messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES,
         icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-        message: [
-            {
-                text: 'Waiting for ',
-            },
-            {
-                text: `you`,
-                type: 'strong',
-            },
-            {
-                text: ' to ',
-            },
-            {
-                text: 'fix the issue(s)',
-            },
-        ],
+        actorAccountID: ownerAccountID,
     };
-
-    return optimisticNextStep;
 }
 
 function buildOptimisticNextStepForStrictPolicyRuleViolations() {
@@ -386,7 +370,8 @@ function getReportNextStep(
             (transaction) => !!transaction && hasSubmissionBlockingViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, moneyRequestReport, policy),
         )
     ) {
-        return buildOptimisticFixIssueNextStep();
+        // eslint-disable-next-line rulesdir/no-default-id-values -- actorAccountID can be -1 for unspecified owner
+        return buildOptimisticFixIssueNextStep(moneyRequestReport?.ownerAccountID ?? -1);
     }
 
     // When prevent self-approval is enabled & the current user is submitter AND they're submitting to themselves, we need to show the optimistic next step
