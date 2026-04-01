@@ -56,6 +56,7 @@ function HelpPage() {
             onPress: () => openExternalLink(CONST.NEWHELP_URL),
             shouldShowRightIcon: true,
             wrapperStyle: [styles.sectionMenuItemTopDescription],
+            link: CONST.NEWHELP_URL,
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.HELP_DOCS,
         },
     ];
