@@ -239,6 +239,7 @@ function Search({
     const cachedOptimisticItemIndexRef = useRef(0);
     const optimisticTrackingCleanedUpRef = useRef(false);
     const rollbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+    const [isOptimisticTrackingCleared, setIsOptimisticTrackingCleared] = useState(false);
 
     const clearOptimisticTracking = useCallback(() => {
         if (optimisticTrackingCleanedUpRef.current) {
@@ -248,6 +249,7 @@ function Search({
         cachedOptimisticItemRef.current = null;
         optimisticWatchKeyRef.current = undefined;
         setShowPendingExpensePlaceholder(false);
+        setIsOptimisticTrackingCleared(true);
     }, []);
 
     // Safety timeout: if the optimistic lifecycle hasn't resolved within 10s
@@ -1275,7 +1277,7 @@ function Search({
     // When sortedData later changes (item removed by snapshot), the preceding tracking
     // effect has already populated the ref, so the memo picks up the cached value.
     const stableSortedData = useMemo(() => {
-        if (!cachedOptimisticItemRef.current || !optimisticWatchKeyRef.current) {
+        if (isOptimisticTrackingCleared || !cachedOptimisticItemRef.current || !optimisticWatchKeyRef.current) {
             return sortedData;
         }
         const isStillInList = sortedData.some((item) => 'transactionID' in item && `${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}` === optimisticWatchKeyRef.current);
@@ -1286,7 +1288,7 @@ function Search({
         const result = [...sortedData];
         result.splice(insertAt, 0, cachedOptimisticItemRef.current);
         return result;
-    }, [sortedData]);
+    }, [sortedData, isOptimisticTrackingCleared]);
 
     useEffect(() => {
         const currentRoute = Navigation.getActiveRouteWithoutParams();
