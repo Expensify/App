@@ -17,7 +17,7 @@ type SelectCircleProps = {
 function SelectCircle({isChecked = false, selectCircleStyles}: SelectCircleProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
 
     return (
         <View style={[styles.selectCircle, styles.alignSelfCenter, selectCircleStyles]}>
