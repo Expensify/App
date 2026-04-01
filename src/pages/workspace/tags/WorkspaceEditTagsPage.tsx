@@ -93,6 +93,7 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
                     enabledWhenOffline
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
+                    shouldUseStrictHtmlTagValidation
                 >
                     <View style={styles.mb4}>
                         <InputWrapper

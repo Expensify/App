@@ -1898,9 +1898,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Original file name which is used for the policy avatar */
         originalFileName?: string;
 
-        /** Alert message for the policy */
-        alertMessage?: string;
-
         /** Informative messages about which policy members were added with primary logins when invited with their secondary login */
         primaryLoginsInvited?: Record<string, string>;
 
@@ -2138,6 +2135,7 @@ type PolicyConnectionSyncProgress = {
 export default Policy;
 
 export type {
+    AutoReportingOffset,
     PolicyReportField,
     PolicyReportFieldType,
     Unit,

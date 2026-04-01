@@ -30,6 +30,7 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {isAuthenticationError, isConnectionInProgress, isConnectionUnverified, removePolicyConnection, syncConnection} from '@libs/actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
@@ -54,6 +55,7 @@ import Navigation from '@navigation/Navigation';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import {openOldDotLink} from '@userActions/Link';
+import {openPolicyExpensifyCardsPage} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -94,21 +96,10 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const integrationToDisconnect = params?.integrationToDisconnect;
     const shouldDisconnectIntegrationBeforeConnecting = params?.shouldDisconnectIntegrationBeforeConnecting;
     const policyID = policy?.id;
+    const workspaceAccountID = useWorkspaceAccountID(policyID);
     const allCardSettings = useExpensifyCardFeeds(policyID);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
-    const icons = useMemoizedLazyExpensifyIcons([
-        'ArrowRight',
-        'CircularArrowBackwards',
-        'ExpensifyCard',
-        'Gear',
-        'Key',
-        'NewWindow',
-        'Pencil',
-        'QuestionMark',
-        'Send',
-        'Sync',
-        'Trashcan',
-    ] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'CircularArrowBackwards', 'ExpensifyCard', 'Gear', 'Key', 'NewWindow', 'Pencil', 'QuestionMark', 'Send', 'Sync', 'Trashcan']);
     const accountingIcons = useMemoizedLazyExpensifyIcons(['IntacctSquare', 'QBOSquare', 'XeroSquare', 'NetSuiteSquare', 'QBDSquare']);
     const illustrations = useMemoizedLazyIllustrations(['Accounting']);
 
@@ -211,6 +202,13 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         }
         setDateTimeToRelative('');
     }, [getDatetimeToRelative, successfulDate]);
+
+    useEffect(() => {
+        if (!policyID || !policy?.areExpensifyCardsEnabled || !workspaceAccountID) {
+            return;
+        }
+        openPolicyExpensifyCardsPage(policyID, workspaceAccountID);
+    }, [policyID, policy?.areExpensifyCardsEnabled, workspaceAccountID]);
 
     const integrationSpecificMenuItems = useMemo(() => {
         const sageIntacctEntityList = policy?.connections?.intacct?.data?.entities ?? [];
