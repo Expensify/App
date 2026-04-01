@@ -6749,6 +6749,8 @@ const translations = {
                 confirmErrorApplyAtLeastOneSpendRuleToOneCard: 'Apply at least one spend rule to one card',
                 confirmErrorCardRequired: 'Card is a required field',
                 confirmErrorApplyAtLeastOneSpendRule: 'Apply at least one spend rule',
+                categories: 'Categories',
+                merchants: 'Merchants',
             },
         },
         planTypePage: {

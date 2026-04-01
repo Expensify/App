@@ -30,25 +30,34 @@ type SpendRulesSectionProps = {
     policyID: string;
 };
 
-function getSpendRuleSummary(formValues: SpendRuleForm, translate: ReturnType<typeof useLocalize>['translate']) {
-    const summaryParts: string[] = [];
+type SpendRuleSummaryPart = {
+    actionLabel: string;
+    text: string;
+};
+
+function getSpendRuleSummaryParts(
+    formValues: SpendRuleForm,
+    actionLabel: string,
+    translate: ReturnType<typeof useLocalize>['translate'],
+): SpendRuleSummaryPart[] {
+    const summaryParts: SpendRuleSummaryPart[] = [];
     const merchantNames = formValues.merchantNames.filter(Boolean).join(', ');
     const categories = formValues.categories.map((category) => getDecodedCategoryName(category)).join(', ');
     const maxAmount = formValues.maxAmount.trim();
 
     if (merchantNames) {
-        summaryParts.push(`${translate('common.merchant')}: ${merchantNames}`);
+        summaryParts.push({actionLabel, text: `${translate('workspace.rules.spendRules.merchants')}: ${merchantNames}`});
     }
 
     if (categories) {
-        summaryParts.push(`${translate('workspace.rules.spendRules.spendCategory')}: ${categories}`);
+        summaryParts.push({actionLabel, text: `${translate('workspace.rules.spendRules.categories')}: ${categories}`});
     }
 
     if (maxAmount) {
-        summaryParts.push(`${translate('workspace.rules.spendRules.maxAmount')}: ${maxAmount}`);
+        summaryParts.push({actionLabel, text: `${translate('iou.amount')}: ${maxAmount}`});
     }
 
-    return summaryParts.join(' • ');
+    return summaryParts;
 }
 
 function SpendRulesSection({policyID}: SpendRulesSectionProps) {
@@ -93,6 +102,7 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
             if (!formValues) {
                 return undefined;
             }
+            const actionLabel = formValues.restrictionAction === CONST.SPEND_CARD_RULE.ACTION.BLOCK ? blockLabel : allowLabel;
 
             const cardSummary = formValues.cardIDs
                 .map((cardID) => {
@@ -109,9 +119,9 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
 
             return {
                 ruleID,
-                actionLabel: formValues.restrictionAction === CONST.SPEND_CARD_RULE.ACTION.BLOCK ? blockLabel : allowLabel,
+                actionLabel,
                 cardSummary,
-                summary: getSpendRuleSummary(formValues, translate),
+                summaryParts: getSpendRuleSummaryParts(formValues, actionLabel, translate),
                 isBlock: formValues.restrictionAction === CONST.SPEND_CARD_RULE.ACTION.BLOCK,
             };
         })
@@ -180,33 +190,38 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
             {createdRules.map((rule) => (
                 <MenuItem
                     key={rule.ruleID}
-                    wrapperStyle={[styles.borderedContentCard, styles.mt4, styles.ph4, styles.pv4]}
+                    wrapperStyle={[styles.borderedContentCard, styles.mt2, styles.ph4, styles.pv4]}
                     titleComponent={
                         <View>
-                            <View style={[styles.flexRow, styles.gap2, styles.alignItemsStart]}>
-                                <Badge
-                                    text={rule.actionLabel}
-                                    badgeStyles={[styles.ml0]}
-                                    error={rule.isBlock}
-                                    success={!rule.isBlock}
-                                    isCondensed
-                                />
-                                <Text
-                                    style={[styles.flex1, styles.flexShrink1, styles.themeTextColor]}
-                                    numberOfLines={2}
+                            {rule.summaryParts.map((part) => (
+                                <View
+                                    key={part.text}
+                                    style={[styles.flexRow, styles.gap2, styles.alignItemsStart, styles.mb2]}
                                 >
-                                    {rule.summary}
-                                </Text>
-                            </View>
+                                    <Badge
+                                        text={part.actionLabel}
+                                        badgeStyles={[styles.ml0]}
+                                        error={rule.isBlock}
+                                        success={!rule.isBlock}
+                                        isCondensed
+                                    />
+                                    <Text
+                                        style={[styles.flex1, styles.flexShrink1, styles.themeTextColor]}
+                                        numberOfLines={2}
+                                    >
+                                        {part.text}
+                                    </Text>
+                                </View>
+                            ))}
                             <Text
-                                style={[styles.textLabelSupporting, styles.fontSizeLabel, styles.mt2]}
+                                style={[styles.textLabelSupporting, styles.fontSizeLabel]}
                                 numberOfLines={2}
                             >
                                 {rule.cardSummary}
                             </Text>
                         </View>
                     }
-                    accessibilityLabel={`${rule.actionLabel}. ${rule.summary}. ${rule.cardSummary}`}
+                    accessibilityLabel={`${rule.summaryParts.map((part) => `${part.actionLabel}. ${part.text}`).join('. ')}. ${rule.cardSummary}`}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_ITEM}
                     interactive={false}
                 />
