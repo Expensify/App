@@ -4343,7 +4343,7 @@ function mapFiltersFormToLabelValueList<T extends Record<string, unknown>>(
             on: searchAdvancedFiltersForm[`${syntaxKey}${CONST.SEARCH.DATE_MODIFIERS.ON}`],
             after: searchAdvancedFiltersForm[`${syntaxKey}${CONST.SEARCH.DATE_MODIFIERS.AFTER}`],
             before: searchAdvancedFiltersForm[`${syntaxKey}${CONST.SEARCH.DATE_MODIFIERS.BEFORE}`],
-            range: searchAdvancedFiltersForm[`${syntaxKey}${CONST.SEARCH.DATE_MODIFIERS.RANGE}`]
+            range: searchAdvancedFiltersForm[`${syntaxKey}${CONST.SEARCH.DATE_MODIFIERS.RANGE}`],
         };
 
         if (filterValues.on) {
