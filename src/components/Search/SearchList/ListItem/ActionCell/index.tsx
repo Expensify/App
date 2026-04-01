@@ -88,7 +88,7 @@ function ActionCell({
             extraSmall={extraSmall}
             style={[styles.w100, shouldDisablePointerEvents && styles.pointerEventsNone]}
             isLoading={isLoading}
-            success
+            success={action !== CONST.SEARCH.ACTION_TYPES.UNDELETE}
             isDisabled={isOffline || shouldDisablePointerEvents}
             shouldStayNormalOnDisable={shouldDisablePointerEvents}
             isNested
