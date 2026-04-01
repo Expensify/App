@@ -176,8 +176,8 @@ type TransactionEditPermissionsParams = {
 
     chatReportNVP?: OnyxEntry<ReportNameValuePairs>;
 
-    /** Whether mobile selection mode is active. When true, all editing is disabled. */
-    isMobileSelectionModeEnabled?: boolean;
+    /** When true, all editing is disabled regardless of permissions. */
+    disabled?: boolean;
 };
 
 /**
@@ -324,9 +324,9 @@ function getTransactionEditPermissions({
     policyTags,
     transactionThreadNVP,
     chatReportNVP,
-    isMobileSelectionModeEnabled,
+    disabled,
 }: TransactionEditPermissionsParams): TransactionEditPermissions {
-    if (isMobileSelectionModeEnabled) {
+    if (disabled) {
         return NO_EDIT;
     }
 

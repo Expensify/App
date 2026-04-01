@@ -5,6 +5,7 @@
  */
 import {useCallback, useRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import {useSearchStateContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 import {
     editTransactionAmountInline,
@@ -21,7 +22,6 @@ import {isExpenseUnreported, isPerDiemRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
-import useMobileSelectionMode from './useMobileSelectionMode';
 import useOnyx from './useOnyx';
 import usePolicyForTransaction from './usePolicyForTransaction';
 
@@ -135,7 +135,7 @@ function useTransactionInlineEdit({
     const [transactionThreadNVP] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(transactionThreadReportID)}`);
     const [chatReportNVP] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(chatReportID)}`);
 
-    const isMobileSelectionModeEnabled = useMobileSelectionMode();
+    const {hasSelectedTransactions} = useSearchStateContext();
 
     const permissions = getTransactionEditPermissions({
         transaction,
@@ -147,7 +147,7 @@ function useTransactionInlineEdit({
         policyTags,
         transactionThreadNVP,
         chatReportNVP,
-        isMobileSelectionModeEnabled,
+        disabled: hasSelectedTransactions,
     });
 
     const wasEditingOnMouseDownRef = useRef(false);
