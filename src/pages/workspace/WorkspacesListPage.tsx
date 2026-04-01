@@ -23,6 +23,7 @@ import SearchBar from '@components/SearchBar';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
+import useAccountIDToLogin from '@hooks/useAccountIDToLogin';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
@@ -135,6 +136,7 @@ function WorkspacesListPage() {
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Building', 'Exit', 'Copy', 'Star', 'Trashcan', 'Transfer', 'Plus', 'FallbackWorkspaceAvatar']);
     const {translate, localeCompare} = useLocalize();
     useDocumentTitle(translate('common.workspaces'));
+    const accountIDToLogin = useAccountIDToLogin();
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -242,6 +244,7 @@ function WorkspacesListPage() {
             personalPolicyID,
             hasDeleteWorkspaceExpensifyCardsError,
             currentUserAccountID: currentUserPersonalDetails.accountID,
+            accountIDToLogin,
         });
         if (isOffline) {
             setIsDeleteModalOpen(false);

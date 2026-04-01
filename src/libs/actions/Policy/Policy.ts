@@ -384,6 +384,7 @@ type DeleteWorkspaceActionParams = {
     localeCompare: LocaleContextProps['localeCompare'];
     hasDeleteWorkspaceExpensifyCardsError?: boolean;
     currentUserAccountID: number;
+    accountIDToLogin: Record<number, string>;
 };
 
 /**
@@ -405,6 +406,7 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
         personalPolicyID,
         hasDeleteWorkspaceExpensifyCardsError,
         currentUserAccountID,
+        accountIDToLogin,
     } = params;
 
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
@@ -547,7 +549,7 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
         // Announce & admin chats have FAKE owners, but expense chats w/ users do have owners.
         let emailClosingReport: string = CONST.POLICY.OWNER_EMAIL_FAKE;
         if (!!ownerAccountID && ownerAccountID !== CONST.POLICY.OWNER_ACCOUNT_ID_FAKE) {
-            emailClosingReport = deprecatedAllPersonalDetails?.[ownerAccountID]?.login ?? '';
+            emailClosingReport = accountIDToLogin[ownerAccountID] ?? '';
         }
         const optimisticClosedReportAction = ReportUtils.buildOptimisticClosedReportAction(emailClosingReport, policyName, currentUserAccountID, CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED);
         optimisticData.push({

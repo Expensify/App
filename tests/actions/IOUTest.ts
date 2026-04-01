@@ -10132,6 +10132,7 @@ describe('actions/IOU', () => {
                                 lastUsedPaymentMethods: undefined,
                                 localeCompare,
                                 currentUserAccountID: CARLOS_ACCOUNT_ID,
+                                accountIDToLogin: {},
                             });
                         }
                         return waitForBatchedUpdates();
