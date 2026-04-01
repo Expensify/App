@@ -1202,7 +1202,6 @@ const translations = {
         flash: 'flash',
         multiScan: 'multi-scan',
         shutter: 'shutter',
-        flipCamera: 'flip camera',
         gallery: 'gallery',
         deleteReceipt: 'Delete receipt',
         deleteConfirmation: 'Are you sure you want to delete this receipt?',
