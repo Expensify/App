@@ -56,7 +56,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     const {translate} = useLocalize();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const {currentSearchHash, currentSearchKey, currentSearchResults} = useSearchStateContext();
-    const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`, {selector: isActionLoadingSelector});
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
     const currentUserDetails = useCurrentUserPersonalDetails();
@@ -127,7 +127,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
 
     const handleOnButtonPress = useCallback(() => {
         handleActionButtonPress({
@@ -137,12 +137,12 @@ function ExpenseReportListItem<TItem extends ListItem>({
             snapshotReport,
             snapshotPolicy,
             lastPaymentMethod,
-            userBillingGraceEndPeriods,
+            userBillingGracePeriodEnds,
             currentSearchKey,
             isDelegateAccessRestricted,
             onDelegateAccessRestricted: showDelegateNoAccessModal,
             personalPolicyID,
-            ownerBillingGraceEndPeriod,
+            ownerBillingGracePeriodEnd,
         });
     }, [
         currentSearchHash,
@@ -151,12 +151,12 @@ function ExpenseReportListItem<TItem extends ListItem>({
         snapshotReport,
         snapshotPolicy,
         lastPaymentMethod,
-        userBillingGraceEndPeriods,
+        userBillingGracePeriodEnds,
         personalPolicyID,
         currentSearchKey,
         isDelegateAccessRestricted,
         showDelegateNoAccessModal,
-        ownerBillingGraceEndPeriod,
+        ownerBillingGracePeriodEnd,
     ]);
 
     const handleCheckboxPress = useCallback(() => {

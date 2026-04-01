@@ -4,7 +4,7 @@ import OnyxListItemProvider from '@src/components/OnyxListItemProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import TimeSensitiveSection from '@src/pages/home/TimeSensitiveSection';
-import useTimeSensitiveOffers from '@src/pages/home/TimeSensitiveSection/hooks/useTimeSensitiveOffers';
+import useTimeSensitiveAddPaymentCard from '@src/pages/home/TimeSensitiveSection/hooks/useTimeSensitiveAddPaymentCard';
 import waitForBatchedUpdates from '../../../../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/Navigation/Navigation');
@@ -17,13 +17,9 @@ jest.mock('@hooks/useLazyAsset', () => ({
     })),
 }));
 
-jest.mock('@src/pages/home/TimeSensitiveSection/hooks/useTimeSensitiveOffers', () =>
+jest.mock('@src/pages/home/TimeSensitiveSection/hooks/useTimeSensitiveAddPaymentCard', () =>
     jest.fn(() => ({
-        shouldShow50off: false,
-        shouldShow25off: false,
         shouldShowAddPaymentCard: false,
-        firstDayFreeTrial: undefined,
-        discountInfo: undefined,
     })),
 );
 
@@ -57,19 +53,15 @@ const renderTimeSensitiveSection = () =>
     );
 
 describe('TimeSensitiveSection - ValidateAccount', () => {
-    const mockedUseTimeSensitiveOffers = jest.mocked(useTimeSensitiveOffers);
+    const mockedUseTimeSensitiveAddPaymentCard = jest.mocked(useTimeSensitiveAddPaymentCard);
 
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });
 
     beforeEach(async () => {
-        mockedUseTimeSensitiveOffers.mockReturnValue({
-            shouldShow50off: false,
-            shouldShow25off: false,
+        mockedUseTimeSensitiveAddPaymentCard.mockReturnValue({
             shouldShowAddPaymentCard: false,
-            firstDayFreeTrial: undefined,
-            discountInfo: null,
         });
         await Onyx.clear();
         await waitForBatchedUpdates();
@@ -86,12 +78,8 @@ describe('TimeSensitiveSection - ValidateAccount', () => {
     });
 
     it('hides ValidateAccount for anonymous users while keeping time sensitive section visible', async () => {
-        mockedUseTimeSensitiveOffers.mockReturnValue({
-            shouldShow50off: false,
-            shouldShow25off: false,
+        mockedUseTimeSensitiveAddPaymentCard.mockReturnValue({
             shouldShowAddPaymentCard: true,
-            firstDayFreeTrial: undefined,
-            discountInfo: null,
         });
 
         await Onyx.set(ONYXKEYS.ACCOUNT, {validated: false});
@@ -108,12 +96,8 @@ describe('TimeSensitiveSection - ValidateAccount', () => {
     it('hides ValidateAccount when current login is already validated in login list', async () => {
         const validatedEmail = 'test@example.com';
 
-        mockedUseTimeSensitiveOffers.mockReturnValue({
-            shouldShow50off: false,
-            shouldShow25off: false,
+        mockedUseTimeSensitiveAddPaymentCard.mockReturnValue({
             shouldShowAddPaymentCard: true,
-            firstDayFreeTrial: undefined,
-            discountInfo: null,
         });
 
         await Onyx.set(ONYXKEYS.ACCOUNT, {validated: false});
