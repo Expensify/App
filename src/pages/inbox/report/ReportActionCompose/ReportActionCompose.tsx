@@ -8,9 +8,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useSharedValue} from 'react-native-reanimated';
 import {scheduleOnUI} from 'react-native-worklets';
 import type {Emoji} from '@assets/emojis/types';
-import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
-import DropZoneUI from '@components/DropZone/DropZoneUI';
-import DualDropZone from '@components/DropZone/DualDropZone';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
 import ExceededCommentLength from '@components/ExceededCommentLength';
 import ImportedStateIndicator from '@components/ImportedStateIndicator';
@@ -24,18 +21,15 @@ import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLen
 import useHandleExceedMaxTaskTitleLength from '@hooks/useHandleExceedMaxTaskTitleLength';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useIsScrollLikelyLayoutTriggered from '@hooks/useIsScrollLikelyLayoutTriggered';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParentReportAction from '@hooks/useParentReportAction';
-import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShortMentionsList from '@hooks/useShortMentionsList';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addComment} from '@libs/actions/Report';
 import {createTaskAndNavigate, setNewOptimisticAssignee} from '@libs/actions/Task';
@@ -65,19 +59,12 @@ import {
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     chatIncludesChronos,
     chatIncludesConcierge,
-    getParentReport,
     getReportOfflinePendingActionAndErrors,
     getReportRecipientAccountIDs,
-    isChatRoom,
-    isGroupChat,
-    isInvoiceReport,
-    isReportApproved,
     isReportTransactionThread,
-    isSettled,
-    temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
-import {getTransactionID, hasReceipt as hasReceiptTransactionUtils} from '@libs/TransactionUtils';
+import {getTransactionID} from '@libs/TransactionUtils';
 import {generateAccountID} from '@libs/UserUtils';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import {useAgentZeroStatusActions} from '@pages/inbox/AgentZeroStatusContext';
@@ -94,6 +81,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AgentZeroAwareTypingIndicator from './AgentZeroAwareTypingIndicator';
 import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
+import ComposerDropZone from './ComposerDropZone';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
 import type {ComposerRef} from './ComposerWithSuggestions/ComposerWithSuggestions';
 import SendButton from './SendButton';
@@ -122,7 +110,6 @@ const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 
 function ReportActionCompose({reportID}: ReportActionComposeProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {translate} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isMediumScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
@@ -137,7 +124,6 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const {availableLoginsList} = useShortMentionsList();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
-    const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
@@ -173,10 +159,8 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
 
     const {reportPendingAction: pendingAction} = getReportOfflinePendingActionAndErrors(report);
 
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [initialModalState] = useOnyx(ONYXKEYS.MODAL);
     const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
 
     const shouldFocusComposerOnScreenFocus = shouldFocusInputOnScreenFocus || !!draftComment;
 
@@ -223,8 +207,6 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
         return null;
     })();
 
-    const icons = useMemoizedLazyExpensifyIcons(['MessageInABottle']);
-
     const suggestionsRef = useRef<SuggestionsRef>(null);
     const composerRef = useRef<ComposerRef | null>(null);
     const reportParticipantIDs = Object.keys(report?.participants ?? {})
@@ -259,17 +241,6 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
         canEditFieldOfMoneyRequest({reportAction: effectiveParentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, transaction}) &&
         !transaction?.receipt?.isTestDriveReceipt;
     const shouldAddOrReplaceReceipt = (isTransactionThreadView || isSingleTransactionView) && canEditReceipt;
-
-    const hasReceipt = hasReceiptTransactionUtils(transaction);
-
-    const shouldDisplayDualDropZone = (() => {
-        const parentReport = getParentReport(report);
-        const isSettledOrApproved = isSettled(report) || isSettled(parentReport) || isReportApproved({report}) || isReportApproved({report: parentReport});
-        const hasMoneyRequestOptions = !!temporary_getMoneyRequestOptions(report, policy, reportParticipantIDs, betas, isReportArchived, isRestrictedToPreferredPolicy).length;
-        const canModifyReceipt = shouldAddOrReplaceReceipt && !isSettledOrApproved;
-        const isRoomOrGroupChat = isChatRoom(report) || isGroupChat(report);
-        return !isRoomOrGroupChat && (canModifyReceipt || hasMoneyRequestOptions) && !isInvoiceReport(report);
-    })();
 
     // Placeholder to display in the chat input.
     const inputPlaceholder = includesConcierge && userBlockedFromConcierge ? translate('reportActionCompose.blockedFromConcierge') : translate('reportActionCompose.writeSomething');
@@ -619,25 +590,13 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
                             onValueChange={onValueChange}
                             forwardedFSClass={fsClass}
                         />
-                        {shouldDisplayDualDropZone && (
-                            <DualDropZone
-                                isEditing={shouldAddOrReplaceReceipt && hasReceipt}
-                                onAttachmentDrop={(dragEvent) => validateAttachments({dragEvent})}
-                                onReceiptDrop={onReceiptDropped}
-                                shouldAcceptSingleReceipt={shouldAddOrReplaceReceipt}
-                            />
-                        )}
-                        {!shouldDisplayDualDropZone && (
-                            <DragAndDropConsumer onDrop={(dragEvent) => validateAttachments({dragEvent})}>
-                                <DropZoneUI
-                                    icon={icons.MessageInABottle}
-                                    dropTitle={translate('dropzone.addAttachments')}
-                                    dropStyles={styles.attachmentDropOverlay(true)}
-                                    dropTextStyles={styles.attachmentDropText}
-                                    dashedBorderStyles={[styles.dropzoneArea, styles.easeInOpacityTransition, styles.activeDropzoneDashedBorder(theme.attachmentDropBorderColorActive, true)]}
-                                />
-                            </DragAndDropConsumer>
-                        )}
+                        <ComposerDropZone
+                            reportID={reportID}
+                            shouldAddOrReplaceReceipt={shouldAddOrReplaceReceipt}
+                            transactionID={transactionID}
+                            onAttachmentDrop={(dragEvent) => validateAttachments({dragEvent})}
+                            onReceiptDrop={onReceiptDropped}
+                        />
                         {canUseTouchScreen() && isMediumScreenWidth ? null : (
                             <EmojiPickerButton
                                 isDisabled={isBlockedFromConcierge}
