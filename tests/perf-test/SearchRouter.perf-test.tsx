@@ -194,14 +194,14 @@ test('[SearchRouter] should react to text input changes', async () => {
 test('[SearchRouter] should re-render minimally when typing into the full router with autocomplete list', async () => {
     const scenario = async () => {
         const input = await screen.findByTestId('search-autocomplete-text-input');
-        fireEvent.changeText(input, 'Email');
-        fireEvent.changeText(input, 'Email Four');
-        fireEvent.changeText(input, 'Email');
-        fireEvent.changeText(input, 'Email Five');
+        fireEvent.changeText(input, 'R');
+        fireEvent.changeText(input, 'Re');
+        fireEvent.changeText(input, 'Rep');
+        fireEvent.changeText(input, 'Repo');
         fireEvent.changeText(input, 'Report');
-        fireEvent.changeText(input, 'Report One');
-        fireEvent.changeText(input, 'Report');
-        fireEvent.changeText(input, 'Report Two');
+        fireEvent.changeText(input, 'Report F');
+        fireEvent.changeText(input, 'Report Fi');
+        fireEvent.changeText(input, 'Report Five');
     };
 
     return waitForBatchedUpdates()
