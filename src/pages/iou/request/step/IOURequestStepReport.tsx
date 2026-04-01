@@ -259,6 +259,11 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     });
 
     const createReport = () => {
+        const restrictionPolicyID = isPerDiemTransaction ? perDiemOriginalPolicy?.id : policyForMovingExpensesID;
+        if (restrictionPolicyID && shouldRestrictUserBillableActions(restrictionPolicyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds)) {
+            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictionPolicyID));
+            return;
+        }
         if (isPerDiemTransaction) {
             handleCreateReport();
             return;
@@ -269,10 +274,6 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         if (shouldSelectPolicy) {
             setSelectedTransactions([transactionID]);
             Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute(true, backTo));
-            return;
-        }
-        if (policyForMovingExpensesID && shouldRestrictUserBillableActions(policyForMovingExpensesID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds)) {
-            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policyForMovingExpensesID));
             return;
         }
         handleCreateReport();

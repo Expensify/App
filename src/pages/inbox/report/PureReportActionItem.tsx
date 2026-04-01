@@ -563,7 +563,7 @@ function PureReportActionItem({
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
     const isTrackIntentUser = isTrackIntentUserSelector(introSelected);
-    const {translate, formatPhoneNumber, localeCompare, formatTravelDate, getLocalDateFromDatetime} = useLocalize();
+    const {translate, formatPhoneNumber, localeCompare, formatTravelDate, getLocalDateFromDatetime, datetimeToCalendarTime} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const personalDetail = useCurrentUserPersonalDetails();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -2081,6 +2081,12 @@ function PureReportActionItem({
         );
     };
 
+    // Calculating accessibilityLabel for chat message with sender, date and time and the message content.
+    const displayName = getDisplayNameOrDefault(personalDetails?.[action.actorAccountID ?? CONST.DEFAULT_NUMBER_ID]);
+    const formattedTimestamp = datetimeToCalendarTime(action.created, false);
+    const plainMessage = getReportActionText(action);
+    const accessibilityLabel = `${displayName}, ${formattedTimestamp}, ${plainMessage}`;
+
     return (
         <View>
             {shouldShowCreatedAction && createdActionContent}
@@ -2101,7 +2107,8 @@ function PureReportActionItem({
                 onSecondaryInteraction={showPopover}
                 preventDefaultContextMenu={draftMessage === undefined && !hasErrors}
                 withoutFocusOnSecondaryInteraction
-                accessibilityLabel={translate('accessibilityHints.chatMessage')}
+                accessibilityLabel={accessibilityLabel}
+                accessibilityHint={translate('accessibilityHints.chatMessage')}
                 accessibilityRole={CONST.ROLE.BUTTON}
                 sentryLabel={CONST.SENTRY_LABEL.REPORT.PURE_REPORT_ACTION_ITEM}
             >
