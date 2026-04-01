@@ -34,7 +34,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ImportedSpreadsheet, Policy, PolicyTag, PolicyTagLists, PolicyTags, RecentlyUsedTags, Report, ReportAction} from '@src/types/onyx';
 import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
-import type {ApprovalRule} from '@src/types/onyx/Policy';
+import type {ApprovalRule, CodingRule} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 type CreatePolicyTagParams = {
@@ -473,13 +473,40 @@ function deletePolicyTags(policyData: PolicyData, tagsToDelete: string[]) {
         },
     };
 
-    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_TAGS> = {
+    const tagsToDeleteSet = new Set(tagsToDelete);
+    const codingRules = policyData.policy?.rules?.codingRules ?? {};
+    const updatedCodingRules: Record<string, Partial<CodingRule>> = {};
+    const failureCodingRules: Record<string, Partial<CodingRule>> = {};
+
+    for (const [ruleID, rule] of Object.entries(codingRules)) {
+        if (rule?.tag && tagsToDeleteSet.has(rule.tag)) {
+            updatedCodingRules[ruleID] = {tag: null as unknown as string};
+            failureCodingRules[ruleID] = {tag: rule.tag};
+        }
+    }
+
+    const hasCodingRuleUpdates = Object.keys(updatedCodingRules).length > 0;
+
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_TAGS | typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: policyTagsOptimisticData,
             },
+            ...(hasCodingRuleUpdates
+                ? [
+                      {
+                          onyxMethod: Onyx.METHOD.MERGE,
+                          key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const,
+                          value: {
+                              rules: {
+                                  codingRules: updatedCodingRules,
+                              },
+                          },
+                      },
+                  ]
+                : []),
         ],
         successData: [
             {
@@ -516,6 +543,19 @@ function deletePolicyTags(policyData: PolicyData, tagsToDelete: string[]) {
                     },
                 },
             },
+            ...(hasCodingRuleUpdates
+                ? [
+                      {
+                          onyxMethod: Onyx.METHOD.MERGE,
+                          key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const,
+                          value: {
+                              rules: {
+                                  codingRules: failureCodingRules,
+                              },
+                          },
+                      },
+                  ]
+                : []),
         ],
     };
 
