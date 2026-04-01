@@ -99,18 +99,18 @@ describe('CurrencyUtils', () => {
 
     describe('convertToFrontendAmountAsInteger', () => {
         test.each([
-            [2500, 25, 'USD'],
-            [2550, 25.5, 'USD'],
-            [25, 0.25, 'USD'],
-            [2500, 25, 'USD'],
-            [2500.5, 25, 'USD'], // The backend should never send a decimal .5 value
-            [2500, 25, 'VND'],
-            [2550, 26, 'VND'],
-            [25, 0, 'VND'],
-            [2586, 26, 'VND'],
-            [2500.5, 25, 'VND'], // The backend should never send a decimal .5 value
-        ])('Correctly converts %s to amount in units handled in frontend as an integer', (amount, expectedResult, currency) => {
-            expect(CurrencyUtils.convertToFrontendAmountAsInteger(amount, currency)).toBe(expectedResult);
+            [2500, 25, 2],
+            [2550, 25.5, 2],
+            [25, 0.25, 2],
+            [2500, 25, 2],
+            [2500.5, 25, 2], // The backend should never send a decimal .5 value
+            [2500, 25, 0],
+            [2550, 26, 0],
+            [25, 0, 0],
+            [2586, 26, 0],
+            [2500.5, 25, 0], // The backend should never send a decimal .5 value
+        ])('Correctly converts %s to amount in units handled in frontend as an integer', (amount, expectedResult, decimals) => {
+            expect(CurrencyUtils.convertToFrontendAmountAsInteger(amount, decimals)).toBe(expectedResult);
         });
     });
 

@@ -102,7 +102,7 @@ function AvatarWithImagePicker({
     name = '',
     sentryLabel,
 }: AvatarWithImagePickerProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Eye', 'FallbackAvatar', 'Pencil', 'Trashcan', 'Upload'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Eye', 'FallbackAvatar', 'Pencil', 'Trashcan', 'Upload']);
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
     const [popoverPosition, setPopoverPosition] = useState({horizontal: 0, vertical: 0});
