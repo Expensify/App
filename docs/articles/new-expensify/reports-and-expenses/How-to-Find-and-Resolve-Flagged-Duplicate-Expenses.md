@@ -35,10 +35,7 @@ Within the report, duplicate expenses will show the label **Potential duplicate*
 
 ---
 
-<!-- SCREENSHOT:
-Suggestion: Show Inbox > Chat with red dot 
-Design request:https://github.com/Expensify/Expensify/issues/614048
--->
+![Inbox > Chat with red dot]({{site.url}}/assets/images/ExpensifyHelp-ResolveDuplicates_03.png){:width="100%"}
 
 ---
 
@@ -56,10 +53,9 @@ Design request:https://github.com/Expensify/Expensify/issues/614048
 
 ---
 
-<!-- SCREENSHOT:
-Suggestion: Show expense with Review Duplicates at the top 
-Design request:https://github.com/Expensify/Expensify/issues/614048
--->
+![expense with Review Duplicates at the top]({{site.url}}/assets/images/ExpensifyHelp-ResolveDuplicates_04.png){:width="100%"}
+
+---
 
 ## What happens after you resolve a flagged duplicate
 
@@ -73,9 +69,11 @@ The hold is removed from the expense. Depending on your choice:
 # FAQ
 
 ## Can I edit a duplicate expense after resolving it?
+
 Yes, you can edit a duplicate expense as long as it is in the Unreported, Draft or Outstanding state. 
 
 ## Will two SmartScanned receipts from the same day with the same amount be flagged?
+
 Yes, unless:
 - The expenses were split from a single expense.
 - They were imported from a credit card.
