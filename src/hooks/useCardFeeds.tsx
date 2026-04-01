@@ -28,8 +28,12 @@ const useCardFeeds = (policyID: string | undefined): [CombinedCardFeeds | undefi
 
     let workspaceFeeds: CombinedCardFeeds | undefined;
     if (policyID && allFeeds) {
-        const shouldIncludeFeedPredicate = (combinedCardFeed: CombinedCardFeed) =>
-            combinedCardFeed.preferredPolicy ? combinedCardFeed.preferredPolicy === policyID : combinedCardFeed.domainID === workspaceAccountID;
+        const shouldIncludeFeedPredicate = (combinedCardFeed: CombinedCardFeed) => {
+            if (combinedCardFeed?.linkedPolicyIDs) {
+                return combinedCardFeed.linkedPolicyIDs.includes(policyID);
+            }
+            return combinedCardFeed.preferredPolicy ? combinedCardFeed.preferredPolicy === policyID : combinedCardFeed.domainID === workspaceAccountID;
+        };
         workspaceFeeds = getCombinedCardFeedsFromAllFeeds(allFeeds, shouldIncludeFeedPredicate, feedKeysWithCards);
     }
 

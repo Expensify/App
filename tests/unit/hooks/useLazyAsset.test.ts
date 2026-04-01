@@ -361,10 +361,8 @@ describe('useMemoizedLazyExpensifyIcons', () => {
 
         mockGetExpensifyIconsChunk.mockReturnValue(mockChunk);
 
-        const names = ['AddReaction', 'Apple'] as const;
-
         // When: The hook is rendered
-        const {result} = renderHook(() => useMemoizedLazyExpensifyIcons(names));
+        const {result} = renderHook(() => useMemoizedLazyExpensifyIcons(['AddReaction', 'Apple']));
 
         // Then: The synchronous chunk should be used to initialize state
         expect(mockGetExpensifyIconsChunk).toHaveBeenCalled();
@@ -407,10 +405,8 @@ describe('useMemoizedLazyIllustrations', () => {
 
         mockGetIllustrationsChunk.mockReturnValue(mockChunk);
 
-        const names = ['Building', 'Tag'] as const;
-
         // When: The hook is rendered
-        const {result} = renderHook(() => useMemoizedLazyIllustrations(names));
+        const {result} = renderHook(() => useMemoizedLazyIllustrations(['Building', 'Tag']));
 
         // Then: The synchronous chunk should be used to initialize state
         expect(mockGetIllustrationsChunk).toHaveBeenCalled();
