@@ -507,18 +507,15 @@ function getAlternateText(
  * Searches for a match when provided with a value
  */
 function isSearchStringMatch(searchValue: string, searchText?: string | null, participantNames = new Set<string>(), isReportChatRoom = false): boolean {
-    const searchWords = new Set(searchValue.replaceAll(',', ' ').split(/\s+/));
+    const searchWords = Array.from(new Set(searchValue.replaceAll(',', ' ').split(/\s+/).filter(Boolean)));
     const valueToSearch = searchText?.replaceAll(new RegExp(/&nbsp;/g), '');
-    let matching = true;
-    for (const word of searchWords) {
-        // if one of the word is not matching, we don't need to check further
-        if (!matching) {
-            continue;
+    const compiledRegexes = searchWords.map((word) => ({word, regex: new RegExp(Str.escapeForRegExp(word), 'i')}));
+    for (const {word, regex} of compiledRegexes) {
+        if (!(regex.test(valueToSearch ?? '') || (!isReportChatRoom && participantNames.has(word)))) {
+            return false;
         }
-        const matchRegex = new RegExp(Str.escapeForRegExp(word), 'i');
-        matching = matchRegex.test(valueToSearch ?? '') || (!isReportChatRoom && participantNames.has(word));
     }
-    return matching;
+    return true;
 }
 
 function isSearchStringMatchUserDetails(personalDetail: PersonalDetails, searchValue: string) {

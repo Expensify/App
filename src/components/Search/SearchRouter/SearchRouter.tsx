@@ -78,8 +78,8 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
 
     // The actual input text that the user sees
     const [textInputValue, , setTextInputValue] = useDebouncedState('', 500);
-    // The input text that was last used for autocomplete; needed for the SearchAutocompleteList when browsing list via arrow keys
-    const [autocompleteQueryValue, setAutocompleteQueryValue] = useState(textInputValue);
+    // Immediate value drives arrow-key navigation and contextual logic; debounced value gates expensive filtering in the autocomplete list
+    const [autocompleteQueryValue, debouncedAutocompleteQueryValue, setAutocompleteQueryValue] = useDebouncedState('', CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
     const [selection, setSelection] = useState({start: textInputValue.length, end: textInputValue.length});
     const [autocompleteSubstitutions, setAutocompleteSubstitutions] = useState<SubstitutionMap>({});
     const textInputRef = useRef<AnimatedTextInputRef>(null);
@@ -348,7 +348,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 />
             </View>
             <DeferredAutocompleteList
-                autocompleteQueryValue={autocompleteQueryValue || textInputValue}
+                autocompleteQueryValue={debouncedAutocompleteQueryValue || textInputValue}
                 handleSearch={searchInServer}
                 searchQueryItem={searchQueryItem}
                 getAdditionalSections={getAdditionalSections}
