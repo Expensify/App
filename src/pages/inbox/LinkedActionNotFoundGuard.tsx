@@ -1,7 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import type {ReactNode} from 'react';
-import React, {useEffect, useState} from 'react';
-import {InteractionManager} from 'react-native';
+import React, {useEffect} from 'react';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
@@ -13,6 +12,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getFilteredReportActionsForReportView, isReportActionVisible, isWhisperAction} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {isLoadingInitialReportActionsSelector} from '@src/selectors/ReportMetaData';
 
 type LinkedActionNotFoundGuardProps = {
     children: ReactNode;
@@ -28,7 +28,14 @@ function LinkedActionNotFoundGuard({children}: LinkedActionNotFoundGuardProps) {
         return children;
     }
 
-    return <LinkedActionNotFoundGate reportActionIDFromRoute={reportActionIDFromRoute}>{children}</LinkedActionNotFoundGate>;
+    return (
+        <LinkedActionNotFoundGate
+            key={reportActionIDFromRoute}
+            reportActionIDFromRoute={reportActionIDFromRoute}
+        >
+            {children}
+        </LinkedActionNotFoundGate>
+    );
 }
 
 type LinkedActionNotFoundGateProps = {
@@ -44,12 +51,10 @@ function LinkedActionNotFoundGate({reportActionIDFromRoute, children}: LinkedAct
 
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
-    const [isLinkingToMessage, setIsLinkingToMessage] = useState(!!reportActionIDFromRoute);
-    const [isNavigatingToDeletedAction, setIsNavigatingToDeletedAction] = useState(false);
-    const [firstRender, setFirstRender] = useState(true);
-
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
-    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`);
+    const [isLoadingInitialReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {
+        selector: isLoadingInitialReportActionsSelector,
+    });
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
 
     const reportID = report?.reportID;
@@ -66,72 +71,44 @@ function LinkedActionNotFoundGate({reportActionIDFromRoute, children}: LinkedAct
     const isLinkedActionDeleted = hasNoActionReportID || isActionHidden;
 
     const prevIsLinkedActionDeleted = usePrevious(linkedAction ? isLinkedActionDeleted : undefined);
-    const lastReportActionIDFromRoute = usePrevious(!firstRender ? reportActionIDFromRoute : undefined);
 
     const isLinkedActionInaccessibleWhisper = !!linkedAction && isWhisperAction(linkedAction) && !(linkedAction?.whisperedToAccountIDs ?? []).includes(currentUserAccountID);
 
+    const isNavigatedToDeletedAction = isLinkedActionDeleted && prevIsLinkedActionDeleted !== false;
+
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundLinkedAction =
-        (!isLinkedActionInaccessibleWhisper && isLinkedActionDeleted && isNavigatingToDeletedAction) ||
-        (!reportMetadata?.isLoadingInitialReportActions &&
-            !!reportActionIDFromRoute &&
-            !!sortedAllReportActions &&
-            sortedAllReportActions?.length > 0 &&
-            reportActions.length === 0 &&
-            !isLinkingToMessage);
+        (!isLinkedActionInaccessibleWhisper && isNavigatedToDeletedAction) ||
+        (!isLoadingInitialReportActions && !!reportActionIDFromRoute && !!sortedAllReportActions && sortedAllReportActions?.length > 0 && reportActions.length === 0);
 
-    // Track firstRender
+    // Action was deleted while we were viewing it — navigate away
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setFirstRender(false);
-    }, []);
-
-    // Reset isLinkingToMessage
-    useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
-            setIsLinkingToMessage(false);
-        });
-    }, [reportMetadata?.isLoadingInitialReportActions]);
-
-    // Handle deleted linked action
-    useEffect(() => {
-        if (!isLinkedActionDeleted) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
-            setIsNavigatingToDeletedAction(false);
+        if (!isLinkedActionDeleted || prevIsLinkedActionDeleted !== false) {
             return;
         }
-        if (lastReportActionIDFromRoute !== reportActionIDFromRoute) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
-            setIsNavigatingToDeletedAction(true);
-            return;
-        }
-        if (!isNavigatingToDeletedAction && prevIsLinkedActionDeleted === false) {
-            Navigation.setParams({reportActionID: ''});
-        }
-    }, [isLinkedActionDeleted, prevIsLinkedActionDeleted, lastReportActionIDFromRoute, reportActionIDFromRoute, isNavigatingToDeletedAction]);
+        Navigation.setParams({reportActionID: ''});
+    }, [isLinkedActionDeleted, prevIsLinkedActionDeleted]);
 
     // Handle inaccessible whisper
     useEffect(() => {
         if (!isLinkedActionInaccessibleWhisper) {
             return;
         }
+        let ignore = false;
         Navigation.isNavigationReady().then(() => {
+            if (ignore) {
+                return;
+            }
             Navigation.setParams({reportActionID: ''});
         });
+        return () => {
+            ignore = true;
+        };
     }, [isLinkedActionInaccessibleWhisper]);
 
     const navigateToEndOfReport = () => {
         Navigation.setParams({reportActionID: ''});
     };
-
-    const lastRoute = usePrevious(route);
-
-    // Render-time guard: prevent flash while linking state syncs
-    if ((lastRoute !== route || lastReportActionIDFromRoute !== reportActionIDFromRoute) && isLinkingToMessage !== !!reportActionIDFromRoute) {
-        setIsLinkingToMessage(!!reportActionIDFromRoute);
-        return null;
-    }
 
     return (
         <FullPageNotFoundView
