@@ -199,7 +199,6 @@ import {
     isResolvedConciergeCategoryOptions,
     isResolvedConciergeDescriptionOptions,
     isSplitBillAction as isSplitBillActionReportActionsUtils,
-    wasActionTakenByCurrentUser,
     isSystemUserMentioned,
     isTagModificationAction,
     isTaskAction,
@@ -208,6 +207,7 @@ import {
     isUnapprovedAction,
     isWhisperActionTargetedToOthers,
     useTableReportViewActionRenderConditionals,
+    wasActionTakenByCurrentUser,
 } from '@libs/ReportActionsUtils';
 import type {CreateDraftTransactionParams, MissingPaymentMethod} from '@libs/ReportUtils';
 import {
