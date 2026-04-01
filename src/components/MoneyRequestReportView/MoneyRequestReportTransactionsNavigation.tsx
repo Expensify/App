@@ -5,22 +5,18 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useSession} from '@components/OnyxListItemProvider';
 import PrevNextButtons from '@components/PrevNextButtons';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
-import {getPreloadedBlobURLs, preloadAuthImages, revokeCachedAuthImage} from '@hooks/useCachedImageSource';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
+import usePreloadReceiptImages from '@hooks/usePreloadReceiptImages';
 import {createTransactionThreadReport, setOptimisticTransactionThread} from '@libs/actions/Report';
 import {clearActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
-import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import Navigation from '@navigation/Navigation';
 import navigationRef from '@navigation/navigationRef';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {ReceiptSource} from '@src/types/onyx/Transaction';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 type MoneyRequestReportRHPNavigationButtonsProps = {
@@ -104,56 +100,8 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
     const [prevThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${prevParentReportAction?.childReportID}`);
     const [nextThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${nextParentReportAction?.childReportID}`);
 
-    const prepareReceiptsToPreload = (sources: Array<ReceiptSource | undefined>): string[] => {
-        return sources
-            .map((source: ReceiptSource | undefined) => {
-                if (!source) {
-                    return;
-                }
-                const uri = tryResolveUrlFromApiRoot(source);
-                return typeof uri === 'string' ? uri : undefined;
-            })
-            .filter((uri): uri is string => !!uri);
-    };
-
-    /* TODO: make the hook WEB only! */
-    /**
-     * Preload receipt images for the current, previous, and next transactions into blob URLs
-     * so that useCachedImageSource can resolve them synchronously (avoiding a loading flash on navigation).
-     * Also revokes blob URLs for images that have left the prev/current/next window.
-     * Full cleanup happens in clearActiveTransactionIDs when the user leaves the transaction view.
-     * */
-    useEffect(() => {
-        const authToken = session?.encryptedAuthToken;
-        if (!authToken) {
-            return;
-        }
-
-        const headers = {[CONST.CHAT_ATTACHMENT_TOKEN_KEY]: authToken};
-        const urisToPreload: Array<ReceiptSource | undefined> = [];
-
-        for (const transaction of [currentTransaction, prevTransaction, nextTransaction]) {
-            if (!transaction) {
-                continue;
-            }
-            const receiptURIs = getThumbnailAndImageURIs(transaction);
-            if (!receiptURIs.isLocalFile) {
-                urisToPreload.push(receiptURIs.image, receiptURIs.thumbnail);
-            }
-        }
-
-        const preloadedURLs = getPreloadedBlobURLs();
-        const receiptsToPreload = prepareReceiptsToPreload(urisToPreload);
-
-        // Revoke blob URLs for images that left the prev/next window
-        for (const oldURI of preloadedURLs.keys()) {
-            if (!receiptsToPreload.includes(oldURI)) {
-                revokeCachedAuthImage(oldURI);
-            }
-        }
-
-        preloadAuthImages(receiptsToPreload, headers);
-    }, [prevTransaction, nextTransaction, currentTransaction, session?.encryptedAuthToken]);
+    /** Preload prev/next receipt images on web to avoid loading flash during navigation */
+    usePreloadReceiptImages([currentTransaction, prevTransaction, nextTransaction], session?.encryptedAuthToken);
 
     /**
      * We clear the sibling transactionThreadIDs when unmounting this component
