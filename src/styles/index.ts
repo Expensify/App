@@ -2610,6 +2610,11 @@ const staticStyles = (theme: ThemeColors) =>
             flex: undefined,
         },
 
+        selectBankStepIconSize: {
+            width: variables.iconSizeExtraLarge,
+            height: variables.iconSizeExtraLarge,
+        },
+
         forcedBlockingViewContainer: {
             ...positioning.pFixed,
             top: 0,
@@ -5827,6 +5832,10 @@ const staticStyles = (theme: ThemeColors) =>
             width: 112,
             height: 160,
         },
+        helpStaticIllustration: {
+            width: 174,
+            height: 156,
+        },
         aboutStaticIllustration: {
             width: 100,
             height: 106,
@@ -6164,18 +6173,33 @@ const dynamicStyles = (theme: ThemeColors) =>
                 fontSize: variables.fontSizeLabel,
             }) satisfies TextStyle,
 
-        tabBackground: (hovered: boolean, isFocused: boolean, background: string | Animated.AnimatedInterpolation<string>) => ({
-            backgroundColor: hovered && !isFocused ? theme.highlightBG : (background as string),
-        }),
+        tabBackground: (hovered: boolean, isFocused: boolean, isDisabled: boolean, background: string | Animated.AnimatedInterpolation<string>) => {
+            if (isDisabled) {
+                return {backgroundColor: undefined};
+            }
+
+            return {
+                backgroundColor: hovered && !isFocused ? theme.highlightBG : (background as string),
+            };
+        },
 
         tabOpacity: (
+            isDisabled: boolean,
             hovered: boolean,
             isFocused: boolean,
             activeOpacityValue: number | Animated.AnimatedInterpolation<number>,
             inactiveOpacityValue: number | Animated.AnimatedInterpolation<number>,
-        ) => ({
-            opacity: hovered && !isFocused ? inactiveOpacityValue : activeOpacityValue,
-        }),
+        ) => {
+            if (isDisabled) {
+                return {
+                    opacity: activeOpacityValue,
+                };
+            }
+
+            return {
+                opacity: hovered && !isFocused ? inactiveOpacityValue : activeOpacityValue,
+            };
+        },
 
         overscrollSpacer: (backgroundColor: string, height: number) =>
             ({
