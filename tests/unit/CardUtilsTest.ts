@@ -1148,6 +1148,20 @@ describe('CardUtils', () => {
             expect(buildFeedKeysWithAssignedCards(allWorkspaceCards as unknown as OnyxCollection<WorkspaceCardsList>)).toStrictEqual({});
         });
 
+        it('Should include CSV feed keys even when entries only have cardList', () => {
+            const csvFeed = `${CONST.COMPANY_CARD.FEED_BANK_NAME.CSV}_123456_`;
+            const allWorkspaceCards = {
+                [`cards_12345_${csvFeed}`]: {
+                    cardList: {
+                        'CREDIT CARD...1234': 'encrypted_value',
+                    },
+                },
+            };
+            expect(buildFeedKeysWithAssignedCards(allWorkspaceCards as unknown as OnyxCollection<WorkspaceCardsList>, [CONST.BETAS.CSV_CARD_IMPORT])).toStrictEqual({
+                [`12345_${csvFeed}`]: true,
+            });
+        });
+
         it('Should extract feed keys that have assigned cards', () => {
             const allWorkspaceCards = {
                 'cards_12345_oauth.chase.com': {

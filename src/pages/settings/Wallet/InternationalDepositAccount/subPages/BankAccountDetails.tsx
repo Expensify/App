@@ -50,7 +50,7 @@ function BankAccountDetails({isEditing, onNext, onMove, formValues, fieldsMap}: 
         },
         [fieldsMap, translate],
     );
-    const icons = useMemoizedLazyExpensifyIcons(['QuestionMark'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['QuestionMark']);
 
     const currencyHeaderContent = (
         <View style={styles.ph5}>
