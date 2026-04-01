@@ -153,7 +153,7 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
         );
         Navigation.goBack();
     };
-    console.log('>>>>>>>>>>>>>>>>>>>>>>>', {options});
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
