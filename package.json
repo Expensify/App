@@ -222,7 +222,7 @@
     "@babel/traverse": "^7.22.20",
     "@babel/types": "^7.22.19",
     "@callstack/reassure-compare": "^1.0.0-rc.4",
-    "@dword-design/eslint-plugin-import-alias": "^6.0.2",
+    "@dword-design/eslint-plugin-import-alias": "^5.0.0",
     "@fullstory/babel-plugin-annotate-react": "^2.3.2",
     "@fullstory/babel-plugin-react-native": "^1.5.2",
     "@jest/globals": "^29.7.0",

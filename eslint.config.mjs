@@ -5,7 +5,6 @@ import fileProgress from 'eslint-plugin-file-progress';
 import jsdoc from 'eslint-plugin-jsdoc';
 import lodash from 'eslint-plugin-lodash';
 import react from 'eslint-plugin-react';
-import importAlias from '@dword-design/eslint-plugin-import-alias';
 import reactNativeA11Y from 'eslint-plugin-react-native-a11y';
 import testingLibrary from 'eslint-plugin-testing-library';
 import youDontNeedLodashUnderscore from 'eslint-plugin-you-dont-need-lodash-underscore';
@@ -172,6 +171,7 @@ const config = defineConfig([
             'airbnb-typescript',
             'plugin:storybook/recommended',
             'plugin:react-native-a11y/basic',
+            'plugin:@dword-design/import-alias/recommended',
             'plugin:you-dont-need-lodash-underscore/all',
             'prettier',
         ),
@@ -183,7 +183,6 @@ const config = defineConfig([
             react,
             'testing-library': testingLibrary,
             lodash,
-            '@dword-design/import-alias': importAlias,
         },
 
         languageOptions: {
