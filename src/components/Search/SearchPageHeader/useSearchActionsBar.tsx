@@ -132,7 +132,6 @@ function FeedPopup({updateFilterForm, closeOverlay, isExpanded}: FilterBarPopupP
 
     return (
         <MultiSelectFilterPopup
-            isExpanded={isExpanded}
             closeOverlay={closeOverlay}
             translationKey="search.filters.feed"
             items={feedOptions}
@@ -273,7 +272,6 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
                 };
                 const hasComponent = (props: PopoverComponentProps) => (
                     <MultiSelectFilterPopup
-                        isExpanded={props.isExpanded}
                         closeOverlay={props.closeOverlay}
                         translationKey="search.has"
                         items={hasOptions}
@@ -292,7 +290,6 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
                 };
                 const isComponent = (props: PopoverComponentProps) => (
                     <MultiSelectFilterPopup
-                        isExpanded={props.isExpanded}
                         closeOverlay={props.closeOverlay}
                         translationKey="search.filters.is"
                         items={isOptions}
@@ -363,7 +360,6 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
                 };
                 const statusComponent = (props: PopoverComponentProps) => (
                     <MultiSelectFilterPopup
-                        isExpanded={props.isExpanded}
                         closeOverlay={props.closeOverlay}
                         translationKey="common.status"
                         items={statusOptions}

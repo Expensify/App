@@ -387,7 +387,6 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     };
     const statusComponent = (props: PopoverComponentProps) => (
         <MultiSelectFilterPopup
-            isExpanded={props.isExpanded}
             closeOverlay={props.closeOverlay}
             translationKey="common.status"
             items={statusOptions}
@@ -401,7 +400,6 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     };
     const hasComponent = (props: PopoverComponentProps) => (
         <MultiSelectFilterPopup
-            isExpanded={props.isExpanded}
             closeOverlay={props.closeOverlay}
             translationKey="search.has"
             items={hasOptions}
@@ -415,7 +413,6 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
     };
     const isComponent = (props: PopoverComponentProps) => (
         <MultiSelectFilterPopup
-            isExpanded={props.isExpanded}
             closeOverlay={props.closeOverlay}
             translationKey="search.filters.is"
             items={isOptions}
