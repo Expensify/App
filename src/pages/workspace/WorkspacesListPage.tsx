@@ -273,7 +273,7 @@ function WorkspacesListPage() {
     const {setIsDeletingPaidWorkspace, isLoadingBill}: {setIsDeletingPaidWorkspace: (value: boolean) => void; isLoadingBill: boolean | undefined} =
         usePayAndDowngrade(continueDeleteWorkspace);
 
-    const hideDeleteWorkspaceErrorModal = () => {
+    const hideDeleteWorkspaceErrorModal = useCallback(() => {
         setPolicyIDToDelete(undefined);
         policyIDToDeleteRef.current = undefined;
         policyNameToDeleteRef.current = undefined;
@@ -281,7 +281,7 @@ function WorkspacesListPage() {
             return;
         }
         dismissWorkspaceError(policyToDelete.id, policyToDelete.pendingAction);
-    };
+    }, [setPolicyIDToDelete, policyToDelete]);
 
     const confirmLeaveAndHideModal = () => {
         if (!policyToLeave) {
