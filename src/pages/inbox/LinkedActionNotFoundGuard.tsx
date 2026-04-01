@@ -6,6 +6,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {isReportActionVisible, isWhisperAction} from '@libs/ReportActionsUtils';
@@ -51,6 +52,7 @@ function LinkedActionNotFoundGate({reportActionIDFromRoute, children}: LinkedAct
     const reportIDFromRoute = getNonEmptyStringOnyxID(routeParams?.reportID);
 
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const [isLoadingInitialReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {
@@ -125,6 +127,7 @@ function LinkedActionNotFoundGate({reportActionIDFromRoute, children}: LinkedAct
         <FullPageNotFoundView
             shouldShow={shouldShowNotFoundLinkedAction}
             subtitleKey="notFound.commentYouLookingForCannotBeFound"
+            shouldShowBackButton={shouldUseNarrowLayout}
             onBackButtonPress={navigateToEndOfReport}
             shouldShowLink
             linkTranslationKey="notFound.goToChatInstead"
