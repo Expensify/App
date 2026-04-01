@@ -33,6 +33,7 @@ function TestDriveDemo() {
     const [onboardingReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${onboarding?.chatReportID}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {
         taskReport: viewTourTaskReport,
         taskParentReport: viewTourTaskParentReport,
@@ -56,7 +57,7 @@ function TestDriveDemo() {
         if (!viewTourTaskReport) {
             if (conciergeReportID && !hasCalledOpenReportRef.current) {
                 hasCalledOpenReportRef.current = true;
-                openReport({reportID: conciergeReportID, introSelected});
+                openReport({reportID: conciergeReportID, introSelected, betas});
             }
             return;
         }
@@ -83,6 +84,7 @@ function TestDriveDemo() {
         parentReportAction,
         conciergeReportID,
         introSelected,
+        betas,
     ]);
 
     useEffect(() => {
