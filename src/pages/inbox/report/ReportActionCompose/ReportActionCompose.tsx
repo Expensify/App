@@ -9,9 +9,11 @@ import ComposerBox from './ComposerBox';
 import ComposerBoxContent from './ComposerBoxContent';
 import type {SuggestionsRef} from './ComposerContext';
 import ComposerDropZone from './ComposerDropZone';
+import ComposerEmojiPicker from './ComposerEmojiPicker';
 import ComposerFooter from './ComposerFooter';
 import ComposerLocalTime from './ComposerLocalTime';
 import ComposerProvider from './ComposerProvider';
+import ComposerSendButton from './ComposerSendButton';
 import type {ComposerRef} from './ComposerWithSuggestions/ComposerWithSuggestions';
 
 type ReportActionComposeProps = {
@@ -32,6 +34,8 @@ function Composer({reportID}: ReportActionComposeProps) {
                     <Composer.DropZone reportID={reportID}>
                         <Composer.Box reportID={reportID}>
                             <ComposerBoxContent reportID={reportID} />
+                            <Composer.EmojiPicker reportID={reportID} />
+                            <Composer.SendButton />
                         </Composer.Box>
                     </Composer.DropZone>
                     <Composer.Footer reportID={reportID} />
@@ -49,6 +53,8 @@ function Composer({reportID}: ReportActionComposeProps) {
 Composer.LocalTime = ComposerLocalTime;
 Composer.Box = ComposerBox;
 Composer.DropZone = ComposerDropZone;
+Composer.EmojiPicker = ComposerEmojiPicker;
+Composer.SendButton = ComposerSendButton;
 Composer.Footer = ComposerFooter;
 
 export default Composer;
