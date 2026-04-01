@@ -896,6 +896,8 @@ type PayMoneyRequestFunctionParams = {
 
 type ApproveMoneyRequestFunctionParams = {
     expenseReport: OnyxEntry<OnyxTypes.Report>;
+    /** The policy corresponding to expenseReport.policyID. Used for billing restriction checks. */
+    expenseReportPolicy: OnyxEntry<OnyxTypes.Policy>;
     policy: OnyxEntry<OnyxTypes.Policy>;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
@@ -9973,6 +9975,7 @@ function getReportOriginalCreationTimestamp(expenseReport?: OnyxEntry<OnyxTypes.
 function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
     const {
         expenseReport,
+        expenseReportPolicy,
         policy,
         currentUserAccountIDParam,
         currentUserEmailParam,
@@ -9990,7 +9993,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         return;
     }
 
-    if (expenseReport.policyID && shouldRestrictUserBillableActions(expenseReport.policyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, policy)) {
+    if (expenseReport.policyID && shouldRestrictUserBillableActions(expenseReport.policyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, expenseReportPolicy)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(expenseReport.policyID));
         return;
     }

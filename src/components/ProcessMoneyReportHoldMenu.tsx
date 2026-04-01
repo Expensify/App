@@ -116,6 +116,7 @@ function ProcessMoneyReportHoldMenu({
         if (isApprove) {
             approveMoneyRequest({
                 expenseReport: moneyRequestReport,
+                expenseReportPolicy: policy,
                 policy: activePolicy,
                 currentUserAccountIDParam: currentUserDetails.accountID,
                 currentUserEmailParam: currentUserDetails.email ?? '',

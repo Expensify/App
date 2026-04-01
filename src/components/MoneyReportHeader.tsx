@@ -802,6 +802,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                 }
                 approveMoneyRequest({
                     expenseReport: moneyRequestReport,
+                    expenseReportPolicy: policy,
                     policy,
                     currentUserAccountIDParam: accountID,
                     currentUserEmailParam: email ?? '',
