@@ -105,6 +105,8 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
         type,
     });
 
+    // The attachment route already provides a decoded/resolved source from the preview renderer.
+    // Re-resolving it from API root here can change the original attachment URL, so we only decode it.
     const source = useMemo(() => getValidatedImageSource(sourceParam, false), [sourceParam]);
     const modalType = useReportAttachmentModalType(source);
 
