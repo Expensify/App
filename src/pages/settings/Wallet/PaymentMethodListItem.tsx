@@ -147,21 +147,15 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
         if (isInSetupState) {
             return translate('common.actionRequired');
         }
-        if (item.isCardFrozen) {
-            return translate('cardPage.frozen');
-        }
         return shouldShowDefaultBadge ? translate('paymentMethodList.defaultPaymentMethod') : undefined;
-    }, [isInSetupState, isInLockedState, item.isCardFrozen, shouldShowDefaultBadge, translate]);
+    }, [isInSetupState, isInLockedState, shouldShowDefaultBadge, translate]);
 
     const badgeIcon = useMemo(() => {
         if (isInSetupState || isInLockedState) {
             return icons.DotIndicator;
         }
-        if (item.isCardFrozen) {
-            return icons.FreezeCard;
-        }
         return undefined;
-    }, [icons.DotIndicator, icons.FreezeCard, isInSetupState, isInLockedState, item.isCardFrozen]);
+    }, [icons.DotIndicator, isInSetupState, isInLockedState]);
 
     let descriptionAddon;
     if (item.isCardFrozen) {
