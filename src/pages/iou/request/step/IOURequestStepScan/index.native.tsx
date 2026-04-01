@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {Alert, StyleSheet, View} from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import {GestureDetector} from 'react-native-gesture-handler';
@@ -23,6 +23,7 @@ import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
 import Log from '@libs/Log';
@@ -40,6 +41,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {FileObject} from '@src/types/utils/Attachment';
+import captureReceipt from './captureReceipt';
 import NavigationAwareCamera from './components/NavigationAwareCamera/Camera';
 import ReceiptPreviews from './components/ReceiptPreviews';
 import useMobileReceiptScan from './hooks/useMobileReceiptScan';
@@ -95,9 +97,20 @@ function IOURequestStepScan({
         setIsLoaderVisible,
     } = useNativeCamera({context: 'IOURequestStepScan', onFocusStart, onFocusCleanup});
 
-    const format = useCameraFormat(device, [{photoAspectRatio: 4 / 3}, {videoResolution: 'max'}, {photoResolution: 'max'}]);
+    const {windowWidth, windowHeight} = useWindowDimensions();
+
+    // Prioritize photoResolution over videoResolution so the format selector picks a 4032x3024
+    // format instead of the 5712x4284 (24.5MP) format that videoResolution:'max' would select.
+    // This cuts capture time roughly in half while maintaining the same output photo resolution.
+    // Use screen dimensions for video resolution since we only need enough for the preview.
+    const format = useCameraFormat(device, [
+        {photoAspectRatio: CONST.RECEIPT_CAMERA.PHOTO_ASPECT_RATIO},
+        {photoResolution: {width: CONST.RECEIPT_CAMERA.PHOTO_WIDTH, height: CONST.RECEIPT_CAMERA.PHOTO_HEIGHT}},
+        {videoResolution: {width: windowHeight, height: windowWidth}},
+    ]);
     // Format dimensions are in landscape orientation, so height/width gives portrait aspect ratio
     const cameraAspectRatio = format ? format.photoHeight / format.photoWidth : undefined;
+    const fps = useMemo(() => (format ? Math.min(Math.max(30, format.minFps), format.maxFps) : 30), [format]);
 
     const navigateBack = useCallback(() => {
         Navigation.goBack(backTo);
@@ -292,12 +305,7 @@ function IOURequestStepScan({
 
         const path = getReceiptsUploadFolderPath();
 
-        camera.current
-            .takePhoto({
-                flash: flash && hasFlash ? 'on' : 'off',
-                enableShutterSound: !isPlatformMuted,
-                path,
-            })
+        captureReceipt(camera.current, {flash, hasFlash, isPlatformMuted, path})
             .then((photo: PhotoFile) => {
                 setDidCapturePhoto(true);
 
@@ -337,7 +345,9 @@ function IOURequestStepScan({
                     return;
                 }
 
-                submitReceipts(newReceiptFiles);
+                // Defer navigation by one frame so React renders the frozen camera
+                // state (didCapturePhoto=true) before the screen transitions away.
+                requestAnimationFrame(() => submitReceipts(newReceiptFiles));
             })
             .catch((error: string) => {
                 isCapturingPhoto.current = false;
@@ -412,6 +422,7 @@ function IOURequestStepScan({
                                         ref={camera}
                                         device={device}
                                         format={format}
+                                        fps={fps}
                                         style={styles.flex1}
                                         zoom={device.neutralZoom}
                                         photo
