@@ -26,7 +26,7 @@ function usePasskeys(): UseBiometricsReturn {
     const {serverKnownCredentialIDs, haveCredentialsEverBeenConfigured} = useServerCredentials();
     const [localPasskeyCredentials] = useOnyx(getPasskeyOnyxKey(userId));
 
-    const doesDeviceSupportAuthenticationMethod = () => isWebAuthnSupported();
+    const doesDeviceSupportAuthenticationMethod = async () => isWebAuthnSupported();
 
     const getLocalCredentialID = async (): Promise<string | undefined> => {
         return (localPasskeyCredentials ?? []).at(0)?.id;

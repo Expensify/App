@@ -114,6 +114,7 @@ const REASON = {
         KEY_NOT_FOUND: 'Key not found',
         SIGNATURE_FAILED: 'Signature creation failed',
         KEY_CREATION_FAILED: 'Key creation failed',
+        KEY_ACCESS_FAILED: 'Failed to access cryptographic key',
         GENERIC: 'An error occurred',
     },
 } as const;
@@ -271,6 +272,7 @@ const ANOMALOUS_FAILURES = new Set<ReasonValue>([
     REASON.HSM.SIGNATURE_FAILED,
     REASON.HSM.KEY_NOT_FOUND,
     REASON.HSM.KEY_CREATION_FAILED,
+    REASON.HSM.KEY_ACCESS_FAILED,
     REASON.HSM.GENERIC,
 ]);
 

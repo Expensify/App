@@ -1,9 +1,9 @@
-import {createKeys, deleteKeys, getAllKeys, InputEncoding, signWithOptions} from '@sbaiahmed1/react-native-biometrics';
+import {createKeys, deleteKeys, getAllKeys, InputEncoding, isSensorAvailable, signWithOptions} from '@sbaiahmed1/react-native-biometrics';
 import {useCallback} from 'react';
 import addMFABreadcrumb from '@components/MultifactorAuthentication/observability/breadcrumbs';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import {buildSigningData, getKeyAlias, getSensorResult, mapAuthTypeNumber, mapLibraryError, mapSignErrorCode} from '@libs/MultifactorAuthentication/NativeBiometricsHSM/helpers';
+import {buildSigningData, getKeyAlias, mapAuthTypeNumber, mapLibraryError, mapSignErrorCode} from '@libs/MultifactorAuthentication/NativeBiometricsHSM/helpers';
 import type {NativeBiometricsHSMKeyInfo} from '@libs/MultifactorAuthentication/NativeBiometricsHSM/types';
 import VALUES from '@libs/MultifactorAuthentication/VALUES';
 import CONST from '@src/CONST';
@@ -21,8 +21,8 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
     const {translate} = useLocalize();
     const {serverKnownCredentialIDs, haveCredentialsEverBeenConfigured} = useServerCredentials();
 
-    const doesDeviceSupportAuthenticationMethod = useCallback(() => {
-        const sensorResult = getSensorResult();
+    const doesDeviceSupportAuthenticationMethod = useCallback(async () => {
+        const sensorResult = await isSensorAvailable();
         return sensorResult.isDeviceSecure ?? sensorResult.available;
     }, []);
 
@@ -107,7 +107,7 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
 
             if (!credentialID || !allowedIDs.includes(credentialID)) {
                 await deleteLocalKeysForAccount();
-                onResult({success: false, reason: VALUES.REASON.KEYSTORE.REGISTRATION_REQUIRED});
+                onResult({success: false, reason: VALUES.REASON.HSM.KEY_NOT_FOUND});
                 return;
             }
 

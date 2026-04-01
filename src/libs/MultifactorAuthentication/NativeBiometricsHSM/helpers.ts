@@ -1,8 +1,7 @@
 /**
  * Helper utilities for native biometrics HSM (react-native-biometrics).
  */
-import type {BiometricSensorInfo} from '@sbaiahmed1/react-native-biometrics';
-import {isSensorAvailable, sha256} from '@sbaiahmed1/react-native-biometrics';
+import {sha256} from '@sbaiahmed1/react-native-biometrics';
 import {Buffer} from 'buffer';
 import type {ValueOf} from 'type-fest';
 import type {AuthTypeInfo, MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/shared/types';
@@ -17,23 +16,6 @@ type NativeBiometricsHSMTypeEntry = ValueOf<typeof NATIVE_BIOMETRIC_HSM_VALUES.A
  */
 function getKeyAlias(accountID: number): string {
     return `${accountID}_${CONST.MULTIFACTOR_AUTHENTICATION.HSM_KEY_SUFFIX}`;
-}
-
-/**
- * Module-level cache for sensor availability, called once at module load.
- */
-let sensorResult: BiometricSensorInfo = {available: false};
-
-isSensorAvailable()
-    .then((result) => {
-        sensorResult = result;
-    })
-    .catch(() => {
-        // sensorResult stays { available: false }
-    });
-
-function getSensorResult(): BiometricSensorInfo {
-    return sensorResult;
 }
 
 /**
@@ -79,6 +61,7 @@ const SIGN_ERROR_CODE_MAP: Record<string, MultifactorAuthenticationReason> = {
     [NATIVE_BIOMETRIC_HSM_VALUES.ERROR_CODE.BIOMETRY_LOCKOUT_PERMANENT]: VALUES.REASON.HSM.LOCKOUT_PERMANENT,
     [NATIVE_BIOMETRIC_HSM_VALUES.ERROR_CODE.BIOMETRIC_LOCKOUT_PERMANENT]: VALUES.REASON.HSM.LOCKOUT_PERMANENT,
     [NATIVE_BIOMETRIC_HSM_VALUES.ERROR_CODE.SIGNATURE_CREATION_FAILED]: VALUES.REASON.HSM.SIGNATURE_FAILED,
+    [NATIVE_BIOMETRIC_HSM_VALUES.ERROR_CODE.KEY_ACCESS_FAILED]: VALUES.REASON.HSM.KEY_ACCESS_FAILED,
 };
 
 function mapSignErrorCode(errorCode?: string): MultifactorAuthenticationReason | undefined {
@@ -97,6 +80,7 @@ const LIBRARY_ERROR_CODE_MAP: Record<string, MultifactorAuthenticationReason> = 
     [NATIVE_BIOMETRIC_HSM_VALUES.ERROR_CODE.KEY_NOT_FOUND]: VALUES.REASON.HSM.KEY_NOT_FOUND,
     [NATIVE_BIOMETRIC_HSM_VALUES.ERROR_CODE.KEY_ALREADY_EXISTS]: VALUES.REASON.HSM.KEY_CREATION_FAILED,
     [NATIVE_BIOMETRIC_HSM_VALUES.ERROR_CODE.CREATE_KEYS_ERROR]: VALUES.REASON.HSM.KEY_CREATION_FAILED,
+    [NATIVE_BIOMETRIC_HSM_VALUES.ERROR_CODE.KEY_ACCESS_FAILED]: VALUES.REASON.HSM.KEY_ACCESS_FAILED,
 };
 
 /**
@@ -137,4 +121,4 @@ async function buildSigningData(rpId: string, challenge: string): Promise<{authe
     return {authenticatorData, clientDataJSON, dataToSignB64};
 }
 
-export {getKeyAlias, getSensorResult, mapAuthTypeNumber, mapSignErrorCode, mapLibraryError, buildSigningData};
+export {getKeyAlias, mapAuthTypeNumber, mapSignErrorCode, mapLibraryError, buildSigningData};

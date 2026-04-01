@@ -49,7 +49,7 @@ type UseBiometricsReturn = {
     getLocalCredentialID: () => Promise<string | undefined>;
 
     /** Check if device supports the authentication method */
-    doesDeviceSupportAuthenticationMethod: () => boolean;
+    doesDeviceSupportAuthenticationMethod: () => Promise<boolean>;
 
     /** Reason to use when doesDeviceSupportAuthenticationMethod() returns false (platform-specific) */
     deviceCheckFailureReason: MultifactorAuthenticationReason;

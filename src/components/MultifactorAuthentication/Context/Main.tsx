@@ -219,7 +219,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         }
 
         // 2b. Check if the device can actually perform the allowed authentication method
-        if (!biometrics.doesDeviceSupportAuthenticationMethod()) {
+        if (!(await biometrics.doesDeviceSupportAuthenticationMethod())) {
             const reason = biometrics.deviceCheckFailureReason;
             const message = `Device check failed (deviceVerificationType: ${biometrics.deviceVerificationType})`;
             addMFABreadcrumb('Device check failed', {reason, deviceVerificationType: biometrics.deviceVerificationType, message}, 'warning');
@@ -390,7 +390,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                         // Re-registration may be needed even though we checked credentials above, because:
                         // - The local public key was deleted between the check and authorization
                         // - The server no longer accepts the local public key (not in allowCredentials)
-                        if (result.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.KEYSTORE.REGISTRATION_REQUIRED) {
+                        if (result.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.HSM.KEY_ACCESS_FAILED || result.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.HSM.KEY_NOT_FOUND) {
                             addMFABreadcrumb('Authorization key reset', {reason: result.reason}, 'warning');
                             await biometrics.deleteLocalKeysForAccount();
                             dispatch({type: 'SET_REGISTRATION_COMPLETE', payload: false});
