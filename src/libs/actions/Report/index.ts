@@ -269,6 +269,11 @@ type ReportError = {
     type?: string;
 };
 
+type ParticipantInfo = {
+    login: string;
+    accountID?: number;
+};
+
 type OpenReportActionParams = {
     /** The ID of the report to open */
     reportID: string | undefined;
@@ -279,8 +284,12 @@ type OpenReportActionParams = {
     /** The ID used to fetch a specific range of report actions related to the current reportActionID when opening a chat */
     reportActionID?: string;
 
-    /** The list of users that are included in a new chat, not including the user creating it */
-    participantLoginList?: string[];
+    /** The list of participants */
+    participants?: ParticipantInfo[];
+
+    // TODO: personalDetails should be a required field in follow-up PRs https://github.com/Expensify/App/issues/73656
+    /** The personal details of the participants */
+    personalDetails?: OnyxEntry<PersonalDetailsList>;
 
     /** The optimistic report object created when making a new chat, saved as optimistic data */
     newReportObject?: OptimisticChatReport;
@@ -290,9 +299,6 @@ type OpenReportActionParams = {
 
     /** Whether or not this report is being opened from a deep link */
     isFromDeepLink?: boolean;
-
-    /** The list of accountIDs that are included in a new chat, not including the user creating it */
-    participantAccountIDList?: number[];
 
     /** Whether this is a new thread being created */
     isNewThread?: boolean;
@@ -1166,6 +1172,13 @@ type GuidedSetupDataForOpenReport = {
     guidedSetupData: string;
 };
 
+function buildParticipantInfoFromLogins(logins: string[], accountIDs?: number[]): ParticipantInfo[] {
+    return logins.map((login, index) => ({
+        login,
+        accountID: accountIDs?.[index],
+    }));
+}
+
 /**
  * Prepares guided setup data for an OpenReport request when onboarding is not yet completed.
  * Returns the onyx data arrays and guidedSetupData string to include in the API parameters,
@@ -1244,11 +1257,11 @@ function openReport(params: OpenReportActionParams) {
         reportID,
         introSelected,
         reportActionID,
-        participantLoginList = [],
+        participants = [],
         newReportObject,
         parentReportActionID,
         isFromDeepLink = false,
-        participantAccountIDList = [],
+        personalDetails,
         isNewThread = false,
         transaction,
         transactionViolations,
@@ -1263,6 +1276,9 @@ function openReport(params: OpenReportActionParams) {
     if (!reportID) {
         return;
     }
+
+    const participantLoginList = participants.map((p) => p.login);
+    const participantAccountIDList = participants.map((p) => p.accountID).filter((id): id is number => id !== undefined);
 
     const optimisticReport = reportActionsExist(reportID)
         ? {}
@@ -1516,7 +1532,8 @@ function openReport(params: OpenReportActionParams) {
 
         let emailCreatingAction: string = CONST.REPORT.OWNER_EMAIL_FAKE;
         if (newReportObject.ownerAccountID && newReportObject.ownerAccountID !== CONST.REPORT.OWNER_ACCOUNT_ID_FAKE) {
-            emailCreatingAction = allPersonalDetails?.[newReportObject.ownerAccountID]?.login ?? '';
+            // TODO: allPersonalDetails fallback should be removed in follow-up PRs https://github.com/Expensify/App/issues/73656
+            emailCreatingAction = (personalDetails ?? allPersonalDetails)?.[newReportObject.ownerAccountID]?.login ?? '';
         }
         const optimisticCreatedAction = buildOptimisticCreatedReportAction(emailCreatingAction);
         optimisticData.push(
@@ -1554,7 +1571,7 @@ function openReport(params: OpenReportActionParams) {
         const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(participantLoginList);
         for (const [index, login] of participantLoginList.entries()) {
             const accountID = participantAccountIDs.at(index) ?? -1;
-            const isOptimisticAccount = !allPersonalDetails?.[accountID];
+            const isOptimisticAccount = !(personalDetails ?? allPersonalDetails)?.[accountID];
 
             if (!isOptimisticAccount) {
                 continue;
@@ -1886,6 +1903,8 @@ function createTransactionThreadReport(
     iouReportAction?: OnyxEntry<ReportAction>,
     transaction?: Transaction,
     transactionViolations?: TransactionViolations,
+    // TODO: personalDetails should be a required field in follow-up PRs https://github.com/Expensify/App/issues/73656
+    personalDetails?: OnyxEntry<PersonalDetailsList>,
 ): OptimisticChatReport | undefined {
     // Determine if we need selfDM report (for track expenses or unreported transactions)
     const isTrackExpense = !iouReport && ReportActionsUtils.isTrackExpenseAction(iouReportAction);
@@ -1923,7 +1942,9 @@ function createTransactionThreadReport(
     openReport({
         reportID: optimisticTransactionThreadReportID,
         introSelected,
-        participantLoginList: currentUserLogin ? [currentUserLogin] : [],
+        participants: currentUserLogin ? [{login: currentUserLogin, accountID: currentUserAccountID}] : [],
+        // TODO: allPersonalDetails fallback should be removed in follow-up PRs https://github.com/Expensify/App/issues/73656
+        personalDetails: personalDetails ?? allPersonalDetails,
         newReportObject: optimisticTransactionThread,
         parentReportActionID: iouReportAction?.reportActionID,
         transaction,
@@ -1973,6 +1994,7 @@ function navigateToReport(reportID: string | undefined, shouldDismissModal = tru
  */
 function navigateToAndOpenReport(
     userLogins: string[],
+    personalDetails: OnyxEntry<PersonalDetailsList>,
     currentUserAccountID: number,
     introSelected: OnyxEntry<IntroSelected>,
     isSelfTourViewed: boolean | undefined,
@@ -1989,7 +2011,16 @@ function navigateToAndOpenReport(
             notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         });
         // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
-        openReport({reportID: newChat?.reportID, introSelected, reportActionID: '', participantLoginList: userLogins, newReportObject: newChat, isSelfTourViewed, betas});
+        openReport({
+            reportID: newChat?.reportID,
+            introSelected,
+            reportActionID: '',
+            participants: buildParticipantInfoFromLogins(userLogins, participantAccountIDs),
+            personalDetails,
+            newReportObject: newChat,
+            isSelfTourViewed,
+            betas,
+        });
     }
     const report = isEmptyObject(chat) ? newChat : chat;
 
@@ -2022,8 +2053,29 @@ function navigateToAndCreateGroupChat(
  *
  * @param participantAccountIDs of user logins to start a chat report with.
  */
-function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[], currentUserAccountID: number, introSelected: OnyxEntry<IntroSelected>, betas: OnyxEntry<Beta[]>) {
+function navigateToAndOpenReportWithAccountIDs(
+    participantAccountIDs: number[],
+    currentUserAccountID: number,
+    introSelected: OnyxEntry<IntroSelected>,
+    betas: OnyxEntry<Beta[]>,
+    // TODO: personalDetails should be a required field in follow-up PRs https://github.com/Expensify/App/issues/73656
+    personalDetails?: OnyxEntry<PersonalDetailsList>,
+) {
     let newChat: OptimisticChatReport | undefined;
+    const participants = participantAccountIDs
+        .map((accountID): ParticipantInfo | null => {
+            // TODO: allPersonalDetails fallback should be removed in follow-up PRs https://github.com/Expensify/App/issues/73656
+            const personalDetail = (personalDetails ?? allPersonalDetails)?.[accountID];
+            if (!personalDetail?.login) {
+                return null;
+            }
+            return {
+                login: personalDetail.login,
+                accountID,
+            };
+        })
+        .filter((p): p is ParticipantInfo => p !== null);
+
     const chat = getChatByParticipants([...participantAccountIDs, currentUserAccountID]);
     if (!chat) {
         newChat = buildOptimisticChatReport({
@@ -2035,7 +2087,9 @@ function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[], 
             introSelected,
             newReportObject: newChat,
             parentReportActionID: '0',
-            participantAccountIDList: participantAccountIDs,
+            participants,
+            // TODO: allPersonalDetails fallback should be removed in follow-up PRs https://github.com/Expensify/App/issues/73656
+            personalDetails: personalDetails ?? allPersonalDetails,
             betas,
         });
     }
@@ -2060,8 +2114,10 @@ function navigateToAndOpenChildReport(
     currentUserAccountID: number,
     introSelected: OnyxEntry<IntroSelected>,
     betas: OnyxEntry<Beta[]>,
+    // TODO: allPersonalDetails fallback should be removed in follow-up PRs https://github.com/Expensify/App/issues/73656
+    personalDetails?: OnyxEntry<PersonalDetailsList>,
 ) {
-    const report = childReport ?? createChildReport(childReport, parentReportAction, parentReport, currentUserAccountID, introSelected, betas);
+    const report = childReport ?? createChildReport(childReport, parentReportAction, parentReport, currentUserAccountID, introSelected, betas, personalDetails);
 
     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID, undefined, undefined, Navigation.getActiveRoute()));
 }
@@ -2078,6 +2134,8 @@ function createChildReport(
     currentUserAccountID: number,
     introSelected: OnyxEntry<IntroSelected>,
     betas: OnyxEntry<Beta[]>,
+    // TODO: personalDetails should be a required field in follow-up PRs https://github.com/Expensify/App/issues/73656
+    personalDetails?: OnyxEntry<PersonalDetailsList>,
 ): Report {
     const participantAccountIDs = [...new Set([currentUserAccountID, Number(parentReportAction.actorAccountID)])];
     // Threads from DMs and selfDMs don't have a chatType. All other threads inherit the chatType from their parent
@@ -2097,11 +2155,15 @@ function createChildReport(
 
     const childReportID = childReport?.reportID ?? parentReportAction.childReportID;
     if (!childReportID) {
-        const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(Object.keys(newChat.participants ?? {}).map(Number));
+        const participantAccountIDsForDetails = Object.keys(newChat.participants ?? {}).map(Number);
+        const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(participantAccountIDsForDetails);
+        const participants = buildParticipantInfoFromLogins(participantLogins, participantAccountIDsForDetails);
         openReport({
             reportID: newChat.reportID,
             introSelected,
-            participantLoginList: participantLogins,
+            participants,
+            // TODO: allPersonalDetails fallback should be removed in follow-up PRs https://github.com/Expensify/App/issues/73656
+            personalDetails: personalDetails ?? allPersonalDetails,
             newReportObject: newChat,
             parentReportActionID: parentReportAction.reportActionID,
             isNewThread: true,
@@ -2966,6 +3028,8 @@ function toggleSubscribeToChildReport(
     isSelfTourViewed: boolean | undefined,
     betas: OnyxEntry<Beta[]>,
     prevNotificationPreference?: NotificationPreference,
+    // TODO: personalDetails should be a required field in follow-up PRs https://github.com/Expensify/App/issues/73656
+    personalDetails?: OnyxEntry<PersonalDetailsList>,
 ) {
     if (childReportID) {
         openReport({reportID: childReportID, introSelected, betas, isSelfTourViewed});
@@ -3003,10 +3067,13 @@ function toggleSubscribeToChildReport(
         });
 
         const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(participantAccountIDs);
+        const participants = buildParticipantInfoFromLogins(participantLogins, participantAccountIDs);
         openReport({
             reportID: newChat.reportID,
             introSelected,
-            participantLoginList: participantLogins,
+            participants,
+            // TODO: allPersonalDetails fallback should be removed in follow-up PRs https://github.com/Expensify/App/issues/73656
+            personalDetails: personalDetails ?? allPersonalDetails,
             newReportObject: newChat,
             parentReportActionID: parentReportAction.reportActionID,
             isSelfTourViewed,
@@ -3416,6 +3483,8 @@ function navigateToConciergeChat(
     checkIfCurrentPageActive = () => true,
     linkToOptions?: LinkToOptions,
     reportActionID?: string,
+    // TODO: personalDetails should be a required field in follow-up PRs https://github.com/Expensify/App/issues/73656
+    personalDetails?: OnyxEntry<PersonalDetailsList>,
 ) {
     // If conciergeReportID contains a concierge report ID, we navigate to the concierge chat using the stored report ID.
     // Otherwise, we would find the concierge chat and navigate to it.
@@ -3427,7 +3496,8 @@ function navigateToConciergeChat(
             if (!checkIfCurrentPageActive()) {
                 return;
             }
-            navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], currentUserAccountID, introSelected, isSelfTourViewed, betas, shouldDismissModal);
+            // TODO: allPersonalDetails fallback should be removed in follow-up PRs https://github.com/Expensify/App/issues/73656
+            navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], personalDetails ?? allPersonalDetails, currentUserAccountID, introSelected, isSelfTourViewed, betas, shouldDismissModal);
         });
     } else if (shouldDismissModal) {
         Navigation.dismissModalWithReport({reportID: conciergeReportID, reportActionID});
@@ -3895,6 +3965,8 @@ function navigateToConciergeChatAndDeleteReport(
     betas: OnyxEntry<Beta[]>,
     shouldPopToTop = false,
     shouldDeleteChildReports = false,
+    // TODO: personalDetails should be a required field in follow-up PRs https://github.com/Expensify/App/issues/73656
+    personalDetails?: OnyxEntry<PersonalDetailsList>,
 ) {
     // Dismiss the current report screen and replace it with Concierge Chat
     if (shouldPopToTop) {
@@ -3902,7 +3974,8 @@ function navigateToConciergeChatAndDeleteReport(
     } else {
         Navigation.goBack();
     }
-    navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false);
+    // TODO: allPersonalDetails fallback should be removed in follow-up PRs https://github.com/Expensify/App/issues/73656
+    navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false, undefined, undefined, undefined, personalDetails ?? allPersonalDetails);
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => {
         deleteReport(reportID, shouldDeleteChildReports);
@@ -7228,7 +7301,7 @@ function setOptimisticTransactionThread(reportID?: string, parentReportID?: stri
     });
 }
 
-export type {Video, GuidedSetupData, TaskForParameters, IntroSelected, OpenReportActionParams};
+export type {Video, GuidedSetupData, TaskForParameters, IntroSelected, OpenReportActionParams, ParticipantInfo};
 
 export {
     addAttachmentWithComment,

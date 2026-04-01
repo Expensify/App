@@ -26,6 +26,7 @@ import createRandomTransaction, {createRandomDistanceRequestTransaction} from '.
 import * as TestHelper from '../utils/TestHelper';
 import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import getOnyxValue from 'tests/utils/getOnyxValue';
 
 // Helper function to create mock violations
 function createMockViolations(): TransactionViolation[] {
@@ -966,10 +967,16 @@ describe('mergeTransactionRequest', () => {
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
             jest.advanceTimersByTime(10);
+            const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const participants = userLogins.map((login, index) => ({
+                login,
+                accountID: participantAccountIDs.at(index),
+            }));
             openReport({
                 reportID: thread.reportID,
                 introSelected: undefined,
-                participantLoginList: userLogins,
+                participants,
+                personalDetails: allPersonalDetails,
                 newReportObject: thread,
                 parentReportActionID: sourceIOUAction.reportActionID,
             });
@@ -1141,10 +1148,16 @@ describe('mergeTransactionRequest', () => {
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
             jest.advanceTimersByTime(10);
+            const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const participants = userLogins.map((login, index) => ({
+                login,
+                accountID: participantAccountIDs.at(index),
+            }));
             openReport({
                 reportID: thread.reportID,
                 introSelected: undefined,
-                participantLoginList: userLogins,
+                participants,
+                personalDetails: allPersonalDetails,
                 newReportObject: thread,
                 parentReportActionID: sourceIOUAction.reportActionID,
             });

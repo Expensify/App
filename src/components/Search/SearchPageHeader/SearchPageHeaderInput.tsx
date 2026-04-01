@@ -238,10 +238,10 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
             } else if (item?.reportID) {
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item?.reportID));
             } else if ('login' in item) {
-                navigateToAndOpenReport(item.login ? [item.login] : [], currentUserAccountID, introSelected, isSelfTourViewed, betas, false);
+                navigateToAndOpenReport(item.login ? [item.login] : [], personalDetails, currentUserAccountID, introSelected, isSelfTourViewed, betas, false);
             }
         },
-        [autocompleteSubstitutions, onSearchQueryChange, submitSearch, textInputValue, currentUserAccountID, introSelected, isSelfTourViewed, betas],
+        [autocompleteSubstitutions, onSearchQueryChange, submitSearch, textInputValue, personalDetails, currentUserAccountID, introSelected, isSelfTourViewed, betas],
     );
 
     const searchQueryItem = useMemo(
