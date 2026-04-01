@@ -11,6 +11,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addTempShareFile, addValidatedShareFile, clearShareData} from '@libs/actions/Share';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import Tab from '@userActions/Tab';
 import {splitExtensionFromFileName, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
@@ -120,6 +121,9 @@ function ShareRootPage() {
                 if (tempFile.mimeType) {
                     if (receiptFileFormats.includes(tempFile.mimeType) && fileExtension) {
                         setIsFileScannable(true);
+                        // Reset the persisted tab to SUBMIT so that defaultSelectedTab takes effect
+                        // even when a previous Share session left the tab on SHARE.
+                        Tab.setSelectedTab(CONST.TAB.SHARE.NAVIGATOR_ID, CONST.TAB.SHARE.SUBMIT);
                     } else {
                         setIsFileScannable(false);
                     }
