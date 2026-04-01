@@ -58,18 +58,7 @@ type BaseMenuItemType = WithSentryLabel & {
 };
 
 function SecuritySettingsPage() {
-    const icons = useMemoizedLazyExpensifyIcons([
-        'ArrowCollapse',
-        'ClosedSign',
-        'FallbackAvatar',
-        'Fingerprint',
-        'Pencil',
-        'Shield',
-        'ThreeDots',
-        'Trashcan',
-        'UserLock',
-        'UserPlus',
-    ] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowCollapse', 'ClosedSign', 'FallbackAvatar', 'Fingerprint', 'Pencil', 'Shield', 'ThreeDots', 'Trashcan', 'UserLock', 'UserPlus']);
     const illustrations = useMemoizedLazyIllustrations(['LockClosed']);
     const securitySettingsIllustration = useSecuritySettingsSectionIllustration();
     const styles = useThemeStyles();

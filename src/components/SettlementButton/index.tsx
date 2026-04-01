@@ -3,6 +3,7 @@ import {hasSeenTourSelector} from '@selectors/Onboarding';
 import truncate from 'lodash/truncate';
 import React, {useCallback, useContext} from 'react';
 import type {GestureResponderEvent} from 'react-native';
+import {View} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -11,7 +12,10 @@ import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {ContinueActionParams, PaymentMethod} from '@components/KYCWall/types';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
+import RenderHTML from '@components/RenderHTML';
 import useActiveAdminPolicies from '@hooks/useActiveAdminPolicies';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -40,8 +44,9 @@ import {
 import {handleUnvalidatedUserNavigation, useSettlementButtonPaymentMethods} from '@libs/SettlementButtonUtils';
 import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
+import {pressLockedBankAccount, setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
 import {approveMoneyRequest} from '@userActions/IOU';
+import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -96,7 +101,7 @@ function SettlementButton({
     hasOnlyHeldExpenses = false,
     sentryLabel,
 }: SettlementButtonProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['CheckCircle', 'ThumbsUp', 'Bank', 'Cash', 'Wallet', 'Building', 'User'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['CheckCircle', 'ThumbsUp', 'Bank', 'Cash', 'Wallet', 'Building', 'User']);
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
@@ -119,8 +124,8 @@ function SettlementButton({
     const [lastPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
 
     const lastPaymentMethod = iouReport?.type
         ? getLastPolicyPaymentMethod(policyIDKey, personalPolicyID, lastPaymentMethods, iouReport?.type as keyof LastPaymentMethodType, isIOUReport(iouReport))
@@ -135,6 +140,7 @@ function SettlementButton({
     const activeAdminPolicies = useActiveAdminPolicies();
     const reportID = iouReport?.reportID;
     const personalPolicy = usePolicy(personalPolicyID);
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const hasPreferredPaymentMethod = !!lastPaymentMethod;
     const lastPaymentPolicy = usePolicy(lastPaymentMethod);
@@ -146,7 +152,11 @@ function SettlementButton({
     const hasSinglePolicy = !isExpenseReport && activeAdminPolicies.length === 1;
     const hasMultiplePolicies = !isExpenseReport && activeAdminPolicies.length > 1;
     const formattedPaymentMethods = formatPaymentMethods(bankAccountList ?? {}, fundList ?? {}, styles, translate);
-    const hasIntentToPay = ((formattedPaymentMethods.length === 1 && isIOUReport(iouReport)) || policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.OPEN) && !lastPaymentMethod;
+    const hasIntentToPay =
+        ((formattedPaymentMethods.length === 1 && isIOUReport(iouReport)) ||
+            policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.OPEN ||
+            policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.LOCKED) &&
+        !lastPaymentMethod;
     const {isBetaEnabled} = usePermissions();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
@@ -164,8 +174,10 @@ function SettlementButton({
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const kycWallRef = useContext(KYCWallContext);
+    const {showConfirmModal} = useConfirmModal();
     const shouldShowPayWithExpensifyOption = !shouldHidePaymentOptions;
     const shouldShowPayElsewhereOption = !shouldHidePaymentOptions && !isInvoiceReport;
+    const isBankAccountLocked = policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.LOCKED;
 
     function getLatestPersonalBankAccount() {
         return formattedPaymentMethods.filter((ba) => (ba.accountData as AccountData)?.type === CONST.BANK_ACCOUNT.TYPE.PERSONAL);
@@ -187,7 +199,30 @@ function SettlementButton({
             return true;
         }
 
-        if (policy && shouldRestrictUserBillableActions(policy.id, userBillingGraceEndPeriods, undefined, ownerBillingGraceEndPeriod)) {
+        if (isBankAccountLocked) {
+            showConfirmModal({
+                title: translate('bankAccount.lockedBankAccount'),
+                prompt: (
+                    <View style={[styles.renderHTML, styles.flexRow]}>
+                        <RenderHTML html={translate('bankAccount.youCantPayThis')} />
+                    </View>
+                ),
+                confirmText: translate('bankAccount.unlockBankAccount'),
+                cancelText: translate('common.cancel'),
+            }).then(({action}) => {
+                if (action !== ModalActions.CONFIRM) {
+                    return;
+                }
+                if (policy?.achAccount?.bankAccountID === undefined) {
+                    return;
+                }
+                pressLockedBankAccount(policy?.achAccount?.bankAccountID, translate, conciergeReportID);
+                navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas);
+            });
+            return true;
+        }
+
+        if (policy && shouldRestrictUserBillableActions(policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, policy)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
             return true;
         }
@@ -195,15 +230,26 @@ function SettlementButton({
         return false;
     }, [
         isDelegateAccessRestricted,
-        showDelegateNoAccessModal,
         isAccountLocked,
-        showLockedAccountModal,
         isUserValidated,
+        isBankAccountLocked,
+        policy,
+        userBillingGracePeriodEnds,
+        ownerBillingGracePeriodEnd,
+        showDelegateNoAccessModal,
+        showLockedAccountModal,
         chatReportID,
         reportID,
-        policy,
-        userBillingGraceEndPeriods,
-        ownerBillingGraceEndPeriod,
+        showConfirmModal,
+        translate,
+        styles.renderHTML,
+        styles.flexRow,
+        conciergeReportID,
+        introSelected,
+        currentUserAccountID,
+        isSelfTourViewed,
+        betas,
+        amountOwed,
     ]);
 
     const shortFormPayElsewhereButton = {
@@ -455,9 +501,9 @@ function SettlementButton({
                     isASAPSubmitBetaEnabled,
                     expenseReportCurrentNextStepDeprecated: iouReportNextStep,
                     betas,
-                    userBillingGraceEndPeriods,
+                    userBillingGracePeriodEnds,
                     amountOwed,
-                    ownerBillingGraceEndPeriod,
+                    ownerBillingGracePeriodEnd,
                     full: false,
                 });
             }

@@ -459,6 +459,16 @@ function isPolicyPayer(policy: OnyxEntry<Policy>, currentUserLogin: string | und
     return false;
 }
 
+/** Check if the passed employee is an approver in the policy's employeeList */
+function isPolicyApprover(policy: OnyxEntry<Policy>, employeeLogin: string) {
+    if (policy?.approver === employeeLogin) {
+        return true;
+    }
+    return Object.values(policy?.employeeList ?? {}).some(
+        (employee) => employee?.submitsTo === employeeLogin || employee?.forwardsTo === employeeLogin || employee?.overLimitForwardsTo === employeeLogin,
+    );
+}
+
 function getUberConnectionErrorDirectlyFromPolicy(policy: OnyxEntry<Policy>) {
     const receiptUber = policy?.receiptPartners?.uber;
 
@@ -1190,17 +1200,6 @@ function getAdminEmployees(policy: OnyxEntry<Policy>): PolicyEmployee[] {
     return Object.keys(policy.employeeList)
         .map((email) => ({...policy.employeeList?.[email], email}))
         .filter((employee) => employee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && employee.role === CONST.POLICY.ROLE.ADMIN);
-}
-
-/**
- * Returns the policy of the report
- * @deprecated Get the data straight from Onyx - This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
- */
-function getPolicy(policyID: string | undefined, policies: OnyxCollection<Policy> = allPolicies): OnyxEntry<Policy> {
-    if (!policies || !policyID) {
-        return undefined;
-    }
-    return policies[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
 }
 
 /** Return active policies where current user is an admin */
@@ -2066,9 +2065,6 @@ export {
     // This will be fixed as part of https://github.com/Expensify/App/issues/66397
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     getPersonalPolicy,
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    getPolicy,
     getPolicyBrickRoadIndicatorStatus,
     getPolicyEmployeeListByIdWithoutCurrentUser,
     getSortedTagKeys,
@@ -2221,6 +2217,7 @@ export {
     getActivePoliciesWithExpenseChatAndTimeEnabled,
     isPolicyTaxEnabled,
     sortPoliciesByName,
+    isPolicyApprover,
 };
 
 export type {MemberEmailsToAccountIDs};

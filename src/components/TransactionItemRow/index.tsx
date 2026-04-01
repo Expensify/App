@@ -39,11 +39,13 @@ import {
     getCreated as getTransactionCreated,
     hasMissingSmartscanFields,
     isAmountMissing,
+    isDeletedTransaction as isDeletedTransactionUtil,
     isMerchantMissing,
     isScanning,
     isTimeRequest,
     isUnreportedAndHasInvalidDistanceRateTransaction,
 } from '@libs/TransactionUtils';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {PersonalDetails, Policy, Report, ReportAction, TransactionViolation} from '@src/types/onyx';
@@ -202,6 +204,7 @@ function TransactionItemRow({
     const createdAt = getTransactionCreated(transactionItem);
     const expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const transactionThreadReportID = reportActions ? getIOUActionForTransactionID(reportActions, transactionItem.transactionID)?.childReportID : undefined;
+    const isDeletedTransaction = isDeletedTransactionUtil(transactionItem);
 
     const isDateColumnWide = dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isSubmittedColumnWide = submittedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
@@ -250,14 +253,14 @@ function TransactionItemRow({
         }
     }, [transactionItem, translate, report, policy]);
 
-    const exchangeRateMessage = getExchangeRate(transactionItem);
+    const exchangeRateMessage = getExchangeRate(transactionItem, report?.currency);
 
     const cardName = useMemo(() => {
-        if (transactionItem.isCardFeedDeleted) {
-            return translate('workspace.companyCards.deletedFeed');
-        }
         if (transactionItem.cardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME) {
             return '';
+        }
+        if (transactionItem.isCardFeedDeleted && transactionItem.cardID) {
+            return translate('workspace.companyCards.deletedCard');
         }
         const cardID = transactionItem.cardID;
         if (cardID && customCardNames?.[cardID]) {
@@ -564,7 +567,7 @@ function TransactionItemRow({
                         key={column}
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_RATE)]}
                     >
-                        <TextCell text={isTimeRequest(transactionItem) ? '' : (getTaxName(transactionItem.policy, transactionItem) ?? transactionItem.taxValue ?? '')} />
+                        <TextCell text={isTimeRequest(transactionItem) ? '' : (getTaxName(policy, transactionItem) ?? transactionItem.taxValue ?? '')} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT:
@@ -614,6 +617,7 @@ function TransactionItemRow({
                         <StatusCell
                             stateNum={transactionItem.report?.stateNum}
                             statusNum={transactionItem.report?.statusNum}
+                            isDeleted={isDeletedTransaction}
                         />
                     </View>
                 );
@@ -705,7 +709,8 @@ function TransactionItemRow({
                                     src={expensicons.ArrowRight}
                                     fill={theme.icon}
                                     additionalStyles={styles.opacitySemiTransparent}
-                                    small
+                                    width={variables.iconSizeNormal}
+                                    height={variables.iconSizeNormal}
                                 />
                             </View>
                         )}
@@ -810,7 +815,8 @@ function TransactionItemRow({
                                 src={expensicons.ArrowRight}
                                 fill={theme.icon}
                                 additionalStyles={!isHover && styles.opacitySemiTransparent}
-                                small
+                                width={variables.iconSizeNormal}
+                                height={variables.iconSizeNormal}
                             />
                         </PressableWithFeedback>
                     )}

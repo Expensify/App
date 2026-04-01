@@ -88,6 +88,7 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.COLLECTION.POLICY,
         ONYXKEYS.COLLECTION.POLICY_TAGS,
         ONYXKEYS.COLLECTION.REPORT_METADATA,
+        ONYXKEYS.CONCIERGE_REPORT_ID,
     ],
     compute: (
         [reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions, personalDetails, session, policies, policyTags],
@@ -109,7 +110,10 @@ export default createOnyxDerivedValueConfig({
         // A full recompute is needed when locale changes (report names are locale-dependent) or display names change.
         // We compare preferredLocale against currentValue?.locale so that the first locale load on startup
         // (where both equal the same persisted value) does not trigger an unnecessary full recompute.
-        let needsFullRecompute = (hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, sourceValues) && preferredLocale !== currentValue?.locale) || displayNamesChanged;
+        let needsFullRecompute =
+            (hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, sourceValues) && preferredLocale !== currentValue?.locale) ||
+            displayNamesChanged ||
+            hasKeyTriggeredCompute(ONYXKEYS.CONCIERGE_REPORT_ID, sourceValues);
 
         // if policies are loaded first time, we need to recompute all report attributes to get correct action badge in LHN, such as Approve because it depends on policy's type (see canApproveIOU function)
         const policyChangedReportKeys: string[] = [];
