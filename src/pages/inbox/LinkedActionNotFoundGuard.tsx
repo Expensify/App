@@ -9,6 +9,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {isReportActionVisible, isWhisperAction} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction} from '@libs/ReportUtils';
@@ -104,6 +105,33 @@ function LinkedActionNotFoundGate({reportActionIDFromRoute, children}: LinkedAct
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundLinkedAction =
         (!isLinkedActionInaccessibleWhisper && isLinkedActionDeleted && !wasEverVisible) || (hasSeenLoadingCycle && !isLoadingInitialReportActions && !linkedAction);
+
+    useEffect(() => {
+        if (!shouldShowNotFoundLinkedAction) {
+            return;
+        }
+
+        Log.info('[ReportScreen] Displaying NotFound Page for linked action', false, {
+            reportIDFromRoute,
+            reportActionIDFromRoute,
+            isLoadingInitialReportActions,
+            hasSeenLoadingCycle,
+            isLinkedActionDeleted,
+            isLinkedActionInaccessibleWhisper,
+            wasEverVisible,
+            linkedActionExists: !!linkedAction,
+        });
+    }, [
+        shouldShowNotFoundLinkedAction,
+        reportIDFromRoute,
+        reportActionIDFromRoute,
+        isLoadingInitialReportActions,
+        hasSeenLoadingCycle,
+        isLinkedActionDeleted,
+        isLinkedActionInaccessibleWhisper,
+        wasEverVisible,
+        linkedAction,
+    ]);
 
     // Action was deleted while we were viewing it — navigate away
     useEffect(() => {
