@@ -1,3 +1,6 @@
+// Static twin of SearchPageTabSelector - used for fast perceived performance.
+// Keep hooks and Onyx subscriptions to an absolute minimum; add new ones only
+// when strictly necessary. UI must stay visually identical to the interactive version.
 import React, {useMemo} from 'react';
 import type {SearchQueryJSON} from '@components/Search/types';
 import type {TabSelectorBaseItem} from '@components/TabSelector/types';
@@ -5,9 +8,9 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {getSuggestedSearches} from '@libs/SearchUIUtils';
+import {SearchPageTabSelectorContent} from '@pages/Search/SearchPageTabSelector';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {SearchPageTabSelectorContent} from '@pages/Search/SearchPageTabSelector';
 import staticPolicyInfoSelector from './staticPolicyInfoSelector';
 
 const suggestedSearches = getSuggestedSearches();

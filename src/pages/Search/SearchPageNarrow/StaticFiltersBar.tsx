@@ -1,3 +1,6 @@
+// Static twin of SearchFiltersBarNarrow - used for fast perceived performance.
+// Keep hooks and Onyx subscriptions to an absolute minimum; add new ones only
+// when strictly necessary. UI must stay visually identical to the interactive version.
 import React, {useMemo} from 'react';
 import {FlatList, View} from 'react-native';
 import Button from '@components/Button';
