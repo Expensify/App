@@ -1,5 +1,5 @@
 import {useEffect} from 'react';
-import useAdminPoliciesConnectedToQBD from '@hooks/useAdminPoliciesConnectedToQBD';
+import useHasPoliciesConnectedToQBD from '@hooks/useHasPoliciesConnectedToQBD';
 import {isMobile} from '@libs/Browser';
 import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
@@ -8,7 +8,7 @@ import type {ConnectToQuickbooksDesktopFlowProps} from './types';
 const isMobileWeb = isMobile();
 
 function ConnectToQuickbooksDesktopFlow({policyID}: ConnectToQuickbooksDesktopFlowProps) {
-    const hasPoliciesConnectedToQBD = !!useAdminPoliciesConnectedToQBD()?.length;
+    const hasPoliciesConnectedToQBD = useHasPoliciesConnectedToQBD();
 
     useEffect(() => {
         if (hasPoliciesConnectedToQBD) {
