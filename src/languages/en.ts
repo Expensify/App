@@ -3917,6 +3917,7 @@ const translations = {
             `is connecting a ${currency} business bank account ending in ${bankAccountLastFour} to Expensify to pay employees in ${currency}. The next step requires signer info from a director.`,
         error: {
             emailsMustBeDifferent: 'Emails must be different',
+            connectToWorkspace: (workspaceRoute: string) => `Please connect this bank account to a <a href="${workspaceRoute}">workspace</a> to invite a director to sign.`,
         },
     },
     agreementsStep: {

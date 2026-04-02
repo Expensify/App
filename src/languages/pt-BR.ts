@@ -3838,6 +3838,8 @@ ${amount} para ${merchant} - ${date}`,
             `está conectando uma conta bancária comercial em ${currency} terminada em ${bankAccountLastFour} ao Expensify para pagar funcionários em ${currency}. A próxima etapa exige as informações de assinatura de um diretor.`,
         error: {
             emailsMustBeDifferent: 'Os e-mails devem ser diferentes',
+            connectToWorkspace: (workspaceRoute: string) =>
+                `Por favor, conecte esta conta bancária a um <a href="${workspaceRoute}">espaço de trabalho</a> para convidar um diretor a assinar.`,
         },
     },
     agreementsStep: {

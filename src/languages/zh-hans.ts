@@ -3752,6 +3752,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             `正在连接一 个以 ${bankAccountLastFour} 结尾的 ${currency} 企业银行账户到 Expensify，以便以 ${currency} 支付员工。下一步需要一位董事的签署人信息。`,
         error: {
             emailsMustBeDifferent: '电子邮箱地址必须不同',
+            connectToWorkspace: (workspaceRoute: string) => `请将此银行账户关联到<a href="${workspaceRoute}">工作区</a>以邀请董事签署。`,
         },
     },
     agreementsStep: {

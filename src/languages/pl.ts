@@ -3839,6 +3839,7 @@ ${amount} dla ${merchant} - ${date}`,
             `łączy firmowe konto bankowe w ${currency} z numerem kończącym się na ${bankAccountLastFour} z Expensify, aby wypłacać wynagrodzenia pracownikom w ${currency}. Następnym krokiem jest podanie danych sygnatariusza będącego dyrektorem.`,
         error: {
             emailsMustBeDifferent: 'Adresy e-mail muszą być różne',
+            connectToWorkspace: (workspaceRoute: string) => `Proszę połączyć to konto bankowe z <a href="${workspaceRoute}">przestrzenią roboczą</a> aby zaprosić dyrektora do podpisania.`,
         },
     },
     agreementsStep: {
