@@ -40,7 +40,7 @@ function SearchFiltersExpenseTypePage() {
         });
     }, [allExpenseTypes, translate]);
 
-    const updateExpenseTypeFilter = useCallback((values: string[]) => updateAdvancedFilters({expenseType: values as ExpenseTypeValues}), []);
+    const updateExpenseTypeFilter = useCallback((values: ExpenseTypeValues) => updateAdvancedFilters({expenseType: values}), []);
 
     return (
         <ScreenWrapper
