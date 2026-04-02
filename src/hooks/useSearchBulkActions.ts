@@ -36,6 +36,7 @@ import {setNameValuePair} from '@libs/actions/User';
 import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getConnectedIntegration, isSubmitAndClose} from '@libs/PolicyUtils';
+import {filterReportActionsByPolicyID} from '@libs/ReportActionsUtils';
 import {getSecondaryExportReportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
     canEditMultipleTransactions,
@@ -631,7 +632,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         );
                         return;
                     }
-                    const invite = moveIOUReportToPolicyAndInviteSubmitter(itemReport, adminPolicy, formatPhoneNumber, reportTransactions);
+                    const policyReportActions = filterReportActionsByPolicyID(allReportActions, allReports, adminPolicy.id);
+                    const invite = moveIOUReportToPolicyAndInviteSubmitter(itemReport, adminPolicy, formatPhoneNumber, policyReportActions, reportTransactions);
                     if (!invite?.policyExpenseChatReportID) {
                         moveIOUReportToPolicy(itemReport, adminPolicy, false, reportTransactions);
                     }
@@ -679,25 +681,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 clearSelectedTransactions();
             });
         },
-        [
-            clearSelectedTransactions,
-            hash,
-            isOffline,
-            lastPaymentMethods,
-            selectedReports,
-            selectedTransactions,
-            policies,
-            formatPhoneNumber,
-            policyIDsWithVBBA,
-            isDelegateAccessRestricted,
-            showDelegateNoAccessModal,
-            personalPolicyID,
-            allTransactions,
-            allReports,
-            userBillingGracePeriodEnds,
-            amountOwed,
-            ownerBillingGracePeriodEnd,
-        ],
+        [hash, isOffline, isDelegateAccessRestricted, selectedReports, selectedTransactions, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed, policies, showDelegateNoAccessModal, allReports, personalPolicyID, lastPaymentMethods, allTransactions, policyIDsWithVBBA, allReportActions, formatPhoneNumber, clearSelectedTransactions],
     );
 
     const onBulkPaySelectedRef = useRef(onBulkPaySelected);

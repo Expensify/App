@@ -4539,6 +4539,37 @@ function hasReasoning(action: OnyxInputOrEntry<ReportAction>): boolean {
     return !!originalMessage && typeof originalMessage === 'object' && 'reasoning' in originalMessage && !!originalMessage.reasoning;
 }
 
+/**
+ * Given all report actions and all reports, return report actions keyed by reportID
+ * for reports whose policyID matches the given policyID.
+ */
+function filterReportActionsByPolicyID(allReportActions: OnyxCollection<ReportActions>, allReports: OnyxCollection<Report>, policyID: string | undefined): Record<string, ReportActions> {
+    if (!allReportActions || !allReports || !policyID) {
+        return {};
+    }
+
+    const policyReportIDs = new Set<string>();
+    for (const [key, report] of Object.entries(allReports)) {
+        if (report?.policyID === policyID) {
+            const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT, '');
+            policyReportIDs.add(reportID);
+        }
+    }
+
+    const result: Record<string, ReportActions> = {};
+    for (const [key, actions] of Object.entries(allReportActions)) {
+        if (!actions) {
+            continue;
+        }
+        const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
+        if (policyReportIDs.has(reportID)) {
+            result[reportID] = actions;
+        }
+    }
+
+    return result;
+}
+
 export {
     doesReportHaveVisibleActions,
     extractLinksFromMessageHtml,
@@ -4798,6 +4829,7 @@ export {
     getReportActionActorAccountID,
     getSettlementAccountLockedMessage,
     stripFollowupListFromHtml,
+    filterReportActionsByPolicyID,
     getDynamicExternalWorkflowSubmitFailedActionMessage,
     getDynamicExternalWorkflowApproveFailedActionMessage,
 };
