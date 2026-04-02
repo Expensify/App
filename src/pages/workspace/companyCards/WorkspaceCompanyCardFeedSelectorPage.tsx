@@ -180,6 +180,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                                 isDisabled={isOffline}
                                 onDismissError={onDismissError}
                                 key={feed.keyForList}
+                                keyForList={itemWithError.keyForList}
                                 showTooltip={false}
                                 item={itemWithError}
                                 onSelectRow={selectOtherFeed}
