@@ -20,7 +20,6 @@ import {filterInactiveCards, getCardDescriptionForSearchTable, isCard} from '@li
 import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {translateSpendRuleCategory} from '@libs/SpendRuleCategoryUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -47,7 +46,7 @@ function getSpendRuleSummaryParts(
 ): SpendRuleSummaryPart[] {
     const summaryParts: SpendRuleSummaryPart[] = [];
     const merchantNames = formValues.merchantNames.filter(Boolean).join(', ');
-    const categories = formValues.categories.map((category) => translateSpendRuleCategory(category, locale)).join(', ');
+    const categories = formValues.categories.map((category) => translate(`workspace.rules.spendRules.categoryOptions.${category}`)).join(', ');
     const maxAmount = formValues.maxAmount.trim();
 
     if (merchantNames) {

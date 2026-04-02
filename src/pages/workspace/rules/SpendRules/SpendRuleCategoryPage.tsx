@@ -1,5 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -17,11 +17,11 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {SPEND_RULE_CATEGORIES, translateSpendRuleCategory} from '@libs/SpendRuleCategoryUtils';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import CONST from '@src/CONST';
 
 type CategoryListItem = ListItem & {
     value: string;
@@ -45,7 +45,7 @@ function SpendRuleCategoryPage({route}: SpendRuleCategoryPageProps) {
         }, [spendRuleForm?.categories]),
     );
 
-    const categoryItems = SPEND_RULE_CATEGORIES.map((category) => ({
+    const categoryItems = Object.values(CONST.SPEND_RULES.CATEGORIES).map((category) => ({
         keyForList: category,
         text: translate(`workspace.rules.spendRules.categoryOptions.${category}`),
         value: category,
