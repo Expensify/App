@@ -22,6 +22,7 @@ import type WithSentryLabel from '@src/types/utils/SentryLabel';
 type PopoverComponentProps = {
     isExpanded: boolean;
     closeOverlay: () => void;
+    setPopoverWidth?: (width: number | undefined) => void;
 };
 
 type DropdownButtonProps = WithSentryLabel & {
@@ -71,6 +72,7 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent, medi
     const triggerRef = useRef<View | null>(null);
     const anchorRef = useRef<View | null>(null);
     const [isOverlayVisible, setIsOverlayVisible] = useState(false);
+    const [customPopoverWidth, setCustomPopoverWidth] = useState<number | undefined>(undefined);
     const {calculatePopoverPosition} = usePopoverPosition();
 
     const [popoverTriggerPosition, setPopoverTriggerPosition] = useState({
@@ -115,15 +117,17 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent, medi
         return `${label}: ${selectedItems}`;
     }, [label, value]);
 
+    const actualPopoverWidth = customPopoverWidth ?? CONST.POPOVER_DROPDOWN_WIDTH;
+
     const containerStyles = useMemo(() => {
         if (isSmallScreenWidth) {
             return styles.w100;
         }
-        return {width: CONST.POPOVER_DROPDOWN_WIDTH};
-    }, [isSmallScreenWidth, styles]);
+        return {width: actualPopoverWidth};
+    }, [isSmallScreenWidth, styles, actualPopoverWidth]);
 
     const popoverContent = useMemo(() => {
-        return PopoverComponent({closeOverlay: toggleOverlay, isExpanded: isOverlayVisible});
+        return PopoverComponent({closeOverlay: toggleOverlay, isExpanded: isOverlayVisible, setPopoverWidth: setCustomPopoverWidth});
     }, [PopoverComponent, toggleOverlay, isOverlayVisible]);
 
     return (
@@ -172,7 +176,7 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent, medi
                 shouldCloseWhenBrowserNavigationChanged={false}
                 innerContainerStyle={containerStyles}
                 popoverDimensions={{
-                    width: CONST.POPOVER_DROPDOWN_WIDTH,
+                    width: actualPopoverWidth,
                     height: CONST.POPOVER_DROPDOWN_MIN_HEIGHT,
                 }}
                 shouldSkipRemeasurement
