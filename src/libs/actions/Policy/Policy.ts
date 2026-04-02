@@ -3910,6 +3910,7 @@ function createWorkspaceFromIOUPayment(
     reportPreviewAction: ReportAction | undefined,
     currentUserEmail: string,
     iouReportOwnerEmail: string,
+    conciergeReportID: string | undefined,
 ): WorkspaceFromIOUCreationData | undefined {
     // This flow only works for IOU reports
     if (!iouReport || !ReportUtils.isIOUReportUsingReport(iouReport)) {
@@ -4286,7 +4287,7 @@ function createWorkspaceFromIOUPayment(
                     message: [
                         {
                             type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                            text: ReportUtils.getReportPreviewMessage(expenseReport, null, false, false, newWorkspace),
+                            text: ReportUtils.getReportPreviewMessage(expenseReport, conciergeReportID, null, false, false, newWorkspace),
                         },
                     ],
                     created: DateUtils.getDBTime(),
