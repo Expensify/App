@@ -1,8 +1,8 @@
-import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import Clipboard from '@libs/Clipboard';
 import getClipboardText from '@libs/Clipboard/getClipboardText';
 import SelectionScraper from '@libs/SelectionScraper';
 import CONST from '@src/CONST';
+import useKeyboardShortcut from './useKeyboardShortcut';
 
 function copySelectionToClipboard() {
     const selection = SelectionScraper.getCurrentSelection();
