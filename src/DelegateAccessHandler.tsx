@@ -1,4 +1,5 @@
 import {useEffect, useRef} from 'react';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import CONST from './CONST';
 import useNetwork from './hooks/useNetwork';
 import useOnyx from './hooks/useOnyx';
@@ -22,7 +23,7 @@ function DelegateAccessHandler() {
     const [stashedCredentials = CONST.EMPTY_OBJECT] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS);
     const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION);
     const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [isLoadingApp, isLoadingAppMetadata] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [sessionAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const {isOffline} = useNetwork();
@@ -59,7 +60,7 @@ function DelegateAccessHandler() {
 
     // Recovery: if isLoadingApp is missing after the app is ready, re-open the app
     useEffect(() => {
-        if (hasHandledMissingIsLoadingAppRef.current || !hasLoadedApp || isLoadingApp !== undefined || isOffline) {
+        if (hasHandledMissingIsLoadingAppRef.current || !hasLoadedApp || isLoadingApp !== undefined || isOffline || isLoadingOnyxValue(isLoadingAppMetadata)) {
             return;
         }
         hasHandledMissingIsLoadingAppRef.current = true;
@@ -69,7 +70,7 @@ function DelegateAccessHandler() {
         });
         confirmReadyToOpenApp();
         openApp();
-    }, [hasLoadedApp, isLoadingApp, isOffline, sessionAccountID]);
+    }, [hasLoadedApp, isLoadingApp, isOffline, sessionAccountID, isLoadingAppMetadata]);
 
     return null;
 }
