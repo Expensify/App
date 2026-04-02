@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemList from '@components/MenuItemList';
@@ -22,22 +22,28 @@ function QuickbooksDesktopExistingConnectionsPage({route}: QuickbooksDesktopExis
     const policiesConnectedToQBD = useAdminPoliciesConnectedToQBD();
     const policyID: string = route.params.policyID;
 
-    const menuItems = policiesConnectedToQBD.map((policy) => {
-        const lastSuccessfulSyncDate = policy.connections?.quickbooksDesktop?.lastSync?.successfulDate;
-        const date = lastSuccessfulSyncDate ? datetimeToRelative(lastSuccessfulSyncDate) : undefined;
-        return {
-            title: policy.name,
-            key: policy.id,
-            avatarID: policy.id,
-            icon: policy.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy.name),
-            iconType: CONST.ICON_TYPE_WORKSPACE,
-            description: date ? translate('workspace.common.lastSyncDate', CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.quickbooksDesktop, date) : translate('workspace.accounting.qbd'),
-            onPress: () => {
-                copyExistingPolicyConnection(policy.id, policyID, CONST.POLICY.CONNECTIONS.NAME.QBD);
-                Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID));
-            },
-        };
-    });
+    const menuItems = useMemo(
+        () =>
+            policiesConnectedToQBD.map((policy) => {
+                const lastSuccessfulSyncDate = policy.connections?.quickbooksDesktop?.lastSync?.successfulDate;
+                const date = lastSuccessfulSyncDate ? datetimeToRelative(lastSuccessfulSyncDate) : undefined;
+                return {
+                    title: policy.name,
+                    key: policy.id,
+                    avatarID: policy.id,
+                    icon: policy.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy.name),
+                    iconType: CONST.ICON_TYPE_WORKSPACE,
+                    description: date
+                        ? translate('workspace.common.lastSyncDate', CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.quickbooksDesktop, date)
+                        : translate('workspace.accounting.qbd'),
+                    onPress: () => {
+                        copyExistingPolicyConnection(policy.id, policyID, CONST.POLICY.CONNECTIONS.NAME.QBD);
+                        Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID));
+                    },
+                };
+            }),
+        [policiesConnectedToQBD, policyID, translate, datetimeToRelative],
+    );
 
     return (
         <ConnectionLayout
