@@ -526,7 +526,7 @@ function IOURequestStepConfirmation({
                 }
                 if (hasExpiredImages) {
                     setIsStitchingReceipt(false);
-                    setMoneyRequestReceipt(currentTransactionID, '', '', shouldUseTransactionDraft(action));
+                    setMoneyRequestReceipt(currentTransactionID, '', '', shouldUseTransactionDraft(action, iouType));
                     removeDraftTransactionsByIDs(draftTransactionIDs, true);
                     navigateToStartMoneyRequestStep(requestType, iouType, currentTransactionID, reportID);
                     return;
