@@ -287,6 +287,7 @@ import {
     getTaxCode,
     getAmount as getTransactionAmount,
     getTransactionID,
+    getTransactionViolations,
     getWaypoints,
     hasMissingSmartscanFields as hasMissingSmartscanFieldsTransactionUtils,
     hasNoticeTypeViolation,
@@ -9013,6 +9014,28 @@ function shouldDisplayViolationsRBRInLHN(report: OnyxEntry<Report>, transactionV
             return false;
         }
 
+        const hasRelevantNoticeTypeViolations = isProcessingReport(potentialReport)
+            ? hasNoticeTypeViolationsExcludingModifiedAmount(
+                  potentialReport.reportID,
+                  transactionViolations,
+                  currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
+                  currentUserEmail ?? '',
+                  true,
+                  transactions,
+                  potentialReport,
+                  policy,
+              )
+            : hasNoticeTypeViolations(
+                  potentialReport.reportID,
+                  transactionViolations,
+                  currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
+                  currentUserEmail ?? '',
+                  true,
+                  transactions,
+                  potentialReport,
+                  policy,
+              );
+
         return (
             !isInvoiceReport(potentialReport) &&
             ViolationsUtils.hasVisibleViolationsForUser(
@@ -9043,16 +9066,7 @@ function shouldDisplayViolationsRBRInLHN(report: OnyxEntry<Report>, transactionV
                     potentialReport,
                     policy,
                 ) ||
-                hasNoticeTypeViolations(
-                    potentialReport.reportID,
-                    transactionViolations,
-                    currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
-                    currentUserEmail ?? '',
-                    true,
-                    transactions,
-                    potentialReport,
-                    policy,
-                ))
+                hasRelevantNoticeTypeViolations)
         );
     });
 }
@@ -9130,6 +9144,33 @@ function hasNoticeTypeViolations(
     return transactions.some((transaction) =>
         hasNoticeTypeViolation(transaction, transactionViolations, currentUserEmailParam ?? '', currentUserAccountIDParam, report, policy, shouldShowInReview),
     );
+}
+
+/**
+ * Checks to see if a report contains a notice type violation other than modifiedAmount.
+ */
+function hasNoticeTypeViolationsExcludingModifiedAmount(
+    reportID: string | undefined,
+    transactionViolations: OnyxCollection<TransactionViolation[]>,
+    currentUserAccountIDParam: number,
+    currentUserEmailParam: string,
+    shouldShowInReview?: boolean,
+    reportTransactions?: Transaction[],
+    report?: OnyxEntry<Report>,
+    policy?: OnyxEntry<Policy>,
+): boolean {
+    const transactions = reportTransactions ?? getReportTransactions(reportID);
+
+    return transactions.some((transaction) => {
+        const visibleViolations = getTransactionViolations(transaction, transactionViolations, currentUserEmailParam ?? '', currentUserAccountIDParam, report, policy);
+
+        return !!visibleViolations?.some(
+            (violation) =>
+                violation.type === CONST.VIOLATION_TYPES.NOTICE &&
+                violation.name !== CONST.VIOLATIONS.MODIFIED_AMOUNT &&
+                (shouldShowInReview === undefined || shouldShowInReview === (violation.showInReview ?? false)),
+        );
+    });
 }
 
 /**

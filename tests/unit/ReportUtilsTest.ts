@@ -10976,6 +10976,104 @@ describe('ReportUtils', () => {
         await Onyx.clear();
     });
 
+    it('should not display RBR in LHN for submitted report when the only violation is modifiedAmount notice', async () => {
+        await Onyx.clear();
+
+        const policyID = 'policy-rbr-modified-amount-processing';
+        const chatReportID = 'chat-rbr-modified-amount-processing';
+        const expenseReportID = 'expense-rbr-modified-amount-processing';
+        const transactionID = 'transaction-rbr-modified-amount-processing';
+
+        const policy1: Policy = {
+            id: policyID,
+            name: 'RBR Modified Amount Processing Workspace',
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.ADMIN,
+            outputCurrency: CONST.CURRENCY.USD,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            employeeList: {
+                [currentUserEmail]: {
+                    role: CONST.POLICY.ROLE.ADMIN,
+                },
+            },
+            owner: currentUserEmail,
+            isPolicyExpenseChatEnabled: true,
+        };
+
+        const chatReport: Report = {
+            ...LHNTestUtils.getFakeReportWithPolicy([currentUserAccountID, 42]),
+            reportID: chatReportID,
+            ownerAccountID: currentUserAccountID,
+            policyID,
+            iouReportID: expenseReportID,
+            hasOutstandingChildRequest: true,
+        };
+
+        const expenseReport: Report = {
+            ...LHNTestUtils.getFakeReport([currentUserAccountID, 42]),
+            reportID: expenseReportID,
+            chatReportID,
+            ownerAccountID: currentUserAccountID,
+            managerID: 42,
+            policyID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            currency: CONST.CURRENCY.USD,
+            total: 12345,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+        };
+
+        const baseTransaction = createRandomTransaction(711);
+        const transaction: Transaction = {
+            ...baseTransaction,
+            transactionID,
+            reportID: expenseReportID,
+            amount: 12345,
+            currency: CONST.CURRENCY.USD,
+            status: CONST.TRANSACTION.STATUS.POSTED,
+            reimbursable: true,
+        };
+
+        const reportPreviewAction: ReportAction = {
+            ...LHNTestUtils.getFakeReportAction(),
+            reportActionID: 'report-preview-action-rbr-modified-amount',
+            actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+            childReportID: expenseReportID,
+        };
+
+        const transactionViolationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}` as OnyxKey;
+        const transactionViolationsCollection: OnyxCollection<TransactionViolation[]> = {
+            [transactionViolationsKey]: [
+                {
+                    name: CONST.VIOLATIONS.MODIFIED_AMOUNT,
+                    type: CONST.VIOLATION_TYPES.NOTICE,
+                    showInReview: true,
+                },
+            ],
+        };
+
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
+        await waitForBatchedUpdates();
+
+        await Promise.all([
+            Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy1),
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport),
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport),
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, {
+                [reportPreviewAction.reportActionID]: reportPreviewAction,
+            }),
+            Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction),
+            Onyx.merge(transactionViolationsKey, transactionViolationsCollection[transactionViolationsKey]),
+        ]);
+        await waitForBatchedUpdates();
+
+        const shouldShowRBR = shouldDisplayViolationsRBRInLHN(chatReport, transactionViolationsCollection);
+        expect(shouldShowRBR).toBe(false);
+
+        await Onyx.clear();
+    });
+
     it('should not surface a GBR when bank account is added, but reimbursement is disabled on the policy', async () => {
         await Onyx.clear();
 
