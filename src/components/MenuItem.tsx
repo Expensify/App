@@ -667,7 +667,7 @@ function MenuItem({
 
     const renderDescriptionView = () => {
         if (!description && !descriptionAddon) {
-            return;
+            return null;
         }
         return (
             <View style={descriptionContainerStyle}>
