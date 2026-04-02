@@ -4227,6 +4227,31 @@ const CONST = {
             TAX: 'tax',
         },
     },
+    SPEND_RULES: {
+        CATEGORIES: {
+            AIRLINES: 'Airlines',
+            ALCOHOL_AND_BARS: 'Alcohol and bars',
+            AMAZON_AND_BOOKSTORES: 'Amazon and bookstores',
+            AUTOMOTIVE: 'Automotive',
+            CAR_RENTALS: 'Car rentals',
+            DINING: 'Dining',
+            FUEL_AND_GAS: 'Fuel and gas',
+            GOVERNMENT_AND_NON_PROFITS: 'Government and non-profits',
+            GROCERIES: 'Groceries',
+            GYMS_AND_FITNESS: 'Gyms and fitness',
+            HEALTHCARE: 'Healthcare',
+            HOTELS: 'Hotels',
+            INTERNET_AND_PHONE: 'Internet and phone',
+            OFFICE_SUPPLIES: 'Office supplies',
+            PARKING_AND_TOLLS: 'Parking and tolls',
+            PROFESSIONAL_SERVICES: 'Professional services',
+            RETAIL: 'Retail',
+            SHIPPING_AND_DELIVERY: 'Shipping and delivery',
+            SOFTWARE: 'Software',
+            TRANSIT_AND_RIDESHARE: 'Transit and rideshare',
+            TRAVEL_AGENCIES: 'Travel agencies',
+        },
+    },
 
     SPEND_RULE_FORM: {
         FIELDS: {

@@ -15,7 +15,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setExpensifyCardRule} from '@libs/actions/Card';
 import {clearDraftSpendRule, updateDraftSpendRule} from '@libs/actions/User';
 import {filterInactiveCards, getCardDescriptionForSearchTable, isCard} from '@libs/CardUtils';
-import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
@@ -84,7 +83,7 @@ function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps)
               })
               .join(', ');
 
-    const categoriesMenuTitle = categories.map((categoryName) => getDecodedCategoryName(categoryName)).join(', ');
+    const categoriesMenuTitle = categories.map((categoryName) => translate(`workspace.rules.spendRules.categoryOptions.${categoryName}`)).join(', ');
 
     const selectedCardsCurrencies = new Set<string>();
     for (const id of cardIDs ?? []) {

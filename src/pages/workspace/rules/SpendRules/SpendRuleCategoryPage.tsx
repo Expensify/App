@@ -1,6 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useMemo, useState} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -14,17 +13,15 @@ import useOnyx from '@hooks/useOnyx';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateDraftSpendRule} from '@libs/actions/User';
-import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {SPEND_RULE_CATEGORIES, translateSpendRuleCategory} from '@libs/SpendRuleCategoryUtils';
 import variables from '@styles/variables';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PolicyCategories, PolicyCategory} from '@src/types/onyx';
 
 type CategoryListItem = ListItem & {
     value: string;
@@ -32,17 +29,12 @@ type CategoryListItem = ListItem & {
 
 type SpendRuleCategoryPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_SPEND_CATEGORY>;
 
-function getEnabledCategories(policyCategories: OnyxEntry<PolicyCategories>): PolicyCategory[] {
-    return Object.values(policyCategories ?? {}).filter((category) => category.enabled && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-}
-
 function SpendRuleCategoryPage({route}: SpendRuleCategoryPageProps) {
     const {policyID} = route.params;
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const [spendRuleForm] = useOnyx(ONYXKEYS.FORMS.SPEND_RULE_FORM);
 
     const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -53,16 +45,11 @@ function SpendRuleCategoryPage({route}: SpendRuleCategoryPageProps) {
         }, [spendRuleForm?.categories]),
     );
 
-    const categoryItems = useMemo(() => {
-        return getEnabledCategories(policyCategories).map((category) => {
-            const decodedName = getDecodedCategoryName(category.name);
-            return {
-                keyForList: category.name,
-                text: decodedName,
-                value: category.name,
-            };
-        });
-    }, [policyCategories]);
+    const categoryItems = SPEND_RULE_CATEGORIES.map((category) => ({
+        keyForList: category,
+        text: translate(`workspace.rules.spendRules.categoryOptions.${category}`),
+        value: category,
+    }));
 
     const filterCategory = (item: CategoryListItem, searchInput: string) => (item.text ?? '').toLowerCase().includes(searchInput.toLowerCase());
     const sortCategories = (items: CategoryListItem[]) => items.sort((a, b) => localeCompare(a.text ?? '', b.text ?? ''));

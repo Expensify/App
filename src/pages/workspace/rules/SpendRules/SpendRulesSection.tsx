@@ -17,10 +17,10 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getSpendRuleFormValuesFromCardRule} from '@libs/actions/Card';
 import {filterInactiveCards, getCardDescriptionForSearchTable, isCard} from '@libs/CardUtils';
-import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {translateSpendRuleCategory} from '@libs/SpendRuleCategoryUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -42,11 +42,12 @@ function getSpendRuleSummaryParts(
     formValues: SpendRuleForm,
     selectedCurrency: string | undefined,
     actionLabel: string,
+    locale: ReturnType<typeof useLocalize>['preferredLocale'],
     translate: ReturnType<typeof useLocalize>['translate'],
 ): SpendRuleSummaryPart[] {
     const summaryParts: SpendRuleSummaryPart[] = [];
     const merchantNames = formValues.merchantNames.filter(Boolean).join(', ');
-    const categories = formValues.categories.map((category) => getDecodedCategoryName(category)).join(', ');
+    const categories = formValues.categories.map((category) => translateSpendRuleCategory(category, locale)).join(', ');
     const maxAmount = formValues.maxAmount.trim();
 
     if (merchantNames) {
@@ -90,7 +91,7 @@ function getSelectedCardsCurrency(cardIDs: string[], cardsList: WorkspaceCardsLi
 }
 
 function SpendRulesSection({policyID}: SpendRulesSectionProps) {
-    const {translate} = useLocalize();
+    const {preferredLocale, translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
@@ -151,7 +152,7 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
                 ruleID,
                 actionLabel,
                 cardSummary,
-                summaryParts: getSpendRuleSummaryParts(formValues, selectedCurrency, actionLabel, translate),
+                summaryParts: getSpendRuleSummaryParts(formValues, selectedCurrency, actionLabel, preferredLocale, translate),
                 isBlock: formValues.restrictionAction === CONST.SPEND_CARD_RULE.ACTION.BLOCK,
             };
         })
