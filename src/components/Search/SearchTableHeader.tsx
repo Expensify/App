@@ -539,7 +539,7 @@ function SearchTableHeader({
             shouldShowSorting={shouldShowSorting}
             sortBy={sortBy}
             sortOrder={sortOrder}
-            shouldRemoveTotalColumnFlex={!!groupBy || isExpenseReportView}
+            shouldRemoveTotalColumnFlex={!!groupBy !== !!isExpenseReportView}
             // Don't butt up against the 'select all' checkbox if present
             containerStyles={canSelectMultiple && [styles.pl3]}
             onSortPress={(columnName, order) => {
