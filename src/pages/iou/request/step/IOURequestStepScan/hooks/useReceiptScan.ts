@@ -68,11 +68,11 @@ function useReceiptScan({
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
     const [isMultiScanEnabled, setIsMultiScanEnabled] = useState(false);
-    const isStartingScan = action === CONST.IOU.ACTION.CREATE;
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isArchived = isArchivedReport(reportNameValuePairs);
     const isReplacingReceipt = (isEditing && hasReceipt(initialTransaction)) || (!!initialTransaction?.receipt && !!backTo);
+    const isStartingScan = action === CONST.IOU.ACTION.CREATE && !isReplacingReceipt;
     const shouldAcceptMultipleFiles = !isEditing && !backTo;
     const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);

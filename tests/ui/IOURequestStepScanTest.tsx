@@ -167,7 +167,7 @@ describe('IOURequestStepScan', () => {
         expect(tx2After?.receipt?.source).toBe('file://receipt2.png');
     });
 
-    it('multi-scan mode preserves first receipt when adding second receipt', async () => {
+    it('adding a second receipt replaces the existing draft receipt when isMultiScanEnabled is false', async () => {
         const REPORT_ID = '1';
         const POLICY_ID = 'policy-1';
         const TRANSACTION_ID_1 = '101';
@@ -230,6 +230,6 @@ describe('IOURequestStepScan', () => {
 
         const tx1After = await getTransactionsDraftOnyx(TRANSACTION_ID_1);
         expect(tx1After).toBeDefined();
-        expect(tx1After?.receipt?.source).toBe('file://first-receipt.png');
+        expect(tx1After?.receipt?.source).toBe('file://second-receipt.png');
     });
 });
