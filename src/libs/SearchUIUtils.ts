@@ -4736,12 +4736,14 @@ function getColumnsToShow({
                 columns[CONST.SEARCH.TABLE_COLUMNS.TAX_RATE] = true;
             }
 
-            if (transaction.taxAmount) {
+            if (transaction.taxAmount != null) {
                 columns[CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT] = true;
             }
 
             const hasExchangeRate = getExchangeRate(transaction, reportCurrency) !== '';
-            if (hasExchangeRate || transaction.originalAmount) {
+            // Zero original amount is valid if the expense was created as 0 and modified (modifiedAmount is set).
+            const hasOriginalAmount = transaction.originalAmount != null || (transaction.amount === 0 && transaction.modifiedAmount != null && transaction.modifiedAmount !== '');
+            if (hasExchangeRate || hasOriginalAmount) {
                 columns[CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT] = true;
                 columns[CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE] = true;
             }

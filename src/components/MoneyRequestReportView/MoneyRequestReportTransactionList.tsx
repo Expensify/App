@@ -252,7 +252,10 @@ function MoneyRequestReportTransactionList({
         );
     }, [sortBy, sortOrder, transactions, localeCompare, report, policy]);
 
-    const resolvedTransactions = useMemo(() => resolveTransactionCardFields(sortedTransactions, cardList, cardFeeds, translate), [sortedTransactions, cardList, cardFeeds, translate]);
+    const resolvedTransactions = useMemo(
+        () => resolveTransactionCardFields(sortedTransactions, cardList, cardFeeds, translate, report?.currency),
+        [sortedTransactions, cardList, cardFeeds, translate, report?.currency],
+    );
 
     const highlightedTransactionIDs = useMemo(() => new Set(newTransactions.map(({transactionID}) => transactionID)), [newTransactions]);
 
