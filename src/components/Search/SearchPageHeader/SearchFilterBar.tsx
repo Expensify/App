@@ -1,12 +1,12 @@
 import React from 'react';
+import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
+import type {DropdownButtonProps} from '@components/Search/FilterDropdowns/DropdownButton';
+import useFilterFeedValue from '@components/Search/hooks/useFilterFeedValue';
+import useFilterFromValue from '@components/Search/hooks/useFilterFromValue';
+import useFilterWorkspaceValue from '@components/Search/hooks/useFilterWorkspaceValue';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
-import DropdownButton from '../FilterDropdowns/DropdownButton';
-import type {DropdownButtonProps} from '../FilterDropdowns/DropdownButton';
-import useFilterFeedValue from '../hooks/useFilterFeedValue';
-import useFilterFromValue from '../hooks/useFilterFromValue';
-import useFilterWorkspaceValue from '../hooks/useFilterWorkspaceValue';
 import type {FilterItem} from './useSearchFiltersBar';
 
 type SearchDropdownProps = Omit<DropdownButtonProps, 'viewportOffsetTop'>;

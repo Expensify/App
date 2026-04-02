@@ -1,13 +1,13 @@
 import React, {useRef} from 'react';
-import {View} from 'react-native';
-import {FlatList} from 'react-native';
+import {FlatList, View} from 'react-native';
 import type {SearchQueryJSON} from '@components/Search/types';
 import SearchActionsSkeleton from '@components/Skeletons/SearchActionsSkeleton';
-import {SearchFilter} from '@libs/SearchUIUtils';
+import type {SearchFilter} from '@libs/SearchUIUtils';
 import shouldAdjustScroll from '@libs/shouldAdjustScroll';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import SearchFilterBar from './SearchFilterBar';
-import useSearchFiltersBar, {FilterItem} from './useSearchFiltersBar';
+import useSearchFiltersBar from './useSearchFiltersBar';
+import type {FilterItem} from './useSearchFiltersBar';
 
 type SearchFiltersBarNarrowProps = {
     queryJSON: SearchQueryJSON;
