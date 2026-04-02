@@ -132,6 +132,7 @@ const SCREENS = {
         DYNAMIC_VERIFY_ACCOUNT: 'Dynamic_Verify_Account',
         DYNAMIC_ADD_BANK_ACCOUNT_VERIFY_ACCOUNT: 'Dynamic_Add_Bank_Account_Verify_Account',
         DYNAMIC_EXIT_SURVEY_CONFIRM: 'Dynamic_ExitSurvey_Confirm',
+        DYNAMIC_EXIT_SURVEY_REASON: 'Dynamic_ExitSurvey_Reason',
         DYNAMIC_KEYBOARD_SHORTCUTS: 'Dynamic_Keyboard_Shortcuts',
 
         PROFILE: {
@@ -227,7 +228,6 @@ const SCREENS = {
         },
 
         EXIT_SURVEY: {
-            REASON: 'Settings_ExitSurvey_Reason',
             RESPONSE: 'Settings_ExitSurvey_Response',
         },
 

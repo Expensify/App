@@ -167,9 +167,13 @@ const DYNAMIC_ROUTES = {
             }),
         queryParams: ['fieldName', 'fieldValue', 'policyID'],
     },
+    EXIT_SURVEY_REASON: {
+        path: 'exit-survey/reason',
+        entryScreens: [SCREENS.SETTINGS.ROOT, SCREENS.SETTINGS.TROUBLESHOOT],
+    },
     EXIT_SURVEY_CONFIRM: {
         path: 'exit-survey/confirm',
-        entryScreens: [SCREENS.SETTINGS.ROOT, SCREENS.SETTINGS.EXIT_SURVEY.REASON, SCREENS.SETTINGS.TROUBLESHOOT],
+        entryScreens: [SCREENS.SETTINGS.ROOT, SCREENS.SETTINGS.DYNAMIC_EXIT_SURVEY_REASON, SCREENS.SETTINGS.TROUBLESHOOT],
     },
 } as const satisfies DynamicRoutes;
 
@@ -727,7 +731,6 @@ const ROUTES = {
     SETTINGS_VACATION_DELEGATE: 'settings/profile/status/vacation-delegate',
     SETTINGS_TROUBLESHOOT: 'settings/troubleshoot',
     SETTINGS_HELP: 'settings/help',
-    SETTINGS_EXIT_SURVEY_REASON: 'settings/exit-survey/reason',
 
     SETTINGS_SAVE_THE_WORLD: 'settings/teachersunite',
 

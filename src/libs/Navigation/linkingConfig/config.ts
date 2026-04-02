@@ -1192,8 +1192,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SETTINGS.SHARE_CODE]: {
                             path: ROUTES.SETTINGS_SHARE_CODE,
                         },
-                        [SCREENS.SETTINGS.EXIT_SURVEY.REASON]: {
-                            path: ROUTES.SETTINGS_EXIT_SURVEY_REASON,
+                        [SCREENS.SETTINGS.DYNAMIC_EXIT_SURVEY_REASON]: {
+                            path: DYNAMIC_ROUTES.EXIT_SURVEY_REASON.path,
                         },
                         [SCREENS.SETTINGS.DYNAMIC_EXIT_SURVEY_CONFIRM]: {
                             path: DYNAMIC_ROUTES.EXIT_SURVEY_CONFIRM.path,
