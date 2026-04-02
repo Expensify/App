@@ -1,6 +1,6 @@
 import shouldStartLocationPermissionFlowSelector from '@selectors/LocationPermission';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {useEffect, useMemo, useState} from 'react';
+import {useMemo, useState} from 'react';
 import TestReceipt from '@assets/images/fake-receipt.png';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useFilesValidation from '@hooks/useFilesValidation';
@@ -89,15 +89,6 @@ function useReceiptScan({
 
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
     const [receiptFiles, setReceiptFiles] = useState<ReceiptFile[]>([]);
-
-    // Clear receipt files when multi-scan is disabled
-    useEffect(() => {
-        if (isMultiScanEnabled) {
-            return;
-        }
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setReceiptFiles([]);
-    }, [isMultiScanEnabled]);
 
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
 

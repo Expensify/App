@@ -131,6 +131,7 @@ function MobileWebCameraView({
             shouldSkipConfirmation,
             setStartLocationPermissionFlow,
             setIsMultiScanEnabled,
+            setReceiptFiles,
         });
     const theme = useTheme();
     const styles = useThemeStyles();

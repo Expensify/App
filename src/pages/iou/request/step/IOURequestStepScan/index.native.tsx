@@ -325,6 +325,7 @@ function IOURequestStepScan({
             shouldSkipConfirmation,
             setStartLocationPermissionFlow,
             setIsMultiScanEnabled,
+            setReceiptFiles,
         });
 
     const maybeCancelShutterSpan = useCallback(() => {

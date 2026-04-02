@@ -72,6 +72,9 @@ type UseMobileReceiptScanParams = {
 
     /** Callback to update multi-scan enabled state */
     setIsMultiScanEnabled: (value: boolean) => void;
+
+    /** Callback to update scanned receipt files */
+    setReceiptFiles: (value: ReceiptFile[]) => void;
 };
 
 type IOURequestStepScanProps = WithCurrentUserPersonalDetailsProps &
