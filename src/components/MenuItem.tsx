@@ -652,9 +652,9 @@ function MenuItem({
         styles.flex1,
         title ? {} : StyleUtils.getFontSizeStyle(variables.fontSizeNormal),
         title ? styles.textLineHeightNormal : StyleUtils.getLineHeightStyle(variables.fontSizeNormalHeight),
-        (descriptionTextStyle as TextStyle) || styles.breakWord,
         !descriptionAddon && icon && !Array.isArray(icon) ? styles.ml3 : {},
         descriptionAddon ? styles.ml2 : {},
+        (descriptionTextStyle as TextStyle) || styles.breakWord,
         isDeleted ? styles.offlineFeedbackDeleted : {},
     ]);
 
