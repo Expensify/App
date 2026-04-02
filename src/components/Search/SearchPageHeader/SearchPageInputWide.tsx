@@ -66,7 +66,7 @@ function SearchPageInputWide({queryJSON, handleSearch}: SearchPageInputWideProps
     return (
         <>
             {/* An empty view as the input placeholder so that the applied filters won't move when the real input position becomes absolute */}
-            {isAutocompleteListVisible && <View style={styles.searchPageInputPlaceholder} />}
+            {isAutocompleteListVisible && <View style={styles.searchPageInputWidePlaceholder} />}
             <View
                 dataSet={{dragArea: false}}
                 style={[styles.appBG, styles.newSearchResultsHeaderBar, ...autocompleteInputStyle]}
@@ -77,7 +77,7 @@ function SearchPageInputWide({queryJSON, handleSearch}: SearchPageInputWideProps
                     isFullWidth
                     inputStyle={isAutocompleteListVisible ? undefined : styles.fontSizeLabel}
                     inputContainerStyle={isAutocompleteListVisible ? styles.ph3 : styles.ph2}
-                    touchableInputWrapperStyle={isAutocompleteListVisible ? undefined : styles.searchPageInputTouchableWrapper}
+                    touchableInputWrapperStyle={isAutocompleteListVisible ? undefined : styles.searchPageInputWideTouchableWrapper}
                     onSubmit={() => {
                         const focusedOption = listRef.current?.getFocusedOption();
                         if (focusedOption) {

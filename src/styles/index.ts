@@ -3476,7 +3476,6 @@ const staticStyles = (theme: ThemeColors) =>
 
         searchInputSkeleton: {
             height: 54,
-            borderRadius: variables.componentBorderRadiusNormal,
             justifyContent: 'center',
         },
 
@@ -4891,12 +4890,13 @@ const staticStyles = (theme: ThemeColors) =>
             alignSelf: 'flex-start',
         },
 
-        searchPageInputTouchableWrapper: {height: 32, width: 200},
-        searchPageInputPlaceholder: {
+        searchPageInputWideTouchableWrapper: {height: 32, width: 200},
+        searchPageInputWidePlaceholder: {
             // Extra 2 to account for the borders
             height: 34,
             width: 202,
         },
+        searchPageInputNarrowTouchableWrapper: {height: variables.componentSizeLarge},
 
         walletStaticIllustration: {
             width: 262,
