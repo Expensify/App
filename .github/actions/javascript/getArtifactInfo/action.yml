@@ -18,5 +18,5 @@ outputs:
     description: The ID of the workflow that produced the artifact
 
 runs:
-  using: "node20"
+  using: "node24"
   main: "index.js"
