@@ -8,6 +8,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useMappedPersonalDetails, {personalDetailMapper} from '@hooks/useMappedPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -37,6 +38,7 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
     const ifUserCanPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
     const [personalDetails] = useMappedPersonalDetails(personalDetailMapper);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const reportAttributes = useReportAttributes();
 
     const getSortedAllReportActionsSelector = useCallback(
         (allReportActions: OnyxEntry<ReportActions>): ReportAction[] => {
@@ -71,8 +73,17 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
 
             if (isCreatedAction(reportAction)) {
                 return formatReportLastMessageText(
-                    SidebarUtils.getWelcomeMessage({report, policy, invoiceReceiverPolicy, participantPersonalDetailList, translate, localeCompare, conciergeReportID, isReportArchived})
-                        .messageText ?? translate('report.noActivityYet'),
+                    SidebarUtils.getWelcomeMessage({
+                        report,
+                        policy,
+                        invoiceReceiverPolicy,
+                        participantPersonalDetailList,
+                        translate,
+                        localeCompare,
+                        conciergeReportID,
+                        reportAttributes,
+                        isReportArchived,
+                    }).messageText ?? translate('report.noActivityYet'),
                 );
             }
 
@@ -82,7 +93,7 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
 
             return getReportActionMessageText(reportAction);
         },
-        [translate, report, policy, invoiceReceiverPolicy, participantPersonalDetailList, localeCompare, conciergeReportID, isReportArchived],
+        [translate, report, policy, invoiceReceiverPolicy, participantPersonalDetailList, localeCompare, conciergeReportID, reportAttributes, isReportArchived],
     );
 
     const searchedReportActions = useMemo(() => {

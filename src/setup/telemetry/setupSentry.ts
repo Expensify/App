@@ -8,16 +8,14 @@ import pkg from '../../../package.json';
 import makeDebugTransport from './debugTransport';
 
 function setupSentry(): void {
-    // With Sentry enabled in dev mode, profiling on iOS and Android does not work
-    // If you want to enable Sentry in dev, set ENABLE_SENTRY_ON_DEV=true in .env
-    if (isDevelopment() && !CONFIG.ENABLE_SENTRY_ON_DEV) {
-        return;
-    }
-
     const integrations = [navigationIntegration, tracingIntegration, browserProfilingIntegration, breadcrumbsIntegration, consoleIntegration];
 
     Sentry.init({
         dsn: CONFIG.SENTRY_DSN,
+        // In development, debugTransport replaces the default Sentry transport.
+        // When "Send data to Sentry" toggle is ON, it forwards envelopes to Sentry via fetch.
+        // When the toggle is OFF, it silently discards envelopes (returns 200 noop).
+        // When "Log Sentry to console" toggle is ON, it logs envelope contents to the console.
         transport: isDevelopment() ? makeDebugTransport : undefined,
         tracesSampleRate: 1.0,
         // 1. Profiling for Android is currently disabled because it causes crashes sometimes.
@@ -31,9 +29,12 @@ function setupSentry(): void {
         beforeSendTransaction: processBeforeSendTransactions,
         enableLogs: true,
         beforeSendLog: processBeforeSendLogs,
+        // In HybridApp, native SDK is initialized early in Application.onCreate (Android) and
+        // AppDelegate (iOS) to capture breadcrumbs during native startup before JS loads.
+        autoInitializeNativeSdk: !CONFIG.IS_HYBRID_APP,
     });
 
-    Sentry.setTag(CONST.TELEMETRY.TAG_BUILD_TYPE, CONFIG.IS_HYBRID_APP ? CONST.TELEMETRY.BUILD_TYPE_HYBRID_APP : CONST.TELEMETRY.BUILD_TYPE_STANDALONE);
+    Sentry.setTag(CONST.TELEMETRY.TAGS.BUILD_TYPE, CONFIG.IS_HYBRID_APP ? CONST.TELEMETRY.BUILD_TYPE_HYBRID_APP : CONST.TELEMETRY.BUILD_TYPE_STANDALONE);
 }
 
 export default setupSentry;

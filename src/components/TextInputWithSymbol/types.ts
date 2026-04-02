@@ -92,6 +92,9 @@ type BaseTextInputWithSymbolProps = {
 
     /** Determines which keyboard to open */
     keyboardType?: KeyboardTypeOptions;
+
+    /** Component to render on the right hand side of the input - only shown if clear button is not rendered */
+    rightHandSideComponent?: React.ReactNode;
 } & Pick<
     BaseTextInputProps,
     | 'autoFocus'

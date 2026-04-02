@@ -94,7 +94,7 @@ A CSV upload is a manual method for importing credit card transactions into Expe
 # Assign Cards: How do I assign cards to employees?
 1. Go to **Settings > Domains > [Domain Name] > Company Cards**.
 2. Select the card feed from the dropdown list.
-3. Click **Assign New Cards** and select the employee’s email and card number.
+3. Click **Assign New Cards**, enter the member's email address and select the card number. 
 4. (Optional) Set a transaction start date.
 5. Click **Assign** to complete the process.
 
@@ -149,24 +149,24 @@ For businesses using accounting integrations like QuickBooks or NetSuite, connec
 
 # FAQ
 
-## Missing Transactions: Why aren’t all transactions appearing?
+## Why are some transactions missing?
 Transactions may take up to 24 hours to post. Update the card feed or check the Reconciliation Dashboard to review transaction data.
 
 - **Reconciliation Dashboard**: Navigate to **Settings > Domains > [Domain Name] > Company Cards > Reconciliation** to identify missing or unapproved expenses within a specific timeframe.
 - **Common Issues**: Ensure the transaction date range is correct. If gaps persist, contact Concierge to request a historical data update.
 
-## Direct vs. Commercial Feeds: Which option is better?
+## Which is better, a direct bank connection or commercial card feed?
 Commercial feeds are more stable and reliable but require setup by your bank. Direct connections are easier to set up but may experience occasional disruptions.
 
-## CSV Upload Errors: What should I do if my upload fails?
+## What should I do if my CSV upload fails or results in an error?
 Ensure the file includes the required fields and matches the formatting guidelines. Use Expensify’s [CSV template](https://s3-us-west-1.amazonaws.com/concierge-responses-expensify-com/uploads%2F1594908368712-Best+Example+CSV+for+Domains.csv) for reference.
 
-## Unassigning Cards: What happens when I unassign a card?
+## What happens when I unassign a card?
 Unassigning a card deletes all draft or unreported expenses linked to it. Submitted or processed expenses remain unaffected.
 
-## Connection Issues: Why is my card connection broken?
+## Why is my card connection broken?
 Check for changes to bank credentials, security questions, or login details. Update the information in Expensify and re-establish the connection via **Fix Card**.
 
-## Historical Data: How far back can I import transactions?
+## How far back can I import transactions?
 Most banks provide 30-90 days of historical data. Older transactions can be imported using the CSV upload method.
 

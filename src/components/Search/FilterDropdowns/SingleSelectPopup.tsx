@@ -1,5 +1,6 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import Button from '@components/Button';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
@@ -42,11 +43,24 @@ type SingleSelectPopupProps<T> = {
     /** The default value to set when reset is clicked */
     defaultValue?: string;
 
+    style?: StyleProp<ViewStyle>;
+
     /** Custom styles for the SelectionList */
     selectionListStyle?: SelectionListStyle;
 };
 
-function SingleSelectPopup<T extends string>({label, value, items, closeOverlay, onChange, isSearchable, searchPlaceholder, defaultValue, selectionListStyle}: SingleSelectPopupProps<T>) {
+function SingleSelectPopup<T extends string>({
+    label,
+    value,
+    items,
+    closeOverlay,
+    onChange,
+    isSearchable,
+    searchPlaceholder,
+    defaultValue,
+    style,
+    selectionListStyle,
+}: SingleSelectPopupProps<T>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -117,7 +131,7 @@ function SingleSelectPopup<T extends string>({label, value, items, closeOverlay,
     const shouldShowLabel = isSmallScreenWidth && !!label;
 
     return (
-        <View style={[!isSmallScreenWidth && styles.pv4, styles.gap2]}>
+        <View style={[!isSmallScreenWidth && styles.pv4, styles.gap2, style]}>
             {shouldShowLabel && <Text style={[styles.textLabel, styles.textSupporting, styles.ph5, styles.pv1]}>{label}</Text>}
 
             <View style={[styles.getSelectionListPopoverHeight(options.length || 1, windowHeight, isSearchable ?? false)]}>
