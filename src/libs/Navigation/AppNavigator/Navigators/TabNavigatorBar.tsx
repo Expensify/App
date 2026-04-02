@@ -13,25 +13,32 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
-const NAVIGATOR_NAMES = new Set<string>(Object.values(NAVIGATORS));
+/**
+ * Screen names that represent the root/landing view of each tab.
+ * The tab bar is visible only when one of these screens is focused.
+ */
+const ROOT_TAB_SCREENS = new Set<string>([
+    SCREENS.HOME,
+    SCREENS.INBOX,
+    SCREENS.SEARCH.ROOT,
+    SCREENS.SETTINGS.ROOT,
+    SCREENS.WORKSPACES_LIST,
+    SCREENS.WORKSPACE.INITIAL,
+    SCREENS.DOMAIN.INITIAL,
+]);
 
 /**
- * Determines whether the active tab route is at its root screen.
- * For simple tab screens (split/fullscreen navigators), index 0 or undefined means root.
- * For nested stacks like WorkspaceNavigator, this recursively checks deeper levels so that
- * e.g. WorkspaceSplit at its initial page is still considered "root".
+ * Walks down the focused route chain and returns the leaf screen name.
  */
-function isTabRouteAtRoot(routeState: NavigationState | PartialState<NavigationState> | undefined): boolean {
-    if (!routeState || routeState.index === undefined || routeState.index === 0) {
-        return true;
+function getFocusedLeafScreenName(state: NavigationState | PartialState<NavigationState> | undefined): string | undefined {
+    if (!state || state.index === undefined) {
+        return undefined;
     }
-    // Index > 0: check if the focused route is a nested navigator
-    const focusedRoute = routeState.routes[routeState.index];
-    if (focusedRoute?.state) {
-        return isTabRouteAtRoot(focusedRoute.state);
+    const focused = state.routes[state.index];
+    if (focused?.state) {
+        return getFocusedLeafScreenName(focused.state);
     }
-    // No nested state yet — if the route IS a navigator (just not initialized), treat as root
-    return NAVIGATOR_NAMES.has(focusedRoute?.name ?? '');
+    return focused?.name;
 }
 
 const ROUTE_TO_NAVIGATION_TAB: Record<string, ValueOf<typeof NAVIGATION_TABS>> = {
@@ -54,7 +61,8 @@ function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
     const StyleUtils = useStyleUtils();
     const activeRoute = state.routes[state.index];
     const selectedTab = ROUTE_TO_NAVIGATION_TAB[activeRoute?.name ?? SCREENS.HOME] ?? NAVIGATION_TABS.HOME;
-    const isAtRoot = isTabRouteAtRoot(activeRoute?.state);
+    const focusedScreen = getFocusedLeafScreenName(activeRoute?.state);
+    const isAtRoot = !focusedScreen || ROOT_TAB_SCREENS.has(focusedScreen);
     // --- Narrow-only animation logic (hooks must run unconditionally per Rules of Hooks) ---
     // On native, screens also render the tab bar via bottomContent for swipe-back animations.
     // Delay showing this navigator's tab bar only when navigating back from a deeper screen
