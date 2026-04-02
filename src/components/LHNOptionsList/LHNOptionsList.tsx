@@ -35,6 +35,8 @@ import type {LHNOptionsListProps, RenderItemProps} from './types';
 import useEmptyLHNIllustration from './useEmptyLHNIllustration';
 
 const keyExtractor = (item: Report) => `report_${item.reportID}`;
+const platform = getPlatform();
+const isWeb = platform === CONST.PLATFORM.WEB;
 
 function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optionMode, shouldDisableFocusOptions = false, onFirstItemRendered = () => {}}: LHNOptionsListProps) {
     const {saveScrollOffset, getScrollOffset, saveScrollIndex, getScrollIndex} = useContext(ScrollOffsetContext);
@@ -42,11 +44,10 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const flashListRef = useRef<FlashListRef<Report>>(null);
     const route = useRoute();
     const isScreenFocused = useIsFocused();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass', 'Plus'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass', 'Plus']);
 
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const reportAttributes = useReportAttributes();
-    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [policy] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -60,21 +61,15 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const isReportsSplitNavigatorLast = useRootNavigationState((state) => state?.routes?.at(-1)?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
     const shouldShowEmptyLHN = data.length === 0;
     const estimatedItemSize = optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
-    const platform = getPlatform();
-    const isWeb = platform === CONST.PLATFORM.WEB;
     const emptyLHNIllustration = useEmptyLHNIllustration();
 
     const firstReportIDWithGBRorRBR = useMemo(() => {
         const firstReportWithGBRorRBR = data.find((report) => {
-            const itemReportErrors = reportAttributes?.[report.reportID]?.reportErrors;
-            if (!report) {
-                return false;
-            }
-            if (!isEmptyObject(itemReportErrors)) {
+            const attrs = reportAttributes?.[report.reportID];
+            if (!isEmptyObject(attrs?.reportErrors)) {
                 return true;
             }
-            const hasGBR = reportAttributes?.[report.reportID]?.requiresAttention;
-            return hasGBR;
+            return attrs?.requiresAttention;
         });
 
         return firstReportWithGBRorRBR?.reportID;
@@ -153,8 +148,9 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const renderItem = useCallback(
         ({item, index}: RenderItemProps): ReactElement => {
             const reportID = item.reportID;
+            const itemReportAttributes = reportAttributes?.[reportID];
             const itemParentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.parentReportID}`];
-            const itemReportNameValuePairs = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
+            const itemOneTransactionThreadReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${itemReportAttributes?.oneTransactionThreadReportID}`];
 
             let invoiceReceiverPolicyID = '-1';
             if (item?.invoiceReceiver && 'policyID' in item.invoiceReceiver) {
@@ -172,7 +168,9 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 <OptionRowLHNData
                     reportID={reportID}
                     fullReport={item}
-                    reportNameValuePairs={itemReportNameValuePairs}
+                    reportAttributes={itemReportAttributes}
+                    reportAttributesDerived={reportAttributes}
+                    oneTransactionThreadReport={itemOneTransactionThreadReport}
                     policy={itemPolicy}
                     invoiceReceiverPolicy={itemInvoiceReceiverPolicy}
                     personalDetails={personalDetails ?? {}}
@@ -194,8 +192,8 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             );
         },
         [
+            reportAttributes,
             reports,
-            reportNameValuePairs,
             policy,
             personalDetails,
             firstReportIDWithGBRorRBR,
@@ -215,18 +213,14 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     );
 
     const extraData = useMemo(
-        () => [reports, reportNameValuePairs, policy, personalDetails, data.length, optionMode, isOffline, isScreenFocused, isReportsSplitNavigatorLast],
-        [reports, reportNameValuePairs, policy, personalDetails, data.length, optionMode, isOffline, isScreenFocused, isReportsSplitNavigatorLast],
+        () => [reports, reportAttributes, policy, personalDetails, data.length, optionMode, isOffline, isScreenFocused, isReportsSplitNavigatorLast],
+        [reports, reportAttributes, policy, personalDetails, data.length, optionMode, isOffline, isScreenFocused, isReportsSplitNavigatorLast],
     );
 
     const previousOptionMode = usePrevious(optionMode);
 
     useEffect(() => {
         if (previousOptionMode === null || previousOptionMode === optionMode || !flashListRef.current) {
-            return;
-        }
-
-        if (!flashListRef.current) {
             return;
         }
 
@@ -247,7 +241,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             }
             triggerScrollEvent();
         },
-        [estimatedItemSize, isWeb, route, saveScrollIndex, saveScrollOffset, triggerScrollEvent],
+        [estimatedItemSize, route, saveScrollIndex, saveScrollOffset, triggerScrollEvent],
     );
 
     const onLayout = useCallback(() => {
@@ -264,7 +258,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             }
             flashListRef.current.scrollToOffset({offset});
         });
-    }, [getScrollOffset, route, isWeb]);
+    }, [getScrollOffset, route]);
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
@@ -273,11 +267,10 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 reportsCount: Object.keys(reports ?? {}).length,
                 policyCount: Object.keys(policy ?? {}).length,
                 personalDetailsCount: Object.keys(personalDetails ?? {}).length,
-                route,
                 reportsIDsFromUseReportsCount: data.length,
             });
         }
-    }, [data.length, shouldShowEmptyLHN, route, reports, policy, personalDetails]);
+    }, [data.length, shouldShowEmptyLHN, reports, policy, personalDetails]);
 
     return (
         <View style={[style ?? styles.flex1, shouldShowEmptyLHN ? styles.emptyLHNWrapper : undefined]}>

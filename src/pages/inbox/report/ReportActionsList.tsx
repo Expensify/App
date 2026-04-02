@@ -72,6 +72,7 @@ import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import getInitialNumToRender from './getInitialNumReportActionsToRender';
+import getReportActionsListInitialNumToRender from './getReportActionsListInitialNumToRender';
 import ListBoundaryLoader from './ListBoundaryLoader';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
 import {getUnreadMarkerReportAction} from './shouldDisplayNewMarkerOnReportAction';
@@ -632,11 +633,25 @@ function ReportActionsList({
         const minimumReportActionHeight = styles.chatItem.paddingTop + styles.chatItem.paddingBottom + variables.fontSizeNormalHeight;
         const availableHeight = windowHeight - (CONST.CHAT_FOOTER_MIN_HEIGHT + variables.contentHeaderHeight);
         const numToRender = Math.ceil(availableHeight / minimumReportActionHeight);
-        if (linkedReportActionID) {
-            return getInitialNumToRender(numToRender);
-        }
-        return numToRender || undefined;
-    }, [styles.chatItem.paddingBottom, styles.chatItem.paddingTop, windowHeight, linkedReportActionID]);
+        return getReportActionsListInitialNumToRender({
+            numToRender,
+            linkedReportActionID,
+            shouldScrollToEndAfterLayout,
+            hasCreatedActionAdded,
+            sortedVisibleReportActionsLength: sortedVisibleReportActions.length,
+            isOffline,
+            getInitialNumToRender,
+        });
+    }, [
+        styles.chatItem.paddingBottom,
+        styles.chatItem.paddingTop,
+        windowHeight,
+        linkedReportActionID,
+        shouldScrollToEndAfterLayout,
+        hasCreatedActionAdded,
+        sortedVisibleReportActions.length,
+        isOffline,
+    ]);
 
     /**
      * Thread's divider line should hide when the first chat in the thread is marked as unread.
@@ -749,7 +764,6 @@ function ReportActionsList({
             styles,
             translate,
             expensifyIcons.UpArrow,
-            isOffline,
         ],
     );
 

@@ -183,6 +183,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** A description text to show under the title */
         description?: string;
 
+        /** Optional component to render before the description text (e.g. a badge pill) */
+        descriptionAddon?: ReactNode;
+
         /** Text to show below menu item. This text is not interactive */
         helperText?: string;
 
@@ -510,6 +513,7 @@ function MenuItem({
     furtherDetailsStyle,
     furtherDetailsComponent,
     description,
+    descriptionAddon,
     helperText,
     helperTextStyle,
     errorText,
@@ -650,12 +654,40 @@ function MenuItem({
 
     const descriptionTextStyles = StyleUtils.combineStyles<TextStyle>([
         styles.textLabelSupporting,
-        icon && !Array.isArray(icon) ? styles.ml3 : {},
-        title ? descriptionVerticalMargin : StyleUtils.getFontSizeStyle(variables.fontSizeNormal),
+        styles.flex1,
+        title ? {} : StyleUtils.getFontSizeStyle(variables.fontSizeNormal),
         title ? styles.textLineHeightNormal : StyleUtils.getLineHeightStyle(variables.fontSizeNormalHeight),
+        !descriptionAddon && icon && !Array.isArray(icon) ? styles.ml3 : {},
+        descriptionAddon ? styles.ml2 : {},
         (descriptionTextStyle as TextStyle) || styles.breakWord,
         isDeleted ? styles.offlineFeedbackDeleted : {},
     ]);
+
+    const descriptionContainerStyle = StyleUtils.combineStyles<ViewStyle>([
+        styles.flexRow,
+        styles.alignItemsCenter,
+        descriptionAddon && icon && !Array.isArray(icon) ? styles.ml3 : {},
+        title ? descriptionVerticalMargin : {},
+    ]);
+
+    const renderDescriptionView = () => {
+        if (!description && !descriptionAddon) {
+            return null;
+        }
+        return (
+            <View style={descriptionContainerStyle}>
+                {descriptionAddon}
+                {!!description && (
+                    <Text
+                        style={descriptionTextStyles}
+                        numberOfLines={numberOfLinesDescription}
+                    >
+                        {description}
+                    </Text>
+                )}
+            </View>
+        );
+    };
 
     const html = useMemo(() => {
         if (!title || !shouldParseTitle) {
@@ -791,6 +823,7 @@ function MenuItem({
                     <Hoverable isFocused={isFocused}>
                         {(isHovered) => (
                             <PressableWithSecondaryInteraction
+                                interactive={interactive}
                                 onPress={shouldCheckActionAllowedOnPress ? callFunctionIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction}
                                 onPressIn={() => shouldBlockSelection && shouldUseNarrowLayout && canUseTouchScreen() && ControlSelection.block()}
                                 onPressOut={ControlSelection.unblock}
@@ -948,14 +981,7 @@ function MenuItem({
                                                             titleContainerStyle,
                                                         ]}
                                                     >
-                                                        {!!description && shouldShowDescriptionOnTop && (
-                                                            <Text
-                                                                style={descriptionTextStyles}
-                                                                numberOfLines={numberOfLinesDescription}
-                                                            >
-                                                                {description}
-                                                            </Text>
-                                                        )}
+                                                        {shouldShowDescriptionOnTop && renderDescriptionView()}
                                                         {(!!title || !!shouldShowTitleIcon) && (
                                                             <View
                                                                 style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, titleWrapperStyle]}
@@ -986,14 +1012,7 @@ function MenuItem({
                                                                 )}
                                                             </View>
                                                         )}
-                                                        {!!description && !shouldShowDescriptionOnTop && (
-                                                            <Text
-                                                                style={descriptionTextStyles}
-                                                                numberOfLines={numberOfLinesDescription}
-                                                            >
-                                                                {description}
-                                                            </Text>
-                                                        )}
+                                                        {!shouldShowDescriptionOnTop && renderDescriptionView()}
                                                         {!!furtherDetails && (
                                                             <View style={[styles.flexRow, styles.mt1, styles.alignItemsCenter]}>
                                                                 {!!furtherDetailsIcon && (

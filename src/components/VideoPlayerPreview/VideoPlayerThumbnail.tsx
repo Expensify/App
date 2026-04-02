@@ -33,7 +33,7 @@ type VideoPlayerThumbnailProps = {
 
 function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel, accessibilityHint, isDeleted}: VideoPlayerThumbnailProps) {
     const styles = useThemeStyles();
-    const icons = useMemoizedLazyExpensifyIcons(['Play'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Play']);
     const {anchor, report, isReportArchived, action, isDisabled, shouldDisplayContextMenu, originalReportID} = useShowContextMenuState();
     const {onShowContextMenu, checkIfContextMenuActive} = useShowContextMenuActions();
 

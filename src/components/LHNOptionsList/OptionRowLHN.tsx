@@ -58,6 +58,7 @@ function OptionRowLHN({
     isScreenFocused = false,
     testID,
     conciergeReportID,
+    isApprovalDisabledForReport,
 }: OptionRowLHNProps) {
     const {isProduction} = useEnvironment();
     const theme = useTheme();
@@ -163,7 +164,12 @@ function OptionRowLHN({
     }
 
     const brickRoadIndicator = optionItem.brickRoadIndicator;
-    const actionBadgeText = !isProduction && optionItem.actionBadge ? translate(`common.actionBadge.${optionItem.actionBadge}`) : '';
+    const isTrackIntentUser = onboardingPurpose === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE || onboardingPurpose === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND;
+    const shouldUseMarkAsDone = isTrackIntentUser && isApprovalDisabledForReport && optionItem.actionBadge === CONST.REPORT.ACTION_BADGE.SUBMIT;
+    let actionBadgeText = '';
+    if (!isProduction && optionItem.actionBadge) {
+        actionBadgeText = shouldUseMarkAsDone ? translate('common.markAsDone') : translate(`common.actionBadge.${optionItem.actionBadge}`);
+    }
     let accessibilityLabelForBadge = '';
     if (brickRoadIndicator) {
         accessibilityLabelForBadge = [translate('common.yourReviewIsRequired'), actionBadgeText].filter(Boolean).join(', ');

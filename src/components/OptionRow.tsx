@@ -112,7 +112,7 @@ function OptionRow({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Checkmark'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Checkmark']);
     const pressableRef = useRef<View | HTMLDivElement>(null);
     const [isDisabled, setIsDisabled] = useState(isOptionDisabled);
 
@@ -177,6 +177,7 @@ function OptionRow({
                     <PressableWithFeedback
                         id={keyForList}
                         ref={pressableRef}
+                        sentryLabel={CONST.SENTRY_LABEL.OPTION_ROW.BASE_LIST_ITEM}
                         onPress={(e) => {
                             if (!onSelectRow) {
                                 return;
@@ -313,8 +314,9 @@ function OptionRow({
                                             onPress={() => onSelectedStatePressed(option)}
                                             disabled={isDisabled}
                                             role={CONST.ROLE.BUTTON}
-                                            accessibilityLabel={CONST.ROLE.BUTTON}
-                                            accessibilityHint={CONST.ROLE.BUTTON}
+                                            accessibilityLabel={option.text ?? selectedStateButtonText ?? translate('common.select')}
+                                            accessibilityHint={option.text ?? selectedStateButtonText ?? translate('common.select')}
+                                            sentryLabel={CONST.SENTRY_LABEL.OPTION_ROW.USER_SELECTION_CHECKBOX}
                                             style={[styles.ml2, styles.optionSelectCircle]}
                                         >
                                             <SelectCircle
