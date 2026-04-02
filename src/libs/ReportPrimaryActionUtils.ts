@@ -288,7 +288,7 @@ function isPrimaryPayAction({
         arePaymentsEnabled &&
         isReportFinished &&
         !isReportSettled &&
-        (reimbursableSpend > 0 || hasOnlyNonReimbursableTransactions(report?.reportID, reportTransactions)) &&
+        (reimbursableSpend > 0 || (isPayElsewhere && (reimbursableSpend < 0 || hasOnlyNonReimbursableTransactions(report?.reportID, reportTransactions)))) &&
         !isAutoReimbursable &&
         !isPayAtEnd
     ) {
