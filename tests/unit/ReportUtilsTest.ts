@@ -565,6 +565,7 @@ describe('ReportUtils', () => {
 
             prepareOnboardingOnyxData({
                 introSelected: undefined,
+                betas: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
                     message: 'This is a test',
@@ -594,6 +595,7 @@ describe('ReportUtils', () => {
 
             prepareOnboardingOnyxData({
                 introSelected: undefined,
+                betas: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
                     message: 'This is a test',
@@ -622,12 +624,11 @@ describe('ReportUtils', () => {
             const adminsChatReportID = '1';
             // Not having `+` in the email allows for `isPostingTasksInAdminsRoom` flow
             await Onyx.merge(ONYXKEYS.SESSION, {email: 'test@example.com'});
-            // Enable the suggestedFollowups beta so tasks are skipped in favor of backend-generated followups
-            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.SUGGESTED_FOLLOWUPS]);
             await waitForBatchedUpdates();
 
             const result = prepareOnboardingOnyxData({
                 introSelected: undefined,
+                betas: [CONST.BETAS.SUGGESTED_FOLLOWUPS],
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
                     message: 'This is a test',
@@ -651,11 +652,11 @@ describe('ReportUtils', () => {
         it('should generate bespoke welcome message for SMALL company sizes with suggestedFollowups beta', async () => {
             const adminsChatReportID = '1';
             await Onyx.merge(ONYXKEYS.SESSION, {email: 'test@example.com'});
-            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.SUGGESTED_FOLLOWUPS]);
             await waitForBatchedUpdates();
 
             const result = prepareOnboardingOnyxData({
                 introSelected: undefined,
+                betas: [CONST.BETAS.SUGGESTED_FOLLOWUPS],
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
                     message: 'This is a test',
@@ -673,11 +674,11 @@ describe('ReportUtils', () => {
         it('should generate bespoke welcome message for LARGE company sizes with suggestedFollowups beta', async () => {
             const adminsChatReportID = '1';
             await Onyx.merge(ONYXKEYS.SESSION, {email: 'test@example.com'});
-            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.SUGGESTED_FOLLOWUPS]);
             await waitForBatchedUpdates();
 
             const result = prepareOnboardingOnyxData({
                 introSelected: undefined,
+                betas: [CONST.BETAS.SUGGESTED_FOLLOWUPS],
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
                     message: 'This is a test',
@@ -695,11 +696,11 @@ describe('ReportUtils', () => {
         it('should generate bespoke welcome message for MEDIUM_SMALL company sizes with suggestedFollowups beta', async () => {
             const adminsChatReportID = '1';
             await Onyx.merge(ONYXKEYS.SESSION, {email: 'test@example.com'});
-            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.SUGGESTED_FOLLOWUPS]);
             await waitForBatchedUpdates();
 
             const result = prepareOnboardingOnyxData({
                 introSelected: undefined,
+                betas: [CONST.BETAS.SUGGESTED_FOLLOWUPS],
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
                     message: 'This is a test',
@@ -717,11 +718,11 @@ describe('ReportUtils', () => {
         it('should generate bespoke welcome message for MEDIUM company sizes with suggestedFollowups beta', async () => {
             const adminsChatReportID = '1';
             await Onyx.merge(ONYXKEYS.SESSION, {email: 'test@example.com'});
-            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.SUGGESTED_FOLLOWUPS]);
             await waitForBatchedUpdates();
 
             const result = prepareOnboardingOnyxData({
                 introSelected: undefined,
+                betas: [CONST.BETAS.SUGGESTED_FOLLOWUPS],
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
                     message: 'This is a test',
@@ -739,11 +740,11 @@ describe('ReportUtils', () => {
         it('should append accounting integration suffix to bespoke welcome message', async () => {
             const adminsChatReportID = '1';
             await Onyx.merge(ONYXKEYS.SESSION, {email: 'test@example.com'});
-            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.SUGGESTED_FOLLOWUPS]);
             await waitForBatchedUpdates();
 
             const result = prepareOnboardingOnyxData({
                 introSelected: undefined,
+                betas: [CONST.BETAS.SUGGESTED_FOLLOWUPS],
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
                     message: 'This is a test',
@@ -762,12 +763,11 @@ describe('ReportUtils', () => {
             const adminsChatReportID = '1';
             // Not having `+` in the email allows for `isPostingTasksInAdminsRoom` flow
             await Onyx.merge(ONYXKEYS.SESSION, {email: 'test@example.com'});
-            // Do NOT set the suggestedFollowups beta - user should get the old task list behavior
-            await Onyx.merge(ONYXKEYS.BETAS, []);
             await waitForBatchedUpdates();
 
             const result = prepareOnboardingOnyxData({
                 introSelected: undefined,
+                betas: [],
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
                     message: 'This is a test',
@@ -787,6 +787,7 @@ describe('ReportUtils', () => {
 
             const result = prepareOnboardingOnyxData({
                 introSelected: undefined,
+                betas: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
                     message: 'This is a test',
@@ -803,6 +804,7 @@ describe('ReportUtils', () => {
         it('should not create tasks if the task feature is not in the selected interested features', () => {
             const result = prepareOnboardingOnyxData({
                 introSelected: undefined,
+                betas: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
                     message: 'This is a test',
@@ -826,6 +828,7 @@ describe('ReportUtils', () => {
 
             prepareOnboardingOnyxData({
                 introSelected: undefined,
+                betas: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
                     message: 'This is a test',
@@ -854,6 +857,7 @@ describe('ReportUtils', () => {
 
             prepareOnboardingOnyxData({
                 introSelected: undefined,
+                betas: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
                     message: 'This is a test',
@@ -886,6 +890,7 @@ describe('ReportUtils', () => {
         it('should produce empty guidedSetupData for LOOKING_AROUND intent with empty message', () => {
             const result = prepareOnboardingOnyxData({
                 introSelected: undefined,
+                betas: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
                 onboardingMessage: {
                     message: '',
@@ -901,6 +906,7 @@ describe('ReportUtils', () => {
         it('should not include sign-off message for LOOKING_AROUND intent', () => {
             const result = prepareOnboardingOnyxData({
                 introSelected: undefined,
+                betas: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
                 onboardingMessage: {
                     message: '',
@@ -922,6 +928,7 @@ describe('ReportUtils', () => {
         it('should include guidedSetupData for non-LOOKING_AROUND intents', () => {
             const result = prepareOnboardingOnyxData({
                 introSelected: undefined,
+                betas: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.PERSONAL_SPEND,
                 onboardingMessage: {
                     message: 'Here is how to track your spend in a few clicks.',
@@ -941,6 +948,7 @@ describe('ReportUtils', () => {
         it('should auto-complete VIEW_TOUR task when isSelfTourViewed is true', () => {
             const result = prepareOnboardingOnyxData({
                 introSelected: undefined,
+                betas: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
                     message: 'This is a test',
@@ -968,6 +976,7 @@ describe('ReportUtils', () => {
         it('should not auto-complete VIEW_TOUR task when isSelfTourViewed is false', () => {
             const result = prepareOnboardingOnyxData({
                 introSelected: undefined,
+                betas: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
                     message: 'This is a test',
@@ -998,6 +1007,7 @@ describe('ReportUtils', () => {
 
             const result = prepareOnboardingOnyxData({
                 introSelected: undefined,
+                betas: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
                 onboardingMessage: {
                     message: 'This is a test',
@@ -9869,21 +9879,6 @@ describe('ReportUtils', () => {
             expect(getReportStatusTranslation({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: undefined, translate: mockTranslate})).toBe('');
             expect(getReportStatusTranslation({stateNum: undefined, statusNum: CONST.REPORT.STATUS_NUM.OPEN, translate: mockTranslate})).toBe('');
         });
-
-        it('should return "Deleted" when isDeleted is true', () => {
-            const result = getReportStatusTranslation({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN, isDeleted: true, translate: mockTranslate});
-            expect(result).toBe(mockTranslate('iou.deleted'));
-        });
-
-        it('should return "Deleted" when isDeleted is true regardless of stateNum and statusNum', () => {
-            expect(getReportStatusTranslation({stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED, isDeleted: true, translate: mockTranslate})).toBe(
-                mockTranslate('iou.deleted'),
-            );
-            expect(getReportStatusTranslation({stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED, isDeleted: true, translate: mockTranslate})).toBe(
-                mockTranslate('iou.deleted'),
-            );
-            expect(getReportStatusTranslation({stateNum: undefined, statusNum: undefined, isDeleted: true, translate: mockTranslate})).toBe(mockTranslate('iou.deleted'));
-        });
     });
 
     describe('buildOptimisticReportPreview', () => {
@@ -13762,7 +13757,7 @@ describe('ReportUtils', () => {
                 introSelected: undefined,
                 draftTransactionIDs: [],
                 activePolicy: undefined,
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 transaction: undefined,
             });
@@ -13800,9 +13795,9 @@ describe('ReportUtils', () => {
                     introSelected: undefined,
                     draftTransactionIDs: [],
                     activePolicy,
-                    userBillingGraceEndPeriods: undefined,
+                    userBillingGracePeriodEnds: undefined,
                     amountOwed: 1,
-                    ownerBillingGraceEndPeriod: pastGracePeriod,
+                    ownerBillingGracePeriodEnd: pastGracePeriod,
                     transaction,
                 });
 
@@ -13822,7 +13817,7 @@ describe('ReportUtils', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${1}`, {});
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${activePolicy.id}`, activePolicy);
-                const userBillingGraceEndPeriods = {
+                const userBillingGracePeriodEnds = {
                     [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${ownerAccountID}`]: {
                         value: 1,
                     },
@@ -13836,7 +13831,7 @@ describe('ReportUtils', () => {
                     introSelected: undefined,
                     draftTransactionIDs: [],
                     activePolicy,
-                    userBillingGraceEndPeriods,
+                    userBillingGracePeriodEnds,
                     amountOwed: 0,
                     transaction,
                 });
@@ -13874,7 +13869,7 @@ describe('ReportUtils', () => {
                     introSelected: undefined,
                     draftTransactionIDs: [],
                     activePolicy,
-                    userBillingGraceEndPeriods: undefined,
+                    userBillingGracePeriodEnds: undefined,
                     amountOwed: 0,
                     transaction,
                 });
@@ -13914,7 +13909,7 @@ describe('ReportUtils', () => {
                     introSelected: undefined,
                     draftTransactionIDs: [],
                     activePolicy: undefined,
-                    userBillingGraceEndPeriods: undefined,
+                    userBillingGracePeriodEnds: undefined,
                     amountOwed: 0,
                     transaction,
                 });
@@ -13941,7 +13936,7 @@ describe('ReportUtils', () => {
                     introSelected: undefined,
                     draftTransactionIDs: [],
                     activePolicy: undefined,
-                    userBillingGraceEndPeriods: undefined,
+                    userBillingGracePeriodEnds: undefined,
                     amountOwed: 0,
                     transaction,
                 });
@@ -13989,7 +13984,7 @@ describe('ReportUtils', () => {
                     introSelected: undefined,
                     draftTransactionIDs: [],
                     activePolicy: undefined,
-                    userBillingGraceEndPeriods: undefined,
+                    userBillingGracePeriodEnds: undefined,
                     amountOwed: 0,
                     transaction,
                 });
@@ -14033,7 +14028,7 @@ describe('ReportUtils', () => {
                     introSelected: undefined,
                     draftTransactionIDs: [],
                     activePolicy,
-                    userBillingGraceEndPeriods: undefined,
+                    userBillingGracePeriodEnds: undefined,
                     amountOwed: 0,
                     transaction,
                 });
@@ -14076,9 +14071,9 @@ describe('ReportUtils', () => {
                     introSelected: undefined,
                     draftTransactionIDs: [],
                     activePolicy,
-                    userBillingGraceEndPeriods: undefined,
+                    userBillingGracePeriodEnds: undefined,
                     amountOwed: 0,
-                    ownerBillingGraceEndPeriod: pastGracePeriod,
+                    ownerBillingGracePeriodEnd: pastGracePeriod,
                     transaction,
                 });
 
@@ -14112,9 +14107,9 @@ describe('ReportUtils', () => {
                     introSelected: undefined,
                     draftTransactionIDs: [],
                     activePolicy,
-                    userBillingGraceEndPeriods: undefined,
+                    userBillingGracePeriodEnds: undefined,
                     amountOwed: 50,
-                    ownerBillingGraceEndPeriod: pastGracePeriod,
+                    ownerBillingGracePeriodEnd: pastGracePeriod,
                     transaction,
                 });
 
@@ -14797,10 +14792,10 @@ describe('ReportUtils', () => {
                 icons: mockIcons,
                 iouReportID: mockIouReportID,
                 policy: undefined,
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 draftTransactionIDs: undefined,
                 amountOwed: 0,
-                ownerBillingGraceEndPeriod: undefined,
+                ownerBillingGracePeriodEnd: undefined,
             });
             expect(result).toHaveLength(3);
         });
@@ -14811,10 +14806,10 @@ describe('ReportUtils', () => {
                 icons: mockIcons,
                 iouReportID: mockIouReportID,
                 policy: undefined,
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 draftTransactionIDs: undefined,
                 amountOwed: undefined,
-                ownerBillingGraceEndPeriod: undefined,
+                ownerBillingGracePeriodEnd: undefined,
             });
             expect(result.at(0)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE);
             expect(result.at(1)?.value).toBe(CONST.REPORT.ADD_EXPENSE_OPTIONS.TRACK_DISTANCE_EXPENSE);
@@ -14827,10 +14822,10 @@ describe('ReportUtils', () => {
                 icons: mockIcons,
                 iouReportID: mockIouReportID,
                 policy: undefined,
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 draftTransactionIDs: undefined,
                 amountOwed: 0,
-                ownerBillingGraceEndPeriod: undefined,
+                ownerBillingGracePeriodEnd: undefined,
             });
             expect(result.at(0)?.text).toBe(translate(CONST.LOCALES.EN, 'iou.createExpense'));
             expect(result.at(1)?.text).toBe(translate(CONST.LOCALES.EN, 'iou.trackDistance'));
@@ -14843,10 +14838,10 @@ describe('ReportUtils', () => {
                 icons: mockIcons,
                 iouReportID: mockIouReportID,
                 policy: undefined,
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 draftTransactionIDs: undefined,
                 amountOwed: 0,
-                ownerBillingGraceEndPeriod: undefined,
+                ownerBillingGracePeriodEnd: undefined,
             });
             expect(result.at(0)?.sentryLabel).toBe(CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_CREATE);
             expect(result.at(1)?.sentryLabel).toBe(CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_TRACK_DISTANCE);
@@ -14862,10 +14857,10 @@ describe('ReportUtils', () => {
                 icons: mockIcons,
                 iouReportID: mockIouReportID,
                 policy: mockPolicy,
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 draftTransactionIDs: undefined,
                 amountOwed,
-                ownerBillingGraceEndPeriod: undefined,
+                ownerBillingGracePeriodEnd: undefined,
             });
 
             // Trigger each onSelected - the function should not throw
@@ -14882,10 +14877,10 @@ describe('ReportUtils', () => {
                 icons: mockIcons,
                 iouReportID: mockIouReportID,
                 policy: mockPolicy,
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 draftTransactionIDs: undefined,
                 amountOwed: 0,
-                ownerBillingGraceEndPeriod: undefined,
+                ownerBillingGracePeriodEnd: undefined,
             });
 
             expect(result).toHaveLength(3);
@@ -14901,10 +14896,10 @@ describe('ReportUtils', () => {
                 icons: mockIcons,
                 iouReportID: undefined,
                 policy: undefined,
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 draftTransactionIDs: undefined,
                 amountOwed: 0,
-                ownerBillingGraceEndPeriod: undefined,
+                ownerBillingGracePeriodEnd: undefined,
             });
 
             // CREATE_NEW_EXPENSE and TRACK_DISTANCE_EXPENSE should early-return when iouReportID is undefined
@@ -14920,10 +14915,10 @@ describe('ReportUtils', () => {
                 icons: mockIcons,
                 iouReportID: mockIouReportID,
                 policy: undefined,
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 draftTransactionIDs: undefined,
                 amountOwed: 0,
-                ownerBillingGraceEndPeriod: undefined,
+                ownerBillingGracePeriodEnd: undefined,
             });
 
             expect(result).toHaveLength(3);
@@ -14939,10 +14934,10 @@ describe('ReportUtils', () => {
                 icons: mockIcons,
                 iouReportID: mockIouReportID,
                 policy: undefined,
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 draftTransactionIDs: undefined,
                 amountOwed,
-                ownerBillingGraceEndPeriod: undefined,
+                ownerBillingGracePeriodEnd: undefined,
             });
 
             expect(result).toHaveLength(3);
@@ -14954,10 +14949,10 @@ describe('ReportUtils', () => {
                 icons: mockIcons,
                 iouReportID: mockIouReportID,
                 policy: undefined,
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 draftTransactionIDs: undefined,
                 amountOwed: 0,
-                ownerBillingGraceEndPeriod: undefined,
+                ownerBillingGracePeriodEnd: undefined,
             });
             expect(result.at(1)?.icon).toBe(mockIcons.Location);
             expect(result.at(2)?.icon).toBe(mockIcons.ReceiptPlus);
@@ -15285,10 +15280,10 @@ describe('ReportUtils', () => {
                 icons: mockIcons,
                 iouReportID,
                 policy: undefined,
-                userBillingGraceEndPeriods: undefined,
+                userBillingGracePeriodEnds: undefined,
                 draftTransactionIDs: undefined,
                 amountOwed: undefined,
-                ownerBillingGraceEndPeriod: undefined,
+                ownerBillingGracePeriodEnd: undefined,
             });
 
             expect(options).toHaveLength(3);
@@ -15304,10 +15299,10 @@ describe('ReportUtils', () => {
                     icons: mockIcons,
                     iouReportID: undefined,
                     policy: undefined,
-                    userBillingGraceEndPeriods: undefined,
+                    userBillingGracePeriodEnds: undefined,
                     draftTransactionIDs: undefined,
                     amountOwed: undefined,
-                    ownerBillingGraceEndPeriod: undefined,
+                    ownerBillingGracePeriodEnd: undefined,
                 });
                 options.at(0)?.onSelected?.();
 
@@ -15335,10 +15330,10 @@ describe('ReportUtils', () => {
                     icons: mockIcons,
                     iouReportID,
                     policy: testPolicy,
-                    userBillingGraceEndPeriods: pastDueCollection,
+                    userBillingGracePeriodEnds: pastDueCollection,
                     draftTransactionIDs: undefined,
                     amountOwed: undefined,
-                    ownerBillingGraceEndPeriod: undefined,
+                    ownerBillingGracePeriodEnd: undefined,
                 });
                 options.at(0)?.onSelected?.();
 
@@ -15367,17 +15362,17 @@ describe('ReportUtils', () => {
                     icons: mockIcons,
                     iouReportID,
                     policy: testPolicy,
-                    userBillingGraceEndPeriods: pastDueCollection,
+                    userBillingGracePeriodEnds: pastDueCollection,
                     draftTransactionIDs: undefined,
                     amountOwed: undefined,
-                    ownerBillingGraceEndPeriod: undefined,
+                    ownerBillingGracePeriodEnd: undefined,
                 });
                 options.at(2)?.onSelected?.();
 
                 expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policyID));
             });
 
-            it('should pass ownerBillingGraceEndPeriod to restrict owner with past-due billing', async () => {
+            it('should pass ownerBillingGracePeriodEnd to restrict owner with past-due billing', async () => {
                 const gracePeriodEnd = Math.floor(Date.now() / 1000) - 3600;
                 const testPolicy = {
                     ...createRandomPolicy(Number(policyID)),
@@ -15393,10 +15388,10 @@ describe('ReportUtils', () => {
                     icons: mockIcons,
                     iouReportID,
                     policy: testPolicy,
-                    userBillingGraceEndPeriods: undefined,
+                    userBillingGracePeriodEnds: undefined,
                     draftTransactionIDs: undefined,
                     amountOwed: undefined,
-                    ownerBillingGraceEndPeriod: gracePeriodEnd,
+                    ownerBillingGracePeriodEnd: gracePeriodEnd,
                 });
                 options.at(2)?.onSelected?.();
 
