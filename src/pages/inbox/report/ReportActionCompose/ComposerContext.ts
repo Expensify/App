@@ -1,4 +1,4 @@
-import type {ReactNode, RefObject} from 'react';
+import type {RefObject} from 'react';
 import {createContext, useContext} from 'react';
 import type {BlurEvent, TextInputSelectionChangeEvent, View} from 'react-native';
 import type {Emoji} from '@assets/emojis/types';
@@ -16,28 +16,48 @@ type SuggestionsRef = {
     getIsSuggestionsMenuVisible: () => boolean;
 };
 
+// Hot — changes on every keystroke
+type ComposerText = string;
+
+// Warm — changes on interaction
 type ComposerState = {
     isFocused: boolean;
-    isFullComposerAvailable: boolean;
-    isComposerFullSize: boolean;
     isMenuVisible: boolean;
+    isFullComposerAvailable: boolean;
 };
 
+// Warm — changes based on content + policy
 type ComposerSendState = {
     isEmpty: boolean;
-    exceededMaxLength: number | null;
     isSendDisabled: boolean;
-    isBlockedFromConcierge: boolean;
+    exceededMaxLength: number | null;
     hasExceededMaxTaskTitleLength: boolean;
+    isBlockedFromConcierge: boolean;
+    validateAttachments: (args: {dragEvent?: DragEvent; files?: FileObject | FileObject[]}) => void;
+    onReceiptDropped: (event: DragEvent) => void;
 };
 
+// Frozen — stable references, never changes after mount
 type ComposerActions = {
-    setIsFocused: (v: boolean) => void;
-    setIsFullComposerAvailable: (v: boolean) => void;
-    setMenuVisibility: (v: boolean) => void;
     setValue: (v: string) => void;
-    handleSendMessage: () => void;
+    setIsFocused: (v: boolean) => void;
+    setMenuVisibility: (v: boolean) => void;
+    setIsFullComposerAvailable: (v: boolean) => void;
+    setComposerRef: (ref: ComposerRef | null) => void;
+    setIsAttachmentPreviewActive: (isActive: boolean) => void;
     focus: () => void;
+    onBlur: (event: BlurEvent) => void;
+    onFocus: () => void;
+    onAddActionPressed: () => void;
+    onItemSelected: () => void;
+    onTriggerAttachmentPicker: () => void;
+    addAttachment: (file: FileObject | FileObject[]) => void;
+    onAttachmentPreviewClose: () => void;
+};
+
+// Infrequent — changes only when send logic changes
+type ComposerSendActions = {
+    handleSendMessage: () => void;
     onValueChange: (value: string) => void;
     validateMaxLength: (value: string) => boolean;
     debouncedValidate: {
@@ -47,72 +67,68 @@ type ComposerActions = {
     };
 };
 
+// Frozen — stable refs, set once
 type ComposerMeta = {
     containerRef: RefObject<View | null>;
     composerRef: RefObject<ComposerRef | null>;
     suggestionsRef: RefObject<SuggestionsRef | null>;
     actionButtonRef: RefObject<View | HTMLDivElement | null>;
     isNextModalWillOpenRef: RefObject<boolean>;
-    shouldFocusComposerOnScreenFocus: boolean;
-    shouldShowComposeInput: boolean;
-    isAttachmentPreviewActive: boolean;
-    userBlockedFromConcierge: boolean;
-    PDFValidationComponent: ReactNode;
-    ErrorModal: ReactNode;
-};
-
-type ComposerMetaActions = {
-    setComposerRef: (ref: ComposerRef | null) => void;
-    onBlur: (event: BlurEvent) => void;
-    onFocus: () => void;
-    onAddActionPressed: () => void;
-    onItemSelected: () => void;
-    onTriggerAttachmentPicker: () => void;
-    submitForm: (newComment: string) => void;
-    addAttachment: (file: FileObject | FileObject[]) => void;
-    onAttachmentPreviewClose: () => void;
-    setIsAttachmentPreviewActive: (isActive: boolean) => void;
-    onReceiptDropped: (event: DragEvent) => void;
-    validateAttachments: (args: {dragEvent?: DragEvent; files?: FileObject | FileObject[]}) => void;
-};
-
-const defaultState: ComposerState = {
-    isFocused: false,
-    isFullComposerAvailable: false,
-    isComposerFullSize: false,
-    isMenuVisible: false,
-};
-
-const defaultSendState: ComposerSendState = {
-    isEmpty: true,
-    exceededMaxLength: null,
-    isSendDisabled: true,
-    isBlockedFromConcierge: false,
-    hasExceededMaxTaskTitleLength: false,
+    attachmentFileRef: RefObject<FileObject | FileObject[] | null>;
 };
 
 const noop = () => {};
+
+const ComposerTextContext = createContext<ComposerText>('');
+
+const defaultState: ComposerState = {
+    isFocused: false,
+    isMenuVisible: false,
+    isFullComposerAvailable: false,
+};
+const ComposerStateContext = createContext<ComposerState>(defaultState);
+
+const defaultSendState: ComposerSendState = {
+    isEmpty: true,
+    isSendDisabled: true,
+    exceededMaxLength: null,
+    hasExceededMaxTaskTitleLength: false,
+    isBlockedFromConcierge: false,
+    validateAttachments: noop,
+    onReceiptDropped: noop,
+};
+const ComposerSendStateContext = createContext<ComposerSendState>(defaultSendState);
+
 const defaultActions: ComposerActions = {
-    setIsFocused: noop,
-    setIsFullComposerAvailable: noop,
-    setMenuVisibility: noop,
     setValue: noop,
-    handleSendMessage: noop,
+    setIsFocused: noop,
+    setMenuVisibility: noop,
+    setIsFullComposerAvailable: noop,
+    setComposerRef: noop,
+    setIsAttachmentPreviewActive: noop,
     focus: noop,
+    onBlur: noop,
+    onFocus: noop,
+    onAddActionPressed: noop,
+    onItemSelected: noop,
+    onTriggerAttachmentPicker: noop,
+    addAttachment: noop,
+    onAttachmentPreviewClose: noop,
+};
+const ComposerActionsContext = createContext<ComposerActions>(defaultActions);
+
+const defaultSendActions: ComposerSendActions = {
+    handleSendMessage: noop,
     onValueChange: noop,
     validateMaxLength: () => true,
     debouncedValidate: Object.assign(() => true as boolean | undefined, {cancel: noop, flush: () => true as boolean | undefined}),
 };
+const ComposerSendActionsContext = createContext<ComposerSendActions>(defaultSendActions);
 
-const ComposerValueContext = createContext<string>('');
-const ComposerStateContext = createContext<ComposerState>(defaultState);
-const ComposerSendStateContext = createContext<ComposerSendState>(defaultSendState);
-const ComposerActionsContext = createContext<ComposerActions>(defaultActions);
 const ComposerMetaContext = createContext<ComposerMeta | null>(null);
-const ComposerMetaActionsContext = createContext<ComposerMetaActions | null>(null);
 
-function useComposerValue() {
-    return useContext(ComposerValueContext);
+function useComposerText() {
+    return useContext(ComposerTextContext);
 }
 
 function useComposerState() {
@@ -127,7 +143,11 @@ function useComposerActions() {
     return useContext(ComposerActionsContext);
 }
 
-function useComposerMetaState() {
+function useComposerSendActions() {
+    return useContext(ComposerSendActionsContext);
+}
+
+function useComposerMeta() {
     const ctx = useContext(ComposerMetaContext);
     if (!ctx) {
         throw new Error('useComposerMeta must be used inside ComposerProvider');
@@ -135,26 +155,18 @@ function useComposerMetaState() {
     return ctx;
 }
 
-function useComposerMetaActions() {
-    const ctx = useContext(ComposerMetaActionsContext);
-    if (!ctx) {
-        throw new Error('useComposerMetaActions must be used inside ComposerProvider');
-    }
-    return ctx;
-}
-
 export {
-    ComposerValueContext,
+    ComposerTextContext,
     ComposerStateContext,
     ComposerSendStateContext,
     ComposerActionsContext,
+    ComposerSendActionsContext,
     ComposerMetaContext,
-    ComposerMetaActionsContext,
-    useComposerValue,
+    useComposerText,
     useComposerState,
     useComposerSendState,
     useComposerActions,
-    useComposerMetaState,
-    useComposerMetaActions,
+    useComposerSendActions,
+    useComposerMeta,
 };
-export type {SuggestionsRef, ComposerState, ComposerSendState, ComposerActions, ComposerMeta, ComposerMetaActions};
+export type {SuggestionsRef, ComposerText, ComposerState, ComposerSendState, ComposerActions, ComposerSendActions, ComposerMeta};
