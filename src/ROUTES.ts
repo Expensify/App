@@ -167,6 +167,14 @@ const DYNAMIC_ROUTES = {
             }),
         queryParams: ['fieldName', 'fieldValue', 'policyID'],
     },
+    TASK_TITLE: {
+        path: 'title',
+        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.REPORT_DETAILS.ROOT],
+    },
+    REPORT_DESCRIPTION: {
+        path: 'description',
+        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.REPORT_DETAILS.ROOT],
+    },
 } as const satisfies DynamicRoutes;
 
 const ROUTES = {
@@ -927,24 +935,22 @@ const ROUTES = {
     },
     TASK_TITLE: {
         route: 'r/:reportID/title',
-        getRoute: (reportID: string | undefined, backTo?: string) => {
+        getRoute: (reportID: string | undefined) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the TASK_TITLE route');
             }
 
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`r/${reportID}/title` as const, backTo);
+            return `r/${reportID}/title` as const;
         },
     },
     REPORT_DESCRIPTION: {
         route: 'r/:reportID/description',
-        getRoute: (reportID: string | undefined, backTo?: string) => {
+        getRoute: (reportID: string | undefined) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the REPORT_DESCRIPTION route');
             }
 
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`r/${reportID}/description` as const, backTo);
+            return `r/${reportID}/description` as const;
         },
     },
     TASK_ASSIGNEE: {

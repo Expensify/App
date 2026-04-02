@@ -128,7 +128,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                             (e.currentTarget as HTMLElement).blur();
                                         }
 
-                                        Navigation.navigate(ROUTES.TASK_TITLE.getRoute(report?.reportID, Navigation.getReportRHPActiveRoute()));
+                                        Navigation.navigate(ROUTES.TASK_TITLE.getRoute(report?.reportID));
                                     })}
                                     style={({pressed}) => [
                                         styles.ph5,
@@ -188,7 +188,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                 shouldRenderAsHTML
                                 description={translate('task.description')}
                                 title={report?.description ?? ''}
-                                onPress={() => Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report?.reportID, Navigation.getReportRHPActiveRoute()))}
+                                onPress={() => Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report?.reportID))}
                                 shouldShowRightIcon={!isDisableInteractive}
                                 disabled={disableState}
                                 wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}

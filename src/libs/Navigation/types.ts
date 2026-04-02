@@ -1732,8 +1732,6 @@ type ReportSettingsNavigatorParamList = {
 type ReportDescriptionNavigatorParamList = {
     [SCREENS.REPORT_DESCRIPTION_ROOT]: {
         reportID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
 };
 
@@ -2226,8 +2224,7 @@ type TeachersUniteNavigatorParamList = {
 
 type TaskDetailsNavigatorParamList = {
     [SCREENS.TASK.TITLE]: {
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
+        reportID: string;
     };
     [SCREENS.TASK.ASSIGNEE]: {
         reportID: string;
