@@ -4,28 +4,33 @@ import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemList from '@components/MenuItemList';
 import useAdminPoliciesConnectedToQBD from '@hooks/useAdminPoliciesConnectedToQBD';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {copyExistingPolicyConnection} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {getIntegrationLastSuccessfulDate} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type QuickbooksDesktopExistingConnectionsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_REUSE_EXISTING_CONNECTIONS>;
 
 function QuickbooksDesktopExistingConnectionsPage({route}: QuickbooksDesktopExistingConnectionsPageProps) {
-    const {translate, datetimeToRelative} = useLocalize();
+    const {translate, datetimeToRelative, getLocalDateFromDatetime} = useLocalize();
     const styles = useThemeStyles();
     const policiesConnectedToQBD = useAdminPoliciesConnectedToQBD();
+    const [connectionSyncProgressCollection] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS);
     const policyID: string = route.params.policyID;
 
     const menuItems = useMemo(
         () =>
             policiesConnectedToQBD.map((policy) => {
-                const lastSuccessfulSyncDate = policy.connections?.quickbooksDesktop?.lastSync?.successfulDate;
+                const syncProgress = connectionSyncProgressCollection?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy.id}`];
+                const lastSuccessfulSyncDate = getIntegrationLastSuccessfulDate(getLocalDateFromDatetime, policy.connections?.quickbooksDesktop, syncProgress);
                 const date = lastSuccessfulSyncDate ? datetimeToRelative(lastSuccessfulSyncDate) : undefined;
                 return {
                     title: policy.name,
@@ -42,7 +47,7 @@ function QuickbooksDesktopExistingConnectionsPage({route}: QuickbooksDesktopExis
                     },
                 };
             }),
-        [policiesConnectedToQBD, policyID, translate, datetimeToRelative],
+        [policiesConnectedToQBD, connectionSyncProgressCollection, policyID, translate, datetimeToRelative, getLocalDateFromDatetime],
     );
 
     return (
