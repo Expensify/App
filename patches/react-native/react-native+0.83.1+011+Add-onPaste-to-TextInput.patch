@@ -750,10 +750,10 @@ index 0000000..a0cc12d
 +  public void onPaste(String type, String data);
 +}
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.kt
-index fb8f4b1..b2bfdaa 100644
+index fb8f4b1..fa6bb24 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.kt
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.kt
-@@ -8,6 +8,10 @@
+@@ -8,13 +8,20 @@
  package com.facebook.react.views.textinput
  
  import android.annotation.SuppressLint
@@ -762,9 +762,10 @@ index fb8f4b1..b2bfdaa 100644
 +import android.content.ClipDescription
 +import android.content.ContentResolver
  import android.content.Context
++import android.content.Intent
  import android.content.res.Configuration
  import android.graphics.Canvas
-@@ -15,6 +19,8 @@ import android.graphics.Color
+ import android.graphics.Color
  import android.graphics.Paint
  import android.graphics.Rect
  import android.graphics.drawable.Drawable
@@ -773,7 +774,7 @@ index fb8f4b1..b2bfdaa 100644
  import android.os.Build
  import android.os.Bundle
  import android.text.Editable
-@@ -127,6 +133,7 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
+@@ -127,6 +134,7 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
    private var selectionWatcher: SelectionWatcher? = null
    private var contentSizeWatcher: ContentSizeWatcher? = null
    private var scrollWatcher: ScrollWatcher?
@@ -781,7 +782,7 @@ index fb8f4b1..b2bfdaa 100644
    private var keyListener: InternalKeyListener? = null
    private var detectScrollMovement = false
    private var onKeyPress = false
-@@ -211,6 +218,7 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
+@@ -211,6 +219,7 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
        keyListener = InternalKeyListener()
      }
      scrollWatcher = null
@@ -789,7 +790,7 @@ index fb8f4b1..b2bfdaa 100644
      textAttributes = TextAttributes()
  
      applyTextAttributes()
-@@ -367,10 +375,50 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
+@@ -367,10 +376,96 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
     * Called when a context menu option for the text view is selected.
     * React Native replaces copy (as rich text) with copy as plain text.
     */
@@ -799,52 +800,98 @@ index fb8f4b1..b2bfdaa 100644
 -      )
 +  override fun onTextContextMenuItem(id: Int): Boolean {
 +    val modifiedId = if (id == android.R.id.paste || id == android.R.id.pasteAsPlainText) {
-+        android.R.id.pasteAsPlainText
++      android.R.id.paste
 +    } else {
 +        id
 +    }
 +
-+    if (modifiedId == android.R.id.pasteAsPlainText) {
-+      val clipboardManager = getContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-+      val clipData = clipboardManager.primaryClip
-+      if (clipData != null) {
-+          val item = clipData.getItemAt(0)
-+          val itemUri = item.uri
-+          var type: String? = null
-+          var data: String? = null
++    if (modifiedId != android.R.id.paste) {
++      return super.onTextContextMenuItem(modifiedId)
++    }
 +
-+          if (itemUri != null) {
-+              val cr = getReactContext(this).contentResolver
-+              type = cr.getType(itemUri)
-+              if (type != null && type != ClipDescription.MIMETYPE_TEXT_PLAIN) {
-+                  data = itemUri.toString()
-+                  if (pasteWatcher != null) {
-+                      pasteWatcher?.onPaste(type, data)
-+                  }
-+                  // Prevents default behavior to avoid inserting raw binary data into the text field
-+                  return true
-+              }
-+          }
++    val clipboardManager = getContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
 +
-+          if (clipData.description.hasMimeType(ClipDescription.MIMETYPE_TEXT_PLAIN)) {
-+              type = ClipDescription.MIMETYPE_TEXT_PLAIN
-+              val text: CharSequence? = item.text
-+              if (text != null) {
-+                  data = text.toString()
-+                  if (pasteWatcher != null) {
-+                      pasteWatcher?.onPaste(type, data)
-+                  }
-+              // Don't return - let the system proceed with default text pasting behavior
-+          }
++    val clip = clipboardManager.primaryClip ?: return false
++    val uriItems = mutableListOf<Pair<String, String>>()
++
++    for (i in 0 until clip.itemCount) {
++        val item = clip.getItemAt(i)
++        val itemUri = item.uri
++        val itemIntent = item.intent
++
++        // Prefer file/content payloads over text payloads when both are present so copied files
++        // do not get downgraded to their string contents.
++        itemUri?.let { uri ->
++            uriItems += Pair(mimeTypeForClipUri(clip, i, uri), uri.toString())
++        }
++
++        // Intent payloads (rare, but valid clipboard data)
++        itemIntent?.let { intent ->
++            uriItems += Pair("application/vnd.android.intent", intent.toUri(Intent.URI_INTENT_SCHEME))
++        }
++
++        if (itemUri != null || itemIntent != null) {
++            continue
++        }
++    }
++
++    // Only consume the paste when there is at least one URI item (file/content).
++    // Text-only paste is left to Android so it inserts the text.
++    if (uriItems.isNotEmpty() && pasteWatcher != null) {
++      pasteWatcher?.onPaste(uriItems)
++      return true
++    }
++
++    return super.onTextContextMenuItem(modifiedId)
++  }
++
++  private fun mimeTypeForClipUri(clip: ClipData, itemIndex: Int, uri: Uri): String {
++    val description = clip.description
++    val descriptionMime = runCatching { description.getMimeType(itemIndex) }.getOrNull()
++    if (!descriptionMime.isNullOrEmpty() && descriptionMime != ClipDescription.MIMETYPE_TEXT_URILIST) {
++      return descriptionMime
++    }
++
++    val fileName = displayNameForUri(uri) ?: uri.lastPathSegment
++    val extension = fileName?.substringAfterLast('.', missingDelimiterValue = "")?.lowercase(Locale.ROOT)
++    if (!extension.isNullOrEmpty()) {
++      val extensionMime = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
++      if (!extensionMime.isNullOrEmpty()) {
++        return extensionMime
 +      }
 +    }
++
++    return "application/octet-stream"
 +  }
-+    return super.onTextContextMenuItem(modifiedId)
-+ }
++
++  private fun displayNameForUri(uri: Uri): String? {
++    if (uri.scheme != ContentResolver.SCHEME_CONTENT) {
++      return null
++    }
++
++    val cursor = runCatching {
++      context.contentResolver.query(uri, arrayOf(android.provider.OpenableColumns.DISPLAY_NAME), null, null, null)
++    }.getOrNull()
++
++    cursor?.use { c ->
++      val nameIndex = c.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
++      if (nameIndex < 0) {
++        return null
++      }
++
++      if (!c.moveToFirst()) {
++        return null
++      }
++
++      return c.getString(nameIndex)
++    }
++
++    return null
++  }
  
    internal fun clearFocusAndMaybeRefocus() {
      if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P || !isInTouchMode) {
-@@ -433,6 +481,10 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
+@@ -433,6 +528,10 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
      this.scrollWatcher = scrollWatcher
    }
  
