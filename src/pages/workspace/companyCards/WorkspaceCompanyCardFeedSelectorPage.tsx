@@ -225,6 +225,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
                     />
                 ) : (
                     <ScrollView
+                        addBottomSafeAreaPadding
                         style={styles.flex1}
                         keyboardShouldPersistTaps="handled"
                     >
