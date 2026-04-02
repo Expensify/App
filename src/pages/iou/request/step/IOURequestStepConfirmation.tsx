@@ -255,6 +255,10 @@ function IOURequestStepConfirmation({
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+    const draftTransactionIDsRef = useRef(draftTransactionIDs);
+    useEffect(() => {
+        draftTransactionIDsRef.current = draftTransactionIDs;
+    }, [draftTransactionIDs]);
 
     const reportAttributesDerived = useReportAttributes();
     const [recentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${policyID}`);
@@ -526,7 +530,7 @@ function IOURequestStepConfirmation({
                 }
                 if (hasExpiredImages) {
                     setIsStitchingReceipt(false);
-                    clearOdometerTransactionState(transaction, draftTransactionIDs, shouldUseTransactionDraft(action, iouType));
+                    clearOdometerTransactionState(transaction, draftTransactionIDsRef.current, shouldUseTransactionDraft(action, iouType));
                     navigateToStartMoneyRequestStep(requestType, iouType, currentTransactionID, reportID);
                     return;
                 }
@@ -539,7 +543,7 @@ function IOURequestStepConfirmation({
         return () => {
             ignore = true;
         };
-    }, [isOdometerDistanceRequest, isFocused, currentTransactionID, transaction, action, translate, iouType, draftTransactionIDs, requestType, reportID]);
+    }, [isOdometerDistanceRequest, isFocused, currentTransactionID, transaction, action, translate, iouType, requestType, reportID]);
 
     const defaultBillable = !!policy?.defaultBillable;
     useEffect(() => {
