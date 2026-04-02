@@ -11,9 +11,9 @@ const queuedOnyxUpdates: Array<
         | typeof ONYXKEYS.PREFERRED_THEME
         | typeof ONYXKEYS.NVP_PREFERRED_LOCALE
         | typeof ONYXKEYS.SESSION
-        | typeof ONYXKEYS.IS_LOADING_APP
+        | typeof ONYXKEYS.RAM_ONLY_IS_LOADING_APP
         | typeof ONYXKEYS.CREDENTIALS
-        | typeof ONYXKEYS.IS_SIDEBAR_LOADED
+        | typeof ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED
         | typeof ONYXKEYS.COLLECTION.REPORT
         | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
     >
@@ -32,7 +32,7 @@ const queuedOnyxUpdates: Array<
         },
         onyxMethod: 'merge',
     },
-    {key: ONYXKEYS.IS_LOADING_APP, value: false, onyxMethod: 'merge'},
+    {key: ONYXKEYS.RAM_ONLY_IS_LOADING_APP, value: false, onyxMethod: 'merge'},
     {
         key: ONYXKEYS.CREDENTIALS,
         value: {
@@ -42,7 +42,7 @@ const queuedOnyxUpdates: Array<
         },
         onyxMethod: 'merge',
     },
-    {key: ONYXKEYS.IS_SIDEBAR_LOADED, value: true, onyxMethod: 'merge'},
+    {key: ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED, value: true, onyxMethod: 'merge'},
     {key: `${ONYXKEYS.COLLECTION.REPORT}2175919089355165`, value: {reportID: 'reportID'}, onyxMethod: 'merge'},
     {
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2175919089355165`,
@@ -104,9 +104,9 @@ describe('actions/QueuedOnyxUpdates', () => {
             await testOnyxKeyValue(ONYXKEYS.PREFERRED_THEME);
             await testOnyxKeyValue(ONYXKEYS.NVP_PREFERRED_LOCALE);
             await testOnyxKeyValue(ONYXKEYS.SESSION);
-            await testOnyxKeyValue(ONYXKEYS.IS_LOADING_APP);
+            await testOnyxKeyValue(ONYXKEYS.RAM_ONLY_IS_LOADING_APP);
             await testOnyxKeyValue(ONYXKEYS.CREDENTIALS);
-            await testOnyxKeyValue(ONYXKEYS.IS_SIDEBAR_LOADED);
+            await testOnyxKeyValue(ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED);
 
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -149,9 +149,9 @@ describe('actions/QueuedOnyxUpdates', () => {
             await testOnyxKeyValue(ONYXKEYS.PREFERRED_THEME);
             await testOnyxKeyValue(ONYXKEYS.NVP_PREFERRED_LOCALE);
             await testOnyxKeyValue(ONYXKEYS.SESSION);
-            await testOnyxKeyValue(ONYXKEYS.IS_LOADING_APP);
+            await testOnyxKeyValue(ONYXKEYS.RAM_ONLY_IS_LOADING_APP);
             await testOnyxKeyValue(ONYXKEYS.CREDENTIALS);
-            await testOnyxKeyValue(ONYXKEYS.IS_SIDEBAR_LOADED);
+            await testOnyxKeyValue(ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED);
 
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
