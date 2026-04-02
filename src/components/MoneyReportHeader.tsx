@@ -13,6 +13,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useConfirmPendingRTERAndProceed from '@hooks/useConfirmPendingRTERAndProceed';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDecisionModal from '@hooks/useDecisionModal';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
@@ -154,7 +155,6 @@ import ActivityIndicator from './ActivityIndicator';
 import Button from './Button';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {ButtonWithDropdownMenuRef, DropdownOption} from './ButtonWithDropdownMenu/types';
-import DecisionModal from './DecisionModal';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from './DelegateNoAccessModalProvider';
 import Header from './Header';
 import HeaderLoadingBar from './HeaderLoadingBar';
@@ -359,7 +359,6 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
     }, [isExported, reportActions]);
 
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
-    const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
     const [isPDFModalVisible, setIsPDFModalVisible] = useState(false);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
@@ -380,6 +379,24 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
 
     const [exportModalStatus, setExportModalStatus] = useState<ExportType | null>(null);
     const {showConfirmModal} = useConfirmModal();
+    const {showDecisionModal} = useDecisionModal();
+
+    const showOfflineModal = () => {
+        showDecisionModal({
+            title: translate('common.youAppearToBeOffline'),
+            prompt: translate('common.offlinePrompt'),
+            secondOptionText: translate('common.buttonConfirm'),
+        });
+    };
+
+    const showDownloadErrorModal = () => {
+        showDecisionModal({
+            title: translate('common.downloadFailedTitle'),
+            prompt: translate('common.downloadFailedDescription'),
+            secondOptionText: translate('common.buttonConfirm'),
+        });
+    };
+
     const {isPaidAnimationRunning, isApprovedAnimationRunning, isSubmittingAnimationRunning, startAnimation, stopAnimation, startApprovedAnimation, startSubmittingAnimation} =
         usePaymentAnimations();
     const styles = useThemeStyles();
@@ -512,7 +529,6 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
 
     const [isDuplicateActive, temporarilyDisableDuplicateAction] = useThrottledButtonState(handleDuplicateReset);
 
-    const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
     const [isHoldEducationalModalVisible, setIsHoldEducationalModalVisible] = useState(false);
     const [rejectModalAction, setRejectModalAction] = useState<RejectModalAction | null>(null);
 
@@ -524,7 +540,6 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
 
     const shouldDisplayNarrowMoreButton = !shouldDisplayNarrowVersion || isWideRHPDisplayedOnWideLayout || isSuperWideRHPDisplayedOnWideLayout;
 
-    const [offlineModalVisible, setOfflineModalVisible] = useState(false);
     const {showNonReimbursablePaymentErrorModal, shouldBlockDirectPayment, nonReimbursablePaymentErrorDecisionModal} = useNonReimbursablePaymentModal(moneyRequestReport, transactions);
 
     const showExportProgressModal = useCallback(() => {
@@ -539,7 +554,11 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
     const beginExportWithTemplate = useCallback(
         (templateName: string, templateType: string, transactionIDList: string[], policyID?: string) => {
             if (isOffline) {
-                setOfflineModalVisible(true);
+                showDecisionModal({
+                    title: translate('common.youAppearToBeOffline'),
+                    prompt: translate('common.offlinePrompt'),
+                    secondOptionText: translate('common.buttonConfirm'),
+                });
                 return;
             }
 
@@ -562,7 +581,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                 policyID,
             });
         },
-        [isOffline, moneyRequestReport, showExportProgressModal, clearSelectedTransactions],
+        [isOffline, moneyRequestReport, showExportProgressModal, clearSelectedTransactions, showDecisionModal, translate],
     );
 
     const isOnSearch = route.name.toLowerCase().startsWith('search');
@@ -575,8 +594,8 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         reportActions,
         allTransactionsLength: transactions.length,
         session,
-        onExportFailed: () => setIsDownloadErrorModalVisible(true),
-        onExportOffline: () => setOfflineModalVisible(true),
+        onExportFailed: showDownloadErrorModal,
+        onExportOffline: showOfflineModal,
         policy,
         beginExportWithTemplate: (templateName, templateType, transactionIDList, policyID) => beginExportWithTemplate(templateName, templateType, transactionIDList, policyID),
         isOnSearch,
@@ -1112,7 +1131,11 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                         return;
                     }
                     if (isOffline) {
-                        setOfflineModalVisible(true);
+                        showDecisionModal({
+                            title: translate('common.youAppearToBeOffline'),
+                            prompt: translate('common.offlinePrompt'),
+                            secondOptionText: translate('common.buttonConfirm'),
+                        });
                         return;
                     }
                     exportReportToCSV(
@@ -1121,7 +1144,11 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                             transactionIDList: transactionIDs,
                         },
                         () => {
-                            setDownloadErrorModalVisible(true);
+                            showDecisionModal({
+                                title: translate('common.downloadFailedTitle'),
+                                prompt: translate('common.downloadFailedDescription'),
+                                secondOptionText: translate('common.buttonConfirm'),
+                            });
                         },
                         translate,
                     );
@@ -1196,6 +1223,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         isExported,
         exportTemplates,
         beginExportWithTemplate,
+        showDecisionModal,
     ]);
 
     const primaryActionComponent = (
@@ -2294,24 +2322,6 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                     onNonReimbursablePaymentError={showNonReimbursablePaymentErrorModal}
                 />
             )}
-            <DecisionModal
-                title={translate('common.downloadFailedTitle')}
-                prompt={translate('common.downloadFailedDescription')}
-                isSmallScreenWidth={isSmallScreenWidth}
-                onSecondOptionSubmit={() => setDownloadErrorModalVisible(false)}
-                secondOptionText={translate('common.buttonConfirm')}
-                isVisible={downloadErrorModalVisible}
-                onClose={() => setDownloadErrorModalVisible(false)}
-            />
-            <DecisionModal
-                title={translate('common.downloadFailedTitle')}
-                prompt={translate('common.downloadFailedDescription')}
-                isSmallScreenWidth={isSmallScreenWidth}
-                onSecondOptionSubmit={() => setIsDownloadErrorModalVisible(false)}
-                secondOptionText={translate('common.buttonConfirm')}
-                isVisible={isDownloadErrorModalVisible}
-                onClose={() => setIsDownloadErrorModalVisible(false)}
-            />
             <MoneyReportHeaderEducationalModals
                 requestParentReportAction={requestParentReportAction}
                 transaction={transaction}
@@ -2320,15 +2330,6 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                 rejectModalAction={rejectModalAction}
                 onHoldEducationalDismissed={() => setIsHoldEducationalModalVisible(false)}
                 onRejectModalDismissed={() => setRejectModalAction(null)}
-            />
-            <DecisionModal
-                title={translate('common.youAppearToBeOffline')}
-                prompt={translate('common.offlinePrompt')}
-                isSmallScreenWidth={isSmallScreenWidth}
-                onSecondOptionSubmit={() => setOfflineModalVisible(false)}
-                secondOptionText={translate('common.buttonConfirm')}
-                isVisible={offlineModalVisible}
-                onClose={() => setOfflineModalVisible(false)}
             />
             {nonReimbursablePaymentErrorDecisionModal}
             <Modal
