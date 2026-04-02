@@ -2846,6 +2846,7 @@ describe('actions/Policy', () => {
                 lastUsedPaymentMethods: undefined,
                 localeCompare: TestHelper.localeCompare,
                 currentUserAccountID: ESH_ACCOUNT_ID,
+                accountIDToLogin: {},
             });
 
             await waitForBatchedUpdates();
@@ -2945,6 +2946,7 @@ describe('actions/Policy', () => {
                 lastUsedPaymentMethods: undefined,
                 localeCompare: TestHelper.localeCompare,
                 currentUserAccountID: ESH_ACCOUNT_ID,
+                accountIDToLogin: {},
             });
 
             await waitForBatchedUpdates();
@@ -3002,6 +3004,7 @@ describe('actions/Policy', () => {
                 lastUsedPaymentMethods: undefined,
                 localeCompare: TestHelper.localeCompare,
                 currentUserAccountID: ESH_ACCOUNT_ID,
+                accountIDToLogin: {},
             });
             await waitForBatchedUpdates();
 
@@ -3040,6 +3043,7 @@ describe('actions/Policy', () => {
                 lastUsedPaymentMethods: undefined,
                 localeCompare: TestHelper.localeCompare,
                 currentUserAccountID: ESH_ACCOUNT_ID,
+                accountIDToLogin: {},
             });
             await waitForBatchedUpdates();
 
@@ -3080,6 +3084,7 @@ describe('actions/Policy', () => {
                 lastUsedPaymentMethods: undefined,
                 localeCompare: TestHelper.localeCompare,
                 currentUserAccountID: ESH_ACCOUNT_ID,
+                accountIDToLogin: {},
             });
             await waitForBatchedUpdates();
 
@@ -3094,6 +3099,129 @@ describe('actions/Policy', () => {
             });
 
             expect(lastAccessedWorkspacePolicyIDAfterDelete).toBe(lastAccessedWorkspacePolicyID);
+        });
+
+        it('should use accountIDToLogin to resolve owner email in closed report action', async () => {
+            const ownerAccountID = 42;
+            const ownerLogin = 'owner@example.com';
+            const fakePolicy = createRandomPolicy(0);
+            const fakeReport = {
+                ...createRandomReport(0, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                ownerAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                policyName: fakePolicy.name,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`, fakeReport);
+
+            Policy.deleteWorkspace({
+                policies: {[`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`]: fakePolicy},
+                policyID: fakePolicy.id,
+                personalPolicyID: undefined,
+                activePolicyID: undefined,
+                policyName: fakePolicy.name,
+                lastAccessedWorkspacePolicyID: undefined,
+                policyCardFeeds: undefined,
+                reportsToArchive: [fakeReport],
+                transactionViolations: undefined,
+                reimbursementAccountError: undefined,
+                lastUsedPaymentMethods: undefined,
+                localeCompare: TestHelper.localeCompare,
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                accountIDToLogin: {[ownerAccountID]: ownerLogin},
+            });
+
+            await waitForBatchedUpdates();
+
+            // Then the closed report action should contain the owner's login from accountIDToLogin
+            const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fakeReport.reportID}` as const);
+            const closedAction = Object.values(reportActions ?? {}).find((action) => action && 'actionName' in action && action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
+            expect(closedAction).toBeDefined();
+            const message = closedAction && 'message' in closedAction && Array.isArray(closedAction.message) ? closedAction.message.at(0) : undefined;
+            expect(message?.text).toBe(ownerLogin);
+        });
+
+        it('should use fake owner email when ownerAccountID is fake', async () => {
+            const fakePolicy = createRandomPolicy(0);
+            const fakeReport = {
+                ...createRandomReport(0, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                ownerAccountID: CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                policyName: fakePolicy.name,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`, fakeReport);
+
+            Policy.deleteWorkspace({
+                policies: {[`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`]: fakePolicy},
+                policyID: fakePolicy.id,
+                personalPolicyID: undefined,
+                activePolicyID: undefined,
+                policyName: fakePolicy.name,
+                lastAccessedWorkspacePolicyID: undefined,
+                policyCardFeeds: undefined,
+                reportsToArchive: [fakeReport],
+                transactionViolations: undefined,
+                reimbursementAccountError: undefined,
+                lastUsedPaymentMethods: undefined,
+                localeCompare: TestHelper.localeCompare,
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                accountIDToLogin: {},
+            });
+
+            await waitForBatchedUpdates();
+
+            // Then the closed report action should use the fake owner email
+            const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fakeReport.reportID}` as const);
+            const closedAction = Object.values(reportActions ?? {}).find((action) => action && 'actionName' in action && action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
+            expect(closedAction).toBeDefined();
+            const message = closedAction && 'message' in closedAction && Array.isArray(closedAction.message) ? closedAction.message.at(0) : undefined;
+            expect(message?.text).toBe(CONST.POLICY.OWNER_EMAIL_FAKE);
+        });
+
+        it('should fall back to empty string when accountIDToLogin has no entry for ownerAccountID', async () => {
+            const ownerAccountID = 99;
+            const fakePolicy = createRandomPolicy(0);
+            const fakeReport = {
+                ...createRandomReport(0, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                ownerAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                policyName: fakePolicy.name,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`, fakeReport);
+
+            Policy.deleteWorkspace({
+                policies: {[`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`]: fakePolicy},
+                policyID: fakePolicy.id,
+                personalPolicyID: undefined,
+                activePolicyID: undefined,
+                policyName: fakePolicy.name,
+                lastAccessedWorkspacePolicyID: undefined,
+                policyCardFeeds: undefined,
+                reportsToArchive: [fakeReport],
+                transactionViolations: undefined,
+                reimbursementAccountError: undefined,
+                lastUsedPaymentMethods: undefined,
+                localeCompare: TestHelper.localeCompare,
+                currentUserAccountID: ESH_ACCOUNT_ID,
+                accountIDToLogin: {},
+            });
+
+            await waitForBatchedUpdates();
+
+            // Then the closed report action should have an empty string for the email
+            const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fakeReport.reportID}` as const);
+            const closedAction = Object.values(reportActions ?? {}).find((action) => action && 'actionName' in action && action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
+            expect(closedAction).toBeDefined();
+            const message = closedAction && 'message' in closedAction && Array.isArray(closedAction.message) ? closedAction.message.at(0) : undefined;
+            expect(message?.text).toBe('');
         });
     });
 
