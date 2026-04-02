@@ -26,6 +26,7 @@ import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import {getOdometerImageUri} from '@libs/OdometerImageUtils';
 import NavigationAwareCamera from '@pages/iou/request/step/IOURequestStepScan/components/NavigationAwareCamera/Camera';
 import {cropImageToAspectRatio} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
 import type {ImageObject} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
@@ -45,6 +46,7 @@ function IOURequestStepOdometerImage({
     route: {
         params: {action, iouType, transactionID, reportID, backToReport, imageType, isEditingConfirmation},
     },
+    transaction,
 }: IOURequestStepOdometerImageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -101,7 +103,7 @@ function IOURequestStepOdometerImage({
         if (!file) {
             return;
         }
-        setMoneyRequestOdometerImage(transactionID, imageType, file, isTransactionDraft);
+        setMoneyRequestOdometerImage(transaction, imageType, getOdometerImageUri(file), isTransactionDraft, false);
         navigateBack();
     };
 
@@ -156,7 +158,7 @@ function IOURequestStepOdometerImage({
                         cropImageToAspectRatio(imageObject, viewfinderLayout.current?.width, viewfinderLayout.current?.height, undefined, photo.orientation)
                             .then(({file, filename, source}) => {
                                 setMoneyRequestOdometerImage(
-                                    transactionID,
+                                    transaction,
                                     imageType,
                                     {
                                         uri: source,
@@ -165,6 +167,7 @@ function IOURequestStepOdometerImage({
                                         size: (file as FileObject | undefined)?.size,
                                     },
                                     isTransactionDraft,
+                                    false,
                                 );
                                 navigateBack();
                             })
