@@ -1278,7 +1278,7 @@ function openReport(params: OpenReportActionParams) {
         return;
     }
 
-    const participantLoginList = participants.map((p) => p.login);
+    const participantLoginList = participants.map((p) => p.login).filter((login) => !!login);
     // TODO: allPersonalDetails fallback should be removed in follow-up PRs https://github.com/Expensify/App/issues/73656
     const participantAccountIDList = participants.map((p) => p.accountID).filter((id): id is number => id !== undefined);
 
@@ -2062,19 +2062,15 @@ function navigateToAndOpenReportWithAccountIDs(
     personalDetails?: OnyxEntry<PersonalDetailsList>,
 ) {
     let newChat: OptimisticChatReport | undefined;
-    const participants = participantAccountIDs
-        .map((accountID): ParticipantInfo | null => {
-            // TODO: allPersonalDetails fallback should be removed in follow-up PRs https://github.com/Expensify/App/issues/73656
-            const personalDetail = (personalDetails ?? allPersonalDetails)?.[accountID];
-            if (!personalDetail?.login) {
-                return null;
-            }
-            return {
-                login: personalDetail.login,
-                accountID,
-            };
-        })
-        .filter((p): p is ParticipantInfo => p !== null);
+    const participants = participantAccountIDs.map((accountID): ParticipantInfo => {
+        // TODO: allPersonalDetails fallback should be removed in follow-up PRs https://github.com/Expensify/App/issues/73656
+        const personalDetail = (personalDetails ?? allPersonalDetails)?.[accountID];
+
+        return {
+            login: personalDetail?.login ?? '',
+            accountID,
+        };
+    });
 
     const chat = getChatByParticipants([...participantAccountIDs, currentUserAccountID]);
     if (!chat) {
