@@ -552,16 +552,20 @@ function SettlementButton({
     };
 
     const handlePaymentSelection = (event: GestureResponderEvent | KeyboardEvent | undefined, selectedOption: string, triggerKYCFlow: (params: ContinueActionParams) => void) => {
-        if (checkForNecessaryAction()) {
-            return;
-        }
-
         const {paymentType, policyFromPaymentMethod, policyFromContext, shouldSelectPaymentMethod} = getActivePaymentType(
             selectedOption,
             activeAdminPolicies,
             businessBankAccountOptions,
             policyIDKey,
         );
+
+        // "Pay elsewhere" is a manual bookkeeping action — no funds move through Expensify,
+        // so account validation is not required for this payment type.
+        const isPayElsewhere = paymentType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE && !policyFromPaymentMethod && !shouldSelectPaymentMethod;
+        if (!isPayElsewhere && checkForNecessaryAction()) {
+            return;
+        }
+
         const isPayingWithMethod = paymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
 
         if ((!!policyFromPaymentMethod || shouldSelectPaymentMethod) && (isPayingWithMethod || !!policyFromPaymentMethod)) {
