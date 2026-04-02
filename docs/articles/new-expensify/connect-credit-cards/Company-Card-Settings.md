@@ -19,7 +19,7 @@ To adjust your card feed configuration:
 
 - **Rename the card feed connection**
 - **Control whether cardholders can delete transactions:** Applies only to new transactions going forward
-- **Remove the card connection:** Unassigns all cards and deletes unsubmitted expenses in draft reports
+- **Remove the card connection:** Unlinks the card feed from the current workspace and removes that workspace's members from the feed. If this is the last workspace linked to the feed, the feed is fully deleted. Unsubmitted expenses in draft reports are also deleted.
 
 ![Tap settings to open the card feed settings page]({{site.url}}/assets/images/Direct Feed HelpDot Images/directfeeds_12.png){:width="100%"}
 
