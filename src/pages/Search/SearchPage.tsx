@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import Animated from 'react-native-reanimated';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import type {SearchParams} from '@components/Search/types';
@@ -34,10 +34,14 @@ function SearchPage({route}: SearchPageProps) {
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode(clearSelectedTransactions);
 
-    const lastNonEmptySearchResults = useRef<SearchResults | undefined>(undefined);
+    const [lastNonEmptySearchResults, setLastNonEmptySearchResults] = useState<SearchResults | undefined>();
 
     useConfirmReadyToOpenApp();
     useSearchPageSetup(currentSearchQueryJSON);
+
+    if (currentSearchResults?.search?.type && currentSearchResults.data && currentSearchResults !== lastNonEmptySearchResults) {
+        setLastNonEmptySearchResults(currentSearchResults);
+    }
 
     useEffect(() => {
         if (!currentSearchResults?.search?.type) {
@@ -45,10 +49,7 @@ function SearchPage({route}: SearchPageProps) {
         }
 
         setLastSearchType(currentSearchResults.search.type);
-        if (currentSearchResults.data) {
-            lastNonEmptySearchResults.current = currentSearchResults;
-        }
-    }, [lastSearchType, currentSearchQueryJSON, setLastSearchType, currentSearchResults]);
+    }, [lastSearchType, currentSearchQueryJSON, setLastSearchType, currentSearchResults?.search?.type]);
 
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
 
@@ -60,7 +61,7 @@ function SearchPage({route}: SearchPageProps) {
     if (currentSearchResults?.data !== undefined) {
         searchResults = currentSearchResults;
     } else if (isSorting) {
-        searchResults = lastNonEmptySearchResults.current;
+        searchResults = lastNonEmptySearchResults;
     }
 
     const metadata = searchResults?.search;
@@ -73,23 +74,15 @@ function SearchPage({route}: SearchPageProps) {
         }
         resetVideoPlayerData();
         return () => {
-            if (shouldUseNarrowLayout) {
-                return;
-            }
             resetVideoPlayerData();
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [shouldUseNarrowLayout, resetVideoPlayerData]);
 
     const prevIsLoading = usePrevious(currentSearchResults?.isLoading);
 
-    useEffect(() => {
-        if (!isSorting || !prevIsLoading || currentSearchResults?.isLoading) {
-            return;
-        }
-
+    if (isSorting && prevIsLoading && !currentSearchResults?.isLoading) {
         setIsSorting(false);
-    }, [currentSearchResults?.isLoading, isSorting, prevIsLoading]);
+    }
 
     const [searchRequestResponseStatusCode, setSearchRequestResponseStatusCode] = useState<number | null>(null);
 

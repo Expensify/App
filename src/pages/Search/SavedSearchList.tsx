@@ -1,6 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
 import {accountIDSelector} from '@selectors/Session';
 import React from 'react';
+import type {OnyxCollection} from 'react-native-onyx';
 import MenuItemList from '@components/MenuItemList';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
@@ -24,8 +25,33 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Report} from '@src/types/onyx';
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
 import SavedSearchItemThreeDotMenu from './SavedSearchItemThreeDotMenu';
+
+/**
+ * Selector that extracts only the fields needed by buildUserReadableQueryString from each report.
+ * This prevents re-renders when unrelated report fields (like lastVisibleActionCreated, etc.) change.
+ */
+function savedSearchReportsSelector(reports: OnyxCollection<Report>): OnyxCollection<Report> {
+    if (!reports) {
+        return reports;
+    }
+    const result: OnyxCollection<Report> = {};
+    for (const [key, report] of Object.entries(reports)) {
+        if (!report) {
+            continue;
+        }
+        result[key] = {
+            reportID: report.reportID,
+            reportName: report.reportName,
+            policyID: report.policyID,
+            policyName: report.policyName,
+            oldPolicyName: report.oldPolicyName,
+        } as Report;
+    }
+    return result;
+}
 
 type SavedSearchListProps = {
     hash: number | undefined;
@@ -42,7 +68,7 @@ function SavedSearchList({hash}: SavedSearchListProps) {
     const personalDetails = usePersonalDetails();
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [workspaceCardList] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: savedSearchReportsSelector});
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});

@@ -3,155 +3,37 @@
 import {useOnyx} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Policy, Report, ReportActions, ReportNameValuePairs, SearchResults, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {SearchResults, TodosDerivedValue} from '@src/types/onyx';
+import type {TodoCategorySearchData} from '@src/types/onyx/DerivedValues';
 
 type TodoSearchResultsData = SearchResults['data'];
 
-type TodoMetadata = {
-    /** Total number of transactions across all reports */
-    count: number;
-    /** Sum of all report totals (in cents) */
-    total: number;
-    /** Currency of the first report, used as reference currency */
-    currency: string | undefined;
+type TodoResult = {data: TodoSearchResultsData; metadata: TodoCategorySearchData['metadata']};
+
+const emptyResult: TodoResult = {
+    data: CONST.EMPTY_OBJECT as TodoSearchResultsData,
+    metadata: {count: 0, total: 0, currency: undefined},
 };
 
-function computeMetadata(reports: Report[], transactionsByReportID: Record<string, Transaction[]>): TodoMetadata {
-    let count = 0;
-    let total = 0;
-    let currency: string | undefined;
-
-    for (const report of reports) {
-        if (!report?.reportID) {
-            continue;
-        }
-
-        const reportTransactions = transactionsByReportID[report.reportID];
-        if (reportTransactions) {
-            count += reportTransactions.length;
-
-            for (const transaction of reportTransactions) {
-                if (transaction.groupAmount) {
-                    total -= transaction.groupAmount;
-                }
-
-                if (currency === undefined && transaction.groupCurrency) {
-                    currency = transaction.groupCurrency;
-                }
-            }
-        }
-    }
-
-    return {count, total, currency};
-}
-
 /**
- * Builds a SearchResults-compatible data object from the given reports and related data.
- * This allows the search UI to use live Onyx data instead of snapshot data when viewing to-do results.
+ * Selector that extracts only the searchData from the derived TODOS value.
+ * useOnyx uses deepEqual on selector output, so SearchContextProvider only
+ * re-renders when the actual todo search data changes — not on every REPORT_ACTIONS update.
  */
-function buildSearchResultsData(
-    reports: Report[],
-    transactionsByReportID: Record<string, Transaction[]>,
-    allPolicies: Record<string, Policy> | undefined,
-    allReportActions: Record<string, ReportActions> | undefined,
-    allReportNameValuePairs: Record<string, ReportNameValuePairs> | undefined,
-    personalDetails: PersonalDetailsList | undefined,
-    transactionViolations: Record<string, TransactionViolations> | undefined,
-): TodoSearchResultsData {
-    const data: Record<string, unknown> = {};
-
-    for (const report of reports) {
-        if (!report?.reportID) {
-            continue;
-        }
-        data[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = report;
-
-        if (report.policyID && allPolicies) {
-            const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`;
-            if (allPolicies[policyKey] && !data[policyKey]) {
-                data[policyKey] = allPolicies[policyKey];
-            }
-        }
-
-        // Add the report name value pairs for the chat report (needed for pay eligibility checks)
-        // Note: We don't add the chat report itself to match API behavior and avoid affecting shouldShowYear calculations
-        if (report.chatReportID && allReportNameValuePairs) {
-            const nvpKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`;
-            if (allReportNameValuePairs[nvpKey] && !data[nvpKey]) {
-                data[nvpKey] = allReportNameValuePairs[nvpKey];
-            }
-        }
-
-        if (allReportActions) {
-            const actionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`;
-            if (allReportActions[actionsKey] && !data[actionsKey]) {
-                data[actionsKey] = allReportActions[actionsKey];
-            }
-        }
-
-        // Add transactions for this report using the pre-computed mapping
-        const reportTransactions = transactionsByReportID[report.reportID];
-        if (reportTransactions) {
-            for (const transaction of reportTransactions) {
-                const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`;
-                data[transactionKey] = transaction;
-
-                if (transactionViolations) {
-                    const violationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`;
-                    if (transactionViolations[violationsKey]) {
-                        data[violationsKey] = transactionViolations[violationsKey];
-                    }
-                }
-            }
-        }
-    }
-
-    if (personalDetails) {
-        data[ONYXKEYS.PERSONAL_DETAILS_LIST] = personalDetails;
-    }
-
-    return data as TodoSearchResultsData;
-}
+const todosSearchDataSelector = (todos: TodosDerivedValue | undefined) => todos?.searchData;
 
 export default function useTodos() {
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
-    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
-    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [personalDetailsList] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [todosSearchData] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosSearchDataSelector});
 
-    const [todosReports] = useOnyx(ONYXKEYS.DERIVED.TODOS);
-
-    const transactionsByReportID = todosReports?.transactionsByReportID ?? CONST.EMPTY_OBJECT;
-
-    // Build SearchResults-formatted data for each to-do category
-    const buildData = (reports?: Report[]): {data: TodoSearchResultsData; metadata: TodoMetadata} => {
-        if (!reports?.length) {
-            // Return empty object like the Search API would when there's no data
-            return {
-                data: CONST.EMPTY_OBJECT as TodoSearchResultsData,
-                metadata: {count: 0, total: 0, currency: undefined},
-            };
-        }
-
-        const metadata = computeMetadata(reports, transactionsByReportID);
-        const data = buildSearchResultsData(
-            reports,
-            transactionsByReportID,
-            allPolicies as Record<string, Policy> | undefined,
-            allReportActions as Record<string, ReportActions> | undefined,
-            allReportNameValuePairs as Record<string, ReportNameValuePairs> | undefined,
-            personalDetailsList,
-            allTransactionViolations as Record<string, TransactionViolations> | undefined,
-        );
-
-        return {data, metadata};
-    };
+    const submitKey = CONST.SEARCH.SEARCH_KEYS.SUBMIT;
+    const approveKey = CONST.SEARCH.SEARCH_KEYS.APPROVE;
+    const payKey = CONST.SEARCH.SEARCH_KEYS.PAY;
+    const exportKey = CONST.SEARCH.SEARCH_KEYS.EXPORT;
 
     return {
-        [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: buildData(todosReports?.reportsToSubmit),
-        [CONST.SEARCH.SEARCH_KEYS.APPROVE]: buildData(todosReports?.reportsToApprove),
-        [CONST.SEARCH.SEARCH_KEYS.PAY]: buildData(todosReports?.reportsToPay),
-        [CONST.SEARCH.SEARCH_KEYS.EXPORT]: buildData(todosReports?.reportsToExport),
+        [submitKey]: (todosSearchData?.submit as TodoResult | undefined) ?? emptyResult,
+        [approveKey]: (todosSearchData?.approve as TodoResult | undefined) ?? emptyResult,
+        [payKey]: (todosSearchData?.pay as TodoResult | undefined) ?? emptyResult,
+        [exportKey]: (todosSearchData?.export as TodoResult | undefined) ?? emptyResult,
     };
 }

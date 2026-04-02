@@ -36,7 +36,7 @@ import variables from '@styles/variables';
 import type {TransactionPreviewData} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Policy, Transaction, TransactionViolations} from '@src/types/onyx';
 import BaseSearchList from './BaseSearchList';
 import type ChatListItem from './ListItem/ChatListItem';
 import type TaskListItem from './ListItem/TaskListItem';
@@ -132,6 +132,9 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     /** Whether all transactions have been loaded from snapshots in group-by views */
     hasLoadedAllTransactions?: boolean;
 
+    /** Policies collection passed from Search parent to avoid duplicate subscriptions */
+    policies?: Record<string, Policy | undefined>;
+
     /** Reference to the outer element */
     ref?: ForwardedRef<SearchListHandle>;
 };
@@ -216,6 +219,7 @@ function SearchList({
     customCardNames,
     selectedTransactions,
     hasLoadedAllTransactions,
+    policies,
     ref,
 }: SearchListProps) {
     const styles = useThemeStyles();
@@ -290,8 +294,6 @@ function SearchList({
 
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [longPressedItem, setLongPressedItem] = useState<SearchListItem>();
-
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const hasItemsBeingRemoved = prevDataLength && prevDataLength > data.length;
     const personalDetails = usePersonalDetails();

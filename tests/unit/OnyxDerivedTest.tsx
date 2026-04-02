@@ -659,6 +659,12 @@ describe('OnyxDerived', () => {
                 reportsToPay: [],
                 reportsToExport: [],
                 transactionsByReportID: {},
+                searchData: {
+                    submit: {data: {}, metadata: {count: 0, total: 0}},
+                    approve: {data: {}, metadata: {count: 0, total: 0}},
+                    pay: {data: {}, metadata: {count: 0, total: 0}},
+                    export: {data: {}, metadata: {count: 0, total: 0}},
+                },
             });
         });
 

@@ -3,7 +3,7 @@ import * as Sentry from '@sentry/react-native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -67,7 +67,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
-import type {OutstandingReportsByPolicyIDDerivedValue, SaveSearch, Transaction} from '@src/types/onyx';
+import type {OutstandingReportsByPolicyIDDerivedValue, Policy, SaveSearch, Transaction} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arraysEqual from '@src/utils/arraysEqual';
@@ -79,6 +79,41 @@ import type {ReportActionListItemType, SearchListItem, TransactionGroupListItemT
 import {SearchScopeProvider} from './SearchScopeProvider';
 import SearchTableHeader from './SearchTableHeader';
 import type {SearchColumnType, SearchParams, SearchQueryJSON, SelectedTransactionInfo, SelectedTransactions, SortOrder} from './types';
+
+/**
+ * Selector for COLLECTION.POLICY that strips heavyweight fields not needed by getSections or search display.
+ * Fields like connections, customUnits, categories, tags, fieldList, rules can be very large and change
+ * independently of the fields that search actually needs, causing unnecessary re-renders and getSections recomputation.
+ */
+function searchPoliciesSelector(policies: OnyxCollection<Policy>): OnyxCollection<Policy> {
+    if (!policies) {
+        return policies;
+    }
+    const result: OnyxCollection<Policy> = {};
+    for (const [key, policy] of Object.entries(policies)) {
+        if (!policy) {
+            continue;
+        }
+        result[key] = {
+            id: policy.id,
+            name: policy.name,
+            type: policy.type,
+            role: policy.role,
+            outputCurrency: policy.outputCurrency,
+            autoReporting: policy.autoReporting,
+            autoReportingFrequency: policy.autoReportingFrequency,
+            isAttendeeTrackingEnabled: policy.isAttendeeTrackingEnabled,
+            taxRates: policy.taxRates,
+            pendingAction: policy.pendingAction,
+            owner: policy.owner,
+            employeeList: policy.employeeList,
+            isPolicyExpenseChatEnabled: policy.isPolicyExpenseChatEnabled,
+            areInvoicesEnabled: policy.areInvoicesEnabled,
+            isJoinRequestPending: policy.isJoinRequestPending,
+        } as Policy;
+    }
+    return result;
+}
 
 type SearchProps = {
     queryJSON: SearchQueryJSON;
@@ -291,7 +326,7 @@ function Search({
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
     const [violations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: searchPoliciesSelector});
     const {accountID, email, login} = useCurrentUserPersonalDetails();
     const isActionLoadingSet = useActionLoadingReportIDs();
     const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
@@ -937,8 +972,11 @@ function Search({
                 if (isTransactionPendingDelete(item)) {
                     return;
                 }
-                const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}`] as OnyxEntry<Transaction>;
-                const originalItemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
+                const itemTransaction = (searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}`] ??
+                    transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}`]) as OnyxEntry<Transaction>;
+                const originalItemTransaction =
+                    searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`] ??
+                    transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
                 const updatedTransactions = prepareTransactionsList(
                     item,
                     itemTransaction,
@@ -1303,8 +1341,11 @@ function Search({
                 return item.transactions
                     .filter((t) => !isTransactionPendingDelete(t))
                     .map((transactionItem) => {
-                        const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
-                        const originalItemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
+                        const itemTransaction = (searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] ??
+                            transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`]) as OnyxEntry<Transaction>;
+                        const originalItemTransaction =
+                            searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`] ??
+                            transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
                         return mapTransactionItemToSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, email ?? '', accountID, outstandingReportsByPolicyID);
                     });
             });
@@ -1602,6 +1643,7 @@ function Search({
                     newTransactions={newTransactions}
                     hasLoadedAllTransactions={hasLoadedAllTransactions}
                     customCardNames={customCardNames}
+                    policies={policies}
                 />
             </Animated.View>
         </SearchScopeProvider>

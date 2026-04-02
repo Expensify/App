@@ -82,6 +82,21 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
     const scrollOffset = useSharedValue(0);
     const topBarOffset = useSharedValue<number>(StyleUtils.searchHeaderDefaultOffset);
 
+    const hideSearchRouterList = () => {
+        setSearchRouterListVisible(false);
+    };
+
+    const onSearchRouterFocus = () => {
+        topBarOffset.set(StyleUtils.searchHeaderDefaultOffset);
+        setSearchRouterListVisible(true);
+    };
+
+    const onSelectionModeBackPress = () => {
+        topBarOffset.set(StyleUtils.searchHeaderDefaultOffset);
+        clearSelectedTransactions();
+        turnOffMobileSelectionMode();
+    };
+
     const handleBackButtonPress = useCallback(() => {
         if (!isMobileSelectionModeEnabled) {
             return false;
@@ -214,13 +229,8 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
                                         <SearchPageHeader
                                             queryJSON={queryJSON}
                                             searchRouterListVisible={searchRouterListVisible}
-                                            hideSearchRouterList={() => {
-                                                setSearchRouterListVisible(false);
-                                            }}
-                                            onSearchRouterFocus={() => {
-                                                topBarOffset.set(StyleUtils.searchHeaderDefaultOffset);
-                                                setSearchRouterListVisible(true);
-                                            }}
+                                            hideSearchRouterList={hideSearchRouterList}
+                                            onSearchRouterFocus={onSearchRouterFocus}
                                             handleSearch={handleSearchAction}
                                             isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                                         />
@@ -240,11 +250,7 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
                         <>
                             <HeaderWithBackButton
                                 title={translate('common.selectMultiple')}
-                                onBackButtonPress={() => {
-                                    topBarOffset.set(StyleUtils.searchHeaderDefaultOffset);
-                                    clearSelectedTransactions();
-                                    turnOffMobileSelectionMode();
-                                }}
+                                onBackButtonPress={onSelectionModeBackPress}
                             />
                             <SearchPageHeader
                                 queryJSON={queryJSON}
