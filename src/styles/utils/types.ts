@@ -39,6 +39,11 @@ type AvatarStyle = Dimensions & {
 
 type ButtonSizeValue = ValueOf<typeof CONST.DROPDOWN_BUTTON_SIZE>;
 type ButtonStateName = ValueOf<typeof CONST.BUTTON_STATES>;
+type ButtonVariant = 'success' | 'danger' | 'link';
+type ButtonVariantStyles = {
+    normal: Record<ButtonVariant, StyleProp<ViewStyle>>;
+    disabled: Record<ButtonVariant, StyleProp<ViewStyle>>;
+};
 type AvatarSize = {width: number};
 
 type SVGAvatarColorStyle = {backgroundColor: ColorValue; fill: ColorValue};
@@ -55,6 +60,8 @@ export type {
     AvatarStyle,
     ButtonSizeValue,
     ButtonStateName,
+    ButtonVariant,
+    ButtonVariantStyles,
     AvatarSize,
     SVGAvatarColorStyle,
     EreceiptColorStyle,

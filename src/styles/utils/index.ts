@@ -46,6 +46,7 @@ import type {
     AvatarStyle,
     ButtonSizeValue,
     ButtonStateName,
+    ButtonVariantStyles,
     EReceiptColorName,
     EreceiptColorStyle,
     ParsableStyle,
@@ -590,6 +591,21 @@ function getButtonStyleWithIcon(styles: ThemeStyles, size?: ButtonSizeValue, has
             return undefined;
         }
     }
+}
+
+function getButtonVariantStyles(styles: ThemeStyles): ButtonVariantStyles {
+    return {
+        normal: {
+            success: styles.buttonSuccess,
+            danger: styles.buttonDanger,
+            link: styles.bgTransparent,
+        },
+        disabled: {
+            success: [styles.buttonOpacityDisabled],
+            danger: [styles.buttonOpacityDisabled],
+            link: [styles.buttonOpacityDisabled, styles.buttonDisabled],
+        },
+    };
 }
 
 type MarginPaddingValue = ViewStyle['marginTop' | 'marginBottom' | 'paddingTop' | 'paddingBottom'];
@@ -1386,6 +1402,7 @@ const staticStyleUtils = {
     getMultiGestureCanvasContainerStyle,
     getIconWidthAndHeightStyle,
     getButtonStyleWithIcon,
+    getButtonVariantStyles,
     getCharacterWidth,
     getAmountWidth,
     getBorderRadiusStyle,

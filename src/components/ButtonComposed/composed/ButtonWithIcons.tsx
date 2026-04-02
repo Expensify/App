@@ -1,16 +1,16 @@
 import React from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import Button from '@components/ButtonComposed/Button';
+import ButtonDoubleLineText from '@components/ButtonComposed/primitives/ButtonDoubleLineText';
+import {ButtonIconLeft, ButtonIconRight} from '@components/ButtonComposed/primitives/ButtonIcons';
+import ButtonText from '@components/ButtonComposed/primitives/ButtonText';
+import type {BaseButtonProps} from '@components/ButtonComposed/types';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type {ButtonProps} from './Button';
-import Button from './Button';
-import ButtonDoubleLineText from './primitives/ButtonDoubleLineText';
-import {ButtonIconLeft, ButtonIconRight} from './primitives/ButtonIcons';
-import ButtonText from './primitives/ButtonText';
 
-type ButtonWithIconsProps = ButtonProps & {
+type ButtonWithIconsProps = BaseButtonProps & {
     // Icon Left Props
     iconLeft?: IconAsset;
     iconLeftFill?: string;

@@ -1,11 +1,11 @@
 import React from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
+import {useButtonContext} from '@components/ButtonComposed/context';
 import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import {useButtonContext} from '../context';
 
 type ButtonTextProps = {
     /** The text to display */
@@ -27,6 +27,19 @@ function ButtonText({children, numberOfLines = 1, style, hoverStyle}: ButtonText
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
+    const sizeTextStyles = {
+        [CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL]: styles.buttonExtraSmallText,
+        [CONST.DROPDOWN_BUTTON_SIZE.SMALL]: styles.buttonSmallText,
+        [CONST.DROPDOWN_BUTTON_SIZE.MEDIUM]: styles.buttonMediumText,
+        [CONST.DROPDOWN_BUTTON_SIZE.LARGE]: styles.buttonLargeText,
+    };
+
+    const variantTextStyles = {
+        success: styles.buttonSuccessText,
+        danger: styles.buttonDangerText,
+        link: [styles.fontWeightNormal, styles.fontSizeLabel, styles.link, isHovered && StyleUtils.getColorStyle(theme.linkHover)],
+    };
+
     return (
         <Text
             numberOfLines={numberOfLines}
@@ -36,13 +49,8 @@ function ButtonText({children, numberOfLines = 1, style, hoverStyle}: ButtonText
                 styles.pointerEventsNone,
                 styles.buttonText,
                 styles.flexShrink1,
-                size === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL && styles.buttonExtraSmallText,
-                size === CONST.DROPDOWN_BUTTON_SIZE.SMALL && styles.buttonSmallText,
-                size === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM && styles.buttonMediumText,
-                size === CONST.DROPDOWN_BUTTON_SIZE.LARGE && styles.buttonLargeText,
-                variant === 'success' && styles.buttonSuccessText,
-                variant === 'danger' && styles.buttonDangerText,
-                variant === 'link' && [styles.fontWeightNormal, styles.fontSizeLabel, styles.link, isHovered && StyleUtils.getColorStyle(theme.linkHover)],
+                size ? sizeTextStyles[size] : undefined,
+                variant ? variantTextStyles[variant] : undefined,
                 isHovered && hoverStyle,
                 style,
             ]}
