@@ -2306,6 +2306,7 @@ const translations: TranslationDeepObject<typeof en> = {
         enableWallet: 'Abilita portafoglio',
         addBankAccountToSendAndReceive: 'Aggiungi un conto bancario per effettuare o ricevere pagamenti.',
         addDebitOrCreditCard: 'Aggiungi carta di debito o di credito',
+        cardInactive: 'Inattivo',
         assignedCards: 'Carte assegnate',
         assignedCardsDescription: 'Le transazioni di queste carte si sincronizzano automaticamente.',
         expensifyCard: 'Carta Expensify',
@@ -6715,6 +6716,24 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             customRules: {
                 title: 'Politica di spesa',
                 cardSubtitle: 'Qui trovi il regolamento spese del tuo team, così tutti sono allineati su cosa è coperto.',
+            },
+            spendRules: {
+                title: 'Spesa',
+                subtitle: 'Approva o rifiuta le transazioni della Carta Expensify in tempo reale.',
+                defaultRuleDescription: 'Tutte le carte',
+                block: 'Blocca',
+                defaultRuleTitle: 'Categorie: servizi per adulti, sportelli bancomat, gioco d’azzardo, trasferimenti di denaro',
+                builtInProtectionModal: {
+                    title: 'Le Carte Expensify offrono sempre una protezione integrata',
+                    description: `Expensify rifiuta sempre questi addebiti:
+
+  • Servizi per adulti
+  • Bancomat
+  • Gioco d’azzardo
+  • Trasferimenti di denaro
+
+Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
+                },
             },
         },
         planTypePage: {
