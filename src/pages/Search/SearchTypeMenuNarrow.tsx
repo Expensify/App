@@ -17,7 +17,6 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
-import useThemeStyles from '@hooks/useThemeStyles';
 import {setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {getAllTaxRates} from '@libs/PolicyUtils';
@@ -28,17 +27,16 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {accountIDSelector} from '@src/selectors/Session';
 import todosReportCountsSelector from '@src/selectors/Todos';
 
-type SearchPageTabSelectorProps = {
+type SearchTypeMenuNarrowProps = {
     /** Search query JSON */
     queryJSON?: SearchQueryJSON;
     /** Function to call when a tab is pressed */
     onTabPress?: () => void;
 };
 
-function SearchPageTabSelector({queryJSON, onTabPress}: SearchPageTabSelectorProps) {
+function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const styles = useThemeStyles();
     const navigation = useNavigation();
     const {typeMenuSections} = useSearchTypeMenuSections();
     const personalDetails = usePersonalDetails();
@@ -193,10 +191,7 @@ function SearchPageTabSelector({queryJSON, onTabPress}: SearchPageTabSelectorPro
     };
 
     return (
-        <View
-            ref={menuAnchorRef}
-            style={[styles.appBG]}
-        >
+        <View ref={menuAnchorRef}>
             <TabSelectorContextProvider activeTabKey={activeKey}>
                 <TabSelectorBase
                     tabs={tabItems}
@@ -230,4 +225,4 @@ function SearchPageTabSelector({queryJSON, onTabPress}: SearchPageTabSelectorPro
     );
 }
 
-export default SearchPageTabSelector;
+export default SearchTypeMenuNarrow;

@@ -7475,6 +7475,10 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
             billable: 'Abrechenbar',
             reimbursable: 'Erstattungsfähig',
             purchaseCurrency: 'Kaufwährung',
+            sortOrder: {
+                [CONST.SEARCH.SORT_ORDER.ASC]: 'Aufsteigend',
+                [CONST.SEARCH.SORT_ORDER.DESC]: 'Absteigend',
+            },
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.FROM]: 'Von',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Karte',
@@ -7503,6 +7507,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
         display: {
             label: 'Anzeige',
             sortBy: 'Sortieren nach',
+            sortOrder: 'Sortierreihenfolge',
             groupBy: 'Gruppieren nach',
             limitResults: 'Ergebnisse einschränken',
         },
@@ -7538,7 +7543,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
         recentSearches: 'Letzte Suchen',
         recentChats: 'Neueste Chats',
         searchIn: 'Suchen in',
-        searchPlaceholder: 'Nach etwas suchen',
+        searchPlaceholder: 'Nach etwas suchen...',
         suggestions: 'Vorschläge',
         suggestionsAvailable: (
             {

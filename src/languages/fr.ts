@@ -7498,6 +7498,10 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             billable: 'Facturable',
             reimbursable: 'Remboursable',
             purchaseCurrency: 'Devise d’achat',
+            sortOrder: {
+                [CONST.SEARCH.SORT_ORDER.ASC]: 'Croissant',
+                [CONST.SEARCH.SORT_ORDER.DESC]: 'Descendant',
+            },
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.FROM]: 'De',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Carte',
@@ -7526,6 +7530,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         display: {
             label: 'Affichage',
             sortBy: 'Trier par',
+            sortOrder: 'Ordre de tri',
             groupBy: 'Regrouper par',
             limitResults: 'Limiter les résultats',
         },
@@ -7561,7 +7566,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         recentSearches: 'Recherches récentes',
         recentChats: 'Discussions récentes',
         searchIn: 'Rechercher dans',
-        searchPlaceholder: 'Rechercher quelque chose',
+        searchPlaceholder: 'Rechercher quelque chose...',
         suggestions: 'Suggestions',
         suggestionsAvailable: (
             {

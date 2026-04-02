@@ -8721,8 +8721,6 @@ const CONST = {
             FILTER_GROUP_CURRENCY: 'Search-FilterGroupCurrency',
             FILTER_VIEW: 'Search-FilterView',
             FILTER_FEED: 'Search-FilterFeed',
-            FILTER_POSTED: 'Search-FilterPosted',
-            FILTER_WITHDRAWN: 'Search-FilterWithdrawn',
             FILTER_WITHDRAWAL_TYPE: 'Search-FilterWithdrawalType',
             FILTER_HAS: 'Search-FilterHas',
             FILTER_IS: 'Search-FilterIs',

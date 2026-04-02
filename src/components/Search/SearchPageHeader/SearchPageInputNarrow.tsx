@@ -15,7 +15,6 @@ type SearchPageInputNarrowProps = {
     onSearchRouterFocus: () => void;
     handleSearch: (value: string) => void;
 };
-// NOTE: This is intentionally unused for now. It will be wired up in https://github.com/Expensify/App/issues/84876
 function SearchPageInputNarrow({queryJSON, searchRouterListVisible, hideSearchRouterList, onSearchRouterFocus, handleSearch}: SearchPageInputNarrowProps) {
     const styles = useThemeStyles();
 
@@ -53,9 +52,9 @@ function SearchPageInputNarrow({queryJSON, searchRouterListVisible, hideSearchRo
     return (
         <View
             dataSet={{dragArea: false}}
-            style={[styles.flex1, styles.appBG, searchRouterListVisible && styles.pt2]}
+            style={[styles.flex1, styles.appBG]}
         >
-            <View style={[styles.flexRow, styles.mh5, searchRouterListVisible ? styles.mb3 : styles.mb4, styles.alignItemsCenter, styles.justifyContentCenter]}>
+            <View style={[styles.flexRow, styles.ml5, searchRouterListVisible ? [styles.mb3, styles.mr5] : [styles.mb4, styles.mr3]]}>
                 <Animated.View style={[styles.flex1, styles.zIndex10]}>
                     <SearchInputSelectionWrapper
                         value={textInputValue}
@@ -68,7 +67,8 @@ function SearchPageInputNarrow({queryJSON, searchRouterListVisible, hideSearchRo
                         }}
                         autoFocus={false}
                         onFocus={onSearchRouterFocus}
-                        wrapperStyle={{...styles.newSearchAutocompleteInputResults, ...styles.br2}}
+                        touchableInputWrapperStyle={styles.searchPageInputNarrowTouchableWrapper}
+                        wrapperStyle={{...styles.searchAutocompleteInputResults, ...styles.br2}}
                         wrapperFocusedStyle={styles.searchAutocompleteInputResultsFocused}
                         ref={textInputRef}
                         onKeyPress={handleKeyPress}

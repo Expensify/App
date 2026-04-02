@@ -1,6 +1,7 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import Animated, {clamp, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -8,7 +9,6 @@ import {useFullScreenBlockingViewActions} from '@components/FullScreenBlockingVi
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
-import TopBar from '@components/Navigation/TopBar';
 import ReceiptScanDropZone from '@components/ReceiptScanDropZone';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
@@ -16,13 +16,17 @@ import Search from '@components/Search';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import SearchLoadingSkeleton from '@components/Search/SearchLoadingSkeleton';
 import SearchPageFooter from '@components/Search/SearchPageFooter';
-import SearchFiltersBar from '@components/Search/SearchPageHeader/SearchFiltersBar';
-import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
+import SearchActionsBarNarrow from '@components/Search/SearchPageHeader/SearchActionsBarNarrow';
+import SearchFiltersBarNarrow from '@components/Search/SearchPageHeader/SearchFiltersBarNarrow';
+import SearchPageHeaderNarrow from '@components/Search/SearchPageHeader/SearchPageHeaderNarrow';
+import SearchPageInputNarrow from '@components/Search/SearchPageHeader/SearchPageInputNarrow';
+import {SKIPPED_FILTERS} from '@components/Search/SearchPageHeader/useSearchFiltersBar';
 import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
 import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useSearchLoadingState from '@hooks/useSearchLoadingState';
@@ -32,14 +36,18 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
-import {isSearchDataLoaded} from '@libs/SearchUIUtils';
+import {isSearchDataLoaded, shouldShowFilter} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import {searchInServer} from '@userActions/Report';
 import {search} from '@userActions/Search';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {SearchAdvancedFiltersForm} from '@src/types/form';
+import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchResults} from '@src/types/onyx';
 import type {SearchResultsInfo} from '@src/types/onyx/SearchResults';
-import SearchPageTabSelector from './SearchPageTabSelector';
+import SearchTypeMenuNarrow from './SearchTypeMenuNarrow';
 
 const TOO_CLOSE_TO_TOP_DISTANCE = 10;
 const TOO_CLOSE_TO_BOTTOM_DISTANCE = 10;
@@ -56,9 +64,15 @@ type SearchPageNarrowProps = {
         currency: string | undefined;
     };
     shouldShowFooter: boolean;
+    onSortPressedCallback: () => void;
 };
 
-function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnabled, metadata, footerData, shouldShowFooter}: SearchPageNarrowProps) {
+function hasFilterBarsSelector(searchAdvancedFiltersForm: OnyxEntry<SearchAdvancedFiltersForm>) {
+    const type = searchAdvancedFiltersForm?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
+    return !!Object.entries(searchAdvancedFiltersForm ?? {}).filter(([key, value]) => shouldShowFilter(SKIPPED_FILTERS, key as SearchAdvancedFiltersKey, value, type)).length;
+}
+
+function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnabled, metadata, footerData, shouldShowFooter, onSortPressedCallback}: SearchPageNarrowProps) {
     const shouldShowLoadingSkeleton = useSearchLoadingState(queryJSON, searchResults);
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -78,6 +92,7 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
     const receiptDropTargetRef = useRef<View>(null);
 
     const [searchRequestResponseStatusCode, setSearchRequestResponseStatusCode] = useState<number | null>(null);
+    const [hasFilterBars = false] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: hasFilterBarsSelector});
 
     const scrollOffset = useSharedValue(0);
     const topBarOffset = useSharedValue<number>(StyleUtils.searchHeaderDefaultOffset);
@@ -114,14 +129,20 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
                 scheduleOnRN(saveScrollOffset, route, currentOffset);
 
                 if (isScrollingDown && contentOffset.y > TOO_CLOSE_TO_TOP_DISTANCE) {
-                    topBarOffset.set(clamp(topBarOffset.get() - distanceScrolled, variables.minimalTopBarOffset, StyleUtils.searchHeaderDefaultOffset));
+                    topBarOffset.set(
+                        clamp(
+                            topBarOffset.get() - distanceScrolled,
+                            hasFilterBars ? variables.minimalTopBarWithFiltersOffset : variables.minimalTopBarOffset,
+                            StyleUtils.searchHeaderDefaultOffset,
+                        ),
+                    );
                 } else if (!isScrollingDown && distanceScrolled < 0 && contentOffset.y + layoutMeasurement.height < contentSize.height - TOO_CLOSE_TO_BOTTOM_DISTANCE) {
                     topBarOffset.set(withTiming(StyleUtils.searchHeaderDefaultOffset, {duration: ANIMATION_DURATION_IN_MS}));
                 }
                 scrollOffset.set(currentOffset);
             },
         },
-        [],
+        [hasFilterBars],
     );
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
@@ -186,11 +207,10 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
                     {!isMobileSelectionModeEnabled ? (
                         <View style={[StyleUtils.getSearchPageNarrowHeaderStyles(), searchRouterListVisible && styles.flex1, styles.mh100]}>
                             <View style={[styles.zIndex10, styles.appBG]}>
-                                <TopBar
+                                <SearchPageHeaderNarrow
+                                    queryJSON={queryJSON}
                                     shouldShowLoadingBar={shouldShowLoadingState || shouldShowLoadingBarForReports}
-                                    breadcrumbLabel={translate('common.reports')}
-                                    shouldDisplaySearch={false}
-                                    shouldDisplayHelpButton
+                                    isMobileSelectionModeEnabled={false}
                                     cancelSearch={shouldDisplayCancelSearch ? cancelSearchCallback : undefined}
                                 />
                             </View>
@@ -200,18 +220,18 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
                                         topBarAnimatedStyle,
                                         !searchRouterListVisible && styles.narrowSearchRouterInactiveStyle,
                                         styles.flex1,
-                                        styles.bgTransparent,
+                                        styles.appBG,
                                         styles.searchTopBarZIndexStyle,
                                     ]}
                                 >
-                                    <SearchPageTabSelector
+                                    <SearchTypeMenuNarrow
                                         queryJSON={queryJSON}
                                         onTabPress={() => {
                                             setSearchRouterListVisible(false);
                                         }}
                                     />
-                                    <View style={[styles.flex1, styles.pt2, styles.appBG]}>
-                                        <SearchPageHeader
+                                    <View style={[styles.flex1, styles.flexRow, styles.pt1]}>
+                                        <SearchPageInputNarrow
                                             queryJSON={queryJSON}
                                             searchRouterListVisible={searchRouterListVisible}
                                             hideSearchRouterList={() => {
@@ -222,17 +242,16 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
                                                 setSearchRouterListVisible(true);
                                             }}
                                             handleSearch={handleSearchAction}
-                                            isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                                         />
-                                    </View>
-                                    <View style={[styles.appBG]}>
                                         {!searchRouterListVisible && (
-                                            <SearchFiltersBar
+                                            <SearchActionsBarNarrow
                                                 queryJSON={queryJSON}
-                                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                                searchResults={searchResults}
+                                                onSort={onSortPressedCallback}
                                             />
                                         )}
                                     </View>
+                                    {!searchRouterListVisible && <SearchFiltersBarNarrow queryJSON={queryJSON} />}
                                 </Animated.View>
                             </View>
                         </View>
@@ -246,10 +265,10 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
                                     turnOffMobileSelectionMode();
                                 }}
                             />
-                            <SearchPageHeader
+                            <SearchPageHeaderNarrow
                                 queryJSON={queryJSON}
-                                handleSearch={handleSearchAction}
-                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                shouldShowLoadingBar={false}
+                                isMobileSelectionModeEnabled
                             />
                         </>
                     )}
@@ -257,7 +276,7 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
                         <View style={[styles.flex1]}>
                             {shouldShowLoadingSkeleton ? (
                                 <SearchLoadingSkeleton
-                                    containerStyle={styles.searchListContentContainerStyles}
+                                    containerStyle={styles.searchListContentContainerStyles(hasFilterBars)}
                                     reasonAttributes={{
                                         context: 'SearchPage',
                                         isOffline,
@@ -274,8 +293,9 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
                                     searchResults={searchResults}
                                     key={queryJSON.hash}
                                     queryJSON={queryJSON}
+                                    hasFilterBars={hasFilterBars}
                                     onSearchListScroll={scrollHandler}
-                                    contentContainerStyle={!isMobileSelectionModeEnabled ? styles.searchListContentContainerStyles : undefined}
+                                    contentContainerStyle={!isMobileSelectionModeEnabled ? styles.searchListContentContainerStyles(hasFilterBars) : undefined}
                                     handleSearch={handleSearchAction}
                                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                                     searchRequestResponseStatusCode={searchRequestResponseStatusCode}

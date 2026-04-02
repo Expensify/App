@@ -7434,6 +7434,10 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
             billable: 'Faturável',
             reimbursable: 'Reembolsável',
             purchaseCurrency: 'Moeda de compra',
+            sortOrder: {
+                [CONST.SEARCH.SORT_ORDER.ASC]: 'Ascendente',
+                [CONST.SEARCH.SORT_ORDER.DESC]: 'Descendo',
+            },
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.FROM]: 'De',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Cartão',
@@ -7462,6 +7466,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         display: {
             label: 'Exibir',
             sortBy: 'Ordenar por',
+            sortOrder: 'Ordem de classificação',
             groupBy: 'Agrupar por',
             limitResults: 'Limitar resultados',
         },
@@ -7481,7 +7486,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         recentSearches: 'Pesquisas recentes',
         recentChats: 'Chats recentes',
         searchIn: 'Pesquisar em',
-        searchPlaceholder: 'Pesquisar algo',
+        searchPlaceholder: 'Pesquisar algo...',
         suggestions: 'Sugestões',
         suggestionsAvailable: (
             {

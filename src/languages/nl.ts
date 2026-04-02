@@ -7444,6 +7444,10 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
             billable: 'Factureerbaar',
             reimbursable: 'Vergoedbaar',
             purchaseCurrency: 'Aankoopvaluta',
+            sortOrder: {
+                [CONST.SEARCH.SORT_ORDER.ASC]: 'Oplopend',
+                [CONST.SEARCH.SORT_ORDER.DESC]: 'Aflopend',
+            },
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.FROM]: 'Van',
                 [CONST.SEARCH.GROUP_BY.CARD]: 'Kaart',
@@ -7472,6 +7476,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
         display: {
             label: 'Weergave',
             sortBy: 'Sorteren op',
+            sortOrder: 'Sorteervolgorde',
             groupBy: 'Groeperen op',
             limitResults: 'Resultaten beperken',
         },
@@ -7495,7 +7500,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
         recentSearches: 'Recente zoekopdrachten',
         recentChats: 'Recente chats',
         searchIn: 'Zoeken in',
-        searchPlaceholder: 'Zoek iets',
+        searchPlaceholder: 'Zoek iets...',
         suggestions: 'Suggesties',
         suggestionsAvailable: (
             {

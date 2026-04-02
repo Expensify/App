@@ -2538,11 +2538,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         searchResultsHeaderBar: {
             display: 'flex',
-            height: variables.contentHeaderDesktopHeight,
-            zIndex: variables.popoverZIndex,
             position: 'relative',
-            paddingLeft: 20,
-            paddingRight: 12,
         },
 
         newSearchResultsHeaderBar: {
@@ -3471,17 +3467,16 @@ const staticStyles = (theme: ThemeColors) =>
         searchAutocompleteInputResults: {
             borderWidth: 1,
             borderColor: theme.bordersBold,
-            height: 54,
-        },
-
-        newSearchAutocompleteInputResults: {
-            borderWidth: 1,
-            borderColor: theme.border,
         },
 
         searchAutocompleteInputResultsFocused: {
             borderWidth: 1,
             borderColor: theme.success,
+        },
+
+        searchInputSkeleton: {
+            height: 54,
+            justifyContent: 'center',
         },
 
         searchTableHeaderActive: {
@@ -3494,10 +3489,6 @@ const staticStyles = (theme: ThemeColors) =>
 
         height4: {
             height: 16,
-        },
-
-        searchListContentContainerStyles: {
-            paddingTop: variables.searchListContentMarginTop,
         },
 
         searchListHeaderContainerStyle: {
@@ -4775,7 +4766,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         listTableHeader: {
-            paddingVertical: 12,
+            paddingTop: 4,
+            paddingBottom: 4,
             paddingHorizontal: 32,
         },
 
@@ -4875,38 +4867,36 @@ const staticStyles = (theme: ThemeColors) =>
             minHeight: variables.componentSizeSmall,
         },
 
+        searchBulkActionsButton: {
+            marginVertical: 3,
+        },
+
         filtersBar: {
             flexDirection: 'row',
             gap: 8,
             marginTop: 3,
         },
 
-        searchFiltersBarContainer: {
-            marginTop: 8,
-            flexDirection: 'row',
-            alignItems: 'center',
-        },
-
         searchActionsBarContainer: {
-            marginTop: 12,
             marginBottom: 16,
             paddingHorizontal: 20,
             flexDirection: 'row',
+            alignItems: 'flex-start',
             justifyContent: 'space-between',
             zIndex: 10,
         },
 
         searchActionsBarCreateButton: {
-            marginLeft: 'auto',
             alignSelf: 'flex-start',
         },
 
-        searchPageInputTouchableWrapper: {height: 32, width: 200},
-        searchPageInputPlaceholder: {
+        searchPageInputWideTouchableWrapper: {height: 32, width: 200},
+        searchPageInputWidePlaceholder: {
             // Extra 2 to account for the borders
             height: 34,
             width: 202,
         },
+        searchPageInputNarrowTouchableWrapper: {height: variables.componentSizeLarge},
 
         walletStaticIllustration: {
             width: 262,
@@ -6322,6 +6312,10 @@ const dynamicStyles = (theme: ThemeColors) =>
         getEmptyStateCompanyCardsIllustrationContainer: (shouldUseNarrowLayout: boolean) => (shouldUseNarrowLayout ? {height: 220} : {aspectRatio: 680 / 220}),
 
         getEmptyStateCompanyCardsIllustration: (shouldUseNarrowLayout: boolean) => (shouldUseNarrowLayout ? {width: 680, height: 220} : {}),
+
+        searchListContentContainerStyles: (hasFilterBars: boolean) => ({
+            paddingTop: hasFilterBars ? variables.searchListContentWithFiltersMarginTop : variables.searchListContentMarginTop,
+        }),
 
         sectionMenuItem: (shouldUseNarrowLayout: boolean) => ({
             borderRadius: 8,

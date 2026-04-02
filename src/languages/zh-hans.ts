@@ -7240,6 +7240,10 @@ ${reportName}
             billable: '可计费',
             reimbursable: '可报销',
             purchaseCurrency: '购买货币',
+            sortOrder: {
+                [CONST.SEARCH.SORT_ORDER.ASC]: '升序',
+                [CONST.SEARCH.SORT_ORDER.DESC]: '降序',
+            },
             groupBy: {
                 [CONST.SEARCH.GROUP_BY.FROM]: '来自',
                 [CONST.SEARCH.GROUP_BY.CARD]: '卡片',
@@ -7268,6 +7272,7 @@ ${reportName}
         display: {
             label: '显示',
             sortBy: '按排序',
+            sortOrder: '排序顺序',
             groupBy: '分组依据',
             limitResults: '限制结果',
         },
@@ -7297,7 +7302,7 @@ ${reportName}
         recentSearches: '最近搜索',
         recentChats: '最近聊天',
         searchIn: '搜索范围',
-        searchPlaceholder: '搜索内容',
+        searchPlaceholder: '搜索内容...',
         suggestions: '建议',
         suggestionsAvailable: (
             {
