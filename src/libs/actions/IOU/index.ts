@@ -11560,7 +11560,12 @@ function payInvoice({
     API.write(WRITE_COMMANDS.PAY_INVOICE, params, onyxData);
 }
 
-function detachReceipt(transactionID: string | undefined, transactionPolicy: OnyxEntry<OnyxTypes.Policy>, policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>, transactionPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>) {
+function detachReceipt(
+    transactionID: string | undefined,
+    transactionPolicy: OnyxEntry<OnyxTypes.Policy>,
+    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
+    transactionPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
+) {
     if (!transactionID) {
         return;
     }
