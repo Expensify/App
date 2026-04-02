@@ -348,7 +348,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 />
             </View>
             <DeferredAutocompleteList
-                autocompleteQueryValue={debouncedAutocompleteQueryValue || textInputValue}
+                autocompleteQueryValue={textInputValue ? debouncedAutocompleteQueryValue || textInputValue : ''}
                 handleSearch={searchInServer}
                 searchQueryItem={searchQueryItem}
                 getAdditionalSections={getAdditionalSections}
