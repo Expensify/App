@@ -1175,4 +1175,3 @@ export {
     WorkspacesDomainModalStackNavigator,
     MultifactorAuthenticationStackNavigator,
 };
-
