@@ -25,7 +25,7 @@ function isActiveTaskEditRoute(reportID: string | undefined): boolean {
         return false;
     }
 
-    const path = activeRoute.split('?')[0].replace(/^\//, '').replace(/\/$/, '');
+    const path = (activeRoute.split('?').at(0) ?? '').replace(/^\//, '').replace(/\/$/, '');
     return TASK_EDIT_URL_SUFFIXES.some((suffix) => path.endsWith(`/${reportID}/${suffix}`));
 }
 
