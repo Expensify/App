@@ -97,7 +97,7 @@ describe('MultifactorAuthentication Scenarios Config', () => {
             addressStreet2: '',
             addressZip: 'SW1A 1AA',
             addressCountry: 'GB',
-            addressState: '',
+            addressProvince: '',
             dob: '1990-01-15',
             pin: '5739',
             cardID: '12345',

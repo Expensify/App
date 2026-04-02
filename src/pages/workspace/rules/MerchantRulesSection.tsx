@@ -102,7 +102,7 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
     }, [codingRules]);
 
     const renderTitle = () => (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
+        <View style={[styles.flexRow, styles.alignItemsCenter]}>
             <Text style={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, {color: theme.text}]}>{translate('workspace.rules.merchantRules.title')}</Text>
             <Badge
                 text={translate('common.newFeature')}
@@ -118,9 +118,10 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
             renderTitle={renderTitle}
             subtitle={translate('workspace.rules.merchantRules.subtitle')}
             subtitleMuted
+            childrenStyles={[styles.gap3]}
         >
             {hasRules && (
-                <View style={[styles.mt3]}>
+                <View style={[styles.mt3, styles.gap2]}>
                     {sortedRules.map((rule) => {
                         const merchantName = rule.filters?.right ?? '';
                         const isExactMatch = rule.filters?.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO;
@@ -136,8 +137,8 @@ function MerchantRulesSection({policyID}: MerchantRulesSectionProps) {
                                     <MenuItemWithTopDescription
                                         description={matchDescription}
                                         title={ruleDescription}
-                                        wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                                        descriptionTextStyle={[styles.textSupportingNormal, styles.textStrong, styles.themeTextColor]}
+                                        wrapperStyle={[styles.borderedContentCard, styles.ph4, styles.pv4]}
+                                        descriptionTextStyle={[styles.textNormalThemeText]}
                                         titleStyle={[styles.textLabelSupporting, styles.fontSizeLabel]}
                                         shouldShowRightIcon
                                         onPress={() => Navigation.navigate(ROUTES.RULES_MERCHANT_EDIT.getRoute(policyID, rule.ruleID))}

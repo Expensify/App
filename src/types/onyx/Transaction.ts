@@ -218,6 +218,9 @@ type Receipt = {
     /** Path of the receipt file */
     source?: ReceiptSource;
 
+    /** Local file URI preserved on the creating device so the remote source from the server does not cause a reload */
+    localSource?: string;
+
     /** Name of receipt file */
     filename?: string;
 
@@ -551,6 +554,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The transaction id */
         transactionID: string;
+
+        /** Selected transaction IDs for bulk edit operations (only used in draft transactions) */
+        selectedTransactionIDs?: string[];
 
         /** The transaction tag */
         tag?: string;

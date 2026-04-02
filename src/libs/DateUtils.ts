@@ -840,13 +840,13 @@ function getFormattedDuration(translateParam: LocaleContextProps['translate'], d
 const TIME_UNIT_PADDING = 2; // Pad time units to 2 digits (e.g., "09" instead of "9")
 
 /**
- * Formats a countdown timer with hours, minutes, and seconds (e.g., "23h 59m 59s").
+ * Formats a countdown timer with hours, minutes, and seconds (e.g., "23h : 59m : 59s").
  */
 function formatCountdownTimer(translateParam: LocaleContextProps['translate'], hours: number, minutes: number, seconds: number): string {
     const paddedMinutes = minutes.toString().padStart(TIME_UNIT_PADDING, '0');
     const paddedSeconds = seconds.toString().padStart(TIME_UNIT_PADDING, '0');
 
-    return `${hours}${translateParam('common.hourAbbreviation')} ${paddedMinutes}${translateParam('common.minuteAbbreviation')} ${paddedSeconds}${translateParam('common.secondAbbreviation')}`;
+    return `${hours}${translateParam('common.hourAbbreviation')} : ${paddedMinutes}${translateParam('common.minuteAbbreviation')} : ${paddedSeconds}${translateParam('common.secondAbbreviation')}`;
 }
 
 function doesDateBelongToAPastYear(date: string): boolean {
@@ -1017,13 +1017,16 @@ function isDateStringInMonth(dateString: string, year: number, month: number): b
 /**
  * Returns a formatted date range.
  */
-function getFormattedDateRangeForSearch(startDate: string, endDate: string): string {
+function getFormattedDateRangeForSearch(startDate: string, endDate: string, shouldShowFullYear = false, shouldOmitCurrentYear = false): string {
     const start = parse(startDate, 'yyyy-MM-dd', new Date());
     const end = parse(endDate, 'yyyy-MM-dd', new Date());
-    if (isSameYear(new Date(start), new Date(end))) {
-        return `${format(start, 'MMM d')} - ${format(end, 'MMM d, yyyy')}`;
+    if (shouldShowFullYear || !isSameYear(new Date(start), new Date(end))) {
+        return `${format(start, 'MMM d, yyyy')} - ${format(end, 'MMM d, yyyy')}`;
     }
-    return `${format(start, 'MMM d, yyyy')} - ${format(end, 'MMM d, yyyy')}`;
+    if (shouldOmitCurrentYear && isThisYear(start) && isThisYear(end)) {
+        return `${format(start, 'MMM d')} - ${format(end, 'MMM d')}`;
+    }
+    return `${format(start, 'MMM d')} - ${format(end, 'MMM d, yyyy')}`;
 }
 
 function getYearDateRange(year: number): {start: string; end: string} {
