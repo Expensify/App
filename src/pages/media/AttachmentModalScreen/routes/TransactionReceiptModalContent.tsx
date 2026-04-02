@@ -260,7 +260,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const deleteReceiptAndClose = useCallback(() => {
         detachReceipt(transaction?.transactionID, policy, policyTagList, policyCategories);
         navigation.goBack();
-    }, [navigation, transaction?.transactionID, policy, policyCategories]);
+    }, [navigation, transaction?.transactionID, policy, policyCategories, policyTagList]);
 
     /**
      * Remove odometer image and close the modal.
