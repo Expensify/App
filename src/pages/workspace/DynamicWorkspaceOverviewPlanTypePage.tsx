@@ -34,7 +34,7 @@ type WorkspacePlanTypeItem = {
     keyForList: ValueOf<typeof CONST.POLICY.TYPE>;
     isSelected: boolean;
 };
-function WorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
+function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
     const [currentPlan, setCurrentPlan] = useState(policy?.type);
     const policyID = policy?.id;
     const {translate} = useLocalize();
@@ -164,4 +164,4 @@ function WorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
     );
 }
 
-export default withPolicy(WorkspaceOverviewPlanTypePage);
+export default withPolicy(DynamicWorkspaceOverviewPlanTypePage);
