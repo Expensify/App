@@ -8,12 +8,14 @@ import useHandleExceedMaxTaskTitleLength from '@hooks/useHandleExceedMaxTaskTitl
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
+import ComposerFocusManager from '@libs/ComposerFocusManager';
 import {chatIncludesConcierge} from '@libs/ReportUtils';
 import {setIsComposerFullSize} from '@userActions/Report';
 import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {ComposerActionsContext, ComposerMetaActionsContext, ComposerMetaContext, ComposerSendStateContext, ComposerStateContext, ComposerValueContext} from './ComposerContext';
+import type {FileObject} from '@src/types/utils/Attachment';
+import {ComposerActionsContext, ComposerMetaContext, ComposerSendActionsContext, ComposerSendStateContext, ComposerStateContext, ComposerTextContext} from './ComposerContext';
 import type {SuggestionsRef} from './ComposerContext';
 import type {ComposerRef} from './ComposerWithSuggestions/ComposerWithSuggestions';
 import useAttachmentUploadValidation from './useAttachmentUploadValidation';
@@ -87,6 +89,7 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
     const suggestionsRef = useRef<SuggestionsRef>(null);
     const composerRef = useRef<ComposerRef | null>(null);
     const actionButtonRef = useRef<View | HTMLDivElement | null>(null);
+    const attachmentFileRef = useRef<FileObject | FileObject[] | null>(null);
 
     const composerRefShared = useSharedValue<Partial<ComposerRef>>({});
 
@@ -104,13 +107,27 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
         setIsFocused,
     });
 
-    const {submitForm, addAttachment, onAttachmentPreviewClose} = useComposerSubmit({
+    const {submitForm} = useComposerSubmit({
         report,
         reportID,
-        composerRefShared,
-        updateShouldShowSuggestionMenuToFalse,
-        setIsAttachmentPreviewActive,
+        attachmentFileRef,
     });
+
+    const addAttachment = (file: FileObject | FileObject[]) => {
+        attachmentFileRef.current = file;
+        const clearWorklet = composerRefShared.get().clearWorklet;
+        if (!clearWorklet) {
+            throw new Error('The composerRef.clearWorklet function is not set yet. This should never happen, and indicates a developer error.');
+        }
+        scheduleOnUI(clearWorklet);
+    };
+
+    const onAttachmentPreviewClose = () => {
+        updateShouldShowSuggestionMenuToFalse();
+        setIsAttachmentPreviewActive(false);
+        // This enables Composer refocus when the attachments modal is closed by the browser navigation
+        ComposerFocusManager.setReadyToFocus();
+    };
 
     const {validateAttachments, onReceiptDropped, PDFValidationComponent, ErrorModal} = useAttachmentUploadValidation({
         reportID,
@@ -159,74 +176,71 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
         debouncedValidate(v);
     };
 
+    const text = value;
+
     const composerState = {
         isFocused,
-        isFullComposerAvailable,
-        isComposerFullSize,
         isMenuVisible,
+        isFullComposerAvailable,
     };
 
     const composerSendState = {
         isEmpty,
-        exceededMaxLength,
         isSendDisabled,
-        isBlockedFromConcierge,
+        exceededMaxLength,
         hasExceededMaxTaskTitleLength,
+        isBlockedFromConcierge,
+        validateAttachments,
+        onReceiptDropped,
     };
 
     const composerActions = {
-        setIsFocused,
-        setIsFullComposerAvailable,
-        setMenuVisibility,
         setValue,
-        handleSendMessage,
-        focus,
-        onValueChange,
-        validateMaxLength,
-        debouncedValidate,
-    };
-
-    const composerMetaState = {
-        containerRef,
-        composerRef,
-        suggestionsRef,
-        actionButtonRef,
-        isNextModalWillOpenRef,
-        shouldFocusComposerOnScreenFocus,
-        shouldShowComposeInput,
-        isAttachmentPreviewActive,
-        userBlockedFromConcierge,
-        PDFValidationComponent,
-        ErrorModal,
-    };
-
-    const composerMetaActions = {
+        setIsFocused,
+        setMenuVisibility,
+        setIsFullComposerAvailable,
         setComposerRef,
+        setIsAttachmentPreviewActive,
+        focus,
         onBlur,
         onFocus,
         onAddActionPressed,
         onItemSelected,
         onTriggerAttachmentPicker,
-        submitForm,
         addAttachment,
         onAttachmentPreviewClose,
-        setIsAttachmentPreviewActive,
-        onReceiptDropped,
-        validateAttachments,
+    };
+
+    const composerSendActions = {
+        handleSendMessage,
+        onValueChange,
+        validateMaxLength,
+        debouncedValidate,
+    };
+
+    const composerMeta = {
+        containerRef,
+        composerRef,
+        suggestionsRef,
+        actionButtonRef,
+        isNextModalWillOpenRef,
+        attachmentFileRef,
     };
 
     return (
-        <ComposerValueContext.Provider value={value}>
+        <ComposerTextContext.Provider value={text}>
             <ComposerStateContext.Provider value={composerState}>
                 <ComposerSendStateContext.Provider value={composerSendState}>
                     <ComposerActionsContext.Provider value={composerActions}>
-                        <ComposerMetaContext.Provider value={composerMetaState}>
-                            <ComposerMetaActionsContext.Provider value={composerMetaActions}>{children}</ComposerMetaActionsContext.Provider>
-                        </ComposerMetaContext.Provider>
+                        <ComposerSendActionsContext.Provider value={composerSendActions}>
+                            <ComposerMetaContext.Provider value={composerMeta}>{children}</ComposerMetaContext.Provider>
+                        </ComposerSendActionsContext.Provider>
                     </ComposerActionsContext.Provider>
                 </ComposerSendStateContext.Provider>
             </ComposerStateContext.Provider>
-        </ComposerValueContext.Provider>
+            {PDFValidationComponent}
+            {ErrorModal}
+        </ComposerTextContext.Provider>
     );
 }
 
