@@ -11,7 +11,8 @@ function WebGenericPressable({focusable = true, ref, sentryLabel, ...props}: Pre
     // overriding any explicit aria-disabled we pass. We pass fullDisabled (not isDisabled) to
     // preserve interaction/focus behavior, so we must set aria-disabled imperatively instead.
     const internalRef = useRef<View>(null);
-    const isAriaDisabled = props.fullDisabled ?? props.disabled ?? props.accessibilityState?.disabled;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const isAriaDisabled = props.fullDisabled || props.disabled || props.accessibilityState?.disabled;
     useLayoutEffect(() => {
         const el = internalRef.current as unknown as HTMLElement | null;
         if (!el) {
