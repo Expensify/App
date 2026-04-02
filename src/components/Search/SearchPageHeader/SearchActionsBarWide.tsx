@@ -94,7 +94,9 @@ function SearchActionsBarWide({queryJSON, searchResults, handleSearch, onSort}: 
     return (
         <View style={[styles.searchActionsBarContainer, styles.gap2, styles.mt3]}>
             {shouldShowSelectedDropdown ? (
-                <SearchBulkActionsButton queryJSON={queryJSON} />
+                <View style={styles.searchBulkActionsButton}>
+                    <SearchBulkActionsButton queryJSON={queryJSON} />
+                </View>
             ) : (
                 <>
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.pRelative, styles.w100, styles.flexWrap, styles.flexShrink1, styles.gap2, styles.zIndex10]}>

@@ -4872,6 +4872,10 @@ const staticStyles = (theme: ThemeColors) =>
             minHeight: variables.componentSizeSmall,
         },
 
+        searchBulkActionsButton: {
+            marginVertical: 3,
+        },
+
         filtersBar: {
             flexDirection: 'row',
             gap: 8,
