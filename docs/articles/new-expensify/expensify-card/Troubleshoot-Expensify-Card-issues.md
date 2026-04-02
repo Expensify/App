@@ -1,7 +1,7 @@
 ---
 title: How to Troubleshoot Expensify Card Issues
 description: Learn how to fix common problems with your Expensify Card, including declined transactions, card activation issues, and Smart Limit errors.
-keywords: [Expensify Card, card declined, Smart Limit, inactive card, activation issues, card won’t work, workspace admin, cardholder, Wallet, domain limit]
+keywords: [Expensify Card, card declined, Smart Limit, inactive card, frozen card, activation issues, card won’t work, workspace admin, cardholder, Wallet, domain limit]
 ---
 
 <div id="new-expensify" markdown="1">
@@ -53,6 +53,14 @@ To check your card’s remaining limit:
 
 Then, click on your card. Your **remaining limit** is displayed under the image of your Expensify Card. 
 
+## Expensify Card shows a "Frozen" badge
+
+If your card displays a **Frozen** badge in **Account > Wallet**, it means your Workspace Admin has temporarily frozen the card. While frozen, all new transactions will be declined. Contact your Workspace Admin to have the card unfrozen.
+
+## Expensify Card shows an "Inactive" badge
+
+If your card displays an **Inactive** badge in **Account > Wallet**, it means the card is currently suspended and cannot be used for transactions. Contact your Workspace Admin to check the status of your card and reactivate it if needed.
+
 ## Workspace limit has run out
 
 Every workspace has a shared spend limit that affects all cards. If the workspace runs out of available funds or the bank account becomes [locked](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Unlock-a-Business-Bank-Account), all cards may stop working.
@@ -82,6 +90,10 @@ Yes. If the workspace limit runs out or a bank account becomes locked due to a f
 Workspace Admins can check the workspace limit at **Workspaces > [Workspace Name] > Expensify Card**, under **Remaining limit**.
 To check for bank account issues, navigate to **Workspaces > [Workspace Name] > Bank Account**, then click the **Fix** button next to any locked account.
 
+
+## What is the difference between a "Frozen" and "Inactive" Expensify Card?
+
+A **Frozen** card has been temporarily frozen by a Workspace Admin and can be unfrozen at any time. An **Inactive** card is suspended and may require additional steps from your Workspace Admin to reactivate. In both cases, new transactions will be declined until the card status is resolved.
 
 ## How does a Workspace Admin refresh the workspace’s Expensify Card limit?
 
