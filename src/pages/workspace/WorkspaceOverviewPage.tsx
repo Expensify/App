@@ -288,7 +288,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             return;
         }
 
-        leaveWorkspace(currentUserPersonalDetails.accountID, policy);
+        leaveWorkspace(currentUserPersonalDetails.accountID, currentUserPersonalDetails.email ?? '', policy);
         setIsLeaveModalOpen(false);
         goBackFromInvalidPolicy();
     };

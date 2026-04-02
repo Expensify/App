@@ -43,7 +43,7 @@ import DateUtils from '@libs/DateUtils';
 import {registerDeferredWrite} from '@libs/deferredLayoutWrite';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
-import {readFileAsync} from '@libs/fileDownload/FileUtils';
+import {isLocalFile, readFileAsync} from '@libs/fileDownload/FileUtils';
 import type {MinimalTransaction} from '@libs/Formula';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import GoogleTagManager from '@libs/GoogleTagManager';
@@ -1700,13 +1700,19 @@ function setMoneyRequestOdometerReading(transactionID: string, startReading: num
 
 /**
  * Set odometer image for a transaction
- * @param transactionID - The transaction ID
+ * @param transaction - The transaction or transaction draft
  * @param imageType - 'start' or 'end'
  * @param file - The image file (File object on web, URI string on native)
  * @param isDraft - Whether this is a draft transaction
  * @param shouldRevokeOldImage - Whether to revoke the previous blob URL immediately (always false on native where blob URLs don't exist; false on web when a backup transaction exists making the caller responsible for revoking)
  */
-function setMoneyRequestOdometerImage(transactionID: string, imageType: OdometerImageType, file: FileObject | string, isDraft: boolean, shouldRevokeOldImage: boolean) {
+function setMoneyRequestOdometerImage(
+    transaction: OnyxEntry<OnyxTypes.Transaction>,
+    imageType: OdometerImageType,
+    file: FileObject | string,
+    isDraft: boolean,
+    shouldRevokeOldImage: boolean,
+) {
     const imageKey = imageType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? 'odometerStartImage' : 'odometerEndImage';
     const normalizedFile: FileObject | string =
         typeof file === 'string'
@@ -1717,7 +1723,7 @@ function setMoneyRequestOdometerImage(transactionID: string, imageType: Odometer
                   type: file.type,
                   size: file.size,
               };
-    const transaction = isDraft ? allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`] : allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const transactionID = transaction?.transactionID;
     const existingImage = transaction?.comment?.[imageKey];
     if (shouldRevokeOldImage) {
         revokeOdometerImageUri(existingImage, normalizedFile);
@@ -1731,19 +1737,21 @@ function setMoneyRequestOdometerImage(transactionID: string, imageType: Odometer
 
 /**
  * Remove odometer image from a transaction
- * @param transactionID - The transaction ID
+ * @param transaction - The transaction or transaction draft
  * @param imageType - 'start' or 'end'
  * @param isDraft - Whether this is a draft transaction
  * @param shouldRevokeOldImage - Whether to revoke the previous blob URL immediately (always false on native where blob URLs don't exist; false on web when a backup transaction exists making the caller responsible for revoking)
  */
-function removeMoneyRequestOdometerImage(transactionID: string, imageType: OdometerImageType, isDraft: boolean, shouldRevokeOldImage: boolean) {
+function removeMoneyRequestOdometerImage(transaction: OnyxEntry<OnyxTypes.Transaction>, imageType: OdometerImageType, isDraft: boolean, shouldRevokeOldImage: boolean) {
+    if (!transaction?.transactionID) {
+        return;
+    }
     const imageKey = imageType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? 'odometerStartImage' : 'odometerEndImage';
-    const transaction = isDraft ? allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`] : allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const existingImage = transaction?.comment?.[imageKey];
     if (shouldRevokeOldImage) {
         revokeOdometerImageUri(existingImage);
     }
-    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`, {
         comment: {
             [imageKey]: null,
         },
@@ -1889,6 +1897,18 @@ type BuildOnyxDataForMoneyRequestKeys =
     | typeof ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE
     | typeof ONYXKEYS.COLLECTION.SNAPSHOT;
 
+/**
+ * When a receipt is a local file (e.g. taken from camera or picked from gallery), its `source` is a local URI
+ * that will be lost once the optimistic transaction is replaced by the server response. We stash it in
+ * `localSource` so the UI can continue showing the local image while SmartScan is in progress.
+ */
+function getTransactionWithPreservedLocalReceiptSource(transaction: OnyxTypes.Transaction, isScanRequest: boolean): OnyxTypes.Transaction {
+    if (isScanRequest && isLocalFile(transaction.receipt?.source)) {
+        return {...transaction, receipt: {...transaction.receipt, localSource: String(transaction.receipt?.source)}};
+    }
+    return transaction;
+}
+
 /** Builds the Onyx data for an expense */
 function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyRequestParams): OnyxData<BuildOnyxDataForMoneyRequestKeys> {
     const {
@@ -1926,7 +1946,6 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     const outstandingChildRequest = getOutstandingChildRequest(iou.report);
     const clearedPendingFields = Object.fromEntries(Object.keys(transaction.pendingFields ?? {}).map((key) => [key, null]));
     const isMoneyRequestToManagerMcTest = isTestTransactionReport(iou.report);
-
     const onyxData: OnyxData<BuildOnyxDataForMoneyRequestKeys> = {
         optimisticData: [],
         successData: [],
@@ -1981,7 +2000,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-            value: transaction,
+            value: getTransactionWithPreservedLocalReceiptSource(transaction, isScanRequest),
         },
         isNewChatReport
             ? {
@@ -2616,7 +2635,6 @@ function buildOnyxDataForTrackExpense({
     const isScanRequest = isScanRequestTransactionUtils(transaction);
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const clearedPendingFields = Object.fromEntries(Object.keys(transaction.pendingFields ?? {}).map((key) => [key, null]));
-
     const onyxData: OnyxData<BuildOnyxDataForTrackExpenseKeys> = {
         optimisticData: [],
         successData: [],
@@ -2751,7 +2769,7 @@ function buildOnyxDataForTrackExpense({
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-            value: transaction,
+            value: getTransactionWithPreservedLocalReceiptSource(transaction, isScanRequest),
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
