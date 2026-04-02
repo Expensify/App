@@ -48,6 +48,7 @@ function ReceiptFileValidator({
     // the image ceases to exist. The best way for the user to recover from this is to start over from the start of the request process.
     // skip this in case user is moving the transaction as the receipt path will be valid in that case
     useEffect(() => {
+        let ignore = false;
         let newReceiptFiles: Record<string, Receipt> = {};
         let isScanFilesCanBeRead = true;
 
@@ -90,6 +91,9 @@ function ReceiptFileValidator({
                 return validateReceiptFile(itemReceiptFilename, itemReceiptPath, itemReceiptType, onSuccess, onFailure) ?? Promise.resolve();
             }),
         ).then(() => {
+            if (ignore) {
+                return;
+            }
             if (isScanFilesCanBeRead) {
                 onReceiptFilesChange(newReceiptFiles);
                 return;
@@ -103,6 +107,10 @@ function ReceiptFileValidator({
                 navigateToStartMoneyRequestStep(requestType, iouType, initialTransactionID, reportID);
             }
         });
+
+        return () => {
+            ignore = true;
+        };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- draftTransactionIDs is intentionally excluded to avoid re-running on draft changes
     }, [requestType, iouType, initialTransactionID, reportID, action, report, transactions, participants, onReceiptFilesChange]);
 
