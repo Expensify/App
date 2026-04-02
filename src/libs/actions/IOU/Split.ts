@@ -1977,6 +1977,31 @@ function updateSplitTransactions({
         onyxData.failureData?.push(...(deleteExpenseFailureData ?? []));
     }
 
+    // Clean up deleted split transactions from snapshot to prevent stale data from showing in search results.
+    // This applies to both regular split reduction and reverse split (revert) operations.
+    if (searchContext?.currentSearchHash && undeletedTransactions.length > 0) {
+        const deletedSplitOptimisticSnapshotData: Record<string, null> = {};
+        const deletedSplitFailureSnapshotData: Record<string, OnyxTypes.Transaction | null> = {};
+        for (const tx of undeletedTransactions) {
+            if (tx?.transactionID) {
+                const key = `${ONYXKEYS.COLLECTION.TRANSACTION}${tx.transactionID}`;
+                deletedSplitOptimisticSnapshotData[key] = null;
+                deletedSplitFailureSnapshotData[key] = allTransactionsList?.[key] ?? null;
+            }
+        }
+        onyxData.optimisticData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchContext.currentSearchHash}`,
+            value: {data: deletedSplitOptimisticSnapshotData},
+        });
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+        onyxData.failureData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchContext.currentSearchHash}`,
+            value: {data: deletedSplitFailureSnapshotData},
+        });
+    }
+
     if (!isReverseSplitOperation) {
         // Use SET to update originalTransaction more quickly in Onyx as compared to MERGE to prevent UI inconsistency
         onyxData.optimisticData?.push({
@@ -2264,6 +2289,31 @@ function updateSplitTransactions({
                     },
                 },
             );
+        }
+
+        // For selfDM revert, add the restored original transaction to the snapshot so it appears in Reports > Expenses.
+        // The newSelfDMSplitTransactions array holds the optimistic reverted transaction built in the loop above,
+        // but the snapshot update block for this array is inside !isReverseSplitOperation, so we handle it here.
+        if (newSelfDMSplitTransactions.length > 0) {
+            const optimisticSnapshotData: Record<string, OnyxTypes.Transaction> = {};
+            const failureSnapshotData: Record<string, null> = {};
+            for (const tx of newSelfDMSplitTransactions) {
+                optimisticSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${tx.transactionID}`] = tx;
+                failureSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${tx.transactionID}`] = null;
+            }
+
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+            onyxData.optimisticData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchContext?.currentSearchHash}`,
+                value: {data: optimisticSnapshotData},
+            });
+
+            onyxData.failureData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchContext?.currentSearchHash}`,
+                value: {data: failureSnapshotData},
+            });
         }
     }
 

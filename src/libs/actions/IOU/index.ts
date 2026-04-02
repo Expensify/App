@@ -1980,13 +1980,11 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
 
     // For selfDM split, we don't create chat/IOU reports - only add IOU action to selfDM report
     if (isSelfDMSplit && selfDMReportID) {
-        onyxData.optimisticData?.push(
-            {
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-                value: getTransactionWithPreservedLocalReceiptSource(transaction, isScanRequest),
-            },
-        );
+        onyxData.optimisticData?.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+            value: getTransactionWithPreservedLocalReceiptSource(transaction, isScanRequest),
+        });
 
         // Add IOU action directly to selfDM report (no CREATED or REPORTPREVIEW)
         // IOU action includes childReportID linking to transaction thread for UI display
