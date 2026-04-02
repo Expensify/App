@@ -30,6 +30,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {hasNonReimbursableTransactions as hasNonReimbursableTransactionsMoneyRequestReportUtils} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getInvoicePayerName, getReportName} from '@libs/ReportNameUtils';
 import {
@@ -41,7 +42,6 @@ import {
     getReportStatusColorStyle,
     getReportStatusTranslation,
     getTransactionsWithReceipts,
-    hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils,
     hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils,
     hasOnlyTransactionsWithPendingRoutes as hasOnlyTransactionsWithPendingRoutesReportUtils,
     isInvoiceRoom as isInvoiceRoomReportUtils,
@@ -140,7 +140,7 @@ function MoneyRequestReportPreviewContent({
         () => ({
             areAllRequestsBeingSmartScanned: areAllRequestsBeingSmartScannedReportUtils(iouReportID, action),
             hasOnlyTransactionsWithPendingRoutes: hasOnlyTransactionsWithPendingRoutesReportUtils(iouReportID),
-            hasNonReimbursableTransactions: hasNonReimbursableTransactionsReportUtils(iouReportID),
+            hasNonReimbursableTransactions: hasNonReimbursableTransactionsMoneyRequestReportUtils(transactions),
         }),
         // When transactions get updated these values may have changed, so that is a case where we also want to recompute them
         // eslint-disable-next-line react-hooks/exhaustive-deps
