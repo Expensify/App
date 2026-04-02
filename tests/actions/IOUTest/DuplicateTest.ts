@@ -424,19 +424,26 @@ describe('actions/Duplicate', () => {
             const participantAccountIDs = Object.keys(transactionThreadReport1.participants ?? {}).map(Number);
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
             jest.advanceTimersByTime(10);
+            const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const participants = userLogins.map((login, index) => ({
+                login,
+                accountID: participantAccountIDs.at(index),
+            }));
             openReport({
                 reportID: transactionThreadReport1.reportID,
                 introSelected: undefined,
+                personalDetails: allPersonalDetails,
+                participants,
                 betas: undefined,
-                participantLoginList: userLogins,
                 newReportObject: transactionThreadReport1,
                 parentReportActionID: iouAction1?.reportActionID,
             });
             openReport({
                 reportID: transactionThreadReport2.reportID,
                 introSelected: undefined,
+                personalDetails: allPersonalDetails,
+                participants,
                 betas: undefined,
-                participantLoginList: userLogins,
                 newReportObject: transactionThreadReport1,
                 parentReportActionID: iouAction2?.reportActionID,
             });
