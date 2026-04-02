@@ -78,7 +78,12 @@ type SetWorkspaceCategoryEnabledParams = {
 
 function appendSetupCategoriesOnboardingData(
     onyxData: OnyxData<
-        typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES | typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+        | typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES
+        | typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT
+        | typeof ONYXKEYS.COLLECTION.REPORT
+        | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+        | typeof ONYXKEYS.COLLECTION.TRANSACTION
+        | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
     >,
     setupCategoryTaskReport: OnyxEntry<Report>,
     setupCategoryTaskParentReport: OnyxEntry<Report>,
@@ -1348,7 +1353,7 @@ function deleteWorkspaceCategories(
           }
         : {};
 
-    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES> = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -1382,7 +1387,7 @@ function deleteWorkspaceCategories(
         ],
     };
 
-    pushTransactionViolationsOnyxData(onyxData, policyData, optimisticPolicyData, optimisticPolicyCategoriesData);
+    const autoSelections = pushTransactionViolationsOnyxData(onyxData, policyData, optimisticPolicyData, optimisticPolicyCategoriesData);
     appendSetupCategoriesOnboardingData(
         onyxData,
         setupCategoryTaskReport,
@@ -1396,6 +1401,7 @@ function deleteWorkspaceCategories(
     const parameters = {
         policyID,
         categories: JSON.stringify(categoryNamesToDelete),
+        ...(autoSelections.length > 0 && {transactionAutoSelections: JSON.stringify(autoSelections)}),
     };
 
     API.write(WRITE_COMMANDS.DELETE_WORKSPACE_CATEGORIES, parameters, onyxData);

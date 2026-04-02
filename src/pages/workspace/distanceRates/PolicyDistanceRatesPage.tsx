@@ -121,16 +121,20 @@ function PolicyDistanceRatesPage({
                         transaction?.comment?.customUnit?.customUnitRateID &&
                         rateIDs.has(transaction?.comment?.customUnit?.customUnitRateID)
                     ) {
+                        const rateID = transaction.comment.customUnit.customUnitRateID;
                         transactionsData.transactionIDs.add(transaction.transactionID);
-                        if (!transactionsData.rateIDToTransactionIDsMap[transaction?.comment?.customUnit?.customUnitRateID]) {
+                        if (!transactionsData.rateIDToTransactionsMap[rateID]) {
                             // eslint-disable-next-line no-param-reassign
-                            transactionsData.rateIDToTransactionIDsMap[transaction?.comment?.customUnit?.customUnitRateID] = [];
+                            transactionsData.rateIDToTransactionsMap[rateID] = [];
                         }
-                        transactionsData.rateIDToTransactionIDsMap[transaction?.comment?.customUnit?.customUnitRateID]?.push(transaction?.transactionID);
+                        transactionsData.rateIDToTransactionsMap[rateID]?.push({
+                            transactionID: transaction.transactionID,
+                            customUnitRateID: rateID,
+                        });
                     }
                     return transactionsData;
                 },
-                {transactionIDs: new Set<string>(), rateIDToTransactionIDsMap: {} as Record<string, string[]>},
+                {transactionIDs: new Set<string>(), rateIDToTransactionsMap: {} as Record<string, Array<{transactionID: string; customUnitRateID: string}>>},
             );
         },
         [customUnit?.customUnitID, rateIDs, policyReports],
@@ -311,9 +315,9 @@ function PolicyDistanceRatesPage({
             return;
         }
 
-        const transactionIDsAffected = selectedDistanceRates.flatMap((rateID) => eligibleTransactionsData?.rateIDToTransactionIDsMap?.[rateID] ?? []);
+        const transactionsAffected = selectedDistanceRates.flatMap((rateID) => eligibleTransactionsData?.rateIDToTransactionsMap?.[rateID] ?? []);
 
-        deletePolicyDistanceRates(policyID, customUnit, selectedDistanceRates, transactionIDsAffected, transactionViolations);
+        deletePolicyDistanceRates(policyID, customUnit, selectedDistanceRates, transactionsAffected, transactionViolations);
         setIsDeleteModalVisible(false);
 
         // eslint-disable-next-line @typescript-eslint/no-deprecated

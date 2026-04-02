@@ -394,7 +394,7 @@ function deletePolicyDistanceRates(
     policyID: string,
     customUnit: CustomUnit,
     rateIDsToDelete: string[],
-    transactionIDsAffected: string[],
+    transactionsAffected: Array<{transactionID: string; customUnitRateID: string}>,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
 ) {
     const currentRates = customUnit.rates;
@@ -413,7 +413,13 @@ function deletePolicyDistanceRates(
         };
     }
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = [
+    // Check if there's exactly one remaining enabled rate for auto-selection
+    const remainingEnabledRateIDs = Object.entries(currentRates)
+        .filter(([rateID, rate]) => !rateIDsToDelete.includes(rateID) && rate.enabled)
+        .map(([rateID]) => rateID);
+    const singleRemainingRateID = remainingEnabledRateIDs.length === 1 ? remainingEnabledRateIDs.at(0) : undefined;
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -427,7 +433,7 @@ function deletePolicyDistanceRates(
         },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -443,11 +449,28 @@ function deletePolicyDistanceRates(
 
     const optimisticTransactionsViolations: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = [];
     const failureTransactionsViolations: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = [];
+    const distanceRateAutoSelections: Array<{transactionID: string; customUnitRateID: string}> = [];
 
-    for (const transactionID of transactionIDsAffected) {
+    for (const {transactionID, customUnitRateID} of transactionsAffected) {
         const currentTransactionViolations = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
         if (currentTransactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY)) {
             return;
+        }
+
+        // If there's exactly one remaining enabled rate, auto-select it instead of adding a violation
+        if (singleRemainingRateID) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                value: {comment: {customUnit: {customUnitRateID: singleRemainingRateID}}},
+            });
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                value: {comment: {customUnit: {customUnitRateID}}},
+            });
+            distanceRateAutoSelections.push({transactionID, customUnitRateID: singleRemainingRateID});
+            continue;
         }
 
         optimisticTransactionsViolations.push({
@@ -477,6 +500,7 @@ function deletePolicyDistanceRates(
         policyID,
         customUnitID: customUnit.customUnitID,
         customUnitRateID: rateIDsToDelete,
+        ...(distanceRateAutoSelections.length > 0 && {transactionAutoSelections: JSON.stringify(distanceRateAutoSelections)}),
     };
 
     API.write(WRITE_COMMANDS.DELETE_POLICY_DISTANCE_RATES, params, {optimisticData, failureData});

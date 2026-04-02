@@ -473,7 +473,7 @@ function deletePolicyTags(policyData: PolicyData, tagsToDelete: string[]) {
         },
     };
 
-    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_TAGS> = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_TAGS | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -519,11 +519,12 @@ function deletePolicyTags(policyData: PolicyData, tagsToDelete: string[]) {
         ],
     };
 
-    pushTransactionViolationsOnyxData(onyxData, policyData, {}, {}, policyTagsOptimisticData);
+    const autoSelections = pushTransactionViolationsOnyxData(onyxData, policyData, {}, {}, policyTagsOptimisticData);
 
     const parameters = {
         policyID,
         tags: JSON.stringify(tagsToDelete),
+        ...(autoSelections.length > 0 && {transactionAutoSelections: JSON.stringify(autoSelections)}),
     };
 
     API.write(WRITE_COMMANDS.DELETE_POLICY_TAGS, parameters, onyxData);

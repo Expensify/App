@@ -2,6 +2,7 @@ import type {NullishDeep, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {FormOnyxValues} from '@components/Form/types';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+import type PolicyData from '@hooks/usePolicyData/types';
 import * as API from '@libs/API';
 import type {
     CreatePolicyTaxParams,
@@ -13,6 +14,7 @@ import type {
 } from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
+import {pushTransactionViolationsOnyxData} from '@libs/ReportUtils';
 import {getFieldRequiredErrors, isExistingTaxCode, isExistingTaxName, isValidPercentage} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@src/libs/ErrorUtils';
@@ -282,7 +284,8 @@ type TaxRateDeleteMap = Record<
     | null
 >;
 
-function deletePolicyTaxes(policy: OnyxEntry<Policy>, taxesToDelete: string[], localeCompare: LocaleContextProps['localeCompare']) {
+function deletePolicyTaxes(policyData: PolicyData, taxesToDelete: string[], localeCompare: LocaleContextProps['localeCompare']) {
+    const policy = policyData.policy;
     const policyTaxRates = policy?.taxRates?.taxes;
     const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
     const firstTaxID = Object.keys(policyTaxRates ?? {})
@@ -328,11 +331,15 @@ function deletePolicyTaxes(policy: OnyxEntry<Policy>, taxesToDelete: string[], l
         };
     }
 
-    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+    const customUnitsOptimistic = distanceRateCustomUnit && customUnitID ? {customUnits: {[customUnitID]: {rates: optimisticRates}}} : {};
+    const customUnitsSuccess = distanceRateCustomUnit && customUnitID ? {customUnits: {[customUnitID]: {rates: successRates}}} : {};
+    const customUnitsFailure = distanceRateCustomUnit && customUnitID ? {customUnits: {[customUnitID]: {rates: failureRates}}} : {};
+
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`,
                 value: {
                     taxRates: {
                         pendingFields: {foreignTaxDefault: isForeignTaxRemoved ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : null},
@@ -342,20 +349,14 @@ function deletePolicyTaxes(policy: OnyxEntry<Policy>, taxesToDelete: string[], l
                             return acc;
                         }, {}),
                     },
-                    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-                    customUnits: distanceRateCustomUnit &&
-                        customUnitID && {
-                            [customUnitID]: {
-                                rates: optimisticRates,
-                            },
-                        },
+                    ...customUnitsOptimistic,
                 },
             },
         ],
         successData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`,
                 value: {
                     taxRates: {
                         pendingFields: {foreignTaxDefault: null},
@@ -364,20 +365,14 @@ function deletePolicyTaxes(policy: OnyxEntry<Policy>, taxesToDelete: string[], l
                             return acc;
                         }, {}),
                     },
-                    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-                    customUnits: distanceRateCustomUnit &&
-                        customUnitID && {
-                            [customUnitID]: {
-                                rates: successRates,
-                            },
-                        },
+                    ...customUnitsSuccess,
                 },
             },
         ],
         failureData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`,
                 value: {
                     taxRates: {
                         pendingFields: {foreignTaxDefault: null},
@@ -390,21 +385,33 @@ function deletePolicyTaxes(policy: OnyxEntry<Policy>, taxesToDelete: string[], l
                             return acc;
                         }, {}),
                     },
-                    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-                    customUnits: distanceRateCustomUnit &&
-                        customUnitID && {
-                            [customUnitID]: {
-                                rates: failureRates,
-                            },
-                        },
+                    ...customUnitsFailure,
                 },
             },
         ],
     };
 
+    // Build the optimistic policy update for tax deletion to pass to violation calculation
+    const policyTaxUpdate = {
+        taxRates: {
+            ...policy?.taxRates,
+            foreignTaxDefault: (isForeignTaxRemoved ? firstTaxID : foreignTaxDefault) ?? '',
+            taxes: {
+                ...policyTaxRates,
+                ...taxesToDelete.reduce<Record<string, TaxRate>>((acc, taxID) => {
+                    acc[taxID] = {...policyTaxRates[taxID], pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, isDisabled: true};
+                    return acc;
+                }, {}),
+            },
+        },
+    } as Partial<Policy>;
+
+    const autoSelections = pushTransactionViolationsOnyxData(onyxData, policyData, policyTaxUpdate);
+
     const parameters = {
-        policyID: policy.id,
+        policyID: policy?.id,
         taxNames: JSON.stringify(taxesToDelete.map((taxID) => policyTaxRates[taxID].name)),
+        ...(autoSelections.length > 0 && {transactionAutoSelections: JSON.stringify(autoSelections)}),
     } satisfies DeletePolicyTaxesParams;
 
     API.write(WRITE_COMMANDS.DELETE_POLICY_TAXES, parameters, onyxData);
