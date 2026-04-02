@@ -247,6 +247,7 @@ const CONST = {
     POPOVER_MENU_MAX_HEIGHT: 496,
     POPOVER_MENU_MAX_HEIGHT_MOBILE: 432,
     POPOVER_DATE_WIDTH: 338,
+    POPOVER_DATE_RANGE_WIDTH: 672,
     POPOVER_DATE_MAX_HEIGHT: 366,
     POPOVER_DATE_MIN_HEIGHT: 322,
     TOOLTIP_ANIMATION_DURATION: 500,
@@ -271,6 +272,12 @@ const CONST = {
     // Maximum pixel count (width × height) for processing images. Prevents memory crashes with extremely large images.
     MAX_IMAGE_PIXEL_COUNT: 50000000,
     CHUNK_LOAD_ERROR: 'ChunkLoadError',
+
+    RECEIPT_CAMERA: {
+        PHOTO_WIDTH: 4032,
+        PHOTO_HEIGHT: 3024,
+        PHOTO_ASPECT_RATIO: 4 / 3,
+    },
 
     API_ATTACHMENT_VALIDATIONS: {
         // 24 megabytes in bytes, this is limit set on servers, do not update without wider internal discussion
@@ -843,7 +850,6 @@ const CONST = {
         EUR_BILLING: 'eurBilling',
         NO_OPTIMISTIC_TRANSACTION_THREADS: 'noOptimisticTransactionThreads',
         UBER_FOR_BUSINESS: 'uberForBusiness',
-        ODOMETER_EXPENSES: 'odometerExpenses',
         PAY_INVOICE_VIA_EXPENSIFY: 'payInvoiceViaExpensify',
         PERSONAL_CARD_IMPORT: 'personalCardImport',
         SUGGESTED_FOLLOWUPS: 'suggestedFollowups',
@@ -1168,6 +1174,7 @@ const CONST = {
         'https://help.expensify.com/articles/new-expensify/connect-credit-cards/company-cards/Commercial-feeds#how-to-set-up-an-american-express-corporate-feed',
     COMPANY_CARDS_STRIPE_HELP: 'https://dashboard.stripe.com/login?redirect=%2Fexpenses%2Fsettings',
     COMPANY_CARDS_CONNECT_CREDIT_CARDS_HELP_URL: 'https://help.expensify.com/new-expensify/hubs/connect-credit-cards/',
+    COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL: 'https://help.expensify.com/articles/new-expensify/connect-credit-cards/Company-Card-Settings',
     CUSTOM_REPORT_NAME_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/spending-insights/Export-Expenses-And-Reports#formulas',
     CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/workspaces/Configure-Reimbursement-Settings',
     CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Set-up-rules#configure-expense-report-rules',
@@ -1264,7 +1271,6 @@ const CONST = {
         SHUTTER_SIZE: 90,
         MAX_REPORT_PREVIEW_RECEIPTS: 3,
         FLASH_DELAY_MS: 2000,
-        PHOTO_ASPECT_RATIO: 4 / 3,
     },
     RECEIPT_PREVIEW_TOP_BOTTOM_MARGIN: 120,
     REPORT: {
@@ -1275,7 +1281,6 @@ const CONST = {
         MAX_COUNT_BEFORE_FOCUS_UPDATE: 30,
         MIN_INITIAL_REPORT_ACTION_COUNT: 15,
         UNREPORTED_REPORT_ID: '0',
-        TRASH_REPORT_ID: '-1',
         SPLIT_REPORT_ID: '-2',
         SECONDARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -1318,6 +1323,17 @@ const CONST = {
             KEEP_THIS_ONE: 'keepThisOne',
             MARK_AS_CASH: 'markAsCash',
             MARK_AS_RESOLVED: 'markAsResolved',
+        },
+        STATUS_BAR_TYPE: {
+            MARK_AS_RESOLVED: 'markAsResolved',
+            BOOKING_PENDING: 'bookingPending',
+            BOOKING_ARCHIVED: 'bookingArchived',
+            ON_HOLD: 'onHold',
+            DUPLICATES: 'duplicates',
+            BROKEN_CONNECTION: 'brokenConnection',
+            PENDING_RTER: 'pendingRTER',
+            PENDING_TRANSACTIONS: 'pendingTransactions',
+            SCANNING_RECEIPT: 'scanningReceipt',
         },
         REPORT_PREVIEW_ACTIONS: {
             VIEW: 'view',
@@ -3013,14 +3029,6 @@ const CONST = {
         VENDOR_BILL: 'VENDOR_BILL',
     },
 
-    UPDATE_PERSONAL_BANK_ACCOUNT: {
-        PAGE_NAME: {
-            LEGAL_NAME: 'legal-name',
-            ADDRESS: 'address',
-            PHONE_NUMBER: 'phone-number',
-        },
-    },
-
     MISSING_PERSONAL_DETAILS: {
         STEP_INDEX_LIST: ['1', '2', '3', '4'],
         STEP_INDEX_LIST_WITH_PIN: ['1', '2', '3', '4', '5'],
@@ -4019,6 +4027,7 @@ const CONST = {
             PLAID_CONNECTION: 'PlaidConnection',
             SELECT_STATEMENT_CLOSE_DATE: 'SelectStatementCloseDate',
             SELECT_DIRECT_STATEMENT_CLOSE_DATE: 'SelectDirectStatementCloseDate',
+            IMPORT_FROM_FILE: 'ImportFromFile',
         },
         CARD_TYPE: {
             AMEX: 'amex',
@@ -4050,6 +4059,7 @@ const CONST = {
             WELLS_FARGO: 'Wells Fargo',
             MOCK_BANK: 'Mock Bank',
             OTHER: 'Other',
+            FILE_IMPORT: 'Import transactions from file',
         },
         NON_CONNECTABLE_BANKS: {
             PEX: 'PEX',
@@ -6349,7 +6359,7 @@ const CONST = {
     },
 
     /**
-     * Constants for maxToRenderPerBatch parameter that is used for FlatList or SectionList. This controls the amount of items rendered per batch, which is the next chunk of items
+     * Constants for maxToRenderPerBatch parameter that is used for FlatList. This controls the amount of items rendered per batch, which is the next chunk of items
      * rendered on every scroll.
      */
     MAX_TO_RENDER_PER_BATCH: {
@@ -7368,7 +7378,6 @@ const CONST = {
             DONE: 'done',
             EXPORT_TO_ACCOUNTING: 'exportToAccounting',
             PAID: 'paid',
-            UNDELETE: 'undelete',
         },
         HAS_VALUES: {
             RECEIPT: 'receipt',
@@ -7390,7 +7399,6 @@ const CONST = {
             REJECT: 'reject',
             CHANGE_REPORT: 'changeReport',
             SPLIT: 'split',
-            UNDELETE: 'undelete',
         },
         TRANSACTION_TYPE: {
             CASH: 'cash',
@@ -7446,6 +7454,8 @@ const CONST = {
                     POLICY_NAME: this.TABLE_COLUMNS.POLICY_NAME,
                     CARD: this.TABLE_COLUMNS.CARD,
                     CATEGORY: this.TABLE_COLUMNS.CATEGORY,
+                    ATTENDEES: this.TABLE_COLUMNS.ATTENDEES,
+                    TOTAL_PER_ATTENDEE: this.TABLE_COLUMNS.TOTAL_PER_ATTENDEE,
                     TAG: this.TABLE_COLUMNS.TAG,
                     EXCHANGE_RATE: this.TABLE_COLUMNS.EXCHANGE_RATE,
                     ORIGINAL_AMOUNT: this.TABLE_COLUMNS.ORIGINAL_AMOUNT,
@@ -7569,6 +7579,8 @@ const CONST = {
                     this.TABLE_COLUMNS.MERCHANT,
                     this.TABLE_COLUMNS.FROM,
                     this.TABLE_COLUMNS.CATEGORY,
+                    this.TABLE_COLUMNS.ATTENDEES,
+                    this.TABLE_COLUMNS.TOTAL_PER_ATTENDEE,
                     this.TABLE_COLUMNS.TAG,
                     this.TABLE_COLUMNS.TOTAL_AMOUNT,
                 ],
@@ -7625,7 +7637,6 @@ const CONST = {
                 APPROVED: 'approved',
                 DONE: 'done',
                 PAID: 'paid',
-                DELETED: 'deleted',
             },
             EXPENSE_REPORT: {
                 ALL: '',
@@ -7671,6 +7682,8 @@ const CONST = {
             BILLABLE: 'billable',
             TAX_RATE: 'taxrate',
             TOTAL_AMOUNT: 'amount',
+            ATTENDEES: 'attendees',
+            TOTAL_PER_ATTENDEE: 'totalPerAttendee',
             TOTAL: 'total',
             TYPE: 'type',
             ACTION: 'action',
@@ -7717,6 +7730,7 @@ const CONST = {
             EQUAL_TO: 'eq',
             CONTAINS: 'contains',
             NOT_EQUAL_TO: 'neq',
+            RANGE: 'range',
             GREATER_THAN: 'gt',
             GREATER_THAN_OR_EQUAL_TO: 'gte',
             LOWER_THAN: 'lt',
@@ -7791,6 +7805,7 @@ const CONST = {
             ON_PREFIX: 'reportFieldOn-',
             AFTER_PREFIX: 'reportFieldAfter-',
             BEFORE_PREFIX: 'reportFieldBefore-',
+            RANGE_PREFIX: 'reportFieldRange-',
         },
         TAG_EMPTY_VALUE: 'none',
         CATEGORY_EMPTY_VALUE: 'none',
@@ -7920,11 +7935,16 @@ const CONST = {
             ON: 'On',
             AFTER: 'After',
             BEFORE: 'Before',
+            RANGE: 'Range',
+        },
+        get CUSTOM_DATE_MODIFIERS() {
+            return [this.DATE_MODIFIERS.ON, this.DATE_MODIFIERS.BEFORE, this.DATE_MODIFIERS.AFTER] as const;
         },
         DATE_FILTER_SUB_PAGE: {
             ON: 'on',
             AFTER: 'after',
             BEFORE: 'before',
+            RANGE: 'range',
         },
         AMOUNT_MODIFIERS: {
             LESS_THAN: 'LessThan',
@@ -8293,6 +8313,15 @@ const CONST = {
         DATE: 'date',
         MERCHANT: 'merchant',
         TRANSACTION_FIELDS: ['date', 'merchant', 'amount', 'category'] as const,
+        CARD_NUMBER: 'cardNumber',
+        POSTED_DATE: 'postedDate',
+        TAG: 'tag',
+        COMMENT: 'comment',
+        ORIGINAL_TRANSACTION_DATE: 'originalTransactionDate',
+        ORIGINAL_AMOUNT: 'originalAmount',
+        ORIGINAL_CURRENCY: 'originalCurrency',
+        UNIQUE_ID: 'uniqueID',
+        EXTERNAL_ID: 'externalID',
     },
 
     IMPORT_SPREADSHEET: {
@@ -8636,8 +8665,6 @@ const CONST = {
             ROTATE_BUTTON: 'Header-RotateButton',
             CLOSE_BUTTON: 'Header-CloseButton',
             MORE_BUTTON: 'Header-MoreButton',
-            PREVIOUS_BUTTON: 'Header-PreviousButton',
-            NEXT_BUTTON: 'Header-NextButton',
         },
         TOP_BAR: {
             CANCEL_BUTTON: 'TopBar-CancelButton',
@@ -9352,6 +9379,7 @@ const CONST = {
             REQUEST_EARLY_CANCELLATION: 'SettingsSubscription-RequestEarlyCancellation',
         },
         SETTINGS_HELP: {
+            CONCIERGE_CHAT: 'SettingsHelp-ConciergeChat',
             HELP_DOCS: 'SettingsHelp-HelpDocs',
         },
         SETTINGS_ABOUT: {
