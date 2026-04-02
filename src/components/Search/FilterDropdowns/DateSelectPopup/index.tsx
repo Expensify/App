@@ -26,6 +26,8 @@ type DateSelectPopupProps = {
 
     /** The date presets */
     presets?: SearchDatePreset[];
+
+    /** Additional style props */
     style?: StyleProp<ViewStyle>;
 
     /** Function to call when changes are applied */
