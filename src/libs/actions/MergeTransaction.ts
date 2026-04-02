@@ -518,6 +518,7 @@ function mergeTransactionRequest({
                 transactionThreadID: sourceTransactionThreadReportID,
                 shouldDeleteTransactionThread,
                 reportAction: sourceIouAction,
+                currentUserAccountID: currentUserAccountIDParam,
             });
             optimisticSourceReportActionData.push(...cleanUpSourceTransactionThreadReportOnyxData.optimisticData);
             successSourceReportActionData.push(...cleanUpSourceTransactionThreadReportOnyxData.successData);
