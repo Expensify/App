@@ -346,6 +346,7 @@ function ExpenseReportListItemRow({
                         shouldShowTooltip={showTooltip}
                         subscriptAvatarBorderColor={finalAvatarBorderColor}
                         reportID={item.reportID}
+                        isLargeScreenWidth={isLargeScreenWidth}
                     />
                 </View>
 

@@ -313,6 +313,7 @@ function TransactionItemRow({
                         <ReceiptCell
                             transactionItem={transactionItem}
                             isSelected={isSelected}
+                            shouldUseNarrowLayout={shouldUseNarrowLayout}
                         />
                     </View>
                 );
@@ -712,6 +713,7 @@ function TransactionItemRow({
                             transactionItem={transactionItem}
                             isSelected={isSelected}
                             style={styles.mr3}
+                            shouldUseNarrowLayout={shouldUseNarrowLayout}
                         />
                         <View style={[styles.flex2, styles.flexColumn, styles.justifyContentEvenly]}>
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.minHeight5, styles.maxHeight5]}>

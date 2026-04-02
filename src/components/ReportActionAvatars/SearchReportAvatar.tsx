@@ -1,7 +1,6 @@
 import React from 'react';
 import type {ColorValue} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import ReportActionAvatar from './ReportActionAvatar';
@@ -13,10 +12,10 @@ type SearchReportAvatarProps = {
     shouldShowTooltip: boolean;
     subscriptAvatarBorderColor: ColorValue;
     reportID: string;
+    isLargeScreenWidth?: boolean;
 };
 
-function SearchReportAvatar({primaryAvatar, secondaryAvatar, avatarType, shouldShowTooltip, subscriptAvatarBorderColor, reportID}: SearchReportAvatarProps) {
-    const {isLargeScreenWidth} = useResponsiveLayout();
+function SearchReportAvatar({primaryAvatar, secondaryAvatar, avatarType, shouldShowTooltip, subscriptAvatarBorderColor, reportID, isLargeScreenWidth}: SearchReportAvatarProps) {
     const avatarSize = isLargeScreenWidth ? CONST.AVATAR_SIZE.SMALL : CONST.AVATAR_SIZE.DEFAULT;
 
     if (!primaryAvatar) {
