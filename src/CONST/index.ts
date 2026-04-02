@@ -1271,7 +1271,6 @@ const CONST = {
         SHUTTER_SIZE: 90,
         MAX_REPORT_PREVIEW_RECEIPTS: 3,
         FLASH_DELAY_MS: 2000,
-        PHOTO_ASPECT_RATIO: 4 / 3,
     },
     RECEIPT_PREVIEW_TOP_BOTTOM_MARGIN: 120,
     REPORT: {
@@ -7473,6 +7472,8 @@ const CONST = {
                     POLICY_NAME: this.TABLE_COLUMNS.POLICY_NAME,
                     CARD: this.TABLE_COLUMNS.CARD,
                     CATEGORY: this.TABLE_COLUMNS.CATEGORY,
+                    ATTENDEES: this.TABLE_COLUMNS.ATTENDEES,
+                    TOTAL_PER_ATTENDEE: this.TABLE_COLUMNS.TOTAL_PER_ATTENDEE,
                     TAG: this.TABLE_COLUMNS.TAG,
                     EXCHANGE_RATE: this.TABLE_COLUMNS.EXCHANGE_RATE,
                     ORIGINAL_AMOUNT: this.TABLE_COLUMNS.ORIGINAL_AMOUNT,
@@ -7596,6 +7597,8 @@ const CONST = {
                     this.TABLE_COLUMNS.MERCHANT,
                     this.TABLE_COLUMNS.FROM,
                     this.TABLE_COLUMNS.CATEGORY,
+                    this.TABLE_COLUMNS.ATTENDEES,
+                    this.TABLE_COLUMNS.TOTAL_PER_ATTENDEE,
                     this.TABLE_COLUMNS.TAG,
                     this.TABLE_COLUMNS.TOTAL_AMOUNT,
                 ],
@@ -7697,6 +7700,8 @@ const CONST = {
             BILLABLE: 'billable',
             TAX_RATE: 'taxrate',
             TOTAL_AMOUNT: 'amount',
+            ATTENDEES: 'attendees',
+            TOTAL_PER_ATTENDEE: 'totalPerAttendee',
             TOTAL: 'total',
             TYPE: 'type',
             ACTION: 'action',
@@ -9397,6 +9402,7 @@ const CONST = {
             REQUEST_EARLY_CANCELLATION: 'SettingsSubscription-RequestEarlyCancellation',
         },
         SETTINGS_HELP: {
+            CONCIERGE_CHAT: 'SettingsHelp-ConciergeChat',
             HELP_DOCS: 'SettingsHelp-HelpDocs',
         },
         SETTINGS_ABOUT: {

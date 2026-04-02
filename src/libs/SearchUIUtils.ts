@@ -77,10 +77,14 @@ import type {
     SearchDataTypes,
     SearchMemberGroup,
     SearchMerchantGroup,
+    SearchMonthGroup,
+    SearchQuarterGroup,
     SearchTagGroup,
     SearchTask,
     SearchTransactionAction,
+    SearchWeekGroup,
     SearchWithdrawalIDGroup,
+    SearchYearGroup,
 } from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 import arraysEqual from '@src/utils/arraysEqual';
@@ -168,6 +172,7 @@ import {
     isPending,
     isScanning,
     isViolationDismissed,
+    shouldShowAttendees,
 } from './TransactionUtils';
 import {isInvalidMerchantValue} from './ValidationUtils';
 import ViolationsUtils from './Violations/ViolationsUtils';
@@ -438,6 +443,8 @@ type ReportKey = `${typeof ONYXKEYS.COLLECTION.REPORT}${string}`;
 type TransactionKey = `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`;
 
 type ReportActionKey = `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}`;
+
+type PolicyKey = `${typeof ONYXKEYS.COLLECTION.POLICY}${string}`;
 
 type ViolationKey = `${typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${string}`;
 
@@ -1194,6 +1201,13 @@ function isReportActionEntry(key: string): key is ReportActionKey {
  */
 function isTransactionEntry(key: string): key is TransactionKey {
     return key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION);
+}
+
+/**
+ * @private
+ */
+function isPolicyEntry(key: string): key is PolicyKey {
+    return key.startsWith(ONYXKEYS.COLLECTION.POLICY);
 }
 
 /**
@@ -2509,6 +2523,115 @@ function buildSpecificGroupQuery(queryJSON: SearchQueryJSON, filterKey: SearchFi
     return buildSearchQueryJSON(buildSearchQueryString(newQueryJSON));
 }
 
+function getActiveGroupSearchHashes(data: OnyxTypes.SearchResults['data'] | undefined, queryJSON: SearchQueryJSON | undefined): number[] {
+    if (!data || !queryJSON?.groupBy) {
+        return [];
+    }
+
+    const searchHashes = new Set<number>();
+
+    for (const [key, group] of Object.entries(data)) {
+        if (!group || !isGroupEntry(key)) {
+            continue;
+        }
+
+        let transactionsQueryJSON: SearchQueryJSON | undefined;
+
+        switch (queryJSON.groupBy) {
+            case CONST.SEARCH.GROUP_BY.FROM: {
+                const memberGroup = group as SearchMemberGroup;
+                if (memberGroup.accountID) {
+                    transactionsQueryJSON = buildSpecificGroupQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, memberGroup.accountID);
+                }
+                break;
+            }
+            case CONST.SEARCH.GROUP_BY.CARD: {
+                const cardGroup = group as SearchCardGroup;
+                if (cardGroup.cardID) {
+                    transactionsQueryJSON = buildSpecificGroupQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, cardGroup.cardID);
+                }
+                break;
+            }
+            case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID: {
+                const withdrawalIDGroup = group as SearchWithdrawalIDGroup;
+                if (withdrawalIDGroup.entryID) {
+                    transactionsQueryJSON = buildSpecificGroupQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID, withdrawalIDGroup.entryID);
+                }
+                break;
+            }
+            case CONST.SEARCH.GROUP_BY.CATEGORY: {
+                const categoryGroup = group as SearchCategoryGroup;
+                if (categoryGroup.category !== undefined) {
+                    transactionsQueryJSON = buildSpecificGroupQuery(
+                        queryJSON,
+                        CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY,
+                        !categoryGroup.category ? CONST.SEARCH.CATEGORY_EMPTY_VALUE : categoryGroup.category,
+                    );
+                }
+                break;
+            }
+            case CONST.SEARCH.GROUP_BY.MERCHANT: {
+                const merchantGroup = group as SearchMerchantGroup;
+                if (merchantGroup.merchant !== undefined) {
+                    transactionsQueryJSON = buildSpecificGroupQuery(
+                        queryJSON,
+                        CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
+                        merchantGroup.merchant === '' ? CONST.SEARCH.MERCHANT_EMPTY_VALUE : merchantGroup.merchant,
+                    );
+                }
+                break;
+            }
+            case CONST.SEARCH.GROUP_BY.TAG: {
+                const tagGroup = group as SearchTagGroup;
+                if (tagGroup.tag !== undefined) {
+                    transactionsQueryJSON = buildSpecificGroupQuery(
+                        queryJSON,
+                        CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG,
+                        tagGroup.tag === '' || tagGroup.tag === '(untagged)' ? CONST.SEARCH.TAG_EMPTY_VALUE : tagGroup.tag,
+                    );
+                }
+                break;
+            }
+            case CONST.SEARCH.GROUP_BY.MONTH: {
+                const monthGroup = group as SearchMonthGroup;
+                if (monthGroup.year && monthGroup.month) {
+                    transactionsQueryJSON = buildDateRangeGroupQuery(queryJSON, DateUtils.getMonthDateRange(monthGroup.year, monthGroup.month))?.transactionsQueryJSON;
+                }
+                break;
+            }
+            case CONST.SEARCH.GROUP_BY.WEEK: {
+                const weekGroup = group as SearchWeekGroup;
+                if (weekGroup.week) {
+                    transactionsQueryJSON = buildDateRangeGroupQuery(queryJSON, DateUtils.getWeekDateRange(weekGroup.week))?.transactionsQueryJSON;
+                }
+                break;
+            }
+            case CONST.SEARCH.GROUP_BY.YEAR: {
+                const yearGroup = group as SearchYearGroup;
+                if (typeof yearGroup.year === 'number') {
+                    transactionsQueryJSON = buildDateRangeGroupQuery(queryJSON, DateUtils.getYearDateRange(yearGroup.year))?.transactionsQueryJSON;
+                }
+                break;
+            }
+            case CONST.SEARCH.GROUP_BY.QUARTER: {
+                const quarterGroup = group as SearchQuarterGroup;
+                if (typeof quarterGroup.year === 'number' && typeof quarterGroup.quarter === 'number') {
+                    transactionsQueryJSON = buildDateRangeGroupQuery(queryJSON, DateUtils.getQuarterDateRange(quarterGroup.year, quarterGroup.quarter))?.transactionsQueryJSON;
+                }
+                break;
+            }
+            default:
+                break;
+        }
+
+        if (transactionsQueryJSON?.hash !== undefined && transactionsQueryJSON.hash >= 0) {
+            searchHashes.add(transactionsQueryJSON.hash);
+        }
+    }
+
+    return Array.from(searchHashes);
+}
+
 function buildDateRangeGroupQuery(queryJSON: SearchQueryJSON, dateRange: {start: string; end: string}): {transactionsQueryJSON: SearchQueryJSON | undefined; start: string; end: string} {
     const dateFilters = queryJSON.flatFilters.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
     const {start, end} = adjustTimeRangeToDateFilters(dateRange, dateFilters);
@@ -3578,6 +3701,10 @@ function getSearchColumnTranslationKey(column: SearchColumnType): TranslationPat
             return 'common.to';
         case CONST.SEARCH.TABLE_COLUMNS.CATEGORY:
             return 'common.category';
+        case CONST.SEARCH.TABLE_COLUMNS.ATTENDEES:
+            return 'iou.attendees';
+        case CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE:
+            return 'iou.totalPerAttendee';
         case CONST.SEARCH.TABLE_COLUMNS.RECEIPT:
             return 'common.receipt';
         case CONST.SEARCH.TABLE_COLUMNS.TAG:
@@ -4457,6 +4584,7 @@ function getColumnsToShow({
     shouldShowReimbursableColumn = false,
     reportCurrency,
     shouldUseStrictDefaultExpenseColumns = false,
+    policy,
 }: {
     currentAccountID: number | undefined;
     data: OnyxTypes.SearchResults['data'] | OnyxTypes.Transaction[];
@@ -4467,8 +4595,9 @@ function getColumnsToShow({
     isExpenseReportViewFromIOUReport?: boolean;
     shouldShowBillableColumn?: boolean;
     shouldShowReimbursableColumn?: boolean;
-    reportCurrency?: string;
     shouldUseStrictDefaultExpenseColumns?: boolean;
+    policy?: OnyxTypes.Policy;
+    reportCurrency?: string;
 }): SearchColumnType[] {
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
         const defaultReportColumns: SearchColumnType[] = [
@@ -4577,6 +4706,8 @@ function getColumnsToShow({
               [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: false,
               [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.ATTENDEES]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAG]: false,
               [CONST.SEARCH.TABLE_COLUMNS.CARD]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAX_RATE]: false,
@@ -4605,6 +4736,8 @@ function getColumnsToShow({
               [CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME]: false,
               [CONST.SEARCH.TABLE_COLUMNS.CARD]: false,
               [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.ATTENDEES]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAG]: false,
               [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: false,
@@ -4786,8 +4919,18 @@ function getColumnsToShow({
         for (const item of data) {
             updateColumns(item);
         }
+        if (shouldShowAttendees(CONST.IOU.TYPE.SUBMIT, policy)) {
+            columns[CONST.SEARCH.TABLE_COLUMNS.ATTENDEES] = true;
+            columns[CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE] = true;
+        }
     } else {
         for (const key of Object.keys(data)) {
+            if (isPolicyEntry(key)) {
+                if (shouldShowAttendees(CONST.IOU.TYPE.SUBMIT, data[key])) {
+                    columns[CONST.SEARCH.TABLE_COLUMNS.ATTENDEES] = true;
+                    columns[CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE] = true;
+                }
+            }
             if (!isTransactionEntry(key)) {
                 continue;
             }
@@ -5190,6 +5333,7 @@ export {
     getToFieldValueForTransaction,
     getSearchReportAvatarProps,
     isTodoSearch,
+    getActiveGroupSearchHashes,
     adjustTimeRangeToDateFilters,
     mapFiltersFormToLabelValueList,
     isEligibleForApproveSuggestion,

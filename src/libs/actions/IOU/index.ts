@@ -43,7 +43,7 @@ import DateUtils from '@libs/DateUtils';
 import {registerDeferredWrite} from '@libs/deferredLayoutWrite';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
-import {readFileAsync} from '@libs/fileDownload/FileUtils';
+import {isLocalFile, readFileAsync} from '@libs/fileDownload/FileUtils';
 import type {MinimalTransaction} from '@libs/Formula';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import GoogleTagManager from '@libs/GoogleTagManager';
@@ -138,7 +138,6 @@ import {
     canEditFieldOfMoneyRequest,
     canSubmitAndIsAwaitingForCurrentUser,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
-    computeOptimisticReportName,
     findSelfDMReportID,
     generateReportID,
     getAllHeldTransactions as getAllHeldTransactionsReportUtils,
@@ -189,6 +188,7 @@ import {
     isSettled,
     isTestTransactionReport,
     isTrackExpenseReport,
+    populateOptimisticReportFormula,
     prepareOnboardingOnyxData,
     shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,
     shouldEnableNegative,
@@ -1895,6 +1895,18 @@ type BuildOnyxDataForMoneyRequestKeys =
     | typeof ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE
     | typeof ONYXKEYS.COLLECTION.SNAPSHOT;
 
+/**
+ * When a receipt is a local file (e.g. taken from camera or picked from gallery), its `source` is a local URI
+ * that will be lost once the optimistic transaction is replaced by the server response. We stash it in
+ * `localSource` so the UI can continue showing the local image while SmartScan is in progress.
+ */
+function getTransactionWithPreservedLocalReceiptSource(transaction: OnyxTypes.Transaction, isScanRequest: boolean): OnyxTypes.Transaction {
+    if (isScanRequest && isLocalFile(transaction.receipt?.source)) {
+        return {...transaction, receipt: {...transaction.receipt, localSource: String(transaction.receipt?.source)}};
+    }
+    return transaction;
+}
+
 /** Builds the Onyx data for an expense */
 function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyRequestParams): OnyxData<BuildOnyxDataForMoneyRequestKeys> {
     const {
@@ -1932,7 +1944,6 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     const outstandingChildRequest = getOutstandingChildRequest(iou.report);
     const clearedPendingFields = Object.fromEntries(Object.keys(transaction.pendingFields ?? {}).map((key) => [key, null]));
     const isMoneyRequestToManagerMcTest = isTestTransactionReport(iou.report);
-
     const onyxData: OnyxData<BuildOnyxDataForMoneyRequestKeys> = {
         optimisticData: [],
         successData: [],
@@ -1987,7 +1998,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-            value: transaction,
+            value: getTransactionWithPreservedLocalReceiptSource(transaction, isScanRequest),
         },
         isNewChatReport
             ? {
@@ -2622,7 +2633,6 @@ function buildOnyxDataForTrackExpense({
     const isScanRequest = isScanRequestTransactionUtils(transaction);
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const clearedPendingFields = Object.fromEntries(Object.keys(transaction.pendingFields ?? {}).map((key) => [key, null]));
-
     const onyxData: OnyxData<BuildOnyxDataForTrackExpenseKeys> = {
         optimisticData: [],
         successData: [],
@@ -2757,7 +2767,7 @@ function buildOnyxDataForTrackExpense({
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-            value: transaction,
+            value: getTransactionWithPreservedLocalReceiptSource(transaction, isScanRequest),
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -3192,7 +3202,7 @@ function getDeleteTrackExpenseInformation(
  * This is needed when report totals change (e.g., adding expenses or changing reimbursable status)
  * to ensure the report title reflects the updated values like {report:reimbursable}.
  */
-function recalculateOptimisticReportName(iouReport: OnyxTypes.Report, policy: OnyxEntry<OnyxTypes.Policy>, newTransaction?: OnyxTypes.Transaction): string | undefined {
+function recalculateOptimisticReportName(iouReport: OnyxTypes.Report, policy: OnyxEntry<OnyxTypes.Policy>): string | undefined {
     if (!policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]) {
         return undefined;
     }
@@ -3200,37 +3210,17 @@ function recalculateOptimisticReportName(iouReport: OnyxTypes.Report, policy: On
     if (!titleFormula) {
         return undefined;
     }
-
-    // Gather existing transactions + the optimistic one not yet in Onyx.
-    const existingTransactions = getReportTransactions(iouReport.reportID);
-    const transactionsRecord: Record<string, OnyxTypes.Transaction> = {};
-    for (const transaction of existingTransactions) {
-        if (transaction?.transactionID) {
-            transactionsRecord[transaction.transactionID] = transaction;
-        }
-    }
-    if (newTransaction?.transactionID) {
-        transactionsRecord[newTransaction.transactionID] = newTransaction;
-    }
-
-    const computedName = computeOptimisticReportName(iouReport, policy, iouReport.policyID, transactionsRecord);
-    return computedName ?? undefined;
+    return populateOptimisticReportFormula(titleFormula, iouReport as Parameters<typeof populateOptimisticReportFormula>[1], policy);
 }
 
-function maybeUpdateReportNameForFormulaTitle(iouReport: OnyxTypes.Report, policy: OnyxEntry<OnyxTypes.Policy>, newTransaction?: OnyxTypes.Transaction): OnyxTypes.Report {
+function maybeUpdateReportNameForFormulaTitle(iouReport: OnyxTypes.Report, policy: OnyxEntry<OnyxTypes.Policy>): OnyxTypes.Report {
     const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`];
     const titleField = reportNameValuePairs?.expensify_text_title;
-
-    // Fall back to policy.fieldList when reportNameValuePairs doesn't exist yet (optimistic reports).
-    const isFormulaTitle = reportNameValuePairs
-        ? titleField?.type === CONST.REPORT_FIELD_TYPES.FORMULA
-        : policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.type === CONST.REPORT_FIELD_TYPES.FORMULA;
-
-    if (!isFormulaTitle) {
+    if (titleField?.type !== CONST.REPORT_FIELD_TYPES.FORMULA) {
         return iouReport;
     }
 
-    const updatedReportName = recalculateOptimisticReportName(iouReport, policy, newTransaction);
+    const updatedReportName = recalculateOptimisticReportName(iouReport, policy);
     if (!updatedReportName) {
         return iouReport;
     }
@@ -3414,6 +3404,8 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                         iouReport.nonReimbursableTotal = (iouReport.nonReimbursableTotal ?? 0) - amount;
                     }
                 }
+
+                iouReport = maybeUpdateReportNameForFormulaTitle(iouReport, policy);
             }
             if (typeof iouReport.unheldTotal === 'number') {
                 // Use newReportTotal in scenarios where the total is based on more than just the current transaction amount, and we need to override it manually
@@ -3513,11 +3505,6 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         if (originalConvertedAmount && originalAmount && splitAmount) {
             optimisticTransaction.convertedAmount = Math.round((originalConvertedAmount * splitAmount) / originalAmount);
         }
-    }
-
-    // Recalculate report name after STEP 3 so the optimistic transaction is included in formula computation.
-    if (!shouldCreateNewMoneyRequestReport && isPolicyExpenseChat) {
-        iouReport = maybeUpdateReportNameForFormulaTitle(iouReport, policy, optimisticTransaction);
     }
 
     // STEP 4: Build optimistic reportActions. We need:

@@ -1177,7 +1177,7 @@ function getReportOwnerAsAttendee(transaction: OnyxInputOrEntry<Transaction>, cu
                 accountID: creatorAccountID,
                 text: creatorDisplayName,
                 searchText: creatorDisplayName,
-                avatarUrl: creatorDetails?.avatarThumbnail ?? '',
+                avatarUrl: (creatorDetails?.avatarThumbnail ?? creatorDetails?.avatar ?? '') as string,
                 selected: true,
             };
         }
