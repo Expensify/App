@@ -1221,7 +1221,7 @@ function IOURequestStepConfirmation({
                     policyRecentlyUsedCategories,
                     isFromGlobalCreate: transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate,
                     policyRecentlyUsedTags,
-                    participantsPolicyTags: senderWorkspacePolicyTags ?? {},
+                    senderPolicyTags: senderWorkspacePolicyTags ?? {},
                 });
                 markSubmitExpenseEnd();
                 return;
