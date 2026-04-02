@@ -1,8 +1,12 @@
 import React, {useMemo} from 'react';
-import {View} from 'react-native';
-import ConnectionLayout from '@components/ConnectionLayout';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItem from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
+import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
+import Text from '@components/Text';
 import useAdminPoliciesConnectedToQBD from '@hooks/useAdminPoliciesConnectedToQBD';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -12,6 +16,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getIntegrationLastSuccessfulDate} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -22,6 +27,7 @@ type QuickbooksDesktopExistingConnectionsPageProps = PlatformStackScreenProps<Se
 function QuickbooksDesktopExistingConnectionsPage({route}: QuickbooksDesktopExistingConnectionsPageProps) {
     const {translate, datetimeToRelative, getLocalDateFromDatetime} = useLocalize();
     const styles = useThemeStyles();
+    const icons = useMemoizedLazyExpensifyIcons(['LinkCopy']);
     const policiesConnectedToQBD = useAdminPoliciesConnectedToQBD();
     const [connectionSyncProgressCollection] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS);
     const policyID: string = route.params.policyID;
@@ -38,12 +44,13 @@ function QuickbooksDesktopExistingConnectionsPage({route}: QuickbooksDesktopExis
                     avatarID: policy.id,
                     icon: policy.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy.name),
                     iconType: CONST.ICON_TYPE_WORKSPACE,
+                    shouldShowRightIcon: true,
                     description: date
                         ? translate('workspace.common.lastSyncDate', CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.quickbooksDesktop, date)
                         : translate('workspace.accounting.qbd'),
                     onPress: () => {
                         copyExistingPolicyConnection(policy.id, policyID, CONST.POLICY.CONNECTIONS.NAME.QBD);
-                        Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID));
+                        Navigation.dismissModal();
                     },
                 };
             }),
@@ -51,25 +58,32 @@ function QuickbooksDesktopExistingConnectionsPage({route}: QuickbooksDesktopExis
     );
 
     return (
-        <ConnectionLayout
-            displayName="QuickbooksDesktopExistingConnectionsPage"
-            headerTitle="workspace.common.existingConnections"
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
-            policyID={policyID}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            contentContainerStyle={[styles.flex1]}
-            titleStyle={styles.ph5}
-            shouldLoadForEmptyConnection
-            connectionName={CONST.POLICY.CONNECTIONS.NAME.QBD}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID))}
+        <ScreenWrapper
+            shouldEnablePickerAvoiding={false}
+            shouldShowOfflineIndicatorInWideScreen
+            testID="QuickbooksDesktopExistingConnectionsPage"
         >
-            <View style={[styles.flex1]}>
+            <HeaderWithBackButton
+                title={translate('workspace.common.connectTo', {connectionName: CONST.POLICY.CONNECTIONS.NAME.QBD})}
+                shouldShowBackButton
+                onBackButtonPress={() => Navigation.goBack()}
+            />
+            <ScrollView style={[styles.flex1]}>
+                <Text style={[styles.mh5, styles.mb4]}>{translate('workspace.common.existingConnectionsDescription', {connectionName: CONST.POLICY.CONNECTIONS.NAME.QBD})}</Text>
+                <MenuItem
+                    title={translate('workspace.common.createNewConnection')}
+                    icon={icons.LinkCopy}
+                    iconStyles={{borderRadius: variables.componentBorderRadiusNormal}}
+                    shouldShowRightIcon
+                    onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_SETUP_MODAL.getRoute(policyID))}
+                />
+                <Text style={[styles.sectionTitle, styles.pl5, styles.pr5, styles.pb2, styles.mt3]}>{translate('workspace.common.existingConnections')}</Text>
                 <MenuItemList
                     menuItems={menuItems}
                     shouldUseSingleExecution
                 />
-            </View>
-        </ConnectionLayout>
+            </ScrollView>
+        </ScreenWrapper>
     );
 }
 
