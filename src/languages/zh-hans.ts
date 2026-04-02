@@ -6519,6 +6519,24 @@ ${reportName}
                 title: '报销政策',
                 cardSubtitle: '这是你们团队的报销政策所在之处，让所有人都清楚哪些内容在报销范围之内。',
             },
+            spendRules: {
+                title: '支出',
+                subtitle: '实时批准或拒绝 Expensify 卡交易。',
+                defaultRuleDescription: '所有卡片',
+                block: '屏蔽',
+                defaultRuleTitle: '类别：成人服务、ATM、赌博、转账',
+                builtInProtectionModal: {
+                    title: 'Expensify 卡始终提供内置保护',
+                    description: `Expensify 始终会拒绝以下消费：
+
+  • 成人服务
+  • ATM
+  • 赌博
+  • 转账
+
+添加更多消费规则以保护公司现金流。`,
+                },
+            },
         },
         planTypePage: {
             planTypes: {

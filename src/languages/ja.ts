@@ -6643,6 +6643,24 @@ ${reportName}
                 title: '経費ポリシー',
                 cardSubtitle: 'ここはチームの経費ポリシーが保存されている場所です。何が対象になるか、全員が同じ認識を持てます。',
             },
+            spendRules: {
+                title: '支出',
+                subtitle: 'Expensify カードの取引をリアルタイムで承認または却下できます。',
+                defaultRuleDescription: 'すべてのカード',
+                block: 'ブロック',
+                defaultRuleTitle: 'カテゴリ：アダルトサービス、ATM、ギャンブル、送金',
+                builtInProtectionModal: {
+                    title: 'Expensify カードには、常に標準で保護機能があります',
+                    description: `Expensify は、次のような支払いを常に拒否します：
+
+  ・アダルトサービス
+  ・ATM
+  ・ギャンブル
+  ・送金
+
+会社のキャッシュフローを守るために、支出ルールをさらに追加しましょう。`,
+                },
+            },
         },
         planTypePage: {
             planTypes: {

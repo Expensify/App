@@ -6728,6 +6728,24 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 title: 'Spesenrichtlinie',
                 cardSubtitle: 'Hier ist die Spesenrichtlinie deines Teams hinterlegt, damit alle denselben Stand haben, was abgedeckt ist.',
             },
+            spendRules: {
+                title: 'Ausgaben',
+                subtitle: 'Genehmigen oder lehnen Sie Expensify Karte-Transaktionen in Echtzeit ab.',
+                defaultRuleDescription: 'Alle Karten',
+                block: 'Blockieren',
+                defaultRuleTitle: 'Kategorien: Erotikdienstleistungen, Geldautomaten, Glücksspiele, Geldüberweisungen',
+                builtInProtectionModal: {
+                    title: 'Expensify Karten bieten integrierten Schutz – jederzeit',
+                    description: `Expensify lehnt diese Belastungen immer ab:
+
+  • Erwachsenenservices
+  • Geldautomaten
+  • Glücksspiel
+  • Geldüberweisungen
+
+Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu schützen.`,
+                },
+            },
         },
         planTypePage: {
             planTypes: {
