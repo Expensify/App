@@ -1,5 +1,5 @@
 import React, {useRef} from 'react';
-import {FlatList, View} from 'react-native';
+import {FlatList} from 'react-native';
 import type {SearchQueryJSON} from '@components/Search/types';
 import SearchActionsSkeleton from '@components/Skeletons/SearchActionsSkeleton';
 import type {SearchFilter} from '@libs/SearchUIUtils';
