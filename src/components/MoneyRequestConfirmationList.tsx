@@ -35,6 +35,7 @@ import {isValidTimeExpenseAmount} from '@libs/TimeTrackingUtils';
 import {
     areRequiredFieldsEmpty,
     calculateTaxAmount,
+    getAttendees,
     getDefaultTaxCode,
     getDistanceInMeters,
     getRateID,
@@ -55,7 +56,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {Attendee, Participant} from '@src/types/onyx/IOU';
+import type {Participant} from '@src/types/onyx/IOU';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import Button from './Button';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
@@ -86,38 +87,8 @@ type MoneyRequestConfirmationListProps = {
     /** Callback to parent modal to pay someone */
     onSendMoney?: (paymentMethod: PaymentMethodType | undefined) => void;
 
-    /** IOU amount */
-    iouAmount: number;
-
-    /** IOU attendees list */
-    iouAttendees?: Attendee[];
-
-    /** IOU comment */
-    iouComment?: string;
-
-    /** IOU currency */
-    iouCurrencyCode?: string;
-
     /** IOU type */
     iouType?: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
-
-    /** IOU date */
-    iouCreated?: string;
-
-    /** IOU merchant */
-    iouMerchant?: string;
-
-    /** IOU Category */
-    iouCategory?: string;
-
-    /** IOU isBillable */
-    iouIsBillable?: boolean;
-
-    /** Time expense's hour count */
-    iouTimeCount?: number;
-
-    /** Time expense's hourly rate */
-    iouTimeRate?: number;
 
     /** Callback to toggle the billable state */
     onToggleBillable?: (isOn: boolean) => void;
@@ -209,9 +180,6 @@ type MoneyRequestConfirmationListProps = {
     /** Function to toggle reimbursable */
     onToggleReimbursable?: (isOn: boolean) => void;
 
-    /** Flag indicating if the IOU is reimbursable */
-    iouIsReimbursable?: boolean;
-
     /** Show remove expense confirmation modal */
     showRemoveExpenseConfirmModal?: () => void;
 
@@ -230,7 +198,6 @@ function MoneyRequestConfirmationList({
     onSendMoney,
     onConfirm,
     iouType = CONST.IOU.TYPE.SUBMIT,
-    iouAmount,
     isDistanceRequest,
     isManualDistanceRequest,
     isOdometerDistanceRequest = false,
@@ -238,23 +205,16 @@ function MoneyRequestConfirmationList({
     isGPSDistanceRequest,
     isPerDiemRequest = false,
     isPolicyExpenseChat = false,
-    iouCategory = '',
     shouldShowSmartScanFields = true,
     isEditingSplitBill,
-    iouCurrencyCode,
     isReceiptEditable,
-    iouMerchant,
     selectedParticipants: selectedParticipantsProp,
     payeePersonalDetails: payeePersonalDetailsProp,
     isReadOnly = false,
     policyID,
     reportID = '',
     receiptPath = '',
-    iouAttendees,
-    iouComment,
     receiptFilename = '',
-    iouCreated,
-    iouIsBillable = false,
     onToggleBillable,
     hasSmartScanFailed,
     reportActionID,
@@ -265,12 +225,9 @@ function MoneyRequestConfirmationList({
     isConfirming,
     onPDFLoadError,
     onPDFPassword,
-    iouIsReimbursable = true,
     onToggleReimbursable,
     showRemoveExpenseConfirmModal,
     isTimeRequest = false,
-    iouTimeCount,
-    iouTimeRate,
     shouldHideToSection = false,
 }: MoneyRequestConfirmationListProps) {
     const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
@@ -330,6 +287,19 @@ function MoneyRequestConfirmationList({
     const {translate} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
+
+    // Derive iou values from transaction instead of receiving as props (CLEAN-REACT-PATTERNS-2)
+    const iouAmount = transaction?.amount ?? 0;
+    const iouComment = transaction?.comment?.comment ?? '';
+    const iouCurrencyCode = transaction?.currency;
+    const iouMerchant = transaction?.merchant;
+    const iouCreated = transaction?.created;
+    const iouCategory = transaction?.category ?? '';
+    const iouIsBillable = transaction?.billable ?? false;
+    const iouIsReimbursable = transaction?.reimbursable ?? true;
+    const iouTimeCount = transaction?.comment?.units?.count;
+    const iouTimeRate = transaction?.comment?.units?.rate;
+    const iouAttendees = useMemo(() => getAttendees(transaction, currentUserPersonalDetails), [transaction, currentUserPersonalDetails]);
 
     const isTypeRequest = iouType === CONST.IOU.TYPE.SUBMIT;
     const isTypeSplit = iouType === CONST.IOU.TYPE.SPLIT;
@@ -1230,15 +1200,11 @@ export default memo(
         prevProps.onSendMoney === nextProps.onSendMoney &&
         prevProps.onConfirm === nextProps.onConfirm &&
         prevProps.iouType === nextProps.iouType &&
-        prevProps.iouAmount === nextProps.iouAmount &&
         prevProps.isDistanceRequest === nextProps.isDistanceRequest &&
         prevProps.isPolicyExpenseChat === nextProps.isPolicyExpenseChat &&
         prevProps.expensesNumber === nextProps.expensesNumber &&
-        prevProps.iouCategory === nextProps.iouCategory &&
         prevProps.shouldShowSmartScanFields === nextProps.shouldShowSmartScanFields &&
         prevProps.isEditingSplitBill === nextProps.isEditingSplitBill &&
-        prevProps.iouCurrencyCode === nextProps.iouCurrencyCode &&
-        prevProps.iouMerchant === nextProps.iouMerchant &&
         // eslint-disable-next-line rulesdir/no-deep-equal-in-memo -- selectedParticipants is derived with .map() which creates new array references
         deepEqual(prevProps.selectedParticipants, nextProps.selectedParticipants) &&
         prevProps.payeePersonalDetails === nextProps.payeePersonalDetails &&
@@ -1246,19 +1212,13 @@ export default memo(
         prevProps.policyID === nextProps.policyID &&
         prevProps.reportID === nextProps.reportID &&
         prevProps.receiptPath === nextProps.receiptPath &&
-        prevProps.iouAttendees === nextProps.iouAttendees &&
-        prevProps.iouComment === nextProps.iouComment &&
         prevProps.receiptFilename === nextProps.receiptFilename &&
-        prevProps.iouCreated === nextProps.iouCreated &&
-        prevProps.iouIsBillable === nextProps.iouIsBillable &&
         prevProps.onToggleBillable === nextProps.onToggleBillable &&
         prevProps.hasSmartScanFailed === nextProps.hasSmartScanFailed &&
         prevProps.reportActionID === nextProps.reportActionID &&
         prevProps.action === nextProps.action &&
         prevProps.shouldDisplayReceipt === nextProps.shouldDisplayReceipt &&
         prevProps.isTimeRequest === nextProps.isTimeRequest &&
-        prevProps.iouTimeCount === nextProps.iouTimeCount &&
-        prevProps.iouTimeRate === nextProps.iouTimeRate &&
         prevProps.shouldHideToSection === nextProps.shouldHideToSection &&
         prevProps.isLoadingReceipt === nextProps.isLoadingReceipt,
 );
