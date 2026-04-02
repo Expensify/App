@@ -563,31 +563,22 @@ function getIconWidthAndHeightStyle(
     }
 }
 
-function getButtonStyleWithIcon(
-    styles: ThemeStyles,
-    extraSmall: boolean,
-    small: boolean,
-    medium: boolean,
-    large: boolean,
-    hasIcon?: boolean,
-    hasText?: boolean,
-    shouldShowRightIcon?: boolean,
-): ViewStyle | undefined {
+function getButtonStyleWithIcon(styles: ThemeStyles, size?: ButtonSizeValue, hasIcon?: boolean, hasText?: boolean, shouldShowRightIcon?: boolean): ViewStyle | undefined {
     const useDefaultButtonStyles = !!(hasIcon && shouldShowRightIcon) || !!(!hasIcon && !shouldShowRightIcon);
-    switch (true) {
-        case extraSmall: {
+    switch (size) {
+        case CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL: {
             const verticalStyle = hasIcon ? styles.pl2 : styles.pr2;
             return useDefaultButtonStyles ? styles.buttonExtraSmall : {...styles.buttonExtraSmall, ...(hasText ? verticalStyle : styles.ph0)};
         }
-        case small: {
+        case CONST.DROPDOWN_BUTTON_SIZE.SMALL: {
             const verticalStyle = hasIcon ? styles.pl2 : styles.pr2;
             return useDefaultButtonStyles ? styles.buttonSmall : {...styles.buttonSmall, ...(hasText ? verticalStyle : styles.ph0)};
         }
-        case medium: {
+        case CONST.DROPDOWN_BUTTON_SIZE.MEDIUM: {
             const verticalStyle = hasIcon ? styles.pl3 : styles.pr3;
             return useDefaultButtonStyles ? styles.buttonMedium : {...styles.buttonMedium, ...(hasText ? verticalStyle : styles.ph0)};
         }
-        case large: {
+        case CONST.DROPDOWN_BUTTON_SIZE.LARGE: {
             const verticalStyle = hasIcon ? styles.pl4 : styles.pr4;
             return useDefaultButtonStyles ? styles.buttonLarge : {...styles.buttonLarge, ...(hasText ? verticalStyle : styles.ph0)};
         }

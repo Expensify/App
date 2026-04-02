@@ -17,6 +17,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import HapticFeedback from '@libs/HapticFeedback';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import type {ButtonSizeValue} from '@styles/utils/types';
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -403,10 +404,21 @@ function Button({
         return textComponent;
     };
 
+    let buttonSize: ButtonSizeValue;
+    if (extraSmall) {
+        buttonSize = CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL;
+    } else if (small) {
+        buttonSize = CONST.DROPDOWN_BUTTON_SIZE.SMALL;
+    } else if (medium) {
+        buttonSize = CONST.DROPDOWN_BUTTON_SIZE.MEDIUM;
+    } else {
+        buttonSize = CONST.DROPDOWN_BUTTON_SIZE.LARGE;
+    }
+
     const buttonStyles = useMemo<StyleProp<ViewStyle>>(
         () => [
             styles.button,
-            StyleUtils.getButtonStyleWithIcon(styles, extraSmall, small, medium, large, !!icon, !!(text?.length > 0), shouldShowRightIcon),
+            StyleUtils.getButtonStyleWithIcon(styles, buttonSize, !!icon, !!(text?.length > 0), shouldShowRightIcon),
             success ? styles.buttonSuccess : undefined,
             danger ? styles.buttonDanger : undefined,
             isDisabled && !shouldStayNormalOnDisable ? styles.buttonOpacityDisabled : undefined,
@@ -423,14 +435,11 @@ function Button({
             icon,
             innerStyles,
             isDisabled,
-            large,
+            buttonSize,
             link,
-            medium,
             shouldRemoveLeftBorderRadius,
             shouldRemoveRightBorderRadius,
             shouldShowRightIcon,
-            small,
-            extraSmall,
             styles,
             success,
             text,

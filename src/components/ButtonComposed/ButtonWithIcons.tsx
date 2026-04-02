@@ -77,16 +77,7 @@ function ButtonWithIcons({
 }: ButtonWithIconsProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const buttonStyle = StyleUtils.getButtonStyleWithIcon(
-        styles,
-        size === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL,
-        size === CONST.DROPDOWN_BUTTON_SIZE.SMALL,
-        size === CONST.DROPDOWN_BUTTON_SIZE.MEDIUM,
-        size === CONST.DROPDOWN_BUTTON_SIZE.LARGE,
-        !!iconLeft,
-        text?.length > 0,
-        !!iconRight,
-    );
+    const buttonStyle = StyleUtils.getButtonStyleWithIcon(styles, size, !!iconLeft, text?.length > 0, !!iconRight);
     return (
         <Button
             allowBubble={allowBubble}
