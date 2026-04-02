@@ -460,8 +460,7 @@ function getInitialPerDiemTargetReport(
 }
 
 /**
- * Resolves the chat report for post-action navigation and generates an optimistic report ID if no existing chat is found.
- * Used by sendMoney and submitPerDiemExpense UI callers to pre-compute the navigation target before calling the action.
+ * Resolves the chat report ID for navigation, generating an optimistic ID if no existing chat is found.
  */
 function resolveOptimisticChatReportID(participantAccountIDs: number[], existingReport?: OnyxInputOrEntry<Report>) {
     const existingChat = existingReport?.reportID ? existingReport : getChatByParticipants(participantAccountIDs);
