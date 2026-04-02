@@ -15,8 +15,11 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import useOnyx from './useOnyx';
 
 function clearOdometerTransactionState(transaction: OnyxEntry<Transaction>, draftTransactionIDs: string[] | undefined, isDraft: boolean): void {
-    setMoneyRequestReceipt(transaction?.transactionID ?? '', '', '', isDraft);
-    setMoneyRequestOdometerReading(transaction?.transactionID ?? '', null, null, isDraft);
+    if (!transaction) {
+        return;
+    }
+    setMoneyRequestReceipt(transaction.transactionID, '', '', isDraft);
+    setMoneyRequestOdometerReading(transaction.transactionID, null, null, isDraft);
     removeMoneyRequestOdometerImage(transaction, CONST.IOU.ODOMETER_IMAGE_TYPE.START, isDraft, true);
     removeMoneyRequestOdometerImage(transaction, CONST.IOU.ODOMETER_IMAGE_TYPE.END, isDraft, true);
     removeDraftTransactionsByIDs(draftTransactionIDs, true);
