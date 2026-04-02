@@ -27,7 +27,6 @@ import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useUndeleteTransactions from '@hooks/useUndeleteTransactions';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import DateUtils from '@libs/DateUtils';
@@ -302,9 +301,6 @@ function SearchList({
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
-    const undeleteTransactions = useUndeleteTransactions();
-
-    const handleUndelete = (transactionID: string) => undeleteTransactions([transactionID]);
 
     const route = useRoute();
     const {getScrollOffset} = useContext(ScrollOffsetContext);
@@ -454,7 +450,6 @@ function SearchList({
                         customCardNames={customCardNames}
                         onFocus={onFocus}
                         newTransactionID={newTransactionID}
-                        onUndelete={handleUndelete}
                         keyForList={item.keyForList}
                         isLastItem={index === data.length - 1 && !ListFooterComponent}
                     />
@@ -489,7 +484,6 @@ function SearchList({
             customCardNames,
             selectedTransactions,
             ListFooterComponent,
-            handleUndelete,
         ],
     );
 
