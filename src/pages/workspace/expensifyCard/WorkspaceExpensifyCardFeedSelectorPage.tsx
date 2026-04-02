@@ -1,20 +1,25 @@
 import {isUserValidatedSelector} from '@selectors/Account';
-import React, {useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
+import {View} from 'react-native';
+import Button from '@components/Button';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
+import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 import type {ListItem} from '@components/SelectionList/types';
+import Text from '@components/Text';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useExpensifyCardFeedsForFeedSelector from '@hooks/useExpensifyCardFeedsForFeedSelector';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setIssueNewCardStepAndData, updateSelectedExpensifyCardFeed} from '@libs/actions/Card';
+import {clearIssueNewCardFormData, setIssueNewCardStepAndData, updateSelectedExpensifyCardFeed} from '@libs/actions/Card';
 import {getLinkedPolicyIdsFromExpensifyCardSettings, getPreferredPolicyFromExpensifyCardSettings} from '@libs/CardUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import type {ExpensifyCardFeedEntry} from '@libs/ExpensifyCardFeedSelectorUtils';
@@ -45,6 +50,11 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['ExpensifyCardImage']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus']);
+    const {isDelegateAccessRestricted} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const {isAccountLocked} = useLockedAccountState();
+    const {showLockedAccountModal} = useLockedAccountActions();
     const [lastSelectedExpensifyCardFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED}${policyID}`);
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
@@ -66,6 +76,51 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
         const policyIDForName = linkedPolicyIds?.length ? linkedPolicyIds.at(0) : preferredPolicyID;
         return (policyIDForName && policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDForName.toUpperCase()}`]?.name) ?? '';
     };
+
+    const handleAddCardPress = useCallback(() => {
+        clearIssueNewCardFormData();
+        if (isAccountLocked) {
+            showLockedAccountModal();
+            return;
+        }
+        if (isDelegateAccessRestricted) {
+            showDelegateNoAccessModal();
+            return;
+        }
+        updateSelectedExpensifyCardFeed(lastSelectedExpensifyCardFeedID, policyID);
+        setIssueNewCardStepAndData({policyID, isChangeAssigneeDisabled: false});
+        Navigation.navigate(
+            ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, exitToIssueNew ? ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID) : Navigation.getActiveRoute()),
+        );
+    }, [
+        policyID,
+        exitToIssueNew,
+        lastSelectedExpensifyCardFeedID,
+        isAccountLocked,
+        isDelegateAccessRestricted,
+        showLockedAccountModal,
+        showDelegateNoAccessModal,
+    ]);
+
+    const otherWorkspacesSectionHeader = useMemo(
+        () => (
+            <View>
+                <View style={[styles.ph5, styles.pb3]}>
+                    <Button
+                        success
+                        onPress={handleAddCardPress}
+                        icon={expensifyIcons.Plus}
+                        text={translate('workspace.expensifyCard.issueCard')}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CARD_BUTTON}
+                    />
+                </View>
+                <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>
+                    <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('workspace.expensifyCard.otherWorkspaces')}</Text>
+                </View>
+            </View>
+        ),
+        [expensifyIcons.Plus, handleAddCardPress, styles.justifyContentCenter, styles.optionsListSectionHeader, styles.pb3, styles.ph5, styles.textLabelSupporting, translate],
+    );
 
     const toListItem = (entry: ExpensifyCardFeedEntry): ExpensifyFeedListItem => ({
         value: entry.fundID,
@@ -92,7 +147,7 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
     }
     if (otherFeeds.length > 0) {
         sections.push({
-            title: translate('workspace.expensifyCard.otherWorkspaces'),
+            ...(primaryFeeds.length > 0 ? {customHeader: otherWorkspacesSectionHeader} : {title: translate('workspace.expensifyCard.otherWorkspaces')}),
             data: otherFeeds.map(toListItem),
             sectionIndex: sections.length,
         });
