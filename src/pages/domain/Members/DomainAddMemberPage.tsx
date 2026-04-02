@@ -1,12 +1,12 @@
-import React from 'react';
+import React, {useRef} from 'react';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';
-import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -57,7 +57,7 @@ function DomainAddMemberPage({route}: DomainAddMemberProps) {
     const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainNameSelector});
     const [defaultSecurityGroupID] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: defaultSecurityGroupIDSelector});
 
-    const {inputCallbackRef} = useAutoFocusInput();
+    const emailInputRef = useRef<AnimatedTextInputRef>(null);
 
     const handleSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_DOMAIN_MEMBER_FORM>) => {
         if (!defaultSecurityGroupID) {
@@ -96,6 +96,7 @@ function DomainAddMemberPage({route}: DomainAddMemberProps) {
     return (
         <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
             <ScreenWrapper
+                onEntryTransitionEnd={() => emailInputRef.current?.focus()}
                 shouldEnableMaxHeight
                 shouldUseCachedViewportHeight
                 testID="DomainAddMemberPage"
@@ -119,7 +120,7 @@ function DomainAddMemberPage({route}: DomainAddMemberProps) {
                         aria-label={`${translate('common.email')}`}
                         role={CONST.ROLE.PRESENTATION}
                         inputMode={CONST.INPUT_MODE.EMAIL}
-                        ref={inputCallbackRef}
+                        ref={emailInputRef}
                         inputID={INPUT_IDS.EMAIL}
                         autoCapitalize="none"
                         spellCheck={false}
