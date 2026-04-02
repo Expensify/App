@@ -76,6 +76,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
                     prompt: translate('common.genericErrorMessage'),
                     confirmText: translate('common.ok'),
                     shouldShowCancelButton: false,
+                    shouldHandleNavigationBack: false,
                 });
             });
         } else if (href.endsWith('download')) {
