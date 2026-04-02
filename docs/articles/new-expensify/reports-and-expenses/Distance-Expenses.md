@@ -1,13 +1,13 @@
 ---
 title: Distance Expenses
-description: Learn how to create a Distance expense using GPS tracking, map-based routes, or manual entry, and how the reimbursement rate is determined in New Expensify.
-keywords: [New Expensify, distance expense, mileage reimbursement, create expense, distance rate, workspace rate, map route, reimbursement rate, manual mileage, manual distance, global create, track distance, GPS, GPS tracking, start GPS, track route, track mileage, mileage tracking, calculate mileage reimbursement, mileage rate]
-internalScope: Audience is all members. Covers creating Distance expenses using GPS tracking, map-based routes, and manual entry, plus how reimbursement rates are applied. Does not cover configuring Workspace distance rates in detail or broader report submission workflows.
+description: Learn how to create a Distance expense using GPS tracking, map-based routes, odometer readings, or manual entry, and how the reimbursement rate is determined in New Expensify.
+keywords: [New Expensify, distance expense, mileage reimbursement, create expense, distance rate, workspace rate, map route, reimbursement rate, manual mileage, manual distance, global create, track distance, GPS, GPS tracking, start GPS, track route, track mileage, mileage tracking, calculate mileage reimbursement, mileage rate, odometer, odometer reading, odometer photo, odometer expense]
+internalScope: Audience is all members. Covers creating Distance expenses using GPS tracking, map-based routes, odometer readings, and manual entry, plus how reimbursement rates are applied. Does not cover configuring Workspace distance rates in detail or broader report submission workflows.
 ---
 
 # Distance Expenses
 
-Expensify offers three ways to create a Distance expense: **GPS tracking** on mobile, **map-based routes** using start and end locations, or **manual entry** by typing in the distance. This guide explains each method and how the reimbursement rate is determined.
+Expensify offers four ways to create a Distance expense: **GPS tracking** on mobile, **map-based routes** using start and end locations, **odometer readings** with optional photo proof, or **manual entry** by typing in the distance. This guide explains each method and how the reimbursement rate is determined.
 
 ---
 
@@ -44,6 +44,26 @@ To create an expense using distance between the starting and ending locations of
    - Date
    - (Optional) Add a description, category, or tag. 
 6. Select **Create expense**. 
+
+---
+
+## How to create an Odometer Distance expense (Web and Mobile)
+
+To create a Distance expense using odometer readings:
+
+1. Select the **➕ Create** button and select **Track distance**.
+2. Select **Odometer** from the top row.
+3. Enter the **Start reading** and **End reading** from your vehicle's odometer.
+4. (Optional) Add a photo of your odometer at the start and end of your trip as proof.
+5. Select **Next**.
+6. On the confirmation screen, review and confirm:
+   - Distance
+   - Amount
+   - Date
+   - (Optional) Add a description, category, tag, or receipt.
+7. Select **Create expense**.
+
+**Note:** You can also select **Save for later** to save odometer readings and complete the expense at a later time.
 
 ---
 

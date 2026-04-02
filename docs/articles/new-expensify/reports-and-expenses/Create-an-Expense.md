@@ -1,11 +1,11 @@
 ---
 title: Create an Expense
-description: Learn how to create and submit expenses in Expensify using SmartScan, manual entry, distance tracking, or time expenses.
-keywords: [create expense, submit expense, SmartScan, manual expense, distance expense, time expense, create time expense, log time, track hours, expense report, submit to workspace, submit to individual, split expense, scan receipts, bulk upload, GPS, GPS tracking, GPS mileage, Proofpoint, email forwarding, receipt forwarding]
-internalScope: Audience is submitters, approvers, and Workspace Admins. Covers how to create and submit expenses to a workspace or individual using SmartScan, manual entry, distance tracking, or Time expenses. Does not cover credit card import or Time Tracking
+description: Learn how to create and submit expenses in Expensify using SmartScan, manual entry, distance tracking, odometer readings, or time expenses.
+keywords: [create expense, submit expense, SmartScan, manual expense, distance expense, time expense, create time expense, log time, track hours, expense report, submit to workspace, submit to individual, split expense, scan receipts, bulk upload, GPS, GPS tracking, GPS mileage, odometer, odometer reading, Proofpoint, email forwarding, receipt forwarding]
+internalScope: Audience is submitters, approvers, and Workspace Admins. Covers how to create and submit expenses to a workspace or individual using SmartScan, manual entry, distance tracking, odometer readings, or Time expenses. Does not cover credit card import or Time Tracking
 ---
 
-You can create expenses in Expensify by scanning a receipt, entering details manually, tracking distance, or logging time. Once created, expenses can be submitted to either a workspace (for business reimbursement) or an individual (for personal repayment).
+You can create expenses in Expensify by scanning a receipt, entering details manually, tracking distance, recording odometer readings, or logging time. Once created, expenses can be submitted to either a workspace (for business reimbursement) or an individual (for personal repayment).
 
 ---
 
@@ -21,7 +21,7 @@ If you're submitting expenses for a personal payment, you can send them directly
 
 # How to create an expense 
 
-You can create an expense by scanning a receipt, entering details manually, or tracking distance. The steps below walk you through each method so you can quickly capture and submit expenses for reimbursement or record-keeping.
+You can create an expense by scanning a receipt, entering details manually, tracking distance, or recording odometer readings. The steps below walk you through each method so you can quickly capture and submit expenses for reimbursement or record-keeping.
 
 **Note:** When creating an expense, Workspace Merchant Rules set by your workspace may automatically apply categories, tags, descriptions, reimbursable status, billable status, and other fields based on the merchant name.
 
@@ -80,7 +80,16 @@ You can create an expense by scanning a receipt, entering details manually, or t
 6. Review the route summary, then tap **Next**.
 7. Review the expense details, then tap **Create expense**.
 
-For more details on all distance methods including manual entry, see [Distance Expenses](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Distance-Expenses).
+## How to create a Distance expense from an Odometer (Web and Mobile)
+
+1. Select the **➕ Create** button and select **Track distance**.
+2. Select **Odometer** from the top row.
+3. Enter the **Start reading** and **End reading** from your vehicle's odometer.
+4. (Optional) Add a photo of your odometer at the start and end of your trip.
+5. Select **Next**.
+6. Review the expense details, then select **Create expense**.
+
+For more details on all distance methods including manual entry and odometer readings, see [Distance Expenses](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Distance-Expenses).
 
 ---
 
