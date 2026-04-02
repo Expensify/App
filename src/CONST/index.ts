@@ -4236,7 +4236,7 @@ const CONST = {
             CAR_RENTALS: 'carRentals',
             DINING: 'dining',
             FUEL_AND_GAS: 'fuelAndGas',
-            GOVERNMENT_AND_NON_PROFITS: 'governmentAndNonProfits',
+            GOVERNMENT_AND_NON_PROFIT: 'governmentAndNonProfit',
             GROCERIES: 'groceries',
             GYMS_AND_FITNESS: 'gymsAndFitness',
             HEALTHCARE: 'healthcare',

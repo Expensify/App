@@ -6763,7 +6763,7 @@ const translations = {
                     [CONST.SPEND_RULES.CATEGORIES.CAR_RENTALS]: 'Car rentals',
                     [CONST.SPEND_RULES.CATEGORIES.DINING]: 'Dining',
                     [CONST.SPEND_RULES.CATEGORIES.FUEL_AND_GAS]: 'Fuel and gas',
-                    [CONST.SPEND_RULES.CATEGORIES.GOVERNMENT_AND_NON_PROFITS]: 'Government and non-profits',
+                    [CONST.SPEND_RULES.CATEGORIES.GOVERNMENT_AND_NON_PROFIT]: 'Government and non-profits',
                     [CONST.SPEND_RULES.CATEGORIES.GROCERIES]: 'Groceries',
                     [CONST.SPEND_RULES.CATEGORIES.GYMS_AND_FITNESS]: 'Gyms and fitness',
                     [CONST.SPEND_RULES.CATEGORIES.HEALTHCARE]: 'Healthcare',
