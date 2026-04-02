@@ -173,7 +173,7 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
             <View style={[styles.flexRow, styles.gap2, styles.alignItemsStart]}>
                 <Badge
                     text={blockLabel}
-                    badgeStyles={[styles.ml0]}
+                    badgeStyles={[styles.ml0, styles.justifyContentCenter, StyleUtils.getMinimumWidth(40)]}
                     error
                     isCondensed
                 />
@@ -230,7 +230,7 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
                                 >
                                     <Badge
                                         text={part.badgeLabel}
-                                        badgeStyles={[styles.ml0, styles.justifyContentCenter]}
+                                        badgeStyles={[styles.ml0, styles.justifyContentCenter, StyleUtils.getMinimumWidth(40)]}
                                         error={!part.isNeutral && rule.isBlock}
                                         success={!part.isNeutral && !rule.isBlock}
                                         isCondensed
