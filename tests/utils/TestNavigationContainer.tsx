@@ -10,6 +10,7 @@ import type {
     RightModalNavigatorParamList,
     SearchFullscreenNavigatorParamList,
     SettingsSplitNavigatorParamList,
+    WorkspaceNavigatorParamList,
     WorkspaceSplitNavigatorParamList,
 } from '@libs/Navigation/types';
 import createPlatformStackNavigator from '@navigation/PlatformStackNavigation/createPlatformStackNavigator';
@@ -22,6 +23,7 @@ const ReportsSplit = createSplitNavigator<ReportsSplitNavigatorParamList>();
 const SettingsSplit = createSplitNavigator<SettingsSplitNavigatorParamList>();
 const SearchStack = createPlatformStackNavigator<SearchFullscreenNavigatorParamList>();
 const WorkspaceSplit = createSplitNavigator<WorkspaceSplitNavigatorParamList>();
+const WorkspaceStack = createPlatformStackNavigator<WorkspaceNavigatorParamList>();
 const RightModalNavigatorStack = createSplitNavigator<RightModalNavigatorParamList>();
 
 const getEmptyComponent = () => jest.fn();
@@ -60,6 +62,21 @@ function TestWorkspaceSplitNavigator() {
                 getComponent={getEmptyComponent}
             />
         </WorkspaceSplit.Navigator>
+    );
+}
+
+function TestWorkspaceNavigator() {
+    return (
+        <WorkspaceStack.Navigator>
+            <WorkspaceStack.Screen
+                name={SCREENS.WORKSPACES_LIST}
+                component={getEmptyComponent()}
+            />
+            <WorkspaceStack.Screen
+                name={NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR}
+                component={TestWorkspaceSplitNavigator}
+            />
+        </WorkspaceStack.Navigator>
     );
 }
 
@@ -154,8 +171,8 @@ function TestNavigationContainer({initialState}: TestNavigationContainerProps) {
                     component={TestSettingsSplitNavigator}
                 />
                 <RootStack.Screen
-                    name={NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR}
-                    component={TestWorkspaceSplitNavigator}
+                    name={NAVIGATORS.WORKSPACE_NAVIGATOR}
+                    component={TestWorkspaceNavigator}
                 />
                 <RootStack.Screen
                     name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
