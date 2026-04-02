@@ -266,16 +266,16 @@ function WorkspacesListPage() {
             return;
         }
 
-        leaveWorkspace(currentUserPersonalDetails.accountID, policyToLeave);
+        leaveWorkspace(currentUserPersonalDetails.accountID, currentUserPersonalDetails?.email ?? '', policyToLeave);
         setIsLeaveModalOpen(false);
     };
 
     const confirmModalPrompt = () => {
         const exporters = getConnectionExporters(policyToLeave);
+        const userEmail = currentUserPersonalDetails?.email ?? '';
         const policyOwnerDisplayName = personalDetails?.[policyToLeave?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.displayName ?? '';
         const technicalContact = policyToLeave?.technicalContact;
-        const isCurrentUserReimburser = isUserReimburserForPolicy(policies, policyIDToLeave, session?.email);
-        const userEmail = session?.email ?? '';
+        const isCurrentUserReimburser = isUserReimburserForPolicy(policies, policyIDToLeave, userEmail);
         const isApprover = isPolicyApprover(policyToLeave, userEmail);
 
         if (isCurrentUserReimburser) {
