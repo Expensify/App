@@ -13345,7 +13345,7 @@ describe('ReportUtils', () => {
                 actorAccountID: currentUserAccountID,
                 childReportID,
             };
-    
+
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`, {
                 ...LHNTestUtils.getFakeReport([currentUserAccountID]),
                 reportID: childReportID,
@@ -13354,7 +13354,7 @@ describe('ReportUtils', () => {
                 },
             });
             await waitForBatchedUpdates();
-    
+
             expect(getChildReportNotificationPreference(reportAction)).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
         });
     });
