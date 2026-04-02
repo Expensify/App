@@ -9179,6 +9179,7 @@ const CONST = {
             },
             RULES: {
                 INDIVIDUAL_EXPENSES_MENU_ITEM: 'WorkspaceRules-IndividualExpensesMenuItem',
+                SPEND_RULE_ITEM: 'WorkspaceRules-SpendRuleItem',
                 MERCHANT_RULE_ITEM: 'WorkspaceRules-MerchantRuleItem',
                 ADD_MERCHANT_RULE: 'WorkspaceRules-AddMerchantRule',
                 MERCHANT_RULE_SECTION_ITEM: 'WorkspaceRules-MerchantRuleSectionItem',
