@@ -9,7 +9,7 @@ import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import usePrevious from '@hooks/usePrevious';
 // eslint-disable-next-line @dword-design/import-alias/prefer-alias
-import {doesReportContainRequestsFromMultipleUsers, getReportOrDraftReport, isThread} from '@libs/ReportUtils';
+import {doesReportContainRequestsFromMultipleUsers, getReportOrDraftReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
