@@ -14,7 +14,6 @@ import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {close} from '@libs/actions/Modal';
 import {openSearchCardFiltersPage} from '@libs/actions/Search';
@@ -39,11 +38,10 @@ type FilterItem = WithSentryLabel & {
     PopoverComponent: (props: PopoverComponentProps) => ReactNode;
 };
 
-type UseSearchActionsBarResult = {
+type UseSearchFiltersBarResult = {
     filters: Array<SearchFilter & FilterItem>;
     hasErrors: boolean;
-    shouldShowActionsBarLoading: boolean;
-    shouldShowSelectedDropdown: boolean;
+    shouldShowFiltersBarLoading: boolean;
     queryJSON: SearchQueryJSON;
     styles: ReturnType<typeof useThemeStyles>;
     translate: ReturnType<typeof useLocalize>['translate'];
@@ -186,21 +184,16 @@ function makeDateFilterItem(
     };
 }
 
-function useSearchActionsBar(queryJSON: SearchQueryJSON): UseSearchActionsBarResult {
+function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarResult {
     const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const type = queryJSON.type;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const {isOffline} = useNetwork();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {selectedTransactions, shouldShowActionsBarLoading, currentSearchResults} = useSearchStateContext();
-
-    const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
+    const {shouldShowFiltersBarLoading, currentSearchResults} = useSearchStateContext();
 
     const hasErrors = Object.keys(currentSearchResults?.errors ?? {}).length > 0 && !isOffline;
-    const hasSelectedItems = selectedTransactionsKeys.length > 0;
-    const shouldShowSelectedDropdown = hasSelectedItems && !shouldUseNarrowLayout;
 
     const updateFilterForm = (values: Partial<SearchAdvancedFiltersForm>) => {
         const updatedFilterFormValues: Partial<SearchAdvancedFiltersForm> = {
@@ -366,14 +359,13 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON): UseSearchActionsBarRes
     return {
         filters,
         hasErrors,
-        shouldShowActionsBarLoading,
-        shouldShowSelectedDropdown,
+        shouldShowFiltersBarLoading,
         queryJSON,
         styles,
         translate,
     };
 }
 
-export default useSearchActionsBar;
+export default useSearchFiltersBar;
 export type {FilterItem};
 export {typeOptionsPoliciesSelector};

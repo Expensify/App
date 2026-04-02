@@ -2,13 +2,11 @@ import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {SearchQueryJSON} from '@components/Search/types';
-import SearchActionsSkeleton from '@components/Skeletons/SearchActionsSkeleton';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import useThemeStyles from '@hooks/useThemeStyles';
 import type {SearchResults} from '@src/types/onyx';
 import SearchAdvancedFiltersButton from './SearchAdvancedFiltersButton';
 import SearchDisplayDropdownButton from './SearchDisplayDropdownButton';
 import SearchSaveButton from './SearchSaveButton';
-import useSearchActionsBar from './useSearchActionsBar';
 
 type SearchActionsBarNarrowProps = {
     queryJSON: SearchQueryJSON;
@@ -17,24 +15,7 @@ type SearchActionsBarNarrowProps = {
 };
 
 function SearchActionsBarNarrow({queryJSON, searchResults, onSort}: SearchActionsBarNarrowProps) {
-    const {hasErrors, shouldShowActionsBarLoading, styles} = useSearchActionsBar(queryJSON);
-
-    if (hasErrors) {
-        return null;
-    }
-
-    if (shouldShowActionsBarLoading) {
-        const skeletonReasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'SearchActionsBarNarrow',
-            shouldShowActionsBarLoading,
-        };
-        return (
-            <SearchActionsSkeleton
-                shouldAnimate
-                reasonAttributes={skeletonReasonAttributes}
-            />
-        );
-    }
+    const styles = useThemeStyles();
 
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.mr5, styles.mb4]}>

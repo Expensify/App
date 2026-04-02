@@ -16,6 +16,7 @@ import {useSearchActionsContext, useSearchStateContext} from '@components/Search
 import SearchLoadingSkeleton from '@components/Search/SearchLoadingSkeleton';
 import SearchPageFooter from '@components/Search/SearchPageFooter';
 import SearchActionsBarNarrow from '@components/Search/SearchPageHeader/SearchActionsBarNarrow';
+import SearchFiltersBarNarrow from '@components/Search/SearchPageHeader/SearchFiltersBarNarrow';
 import SearchPageHeaderNarrow from '@components/Search/SearchPageHeader/SearchPageHeaderNarrow';
 import SearchPageInputNarrow from '@components/Search/SearchPageHeader/SearchPageInputNarrow';
 import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
@@ -231,6 +232,7 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
                                             />
                                         )}
                                     </View>
+                                    {!searchRouterListVisible && <SearchFiltersBarNarrow queryJSON={queryJSON} />}
                                 </Animated.View>
                             </View>
                         </View>
