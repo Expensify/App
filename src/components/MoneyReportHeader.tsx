@@ -2313,8 +2313,9 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                 onClose={() => setIsDownloadErrorModalVisible(false)}
             />
             <MoneyReportHeaderEducationalModals
+                requestParentReportAction={requestParentReportAction}
+                transaction={transaction}
                 reportID={moneyRequestReport?.reportID}
-                transactionThreadReportID={transactionThreadReportID}
                 isHoldEducationalVisible={isHoldEducationalModalVisible}
                 rejectModalAction={rejectModalAction}
                 onHoldEducationalDismissed={() => setIsHoldEducationalModalVisible(false)}

@@ -1,12 +1,10 @@
 import {shouldFailAllRequestsSelector} from '@selectors/Network';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import {setNameValuePair} from '@libs/actions/User';
-import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
-import {getFilteredReportActionsForReportView, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {changeMoneyRequestHoldStatus, rejectMoneyRequestReason} from '@libs/ReportUtils';
 import {dismissRejectUseExplanation} from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -21,8 +19,9 @@ type RejectModalAction = ValueOf<
 >;
 
 type MoneyReportHeaderEducationalModalsProps = {
+    requestParentReportAction: OnyxTypes.ReportAction | null | undefined;
+    transaction: OnyxEntry<OnyxTypes.Transaction>;
     reportID: string | undefined;
-    transactionThreadReportID: string | undefined;
     isHoldEducationalVisible: boolean;
     rejectModalAction: RejectModalAction | null;
     onHoldEducationalDismissed: () => void;
@@ -30,8 +29,9 @@ type MoneyReportHeaderEducationalModalsProps = {
 };
 
 function MoneyReportHeaderEducationalModals({
+    requestParentReportAction,
+    transaction,
     reportID,
-    transactionThreadReportID,
     isHoldEducationalVisible,
     rejectModalAction,
     onHoldEducationalDismissed,
@@ -39,18 +39,6 @@ function MoneyReportHeaderEducationalModals({
 }: MoneyReportHeaderEducationalModalsProps) {
     const {isOffline} = useNetwork();
     const [shouldFailAllRequests] = useOnyx(ONYXKEYS.NETWORK, {selector: shouldFailAllRequestsSelector});
-
-    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
-    const {reportActions: unfilteredReportActions} = usePaginatedReportActions(reportID);
-    const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
-
-    const requestParentReportAction =
-        reportActions && transactionThreadReport?.parentReportActionID
-            ? reportActions.find((action): action is OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => action.reportActionID === transactionThreadReport.parentReportActionID)
-            : null;
-
-    const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
 
     const dismissModalAndUpdateUseHold = () => {
         onHoldEducationalDismissed();
