@@ -593,18 +593,20 @@ function useSelectionModeReportActions({
     const hasActualPaymentOptions = paymentButtonOptions.some((opt) => Object.values(CONST.IOU.PAYMENT_TYPE).some((type) => type === opt.value));
     const hasPayInSelectionMode = allExpensesSelected && hasPayAction && hasActualPaymentOptions && isSelectionModeReportActionsEnabled;
 
-    const [paymentSubMenuItems, setPaymentSubMenuItems] = useState<PopoverMenuItem[]>([]);
-
+    const handleWorkspaceSelectedRef = useRef<(wp: OnyxTypes.Policy) => void>(() => {});
     useEffect(() => {
-        setPaymentSubMenuItems(
-            buildPaymentSubMenuItems((wp) => {
-                if (checkForNecessaryAction()) {
-                    return;
-                }
-                kycWallRef.current?.continueAction?.({policy: wp});
-            }),
-        );
-    }, [buildPaymentSubMenuItems, checkForNecessaryAction, kycWallRef]);
+        handleWorkspaceSelectedRef.current = (wp: OnyxTypes.Policy) => {
+            if (checkForNecessaryAction()) {
+                return;
+            }
+            kycWallRef.current?.continueAction?.({policy: wp});
+        };
+    }, [checkForNecessaryAction, kycWallRef]);
+
+    const stableHandleWorkspaceSelected = useCallback((wp: OnyxTypes.Policy) => handleWorkspaceSelectedRef.current(wp), []);
+
+    // eslint-disable-next-line react-hooks/refs -- stableHandleWorkspaceSelected reads a ref only when invoked at event time, not during render
+    const paymentSubMenuItems = useMemo(() => buildPaymentSubMenuItems(stableHandleWorkspaceSelected), [buildPaymentSubMenuItems, stableHandleWorkspaceSelected]);
 
     const selectionModeReportLevelActions = useMemo(() => {
         if (!isSelectionModeReportActionsEnabled) {
