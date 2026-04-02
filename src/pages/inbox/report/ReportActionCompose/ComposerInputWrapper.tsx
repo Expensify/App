@@ -3,13 +3,16 @@ import type {MeasureInWindowOnSuccessCallback} from 'react-native';
 import useIsScrollLikelyLayoutTriggered from '@hooks/useIsScrollLikelyLayoutTriggered';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import FS from '@libs/Fullstory';
 import {chatIncludesChronos, chatIncludesConcierge} from '@libs/ReportUtils';
 import {isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
+import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {useComposerActions, useComposerMetaActions, useComposerMetaState, useComposerSendState, useComposerState} from './ComposerContext';
+import {useComposerActions, useComposerMeta, useComposerSendActions, useComposerSendState, useComposerState} from './ComposerContext';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
+import useComposerSubmit from './useComposerSubmit';
 
 type ComposerInputWrapperProps = {
     reportID: string;
@@ -17,11 +20,16 @@ type ComposerInputWrapperProps = {
 
 function ComposerInputWrapper({reportID}: ComposerInputWrapperProps) {
     const {translate} = useLocalize();
-    const {isComposerFullSize, isMenuVisible} = useComposerState();
-    const {isBlockedFromConcierge} = useComposerSendState();
-    const {setIsFullComposerAvailable, handleSendMessage, onValueChange} = useComposerActions();
-    const {containerRef, suggestionsRef, isNextModalWillOpenRef, shouldShowComposeInput, userBlockedFromConcierge} = useComposerMetaState();
-    const {onBlur, onFocus, submitForm, validateAttachments, setComposerRef} = useComposerMetaActions();
+    const {isMenuVisible} = useComposerState();
+    const {isBlockedFromConcierge, validateAttachments} = useComposerSendState();
+    const {setIsFullComposerAvailable, onBlur, onFocus, setComposerRef} = useComposerActions();
+    const {handleSendMessage, onValueChange} = useComposerSendActions();
+    const {containerRef, suggestionsRef, isNextModalWillOpenRef, attachmentFileRef} = useComposerMeta();
+
+    const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
+    const [shouldShowComposeInput = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT);
+    const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
+    const userBlockedFromConcierge = isBlockedFromConciergeUserAction(blockedFromConcierge);
 
     const measureContainer = (callback: MeasureInWindowOnSuccessCallback) => {
         containerRef.current?.measureInWindow(callback);
@@ -30,6 +38,7 @@ function ComposerInputWrapper({reportID}: ComposerInputWrapperProps) {
     const {isScrollLayoutTriggered, raiseIsScrollLayoutTriggered} = useIsScrollLikelyLayoutTriggered();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const {submitForm} = useComposerSubmit({report, reportID, attachmentFileRef});
 
     const includesConcierge = chatIncludesConcierge({participants: report?.participants});
     const isGroupPolicyReport = !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE;

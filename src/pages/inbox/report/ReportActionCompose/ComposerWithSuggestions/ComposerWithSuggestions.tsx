@@ -48,7 +48,7 @@ import {isValidReportIDFromPath, shouldAutoFocusOnKeyPress} from '@libs/ReportUt
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import type {SuggestionsRef} from '@pages/inbox/report/ReportActionCompose/ComposerContext';
-import {useComposerActions, useComposerValue} from '@pages/inbox/report/ReportActionCompose/ComposerContext';
+import {useComposerActions, useComposerText} from '@pages/inbox/report/ReportActionCompose/ComposerContext';
 import getCursorPosition from '@pages/inbox/report/ReportActionCompose/getCursorPosition';
 import getScrollPosition from '@pages/inbox/report/ReportActionCompose/getScrollPosition';
 import SilentCommentUpdater from '@pages/inbox/report/ReportActionCompose/SilentCommentUpdater';
@@ -253,7 +253,7 @@ function ComposerWithSuggestions({
     const mobileInputScrollPosition = useRef(0);
     const cursorPositionValue = useSharedValue({x: 0, y: 0});
     const tag = useSharedValue(-1);
-    const value = useComposerValue();
+    const value = useComposerText();
     const {setValue} = useComposerActions();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
