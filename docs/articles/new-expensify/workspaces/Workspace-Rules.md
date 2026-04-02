@@ -1,8 +1,8 @@
 ---
 title: Workspace Rules
 description: Configure and manage rules for your workspace to enforce expense policies and automate compliance.
-keywords: [New Expensify, workspace rules, expense rules, receipt requirements, category rules, self-approvals, prohibited expenses, disable Smartscan, automate expenses, subscription expense, non-reimbursable, default expense handling, control expenses, expense categorization, rule-based expenses, compliance, itemized receipt, itemized receipts required over, merchant rules, workspace merchant rules, auto-categorize by merchant]
-internalScope: Audience is Workspace Admins on the Control plan. Covers enabling and managing workspace-level rules such as expense rules, prohibited expenses, category rules, tag rules, and report rules. Does not cover personal expense rules, Workspace Merchant Rules setup details, or troubleshooting specific rule outcomes.
+keywords: [New Expensify, workspace rules, expense rules, receipt requirements, category rules, self-approvals, prohibited expenses, disable Smartscan, automate expenses, subscription expense, non-reimbursable, default expense handling, control expenses, expense categorization, rule-based expenses, compliance, itemized receipt, itemized receipts required over, merchant rules, workspace merchant rules, auto-categorize by merchant, spend rules, Expensify Card rules, card protection, block transactions]
+internalScope: Audience is Workspace Admins on the Control plan. Covers enabling and managing workspace-level rules such as expense rules, prohibited expenses, category rules, tag rules, report rules, and spend rules. Does not cover personal expense rules, Workspace Merchant Rules setup details, or troubleshooting specific rule outcomes.
 ---
 
 # Workspace Rules 
@@ -85,7 +85,31 @@ To enable it:
 
 ---
 
-# How to configure Expense Report rules
+## How Expensify Card spend rules work
+
+The **Spend** section appears on the Rules page when Expensify Cards are enabled for the workspace. Spend rules approve or decline Expensify Card transactions in realtime.
+
+By default, Expensify Cards include built-in protection that automatically blocks transactions in these categories:
+
+- Adult services
+- ATMs
+- Gambling
+- Money transfers
+
+To view the default spend rules:
+
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
+2. Click your **workspace name**.
+3. Click **Rules**.
+4. Scroll to the **Spend** section.
+5. Click the **All cards** rule to view which categories are blocked.
+6. Click **Got it** to dismiss the modal.
+
+**Note:** The **Spend** section only appears when Expensify Cards are enabled for the workspace. These built-in protections are always active and cannot be disabled.
+
+---
+
+## How to configure Expense Report rules
 
 Use these settings to control how entire reports are named, routed, and approved.
 
