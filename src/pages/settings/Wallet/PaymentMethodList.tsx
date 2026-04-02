@@ -21,7 +21,6 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
 import {
     getAssignedCardSortKey,
     getCardFeedIcon,
@@ -456,8 +455,6 @@ function PaymentMethodList({
                 methodID: paymentMethod.methodID,
                 description: paymentMethod.description,
             };
-            const isMissingPersonalInfo = isPersonalBankAccountMissingInfo(paymentMethod.accountData);
-
             return {
                 ...paymentMethod,
                 title: paymentMethod.title?.includes(CONST.MASKED_PAN_PREFIX) ? paymentMethod.accountData?.additionalData?.bankName : paymentMethod.title,
@@ -478,7 +475,6 @@ function PaymentMethodList({
                 iconRight: itemIconRight ?? expensifyIcons.ThreeDots,
                 shouldShowRightIcon,
                 canDismissError: true,
-                isMissingPersonalInfo,
             };
         });
         return combinedPaymentMethods;
