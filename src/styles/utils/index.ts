@@ -1798,13 +1798,17 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         ...(isLastItem ? styles.searchTableBottomRadius : {}),
     }),
 
-    getSearchTableRowPressableStyle: (isLastItem?: boolean, isSelected?: boolean): ViewStyle => ({
+    getSearchTableRowPressableStyle: (isLastItem?: boolean, isSelected?: boolean, padding?: {vertical?: number; horizontal?: number}): ViewStyle => ({
         minHeight: variables.tableRowHeight,
         borderRadius: 0,
         borderBottomWidth: isLastItem ? 0 : 1,
         borderColor: isSelected ? theme.buttonHoveredBG : theme.border,
         ...(isLastItem ? styles.searchTableBottomRadius : {}),
+        ...(padding?.vertical !== undefined && {paddingVertical: padding.vertical}),
+        ...(padding?.horizontal !== undefined && {paddingHorizontal: padding.horizontal}),
     }),
+
+    getSearchTableHighlightBorderRadius: (isLargeScreenWidth: boolean): number => (isLargeScreenWidth ? 0 : variables.componentBorderRadius),
 
     getReportTableColumnStyles: (
         columnName: string,

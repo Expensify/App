@@ -8,6 +8,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import variables from '@styles/variables';
 import BaseListItem from './BaseListItem';
 import type {ListItem, TableListItemProps} from './types';
 
@@ -46,11 +47,7 @@ function TableListItem<TItem extends ListItem>({
     const hoveredBackgroundColor = styles.sidebarLinkHover?.backgroundColor ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
 
     const compactRowStyle = isLargeScreenWidth
-        ? {
-              ...StyleUtils.getSearchTableRowPressableStyle(!!isLastItem, !!item.isSelected),
-              paddingVertical: 8,
-              paddingHorizontal: 12,
-          }
+        ? StyleUtils.getSearchTableRowPressableStyle(!!isLastItem, !!item.isSelected, {vertical: variables.tableRowPaddingVertical, horizontal: variables.tableRowPaddingHorizontal})
         : {};
     const handleCheckboxPress = () => {
         if (onCheckboxPress) {

@@ -172,8 +172,10 @@ function TransactionGroupListItem<TItem extends ListItem>({
         });
     };
 
+    const StyleUtils = useStyleUtils();
+
     const animatedHighlightStyle = useAnimatedHighlightStyle({
-        borderRadius: isLargeScreenWidth ? 0 : variables.componentBorderRadius,
+        borderRadius: StyleUtils.getSearchTableHighlightBorderRadius(isLargeScreenWidth),
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.highlightBG,
@@ -186,13 +188,11 @@ function TransactionGroupListItem<TItem extends ListItem>({
         isLargeScreenWidth && {
             ...styles.searchTableRowHeight,
             borderRadius: 0,
-            paddingVertical: 4,
+            paddingVertical: variables.tableGroupRowPaddingVertical,
             ...(isLastItem ? styles.searchTableBottomRadius : {}),
         },
         isItemSelected && styles.activeComponentBG,
     ];
-
-    const StyleUtils = useStyleUtils();
     const pressableRef = useRef<View>(null);
 
     useEffect(() => {

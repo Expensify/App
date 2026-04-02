@@ -173,10 +173,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             item.isSelected && styles.activeComponentBG,
             styles.mh0,
             isPendingDelete && styles.cursorDisabled,
-            isLargeScreenWidth && {
-                ...StyleUtils.getSearchTableRowPressableStyle(!!isLastItem, item.isSelected),
-                paddingVertical: 8,
-            },
+            isLargeScreenWidth && StyleUtils.getSearchTableRowPressableStyle(!!isLastItem, item.isSelected, {vertical: variables.tableRowPaddingVertical}),
         ],
         [styles, item.isSelected, isLargeScreenWidth, isLastItem, isPendingDelete, StyleUtils],
     );
@@ -191,7 +188,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     );
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
-        borderRadius: isLargeScreenWidth ? 0 : variables.componentBorderRadius,
+        borderRadius: StyleUtils.getSearchTableHighlightBorderRadius(isLargeScreenWidth),
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.highlightBG,

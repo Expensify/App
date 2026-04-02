@@ -41,10 +41,7 @@ function TaskListItem<TItem extends ListItem>({
         styles.bgTransparent,
         item.isSelected && styles.activeComponentBG,
         styles.mh0,
-        isLargeScreenWidth && {
-            ...StyleUtils.getSearchTableRowPressableStyle(!!isLastItem, item.isSelected),
-            paddingVertical: 8,
-        },
+        isLargeScreenWidth && StyleUtils.getSearchTableRowPressableStyle(!!isLastItem, item.isSelected, {vertical: variables.tableRowPaddingVertical}),
     ];
 
     const listItemWrapperStyle = [
@@ -54,7 +51,7 @@ function TaskListItem<TItem extends ListItem>({
     ];
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
-        borderRadius: isLargeScreenWidth ? 0 : variables.componentBorderRadius,
+        borderRadius: StyleUtils.getSearchTableHighlightBorderRadius(isLargeScreenWidth),
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.highlightBG,
