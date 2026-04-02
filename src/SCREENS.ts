@@ -737,7 +737,7 @@ const SCREENS = {
         TAXES_SETTINGS_WORKSPACE_CURRENCY_DEFAULT: 'Workspace_Taxes_Settings_WorkspaceCurrency',
         TAXES_SETTINGS_FOREIGN_CURRENCY_DEFAULT: 'Workspace_Taxes_Settings_ForeignCurrency',
         TAX_CREATE: 'Workspace_Tax_Create',
-        TAG_CREATE: 'Tag_Create',
+        DYNAMIC_TAG_CREATE: 'Dynamic_Tag_Create',
         TAG_SETTINGS: 'Tag_Settings',
         TAG_APPROVER: 'Tag_Approver',
         TAG_LIST_VIEW: 'Tag_List_View',

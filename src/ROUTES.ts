@@ -171,6 +171,10 @@ const DYNAMIC_ROUTES = {
             }),
         queryParams: ['fieldName', 'fieldValue', 'policyID'],
     },
+    WORKSPACE_TAG_CREATE: {
+        path: 'workspace-tag-create',
+        entryScreens: [SCREENS.WORKSPACE.TAGS, SCREENS.WORKSPACE.TAG_SETTINGS],
+    },
 } as const satisfies DynamicRoutes;
 
 const ROUTES = {
@@ -2296,10 +2300,6 @@ const ROUTES = {
             }
             return `workspaces/${policyID}/tags` as const;
         },
-    },
-    WORKSPACE_TAG_CREATE: {
-        route: 'workspaces/:policyID/tags/new',
-        getRoute: (policyID: string) => `workspaces/${policyID}/tags/new` as const,
     },
     WORKSPACE_TAGS_SETTINGS: {
         route: 'workspaces/:policyID/tags/settings',

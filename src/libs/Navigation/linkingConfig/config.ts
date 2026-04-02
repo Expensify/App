@@ -1104,9 +1104,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.TAGS_IMPORTED_MULTI_LEVEL]: {
                             path: ROUTES.WORKSPACE_TAGS_IMPORTED_MULTI_LEVEL.route,
                         },
-                        [SCREENS.WORKSPACE.TAG_CREATE]: {
-                            path: ROUTES.WORKSPACE_TAG_CREATE.route,
-                        },
+                        [SCREENS.WORKSPACE.DYNAMIC_TAG_CREATE]: DYNAMIC_ROUTES.WORKSPACE_TAG_CREATE.path,
                         [SCREENS.WORKSPACE.TAG_EDIT]: {
                             path: ROUTES.WORKSPACE_TAG_EDIT.route,
                             parse: {
