@@ -658,6 +658,8 @@ type DuplicateExpenseTransactionParams = {
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     targetPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
+    shouldPlaySound?: boolean;
+    shouldDeferAutoSubmit?: boolean;
 };
 
 function duplicateExpenseTransaction({
@@ -680,6 +682,8 @@ function duplicateExpenseTransaction({
     personalDetails,
     recentWaypoints,
     targetPolicyTags,
+    shouldPlaySound = true,
+    shouldDeferAutoSubmit = false,
 }: DuplicateExpenseTransactionParams) {
     if (!transaction) {
         return;
@@ -707,6 +711,7 @@ function duplicateExpenseTransaction({
         action: CONST.IOU.ACTION.CREATE,
         transactionParams,
         shouldHandleNavigation: false,
+        shouldPlaySound,
         shouldGenerateTransactionThreadReport: true,
         isASAPSubmitBetaEnabled,
         currentUserAccountIDParam: userAccountID,
@@ -719,6 +724,7 @@ function duplicateExpenseTransaction({
         isSelfTourViewed,
         betas,
         personalDetails,
+        shouldDeferAutoSubmit,
     };
 
     // If no workspace is provided the expense should be unreported
@@ -986,7 +992,12 @@ function bulkDuplicateExpenses({
     // targetReport whose iouReportID is patched after the first pass.
     let currentTargetReport = targetReport;
 
-    for (const item of transactionsToDuplicate) {
+    for (let i = 0; i < transactionsToDuplicate.length; i++) {
+        const item = transactionsToDuplicate.at(i);
+        if (!item) {
+            continue;
+        }
+        const isLastExpense = i === transactionsToDuplicate.length - 1;
         const existingTransactionID = getExistingTransactionID(item.linkedTrackedExpenseReportAction);
         const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
 
@@ -1010,12 +1021,16 @@ function bulkDuplicateExpenses({
             personalDetails,
             recentWaypoints,
             targetPolicyTags,
+            shouldPlaySound: false,
+            shouldDeferAutoSubmit: !isLastExpense,
         });
 
         if (currentTargetReport && !currentTargetReport.iouReportID) {
             currentTargetReport = {...currentTargetReport, iouReportID: optimisticIOUReportID};
         }
     }
+
+    playSound(SOUNDS.DONE);
 }
 
 export {getIOUActionForTransactions, mergeDuplicates, resolveDuplicates, duplicateExpenseTransaction, bulkDuplicateExpenses, duplicateReport};

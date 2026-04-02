@@ -204,9 +204,9 @@ function useSelectedTransactionsActions({
     const setDuplicateHandler = useCallback((handler: () => void) => {
         duplicateHandlerRef.current = handler;
     }, []);
-    const invokeDuplicateHandler = () => {
+    const invokeDuplicateHandler = useCallback(() => {
         duplicateHandlerRef.current();
-    };
+    }, []);
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const isTrackExpenseThread = isTrackExpenseReport(report);
