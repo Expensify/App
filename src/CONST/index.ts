@@ -226,6 +226,12 @@ const CONST = {
     ANIMATED_PROGRESS_BAR_DELAY: 300,
     ANIMATED_PROGRESS_BAR_OPACITY_DURATION: 300,
     ANIMATED_PROGRESS_BAR_DURATION: 750,
+    PULSE_ANIMATION: {
+        FADE_OUT_DURATION: 400,
+        FADE_IN_DURATION: 350,
+        PAUSE_DURATION: 250,
+        RECOVERY_DURATION: 150,
+    },
     ANIMATION_IN_TIMING: 100,
     COMPOSER_FOCUS_DELAY: 150,
     ANIMATION_DIRECTION: {
@@ -9179,6 +9185,7 @@ const CONST = {
             },
             RULES: {
                 INDIVIDUAL_EXPENSES_MENU_ITEM: 'WorkspaceRules-IndividualExpensesMenuItem',
+                SPEND_RULE_ITEM: 'WorkspaceRules-SpendRuleItem',
                 MERCHANT_RULE_ITEM: 'WorkspaceRules-MerchantRuleItem',
                 ADD_MERCHANT_RULE: 'WorkspaceRules-AddMerchantRule',
                 MERCHANT_RULE_SECTION_ITEM: 'WorkspaceRules-MerchantRuleSectionItem',
