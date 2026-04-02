@@ -22,6 +22,8 @@ function TabSelectorBase({
     tabs,
     activeTabKey,
     onTabPress = () => {},
+    onLongTabPress,
+    onActiveTabPress = () => {},
     position,
     shouldShowLabelWhenInactive = true,
     equalWidth = false,
@@ -96,9 +98,9 @@ function TabSelectorBase({
 
                 const handlePress = () => {
                     if (isActive) {
+                        onActiveTabPress(tab.key);
                         return;
                     }
-
                     setAffectedAnimatedTabs([activeIndex, index]);
                     onTabPress(tab.key);
                 };
@@ -110,6 +112,7 @@ function TabSelectorBase({
                         icon={tab.icon}
                         title={tab.title}
                         onPress={handlePress}
+                        onLongPress={onLongTabPress ? () => onLongTabPress(tab.key) : undefined}
                         activeOpacity={activeOpacity}
                         inactiveOpacity={inactiveOpacity}
                         backgroundColor={backgroundColor}
@@ -120,6 +123,9 @@ function TabSelectorBase({
                         shouldShowProductTrainingTooltip={shouldShowProductTrainingTooltip}
                         renderProductTrainingTooltip={renderProductTrainingTooltip}
                         equalWidth={equalWidth}
+                        badgeText={tab.badgeText}
+                        pendingAction={tab.pendingAction}
+                        isDisabled={tab.isDisabled}
                     />
                 );
             })}

@@ -49,7 +49,8 @@ import ApprovedTransactionHand from '@assets/images/multifactorAuthentication/ap
 import DeniedTransactionHand from '@assets/images/multifactorAuthentication/denied-transaction-hand.svg';
 import EncryptionMan from '@assets/images/multifactorAuthentication/encryption-man.svg';
 import HumptyDumpty from '@assets/images/multifactorAuthentication/humpty-dumpty.svg';
-import MagnifyingGlassSpyMouthClosed from '@assets/images/multifactorAuthentication/magnifying-glass-spy-mouth-closed.svg';
+import MagnifyingGlassSpyMouthClosed from '@assets/images/multifactorAuthentication/magnifying-glass-spy-mouth-closed-cropped.svg';
+import OpenPadlockGreen from '@assets/images/multifactorAuthentication/open-padlock-green.svg';
 import OpenPadlock from '@assets/images/multifactorAuthentication/open-padlock.svg';
 import RunOutOfTime from '@assets/images/multifactorAuthentication/running-out-of-time.svg';
 import PendingTravel from '@assets/images/pending-travel.svg';
@@ -86,6 +87,7 @@ import TiltedCoinExpensify from '@assets/images/product-illustrations/tilted-coi
 import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cloud.svg';
 import ToddInCar from '@assets/images/product-illustrations/todd-in-car.svg';
 import ToddWithPhones from '@assets/images/product-illustrations/todd-with-phones.svg';
+import TopiaryDollarSign from '@assets/images/product-illustrations/topiary-dollar-sign.svg';
 import UpgradeRocket from '@assets/images/product-illustrations/upgrade-rocket.svg';
 import WorkspaceScene from '@assets/images/product-illustrations/workspace-scene.svg';
 import ReceiptStack from '@assets/images/receipt-upload.svg';
@@ -138,12 +140,14 @@ import HeadSet from '@assets/images/simple-illustrations/simple-illustration__he
 import Hourglass from '@assets/images/simple-illustrations/simple-illustration__hourglass.svg';
 import House from '@assets/images/simple-illustrations/simple-illustration__house.svg';
 import InvoiceBlue from '@assets/images/simple-illustrations/simple-illustration__invoice.svg';
+import LifeRing from '@assets/images/simple-illustrations/simple-illustration__lifering.svg';
 import Lightbulb from '@assets/images/simple-illustrations/simple-illustration__lightbulb.svg';
 import LockClosed from '@assets/images/simple-illustrations/simple-illustration__lockclosed.svg';
 import LockClosedOrange from '@assets/images/simple-illustrations/simple-illustration__lockclosed_orange.svg';
 import LockOpen from '@assets/images/simple-illustrations/simple-illustration__lockopen.svg';
 import Luggage from '@assets/images/simple-illustrations/simple-illustration__luggage.svg';
 import MagnifyingGlassMoney from '@assets/images/simple-illustrations/simple-illustration__magnifyingglass-money.svg';
+import MagnifyingGlassReceipt from '@assets/images/simple-illustrations/simple-illustration__magnifyingglass-receipt.svg';
 import Mailbox from '@assets/images/simple-illustrations/simple-illustration__mailbox.svg';
 import ExpensifyMobileApp from '@assets/images/simple-illustrations/simple-illustration__mobileapp.svg';
 import MoneyReceipts from '@assets/images/simple-illustrations/simple-illustration__money-receipts.svg';
@@ -191,7 +195,6 @@ import VerticalCreditCards from '@assets/images/simple-illustrations/simple-illu
 import VirtualCard from '@assets/images/simple-illustrations/simple-illustration__virtualcard.svg';
 import WalletAlt2 from '@assets/images/simple-illustrations/simple-illustration__wallet-alt2.svg';
 import Workflows from '@assets/images/simple-illustrations/simple-illustration__workflows.svg';
-import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
 import TravelCVV from '@assets/images/travel-cvv.svg';
 import TurtleInShell from '@assets/images/turtle-in-shell.svg';
 
@@ -276,6 +279,7 @@ const Illustrations = {
     ToddBehindCloud,
     ToddInCar,
     ToddWithPhones,
+    TopiaryDollarSign,
     WorkspaceScene,
     UpgradeRocket,
 
@@ -288,7 +292,6 @@ const Illustrations = {
     ReceiptStack,
     RunningTurtle,
     Shutter,
-    ExpensifyApprovedLogo,
     TravelCVV,
     TurtleInShell,
 
@@ -302,6 +305,7 @@ const Illustrations = {
     HandCard,
     InvoiceBlue,
     MagnifyingGlassMoney,
+    MagnifyingGlassReceipt,
     MoneyReceipts,
     MoneyWings,
     MoneyIntoWallet,
@@ -367,6 +371,7 @@ const Illustrations = {
     HeadSet,
     Hourglass,
     House,
+    LifeRing,
     Lightbulb,
     LockClosed,
     LockClosedOrange,
@@ -393,6 +398,7 @@ const Illustrations = {
     // Multifactor Authentication Illustrations
     MagnifyingGlassSpyMouthClosed,
     OpenPadlock,
+    OpenPadlockGreen,
     ApprovedTransactionHand,
     DeniedTransactionHand,
     RunOutOfTime,

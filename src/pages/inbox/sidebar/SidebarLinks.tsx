@@ -6,7 +6,6 @@ import type {ValueOf} from 'type-fest';
 import LHNOptionsList from '@components/LHNOptionsList/LHNOptionsList';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
-import useEnvironment from '@hooks/useEnvironment';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -37,7 +36,6 @@ type SidebarLinksProps = {
 };
 
 function SidebarLinks({insets, optionListItems, priorityMode = CONST.PRIORITY_MODE.DEFAULT, isActiveReport}: SidebarLinksProps) {
-    const {isProduction} = useEnvironment();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -73,9 +71,9 @@ function SidebarLinks({insets, optionListItems, priorityMode = CONST.PRIORITY_MO
                 cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${option.reportID}`);
                 return;
             }
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(option.reportID, isProduction ? undefined : option.actionTargetReportActionID));
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(option.reportID));
         },
-        [shouldUseNarrowLayout, isActiveReport, isProduction],
+        [shouldUseNarrowLayout, isActiveReport],
     );
 
     const viewMode = priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT;

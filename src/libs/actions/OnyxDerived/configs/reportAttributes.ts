@@ -1,6 +1,6 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {computeReportName} from '@libs/ReportNameUtils';
-import {generateIsEmptyReport, generateReportAttributes, isArchivedReport, isValidReport} from '@libs/ReportUtils';
+import {generateIsEmptyReport, generateReportAttributes, hasVisibleReportFieldViolations, isArchivedReport, isValidReport} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import {hasKeyTriggeredCompute} from '@userActions/OnyxDerived/utils';
@@ -23,6 +23,23 @@ const prepareReportKeys = (keys: string[]) => {
             ),
         ),
     ];
+};
+
+const hasPolicyRelevantFieldChanged = (prev: Policy | null | undefined, next: Policy | null | undefined): boolean => {
+    if (!prev && !next) {
+        return false;
+    }
+    if (!prev || !next) {
+        return true;
+    }
+    return (
+        prev.type !== next.type ||
+        prev.approvalMode !== next.approvalMode ||
+        prev.reimbursementChoice !== next.reimbursementChoice ||
+        prev.autoReimbursementLimit !== next.autoReimbursementLimit ||
+        prev.role !== next.role ||
+        prev.autoReimbursement?.limit !== next.autoReimbursement?.limit
+    );
 };
 
 const checkDisplayNamesChanged = (personalDetails: OnyxEntry<PersonalDetailsList>) => {
@@ -71,6 +88,7 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.COLLECTION.POLICY,
         ONYXKEYS.COLLECTION.POLICY_TAGS,
         ONYXKEYS.COLLECTION.REPORT_METADATA,
+        ONYXKEYS.CONCIERGE_REPORT_ID,
     ],
     compute: (
         [reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions, personalDetails, session, policies, policyTags],
@@ -92,12 +110,31 @@ export default createOnyxDerivedValueConfig({
         // A full recompute is needed when locale changes (report names are locale-dependent) or display names change.
         // We compare preferredLocale against currentValue?.locale so that the first locale load on startup
         // (where both equal the same persisted value) does not trigger an unnecessary full recompute.
-        let needsFullRecompute = (hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, sourceValues) && preferredLocale !== currentValue?.locale) || displayNamesChanged;
+        let needsFullRecompute =
+            (hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, sourceValues) && preferredLocale !== currentValue?.locale) ||
+            displayNamesChanged ||
+            hasKeyTriggeredCompute(ONYXKEYS.CONCIERGE_REPORT_ID, sourceValues);
 
         // if policies are loaded first time, we need to recompute all report attributes to get correct action badge in LHN, such as Approve because it depends on policy's type (see canApproveIOU function)
+        const policyChangedReportKeys: string[] = [];
         if (hasKeyTriggeredCompute(ONYXKEYS.COLLECTION.POLICY, sourceValues)) {
             if (Object.keys(previousPolicies ?? {}).length === 0 && Object.keys(policies ?? {}).length > 0) {
                 needsFullRecompute = true;
+            } else if (!needsFullRecompute) {
+                // Policy updated — only recompute reports whose relevant fields actually changed
+                const changedPolicyIDs = new Set<string>();
+                for (const key of Object.keys(sourceValues?.[ONYXKEYS.COLLECTION.POLICY] ?? {})) {
+                    if (hasPolicyRelevantFieldChanged(previousPolicies?.[key], policies?.[key])) {
+                        changedPolicyIDs.add(key.replace(ONYXKEYS.COLLECTION.POLICY, ''));
+                    }
+                }
+                if (changedPolicyIDs.size > 0) {
+                    for (const [reportKey, report] of Object.entries(reports ?? {})) {
+                        if (report?.policyID && changedPolicyIDs.has(report.policyID)) {
+                            policyChangedReportKeys.push(reportKey);
+                        }
+                    }
+                }
             }
             previousPolicies = policies;
         }
@@ -117,6 +154,8 @@ export default createOnyxDerivedValueConfig({
         const reportNameValuePairsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS] ?? {};
         const transactionsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION];
         const transactionViolationsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS];
+        const policyTagsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.POLICY_TAGS];
+
         let dataToIterate = Object.keys(reports);
         // check if there are any report-related updates
 
@@ -140,11 +179,12 @@ export default createOnyxDerivedValueConfig({
             ...Object.keys(reportActionsUpdates),
             ...Object.keys(reportNameValuePairsUpdates),
             ...Array.from(reportUpdatesRelatedToReportActions),
+            ...policyChangedReportKeys,
         ];
 
         if (useIncrementalUpdates) {
             // if there are report-related updates, iterate over the updates
-            if (updates.length > 0 || !!transactionsUpdates || !!transactionViolationsUpdates) {
+            if (updates.length > 0 || !!transactionsUpdates || !!transactionViolationsUpdates || !!policyTagsUpdates) {
                 if (updates.length > 0) {
                     dataToIterate = prepareReportKeys(updates);
 
@@ -183,6 +223,13 @@ export default createOnyxDerivedValueConfig({
                     }
                     dataToIterate.push(...prepareReportKeys(transactionReportIDs));
                 }
+                if (policyTagsUpdates) {
+                    const changedPolicyIDs = new Set(Object.keys(policyTagsUpdates).map((key) => key.replace(ONYXKEYS.COLLECTION.POLICY_TAGS, '')));
+                    const affectedReportKeys = Object.values(reports)
+                        .filter((report) => !!report?.policyID && changedPolicyIDs.has(report.policyID))
+                        .map((report) => `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`);
+                    dataToIterate.push(...prepareReportKeys(affectedReportKeys));
+                }
             } else {
                 // No updates to process, return current value to prevent unnecessary computation
                 return currentValue ?? {reports: {}, locale: null};
@@ -220,6 +267,9 @@ export default createOnyxDerivedValueConfig({
                 isReportArchived,
             });
 
+            const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+            const hasFieldViolations = hasVisibleReportFieldViolations(report, policy);
+
             let brickRoadStatus;
             let actionBadge;
             let actionTargetReportActionID;
@@ -227,7 +277,7 @@ export default createOnyxDerivedValueConfig({
                 report,
                 chatReport,
                 reportActionsList,
-                hasAnyViolations,
+                hasAnyViolations || hasFieldViolations,
                 reportErrors,
                 transactions,
                 transactionViolations,
@@ -304,3 +354,5 @@ export default createOnyxDerivedValueConfig({
         };
     },
 });
+
+export {hasPolicyRelevantFieldChanged};

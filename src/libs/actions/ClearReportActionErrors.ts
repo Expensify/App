@@ -1,6 +1,6 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import {getLinkedTransactionID, getReportAction, getReportActionMessage, isCreatedTaskReportAction} from '@libs/ReportActionsUtils';
+import {getLinkedTransactionID, getReportAction, getReportActionMessage, isCreatedTaskReportAction, isRejectedAction} from '@libs/ReportActionsUtils';
 import {getOriginalReportID} from '@libs/ReportUtils';
 import {buildOptimisticSnapshotData} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
@@ -41,9 +41,26 @@ function clearReportActionErrors(reportAction: ReportAction, originalReportID: s
         }
 
         // Delete the optimistic action
-        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`, {
-            [reportAction.reportActionID]: null,
-        });
+        const actionsToDelete: Record<string, null> = {[reportAction.reportActionID]: null};
+
+        // Also clean up any orphaned optimistic reject actions (REJECTED/REJECTED_TO_SUBMITTER)
+        // from the same report. When a rejection fails, the comment action gets the error but the
+        // corresponding reject action remains with pendingAction ADD and no errors.
+        const siblingActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`];
+        if (siblingActions) {
+            for (const [actionID, siblingAction] of Object.entries(siblingActions)) {
+                if (
+                    actionID !== reportAction.reportActionID &&
+                    siblingAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD &&
+                    isRejectedAction(siblingAction) &&
+                    !siblingAction.errors
+                ) {
+                    actionsToDelete[actionID] = null;
+                }
+            }
+        }
+
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`, actionsToDelete);
 
         // Delete the failed task report too
         const taskReportID = getReportActionMessage(reportAction)?.taskReportID;
@@ -51,11 +68,9 @@ function clearReportActionErrors(reportAction: ReportAction, originalReportID: s
             deleteReport(taskReportID);
         }
 
-        // Clear the chat snapshot entry for the failed optimistic action so it disappears from Reports > Chats.
+        // Clear the chat snapshot entries for the failed optimistic action(s) so they disappear from Reports > Chats.
         const snapshotDataToClear: Record<string, unknown> = {
-            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`]: {
-                [reportAction.reportActionID]: null,
-            },
+            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`]: actionsToDelete,
         };
         if (taskReportID && isCreatedTaskReportAction(reportAction)) {
             // If this is a failed optimistic task-create action, also remove the task report snapshot data so it disappears from Reports > Task when the user dismiss the error.

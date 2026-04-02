@@ -1,0 +1,141 @@
+import React, {useState} from 'react';
+import FormProvider from '@components/Form/FormProvider';
+import InputWrapper from '@components/Form/InputWrapper';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ScreenWrapper from '@components/ScreenWrapper';
+import useFilterFeedValue from '@components/Search/hooks/useFilterFeedValue';
+import useFilterFromValue from '@components/Search/hooks/useFilterFromValue';
+import useFilterWorkspaceValue from '@components/Search/hooks/useFilterWorkspaceValue';
+import {useSearchStateContext} from '@components/Search/SearchContext';
+import Text from '@components/Text';
+import TextInput from '@components/TextInput';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
+import {saveSearch} from '@libs/actions/Search';
+import Navigation from '@libs/Navigation/Navigation';
+import {mapFiltersFormToLabelValueList} from '@libs/SearchUIUtils';
+import type {SearchFilter} from '@libs/SearchUIUtils';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {SearchAdvancedFiltersForm} from '@src/types/form';
+import {FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
+import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
+import INPUT_IDS from '@src/types/form/SearchSaveForm';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
+
+type FilterValueProps = {
+    value: SearchFilter['value'];
+};
+
+type FilterValueWithKeyProps = FilterValueProps & {
+    filterKey: SearchAdvancedFiltersKey;
+};
+
+function FilterFromValue({value}: FilterValueProps) {
+    return useFilterFromValue(value);
+}
+
+function FilterWorkspaceValue({value}: FilterValueProps) {
+    return useFilterWorkspaceValue(value);
+}
+
+function FilterFeedValue({value}: FilterValueProps) {
+    return useFilterFeedValue(value);
+}
+
+function FilterValue({filterKey, value}: FilterValueWithKeyProps) {
+    if (filterKey === FILTER_KEYS.FROM) {
+        return <FilterFromValue value={value} />;
+    }
+
+    if (filterKey === FILTER_KEYS.POLICY_ID) {
+        return <FilterWorkspaceValue value={value} />;
+    }
+
+    if (filterKey === FILTER_KEYS.FEED) {
+        return <FilterFeedValue value={value} />;
+    }
+
+    return value;
+}
+
+function SearchSavePage() {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
+    const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const [name, setName] = useState('');
+
+    const {currentSearchQueryJSON} = useSearchStateContext();
+
+    const onSaveSearch = () => {
+        const savedSearchKeys = Object.keys(savedSearches ?? {});
+        if (!currentSearchQueryJSON || (savedSearches && savedSearchKeys.includes(String(currentSearchQueryJSON.hash)))) {
+            // If the search is already saved, we only display the results as we don't need to save it.
+            Navigation.goBack();
+            return;
+        }
+
+        if (name) {
+            saveSearch({queryJSON: currentSearchQueryJSON, newName: name});
+        } else {
+            saveSearch({queryJSON: currentSearchQueryJSON});
+        }
+        Navigation.goBack();
+    };
+
+    const appliedFilters = mapFiltersFormToLabelValueList(searchAdvancedFiltersForm, undefined, translate);
+
+    const {inputCallbackRef} = useAutoFocusInput();
+
+    return (
+        <ScreenWrapper
+            testID="SearchSavePage"
+            includeSafeAreaPaddingBottom
+        >
+            <HeaderWithBackButton title={translate('search.saveSearch')} />
+            <FormProvider
+                formID={ONYXKEYS.FORMS.SEARCH_SAVE_FORM}
+                submitButtonText={translate('search.saveSearch')}
+                onSubmit={onSaveSearch}
+                style={[styles.mh5, styles.flex1]}
+                enabledWhenOffline
+                shouldHideFixErrorsAlert
+                sentryLabel={CONST.SENTRY_LABEL.SEARCH.SAVE_SEARCH_BUTTON}
+            >
+                <InputWrapper
+                    InputComponent={TextInput}
+                    inputID={INPUT_IDS.NAME}
+                    ref={inputCallbackRef}
+                    value={name}
+                    onChangeText={setName}
+                    placeholder={translate('common.name')}
+                    accessibilityLabel={translate('common.name')}
+                    role={CONST.ROLE.PRESENTATION}
+                />
+                <Text style={[styles.textLabelSupporting, styles.mb2, styles.mt5]}>{translate('search.appliedFilters')}:</Text>
+                {appliedFilters.length > 0 ? (
+                    appliedFilters.map((filter) => (
+                        <Text
+                            key={filter.key}
+                            style={[styles.label]}
+                        >
+                            <Text style={[styles.label, styles.ph2]}>{CONST.DOT_SEPARATOR}</Text>
+                            <Text style={[styles.labelStrong]}>{filter.label}: </Text>
+                            <FilterValue
+                                filterKey={filter.key}
+                                value={filter.value}
+                            />
+                        </Text>
+                    ))
+                ) : (
+                    <Text>{translate('common.none')}</Text>
+                )}
+            </FormProvider>
+        </ScreenWrapper>
+    );
+}
+
+export default SearchSavePage;

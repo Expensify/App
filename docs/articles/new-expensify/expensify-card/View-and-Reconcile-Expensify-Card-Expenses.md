@@ -1,70 +1,68 @@
 ---
-title: Filter and Reconcile the Expensify Cards
-description: Learn how to reconcile Expensify Card transactions using filters and exports in New Expensify, with tips for both card and payment reconciliation.
-keywords: [New Expensify, Expensify Card reconciliation, card filters, export transactions, payment reconciliation, report filters, posted date, settlement matching]
+title: View and Reconcile Expensify Card Expenses
+description: Learn how to view, verify, and export Expensify Card expenses by matching settlement withdrawals to grouped transactions in Expensify.
+keywords: [New Expensify, Expensify Card reconciliation, reconcile Expensify Card withdrawals, view Expensify Card expenses, verify Expensify Card totals, export Expensify Card expenses, withdrawal-based reconciliation, Workspace Admin]
+internalScope: Audience is Workspace Admins reconciling Expensify Card activity. Covers the withdrawal-based reconciliation workflow under Reconciliation > Expensify Card. Does not cover company card statement matching, reimbursement reconciliation, or manual export-based reconciliation.
 ---
 
-Once employees use the Expensify Card, you can easily view and reconcile their transactions from the Reports page in New Expensify.
+# View and Reconcile Expensify Card Expenses
 
-
-# View Card Transactions by Employee or Company
-
-To view card transactions for a specific employee or for the entire company:
-
-1. Go to the **Reports** page.
-2. Click **Filters** in the top-right corner.
-3. Click **Card** to filter cards:
-   - Select a feed from **Card feeds** to view expenses from all cards in the feed.
-   - Select a card from **Individual cards** to view expenses from that card.
-
-This view allows you to review all transactions made on the Expensify Card, grouped by employee or feed.
+Expensify Card reconciliation helps you match each bank withdrawal (also known as a settlement) to the group of card expenses it covers. You can review and verify these withdrawals directly in Expensify. 
 
 ---
 
-# Export Card Transactions by Date
+## Who Can Reconcile Expensify Card Expenses
 
-You can export transactions from a specific date range to help with monthly reconciliations:
-
-1. From the **Reports** page, select **Expenses** in the left-hand-bar.
-2. Select **All** above the expenses list.
-3. Click **Filters**.
-4. Apply the following filters:
-   - **Card**: select the applicable card feed.
-   - **Posted date**: Set the appropriate date range (e.g., `posted<2025-02-28 AND posted>2025-02-01`)
-5. Alternatively, you can enter this directly in the search bar (e.g., `type:expense feed:"all in cards" posted<2025-02-28 posted>2025-02-01`)
-6. Once filtered, click the **Export** icon in the top-right corner to download the report as a spreadsheet.
+Workspace Admins can reconcile Expensify Card expenses when the Expensify Card is enabled on the Workspace.
 
 ---
 
-# Reconcile Card Payments Manually
+## How to View Expensify Card Withdrawals
 
-To align exported card expenses with bank withdrawals:
+1. Click the navigation tabs (on the left on web, on the bottom on mobile) and go to **Reports**.
+2. In the **Reconciliation** section, select **Expensify Card**.
+3. Choose the **Withdrawn** filter to select a date range (for example, **Last month**).
+4. Review the list of withdrawals. Each row represents a single settlement withdrawal from your bank account.
 
-- Group the **posted dates** in your spreadsheet by **day** or **month**.
-- This allows you to match the totals with the amounts withdrawn from your **settlement account**.
+---
 
-**Note:** This manual method is currently the best way to reconcile card payments. We're working on a more streamlined reconciliation tool, but it's not yet available.
+## How to View Expenses Included in an Expensify Card Withdrawal
+
+1. From the Expensify Card reconciliation view, locate the withdrawal you want to review.
+2. Click the arrow next to the withdrawal amount to expand the row.
+3. Review the individual expenses included in that withdrawal.
+   
+---
+
+## How to Verify Expensify Card Withdrawal Totals Against Your Bank Statement
+
+1. On your bank statement, locate Expensify Card settlement charges.
+2. From the reconciliation view, find the matching withdrawal.
+3. Compare the withdrawal total to the bank charge.
+
+- If the totals match, the withdrawal is reconciled.
+- If the totals do not match, expand the withdrawal to review individual expenses and identify discrepancies.
+
+---
+
+## How to Export Expensify Card Expenses
+
+1. From the Expensify Card reconciliation view, select the expenses you want to export using the checkboxes.
+2. Click the **Selected** button that appears above the results.
+3. Choose an export template to download the results as a CSV file.
 
 ---
 
 # FAQ
 
-## Where do I find the Card filter?
+## Why is Expensify Card not showing under Reconciliation?
 
-On the **Reports** page:
-- Click **Filters**.
-- Click into the **Card** section.
-- Choose a specific card feed or select all feeds to view all transactions.
+The Expensify Card option only appears when the feature is enabled for your Workspace. If you don’t see it, confirm that the Expensify Card is enabled and active.
 
-## Can I reconcile card transactions for a custom date range?
+## How is Expensify Card reconciliation different from statement matching?
 
-Yes. Use the **Posted date** filter or add the search query directly to the search bar.
+Expensify Card reconciliation uses withdrawal-based matching, where each bank withdrawal corresponds to grouped expenses. Company card reconciliation uses statement matching, where transactions are compared against an external card statement.
 
-## Is there a reconciliation tool available?
+## Why don't I see any withdrawals in the Expensify Card reconciliation view? 
 
-Not yet. A more automated reconciliation tool is in development, but for now, we recommend using the manual export and filter method.
-
-## Where can I learn more about using the Reports page?
-
-Check out [Using Reports in New Expensify](https://docs.expensify.com/help/using-reports-in-new-expensify) for more details.
-
+If you don’t see any withdrawals, adjust the **Withdrawn** filter and select a different date range.

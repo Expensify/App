@@ -23,6 +23,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {
     Beta,
+    BillingGraceEndPeriod,
     IntroSelected,
     LastSelectedDistanceRates,
     PersonalDetailsList,
@@ -86,6 +87,7 @@ type InitialTransactionParams = {
     reportID?: string;
     taxCode: string;
     taxAmount: number;
+    taxValue?: string;
     isFromGlobalCreate?: boolean;
     currency?: string;
     participants?: Participant[];
@@ -126,6 +128,8 @@ type MoneyRequestStepScanParticipantsFlowParams = {
     participants: Participant[];
     participantsPolicyTags: Record<string, PolicyTagLists>;
     amountOwed: OnyxEntry<number>;
+    userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
+    ownerBillingGracePeriodEnd?: OnyxEntry<number>;
 };
 
 type MoneyRequestStepDistanceNavigationParams = {
@@ -172,6 +176,8 @@ type MoneyRequestStepDistanceNavigationParams = {
     personalOutputCurrency?: string;
     isSelfTourViewed: boolean;
     amountOwed: OnyxEntry<number>;
+    userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
+    ownerBillingGracePeriodEnd?: OnyxEntry<number>;
 };
 
 function createTransaction({
@@ -293,7 +299,8 @@ function getMoneyRequestParticipantOptions(
         const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
         return participantAccountID
             ? getParticipantsOption(participant, personalDetails)
-            : getReportOption(participant, privateIsArchived, policy, currentUserAccountID, personalDetails, reportAttributesDerived);
+            : // TODO: We'll pass the conciergeReportID in the next PR. Refactor issue: https://github.com/Expensify/App/issues/66411
+              getReportOption(participant, privateIsArchived, policy, personalDetails, undefined, reportAttributesDerived);
     });
 }
 
@@ -332,6 +339,8 @@ function handleMoneyRequestStepScanParticipants({
     participants,
     participantsPolicyTags,
     amountOwed,
+    userBillingGracePeriodEnds,
+    ownerBillingGracePeriodEnd,
 }: MoneyRequestStepScanParticipantsFlowParams) {
     if (backTo) {
         Navigation.goBack(backTo);
@@ -390,6 +399,7 @@ function handleMoneyRequestStepScanParticipants({
                     currency: initialTransaction?.currency ?? 'USD',
                     taxCode: initialTransaction.taxCode,
                     taxAmount: initialTransaction.taxAmount,
+                    taxValue: initialTransaction.taxValue,
                     quickAction,
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                     // No need to update recently used tags because no tags are used when the confirmation step is skipped
@@ -508,7 +518,7 @@ function handleMoneyRequestStepScanParticipants({
 
     // If there was no reportID, then that means the user started this flow from the global + menu
     // and an optimistic reportID was generated. In that case, the next step is to select the participants for this expense.
-    if (shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy, amountOwed)) {
+    if (shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd)) {
         const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || isAutoReporting;
         const targetReport = shouldAutoReport ? getPolicyExpenseChat(currentUserAccountID, defaultExpensePolicy?.id) : selfDMReport;
         const transactionReportID = isSelfDM(targetReport) ? CONST.REPORT.UNREPORTED_REPORT_ID : targetReport?.reportID;
@@ -587,6 +597,8 @@ function handleMoneyRequestStepDistanceNavigation({
     personalOutputCurrency,
     isSelfTourViewed,
     amountOwed,
+    userBillingGracePeriodEnds,
+    ownerBillingGracePeriodEnd,
 }: MoneyRequestStepDistanceNavigationParams) {
     const isManualDistance = manualDistance !== undefined;
     const isOdometerDistance = odometerDistance !== undefined;
@@ -736,7 +748,7 @@ function handleMoneyRequestStepDistanceNavigation({
 
     // If there was no reportID, then that means the user started this flow from the global menu
     // and an optimistic reportID was generated. In that case, the next step is to select the participants for this expense.
-    if (defaultExpensePolicy && shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy, amountOwed)) {
+    if (defaultExpensePolicy && shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd)) {
         const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || isAutoReporting;
         const targetReport = shouldAutoReport ? getPolicyExpenseChat(currentUserAccountID, defaultExpensePolicy?.id) : selfDMReport;
         const isSelfDMReport = isSelfDM(targetReport);

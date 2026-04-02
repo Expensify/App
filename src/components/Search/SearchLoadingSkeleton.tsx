@@ -9,11 +9,12 @@ import CONST from '@src/CONST';
 
 type SearchLoadingSkeletonProps = {
     containerStyle?: StyleProp<ViewStyle>;
-    reasonAttributes?: SkeletonSpanReasonAttributes;
+    reasonAttributes: SkeletonSpanReasonAttributes;
 };
 
 function SearchLoadingSkeleton({containerStyle, reasonAttributes}: SearchLoadingSkeletonProps) {
     const styles = useThemeStyles();
+    const skeletonReasonAttributes = reasonAttributes ?? {context: 'SearchLoadingSkeleton'};
 
     return (
         <Animated.View
@@ -27,7 +28,7 @@ function SearchLoadingSkeleton({containerStyle, reasonAttributes}: SearchLoading
             <SearchRowSkeleton
                 shouldAnimate
                 containerStyle={containerStyle}
-                reasonAttributes={reasonAttributes}
+                reasonAttributes={skeletonReasonAttributes}
             />
         </Animated.View>
     );
