@@ -1,7 +1,6 @@
 import isEmpty from 'lodash/isEmpty';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import Button from '@components/Button';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SelectionList from '@components/SelectionList';
 import UserSelectionListItem from '@components/SelectionList/ListItem/UserSelectionListItem';
@@ -25,7 +24,7 @@ type UserSelectPopupProps = {
     value: string[];
 
     /** The popup label */
-    label: string;
+    label?: string;
 
     /** Function to call to close the overlay when changes are applied */
     closeOverlay: () => void;

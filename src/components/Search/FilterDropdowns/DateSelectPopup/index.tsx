@@ -14,7 +14,7 @@ import type {SearchDateValues} from '@libs/SearchQueryUtils';
 import {getDateModifierTitle, getDateRangeDisplayValueFromFormValue} from '@libs/SearchQueryUtils';
 import type {SearchDateModifier} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
-import ActionButtons from '../ActionButtons';
+import ActionButtons from '@components/Search/FilterDropdowns/ActionButtons';
 import SelectedDateModifierHeader from './SelectedDateModifierHeader';
 
 type DateSelectPopupProps = {
