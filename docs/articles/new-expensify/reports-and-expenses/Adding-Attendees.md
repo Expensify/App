@@ -30,6 +30,17 @@ If an expense exceeds a category limit set by your admin, you can resolve the is
 
 ---
 
+# How to view attendees in the expense table
+
+When any expense in a report has attendees, the expense table automatically shows two additional columns:
+
+- **Attendees** — displays the attendees added to each expense.
+- **Per attendee** — shows the total amount divided equally among all attendees.
+
+These columns appear in both the report expense table and search results.
+
+---
+
 # Audit Trail for Attendees
 
 🕵️ **Note:** Expensify automatically records attendee changes on the expense report. These system messages cannot be edited, ensuring a clear and secure history of all attendee updates.
