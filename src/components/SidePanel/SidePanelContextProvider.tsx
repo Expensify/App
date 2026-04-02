@@ -28,7 +28,6 @@ type SidePanelStateContextProps = {
     sidePanelOffset: RefObject<Animated.Value>;
     sidePanelTranslateX: RefObject<Animated.Value>;
     sidePanelNVP?: SidePanel;
-    reportID?: string;
     sessionStartTime: string | null;
 };
 
@@ -48,6 +47,8 @@ const SidePanelStateContext = createContext<SidePanelStateContextProps>({
     sidePanelTranslateX: {current: new Animated.Value(0)},
     sessionStartTime: null,
 });
+
+const SidePanelReportIDContext = createContext<string | undefined>(undefined);
 
 const SidePanelActionsContext = createContext<SidePanelActionsContextProps>({
     openSidePanel: () => {},
@@ -146,7 +147,6 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
         sidePanelOffset,
         sidePanelTranslateX,
         sidePanelNVP,
-        reportID,
         sessionStartTime,
     };
 
@@ -159,10 +159,12 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
 
     return (
         <SidePanelStateContext.Provider value={stateValue}>
-            <SidePanelActionsContext.Provider value={actionsValue}>{children}</SidePanelActionsContext.Provider>
+            <SidePanelReportIDContext.Provider value={reportID}>
+                <SidePanelActionsContext.Provider value={actionsValue}>{children}</SidePanelActionsContext.Provider>
+            </SidePanelReportIDContext.Provider>
         </SidePanelStateContext.Provider>
     );
 }
 
 export default SidePanelContextProvider;
-export {SidePanelStateContext, SidePanelActionsContext};
+export {SidePanelStateContext, SidePanelReportIDContext, SidePanelActionsContext};
