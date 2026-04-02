@@ -260,10 +260,6 @@ function isPrimaryPayAction({
 
     const isReportSettled = isSettled(report);
 
-    if (hasHeldExpenses(report.reportID, reportTransactions)) {
-        return false;
-    }
-
     const isExpenseReport = isExpenseReportUtils(report);
     const isReportPayer = isPayer(currentUserAccountID, currentUserLogin, report, bankAccountList, policy, isPayElsewhere);
     const arePaymentsEnabled = arePaymentsEnabledUtils(policy);
