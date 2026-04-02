@@ -14,6 +14,14 @@ import type {Transaction} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import useOnyx from './useOnyx';
 
+function clearOdometerTransactionState(transaction: OnyxEntry<Transaction>, draftTransactionIDs: string[] | undefined, isDraft: boolean): void {
+    setMoneyRequestReceipt(transaction?.transactionID ?? '', '', '', isDraft);
+    setMoneyRequestOdometerReading(transaction?.transactionID ?? '', null, null, isDraft);
+    removeMoneyRequestOdometerImage(transaction, CONST.IOU.ODOMETER_IMAGE_TYPE.START, isDraft, true);
+    removeMoneyRequestOdometerImage(transaction, CONST.IOU.ODOMETER_IMAGE_TYPE.END, isDraft, true);
+    removeDraftTransactionsByIDs(draftTransactionIDs, true);
+}
+
 // When the component mounts, if there are odometer images or a stitched receipt, see if the files can be read from the disk.
 // If not, redirect the user to the starting step of the flow.
 // This is because until the request is saved, the image files are only stored in the browser's memory as blob:// URLs
@@ -73,11 +81,7 @@ const useRestartOnOdometerImagesFailure = (transaction: OnyxEntry<Transaction>, 
                 return;
             }
 
-            setMoneyRequestReceipt(transaction.transactionID, '', '', true);
-            setMoneyRequestOdometerReading(transaction.transactionID, null, null, true);
-            removeMoneyRequestOdometerImage(transaction, CONST.IOU.ODOMETER_IMAGE_TYPE.START, true, true);
-            removeMoneyRequestOdometerImage(transaction, CONST.IOU.ODOMETER_IMAGE_TYPE.END, true, true);
-            removeDraftTransactionsByIDs(draftTransactionIDs, true);
+            clearOdometerTransactionState(transaction, draftTransactionIDs, true);
             navigateToStartMoneyRequestStep(requestType, iouType, transaction.transactionID, reportID);
         });
 
@@ -86,4 +90,5 @@ const useRestartOnOdometerImagesFailure = (transaction: OnyxEntry<Transaction>, 
     }, [draftTransactionsMetadata]);
 };
 
+export {clearOdometerTransactionState};
 export default useRestartOnOdometerImagesFailure;

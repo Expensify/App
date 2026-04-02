@@ -32,7 +32,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportAttributes from '@hooks/useReportAttributes';
-import useRestartOnOdometerImagesFailure from '@hooks/useRestartOnOdometerImagesFailure';
+import useRestartOnOdometerImagesFailure, {clearOdometerTransactionState} from '@hooks/useRestartOnOdometerImagesFailure';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {completeTestDriveTask} from '@libs/actions/Task';
@@ -526,8 +526,7 @@ function IOURequestStepConfirmation({
                 }
                 if (hasExpiredImages) {
                     setIsStitchingReceipt(false);
-                    setMoneyRequestReceipt(currentTransactionID, '', '', shouldUseTransactionDraft(action, iouType));
-                    removeDraftTransactionsByIDs(draftTransactionIDs, true);
+                    clearOdometerTransactionState(transaction, draftTransactionIDs, shouldUseTransactionDraft(action, iouType));
                     navigateToStartMoneyRequestStep(requestType, iouType, currentTransactionID, reportID);
                     return;
                 }
@@ -540,19 +539,7 @@ function IOURequestStepConfirmation({
         return () => {
             ignore = true;
         };
-    }, [
-        isOdometerDistanceRequest,
-        isFocused,
-        currentTransactionID,
-        transaction?.comment?.odometerStartImage,
-        transaction?.comment?.odometerEndImage,
-        action,
-        translate,
-        iouType,
-        draftTransactionIDs,
-        requestType,
-        reportID,
-    ]);
+    }, [isOdometerDistanceRequest, isFocused, currentTransactionID, transaction, action, translate, iouType, draftTransactionIDs, requestType, reportID]);
 
     const defaultBillable = !!policy?.defaultBillable;
     useEffect(() => {
