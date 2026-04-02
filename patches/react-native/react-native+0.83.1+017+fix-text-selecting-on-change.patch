@@ -19,7 +19,7 @@ index b5ab9a1..ce15eb6 100644
        // Explicitly call this method to select text when layout is drawn
        selectAll()
        // Prevent text on being selected for next layout pass
-       selectTextOnFocus = false
+-      selectTextOnFocus = false
 +      hasSelectedTextOnFocus = false
      }
    }

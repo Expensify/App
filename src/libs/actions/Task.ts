@@ -106,7 +106,16 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
         return;
     }
 
-    const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(currentUserAccountID, parentReportID, assigneeAccountID, title, description, policyID);
+    const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(
+        currentUserAccountID,
+        parentReportID,
+        assigneeAccountID,
+        title,
+        description,
+        policyID,
+        CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+        parentReport?.chatType,
+    );
 
     const assigneeChatReportID = assigneeChatReport?.reportID;
     const taskReportID = optimisticTaskReport.reportID;
@@ -1390,7 +1399,8 @@ function clearTaskErrors(
     if (report?.pendingFields?.createChat === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, report.parentReportActionID ? {[report.parentReportActionID]: null} : {});
 
-        navigateToConciergeChatAndDeleteReport(reportID, conciergeReportID, currentUserAccountID, introSelected, betas);
+        // TODO: We'll pass isSelfTourViewed in the next PR. Refactor issue: https://github.com/Expensify/App/issues/66424
+        navigateToConciergeChatAndDeleteReport(reportID, conciergeReportID, currentUserAccountID, introSelected, undefined, betas);
         return;
     }
 

@@ -12,7 +12,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {containsOnlyEmojis} from '@libs/EmojiUtils';
 import {splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
-import Log from '@libs/Log';
 import Parser from '@libs/Parser';
 import getFileSize from '@pages/Share/getFileSize';
 import CONST from '@src/CONST';
