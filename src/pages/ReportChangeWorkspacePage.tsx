@@ -12,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePolicyExpenseChatReportActions from '@hooks/usePolicyExpenseChatReportActions';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportTransactions from '@hooks/useReportTransactions';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -22,7 +23,6 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {ReportChangeWorkspaceNavigatorParamList} from '@libs/Navigation/types';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {isPolicyAdmin, isPolicyMember} from '@libs/PolicyUtils';
-import {filterReportActionsByPolicyID} from '@libs/ReportActionsUtils';
 import {
     hasViolations as hasViolationsReportUtils,
     isExpenseReport,
@@ -75,8 +75,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [userBillingGracePeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
+    const {filteredReportActions} = usePolicyExpenseChatReportActions();
 
     const selectPolicy = useCallback(
         (policyID?: string) => {
@@ -91,8 +90,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
             const {backTo} = route.params;
             Navigation.goBack(backTo);
             if (isIOUReport(reportID)) {
-                const policyReportActions = filterReportActionsByPolicyID(allReportActions, allReports, policyID);
-                const invite = moveIOUReportToPolicyAndInviteSubmitter(report, policy, formatPhoneNumber, policyReportActions, reportTransactions);
+                const invite = moveIOUReportToPolicyAndInviteSubmitter(report, policy, formatPhoneNumber, filteredReportActions, reportTransactions);
                 if (!invite?.policyExpenseChatReportID) {
                     moveIOUReportToPolicy(report, policy, false, reportTransactions);
                 }
@@ -138,8 +136,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
             parentReport,
             formatPhoneNumber,
             reportTransactions,
-            allReportActions,
-            allReports,
+            filteredReportActions,
             isReportLastVisibleArchived,
             session?.accountID,
             session?.email,

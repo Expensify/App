@@ -2899,7 +2899,13 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
     }
 
     if (adminParticipant?.login) {
-        const employeeWorkspaceChat = createPolicyExpenseChats(policyID, {[adminParticipant.login]: adminParticipant.accountID ?? CONST.DEFAULT_NUMBER_ID}, hasOutstandingChildRequest);
+        // TODO: Update to include reportActionsList later (https://github.com/Expensify/App/issues/66578)
+        const employeeWorkspaceChat = createPolicyExpenseChats(
+            policyID,
+            {[adminParticipant.login]: adminParticipant.accountID ?? CONST.DEFAULT_NUMBER_ID},
+            undefined,
+            hasOutstandingChildRequest,
+        );
         params.memberData = JSON.stringify({
             accountID: Number(adminParticipant.accountID),
             email: adminParticipant.login,
@@ -3941,7 +3947,8 @@ function createWorkspaceFromIOUPayment(
     }
 
     // Create the expense chat for the employee whose IOU is being paid
-    const employeeWorkspaceChat = createPolicyExpenseChats(policyID, {[iouReportOwnerEmail]: employeeAccountID}, true);
+    // TODO: Update to include reportActionsList later (https://github.com/Expensify/App/issues/66578)
+    const employeeWorkspaceChat = createPolicyExpenseChats(policyID, {[iouReportOwnerEmail]: employeeAccountID}, undefined, true);
     const newWorkspace = {
         id: policyID,
 

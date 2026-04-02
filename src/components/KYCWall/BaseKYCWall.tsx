@@ -8,6 +8,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
+import usePolicyExpenseChatReportActions from '@hooks/usePolicyExpenseChatReportActions';
 import useReportTransactions from '@hooks/useReportTransactions';
 import {openPersonalBankAccountSetupView} from '@libs/actions/BankAccounts';
 import {completePaymentOnboarding, savePreferredPaymentMethod} from '@libs/actions/IOU';
@@ -19,7 +20,6 @@ import Log from '@libs/Log';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasExpensifyPaymentMethod} from '@libs/PaymentUtils';
-import {filterReportActionsByPolicyID} from '@libs/ReportActionsUtils';
 import {getBankAccountRoute, isExpenseReport as isExpenseReportReportUtils, isIOUReport} from '@libs/ReportUtils';
 import {getEligibleExistingBusinessBankAccounts, getOpenConnectedToPolicyBusinessBankAccounts} from '@libs/WorkflowUtils';
 import {createWorkspaceFromIOUPayment} from '@userActions/Policy/Policy';
@@ -74,8 +74,7 @@ function KYCWall({
     const personalDetails = usePersonalDetails();
     const employeeEmail = personalDetails?.[iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.login ?? '';
     const reportTransactions = useReportTransactions(iouReport?.reportID);
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
+    const {filteredReportActions} = usePolicyExpenseChatReportActions();
     const anchorRef = useRef<HTMLDivElement | View>(null);
     const transferBalanceButtonRef = useRef<HTMLDivElement | View | null>(null);
 
@@ -141,8 +140,7 @@ function KYCWall({
                 if (iouReport && isIOUReport(iouReport)) {
                     const adminPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`];
                     if (adminPolicy) {
-                        const policyReportActions = filterReportActionsByPolicyID(allReportActions, allReports, adminPolicy.id);
-                        const inviteResult = moveIOUReportToPolicyAndInviteSubmitter(iouReport, adminPolicy, formatPhoneNumber, policyReportActions, reportTransactions);
+                        const inviteResult = moveIOUReportToPolicyAndInviteSubmitter(iouReport, adminPolicy, formatPhoneNumber, filteredReportActions, reportTransactions);
                         if (inviteResult?.policyExpenseChatReportID) {
                             setNavigationActionToMicrotaskQueue(() => {
                                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(inviteResult.policyExpenseChatReportID));
@@ -217,8 +215,7 @@ function KYCWall({
             introSelected,
             formatPhoneNumber,
             reportTransactions,
-            allReportActions,
-            allReports,
+            filteredReportActions,
             lastPaymentMethod,
             isSelfTourViewed,
             betas,

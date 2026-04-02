@@ -36,7 +36,6 @@ import {setNameValuePair} from '@libs/actions/User';
 import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getConnectedIntegration, isSubmitAndClose} from '@libs/PolicyUtils';
-import {filterReportActionsByPolicyID} from '@libs/ReportActionsUtils';
 import {getSecondaryExportReportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
     canEditMultipleTransactions,
@@ -71,6 +70,7 @@ import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
 import usePersonalPolicy from './usePersonalPolicy';
+import usePolicyExpenseChatReportActions from './usePolicyExpenseChatReportActions';
 import useSelfDMReport from './useSelfDMReport';
 import useTheme from './useTheme';
 import useThemeStyles from './useThemeStyles';
@@ -111,6 +111,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const allTransactions = useAllTransactions();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
+    const {filteredReportActions: policyExpenseChatReportActions} = usePolicyExpenseChatReportActions();
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const selfDMReport = useSelfDMReport();
     const [lastPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
@@ -632,8 +633,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         );
                         return;
                     }
-                    const policyReportActions = filterReportActionsByPolicyID(allReportActions, allReports, adminPolicy.id);
-                    const invite = moveIOUReportToPolicyAndInviteSubmitter(itemReport, adminPolicy, formatPhoneNumber, policyReportActions, reportTransactions);
+                    const invite = moveIOUReportToPolicyAndInviteSubmitter(itemReport, adminPolicy, formatPhoneNumber, policyExpenseChatReportActions, reportTransactions);
                     if (!invite?.policyExpenseChatReportID) {
                         moveIOUReportToPolicy(itemReport, adminPolicy, false, reportTransactions);
                     }
@@ -698,6 +698,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             allTransactions,
             policyIDsWithVBBA,
             allReportActions,
+            policyExpenseChatReportActions,
             formatPhoneNumber,
             clearSelectedTransactions,
         ],
