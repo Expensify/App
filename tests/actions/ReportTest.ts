@@ -581,7 +581,7 @@ describe('actions/Report', () => {
 
                 // When the user visits the report
                 currentTime = DateUtils.getDBTime();
-                Report.openReport({reportID: REPORT_ID, introSelected: TEST_INTRO_SELECTED});
+                Report.openReport({reportID: REPORT_ID, introSelected: TEST_INTRO_SELECTED, betas: undefined});
                 Report.readNewestAction(REPORT_ID, true);
                 waitForBatchedUpdates();
                 return waitForBatchedUpdates();
@@ -1187,6 +1187,7 @@ describe('actions/Report', () => {
             Report.openReport({
                 reportID: REPORT_ID,
                 introSelected: TEST_INTRO_SELECTED,
+                betas: undefined,
                 participantLoginList: ['test@user.com'],
                 newReportObject: {
                     reportID: REPORT_ID,
@@ -1243,7 +1244,7 @@ describe('actions/Report', () => {
         const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${TXN_ID}` as const);
         expect(transaction).toBeTruthy();
 
-        Report.openReport({reportID: CHILD_REPORT_ID, introSelected: undefined, transaction: transaction ?? undefined, parentReportID: SELF_DM_ID});
+        Report.openReport({reportID: CHILD_REPORT_ID, introSelected: undefined, betas: undefined, transaction: transaction ?? undefined, parentReportID: SELF_DM_ID});
         await waitForBatchedUpdates();
 
         // Validate the correct Onyx key received the new action and existing one is preserved
@@ -1290,6 +1291,7 @@ describe('actions/Report', () => {
             Report.openReport({
                 reportID,
                 introSelected: TEST_INTRO_SELECTED,
+                betas: undefined,
                 participantLoginList: ['test@user.com'],
                 newReportObject: {
                     reportID: REPORT_ID,
@@ -2203,6 +2205,7 @@ describe('actions/Report', () => {
         Report.openReport({
             reportID: REPORT_ID,
             introSelected: TEST_INTRO_SELECTED,
+            betas: undefined,
             participantLoginList: ['test@user.com'],
             newReportObject: {
                 parentReportID: REPORT_ID,
@@ -3940,7 +3943,7 @@ describe('actions/Report', () => {
             await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, TEST_INTRO_SELECTED);
             await waitForBatchedUpdates();
 
-            Report.openReport({reportID: REPORT_ID, introSelected: TEST_INTRO_SELECTED});
+            Report.openReport({reportID: REPORT_ID, introSelected: TEST_INTRO_SELECTED, betas: undefined});
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
@@ -3951,7 +3954,7 @@ describe('actions/Report', () => {
 
             const REPORT_ID = '2';
 
-            Report.openReport({reportID: REPORT_ID, introSelected: TEST_INTRO_SELECTED});
+            Report.openReport({reportID: REPORT_ID, introSelected: TEST_INTRO_SELECTED, betas: undefined});
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
@@ -3962,7 +3965,7 @@ describe('actions/Report', () => {
 
             const REPORT_ID = '3';
 
-            Report.openReport({reportID: REPORT_ID, introSelected: undefined});
+            Report.openReport({reportID: REPORT_ID, introSelected: undefined, betas: undefined});
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
@@ -5075,6 +5078,53 @@ describe('actions/Report', () => {
             const typingStatus = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${REPORT_ID}` as const);
             expect(typingStatus?.[CONST.ACCOUNT_ID.CONCIERGE]).toBe(true);
         });
+
+        it('should create Concierge response with timestamp strictly after the user comment', async () => {
+            const reportAction = {
+                reportActionID: REPORT_ACTION_ID,
+                actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+                message: [
+                    {
+                        html: '<p>Here is help</p><followup-list><followup><followup-text>How do I set up QuickBooks?</followup-text><followup-response>To set up QuickBooks, go to Settings...</followup-response></followup></followup-list>',
+                        text: 'Here is help',
+                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                    },
+                ],
+            } as OnyxTypes.ReportAction;
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
+                [REPORT_ACTION_ID]: reportAction,
+            });
+            await waitForBatchedUpdates();
+
+            resolveSuggestedFollowup(
+                report,
+                undefined,
+                reportAction,
+                {text: 'How do I set up QuickBooks?', response: 'To set up QuickBooks, go to Settings...'},
+                CONST.DEFAULT_TIME_ZONE,
+                TEST_USER_ACCOUNT_ID,
+                TEST_USER_EMAIL,
+            );
+            await waitForBatchedUpdates();
+
+            // Get the pending Concierge response and verify its created timestamp
+            const pendingResponse = await getOnyxValue(`${ONYXKEYS.COLLECTION.PENDING_CONCIERGE_RESPONSE}${REPORT_ID}` as const);
+            expect(pendingResponse).not.toBeNull();
+
+            // Find the user's comment action (any new action that isn't the original Concierge message)
+            const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}` as const);
+            const userCommentAction = Object.values(reportActions ?? {}).find(
+                (action) => action?.reportActionID !== REPORT_ACTION_ID && action?.actorAccountID !== CONST.ACCOUNT_ID.CONCIERGE,
+            );
+
+            // The Concierge response timestamp should be strictly after the user comment
+            expect(userCommentAction).toBeDefined();
+            expect(userCommentAction?.created).toBeDefined();
+            expect(pendingResponse?.reportAction.created).toBeDefined();
+            expect(new Date(pendingResponse?.reportAction.created ?? 0).getTime()).toBeGreaterThan(new Date(userCommentAction?.created ?? 0).getTime());
+        });
     });
 
     // Shared test constants for leave functions
@@ -5791,7 +5841,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // When create group chat is called
-            Report.navigateToAndCreateGroupChat([TEST_USER_LOGIN, PARTICIPANT_1_LOGIN], GROUP_CHAT_NAME, TEST_USER_LOGIN, GROUP_CHAT_REPORT_ID, TEST_INTRO_SELECTED, false);
+            Report.navigateToAndCreateGroupChat([TEST_USER_LOGIN, PARTICIPANT_1_LOGIN], GROUP_CHAT_NAME, TEST_USER_LOGIN, GROUP_CHAT_REPORT_ID, TEST_INTRO_SELECTED, false, undefined);
             await waitForBatchedUpdates();
 
             // Then it should create a new group chat report in Onyx
@@ -5837,7 +5887,16 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // When create group chat is called with an avatar URI and isSelfTourViewed=true
-            Report.navigateToAndCreateGroupChat([TEST_USER_LOGIN, PARTICIPANT_1_LOGIN], GROUP_CHAT_NAME, TEST_USER_LOGIN, GROUP_CHAT_REPORT_ID, TEST_INTRO_SELECTED, true, AVATAR_URI);
+            Report.navigateToAndCreateGroupChat(
+                [TEST_USER_LOGIN, PARTICIPANT_1_LOGIN],
+                GROUP_CHAT_NAME,
+                TEST_USER_LOGIN,
+                GROUP_CHAT_REPORT_ID,
+                TEST_INTRO_SELECTED,
+                true,
+                undefined,
+                AVATAR_URI,
+            );
             await waitForBatchedUpdates();
 
             // Then it should create a new group chat report with the avatar
@@ -5869,6 +5928,7 @@ describe('actions/Report', () => {
                 GROUP_CHAT_REPORT_ID,
                 {...TEST_INTRO_SELECTED, isInviteOnboardingComplete: true},
                 true,
+                undefined,
             );
             await waitForBatchedUpdates();
 
@@ -5894,6 +5954,7 @@ describe('actions/Report', () => {
                 GROUP_CHAT_REPORT_ID,
                 {choice: CONST.ONBOARDING_CHOICES.ADMIN},
                 false,
+                undefined,
                 undefined,
                 avatarFile,
             );
@@ -5923,6 +5984,7 @@ describe('actions/Report', () => {
                 GROUP_CHAT_REPORT_ID,
                 {choice: CONST.ONBOARDING_CHOICES.ADMIN},
                 false,
+                undefined,
             );
             await waitForBatchedUpdates();
 
