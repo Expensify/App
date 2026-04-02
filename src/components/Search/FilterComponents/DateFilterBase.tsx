@@ -210,7 +210,6 @@ function DateFilterBase({
                     onSelectDateModifier={handleSelectDateModifier}
                     presets={presets}
                     isSearchAdvancedFiltersFormLoading={isSearchAdvancedFiltersFormLoading}
-                    shouldShowRangeError={shouldShowRangeError}
                     onDateValuesChange={handleDateValuesChange}
                     onRangeValidationErrorChange={setShouldShowRangeError}
                     forceVerticalCalendars
@@ -235,6 +234,8 @@ function DateFilterBase({
                         containerStyles={[styles.m4, styles.mt3, styles.mb5]}
                         onSubmit={save}
                         enabledWhenOffline
+                        isAlertVisible={shouldShowRangeError}
+                        message={translate('search.errors.pleaseSelectDatesForBothFromAndTo')}
                     />
                 </>
             )}
