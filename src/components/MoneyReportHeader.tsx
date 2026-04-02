@@ -50,7 +50,7 @@ import {duplicateReport as duplicateReportAction, duplicateExpenseTransaction as
 import {openOldDotLink} from '@libs/actions/Link';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {deleteAppReport, downloadReportPDF, exportReportToCSV, exportReportToPDF, exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
+import {deleteAppReport, exportReportToCSV, exportReportToPDF, exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
 import {getExportTemplates, queueExportSearchWithTemplate, search} from '@libs/actions/Search';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -151,18 +151,13 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
-import ActivityIndicator from './ActivityIndicator';
-import Button from './Button';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {ButtonWithDropdownMenuRef, DropdownOption} from './ButtonWithDropdownMenu/types';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from './DelegateNoAccessModalProvider';
-import Header from './Header';
 import HeaderLoadingBar from './HeaderLoadingBar';
 import HeaderWithBackButton from './HeaderWithBackButton';
-import Icon from './Icon';
 import {KYCWallContext} from './KYCWall/KYCWallContext';
 import {useLockedAccountActions, useLockedAccountState} from './LockedAccountModalProvider';
-import Modal from './Modal';
 import {ModalActions} from './Modal/Global/ModalContext';
 import MoneyReportHeaderEducationalModals from './MoneyReportHeaderEducationalModals';
 import type {RejectModalAction} from './MoneyReportHeaderEducationalModals';
@@ -174,9 +169,9 @@ import MoneyReportHeaderStatusBarSkeleton from './MoneyReportHeaderStatusBarSkel
 import MoneyRequestReportNavigation from './MoneyRequestReportView/MoneyRequestReportNavigation';
 import {usePersonalDetails} from './OnyxListItemProvider';
 import type {PopoverMenuItem} from './PopoverMenu';
-import {PressableWithFeedback} from './Pressable';
 import type {ActionHandledType} from './ProcessMoneyReportHoldMenu';
 import ProcessMoneyReportHoldMenu from './ProcessMoneyReportHoldMenu';
+import ReportPDFDownloadModal from './ReportPDFDownloadModal';
 import {useSearchActionsContext, useSearchStateContext} from './Search/SearchContext';
 import type {PaymentActionParams} from './SettlementButton/types';
 import Text from './Text';
@@ -229,7 +224,6 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         selector: isUserValidatedSelector,
     });
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
-    const [reportPDFFilename] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDF_FILENAME}${moneyRequestReport?.reportID}`) ?? null;
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
@@ -270,7 +264,6 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         'QBDSquare',
         'CertiniaSquare',
         'Feed',
-        'Close',
         'Location',
         'ReceiptPlus',
         'ExpenseCopy',
@@ -288,8 +281,6 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
 
     const {translate, localeCompare, toLocaleDigit} = useLocalize();
     const {isProduction} = useEnvironment();
-    const encryptedAuthToken = session?.encryptedAuthToken ?? '';
-
     const exportTemplates = useMemo(
         () => getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, policy),
         [integrationsExportTemplates, csvExportLayouts, policy, translate],
@@ -443,29 +434,11 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         return !!transactions && transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
     }, [transactions]);
     const transactionIDs = useMemo(() => transactions?.map((t) => t.transactionID) ?? [], [transactions]);
-    // eslint-disable-next-line rulesdir/no-negated-variables
-    const canTriggerAutomaticPDFDownload = useRef(false);
-    const hasFinishedPDFDownload = reportPDFFilename && reportPDFFilename !== CONST.REPORT_DETAILS_MENU_ITEM.ERROR;
-
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
     });
-
-    useEffect(() => {
-        canTriggerAutomaticPDFDownload.current = isPDFModalVisible;
-    }, [isPDFModalVisible]);
-
-    const messagePDF = useMemo(() => {
-        if (reportPDFFilename === CONST.REPORT_DETAILS_MENU_ITEM.ERROR) {
-            return translate('reportDetailsPage.errorPDF');
-        }
-        if (!hasFinishedPDFDownload) {
-            return translate('reportDetailsPage.waitForPDF');
-        }
-        return translate('reportDetailsPage.successPDF');
-    }, [reportPDFFilename, hasFinishedPDFDownload, translate]);
 
     // Check if any transactions have pending RTER violations (for showing the submit confirmation modal)
     const hasAnyPendingRTERViolation = useMemo(
@@ -1243,11 +1216,6 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         />
     );
 
-    const beginPDFExport = (reportID: string) => {
-        setIsPDFModalVisible(true);
-        exportReportToPDF({reportID});
-    };
-
     const secondaryActions = useMemo(() => {
         if (!moneyRequestReport) {
             return [];
@@ -1435,10 +1403,11 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
             icon: expensifyIcons.Download,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.DOWNLOAD_PDF,
             onSelected: () => {
-                if (!moneyRequestReport) {
+                if (!moneyRequestReport?.reportID) {
                     return;
                 }
-                beginPDFExport(moneyRequestReport.reportID);
+                setIsPDFModalVisible(true);
+                exportReportToPDF({reportID: moneyRequestReport.reportID});
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.PRINT]: {
@@ -1940,14 +1909,6 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [transactionThreadReportID]);
 
-    useEffect(() => {
-        if (!hasFinishedPDFDownload || !canTriggerAutomaticPDFDownload.current) {
-            return;
-        }
-        downloadReportPDF(reportPDFFilename, moneyRequestReport?.reportName ?? '', translate, currentUserLogin ?? '', encryptedAuthToken);
-        canTriggerAutomaticPDFDownload.current = false;
-    }, [hasFinishedPDFDownload, reportPDFFilename, moneyRequestReport?.reportName, translate, currentUserLogin, encryptedAuthToken]);
-
     const shouldShowBackButton = shouldDisplayBackButton || shouldUseNarrowLayout;
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
@@ -2168,10 +2129,6 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         hasOptimisticNextStep: !!optimisticNextStep,
     };
 
-    const pdfLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'MoneyReportHeader.PDFModal',
-    };
-
     return (
         <View style={[styles.pt0, styles.borderBottom]}>
             <HeaderWithBackButton
@@ -2293,63 +2250,11 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                 onRejectModalDismissed={() => setRejectModalAction(null)}
             />
             {nonReimbursablePaymentErrorDecisionModal}
-            <Modal
-                onClose={() => {
-                    setIsPDFModalVisible(false);
-                }}
+            <ReportPDFDownloadModal
+                reportID={moneyRequestReport?.reportID}
                 isVisible={isPDFModalVisible}
-                type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
-                innerContainerStyle={styles.pv0}
-            >
-                <View style={[styles.flexRow, styles.m5]}>
-                    <View style={[styles.flex1]}>
-                        <View style={[styles.flexRow, styles.mb4]}>
-                            <View style={[styles.flex1]}>
-                                <View style={[styles.flexRow]}>
-                                    <Header title={translate('reportDetailsPage.generatingPDF')} />
-                                </View>
-                                <Text style={[styles.mt5, styles.textAlignLeft]}>{messagePDF}</Text>
-                            </View>
-
-                            {!hasFinishedPDFDownload && (
-                                <View style={[styles.dFlex, styles.justifyContentEnd]}>
-                                    <ActivityIndicator
-                                        size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL}
-                                        color={theme.textSupporting}
-                                        style={styles.ml3}
-                                        reasonAttributes={pdfLoadingReasonAttributes}
-                                    />
-                                </View>
-                            )}
-                        </View>
-                        <Button
-                            style={[styles.mt3, styles.noSelect]}
-                            onPress={() => {
-                                if (!hasFinishedPDFDownload) {
-                                    setIsPDFModalVisible(false);
-                                } else {
-                                    downloadReportPDF(reportPDFFilename, moneyRequestReport?.reportName ?? '', translate, currentUserLogin ?? '', encryptedAuthToken);
-                                }
-                            }}
-                            text={hasFinishedPDFDownload ? translate('common.download') : translate('common.cancel')}
-                        />
-                    </View>
-                    <PressableWithFeedback
-                        onPress={() => {
-                            setIsPDFModalVisible(false);
-                        }}
-                        role={CONST.ROLE.BUTTON}
-                        accessibilityLabel={translate('common.close')}
-                        wrapperStyle={[styles.pAbsolute, styles.r0]}
-                        sentryLabel={CONST.SENTRY_LABEL.MORE_MENU.CLOSE_PDF_MODAL}
-                    >
-                        <Icon
-                            src={expensifyIcons.Close}
-                            fill={theme.icon}
-                        />
-                    </PressableWithFeedback>
-                </View>
-            </Modal>
+                onClose={() => setIsPDFModalVisible(false)}
+            />
         </View>
     );
 }
