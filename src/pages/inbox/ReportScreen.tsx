@@ -82,6 +82,7 @@ import AccountManagerBanner from './AccountManagerBanner';
 import {AgentZeroStatusProvider} from './AgentZeroStatusContext';
 import DeleteTransactionNavigateBackHandler from './DeleteTransactionNavigateBackHandler';
 import HeaderView from './HeaderView';
+import useReportActionWasDeleted from './hooks/useReportActionWasDeleted';
 import useReportWasDeleted from './hooks/useReportWasDeleted';
 import ReactionListWrapper from './ReactionListWrapper';
 import ReportActionsView from './report/ReportActionsView';
@@ -335,11 +336,9 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         return !isReportActionVisible(linkedAction, actionReportID, canUserPerformWriteAction(report, isReportArchived), visibleReportActionsData);
     }, [linkedAction, report, isReportArchived, reportID, visibleReportActionsData]);
 
-    const prevIsLinkedActionDeleted = usePrevious(linkedAction ? isLinkedActionDeleted : undefined);
-
     const lastReportActionIDFromRoute = usePrevious(!firstRender ? reportActionIDFromRoute : undefined);
 
-    const [isNavigatingToDeletedAction, setIsNavigatingToDeletedAction] = useState(false);
+    const isNavigatingToDeletedAction = useReportActionWasDeleted(isLinkedActionDeleted, !!linkedAction, reportActionIDFromRoute, lastReportActionIDFromRoute);
 
     const isLinkedActionInaccessibleWhisper = useMemo(
         () => !!linkedAction && isWhisperAction(linkedAction) && !(linkedAction?.whisperedToAccountIDs ?? []).includes(currentUserAccountID),
@@ -593,25 +592,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const navigateToEndOfReport = useCallback(() => {
         Navigation.setParams({reportActionID: ''});
     }, []);
-
-    useEffect(() => {
-        // Only handle deletion cases when there's a deleted action
-        if (!isLinkedActionDeleted) {
-            setIsNavigatingToDeletedAction(false);
-            return;
-        }
-
-        // we want to do this distinguish between normal navigation and delete behavior
-        if (lastReportActionIDFromRoute !== reportActionIDFromRoute) {
-            setIsNavigatingToDeletedAction(true);
-            return;
-        }
-
-        // Clear params when action gets deleted while highlighting
-        if (!isNavigatingToDeletedAction && prevIsLinkedActionDeleted === false) {
-            Navigation.setParams({reportActionID: ''});
-        }
-    }, [isLinkedActionDeleted, prevIsLinkedActionDeleted, lastReportActionIDFromRoute, reportActionIDFromRoute, isNavigatingToDeletedAction]);
 
     // If user redirects to an inaccessible whisper via a deeplink, on a report they have access to,
     // then we set reportActionID as empty string, so we display them the report and not the "Not found page".

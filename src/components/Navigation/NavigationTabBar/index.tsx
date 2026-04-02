@@ -105,8 +105,10 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
 
         if (!shouldUseNarrowLayout) {
             if (doesLastReportExist && lastReportRoute) {
-                const {reportID, reportActionID, referrer, backTo} = lastReportRoute.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, reportActionID, referrer, backTo));
+                const {reportID, referrer, backTo} = lastReportRoute.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
+                // Don't pass reportActionID from cached route — it's a transient deep-link target for GBR/RBR highlighting
+                // that may point to a now-deleted action, causing ReportScreen to show "Not here".
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, referrer, backTo));
                 return;
             }
 
