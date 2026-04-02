@@ -30,7 +30,7 @@ type ExpensifyFeedListItem = ListItem & {
     value: number;
 };
 
-type WorkspaceExpensifyCardSelectorPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED>;
+type WorkspaceExpensifyCardSelectorPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_SELECT_FEED>;
 
 function WorkspaceExpensifyCardSelectorPage({route}: WorkspaceExpensifyCardSelectorPageProps) {
     const {policyID} = route.params;

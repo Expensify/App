@@ -1285,6 +1285,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_SELECT_FEED]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS_FREQUENCY]: {
         policyID: string;
     };

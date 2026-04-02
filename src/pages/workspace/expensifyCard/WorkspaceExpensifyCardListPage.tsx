@@ -32,6 +32,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {clearIssueNewCardFormData, setIssueNewCardStepAndData} from '@libs/actions/Card';
 import {clearDeletePaymentMethodError} from '@libs/actions/PaymentMethods';
 import {filterCardsByPersonalDetails, getCardsByCardholderName, getCardSettings, sortCardsByCardholderName} from '@libs/CardUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getDescriptionForPolicyDomainCard, getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
@@ -39,7 +40,7 @@ import Navigation from '@navigation/Navigation';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Card, WorkspaceCardsList} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -253,7 +254,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
             {shouldShowSelector && (
                 <View style={[styles.w100, styles.ph5, styles.pb3, !shouldChangeLayout && [styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]]}>
                     <FeedSelector
-                        onFeedSelect={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SELECT_FEED.getRoute(policyID))}
+                        onFeedSelect={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SELECT_FEED.path))}
                         CardFeedIcon={cardFeedIcon}
                         feedName={translate('workspace.common.expensifyCard')}
                         supportingText={getDescriptionForPolicyDomainCard(settings?.domainName ?? '', policyCollection)}

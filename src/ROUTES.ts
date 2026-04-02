@@ -148,6 +148,10 @@ const DYNAMIC_ROUTES = {
         path: 'settings-account',
         entryScreens: [SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS, SCREENS.WORKSPACE.ACCOUNTING.RECONCILIATION_ACCOUNT_SETTINGS],
     },
+    WORKSPACE_EXPENSIFY_CARD_SELECT_FEED: {
+        path: 'select-feed',
+        entryScreens: [SCREENS.WORKSPACE.EXPENSIFY_CARD],
+    },
     WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE: {
         path: 'confirm-magic-code',
         entryScreens: [SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW],
@@ -2696,12 +2700,6 @@ const ROUTES = {
     WORKSPACE_EXPENSIFY_CARD_SETTINGS: {
         route: 'workspaces/:policyID/expensify-card/settings',
         getRoute: (policyID: string) => `workspaces/${policyID}/expensify-card/settings` as const,
-    },
-    WORKSPACE_EXPENSIFY_CARD_SELECT_FEED: {
-        route: 'workspaces/:policyID/expensify-card/select-feed',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/expensify-card/select-feed`, backTo),
     },
     WORKSPACE_EXPENSIFY_CARD_SETTINGS_FREQUENCY: {
         route: 'workspaces/:policyID/expensify-card/settings/frequency',
