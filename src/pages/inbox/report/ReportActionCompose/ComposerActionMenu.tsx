@@ -2,10 +2,10 @@ import React from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsScrollLikelyLayoutTriggered from '@hooks/useIsScrollLikelyLayoutTriggered';
 import useOnyx from '@hooks/useOnyx';
-import {chatIncludesConcierge} from '@libs/ReportUtils';
+import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import ONYXKEYS from '@src/ONYXKEYS';
 import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
-import {useComposerActions, useComposerMetaActions, useComposerMetaState, useComposerSendState, useComposerState} from './ComposerContext';
+import {useComposerActions, useComposerMeta, useComposerSendState, useComposerState} from './ComposerContext';
 
 type ComposerActionMenuProps = {
     reportID: string;
@@ -13,11 +13,13 @@ type ComposerActionMenuProps = {
 
 function ComposerActionMenu({reportID}: ComposerActionMenuProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {isComposerFullSize, isFullComposerAvailable, isMenuVisible} = useComposerState();
-    const {isBlockedFromConcierge, exceededMaxLength} = useComposerSendState();
-    const {setMenuVisibility, focus} = useComposerActions();
-    const {actionButtonRef, shouldFocusComposerOnScreenFocus} = useComposerMetaState();
-    const {onAddActionPressed, onItemSelected, onTriggerAttachmentPicker, validateAttachments} = useComposerMetaActions();
+    const {isMenuVisible, isFullComposerAvailable} = useComposerState();
+    const {isBlockedFromConcierge, exceededMaxLength, validateAttachments} = useComposerSendState();
+    const {setMenuVisibility, focus, onAddActionPressed, onItemSelected, onTriggerAttachmentPicker} = useComposerActions();
+    const {actionButtonRef} = useComposerMeta();
+
+    const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
+    const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`);
 
     const {raiseIsScrollLayoutTriggered} = useIsScrollLikelyLayoutTriggered();
 
@@ -26,6 +28,8 @@ function ComposerActionMenu({reportID}: ComposerActionMenuProps) {
     const reportParticipantIDs = Object.keys(report?.participants ?? {})
         .map(Number)
         .filter((accountID) => accountID !== currentUserPersonalDetails.accountID);
+
+    const shouldFocusComposerOnScreenFocus = canFocusInputOnScreenFocus() || !!draftComment;
 
     return (
         <AttachmentPickerWithMenuItems

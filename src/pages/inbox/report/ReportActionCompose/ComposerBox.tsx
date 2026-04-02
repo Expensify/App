@@ -5,7 +5,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getReportOfflinePendingActionAndErrors} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {useComposerMetaState, useComposerSendState, useComposerState} from './ComposerContext';
+import {useComposerMeta, useComposerSendState, useComposerState} from './ComposerContext';
 
 type ComposerBoxProps = {
     reportID: string;
@@ -14,9 +14,10 @@ type ComposerBoxProps = {
 
 function ComposerBox({reportID, children}: ComposerBoxProps) {
     const styles = useThemeStyles();
-    const {isFocused, isComposerFullSize} = useComposerState();
+    const {isFocused} = useComposerState();
     const {exceededMaxLength, isBlockedFromConcierge} = useComposerSendState();
-    const {containerRef, PDFValidationComponent, ErrorModal} = useComposerMetaState();
+    const {containerRef} = useComposerMeta();
+    const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
 
     const {reportPendingAction: pendingAction} = getReportOfflinePendingActionAndErrors(report);
@@ -39,10 +40,8 @@ function ComposerBox({reportID, children}: ComposerBoxProps) {
                     !!exceededMaxLength && styles.borderColorDanger,
                 ]}
             >
-                {PDFValidationComponent}
                 {children}
             </View>
-            {ErrorModal}
         </OfflineWithFeedback>
     );
 }
