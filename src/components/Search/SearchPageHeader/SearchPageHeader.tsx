@@ -1,3 +1,7 @@
+// NOTE: The narrow-layout rendering of this component has a static twin in
+// SearchPageNarrow/StaticSearchPageHeader.tsx used for fast perceived
+// performance. If you change the narrow-layout UI here, verify the static
+// version still looks visually identical.
 import React from 'react';
 import type {SearchQueryJSON} from '@components/Search/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';

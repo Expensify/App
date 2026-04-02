@@ -1,3 +1,6 @@
+// NOTE: This component has a static twin in SearchPageNarrow/StaticTabSelector.tsx
+// used for fast perceived performance. If you change the UI here, verify the
+// static version still looks visually identical.
 import {useNavigation} from '@react-navigation/native';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';

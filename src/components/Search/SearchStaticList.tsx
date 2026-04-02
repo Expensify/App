@@ -1,3 +1,14 @@
+/**
+ * Lightweight, hook-minimal static version of the search results list used
+ * during the submit-and-navigate flow for fast perceived performance.
+ *
+ * IMPORTANT - keeping visual parity:
+ *  • The narrow-layout rendering here mirrors TransactionListItem /
+ *    UserInfoAndActionButtonRow. If you change the list item UI in those
+ *    components, verify this static version still looks visually identical.
+ *  • This component intentionally avoids expensive hooks and Onyx reads.
+ *    Do NOT add new subscriptions unless absolutely necessary for correctness.
+ */
 import React, {useRef, useState} from 'react';
 import {FlatList, View} from 'react-native';
 import type {ListRenderItemInfo, StyleProp, ViewStyle} from 'react-native';
