@@ -17,7 +17,6 @@ import {setSelfTourViewed} from '@libs/actions/Welcome';
 import {getTestDriveURL} from '@libs/TourUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {hasSeenTourSelector} from '@src/selectors/Onboarding';
 
 const MAX_NUMBER_OF_LINES_TITLE = 4;
 
@@ -35,9 +34,9 @@ function DiscoverSection() {
         hasOutstandingChildTask,
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.VIEW_TOUR);
     const parentReportAction = useParentReportAction(viewTourTaskReport);
-    const [hasSeenTour] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
 
-    if (hasSeenTour !== false) {
+    if (onboarding?.selfTourViewed !== false) {
         return null;
     }
 
