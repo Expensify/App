@@ -11827,7 +11827,6 @@ function prepareOnboardingOnyxData({
     const targetChatReport = shouldPostTasksInAdminsRoom
         ? (adminsChatReport ?? {reportID: adminsChatReportID, policyID: onboardingPolicyID})
         : getChatByParticipants([CONST.ACCOUNT_ID.CONCIERGE, deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID], allReports, false);
-    console.log('CONCIERGE', CONST.ACCOUNT_ID.CONCIERGE, deprecatedCurrentUserAccountID, shouldPostTasksInAdminsRoom, adminsChatReport, targetChatReport, allReports);
     const {reportID: targetChatReportID = '', policyID: targetChatPolicyID = ''} = targetChatReport ?? {};
 
     if (!targetChatReportID) {
