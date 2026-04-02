@@ -137,6 +137,8 @@ const hasPoliciesConnectedToSageIntacctSelector = (policies: OnyxCollection<Poli
 
 const hasPoliciesConnectedToNetSuiteSelector = (policies: OnyxCollection<Policy>) => !!adminPoliciesConnectedToNetSuiteSelector(policies).length;
 
+const hasPoliciesConnectedToQBDSelector = (policies: OnyxCollection<Policy>) => !!adminPoliciesConnectedToQBDSelector(policies).length;
+
 export {
     activePolicySelector,
     createAllPolicyReportFieldsSelector,
@@ -154,4 +156,5 @@ export {
     adminPoliciesConnectedToQBDSelector,
     hasPoliciesConnectedToSageIntacctSelector,
     hasPoliciesConnectedToNetSuiteSelector,
+    hasPoliciesConnectedToQBDSelector,
 };
