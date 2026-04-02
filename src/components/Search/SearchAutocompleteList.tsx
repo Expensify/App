@@ -188,7 +188,7 @@ function SearchAutocompleteList({
         }
     }, [contextAreOptionsInitialized]);
 
-    const searchOptions = useMemo(() => {
+    const searchOptions = (() => {
         if (!areOptionsInitialized) {
             return defaultListOptions;
         }
@@ -214,21 +214,7 @@ function SearchAutocompleteList({
             policyCollection: policies,
             personalDetails,
         });
-    }, [
-        areOptionsInitialized,
-        options,
-        draftComments,
-        nvpDismissedProductTraining,
-        betas,
-        autocompleteQueryValue,
-        countryCode,
-        loginList,
-        visibleReportActionsData,
-        currentUserAccountID,
-        currentUserEmail,
-        policies,
-        personalDetails,
-    ]);
+    })();
 
     const [isInitialRender, setIsInitialRender] = useState(true);
     const prevQueryRef = useRef(autocompleteQueryValue);
@@ -338,7 +324,7 @@ function SearchAutocompleteList({
         };
     });
 
-    const recentReportsOptions = useMemo(() => {
+    const recentReportsOptions = (() => {
         if (autocompleteQueryValue.trim() === '') {
             return searchOptions.recentReports;
         }
@@ -354,7 +340,7 @@ function SearchAutocompleteList({
         }
 
         return reportOptions.slice(0, 20);
-    }, [autocompleteQueryValue, searchOptions]);
+    })();
 
     const debounceHandleSearch = useDebounce(() => {
         if (!handleSearch || !autocompleteQueryWithoutFilters) {

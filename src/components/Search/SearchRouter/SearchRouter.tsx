@@ -216,7 +216,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 setAutocompleteSubstitutions(updatedSubstitutionsMap);
             }
         },
-        [autocompleteSubstitutions, setTextInputValue, textInputValue],
+        [autocompleteSubstitutions, setAutocompleteQueryValue, setTextInputValue, textInputValue],
     );
 
     const submitSearch = useCallback(
@@ -239,7 +239,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             setTextInputValue('');
             setAutocompleteQueryValue('');
         },
-        [autocompleteSubstitutions, onRouterClose, setTextInputValue, setShouldResetSearchQuery],
+        [autocompleteSubstitutions, onRouterClose, setAutocompleteQueryValue, setTextInputValue, setShouldResetSearchQuery],
     );
 
     const onListItemPress = useCallback(
