@@ -1360,7 +1360,7 @@ function updateSplitTransactions({
                 attendees: splitTransaction?.comment?.attendees ?? originalTransactionDetails?.attendees,
                 source: CONST.IOU.TYPE.SPLIT,
                 linkedTrackedExpenseReportAction: currentReportAction,
-                pendingAction: splitTransaction ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                pendingAction: splitTransaction ? (splitTransaction.pendingAction ?? null) : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 pendingFields: splitTransaction ? splitTransaction.pendingFields : undefined,
                 reimbursable: originalTransactionDetails?.reimbursable,
                 taxCode: originalTransactionDetails?.taxCode,
@@ -1396,6 +1396,10 @@ function updateSplitTransactions({
         if (isReverseSplitOperation) {
             requestMoneyInformation.transactionParams = {
                 amount: splitExpense.amount ?? 0,
+                // modifiedAmount is required so getMoneyRequestInformation picks Math.abs(modifiedAmount) for
+                // iouActionAmount instead of the already-negated `amount`. Without it the IOU action message
+                // (and MoneyRequestView) displays the amount with a leading minus sign for selfDM reverts.
+                modifiedAmount: splitExpense.amount ?? 0,
                 currency: originalTransactionDetails?.currency ?? CONST.CURRENCY.USD,
                 created: splitExpense.created,
                 merchant: splitExpense.merchant ?? '',
@@ -1486,6 +1490,13 @@ function updateSplitTransactions({
         let updateMoneyRequestParamsOnyxData: OnyxData<UpdateMoneyRequestDataKeys> = {};
         const currentSplit = splits.at(index);
 
+        // Whether this split has actual changes or is brand-new.
+        // getMoneyRequestInformation always generates a new iouAction with pendingAction: ADD,
+        // which would overwrite the existing action's pending state for unchanged splits.
+        // We still call getMoneyRequestInformation for all splits to obtain iouAction.reportActionID
+        // (needed for API params), but we only push its Onyx data when the split actually changed.
+        let hasChanges = !splitTransaction;
+
         // For existing split transactions, update the field change messages
         // For new transactions, skip this step
         if (splitTransaction) {
@@ -1563,6 +1574,7 @@ function updateSplitTransactions({
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransactionID}`,
                     value: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
                 });
+                hasChanges = true;
             }
 
             // For new split transactions, set the reportID once the transaction and associated report are created
@@ -1899,7 +1911,7 @@ function updateSplitTransactions({
             }
         }
 
-        if (isSelfDMSplit && optimisticTransactionFromGetMoneyRequest) {
+        if (isSelfDMSplit && optimisticTransactionFromGetMoneyRequest && hasChanges) {
             // For initial splits, both optimistic transactions reuse originalTransactionID as their transactionID.
             // Generate snapshot-only IDs so two distinct entries appear in Reports > Expenses while offline.
             // When the user comes back online, the search refreshes and replaces these with server-generated IDs.
@@ -1910,9 +1922,19 @@ function updateSplitTransactions({
             });
         }
 
-        onyxData.optimisticData?.push(...(moneyRequestInformationOnyxData.optimisticData ?? []), ...(updateMoneyRequestParamsOnyxData.optimisticData ?? []), ...optimisticDataComments);
-        onyxData.successData?.push(...(moneyRequestInformationOnyxData.successData ?? []), ...(updateMoneyRequestParamsOnyxData.successData ?? []), ...successDataComments);
-        onyxData.failureData?.push(...(moneyRequestInformationOnyxData.failureData ?? []), ...(updateMoneyRequestParamsOnyxData.failureData ?? []), ...failureDataComments);
+        // Only apply the money-request Onyx data when the split actually changed or is new.
+        // For unchanged existing splits we still called getMoneyRequestInformation to get the
+        // iouAction.reportActionID for API params, but pushing its Onyx data would overwrite
+        // the split's existing pendingAction (transaction SET) and pendingAction on the IOU action
+        // (report action MERGE with pendingAction: ADD), making unmodified splits appear pending.
+        if (hasChanges) {
+            onyxData.optimisticData?.push(...(moneyRequestInformationOnyxData.optimisticData ?? []));
+            onyxData.successData?.push(...(moneyRequestInformationOnyxData.successData ?? []));
+            onyxData.failureData?.push(...(moneyRequestInformationOnyxData.failureData ?? []));
+        }
+        onyxData.optimisticData?.push(...(updateMoneyRequestParamsOnyxData.optimisticData ?? []), ...optimisticDataComments);
+        onyxData.successData?.push(...(updateMoneyRequestParamsOnyxData.successData ?? []), ...successDataComments);
+        onyxData.failureData?.push(...(updateMoneyRequestParamsOnyxData.failureData ?? []), ...failureDataComments);
     }
 
     // All transactions that were deleted in the split list will be marked as deleted in onyx
@@ -2094,7 +2116,7 @@ function updateSplitTransactions({
             value: originalTransaction,
         });
 
-        if (firstIOU) {
+        if (firstIOU && isCreationOfSplits) {
             // For selfDM splits, also resolve the Concierge "What would you like to do with this expense?"
             // whisper so it disappears along with the original expense when splits are created.
             const whisperAction = isOriginalTransactionInSelfDM ? getTrackExpenseActionableWhisper(originalTransactionID, originalSelfDMReportID) : undefined;
@@ -2210,6 +2232,41 @@ function updateSplitTransactions({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchContext?.currentSearchHash}`,
                 value: {data: failureSnapshotData},
+            });
+        }
+
+        // Also remove the original transaction from active group search snapshots so it doesn't
+        // linger when the user is viewing the expense from a group search tab.
+        const originalTransactionSnapshotKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}` as const;
+        for (const groupHash of searchContext?.activeGroupSearchHashes ?? []) {
+            if (groupHash < 0) {
+                continue;
+            }
+            const groupSnapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${groupHash}` as const;
+            const previousGroupSnapshotData = allSnapshots?.[groupSnapshotKey]?.data;
+            if (!previousGroupSnapshotData?.[originalTransactionSnapshotKey]) {
+                continue;
+            }
+            const optimisticGroupData: Partial<Record<`${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`, OnyxTypes.Transaction | null>> = {
+                [originalTransactionSnapshotKey]: null,
+            };
+            const failureGroupData: Partial<Record<`${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`, OnyxTypes.Transaction | null>> = {
+                [originalTransactionSnapshotKey]: previousGroupSnapshotData[originalTransactionSnapshotKey] ?? null,
+            };
+            for (const tx of newSelfDMSplitTransactions) {
+                const splitKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${tx.transactionID}` as const;
+                optimisticGroupData[splitKey] = tx;
+                failureGroupData[splitKey] = null;
+            }
+            onyxData.optimisticData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: groupSnapshotKey,
+                value: {data: optimisticGroupData},
+            });
+            onyxData.failureData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: groupSnapshotKey,
+                value: {data: failureGroupData},
             });
         }
     } else {
