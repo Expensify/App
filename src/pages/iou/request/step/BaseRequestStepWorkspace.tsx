@@ -107,7 +107,7 @@ function BaseRequestStepWorkspace({transaction, getPolicies, onSelectWorkspace}:
                 onSelectRow={selectWorkspace}
                 shouldSingleExecuteRowSelect
                 ListItem={UserListItem}
-                initiallyFocusedItemKey={initiallyFocusedKey}
+                shouldShowRadioButton
             />
         </>
     );

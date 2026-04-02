@@ -265,7 +265,7 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
                         isDisabled: !selectedOptions.length,
                     }}
                     shouldShowLoadingPlaceholder={!areOptionsInitialized || !didScreenTransitionEnd}
-                    shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                    shouldPreventDefaultFocusOnSelectRow
                     footerContent={footerContent}
                     isLoadingNewOptions={!!isSearchingForReports}
                     addBottomSafeAreaPadding
