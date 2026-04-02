@@ -557,19 +557,7 @@ function TransactionItemRow({
                 return (
                     <View
                         key={column}
-                        style={[
-                            StyleUtils.getReportTableColumnStyles(
-                                CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
-                                undefined,
-                                isAmountColumnWide,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                isReportItemChild,
-                            ),
-                        ]}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, undefined, isAmountColumnWide)]}
                     >
                         <TotalCell
                             transactionItem={transactionItem}
@@ -597,19 +585,7 @@ function TransactionItemRow({
                 return (
                     <View
                         key={column}
-                        style={[
-                            StyleUtils.getReportTableColumnStyles(
-                                CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT,
-                                undefined,
-                                isAmountColumnWide,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                isReportItemChild,
-                            ),
-                        ]}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT, undefined, isAmountColumnWide)]}
                     >
                         <AmountCell
                             total={getOriginalAmountForDisplay(transactionItem, isExpenseReport(transactionItem.report))}
