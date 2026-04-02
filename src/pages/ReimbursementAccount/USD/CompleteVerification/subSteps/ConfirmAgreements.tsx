@@ -7,7 +7,6 @@ import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getFieldRequiredErrors, isRequiredFulfilled} from '@libs/ValidationUtils';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
@@ -36,7 +35,12 @@ function TermsAndConditionsLabel() {
     return <RenderHTML html={translate('common.acceptTermsAndConditions')} />;
 }
 
-function ConfirmAgreements({onNext}: SubPageProps) {
+type ConfirmAgreementsProps = {
+    /** Continues to the next step */
+    onNext: () => void;
+};
+
+function ConfirmAgreements({onNext}: ConfirmAgreementsProps) {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const {translate} = useLocalize();
