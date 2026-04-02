@@ -3161,6 +3161,10 @@ ${amount} para ${merchant} - ${date}`,
         year: 'Año',
         selectYear: 'Por favor, selecciona un año',
     },
+    monthPickerPage: {
+        month: 'Mes',
+        selectMonth: 'Por favor, selecciona un mes',
+    },
     focusModeUpdateModal: {
         title: '¡Bienvenido al modo #concentración!',
         prompt: (priorityModePageUrl) =>
