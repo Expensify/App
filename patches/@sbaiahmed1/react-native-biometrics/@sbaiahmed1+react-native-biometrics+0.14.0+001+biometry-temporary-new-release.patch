@@ -349,6 +349,28 @@ index 50010e0..427dcfc 100644
      return .deviceOwnerAuthenticationWithBiometrics
    }
  
+diff --git a/node_modules/@sbaiahmed1/react-native-biometrics/package.json b/node_modules/@sbaiahmed1/react-native-biometrics/package.json
+index 51dae57..06cef2c 100644
+--- a/node_modules/@sbaiahmed1/react-native-biometrics/package.json
++++ b/node_modules/@sbaiahmed1/react-native-biometrics/package.json
+@@ -16,6 +16,17 @@
+         "default": "./lib/commonjs/index.js"
+       }
+     },
++    "./types": {
++      "source": "./src/types.ts",
++      "import": {
++        "types": "./lib/typescript/module/src/types.d.ts",
++        "default": "./lib/module/types.js"
++      },
++      "require": {
++        "types": "./lib/typescript/commonjs/src/types.d.ts",
++        "default": "./lib/commonjs/types.js"
++      }
++    },
+     "./package.json": "./package.json"
+   },
+   "files": [
 diff --git a/node_modules/@sbaiahmed1/react-native-biometrics/src/NativeReactNativeBiometrics.ts b/node_modules/@sbaiahmed1/react-native-biometrics/src/NativeReactNativeBiometrics.ts
 index 02e63af..80f6178 100644
 --- a/node_modules/@sbaiahmed1/react-native-biometrics/src/NativeReactNativeBiometrics.ts
