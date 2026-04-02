@@ -1,4 +1,5 @@
 import {createKeys, deleteKeys, getAllKeys, InputEncoding, isSensorAvailable, signWithOptions} from '@sbaiahmed1/react-native-biometrics';
+import type {SignatureResult} from '@sbaiahmed1/react-native-biometrics';
 import addMFABreadcrumb from '@components/MultifactorAuthentication/observability/breadcrumbs';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -9,6 +10,20 @@ import CONST from '@src/CONST';
 import Base64URL from '@src/utils/Base64URL';
 import type {AuthorizeParams, AuthorizeResult, RegisterResult, UseBiometricsReturn} from './shared/types';
 import useServerCredentials from './shared/useServerCredentials';
+
+/**
+ * UTILS START
+ */
+function isCredentialAllowed(credentialID: string | undefined, allowedIDs: string[]): credentialID is string {
+    return !!credentialID && allowedIDs.includes(credentialID);
+}
+
+function hasValidSignature(signResult: SignatureResult): signResult is SignatureResult & {signature: string} {
+    return signResult.success && !!signResult.signature;
+}
+/**
+ * UTILS END
+ */
 
 /**
  * Native biometrics hook using HSM-backed EC P-256 keys via react-native-biometrics.
@@ -35,7 +50,11 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
             }
             return Base64URL.base64ToBase64url(entry.publicKey);
         } catch (error) {
-            addMFABreadcrumb('Failed to get local credential ID', {reason: mapLibraryErrorToReason(error) ?? VALUES.REASON.HSM.GENERIC}, 'error');
+            let reason = mapLibraryErrorToReason(error);
+            if (reason === undefined) {
+                reason = VALUES.REASON.HSM.GENERIC;
+            }
+            addMFABreadcrumb('Failed to get local credential ID', {reason}, 'error');
             return undefined;
         }
     };
@@ -50,7 +69,11 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
             const keyAlias = getKeyAlias(accountID);
             await deleteKeys(keyAlias);
         } catch (error) {
-            addMFABreadcrumb('Failed to delete local keys', {reason: mapLibraryErrorToReason(error) ?? VALUES.REASON.HSM.GENERIC}, 'error');
+            let reason = mapLibraryErrorToReason(error);
+            if (reason === undefined) {
+                reason = VALUES.REASON.HSM.GENERIC;
+            }
+            addMFABreadcrumb('Failed to delete local keys', {reason}, 'error');
         }
     };
 
@@ -89,9 +112,13 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
                 keyInfo,
             });
         } catch (error) {
+            let reason = mapLibraryErrorToReason(error);
+            if (reason === undefined) {
+                reason = VALUES.REASON.HSM.KEY_CREATION_FAILED;
+            }
             onResult({
                 success: false,
-                reason: mapLibraryErrorToReason(error) ?? VALUES.REASON.HSM.KEY_CREATION_FAILED,
+                reason,
             });
         }
     };
@@ -102,9 +129,9 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
         try {
             const keyAlias = getKeyAlias(accountID);
             const credentialID = await getLocalCredentialID();
-            const allowedIDs = challenge.allowCredentials?.map((credential: {id: string; type: string}) => credential.id) ?? [];
+            const allowedIDs = challenge.allowCredentials.map((credential: {id: string; type: string}) => credential.id);
 
-            if (!credentialID || !allowedIDs.includes(credentialID)) {
+            if (!isCredentialAllowed(credentialID, allowedIDs)) {
                 await deleteLocalKeysForAccount();
                 onResult({success: false, reason: VALUES.REASON.HSM.KEY_NOT_FOUND});
                 return;
@@ -121,10 +148,14 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
                 returnAuthType: true,
             });
 
-            if (!signResult.success || !signResult.signature) {
+            if (!hasValidSignature(signResult)) {
+                let failReason = mapSignErrorCodeToReason(signResult.errorCode);
+                if (failReason === undefined) {
+                    failReason = VALUES.REASON.HSM.GENERIC;
+                }
                 onResult({
                     success: false,
-                    reason: mapSignErrorCodeToReason(signResult.errorCode) ?? VALUES.REASON.HSM.GENERIC,
+                    reason: failReason,
                 });
                 return;
             }
@@ -150,9 +181,13 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
                 authenticationMethod: authType,
             });
         } catch (error) {
+            let reason = mapLibraryErrorToReason(error);
+            if (reason === undefined) {
+                reason = VALUES.REASON.HSM.GENERIC;
+            }
             onResult({
                 success: false,
-                reason: mapLibraryErrorToReason(error) ?? VALUES.REASON.HSM.GENERIC,
+                reason,
             });
         }
     };
