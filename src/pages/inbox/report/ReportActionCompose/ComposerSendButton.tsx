@@ -1,10 +1,10 @@
 import React from 'react';
-import {useComposerActions, useComposerSendState} from './ComposerContext';
+import {useComposerSendActions, useComposerSendState} from './ComposerContext';
 import SendButton from './SendButton';
 
 function ComposerSendButton() {
     const {isSendDisabled} = useComposerSendState();
-    const {handleSendMessage} = useComposerActions();
+    const {handleSendMessage} = useComposerSendActions();
 
     return (
         <SendButton
