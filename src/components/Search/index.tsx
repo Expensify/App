@@ -133,6 +133,7 @@ function mapTransactionItemToSelectedEntry(
             action: item.action,
             groupCurrency: item.groupCurrency,
             groupExchangeRate: item.groupExchangeRate,
+            currencyConversionRate: item.currencyConversionRate,
             reportID: item.reportID,
             policyID: item.policyID,
             amount: allowNegativeAmount ? amount : Math.abs(amount),
@@ -285,6 +286,7 @@ function Search({
 
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const previousTransactions = usePrevious(transactions);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
@@ -766,6 +768,7 @@ function Search({
                         groupAmount: transactionItem.groupAmount,
                         groupCurrency: transactionItem.groupCurrency,
                         groupExchangeRate: transactionItem.groupExchangeRate,
+                        currencyConversionRate: transactionItem.currencyConversionRate,
                         currency: transactionItem.currency,
                         ownerAccountID: transactionItem.reportAction?.actorAccountID,
                         reportAction: transactionItem.reportAction,
@@ -820,6 +823,7 @@ function Search({
                     groupAmount: transactionItem.groupAmount,
                     groupCurrency: transactionItem.groupCurrency,
                     groupExchangeRate: transactionItem.groupExchangeRate,
+                    currencyConversionRate: transactionItem.currencyConversionRate,
                     currency: transactionItem.currency,
                     ownerAccountID: transactionItem.reportAction?.actorAccountID,
                     reportAction: transactionItem.reportAction,
@@ -1035,7 +1039,7 @@ function Search({
             if (isTransactionItem && !item?.reportAction?.childReportID) {
                 // If the report is unreported (self DM), we want to open the track expense thread instead of a report with an ID of 0
                 const shouldOpenTransactionThread = !isOneTransactionReport(item.report) || item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-                createAndOpenSearchTransactionThread(item, introSelected, backTo, email ?? '', accountID, item?.reportAction?.childReportID, undefined, shouldOpenTransactionThread);
+                createAndOpenSearchTransactionThread(item, introSelected, backTo, email ?? '', accountID, betas, item?.reportAction?.childReportID, undefined, shouldOpenTransactionThread);
                 if (shouldOpenTransactionThread) {
                     return;
                 }
@@ -1088,6 +1092,7 @@ function Search({
                             backTo,
                             email ?? '',
                             accountID,
+                            betas,
                             firstTransaction?.reportAction?.childReportID,
                             transactionPreviewData,
                             false,
@@ -1140,6 +1145,7 @@ function Search({
             markReportIDAsMultiTransactionExpense,
             unmarkReportIDAsMultiTransactionExpense,
             introSelected,
+            betas,
             email,
             accountID,
         ],
@@ -1151,7 +1157,7 @@ function Search({
         if (!searchResults?.data) {
             return [];
         }
-        return getColumnsToShow(accountID, searchResults?.data, visibleColumns, false, searchDataType, validGroupBy, false, false, false, shouldUseStrictDefaultExpenseColumns);
+        return getColumnsToShow({currentAccountID: accountID, data: searchResults?.data, visibleColumns, type: searchDataType, groupBy: validGroupBy, shouldUseStrictDefaultExpenseColumns});
     }, [accountID, searchResults?.data, searchDataType, visibleColumns, validGroupBy, shouldUseStrictDefaultExpenseColumns]);
 
     const opacity = useSharedValue(1);
