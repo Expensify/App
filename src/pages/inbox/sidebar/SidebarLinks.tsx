@@ -5,7 +5,6 @@ import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
 import LHNOptionsList from '@components/LHNOptionsList/LHNOptionsList';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
-import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -40,8 +39,6 @@ function SidebarLinks({insets, optionListItems, priorityMode = CONST.PRIORITY_MO
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [isLoadingReportData = true] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_REPORT_DATA);
-
-    useConfirmReadyToOpenApp();
 
     useEffect(() => {
         ReportActionContextMenu.hideContextMenu(false);
@@ -100,7 +97,7 @@ function SidebarLinks({insets, optionListItems, priorityMode = CONST.PRIORITY_MO
                     onFirstItemRendered={setSidebarLoaded}
                 />
                 {isLoadingReportData && optionListItems?.length === 0 && (
-                    <View style={[StyleSheet.absoluteFillObject, styles.appBG, styles.mt3]}>
+                    <View style={[StyleSheet.absoluteFill, styles.appBG, styles.mt3]}>
                         <OptionsListSkeletonView
                             shouldAnimate
                             reasonAttributes={sidebarSkeletonReasonAttributes}

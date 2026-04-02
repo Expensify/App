@@ -35,6 +35,8 @@ import type {LHNOptionsListProps, RenderItemProps} from './types';
 import useEmptyLHNIllustration from './useEmptyLHNIllustration';
 
 const keyExtractor = (item: Report) => `report_${item.reportID}`;
+const platform = getPlatform();
+const isWeb = platform === CONST.PLATFORM.WEB;
 
 function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optionMode, shouldDisableFocusOptions = false, onFirstItemRendered = () => {}}: LHNOptionsListProps) {
     const {saveScrollOffset, getScrollOffset, saveScrollIndex, getScrollIndex} = useContext(ScrollOffsetContext);
@@ -59,21 +61,15 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const isReportsSplitNavigatorLast = useRootNavigationState((state) => state?.routes?.at(-1)?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
     const shouldShowEmptyLHN = data.length === 0;
     const estimatedItemSize = optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
-    const platform = getPlatform();
-    const isWeb = platform === CONST.PLATFORM.WEB;
     const emptyLHNIllustration = useEmptyLHNIllustration();
 
     const firstReportIDWithGBRorRBR = useMemo(() => {
         const firstReportWithGBRorRBR = data.find((report) => {
-            const itemReportErrors = reportAttributes?.[report.reportID]?.reportErrors;
-            if (!report) {
-                return false;
-            }
-            if (!isEmptyObject(itemReportErrors)) {
+            const attrs = reportAttributes?.[report.reportID];
+            if (!isEmptyObject(attrs?.reportErrors)) {
                 return true;
             }
-            const hasGBR = reportAttributes?.[report.reportID]?.requiresAttention;
-            return hasGBR;
+            return attrs?.requiresAttention;
         });
 
         return firstReportWithGBRorRBR?.reportID;
@@ -228,10 +224,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             return;
         }
 
-        if (!flashListRef.current) {
-            return;
-        }
-
         // If the option mode changes want to scroll to the top of the list because rendered items will have different height.
         flashListRef.current.scrollToOffset({offset: 0});
     }, [previousOptionMode, optionMode]);
@@ -249,7 +241,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             }
             triggerScrollEvent();
         },
-        [estimatedItemSize, isWeb, route, saveScrollIndex, saveScrollOffset, triggerScrollEvent],
+        [estimatedItemSize, route, saveScrollIndex, saveScrollOffset, triggerScrollEvent],
     );
 
     const onLayout = useCallback(() => {
@@ -266,7 +258,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             }
             flashListRef.current.scrollToOffset({offset});
         });
-    }, [getScrollOffset, route, isWeb]);
+    }, [getScrollOffset, route]);
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {

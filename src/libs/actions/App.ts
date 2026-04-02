@@ -567,8 +567,7 @@ type CreateWorkspaceWithPolicyDraftParams = {
     currentUserEmailParam: string;
     shouldCreateControlPolicy?: boolean;
     type?: PolicyType;
-    // TODO: Remove optional (?) once allBetas Onyx.connect is removed (https://github.com/Expensify/App/issues/66417)
-    betas?: OnyxEntry<OnyxTypes.Beta[]>;
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
     hasActiveAdminPolicies: boolean;
 };
 
@@ -685,8 +684,7 @@ type SavePolicyDraftByNewWorkspaceParams = {
     allReportsParam: OnyxCollection<OnyxTypes.Report>;
     shouldCreateControlPolicy?: boolean;
     type?: PolicyType;
-    // TODO: Remove optional (?) once allBetas Onyx.connect is removed (https://github.com/Expensify/App/issues/66417)
-    betas?: OnyxEntry<OnyxTypes.Beta[]>;
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
     hasActiveAdminPolicies: boolean;
 };
 
@@ -754,6 +752,7 @@ function setUpPoliciesAndNavigate(
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
     activePolicyID: string | undefined,
     isSelfTourViewed: boolean | undefined,
+    betas: OnyxEntry<OnyxTypes.Beta[]>,
     hasActiveAdminPolicies: boolean,
 ) {
     const currentUrl = getCurrentUrl();
@@ -786,6 +785,7 @@ function setUpPoliciesAndNavigate(
             currentUserAccountIDParam: currentSessionData.accountID ?? CONST.DEFAULT_NUMBER_ID,
             currentUserEmailParam: currentSessionData.email ?? '',
             isSelfTourViewed,
+            betas,
             hasActiveAdminPolicies,
         });
         return;

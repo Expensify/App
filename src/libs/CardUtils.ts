@@ -1418,6 +1418,10 @@ function isCardFrozen(card?: OnyxEntry<Card>): boolean {
     return card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED && card?.nameValuePairs?.frozen != null;
 }
 
+function isCardInactive(card?: OnyxEntry<Card>): boolean {
+    return card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED && !card?.nameValuePairs?.frozen;
+}
+
 /**
  * Return url for fixing broken personal card connection
  *
@@ -1659,6 +1663,7 @@ export {
     generateCardID,
     hasDisplayableAssignedCards,
     isCardFrozen,
+    isCardInactive,
     isCardWithPotentialFraud,
     getDisplayableExpensifyCards,
     isExpiredCard,
