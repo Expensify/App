@@ -13130,7 +13130,7 @@ function buildOptimisticRejectReportActionComment(comment: string, created = Dat
             {
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
                 text: comment,
-                html: comment,
+                html: getParsedComment(comment),
             },
         ],
         person: [
