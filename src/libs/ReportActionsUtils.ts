@@ -987,13 +987,14 @@ function canActionsBeGrouped(currentAction?: ReportAction, adjacentAction?: Repo
 }
 
 // The entire trimmed message must be a timer command (not a word embedded in normal chat). Case-insensitive.
-const CHRONOS_TIMER_COMMAND_STOP_REGEX = /^stop(?:ped|ping)?(?:\s+now)?$/i;
-const CHRONOS_TIMER_COMMAND_START_REGEX = /^start(?:ed|ing)?(?:\s+now)?$/i;
+// "at ..." is only allowed after past-tense "started"/"stopped" so phrases like "stop at the corner" do not match.
+const CHRONOS_TIMER_COMMAND_STOP_REGEX = /^(?:stop(?:ping)?(?:\s+now)?|stopped(?:\s+now)?(?:\s+at\b.*)?)$/i;
+const CHRONOS_TIMER_COMMAND_START_REGEX = /^(?:start(?:ing)?(?:\s+now)?|started(?:\s+now)?(?:\s+at\b.*)?)$/i;
 
 type ChronosTimerCommandValue = ValueOf<typeof CONST.CHRONOS.TIMER_COMMAND>;
 
 /**
- * Returns `CONST.CHRONOS.TIMER_COMMAND.START`, `CONST.CHRONOS.TIMER_COMMAND.STOP`, or `null` when the trimmed text is only a Chronos timer command (e.g. "start", "stop now"), not when "start"/"stop" appear inside a sentence.
+ * Returns `CONST.CHRONOS.TIMER_COMMAND.START`, `CONST.CHRONOS.TIMER_COMMAND.STOP`, or `null` when the trimmed text is only a Chronos timer command (e.g. "start", "stop now", "started at …", "stopped at …"), not when "start"/"stop" appear inside a sentence.
  */
 function isChronosStartOrStopMessage(text: string): ChronosTimerCommandValue | null {
     const trimmedText = text.trim();

@@ -4565,18 +4565,24 @@ describe('ReportActionsUtils', () => {
             expect(isChronosStartOrStopMessage('stop')).toBe(CONST.CHRONOS.TIMER_COMMAND.STOP);
             expect(isChronosStartOrStopMessage('stopped')).toBe(CONST.CHRONOS.TIMER_COMMAND.STOP);
             expect(isChronosStartOrStopMessage('stop now')).toBe(CONST.CHRONOS.TIMER_COMMAND.STOP);
+            expect(isChronosStartOrStopMessage('stopped at 10:00 AM')).toBe(CONST.CHRONOS.TIMER_COMMAND.STOP);
+            expect(isChronosStartOrStopMessage('Stopped at 3pm')).toBe(CONST.CHRONOS.TIMER_COMMAND.STOP);
         });
 
         it('returns start when only start pattern matches', () => {
             expect(isChronosStartOrStopMessage('start')).toBe(CONST.CHRONOS.TIMER_COMMAND.START);
             expect(isChronosStartOrStopMessage('started')).toBe(CONST.CHRONOS.TIMER_COMMAND.START);
             expect(isChronosStartOrStopMessage('start now')).toBe(CONST.CHRONOS.TIMER_COMMAND.START);
+            expect(isChronosStartOrStopMessage('started at 9:00')).toBe(CONST.CHRONOS.TIMER_COMMAND.START);
+            expect(isChronosStartOrStopMessage('Started at noon')).toBe(CONST.CHRONOS.TIMER_COMMAND.START);
         });
 
         it('returns null when start or stop appears only inside a longer message', () => {
             expect(isChronosStartOrStopMessage('stop then start')).toBe(null);
             expect(isChronosStartOrStopMessage('I will start later')).toBe(null);
             expect(isChronosStartOrStopMessage('please stop by later')).toBe(null);
+            expect(isChronosStartOrStopMessage('stop at the corner')).toBe(null);
+            expect(isChronosStartOrStopMessage('start at home')).toBe(null);
         });
 
         it('returns null for unrelated text', () => {
