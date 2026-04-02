@@ -137,10 +137,6 @@ type BuildOptimisticTransactionParams = {
     isDemoTransactionParam?: boolean;
 };
 
-function isDeletedTransaction(transaction: {reportID?: string}): boolean {
-    return transaction.reportID === CONST.REPORT.TRASH_REPORT_ID;
-}
-
 function hasDistanceCustomUnit(transaction: OnyxEntry<Transaction> | Partial<Transaction>): boolean {
     return transaction?.comment?.type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && transaction?.comment?.customUnit?.name === CONST.CUSTOM_UNITS.NAME_DISTANCE;
 }
@@ -1181,7 +1177,7 @@ function getReportOwnerAsAttendee(transaction: OnyxInputOrEntry<Transaction>, cu
                 accountID: creatorAccountID,
                 text: creatorDisplayName,
                 searchText: creatorDisplayName,
-                avatarUrl: creatorDetails?.avatarThumbnail ?? '',
+                avatarUrl: (creatorDetails?.avatarThumbnail ?? creatorDetails?.avatar ?? '') as string,
                 selected: true,
             };
         }
@@ -3008,7 +3004,6 @@ export {
     isDistanceTypeRequest,
     recalculateUnreportedTransactionDetails,
     hasSmartScanFailedWithMissingFields,
-    isDeletedTransaction,
 };
 
 export type {TransactionChanges};
