@@ -4,12 +4,12 @@ import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
-import {Plus} from '@components/Icon/Expensicons';
 import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -49,6 +49,7 @@ function WorkspaceInvoiceFieldsSection({policyID}: WorkspaceInvoiceFieldsSection
     const policy = usePolicy(policyID);
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['Plus']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [isReportFieldsWarningModalOpen, setIsReportFieldsWarningModalOpen] = useState(false);
     const [isOrganizeWarningModalOpen, setIsOrganizeWarningModalOpen] = useState(false);
@@ -59,6 +60,7 @@ function WorkspaceInvoiceFieldsSection({policyID}: WorkspaceInvoiceFieldsSection
     const isConnectionVerified = connectedIntegration && !isConnectionUnverified(policy, connectedIntegration);
     const currentConnectionName = getCurrentConnectionName(policy);
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
+    const fieldList = policy?.fieldList;
     const fetchInvoiceFields = useCallback(() => {
         openPolicyInvoicesPage(policyID);
     }, [policyID]);
@@ -72,11 +74,11 @@ function WorkspaceInvoiceFieldsSection({policyID}: WorkspaceInvoiceFieldsSection
     }, [fetchInvoiceFields]);
 
     const invoiceFields = useMemo<InvoiceFieldListItem[]>(() => {
-        if (!policy?.fieldList) {
+        if (!fieldList) {
             return [];
         }
 
-        return Object.values(policy.fieldList)
+        return Object.values(fieldList)
             .filter((field) => field.target === CONST.REPORT_FIELD_TARGETS.INVOICE)
             .sort((a, b) => localeCompare(a.name, b.name))
             .map((field) => ({
@@ -87,7 +89,7 @@ function WorkspaceInvoiceFieldsSection({policyID}: WorkspaceInvoiceFieldsSection
                 isDisabled: field.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 rightLabel: Str.recapitalize(translate(getReportFieldTypeTranslationKey(field.type))),
             }));
-    }, [localeCompare, policy?.fieldList, translate]);
+    }, [fieldList, localeCompare, translate]);
 
     const navigateToReportFieldSettings = useCallback(
         (item: InvoiceFieldListItem) => {
@@ -177,7 +179,7 @@ function WorkspaceInvoiceFieldsSection({policyID}: WorkspaceInvoiceFieldsSection
                                     <MenuItem
                                         onPress={() => Navigation.navigate(ROUTES.WORKSPACE_INVOICE_FIELDS_CREATE.getRoute(policyID))}
                                         title={translate('workspace.reportFields.addField')}
-                                        icon={Plus}
+                                        icon={icons.Plus}
                                         style={[styles.sectionMenuItemTopDescription]}
                                     />
                                 )}

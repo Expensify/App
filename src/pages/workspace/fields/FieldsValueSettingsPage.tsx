@@ -4,12 +4,12 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
@@ -39,6 +39,7 @@ type FieldsValueSettingsPageProps = {
 function FieldsValueSettingsPage({policy, policyID, valueIndex, reportFieldID, isInvoicePage, featureName, getEditValueRoute, testID}: FieldsValueSettingsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
 
     const [isDeleteTagModalOpen, setIsDeleteTagModalOpen] = useState(false);
@@ -151,7 +152,7 @@ function FieldsValueSettingsPage({policy, policyID, valueIndex, reportFieldID, i
                     />
                     {!hasAccountingConnections && (
                         <MenuItem
-                            icon={Expensicons.Trashcan}
+                            icon={icons.Trashcan}
                             title={translate('common.delete')}
                             onPress={() => setIsDeleteTagModalOpen(true)}
                         />

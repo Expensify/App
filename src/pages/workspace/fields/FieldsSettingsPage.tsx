@@ -5,10 +5,10 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -49,6 +49,7 @@ function FieldsSettingsPage({
 }: FieldsSettingsPageProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
 
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
@@ -136,7 +137,7 @@ function FieldsSettingsPage({
                     {!hasAccountingConnections && (
                         <View style={styles.flexGrow1}>
                             <MenuItem
-                                icon={Expensicons.Trashcan}
+                                icon={icons.Trashcan}
                                 title={translate('common.delete')}
                                 onPress={() => setIsDeleteModalVisible(true)}
                             />
