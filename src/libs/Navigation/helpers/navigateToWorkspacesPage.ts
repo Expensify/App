@@ -1,6 +1,5 @@
+import type {NavigationState, PartialState} from '@react-navigation/native';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import Log from '@libs/Log';
-import {getPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {isPendingDeletePolicy, shouldShowPolicy as shouldShowPolicyUtil} from '@libs/PolicyUtils';
@@ -9,56 +8,26 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Domain, Policy} from '@src/types/onyx';
-import {isFullScreenName, isWorkspacesTabScreenName} from './isNavigatorName';
-import {getLastVisitedWorkspaceTabScreen, getWorkspacesTabStateFromSessionStorage} from './lastVisitedTabPathUtils';
+import {getLastVisitedWorkspaceTabScreen} from './lastVisitedTabPathUtils';
+
+type RouteType = NavigationState['routes'][number] | PartialState<NavigationState>['routes'][number];
 
 type Params = {
     currentUserLogin?: string;
     shouldUseNarrowLayout: boolean;
     policy?: Policy;
     domain?: Domain;
-};
-
-// Gets the latest workspace navigation state, restoring from session or preserved state if needed.
-const getWorkspaceNavigationRouteState = () => {
-    if (!navigationRef.isReady()) {
-        Log.warn('[src/libs/Navigation/helpers/navigateToWorkspacesPage.ts] NavigationRef is not ready. Returning empty object.');
-        return {};
-    }
-
-    const rootState = navigationRef.getRootState();
-
-    // Only consider main (fullscreen) routes for top-level navigation context.
-    const topmostFullScreenRoute = rootState?.routes?.findLast((route) => isFullScreenName(route.name));
-    if (!topmostFullScreenRoute) {
-        // No fullscreen route: not in a workspace context.
-        return {};
-    }
-
-    // Prefer restoring workspace tab state from sessionStorage for accurate restoration.
-    const workspacesTabStateFromSessionStorage = getWorkspacesTabStateFromSessionStorage() ?? rootState;
-    const lastWorkspacesTabNavigatorRoute = workspacesTabStateFromSessionStorage?.routes.findLast((route) => isWorkspacesTabScreenName(route.name));
-    let workspacesTabState = lastWorkspacesTabNavigatorRoute?.state;
-
-    // Use preserved state if live state is missing (e.g. after a pop).
-    if (!workspacesTabState && lastWorkspacesTabNavigatorRoute?.key) {
-        workspacesTabState = getPreservedNavigatorState(lastWorkspacesTabNavigatorRoute.key);
-    }
-
-    return {lastWorkspacesTabNavigatorRoute, workspacesTabState, topmostFullScreenRoute};
+    lastWorkspacesTabNavigatorRoute?: RouteType;
+    topmostFullScreenRoute?: RouteType;
 };
 
 // Navigates to the appropriate workspace tab or workspace list page.
-const navigateToWorkspacesPage = ({currentUserLogin, shouldUseNarrowLayout, policy, domain}: Params) => {
-    const {lastWorkspacesTabNavigatorRoute, topmostFullScreenRoute} = getWorkspaceNavigationRouteState();
-
-    if (!topmostFullScreenRoute || topmostFullScreenRoute.name === SCREENS.WORKSPACES_LIST) {
-        // Not in a main workspace navigation context or the workspaces list page is already displayed, so do nothing.
-        return;
-    }
-
-    if (topmostFullScreenRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
-        // Already inside a workspace: go back to the list.
+const navigateToWorkspacesPage = ({currentUserLogin, shouldUseNarrowLayout, policy, domain, lastWorkspacesTabNavigatorRoute, topmostFullScreenRoute}: Params) => {
+    const isCurrentlyOnWorkspacesTab = topmostFullScreenRoute?.name === NAVIGATORS.WORKSPACE_NAVIGATOR;
+    const isWorkspaceOrDomainOnTop =
+        lastWorkspacesTabNavigatorRoute?.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR || lastWorkspacesTabNavigatorRoute?.name === NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR;
+    if (isCurrentlyOnWorkspacesTab && isWorkspaceOrDomainOnTop) {
+        // Already in the workspace or domain navigator: go back to the list.
         Navigation.goBack(ROUTES.WORKSPACES_LIST.route);
         return;
     }
@@ -111,4 +80,3 @@ const navigateToWorkspacesPage = ({currentUserLogin, shouldUseNarrowLayout, poli
 };
 
 export default navigateToWorkspacesPage;
-export {getWorkspaceNavigationRouteState};

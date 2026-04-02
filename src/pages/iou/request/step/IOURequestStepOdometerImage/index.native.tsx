@@ -31,10 +31,12 @@ import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import {getOdometerImageUri} from '@libs/OdometerImageUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CameraPermission from '@pages/iou/request/step/IOURequestStepScan/CameraPermission';
+import NavigationAwareCamera from '@pages/iou/request/step/IOURequestStepScan/components/NavigationAwareCamera/Camera';
 import {cropImageToAspectRatio} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
 import type {ImageObject} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
-import NavigationAwareCamera from '@pages/iou/request/step/IOURequestStepScan/NavigationAwareCamera/Camera';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import type {WithFullTransactionOrNotFoundProps} from '@pages/iou/request/step/withFullTransactionOrNotFound';
@@ -66,6 +68,7 @@ function IOURequestStepOdometerImage({
     route: {
         params: {action, iouType, transactionID, reportID, backToReport, imageType, isEditingConfirmation},
     },
+    transaction,
 }: IOURequestStepOdometerImageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -182,8 +185,10 @@ function IOURequestStepOdometerImage({
         }
 
         const file = files.at(0);
-        const imageUri = (file as {uri?: string}).uri ?? '';
-        setMoneyRequestOdometerImage(transactionID, imageType, imageUri, isTransactionDraft);
+        if (!file) {
+            return;
+        }
+        setMoneyRequestOdometerImage(transaction, imageType, getOdometerImageUri(file), isTransactionDraft, false);
         navigateBack();
     };
 
@@ -236,8 +241,19 @@ function IOURequestStepOdometerImage({
                     .then((photo: PhotoFile) => {
                         const imageObject: ImageObject = {file: photo, filename: photo.path, source: getPhotoSource(photo.path)};
                         cropImageToAspectRatio(imageObject, viewfinderLayout.current?.width, viewfinderLayout.current?.height, undefined, photo.orientation)
-                            .then(({source}) => {
-                                setMoneyRequestOdometerImage(transactionID, imageType, source, isTransactionDraft);
+                            .then(({file, filename, source}) => {
+                                setMoneyRequestOdometerImage(
+                                    transaction,
+                                    imageType,
+                                    {
+                                        uri: source,
+                                        name: filename,
+                                        type: (file as FileObject | undefined)?.type ?? 'image/jpeg',
+                                        size: (file as FileObject | undefined)?.size,
+                                    },
+                                    isTransactionDraft,
+                                    false,
+                                );
                                 navigateBack();
                             })
                             .catch((error: unknown) => {
@@ -253,6 +269,12 @@ function IOURequestStepOdometerImage({
                         Log.warn('Error taking photo', errorMessage);
                     });
             });
+    };
+
+    const cameraLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'IOURequestStepOdometerImage',
+        cameraPermissionGranted: cameraPermissionStatus === RESULTS.GRANTED,
+        deviceAvailable: device != null,
     };
 
     // Wait for camera permission status to render
@@ -297,6 +319,7 @@ function IOURequestStepOdometerImage({
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                             style={[styles.flex1]}
                             color={theme.textSupporting}
+                            reasonAttributes={cameraLoadingReasonAttributes}
                         />
                     </View>
                 )}
@@ -343,7 +366,7 @@ function IOURequestStepOdometerImage({
                                 </View>
                                 <Animated.View
                                     pointerEvents="none"
-                                    style={[StyleSheet.absoluteFillObject, styles.backgroundWhite, blinkStyle, styles.zIndex10]}
+                                    style={[StyleSheet.absoluteFill, styles.backgroundWhite, blinkStyle, styles.zIndex10]}
                                 />
                                 <Animated.View style={[styles.cameraFocusIndicator, cameraFocusIndicatorAnimatedStyle]} />
                             </View>

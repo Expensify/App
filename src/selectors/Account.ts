@@ -3,6 +3,8 @@ import type {Account} from '@src/types/onyx';
 
 const isActingAsDelegateSelector = (account: OnyxEntry<Account>) => !!account?.delegatedAccess?.delegate;
 
+const delegateEmailSelector = (account: OnyxEntry<Account>) => account?.delegatedAccess?.delegate ?? '';
+
 const isUserValidatedSelector = (account: OnyxEntry<Account>) => account?.validated;
 
 const primaryLoginSelector = (account: OnyxEntry<Account>) => account?.primaryLogin;
@@ -17,8 +19,13 @@ const requiresTwoFactorAuthSelector = (data: OnyxEntry<Account>) => data?.requir
 
 const accountGuideDetailsSelector = (account: OnyxEntry<Account>) => account?.guideDetails;
 
+const mfaCredentialIDsSelector = (data: OnyxEntry<Account>) => data?.multifactorAuthenticationPublicKeyIDs;
+
+const isFromInternalDomainSelector = (account: OnyxEntry<Account>) => account?.isFromInternalDomain;
+
 export {
     isActingAsDelegateSelector,
+    delegateEmailSelector,
     isUserValidatedSelector,
     primaryLoginSelector,
     delegatesSelector,
@@ -26,4 +33,6 @@ export {
     isAccountLoadingSelector,
     requiresTwoFactorAuthSelector,
     accountGuideDetailsSelector,
+    mfaCredentialIDsSelector,
+    isFromInternalDomainSelector,
 };
