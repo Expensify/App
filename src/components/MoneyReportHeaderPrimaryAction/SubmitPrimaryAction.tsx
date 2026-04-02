@@ -1,3 +1,4 @@
+import {delegateEmailSelector} from '@selectors/Account';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
 import AnimatedSubmitButton from '@components/AnimatedSubmitButton';
@@ -45,6 +46,7 @@ function SubmitPrimaryAction({reportID, isSubmittingAnimationRunning, stopAnimat
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const {reportActions: unfilteredReportActions} = usePaginatedReportActions(moneyRequestReport?.reportID);
@@ -94,6 +96,7 @@ function SubmitPrimaryAction({reportID, isSubmittingAnimationRunning, stopAnimat
                 amountOwed,
                 onSubmitted: startSubmittingAnimation,
                 ownerBillingGracePeriodEnd,
+                delegateEmail,
             });
             if (currentSearchQueryJSON && !isOffline) {
                 search({

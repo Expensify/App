@@ -1,3 +1,4 @@
+import {delegateEmailSelector} from '@selectors/Account';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
 import AnimatedSubmitButton from '@components/AnimatedSubmitButton';
@@ -40,6 +41,7 @@ function SubmitActionButton({iouReportID, chatReportID, isSubmittingAnimationRun
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const {isOffline} = useNetwork();
     const transactions = getReportTransactions(iouReportID).filter((t) => isOffline || t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
@@ -82,6 +84,7 @@ function SubmitActionButton({iouReportID, chatReportID, isSubmittingAnimationRun
                         amountOwed,
                         onSubmitted: startSubmittingAnimation,
                         ownerBillingGracePeriodEnd,
+                        delegateEmail,
                     });
                 });
             }}

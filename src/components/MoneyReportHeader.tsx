@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import {isUserValidatedSelector} from '@selectors/Account';
+import {delegateEmailSelector, isUserValidatedSelector} from '@selectors/Account';
 import {shouldFailAllRequestsSelector} from '@selectors/Network';
 import {hasSeenTourSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
 import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
@@ -232,6 +232,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: isUserValidatedSelector,
     });
+    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
     const [reportPDFFilename] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDF_FILENAME}${moneyRequestReport?.reportID}`) ?? null;
     const [session] = useOnyx(ONYXKEYS.SESSION);
@@ -875,6 +876,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                         startSubmittingAnimation();
                     },
                     ownerBillingGracePeriodEnd,
+                    delegateEmail,
                 });
                 if (currentSearchQueryJSON && !isOffline) {
                     search({
@@ -912,6 +914,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
             clearSelectedTransactions,
             confirmPendingRTERAndProceed,
             ownerBillingGracePeriodEnd,
+            delegateEmail,
         ],
     );
 
@@ -1498,6 +1501,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                         userBillingGracePeriodEnds,
                         amountOwed,
                         ownerBillingGracePeriodEnd,
+                        delegateEmail,
                     });
                 });
             },
@@ -1532,11 +1536,11 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                     if (result.action !== ModalActions.CONFIRM) {
                         return;
                     }
-                    unapproveExpenseReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep);
+                    unapproveExpenseReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, delegateEmail);
                     return;
                 }
 
-                unapproveExpenseReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep);
+                unapproveExpenseReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, delegateEmail);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT]: {
@@ -1874,10 +1878,10 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                     if (result.action !== ModalActions.CONFIRM) {
                         return;
                     }
-                    retractReport(moneyRequestReport, chatReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep);
+                    retractReport(moneyRequestReport, chatReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, delegateEmail);
                     return;
                 }
-                retractReport(moneyRequestReport, chatReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep);
+                retractReport(moneyRequestReport, chatReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, delegateEmail);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.REOPEN]: {
