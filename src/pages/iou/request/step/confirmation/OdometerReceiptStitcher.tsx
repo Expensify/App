@@ -1,8 +1,9 @@
-import {useEffect} from 'react';
+import {useIsFocused} from '@react-navigation/native';
+import {useEffect, useRef} from 'react';
 import useLocalize from '@hooks/useLocalize';
-import {getMimeTypeFromUri} from '@libs/fileDownload/FileUtils';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Log from '@libs/Log';
+import {getOdometerImageName, getOdometerImageType, getOdometerImageUri} from '@libs/OdometerImageUtils';
 import stitchOdometerImages from '@libs/stitchOdometerImages';
 import {setMoneyRequestReceipt} from '@userActions/IOU';
 import type {IOUAction, IOUType} from '@src/CONST';
@@ -22,6 +23,8 @@ type OdometerReceiptStitcherProps = {
 /**
  * Side-effect-only component that stitches two odometer images into a single
  * receipt, or sets a single odometer image as the receipt when only one exists.
+ * Skips stitching when source images haven't changed (compares by URI, not reference,
+ * because Onyx may create new object instances when restoring a backup transaction).
  */
 function OdometerReceiptStitcher({
     isOdometerDistanceRequest,
@@ -34,16 +37,28 @@ function OdometerReceiptStitcher({
     onStitchError,
 }: OdometerReceiptStitcherProps) {
     const {translate} = useLocalize();
+    const isFocused = useIsFocused();
+    const lastStitchedImages = useRef<{
+        startImage: FileObject | string | null | undefined;
+        endImage: FileObject | string | null | undefined;
+    } | null>(null);
 
     useEffect(() => {
-        if (!isOdometerDistanceRequest) {
+        if (!isOdometerDistanceRequest || !isFocused) {
             return;
         }
 
-        const getImageUri = (img: FileObject | string | null | undefined): string => (typeof img === 'string' ? img : (img?.uri ?? ''));
-        const getImageName = (img: FileObject | string | null | undefined): string => (typeof img === 'string' ? (img.split('/').pop() ?? '') : (img?.name ?? ''));
-        const getImageType = (img: FileObject | string | null | undefined): string | undefined =>
-            typeof img === 'string' ? getMimeTypeFromUri(img) : (img?.type ?? getMimeTypeFromUri(img?.uri ?? ''));
+        // Skip stitching when source images haven't changed (compare by URI not reference
+        // because Onyx may create new object instances when restoring a backup transaction)
+        const startUri = getOdometerImageUri(odometerStartImage);
+        const endUri = getOdometerImageUri(odometerEndImage);
+        if (
+            lastStitchedImages.current !== null &&
+            getOdometerImageUri(lastStitchedImages.current.startImage) === startUri &&
+            getOdometerImageUri(lastStitchedImages.current.endImage) === endUri
+        ) {
+            return;
+        }
 
         if (!odometerStartImage || !odometerEndImage) {
             const singleImage = odometerStartImage ?? odometerEndImage;
@@ -52,7 +67,14 @@ function OdometerReceiptStitcher({
                 return;
             }
 
-            setMoneyRequestReceipt(currentTransactionID, getImageUri(singleImage), getImageName(singleImage), shouldUseTransactionDraft(action, iouType), getImageType(singleImage));
+            setMoneyRequestReceipt(
+                currentTransactionID,
+                getOdometerImageUri(singleImage),
+                getOdometerImageName(singleImage),
+                shouldUseTransactionDraft(action, iouType),
+                getOdometerImageType(singleImage),
+            );
+            lastStitchedImages.current = {startImage: odometerStartImage, endImage: odometerEndImage};
             return;
         }
 
@@ -67,11 +89,12 @@ function OdometerReceiptStitcher({
                 }
                 setMoneyRequestReceipt(
                     currentTransactionID,
-                    getImageUri(stitchedImage),
-                    getImageName(stitchedImage),
+                    getOdometerImageUri(stitchedImage),
+                    getOdometerImageName(stitchedImage),
                     shouldUseTransactionDraft(action, iouType),
-                    getImageType(stitchedImage),
+                    getOdometerImageType(stitchedImage),
                 );
+                lastStitchedImages.current = {startImage: odometerStartImage, endImage: odometerEndImage};
             })
             .catch((error: unknown) => {
                 if (ignore) {
@@ -90,7 +113,7 @@ function OdometerReceiptStitcher({
         return () => {
             ignore = true;
         };
-    }, [isOdometerDistanceRequest, currentTransactionID, odometerStartImage, odometerEndImage, action, translate, iouType, onStitchingChange, onStitchError]);
+    }, [isOdometerDistanceRequest, isFocused, currentTransactionID, odometerStartImage, odometerEndImage, action, translate, iouType, onStitchingChange, onStitchError]);
 
     return null;
 }

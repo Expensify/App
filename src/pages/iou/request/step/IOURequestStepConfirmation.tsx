@@ -321,7 +321,6 @@ function IOURequestStepConfirmation({
     const [isConfirming, setIsConfirming] = useState(false);
     const [isStitchingReceipt, setIsStitchingReceipt] = useState(false);
     const [stitchError, setStitchError] = useState('');
-
     const headerTitle = useMemo(() => {
         if (isCategorizingTrackExpense) {
             return translate('iou.categorize');
