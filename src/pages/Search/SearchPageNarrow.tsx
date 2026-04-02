@@ -79,7 +79,6 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
     const receiptDropTargetRef = useRef<View>(null);
 
     const [searchRequestResponseStatusCode, setSearchRequestResponseStatusCode] = useState<number | null>(null);
-    const [isSearchInputVisible, setIsSearchInputVisible] = useState(false);
 
     const scrollOffset = useSharedValue(0);
     const topBarOffset = useSharedValue<number>(StyleUtils.searchHeaderDefaultOffset);
@@ -117,11 +116,7 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
 
                 if (isScrollingDown && contentOffset.y > TOO_CLOSE_TO_TOP_DISTANCE) {
                     topBarOffset.set(
-                        clamp(
-                            topBarOffset.get() - distanceScrolled,
-                            isSearchInputVisible ? variables.minimalTopBarWithInputOffset : variables.minimalTopBarOffset,
-                            StyleUtils.searchHeaderDefaultOffset,
-                        ),
+                        clamp(topBarOffset.get() - distanceScrolled, variables.minimalTopBarOffset, StyleUtils.searchHeaderDefaultOffset),
                     );
                 } else if (!isScrollingDown && distanceScrolled < 0 && contentOffset.y + layoutMeasurement.height < contentSize.height - TOO_CLOSE_TO_BOTTOM_DISTANCE) {
                     topBarOffset.set(withTiming(StyleUtils.searchHeaderDefaultOffset, {duration: ANIMATION_DURATION_IN_MS}));
@@ -129,7 +124,7 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
                 scrollOffset.set(currentOffset);
             },
         },
-        [isSearchInputVisible],
+        [],
     );
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
@@ -222,26 +217,22 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
                                             <SearchActionsBarNarrow
                                                 queryJSON={queryJSON}
                                                 isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                                                isSearchInputVisible={isSearchInputVisible}
                                                 searchResults={searchResults}
-                                                onSearchButtonPress={() => setIsSearchInputVisible(true)}
                                                 onSort={onSortPressedCallback}
                                             />
                                         )}
-                                        {isSearchInputVisible && (
-                                            <SearchPageInputNarrow
-                                                queryJSON={queryJSON}
-                                                searchRouterListVisible={searchRouterListVisible}
-                                                hideSearchRouterList={() => {
-                                                    setSearchRouterListVisible(false);
-                                                }}
-                                                onSearchRouterFocus={() => {
-                                                    topBarOffset.set(StyleUtils.searchHeaderDefaultOffset);
-                                                    setSearchRouterListVisible(true);
-                                                }}
-                                                handleSearch={handleSearchAction}
-                                            />
-                                        )}
+                                        <SearchPageInputNarrow
+                                            queryJSON={queryJSON}
+                                            searchRouterListVisible={searchRouterListVisible}
+                                            hideSearchRouterList={() => {
+                                                setSearchRouterListVisible(false);
+                                            }}
+                                            onSearchRouterFocus={() => {
+                                                topBarOffset.set(StyleUtils.searchHeaderDefaultOffset);
+                                                setSearchRouterListVisible(true);
+                                            }}
+                                            handleSearch={handleSearchAction}
+                                        />
                                     </View>
                                 </Animated.View>
                             </View>
@@ -267,7 +258,7 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
                         <View style={[styles.flex1]}>
                             {shouldShowLoadingSkeleton ? (
                                 <SearchLoadingSkeleton
-                                    containerStyle={styles.searchListContentContainerStyles(isSearchInputVisible)}
+                                    containerStyle={styles.searchListContentContainerStyles}
                                     reasonAttributes={{
                                         context: 'SearchPage',
                                         isOffline,
@@ -285,10 +276,9 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
                                     key={queryJSON.hash}
                                     queryJSON={queryJSON}
                                     onSearchListScroll={scrollHandler}
-                                    contentContainerStyle={!isMobileSelectionModeEnabled ? styles.searchListContentContainerStyles(isSearchInputVisible) : undefined}
+                                    contentContainerStyle={!isMobileSelectionModeEnabled ? styles.searchListContentContainerStyles : undefined}
                                     handleSearch={handleSearchAction}
                                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                                    isSearchInputVisible={isSearchInputVisible}
                                     searchRequestResponseStatusCode={searchRequestResponseStatusCode}
                                 />
                             )}

@@ -136,9 +136,6 @@ describe('SearchPageNarrow', () => {
         let navigationTabBars = screen.getAllByTestId('NavigationTabBar', {includeHiddenElements: true});
         expect(navigationTabBars).toHaveLength(2);
 
-        const searchButton = screen.getByTestId('search-button-narrow');
-        fireEvent.press(searchButton);
-
         const searchAutocompleteInput = await screen.findByTestId('search-autocomplete-text-input', {includeHiddenElements: true});
         expect(searchAutocompleteInput).toBeTruthy();
 

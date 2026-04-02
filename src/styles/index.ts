@@ -3492,6 +3492,10 @@ const staticStyles = (theme: ThemeColors) =>
             height: 16,
         },
 
+        searchListContentContainerStyles: {
+            paddingTop: variables.searchListContentMarginTop,
+        },
+
         searchListHeaderContainerStyle: {
             width: '100%',
             flexDirection: 'row',
@@ -6223,10 +6227,6 @@ const dynamicStyles = (theme: ThemeColors) =>
 
         searchBarWidth: (shouldUseNarrowLayout: boolean) => ({
             maxWidth: shouldUseNarrowLayout ? '100%' : 300,
-        }),
-
-        searchListContentContainerStyles: (isSearchInputVisible: boolean) => ({
-            paddingTop: isSearchInputVisible ? variables.searchListContentWithInputMarginTop : variables.searchListContentMarginTop,
         }),
 
         getForYouSectionContainerStyle: (shouldUseNarrowLayout: boolean): ViewStyle => ({
