@@ -1,6 +1,7 @@
 import {addMonths, endOfDay, endOfMonth, format, getYear, isSameDay, parseISO, setDate, setYear, startOfDay, startOfMonth, subMonths} from 'date-fns';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -35,6 +36,9 @@ type CalendarPickerProps = {
 
     /** A function called when the date is selected */
     onSelected?: (selectedDate: string) => void;
+
+    /** Optional style override for the header container */
+    headerContainerStyle?: StyleProp<ViewStyle>;
 };
 
 function getInitialCurrentDateView(value: Date | string, minDate: Date, maxDate: Date) {
@@ -56,6 +60,7 @@ function CalendarPicker({
     onSelected,
     DayComponent = Day,
     selectableDates,
+    headerContainerStyle,
 }: CalendarPickerProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -104,11 +109,9 @@ function CalendarPicker({
      * @param day - The day of the month that was selected.
      */
     const onDayPressed = (day: number) => {
-        setCurrentDateView((prev) => {
-            const newCurrentDateView = setDate(new Date(prev), day);
-            onSelected?.(format(new Date(newCurrentDateView), CONST.DATE.FNS_FORMAT_STRING));
-            return newCurrentDateView;
-        });
+        const newCurrentDateView = setDate(new Date(currentDateView), day);
+        setCurrentDateView(newCurrentDateView);
+        onSelected?.(format(newCurrentDateView, CONST.DATE.FNS_FORMAT_STRING));
     };
 
     /**
@@ -175,13 +178,19 @@ function CalendarPicker({
 
     const webOnlyMarginStyle = isSmallScreenWidth ? {} : styles.mh1;
     const calendarContainerStyle = isSmallScreenWidth ? [webOnlyMarginStyle, themeStyles.calendarBodyContainer] : [webOnlyMarginStyle, animatedStyle];
+    const headerPaddingStyle = headerContainerStyle ?? themeStyles.ph5;
+    // On mobile (isSmallScreenWidth is always true on native), the height animation is skipped
+    // so using Animated.View is unnecessary. Using a plain View with collapsable={false} avoids
+    // activating Reanimated's Fabric commit hook, which on Android can interfere with React's
+    // reconciliation of child view styles and prevent day-selection background changes from painting.
+    const CalendarBody = isSmallScreenWidth ? View : Animated.View;
 
     const getAccessibilityState = useCallback((isSelected: boolean) => ({selected: isSelected}), []);
 
     return (
         <View style={[themeStyles.pb4]}>
             <View
-                style={[themeStyles.calendarHeader, themeStyles.flexRow, themeStyles.justifyContentBetween, themeStyles.alignItemsCenter, themeStyles.ph5]}
+                style={[themeStyles.calendarHeader, themeStyles.flexRow, themeStyles.justifyContentBetween, themeStyles.alignItemsCenter, headerPaddingStyle]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >
                 <PressableWithFeedback
@@ -255,10 +264,14 @@ function CalendarPicker({
                     </View>
                 ))}
             </View>
-            <Animated.View style={calendarContainerStyle}>
+            <CalendarBody
+                collapsable={false}
+                style={calendarContainerStyle}
+            >
                 {calendarDaysMatrix?.map((week) => (
                     <View
                         key={`week-${week.toString()}`}
+                        collapsable={false}
                         style={[themeStyles.flexRow, themeStyles.calendarWeekContainer]}
                     >
                         {week.map((day, index) => {
@@ -311,7 +324,7 @@ function CalendarPicker({
                         })}
                     </View>
                 ))}
-            </Animated.View>
+            </CalendarBody>
             <YearPickerModal
                 isVisible={isYearPickerVisible}
                 years={years}
