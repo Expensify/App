@@ -132,7 +132,7 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
             if (!formValues) {
                 return undefined;
             }
-            const actionLabel = formValues.restrictionAction === CONST.SPEND_CARD_RULE.ACTION.BLOCK ? blockLabel : allowLabel;
+            const actionLabel = formValues.restrictionAction === CONST.SPEND_RULES.ACTION.BLOCK ? blockLabel : allowLabel;
             const selectedCurrency = getSelectedCardsCurrency(formValues.cardIDs, cardsList);
 
             const cardSummary = formValues.cardIDs
@@ -153,7 +153,7 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
                 actionLabel,
                 cardSummary,
                 summaryParts: getSpendRuleSummaryParts(formValues, selectedCurrency, actionLabel, preferredLocale, translate),
-                isBlock: formValues.restrictionAction === CONST.SPEND_CARD_RULE.ACTION.BLOCK,
+                isBlock: formValues.restrictionAction === CONST.SPEND_RULES.ACTION.BLOCK,
             };
         })
         .filter((rule) => rule !== undefined);

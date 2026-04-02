@@ -29,15 +29,15 @@ function SpendRuleMerchantsPage({route}: SpendRuleMerchantsPageProps) {
     const illustrations = useMemoizedLazyIllustrations(['EmptyStateExpenses']);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus']);
 
-    const restrictionAction = spendRuleForm?.restrictionAction ?? CONST.SPEND_CARD_RULE.ACTION.ALLOW;
+    const restrictionAction = spendRuleForm?.restrictionAction ?? CONST.SPEND_RULES.ACTION.ALLOW;
     const merchantNames = spendRuleForm?.merchantNames ?? [];
     const merchantMatchTypes = spendRuleForm?.merchantMatchTypes ?? [];
 
     const emptyStateTitle =
-        restrictionAction === CONST.SPEND_CARD_RULE.ACTION.BLOCK ? translate('workspace.rules.spendRules.noBlockedMerchants') : translate('workspace.rules.spendRules.noAllowedMerchants');
+        restrictionAction === CONST.SPEND_RULES.ACTION.BLOCK ? translate('workspace.rules.spendRules.noBlockedMerchants') : translate('workspace.rules.spendRules.noAllowedMerchants');
 
     const emptyStateSubtitle =
-        restrictionAction === CONST.SPEND_CARD_RULE.ACTION.BLOCK
+        restrictionAction === CONST.SPEND_RULES.ACTION.BLOCK
             ? translate('workspace.rules.spendRules.addMerchantToBlockSpend')
             : translate('workspace.rules.spendRules.addMerchantToAllowSpend');
 

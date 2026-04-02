@@ -9279,5 +9279,3 @@ ${amount} para ${merchant} - ${date}`,
 };
 
 export default translations;
-
-export {spendRuleCategoryOptions};

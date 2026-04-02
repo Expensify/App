@@ -8920,5 +8920,3 @@ const translations = {
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.
 export default translations satisfies TranslationDeepObject<typeof translations>;
-
-export {spendRuleCategoryOptions};

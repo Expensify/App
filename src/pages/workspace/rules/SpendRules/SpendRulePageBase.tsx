@@ -60,7 +60,7 @@ function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps)
     useEffect(() => () => clearDraftSpendRule(), []);
 
     const cardIDs = spendRuleForm?.cardIDs;
-    const restrictionAction = spendRuleForm?.restrictionAction ?? CONST.SPEND_CARD_RULE.ACTION.ALLOW;
+    const restrictionAction = spendRuleForm?.restrictionAction ?? CONST.SPEND_RULES.ACTION.ALLOW;
     const merchantNames = spendRuleForm?.merchantNames ?? [];
     const categories = spendRuleForm?.categories ?? [];
     const maxAmount = spendRuleForm?.maxAmount ?? '';

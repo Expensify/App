@@ -1623,14 +1623,14 @@ function buildSpendRuleAST(spendRuleValues: SpendRuleForm): ExpensifyCardRule | 
         maxAmount !== ''
             ? {
                   left: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
-                  operator: spendRuleValues.restrictionAction === CONST.SPEND_CARD_RULE.ACTION.BLOCK ? CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN : CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN,
+                  operator: spendRuleValues.restrictionAction === CONST.SPEND_RULES.ACTION.BLOCK ? CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN : CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN,
                   right: [maxAmount],
               }
             : undefined;
 
     const ruleNode = combineSpendRuleASTNodes(
         [amountNode, criteriaNode].filter(Boolean) as ExpensifyCardRuleFilter[],
-        spendRuleValues.restrictionAction === CONST.SPEND_CARD_RULE.ACTION.BLOCK ? CONST.SEARCH.SYNTAX_OPERATORS.OR : CONST.SEARCH.SYNTAX_OPERATORS.AND,
+        spendRuleValues.restrictionAction === CONST.SPEND_RULES.ACTION.BLOCK ? CONST.SEARCH.SYNTAX_OPERATORS.OR : CONST.SEARCH.SYNTAX_OPERATORS.AND,
     );
     const filters = combineSpendRuleASTNodes([cardNode, ruleNode].filter(Boolean) as ExpensifyCardRuleFilter[], CONST.SEARCH.SYNTAX_OPERATORS.AND);
 
@@ -1640,7 +1640,7 @@ function buildSpendRuleAST(spendRuleValues: SpendRuleForm): ExpensifyCardRule | 
 
     return {
         created: DateUtils.getDBTime(),
-        action: spendRuleValues.restrictionAction ?? CONST.SPEND_CARD_RULE.ACTION.ALLOW,
+        action: spendRuleValues.restrictionAction ?? CONST.SPEND_RULES.ACTION.ALLOW,
         filters,
     };
 }

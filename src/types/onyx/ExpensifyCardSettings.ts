@@ -92,7 +92,7 @@ type ExpensifyCardRule = {
     filters: ExpensifyCardRuleFilter;
 
     /** Action to take when the rule is matched */
-    action: ValueOf<typeof CONST.SPEND_CARD_RULE.ACTION>;
+    action: ValueOf<typeof CONST.SPEND_RULES.ACTION>;
 };
 
 /** Model of Expensify card settings for a workspace - can have nested feed types from backend */
