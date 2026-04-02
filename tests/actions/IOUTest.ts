@@ -23,6 +23,7 @@ import {
     convertBulkTrackedExpensesToIOU,
     createDistanceRequest,
     deleteMoneyRequest,
+    detachReceipt,
     getDeleteTrackExpenseInformation,
     getIOUReportActionWithBadge,
     getReportOriginalCreationTimestamp,
@@ -128,6 +129,7 @@ import currencyList from '../unit/currencyList.json';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../utils/collections/policies';
 import createRandomPolicyCategories from '../utils/collections/policyCategory';
+import createRandomPolicyTags from '../utils/collections/policyTags';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
@@ -17514,6 +17516,183 @@ describe('actions/IOU', () => {
             const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
             expect(updatedTransaction?.comment?.customUnit?.name).toBe(CONST.CUSTOM_UNITS.NAME_DISTANCE);
             expect(updatedTransaction?.comment?.customUnit?.quantity).toBe(100);
+        });
+    });
+
+    describe('detachReceipt', () => {
+        it('should do nothing when transactionID is undefined', async () => {
+            // Given no transaction in Onyx
+            const transactionsBefore = await getOnyxValue(ONYXKEYS.COLLECTION.TRANSACTION);
+
+            // When detachReceipt is called with undefined transactionID
+            detachReceipt(undefined, undefined);
+            await waitForBatchedUpdates();
+
+            // Then Onyx transactions should remain unchanged
+            const transactionsAfter = await getOnyxValue(ONYXKEYS.COLLECTION.TRANSACTION);
+            expect(transactionsAfter).toEqual(transactionsBefore);
+        });
+
+        it('should optimistically null the receipt and set pending field', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            const transactionID = rand64().toString();
+            const reportID = rand64().toString();
+
+            const transaction = {
+                ...createRandomTransaction(1),
+                transactionID,
+                reportID,
+                receipt: {source: 'receipt-url.jpg', state: CONST.IOU.RECEIPT_STATE.SCAN_READY},
+            };
+
+            const report = {
+                ...createRandomReport(1, undefined),
+                reportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            // Given a transaction with a receipt linked to a report
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await waitForBatchedUpdates();
+
+            try {
+                // When detachReceipt is called without a policy
+                detachReceipt(transactionID, undefined);
+                await waitForBatchedUpdates();
+
+                // Then API.write should have been called with optimistic data that nulls receipt and sets pending field
+                const onyxData = writeSpy.mock.calls.at(0)?.at(2) as {optimisticData?: Array<{key: string; value: unknown}>};
+                const transactionOptimistic = onyxData?.optimisticData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+                expect(transactionOptimistic?.value).toEqual(
+                    expect.objectContaining({
+                        receipt: null,
+                        pendingFields: {receipt: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                    }),
+                );
+            } finally {
+                writeSpy.mockRestore();
+            }
+        });
+
+        it('should create an optimistic report action and update report timestamps', async () => {
+            const transactionID = rand64().toString();
+            const reportID = rand64().toString();
+
+            const transaction = {
+                ...createRandomTransaction(1),
+                transactionID,
+                reportID,
+                receipt: {source: 'receipt-url.jpg'},
+                merchant: 'Test Merchant',
+            };
+
+            const report = {
+                ...createRandomReport(1, undefined),
+                reportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                lastVisibleActionCreated: '2024-01-01 00:00:00',
+                lastReadTime: '2024-01-01 00:00:00',
+            };
+
+            // Given a transaction with a receipt linked to a report
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await waitForBatchedUpdates();
+
+            // When detachReceipt is called
+            detachReceipt(transactionID, undefined);
+            await waitForBatchedUpdates();
+
+            // Then a new report action should be created on the report
+            const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+            const actions = Object.values(reportActions ?? {});
+            expect(actions.length).toBeGreaterThan(0);
+
+            // And the report timestamps should be updated
+            const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+            expect(updatedReport?.lastVisibleActionCreated).not.toBe('2024-01-01 00:00:00');
+        });
+
+        it('should call API.write with DETACH_RECEIPT command and correct params', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            const transactionID = rand64().toString();
+            const reportID = rand64().toString();
+
+            const transaction = {
+                ...createRandomTransaction(1),
+                transactionID,
+                reportID,
+                receipt: {source: 'receipt-url.jpg'},
+            };
+
+            const report = {
+                ...createRandomReport(1, undefined),
+                reportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            // Given a transaction with a receipt
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await waitForBatchedUpdates();
+
+            try {
+                // When detachReceipt is called
+                detachReceipt(transactionID, undefined);
+                await waitForBatchedUpdates();
+
+                // Then API.write should be called with DETACH_RECEIPT and the transactionID
+                expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.DETACH_RECEIPT, expect.objectContaining({transactionID}), expect.anything(), expect.anything());
+            } finally {
+                writeSpy.mockRestore();
+            }
+        });
+
+        it('should compute violations when policy is paid group', async () => {
+            const transactionID = rand64().toString();
+            const reportID = rand64().toString();
+            const policyID = rand64().toString();
+            const tagListName = 'Department';
+
+            const policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                id: policyID,
+            };
+
+            const policyTagList = createRandomPolicyTags(tagListName, 3);
+
+            const transaction = {
+                ...createRandomTransaction(1),
+                transactionID,
+                reportID,
+                receipt: {source: 'receipt-url.jpg'},
+            };
+
+            const report = {
+                ...createRandomReport(1, undefined),
+                reportID,
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            // Given a transaction, report, policy, and policy tags in Onyx
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, policyTagList);
+            await waitForBatchedUpdates();
+
+            // When detachReceipt is called with a paid group policy (isPaidGroupPolicy is mocked to return true)
+            detachReceipt(transactionID, policy);
+            await waitForBatchedUpdates();
+
+            // Then transaction violations should be computed and stored
+            const violations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
+            expect(violations).toBeDefined();
+            expect(Array.isArray(violations)).toBe(true);
         });
     });
 });
