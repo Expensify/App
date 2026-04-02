@@ -6690,6 +6690,24 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 title: 'Polityka wydatków',
                 cardSubtitle: 'To tutaj znajduje się polityka wydatków Twojego zespołu, aby wszyscy mieli jasność co do tego, co jest objęte.',
             },
+            spendRules: {
+                title: 'Wydatki',
+                subtitle: 'Zatwierdzaj lub odrzucaj transakcje Karty Expensify w czasie rzeczywistym.',
+                defaultRuleDescription: 'Wszystkie karty',
+                block: 'Zablokuj',
+                defaultRuleTitle: 'Kategorie: Usługi dla dorosłych, bankomaty, hazard, przelewy pieniężne',
+                builtInProtectionModal: {
+                    title: 'Karty Expensify zapewniają wbudowaną ochronę – zawsze',
+                    description: `Expensify zawsze odrzuca te obciążenia:
+
+  • Usługi dla dorosłych
+  • Bankomaty
+  • Hazard
+  • Przelewy pieniężne
+
+Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
+                },
+            },
         },
         planTypePage: {
             planTypes: {

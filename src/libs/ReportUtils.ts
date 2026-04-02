@@ -771,6 +771,7 @@ type OptimisticTaskReport = SetRequired<
         | 'participants'
         | 'managerID'
         | 'type'
+        | 'chatType'
         | 'parentReportID'
         | 'policyID'
         | 'stateNum'
@@ -8389,8 +8390,8 @@ function buildOptimisticCardAssignedReportAction(assigneeAccountID: number, curr
     };
 }
 
-function buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID: number, currentUserAccountID: number): OptimisticEditedTaskReportAction {
-    const delegateAccountDetails = getPersonalDetailByEmail(delegateEmail);
+function buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID: number, currentUserAccountID: number, delegateEmailParam: string | undefined): OptimisticEditedTaskReportAction {
+    const delegateAccountDetails = delegateEmailParam ? getPersonalDetailByEmail(delegateEmailParam) : undefined;
 
     return {
         reportActionID: rand64(),
@@ -8743,6 +8744,7 @@ function buildOptimisticWorkspaceChats(policyID: string, policyName: string, exp
  * @param title - Task title.
  * @param description - Task description.
  * @param policyID - PolicyID of the parent report
+ * @param parentChatType - Chat type of the parent report.
  */
 
 function buildOptimisticTaskReport(
@@ -8753,6 +8755,7 @@ function buildOptimisticTaskReport(
     description?: string,
     policyID: string = CONST.POLICY.OWNER_EMAIL_FAKE,
     notificationPreference: NotificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+    parentChatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>,
 ): OptimisticTaskReport {
     const participants: Participants = {
         [ownerAccountID]: {
@@ -8773,6 +8776,9 @@ function buildOptimisticTaskReport(
         participants,
         managerID: assigneeAccountID,
         type: CONST.REPORT.TYPE.TASK,
+        // Only #admins tasks inherit chatType for Concierge routing.
+        // Task reports are not expense chats, so we do not inherit policyExpenseChat (or other chat types).
+        ...(parentChatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS && {chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS}),
         parentReportID,
         policyID,
         stateNum: CONST.REPORT.STATE_NUM.OPEN,
@@ -11833,9 +11839,10 @@ function prepareOnboardingOnyxData({
     const shouldUseFollowupsInsteadOfTasks = shouldPostTasksInAdminsRoom && Permissions.isBetaEnabled(CONST.BETAS.SUGGESTED_FOLLOWUPS, betas, betaConfiguration);
     const adminsChatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`];
     const targetChatReport = shouldPostTasksInAdminsRoom
-        ? (adminsChatReport ?? {reportID: adminsChatReportID, policyID: onboardingPolicyID})
+        ? (adminsChatReport ?? {reportID: adminsChatReportID, policyID: onboardingPolicyID, chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS})
         : getChatByParticipants([CONST.ACCOUNT_ID.CONCIERGE, deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID], allReports, false);
     const {reportID: targetChatReportID = '', policyID: targetChatPolicyID = ''} = targetChatReport ?? {};
+    const targetChatType = targetChatReport?.chatType;
 
     if (!targetChatReportID) {
         Log.warn('Missing reportID for onboarding optimistic data');
@@ -11978,6 +11985,7 @@ function prepareOnboardingOnyxData({
                 taskDescription,
                 targetChatPolicyID,
                 CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                targetChatType,
             );
             const emailCreatingAction =
                 engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ? (allPersonalDetails?.[actorAccountID]?.login ?? CONST.EMAIL.CONCIERGE) : CONST.EMAIL.CONCIERGE;
@@ -13122,7 +13130,7 @@ function buildOptimisticRejectReportActionComment(comment: string, created = Dat
             {
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
                 text: comment,
-                html: comment,
+                html: getParsedComment(comment),
             },
         ],
         person: [

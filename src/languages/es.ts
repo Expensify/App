@@ -6623,6 +6623,17 @@ ${amount} para ${merchant} - ${date}`,
                 title: 'Reglas personalizadas',
                 cardSubtitle: 'Aquí es donde se definen las reglas de tu equipo, para que todos sepan lo que esta cubierto.',
             },
+            spendRules: {
+                title: 'Gastos',
+                subtitle: 'Aprueba o rechaza transacciones de la tarjeta Expensify en tiempo real.',
+                defaultRuleDescription: 'Todas las tarjetas',
+                block: 'Bloquear',
+                defaultRuleTitle: 'Categorías: Servicios para adultos, cajeros automáticos, juegos de azar, transferencias de dinero',
+                builtInProtectionModal: {
+                    title: 'Las tarjetas Expensify ofrecen protección integrada, siempre',
+                    description: `Expensify siempre rechaza estos cargos:\n\n  • Servicios para adultos\n  • Cajeros automáticos\n  • Juegos de azar\n  • Transferencias de dinero\n\nAgregue más reglas de gasto para proteger el flujo de caja de la empresa.`,
+                },
+            },
         },
     },
     getAssistancePage: {

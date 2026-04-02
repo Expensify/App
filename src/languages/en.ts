@@ -6712,6 +6712,17 @@ const translations = {
                 title: 'Expense policy',
                 cardSubtitle: "Here's where your team's expense policy lives, so everyone's on the same page about what's covered.",
             },
+            spendRules: {
+                title: 'Spend',
+                subtitle: 'Approve or decline Expensify Card transactions in realtime.',
+                defaultRuleDescription: 'All cards',
+                block: 'Block',
+                defaultRuleTitle: 'Categories: Adult services, ATMs, gambling, money transfers',
+                builtInProtectionModal: {
+                    title: 'Expensify Cards offer built-in protection - always',
+                    description: `Expensify always declines these charges:\n\n  • Adult services\n  • ATMs\n  • Gambling\n  • Money transfers\n\nAdd more spend rules to protect company cash flow.`,
+                },
+            },
         },
         planTypePage: {
             planTypes: {
