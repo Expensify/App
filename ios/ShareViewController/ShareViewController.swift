@@ -129,39 +129,50 @@ class ShareViewController: UIViewController {
                     }
                 }
             }
-        } else if attachment.canLoadObject(ofClass: UIImage.self) {
-            os_log("Loading image via loadObject API")
-            attachment.loadObject(ofClass: UIImage.self) { reading, error in
+        } else if attachment.hasItemConformingToTypeIdentifier(UTType.image.identifier) {
+            os_log("Loading image via public.image type identifier")
+            attachment.loadItem(forTypeIdentifier: UTType.image.identifier, options: nil) { (data, error) in
                 DispatchQueue.main.async {
                     if let error = error {
-                        os_log("Image load error: %@", error.localizedDescription)
-                        completion(.CouldNotLoad)
+                        os_log("Image loadItem error: %@, falling back to public.data", error.localizedDescription)
+                        self.loadGenericData(for: attachment, in: folder, completion: completion)
                         return
                     }
-                    guard let image = reading as? UIImage else {
-                        os_log("Could not cast loaded object to UIImage")
-                        completion(.CouldNotLoad)
-                        return
+                    if let image = data as? UIImage {
+                        os_log("Got UIImage directly from loadItem")
+                        self.handleImageData(image, folder: folder, completion: completion)
+                    } else if let imageData = data as? Data, let image = UIImage(data: imageData) {
+                        os_log("Got Data from loadItem, converted to UIImage")
+                        self.handleImageData(image, folder: folder, completion: completion)
+                    } else if let url = data as? URL {
+                        os_log("Got file URL from loadItem: %@", url.path)
+                        self.handleURLData(url as NSURL, folder: folder, completion: completion)
+                    } else {
+                        os_log("Unrecognized image data type, falling back to public.data")
+                        self.loadGenericData(for: attachment, in: folder, completion: completion)
                     }
-                    os_log("Loaded image via loadObject")
-                    self.handleImageData(image, folder: folder, completion: completion)
                 }
             }
         } else {
-            attachment.loadItem(forTypeIdentifier: UTType.data.identifier, options: nil) { (data, error) in
-                DispatchQueue.main.async {
-                    if let error = error {
-                        os_log("Sharing error: %@", error.localizedDescription)
-                        completion(.CouldNotLoad)
-                        return
-                    }
-                    os_log("Handling data for attachment")
-                    self.handleData(data, folder: folder, completion: completion)
+            loadGenericData(for: attachment, in: folder, completion: completion)
+        }
+    }
+
+    private func loadGenericData(for attachment: NSItemProvider, in folder: URL, completion: @escaping (FileSaveError?) -> Void) {
+        os_log("Loading generic data via public.data type identifier")
+        attachment.loadItem(forTypeIdentifier: UTType.data.identifier, options: nil) { (data, error) in
+            DispatchQueue.main.async {
+                if let error = error {
+                    os_log("Generic data load error: %@", error.localizedDescription)
+                    completion(.CouldNotLoad)
+                    return
                 }
+                os_log("Handling data for attachment")
+                self.handleData(data, folder: folder, completion: completion)
             }
         }
     }
-    
+
     private func handleURL(_ url: URL, folder: URL, completion: @escaping (FileSaveError?) -> Void) {
         os_log("Handling URL: %@", url.absoluteString)
         if let fileData = url.absoluteString.data(using: .utf8) as NSData? {
