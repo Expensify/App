@@ -997,7 +997,6 @@ type GetReportNameParams = {
 type GetReportStatusParams = {
     stateNum?: number;
     statusNum?: number;
-    isDeleted?: boolean;
     translate: LocaleContextProps['translate'];
 };
 
@@ -1027,12 +1026,6 @@ getEnvironmentURL().then((url: string) => (environmentURL = url));
 let environment: EnvironmentType;
 getEnvironment().then((env) => {
     environment = env;
-});
-
-let allBetas: OnyxEntry<Beta[]>;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.BETAS,
-    callback: (value) => (allBetas = value),
 });
 
 // This cache is used to save parse result of report action html message into text
@@ -2626,8 +2619,8 @@ function isMoneyRequestReport(reportOrID: OnyxInputOrEntry<Report> | string, rep
 /**
  * Checks if a report contains only Non-Reimbursable transactions
  */
-function hasOnlyNonReimbursableTransactions(iouReportID: string | undefined): boolean {
-    const transactions = getReportTransactions(iouReportID);
+function hasOnlyNonReimbursableTransactions(iouReportID: string | undefined, transactionsParam?: Transaction[]): boolean {
+    const transactions = transactionsParam ?? getReportTransactions(iouReportID);
     if (!transactions || transactions.length === 0) {
         return false;
     }
@@ -5977,6 +5970,7 @@ function getReportName(reportNameInformation: GetReportNameParams): string {
                 // eslint-disable-next-line @typescript-eslint/no-deprecated -- translateLocal is deprecated; getReportName is non-React code that cannot use the translate hook
                 translate: translateLocal,
                 reportAction: parentReportAction,
+                policy,
                 movedFromReport,
                 movedToReport,
                 // Temporarily retrieves current user email from getCurrentUserEmail, since getReportName is deprecated and no longer requires this parameter to be passed explicitly.
@@ -11758,7 +11752,7 @@ type PrepareOnboardingOnyxDataParams = {
     isInvitedAccountant?: boolean;
     onboardingPurposeSelected?: OnboardingPurpose;
     isSelfTourViewed?: boolean;
-    betas?: OnyxEntry<Beta[]>;
+    betas: OnyxEntry<Beta[]>;
 };
 
 function getBespokeWelcomeMessage(companySize: OnboardingCompanySize | undefined, userReportedIntegration?: OnboardingAccounting): string {
@@ -11828,7 +11822,7 @@ function prepareOnboardingOnyxData({
     // Only the MANAGE_TEAM onboarding action uses the #admins room (with a guide); TRACK_WORKSPACE uses Concierge. Excludes emails that have a '+'.
     const shouldPostTasksInAdminsRoom = isPostingTasksInAdminsRoom(engagementChoice);
     // When posting to admins room and the user is in the suggestedFollowups beta, we skip tasks in favor of backend-generated followups.
-    const shouldUseFollowupsInsteadOfTasks = shouldPostTasksInAdminsRoom && Permissions.isBetaEnabled(CONST.BETAS.SUGGESTED_FOLLOWUPS, betas ?? allBetas, betaConfiguration);
+    const shouldUseFollowupsInsteadOfTasks = shouldPostTasksInAdminsRoom && Permissions.isBetaEnabled(CONST.BETAS.SUGGESTED_FOLLOWUPS, betas, betaConfiguration);
     const adminsChatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`];
     const targetChatReport = shouldPostTasksInAdminsRoom
         ? (adminsChatReport ?? {reportID: adminsChatReportID, policyID: onboardingPolicyID})
@@ -13257,10 +13251,7 @@ function buildOptimisticMarkedAsResolvedReportAction(created = DateUtils.getDBTi
  * ========================================
  */
 
-function getReportStatusTranslation({stateNum, statusNum, isDeleted, translate}: GetReportStatusParams): string {
-    if (isDeleted) {
-        return translate('iou.deleted');
-    }
+function getReportStatusTranslation({stateNum, statusNum, translate}: GetReportStatusParams): string {
     if (stateNum === undefined || statusNum === undefined) {
         return '';
     }
@@ -13288,10 +13279,7 @@ function getReportStatusTranslation({stateNum, statusNum, isDeleted, translate}:
     return '';
 }
 
-function getReportStatusColorStyle(theme: ThemeColors, stateNum?: number, statusNum?: number, isDeleted?: boolean): {backgroundColor?: ColorValue; textColor?: ColorValue} | undefined {
-    if (isDeleted) {
-        return theme.reportStatusBadge.deleted;
-    }
+function getReportStatusColorStyle(theme: ThemeColors, stateNum?: number, statusNum?: number): {backgroundColor?: ColorValue; textColor?: ColorValue} | undefined {
     if (stateNum === undefined || statusNum === undefined) {
         return undefined;
     }

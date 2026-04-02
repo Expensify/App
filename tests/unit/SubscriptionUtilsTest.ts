@@ -522,6 +522,122 @@ describe('SubscriptionUtils', () => {
         });
     });
 
+    describe('shouldRestrictUserBillableActions - policy parameter', () => {
+        afterEach(async () => {
+            await Onyx.clear();
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: null,
+                [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END]: null,
+                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: null,
+                [ONYXKEYS.COLLECTION.POLICY]: null,
+            });
+        });
+
+        it('should restrict when policy is passed directly and owner is past due', async () => {
+            const accountID = 1;
+            const policyID = '2001';
+            const policy = {
+                ...createRandomPolicy(Number(policyID)),
+                ownerAccountID: accountID,
+            };
+
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {email: '', accountID},
+                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 8010,
+            });
+
+            expect(shouldRestrictUserBillableActions(policyID, getUnixTime(subDays(new Date(), 3)), undefined, undefined, policy)).toBeTruthy();
+        });
+
+        it('should not restrict when policy is passed directly but owner is not past due', async () => {
+            const accountID = 1;
+            const policyID = '2001';
+            const policy = {
+                ...createRandomPolicy(Number(policyID)),
+                ownerAccountID: accountID,
+            };
+
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {email: '', accountID},
+                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 8010,
+            });
+
+            expect(shouldRestrictUserBillableActions(policyID, getUnixTime(addDays(new Date(), 3)), undefined, undefined, policy)).toBeFalsy();
+        });
+
+        it('should not restrict when policy is passed as undefined', () => {
+            expect(shouldRestrictUserBillableActions('nonexistent', getUnixTime(subDays(new Date(), 3)), undefined, 500, undefined)).toBeFalsy();
+        });
+
+        it('should restrict for non-owner when policy is passed directly and billing grace period is overdue', async () => {
+            const policyID = '2001';
+            const ownerAccountID = 2001;
+            const policy = {
+                ...createRandomPolicy(Number(policyID)),
+                ownerAccountID,
+            };
+
+            expect(
+                shouldRestrictUserBillableActions(
+                    policyID,
+                    undefined,
+                    {
+                        [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${ownerAccountID}` as const]: {
+                            ...billingGraceEndPeriod,
+                            value: getUnixTime(subDays(new Date(), 3)),
+                        },
+                    },
+                    undefined,
+                    policy,
+                ),
+            ).toBeTruthy();
+        });
+
+        it('should not restrict for non-owner when policy is passed directly but billing grace period is not overdue', async () => {
+            const policyID = '2001';
+            const ownerAccountID = 2001;
+            const policy = {
+                ...createRandomPolicy(Number(policyID)),
+                ownerAccountID,
+            };
+
+            expect(
+                shouldRestrictUserBillableActions(
+                    policyID,
+                    undefined,
+                    {
+                        [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${ownerAccountID}` as const]: {
+                            ...billingGraceEndPeriod,
+                            value: getUnixTime(addDays(new Date(), 3)),
+                        },
+                    },
+                    undefined,
+                    policy,
+                ),
+            ).toBeFalsy();
+        });
+
+        it('should use passed policy and ignore Onyx-stored policies', async () => {
+            const accountID = 1;
+            const policyID = '2001';
+            const differentOwnerPolicy = {
+                ...createRandomPolicy(Number(policyID)),
+                ownerAccountID: 9999,
+            };
+
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {email: '', accountID},
+                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 8010,
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
+                    ...createRandomPolicy(Number(policyID)),
+                    ownerAccountID: accountID,
+                },
+            });
+
+            expect(shouldRestrictUserBillableActions(policyID, getUnixTime(subDays(new Date(), 3)), undefined, undefined, differentOwnerPolicy)).toBeFalsy();
+        });
+    });
+
     describe('getSubscriptionStatus', () => {
         afterEach(async () => {
             await Onyx.clear();
