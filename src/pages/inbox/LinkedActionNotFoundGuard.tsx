@@ -7,6 +7,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {isReportActionVisible, isWhisperAction} from '@libs/ReportActionsUtils';
@@ -51,6 +52,7 @@ function LinkedActionNotFoundGate({reportActionIDFromRoute, children}: LinkedAct
     const routeParams = route.params as {reportID?: string; reportActionID?: string} | undefined;
     const reportIDFromRoute = getNonEmptyStringOnyxID(routeParams?.reportID);
 
+    const styles = useThemeStyles();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
@@ -136,6 +138,7 @@ function LinkedActionNotFoundGate({reportActionIDFromRoute, children}: LinkedAct
         <FullPageNotFoundView
             shouldShow={shouldShowNotFoundLinkedAction}
             subtitleKey="notFound.commentYouLookingForCannotBeFound"
+            subtitleStyle={[styles.textSupporting]}
             shouldShowBackButton={shouldUseNarrowLayout}
             onBackButtonPress={navigateToEndOfReport}
             shouldShowLink
