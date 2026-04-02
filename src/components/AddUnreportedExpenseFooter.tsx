@@ -59,7 +59,7 @@ function AddUnreportedExpenseFooter({selectedIds, report, reportToConfirm, repor
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
-    const policyTagList = policy ? (allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy.id}`] ?? {}) : {};
+    const policyTagList = policy ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy.id}`] : {};
 
     const handleConfirm = () => {
         if (selectedIds.size === 0) {

@@ -72,7 +72,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         }
 
         const newReport = report ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.value}`];
-        const policyTagList = item ? (allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${item.policyID}`] ?? {}) : {};
+        const policyTagList = item ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${item.policyID}`] : {};
 
         setNavigationActionToMicrotaskQueue(() => {
             changeTransactionsReport({
@@ -100,7 +100,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         if (!selectedReport || transactionIDs.length === 0) {
             return;
         }
-        const policyTagList = personalPolicyID ? (allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${personalPolicyID}`] ?? {}) : {};
+        const policyTagList = personalPolicyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${personalPolicyID}`] : {};
         changeTransactionsReport({
             transactionIDs,
             isASAPSubmitBetaEnabled,

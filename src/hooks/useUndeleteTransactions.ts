@@ -15,6 +15,8 @@ function useUndeleteTransactions() {
     const {translate, toLocaleDigit} = useLocalize();
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`);
+    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const policyTagList = policy ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy.id}`] : {};
 
     return (transactionIDs: string[]) => {
         changeTransactionsReport({
@@ -26,6 +28,7 @@ function useUndeleteTransactions() {
             allTransactions,
             translate,
             toLocaleDigit,
+            policyTagList,
         });
     };
 }
