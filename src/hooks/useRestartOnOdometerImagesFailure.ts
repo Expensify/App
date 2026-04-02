@@ -85,7 +85,7 @@ const useRestartOnOdometerImagesFailure = (transaction: OnyxEntry<Transaction>, 
             navigateToStartMoneyRequestStep(requestType, iouType, transaction.transactionID, reportID);
         });
 
-        // We want this hook to run on mount only
+        // We want this hook to run once after Onyx finishes loading the draft transactions
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [draftTransactionsMetadata]);
 };
