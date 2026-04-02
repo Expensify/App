@@ -1,6 +1,5 @@
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
-import Button from '@components/Button';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
@@ -24,6 +23,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import passthroughPolicyTagListSelector from '@src/selectors/PolicyTagList';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
+import BasePopup from './BasePopup';
 
 type InSelectPopupProps = {
     closeOverlay: () => void;
@@ -179,38 +179,28 @@ function InSelectPopup({closeOverlay, updateFilterForm}: InSelectPopupProps) {
     };
 
     return (
-        <View style={[styles.getUserSelectionListPopoverHeight(sections.flatMap((section) => section.data).length || 1, windowHeight, shouldUseNarrowLayout, true)]}>
-            <SelectionListWithSections
-                sections={sections}
-                onSelectRow={handleParticipantSelection}
-                ListItem={InviteMemberListItem}
-                canSelectMultiple
-                style={{containerStyle: [!shouldUseNarrowLayout && styles.pt4], listStyle: styles.pb2}}
-                shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                textInputOptions={textInputOptions}
-                isLoadingNewOptions={isLoadingNewOptions}
-                shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
-                shouldShowTextInput
-            />
-
-            <View style={[styles.flexRow, styles.gap2, styles.mh5, !shouldUseNarrowLayout && styles.mb4]}>
-                <Button
-                    medium
-                    style={[styles.flex1]}
-                    text={translate('common.reset')}
-                    onPress={resetChanges}
-                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_REPORT}
-                />
-                <Button
-                    success
-                    medium
-                    style={[styles.flex1]}
-                    text={translate('common.apply')}
-                    onPress={applyChanges}
-                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_REPORT}
+        <BasePopup
+            label={translate('common.in')}
+            onReset={resetChanges}
+            onApply={applyChanges}
+            resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_REPORT}
+            applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_REPORT}
+        >
+            <View style={[styles.getUserSelectionListPopoverHeight(sections.flatMap((section) => section.data).length || 1, windowHeight, shouldUseNarrowLayout, true)]}>
+                <SelectionListWithSections
+                    sections={sections}
+                    onSelectRow={handleParticipantSelection}
+                    ListItem={InviteMemberListItem}
+                    canSelectMultiple
+                    style={{listStyle: styles.pb2}}
+                    shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                    textInputOptions={textInputOptions}
+                    isLoadingNewOptions={isLoadingNewOptions}
+                    shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
+                    shouldShowTextInput
                 />
             </View>
-        </View>
+        </BasePopup>
     );
 }
 

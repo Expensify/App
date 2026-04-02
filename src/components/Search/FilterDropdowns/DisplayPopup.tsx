@@ -197,7 +197,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
         <View style={[!shouldUseNarrowLayout && styles.pv4]}>
             <HeaderWithBackButton
                 shouldDisplayHelpButton={false}
-                style={[styles.h10]}
+                style={[styles.h10, styles.pv1, styles.mb2]}
                 subtitle={subtitle[selectedDisplayFilter]}
                 onBackButtonPress={() => setSelectedDisplayFilter(null)}
             />

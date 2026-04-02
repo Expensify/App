@@ -1,17 +1,14 @@
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
-import Button from '@components/Button';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import CardListItem from '@components/SelectionList/ListItem/CardListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
-import Text from '@components/Text';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -24,9 +21,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import type {PopoverComponentProps} from './DropdownButton';
+import BasePopup from './BasePopup';
 
-type CardSelectPopupProps = PopoverComponentProps & {
+type CardSelectPopupProps = {
+    closeOverlay: () => void;
     updateFilterForm: (values: Partial<SearchAdvancedFiltersForm>) => void;
 };
 
@@ -37,8 +35,6 @@ function CardSelectPopup({updateFilterForm, closeOverlay}: CardSelectPopupProps)
     const {isOffline} = useNetwork();
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
 
     const [areCardsLoaded] = useOnyx(ONYXKEYS.IS_SEARCH_FILTERS_CARD_DATA_LOADED);
@@ -168,8 +164,13 @@ function CardSelectPopup({updateFilterForm, closeOverlay}: CardSelectPopupProps)
     const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'SearchFiltersCardPage', isLoadingFromOnyx: isLoadingOnyxData};
 
     return (
-        <View style={[!isSmallScreenWidth && styles.pv4, styles.gap2]}>
-            {isSmallScreenWidth && <Text style={[styles.textLabel, styles.textSupporting, styles.ph5, styles.pv1]}>{translate('common.card')}</Text>}
+        <BasePopup
+            label={translate('common.card')}
+            onReset={resetChanges}
+            onApply={applyChanges}
+            resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_CARD}
+            applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_CARD}
+        >
             {!!shouldShowLoadingState && (
                 <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsCenter]}>
                     <ActivityIndicator
@@ -194,25 +195,7 @@ function CardSelectPopup({updateFilterForm, closeOverlay}: CardSelectPopupProps)
                     />
                 </View>
             )}
-
-            <View style={[styles.flexRow, styles.gap2, styles.ph5]}>
-                <Button
-                    medium
-                    style={[styles.flex1]}
-                    text={translate('common.reset')}
-                    onPress={resetChanges}
-                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_CARD}
-                />
-                <Button
-                    success
-                    medium
-                    style={[styles.flex1]}
-                    text={translate('common.apply')}
-                    onPress={applyChanges}
-                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_CARD}
-                />
-            </View>
-        </View>
+        </BasePopup>
     );
 }
 

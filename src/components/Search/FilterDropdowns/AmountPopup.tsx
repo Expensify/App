@@ -1,25 +1,21 @@
 import React, {useState} from 'react';
-import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import AmountWithoutCurrencyInput from '@components/AmountWithoutCurrencyInput';
-import Button from '@components/Button';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import type {SearchAmountFilterKeys} from '@components/Search/types';
-import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import type {PopoverComponentProps} from './DropdownButton';
+import BasePopup from './BasePopup';
 
-type AmountPopupProps = PopoverComponentProps & {
+type AmountPopupProps = {
     filterKey: SearchAmountFilterKeys;
     label: string;
     value: Record<ValueOf<typeof CONST.SEARCH.AMOUNT_MODIFIERS>, string | undefined>;
     updateFilterForm: (value: Partial<SearchAdvancedFiltersForm>) => void;
+    closeOverlay: () => void;
 };
 
 type AmountInputProps = {
@@ -31,21 +27,20 @@ type AmountInputProps = {
 };
 
 function AmountInput({title, value, name, onSave, onBackButtonPress}: AmountInputProps) {
-    const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [amount, setAmount] = useState(value);
 
     return (
-        <View style={[!shouldUseNarrowLayout && styles.pv4, styles.gap2]}>
-            <HeaderWithBackButton
-                shouldDisplayHelpButton={false}
-                style={[styles.h10]}
-                subtitle={title}
-                onBackButtonPress={onBackButtonPress}
-            />
+        <BasePopup
+            label={title}
+            onReset={() => onSave('')}
+            onApply={() => onSave(amount)}
+            resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_AMOUNT}
+            applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_AMOUNT}
+            onBackButtonPress={onBackButtonPress}
+        >
             <AmountWithoutCurrencyInput
-                containerStyles={styles.ph4}
+                containerStyles={[styles.ph4, styles.mb2]}
                 defaultValue={amount}
                 onInputChange={setAmount}
                 label={title}
@@ -56,32 +51,12 @@ function AmountInput({title, value, name, onSave, onBackButtonPress}: AmountInpu
                 shouldAllowNegative
                 autoFocus
             />
-            <View style={[styles.flexRow, styles.gap2, styles.ph5, styles.mt2]}>
-                <Button
-                    medium
-                    style={[styles.flex1]}
-                    text={translate('common.reset')}
-                    onPress={() => onSave('')}
-                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_AMOUNT}
-                />
-                <Button
-                    success
-                    medium
-                    style={[styles.flex1]}
-                    text={translate('common.apply')}
-                    onPress={() => onSave(amount)}
-                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_AMOUNT}
-                />
-            </View>
-        </View>
+        </BasePopup>
     );
 }
 
 function AmountPopup({filterKey, label, value, closeOverlay, updateFilterForm}: AmountPopupProps) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
     const [selectedModifier, setSelectedModifier] = useState<ValueOf<typeof CONST.SEARCH.AMOUNT_MODIFIERS> | null>(null);
     const [amountValues, setAmountValues] = useState(value);
 
@@ -154,8 +129,13 @@ function AmountPopup({filterKey, label, value, closeOverlay, updateFilterForm}: 
     };
 
     return (
-        <View style={[!isSmallScreenWidth && styles.pv4]}>
-            {isSmallScreenWidth && <Text style={[styles.textLabel, styles.textSupporting, styles.ph5, styles.pv1]}>{label}</Text>}
+        <BasePopup
+            label={label}
+            onReset={resetChanges}
+            onApply={applyChanges}
+            resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_AMOUNT}
+            applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_AMOUNT}
+        >
             {modifierConfig.map((modifier) => (
                 <MenuItem
                     key={modifier}
@@ -166,24 +146,7 @@ function AmountPopup({filterKey, label, value, closeOverlay, updateFilterForm}: 
                     viewMode={CONST.OPTION_MODE.COMPACT}
                 />
             ))}
-            <View style={[styles.flexRow, styles.gap2, styles.ph5, styles.mt2]}>
-                <Button
-                    medium
-                    style={[styles.flex1]}
-                    text={translate('common.reset')}
-                    onPress={resetChanges}
-                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_AMOUNT}
-                />
-                <Button
-                    success
-                    medium
-                    style={[styles.flex1]}
-                    text={translate('common.apply')}
-                    onPress={applyChanges}
-                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_AMOUNT}
-                />
-            </View>
-        </View>
+        </BasePopup>
     );
 }
 

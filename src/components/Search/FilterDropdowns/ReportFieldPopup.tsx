@@ -2,13 +2,11 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import ScrollView from '@components/ScrollView';
 import type {SearchDateValues} from '@components/Search/FilterComponents/DatePresetFilterBase';
 import type {ReportFieldDateKey, ReportFieldTextKey} from '@components/Search/types';
-import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -22,12 +20,13 @@ import {createAllPolicyReportFieldsSelector} from '@src/selectors/Policy';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {Policy, PolicyReportField} from '@src/types/onyx';
 import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
+import BasePopup from './BasePopup';
 import DateSelectPopup from './DateSelectPopup';
-import type {PopoverComponentProps} from './DropdownButton';
 import SingleSelectPopup from './SingleSelectPopup';
 import TextInputPopup from './TextInputPopup';
 
-type ReportFieldPopupProps = PopoverComponentProps & {
+type ReportFieldPopupProps = {
+    closeOverlay: () => void;
     updateFilterForm: (value: Partial<SearchAdvancedFiltersForm>) => void;
 };
 
@@ -120,6 +119,7 @@ function ReportFieldTextPopup({field, value, onBackButtonPress, onChange}: Repor
             <TextInputPopup
                 style={styles.pv0}
                 placeholder={field.name}
+                label={field.name}
                 defaultValue={value}
                 closeOverlay={onBackButtonPress}
                 onChange={onChange}
@@ -130,10 +130,7 @@ function ReportFieldTextPopup({field, value, onBackButtonPress, onChange}: Repor
 
 function ReportFieldPopup({closeOverlay, updateFilterForm}: ReportFieldPopupProps) {
     const {translate, localeCompare} = useLocalize();
-    const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
     const policyReportFieldsSelector = (policies: OnyxCollection<Policy>) => createAllPolicyReportFieldsSelector(policies, localeCompare);
     const [fieldList] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         selector: policyReportFieldsSelector,
@@ -272,8 +269,13 @@ function ReportFieldPopup({closeOverlay, updateFilterForm}: ReportFieldPopupProp
     });
 
     return (
-        <View style={[!isSmallScreenWidth && styles.pv4]}>
-            {isSmallScreenWidth && <Text style={[styles.textLabel, styles.textSupporting, styles.ph5, styles.pv1]}>{translate('workspace.common.reportField')}</Text>}
+        <BasePopup
+            label={translate('workspace.common.reportField')}
+            onReset={resetChanges}
+            onApply={applyChanges}
+            resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_REPORT_FIELD}
+            applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_REPORT_FIELD}
+        >
             <ScrollView style={[StyleUtils.getMaximumHeight(CONST.POPOVER_DROPDOWN_MAX_HEIGHT)]}>
                 {listItems.map((item) => (
                     <MenuItem
@@ -286,24 +288,7 @@ function ReportFieldPopup({closeOverlay, updateFilterForm}: ReportFieldPopupProp
                     />
                 ))}
             </ScrollView>
-            <View style={[styles.flexRow, styles.gap2, styles.ph5, styles.mt2]}>
-                <Button
-                    medium
-                    style={[styles.flex1]}
-                    text={translate('common.reset')}
-                    onPress={resetChanges}
-                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_REPORT_FIELD}
-                />
-                <Button
-                    success
-                    medium
-                    style={[styles.flex1]}
-                    text={translate('common.apply')}
-                    onPress={applyChanges}
-                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_REPORT_FIELD}
-                />
-            </View>
-        </View>
+        </BasePopup>
     );
 }
 
