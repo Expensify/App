@@ -621,9 +621,7 @@ function getCompanyFeeds(cardFeeds: OnyxEntry<CombinedCardFeeds>, shouldFilterOu
 }
 
 function hasCompanyCardFeeds(cardFeeds: OnyxEntry<CombinedCardFeeds>): boolean {
-    return Object.values(cardFeeds ?? {}).some(
-        (value) => value.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !value.pending && !value.feed.includes(CONST.EXPENSIFY_CARD.BANK),
-    );
+    return Object.keys(getCompanyFeeds(cardFeeds, true, true)).length > 0;
 }
 
 function getBankName(feedType: CardFeedWithNumber | CardFeedWithDomainID): string {
