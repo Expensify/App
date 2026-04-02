@@ -100,10 +100,20 @@ function useReceiptScan({
     }, [isMultiScanEnabled]);
 
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const participants = useMemo(
-        () => getMoneyRequestParticipantOptions(currentUserPersonalDetails.accountID, report, policy, personalDetails, reportNameValuePairs?.private_isArchived, reportAttributesDerived),
-        [currentUserPersonalDetails.accountID, report, policy, personalDetails, reportNameValuePairs?.private_isArchived, reportAttributesDerived],
+        () =>
+            getMoneyRequestParticipantOptions(
+                currentUserPersonalDetails.accountID,
+                report,
+                policy,
+                personalDetails,
+                conciergeReportID,
+                reportNameValuePairs?.private_isArchived,
+                reportAttributesDerived,
+            ),
+        [currentUserPersonalDetails.accountID, report, policy, personalDetails, conciergeReportID, reportNameValuePairs?.private_isArchived, reportAttributesDerived],
     );
 
     const participantsPolicyTags = useParticipantsPolicyTags(participants);

@@ -98,6 +98,7 @@ function IOURequestStepDistanceManual({
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
 
@@ -252,6 +253,7 @@ function IOURequestStepDistanceManual({
                 amountOwed,
                 userBillingGracePeriodEnds,
                 ownerBillingGracePeriodEnd,
+                conciergeReportID,
             });
         },
         [
@@ -300,6 +302,7 @@ function IOURequestStepDistanceManual({
             isSelfTourViewed,
             amountOwed,
             ownerBillingGracePeriodEnd,
+            conciergeReportID,
         ],
     );
 
