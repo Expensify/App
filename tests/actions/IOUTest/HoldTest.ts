@@ -471,7 +471,7 @@ describe('actions/IOU/Hold', () => {
                 })
                 .then(() => {
                     // When an expense is unhold
-                    unholdRequest(transaction.transactionID, transactionThread.reportID, policy);
+                    unholdRequest(transaction.transactionID, transactionThread.reportID, policy, false);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -545,7 +545,7 @@ describe('actions/IOU/Hold', () => {
                 .then(() => {
                     mockFetch.fail();
                     mockFetch?.resume?.();
-                    unholdRequest(transaction.transactionID, transactionThread.reportID, policy);
+                    unholdRequest(transaction.transactionID, transactionThread.reportID, policy, false);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {

@@ -64,7 +64,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const StyleUtils = useStyleUtils();
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'Hourglass', 'MoneySearch', 'RemoveMembers', 'Sync', 'Trashcan'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'Hourglass', 'MoneySearch', 'RemoveMembers', 'Sync', 'Trashcan']);
 
     const {isOffline} = useNetwork();
     const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);

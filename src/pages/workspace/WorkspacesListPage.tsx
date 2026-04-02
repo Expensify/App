@@ -48,10 +48,9 @@ import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
 import {filterInactiveCards} from '@libs/CardUtils';
 import {hasDomainErrors} from '@libs/DomainUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
-import usePreloadFullScreenNavigators from '@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {AuthScreensParamList} from '@libs/Navigation/types';
+import type {WorkspaceNavigatorParamList} from '@libs/Navigation/types';
 import {
     getConnectionExporters,
     getPolicyBrickRoadIndicatorStatus,
@@ -149,7 +148,7 @@ function WorkspacesListPage() {
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
-    const route = useRoute<PlatformStackRouteProp<AuthScreensParamList, typeof SCREENS.WORKSPACES_LIST>>();
+    const route = useRoute<PlatformStackRouteProp<WorkspaceNavigatorParamList, typeof SCREENS.WORKSPACES_LIST>>();
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const [duplicateWorkspace] = useOnyx(ONYXKEYS.DUPLICATE_WORKSPACE);
     const {isRestrictedToPreferredPolicy, preferredPolicyID, isRestrictedPolicyCreation} = usePreferredPolicy();
@@ -160,9 +159,6 @@ function WorkspacesListPage() {
     const [allDomainErrors] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN_ERRORS);
     const [adminAccess] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
-
-    // This hook preloads the screens of adjacent tabs to make changing tabs faster.
-    usePreloadFullScreenNavigators();
 
     const ownedPaidPolicies = ownerPoliciesSelector(policies, currentUserPersonalDetails?.accountID);
     const activeOwnedPaidPoliciesCount = ownedPaidPolicies.filter((p) => !isPendingDeletePolicy(p)).length;
@@ -204,7 +200,7 @@ function WorkspacesListPage() {
         ((policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDToDelete}`]?.areExpensifyCardsEnabled ||
             policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDToDelete}`]?.areCompanyCardsEnabled) &&
             policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDToDelete}`]?.workspaceAccountID);
-
+    const hasExpensifyCard = !!policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDToDelete}`]?.areExpensifyCardsEnabled && !isEmptyObject(cardsList);
     const personalDetails = usePersonalDetails();
     const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
     const [isCannotLeaveWorkspaceModalOpen, setIsCannotLeaveWorkspaceModalOpen] = useState(false);
@@ -213,6 +209,7 @@ function WorkspacesListPage() {
 
     const policyToDeleteLatestErrorMessage = getLatestErrorMessage(policyToDelete);
     const isPendingDelete = isPendingDeletePolicy(policyToDelete);
+    const hasDeleteWorkspaceExpensifyCardsError = !!hasExpensifyCard && !!isOffline;
 
     const [prevIsPendingDelete, setPrevIsPendingDelete] = useState(isPendingDelete);
     if (prevIsPendingDelete !== isPendingDelete) {
@@ -243,10 +240,14 @@ function WorkspacesListPage() {
             lastUsedPaymentMethods: lastPaymentMethod,
             localeCompare,
             personalPolicyID,
+            hasDeleteWorkspaceExpensifyCardsError,
+            currentUserAccountID: currentUserPersonalDetails.accountID,
         });
         if (isOffline) {
             setIsDeleteModalOpen(false);
-            setPolicyIDToDelete(undefined);
+            if (!hasDeleteWorkspaceExpensifyCardsError) {
+                setPolicyIDToDelete(undefined);
+            }
             setPolicyNameToDelete(undefined);
         }
     };
@@ -265,16 +266,16 @@ function WorkspacesListPage() {
             return;
         }
 
-        leaveWorkspace(currentUserPersonalDetails.accountID, policyToLeave);
+        leaveWorkspace(currentUserPersonalDetails.accountID, currentUserPersonalDetails?.email ?? '', policyToLeave);
         setIsLeaveModalOpen(false);
     };
 
     const confirmModalPrompt = () => {
         const exporters = getConnectionExporters(policyToLeave);
+        const userEmail = currentUserPersonalDetails?.email ?? '';
         const policyOwnerDisplayName = personalDetails?.[policyToLeave?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.displayName ?? '';
         const technicalContact = policyToLeave?.technicalContact;
-        const isCurrentUserReimburser = isUserReimburserForPolicy(policies, policyIDToLeave, session?.email);
-        const userEmail = session?.email ?? '';
+        const isCurrentUserReimburser = isUserReimburserForPolicy(policies, policyIDToLeave, userEmail);
         const isApprover = isPolicyApprover(policyToLeave, userEmail);
 
         if (isCurrentUserReimburser) {
@@ -310,6 +311,23 @@ function WorkspacesListPage() {
         setLoadingSpinnerIconIndex(null);
     };
 
+    useEffect(() => {
+        // Handle showing error modal when offline and error occurs
+        if (isOffline && policyToDeleteLatestErrorMessage) {
+            setIsDeleteWorkspaceErrorModalOpen(true);
+            return;
+        }
+
+        if (!prevIsPendingDelete || isPendingDelete || !policyIDToDelete) {
+            return;
+        }
+        setIsDeleteModalOpen(false);
+        if (!isFocused || !policyToDeleteLatestErrorMessage) {
+            return;
+        }
+
+        setIsDeleteWorkspaceErrorModalOpen(true);
+    }, [isOffline, policyToDeleteLatestErrorMessage, isPendingDelete, prevIsPendingDelete, isFocused, policyIDToDelete]);
     const startChangeOwnershipFlow = (policyID: string | undefined) => {
         if (!policyID) {
             return;
