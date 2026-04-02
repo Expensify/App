@@ -1,5 +1,6 @@
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -39,7 +40,8 @@ function ReportPDFDownloadModal({reportID, isVisible, onClose}: ReportPDFDownloa
     const theme = useTheme();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Close']);
 
-    const currentUserLogin = session?.authToken ? session?.email : '';
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentUserLogin = currentUserPersonalDetails?.login ?? '';
     const encryptedAuthToken = session?.encryptedAuthToken ?? '';
     const reportName = report?.reportName ?? '';
 
