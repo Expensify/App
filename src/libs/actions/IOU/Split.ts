@@ -2050,7 +2050,7 @@ function updateSplitTransactions({
             onyxData.successData?.push(...successData);
             onyxData.successData?.push({
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportActionsReportID}`,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalSelfDMReportID}`,
                 value: {
                     [firstIOU.reportActionID]: {pendingAction: null},
                 },

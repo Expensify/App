@@ -1986,38 +1986,6 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
                 value: getTransactionWithPreservedLocalReceiptSource(transaction, isScanRequest),
             },
-            isNewChatReport
-                ? {
-                      onyxMethod: Onyx.METHOD.SET,
-                      key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chat.report?.reportID}`,
-                      value: {
-                          [chat.createdAction.reportActionID]: chat.createdAction,
-                          [chat.reportPreviewAction.reportActionID]: chat.reportPreviewAction,
-                      },
-                  }
-                : {
-                      onyxMethod: Onyx.METHOD.MERGE,
-                      key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chat.report?.reportID}`,
-                      value: {
-                          [chat.reportPreviewAction.reportActionID]: chat.reportPreviewAction,
-                      },
-                  },
-            shouldCreateNewMoneyRequestReport
-                ? {
-                      onyxMethod: Onyx.METHOD.SET,
-                      key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iou.report.reportID}`,
-                      value: {
-                          [iou.createdAction.reportActionID]: iou.createdAction as OnyxTypes.ReportAction,
-                          [iou.action.reportActionID]: iou.action as OnyxTypes.ReportAction,
-                      },
-                  }
-                : {
-                      onyxMethod: Onyx.METHOD.MERGE,
-                      key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iou.report.reportID}`,
-                      value: {
-                          [iou.action.reportActionID]: iou.action as OnyxTypes.ReportAction,
-                      },
-                  },
         );
 
         // Add IOU action directly to selfDM report (no CREATED or REPORTPREVIEW)
