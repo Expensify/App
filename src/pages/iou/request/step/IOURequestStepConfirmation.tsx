@@ -877,14 +877,18 @@ function IOURequestStepConfirmation({
                 });
             } else {
                 const isExpenseReport = isMoneyRequestReport(report);
-                const existingChatReport = isExpenseReport ? getReportOrDraftReport(report?.chatReportID) : report;
-                const chatReportForNav = existingChatReport?.reportID
-                    ? existingChatReport
-                    : getChatByParticipants([participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID]);
-                const optimisticChatReportID = chatReportForNav?.reportID ? undefined : generateReportID();
-                const activeReportID = isExpenseReport && Navigation.getTopmostReportId() === report?.reportID ? report?.reportID : (chatReportForNav?.reportID ?? optimisticChatReportID);
+                let existingChatReport = report;
+                if (isExpenseReport) {
+                    existingChatReport = getReportOrDraftReport(report?.chatReportID);
+                } else if (!report?.reportID && participant.isPolicyExpenseChat && participant.reportID) {
+                    existingChatReport = getReportOrDraftReport(participant.reportID);
+                } else if (!report?.reportID) {
+                    existingChatReport = getChatByParticipants([participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID]);
+                }
+                const optimisticChatReportID = existingChatReport?.reportID ? undefined : generateReportID();
+                const activeReportID = isExpenseReport && Navigation.getTopmostReportId() === report?.reportID ? report?.reportID : (existingChatReport?.reportID ?? optimisticChatReportID);
 
-                submitPerDiemExpenseIOUActions({
+                const result = submitPerDiemExpenseIOUActions({
                     report,
                     participantParams: {
                         payeeEmail: currentUserPersonalDetails.login,
@@ -923,7 +927,7 @@ function IOURequestStepConfirmation({
                     personalDetails,
                     optimisticChatReportID,
                 });
-                if (activeReportID) {
+                if (result && activeReportID) {
                     navigateAfterExpenseCreate({
                         activeReportID,
                         transactionID: transaction.transactionID,
