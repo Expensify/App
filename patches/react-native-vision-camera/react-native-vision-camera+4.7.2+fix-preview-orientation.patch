@@ -1,0 +1,22 @@
+diff --git a/node_modules/react-native-vision-camera/ios/Core/OrientationManager.swift b/node_modules/react-native-vision-camera/ios/Core/OrientationManager.swift
+index d9a4180..1627915 100644
+--- a/node_modules/react-native-vision-camera/ios/Core/OrientationManager.swift
++++ b/node_modules/react-native-vision-camera/ios/Core/OrientationManager.swift
+@@ -103,7 +103,7 @@ final class OrientationManager {
+     UIDevice.current.beginGeneratingDeviceOrientationNotifications()
+     NotificationCenter.default.addObserver(self,
+                                            selector: #selector(onDeviceOrientationChanged),
+-                                           name: UIDevice.orientationDidChangeNotification,
++                                           name: UIApplication.didChangeStatusBarFrameNotification,
+                                            object: nil)
+   }
+ 
+@@ -113,7 +113,7 @@ final class OrientationManager {
+     // Stop UI-orientation updates
+     UIDevice.current.endGeneratingDeviceOrientationNotifications()
+     NotificationCenter.default.removeObserver(self,
+-                                              name: UIDevice.orientationDidChangeNotification,
++                                              name: UIApplication.didChangeStatusBarFrameNotification,
+                                               object: nil)
+   }
+ 
