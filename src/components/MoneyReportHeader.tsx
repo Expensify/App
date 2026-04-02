@@ -18,6 +18,7 @@ import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
 import useEnvironment from '@hooks/useEnvironment';
+import useExportAgainModal from '@hooks/useExportAgainModal';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -130,7 +131,6 @@ import {
     isPerDiemRequest,
     isTransactionPendingDelete,
 } from '@libs/TransactionUtils';
-import type {ExportType} from '@pages/inbox/report/ReportDetailsExportPage';
 import {
     approveMoneyRequest,
     canApproveIOU,
@@ -382,8 +382,8 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
     const hasCustomUnitOutOfPolicyViolation = hasCustomUnitOutOfPolicyViolationTransactionUtils(transactionViolations);
     const isPerDiemRequestOnNonDefaultWorkspace = isPerDiemRequest(transaction) && defaultExpensePolicy?.id !== policy?.id;
 
-    const [exportModalStatus, setExportModalStatus] = useState<ExportType | null>(null);
     const {showConfirmModal} = useConfirmModal();
+    const {triggerExportOrConfirm} = useExportAgainModal(moneyRequestReport?.reportID, moneyRequestReport?.policyID);
     const {isPaidAnimationRunning, isApprovedAnimationRunning, isSubmittingAnimationRunning, startAnimation, stopAnimation, startApprovedAnimation, startSubmittingAnimation} =
         usePaymentAnimations();
     const styles = useThemeStyles();
@@ -1048,18 +1048,6 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         bankAccountList,
     ]);
 
-    const confirmExport = useCallback(() => {
-        setExportModalStatus(null);
-        if (!moneyRequestReport?.reportID || !connectedIntegration) {
-            return;
-        }
-        if (exportModalStatus === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION) {
-            exportToIntegration(moneyRequestReport?.reportID, connectedIntegration);
-        } else if (exportModalStatus === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
-            markAsManuallyExported([moneyRequestReport?.reportID ?? CONST.DEFAULT_NUMBER_ID], connectedIntegration);
-        }
-    }, [connectedIntegration, exportModalStatus, moneyRequestReport?.reportID]);
-
     const getAmount = (actionType: ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS>) => ({
         formattedAmount: getTotalAmountForIOUReportPreviewButton(moneyRequestReport, policy, actionType, nonPendingDeleteTransactions),
     });
@@ -1184,7 +1172,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                         return;
                     }
                     if (isExported) {
-                        setExportModalStatus(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
+                        triggerExportOrConfirm(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
                         return;
                     }
                     exportToIntegration(moneyRequestReport?.reportID, connectedIntegration);
@@ -1204,7 +1192,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                         return;
                     }
                     if (isExported) {
-                        setExportModalStatus(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED);
+                        triggerExportOrConfirm(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED);
                         return;
                     }
                     markAsManuallyExported([moneyRequestReport?.reportID ?? CONST.DEFAULT_NUMBER_ID], connectedIntegration);
@@ -1236,6 +1224,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         isExported,
         exportTemplates,
         beginExportWithTemplate,
+        triggerExportOrConfirm,
     ]);
 
     const primaryActionComponent = (
@@ -1262,7 +1251,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                     setIsHoldMenuVisible(true);
                 }
             }}
-            onExportModalOpen={() => setExportModalStatus(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION)}
+            onExportModalOpen={() => triggerExportOrConfirm(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION)}
         />
     );
 
@@ -2013,34 +2002,6 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         route.params?.backTo,
         chatReport?.reportID,
     ]);
-
-    const showExportAgainModal = useCallback(() => {
-        if (!connectedIntegration) {
-            return;
-        }
-        showConfirmModal({
-            title: translate('workspace.exportAgainModal.title'),
-            prompt: translate('workspace.exportAgainModal.description', {
-                connectionName: connectedIntegration ?? connectedIntegrationFallback,
-                reportName: moneyRequestReport?.reportName ?? '',
-            }),
-            confirmText: translate('workspace.exportAgainModal.confirmText'),
-            cancelText: translate('workspace.exportAgainModal.cancelText'),
-        }).then((result) => {
-            if (result.action !== ModalActions.CONFIRM) {
-                setExportModalStatus(null);
-                return;
-            }
-            confirmExport();
-        });
-    }, [showConfirmModal, translate, connectedIntegration, connectedIntegrationFallback, moneyRequestReport?.reportName, confirmExport]);
-
-    useEffect(() => {
-        if (!exportModalStatus) {
-            return;
-        }
-        showExportAgainModal();
-    }, [exportModalStatus, showExportAgainModal]);
 
     const allExpensesSelected = selectedTransactionIDs.length > 0 && selectedTransactionIDs.length === nonPendingDeleteTransactions.length;
 
