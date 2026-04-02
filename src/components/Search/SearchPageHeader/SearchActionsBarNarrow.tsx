@@ -1,7 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import SearchBulkActionsButton from '@components/Search/SearchBulkActionsButton';
 import type {SearchQueryJSON} from '@components/Search/types';
 import SearchActionsSkeleton from '@components/Skeletons/SearchActionsSkeleton';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -19,7 +18,7 @@ type SearchActionsBarNarrowProps = {
 };
 
 function SearchActionsBarNarrow({queryJSON, isMobileSelectionModeEnabled, searchResults, onSort}: SearchActionsBarNarrowProps) {
-    const {hasErrors, shouldShowActionsBarLoading, shouldShowSelectedDropdown, styles} = useSearchActionsBar(queryJSON, isMobileSelectionModeEnabled);
+    const {hasErrors, shouldShowActionsBarLoading, styles} = useSearchActionsBar(queryJSON, isMobileSelectionModeEnabled);
 
     if (hasErrors) {
         return null;
@@ -39,24 +38,14 @@ function SearchActionsBarNarrow({queryJSON, isMobileSelectionModeEnabled, search
     }
 
     return (
-        <View style={[styles.searchActionsBarContainer]}>
-            {shouldShowSelectedDropdown ? (
-                <SearchBulkActionsButton queryJSON={queryJSON} />
-            ) : (
-                <>
-                    <View style={[styles.flexRow, styles.gap2]}>
-                        <SearchAdvancedFiltersButton queryJSON={queryJSON} />
-                    </View>
-                    <View style={[styles.flexRow, styles.gap2]}>
-                        <SearchSaveButton />
-                        <SearchDisplayDropdownButton
-                            queryJSON={queryJSON}
-                            searchResults={searchResults}
-                            onSort={onSort}
-                        />
-                    </View>
-                </>
-            )}
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.mr5, styles.mb4]}>
+            <SearchAdvancedFiltersButton queryJSON={queryJSON} />
+            <SearchSaveButton />
+            <SearchDisplayDropdownButton
+                queryJSON={queryJSON}
+                searchResults={searchResults}
+                onSort={onSort}
+            />
         </View>
     );
 }

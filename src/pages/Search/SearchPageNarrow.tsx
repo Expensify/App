@@ -115,9 +115,7 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
                 scheduleOnRN(saveScrollOffset, route, currentOffset);
 
                 if (isScrollingDown && contentOffset.y > TOO_CLOSE_TO_TOP_DISTANCE) {
-                    topBarOffset.set(
-                        clamp(topBarOffset.get() - distanceScrolled, variables.minimalTopBarOffset, StyleUtils.searchHeaderDefaultOffset),
-                    );
+                    topBarOffset.set(clamp(topBarOffset.get() - distanceScrolled, variables.minimalTopBarOffset, StyleUtils.searchHeaderDefaultOffset));
                 } else if (!isScrollingDown && distanceScrolled < 0 && contentOffset.y + layoutMeasurement.height < contentSize.height - TOO_CLOSE_TO_BOTTOM_DISTANCE) {
                     topBarOffset.set(withTiming(StyleUtils.searchHeaderDefaultOffset, {duration: ANIMATION_DURATION_IN_MS}));
                 }
@@ -212,15 +210,7 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
                                             setSearchRouterListVisible(false);
                                         }}
                                     />
-                                    <View style={[styles.flex1, styles.appBG]}>
-                                        {!searchRouterListVisible && (
-                                            <SearchActionsBarNarrow
-                                                queryJSON={queryJSON}
-                                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                                                searchResults={searchResults}
-                                                onSort={onSortPressedCallback}
-                                            />
-                                        )}
+                                    <View style={[styles.flex1, styles.appBG, styles.flexRow, styles.pt1]}>
                                         <SearchPageInputNarrow
                                             queryJSON={queryJSON}
                                             searchRouterListVisible={searchRouterListVisible}
@@ -233,6 +223,14 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
                                             }}
                                             handleSearch={handleSearchAction}
                                         />
+                                        {!searchRouterListVisible && (
+                                            <SearchActionsBarNarrow
+                                                queryJSON={queryJSON}
+                                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                                searchResults={searchResults}
+                                                onSort={onSortPressedCallback}
+                                            />
+                                        )}
                                     </View>
                                 </Animated.View>
                             </View>
