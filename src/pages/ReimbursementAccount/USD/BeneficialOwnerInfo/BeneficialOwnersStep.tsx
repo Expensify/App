@@ -51,7 +51,7 @@ function BeneficialOwnersStep({onBackButtonPress, onSubmit, currentSubPage, poli
     const markSubmitting = useReimbursementAccountSubmit(onSubmit);
 
     // Read state from Onyx draft so it survives URL-based navigation (component remounts)
-    const isUserUBO = reimbursementAccount?.achData?.ownsMoreThan25Percent ?? reimbursementAccountDraft?.ownsMoreThan25Percent ?? false;
+    const isUserUBO = reimbursementAccountDraft?.ownsMoreThan25Percent ?? reimbursementAccount?.achData?.ownsMoreThan25Percent ?? false;
     const beneficialOwners = reimbursementAccount?.achData?.beneficialOwners;
     const isAnyoneElseUBO = beneficialOwners?.length ? true : (reimbursementAccountDraft?.hasOtherBeneficialOwners ?? false);
     const beneficialOwnerKeys: string[] = reimbursementAccountDraft?.beneficialOwnerKeys ?? reimbursementAccount?.achData?.beneficialOwnerKeys ?? [];
@@ -60,14 +60,23 @@ function BeneficialOwnersStep({onBackButtonPress, onSubmit, currentSubPage, poli
     const isEditingCreatedBeneficialOwner = reimbursementAccountDraft?.isEditingCreatedOwner ?? false;
     const canAddMoreUBOS = beneficialOwnerKeys.length < (isUserUBO ? MAX_NUMBER_OF_UBOS - 1 : MAX_NUMBER_OF_UBOS);
 
+    const hasCompletedBeneficialOwnersStep = reimbursementAccount?.achData?.ownsMoreThan25Percent !== undefined;
+
     // Redirect to the correct sub-page if no subPage is in the URL
     useEffect(() => {
         if (currentSubPage) {
             return;
         }
-        const subPage = isUserUBO || (isAnyoneElseUBO && beneficialOwnerKeys.length > 0) ? SUB_PAGE_NAMES.UBOS_LIST : SUB_PAGE_NAMES.IS_USER_UBO;
+
+        let subPage: string = SUB_PAGE_NAMES.IS_USER_UBO;
+        if (isUserUBO || (isAnyoneElseUBO && beneficialOwnerKeys.length > 0)) {
+            subPage = SUB_PAGE_NAMES.UBOS_LIST;
+        } else if (hasCompletedBeneficialOwnersStep) {
+            subPage = SUB_PAGE_NAMES.IS_ANYONE_ELSE_UBO;
+        }
+
         Navigation.setParams({subPage} as Record<string, unknown>);
-    }, [currentSubPage, policyID, backTo, isAnyoneElseUBO, beneficialOwnerKeys.length, isUserUBO]);
+    }, [currentSubPage, policyID, backTo, isAnyoneElseUBO, beneficialOwnerKeys.length, isUserUBO, hasCompletedBeneficialOwnersStep]);
 
     const navigateToSubPage = useCallback(
         (subPage: string) => {
