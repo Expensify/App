@@ -1,7 +1,7 @@
 import {useRoute} from '@react-navigation/native';
 import {isUserValidatedSelector} from '@selectors/Account';
 import {shouldFailAllRequestsSelector} from '@selectors/Network';
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {hasSeenTourSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
 import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import truncate from 'lodash/truncate';
@@ -70,7 +70,7 @@ import {
 } from '@libs/NextStepUtils';
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
 import {handleUnvalidatedAccount, selectPaymentType} from '@libs/PaymentUtils';
-import {getConnectedIntegration, getValidConnectedIntegration, hasDynamicExternalWorkflow, isPolicyAccessible, sortPoliciesByName} from '@libs/PolicyUtils';
+import {getConnectedIntegration, getValidConnectedIntegration, hasDynamicExternalWorkflow, isPolicyAccessible, isSubmitAndClose, sortPoliciesByName} from '@libs/PolicyUtils';
 import {
     getFilteredReportActionsForReportView,
     getIOUActionForTransactionID,
@@ -158,7 +158,6 @@ import ActivityIndicator from './ActivityIndicator';
 import Button from './Button';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {ButtonWithDropdownMenuRef, DropdownOption} from './ButtonWithDropdownMenu/types';
-import ConfirmModal from './ConfirmModal';
 import DecisionModal from './DecisionModal';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from './DelegateNoAccessModalProvider';
 import Header from './Header';
@@ -367,6 +366,10 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
     const [isPDFModalVisible, setIsPDFModalVisible] = useState(false);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const shouldUseMarkAsDoneCopy = isTrackIntentUser && isSubmitAndClose(policy);
+    const submitButtonText = shouldUseMarkAsDoneCopy ? translate('common.markAsDone') : translate('common.submit');
+    const approveButtonText = shouldUseMarkAsDoneCopy ? translate('common.markAsDone') : translate('iou.approve');
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
     const currentTransaction = transactions.at(0);
     const [originalIOUTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(currentTransaction?.comment?.originalTransactionID)}`);
@@ -513,11 +516,8 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
 
     const [isDuplicateActive, temporarilyDisableDuplicateAction] = useThrottledButtonState(handleDuplicateReset);
 
-    const [duplicateDistanceErrorModalVisible, setDuplicateDistanceErrorModalVisible] = useState(false);
-    const [rateErrorModalVisible, setRateErrorModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
     const [isHoldEducationalModalVisible, setIsHoldEducationalModalVisible] = useState(false);
-    const [duplicatePerDiemErrorModalVisible, setDuplicatePerDiemErrorModalVisible] = useState(false);
     const [rejectModalAction, setRejectModalAction] = useState<ValueOf<
         typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD | typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT | typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK
     > | null>(null);
@@ -1344,7 +1344,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         const actions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon'>> = [];
         if (hasSubmitAction && !shouldBlockSubmit) {
             actions.push({
-                text: translate('common.submit'),
+                text: submitButtonText,
                 icon: expensifyIcons.Send,
                 value: CONST.REPORT.PRIMARY_ACTIONS.SUBMIT,
                 onSelected: () => handleSubmitReport(true),
@@ -1352,7 +1352,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         }
         if (hasApproveAction && !isBlockSubmitDueToPreventSelfApproval) {
             actions.push({
-                text: translate('iou.approve'),
+                text: approveButtonText,
                 icon: expensifyIcons.ThumbsUp,
                 value: CONST.REPORT.PRIMARY_ACTIONS.APPROVE,
                 onSelected: () => {
@@ -1401,6 +1401,8 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         expensifyIcons.Send,
         expensifyIcons.ThumbsUp,
         kycWallRef,
+        approveButtonText,
+        submitButtonText,
     ]);
 
     const connectedIntegrationName = connectedIntegration
@@ -1476,7 +1478,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         },
         [CONST.REPORT.SECONDARY_ACTIONS.SUBMIT]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.SUBMIT,
-            text: translate('common.submit'),
+            text: submitButtonText,
             icon: expensifyIcons.Send,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.SUBMIT,
             onSelected: () => {
@@ -1501,7 +1503,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.APPROVE]: {
-            text: translate('iou.approve'),
+            text: approveButtonText,
             icon: expensifyIcons.ThumbsUp,
             value: CONST.REPORT.SECONDARY_ACTIONS.APPROVE,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.APPROVE,
@@ -1634,17 +1636,32 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
             value: CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE,
             onSelected: () => {
                 if (hasCustomUnitOutOfPolicyViolation) {
-                    setRateErrorModalVisible(true);
+                    showConfirmModal({
+                        title: translate('common.duplicateExpense'),
+                        prompt: translate('iou.correctRateError'),
+                        confirmText: translate('common.buttonConfirm'),
+                        shouldShowCancelButton: false,
+                    });
                     return;
                 }
 
                 if (isDistanceExpenseUnsupportedForDuplicating) {
-                    setDuplicateDistanceErrorModalVisible(true);
+                    showConfirmModal({
+                        title: translate('common.duplicateExpense'),
+                        prompt: translate('iou.cannotDuplicateDistanceExpense'),
+                        confirmText: translate('common.buttonConfirm'),
+                        shouldShowCancelButton: false,
+                    });
                     return;
                 }
 
                 if (isPerDiemRequestOnNonDefaultWorkspace) {
-                    setDuplicatePerDiemErrorModalVisible(true);
+                    showConfirmModal({
+                        title: translate('common.duplicateExpense'),
+                        prompt: translate('iou.duplicateNonDefaultWorkspacePerDiemError'),
+                        confirmText: translate('common.buttonConfirm'),
+                        shouldShowCancelButton: false,
+                    });
                     return;
                 }
 
@@ -1915,7 +1932,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                 if (!moneyRequestReport?.reportID) {
                     return;
                 }
-                if (policy && shouldRestrictUserBillableActions(policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
+                if (policy && shouldRestrictUserBillableActions(policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, policy)) {
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
@@ -2334,33 +2351,6 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                 secondOptionText={translate('common.buttonConfirm')}
                 isVisible={isDownloadErrorModalVisible}
                 onClose={() => setIsDownloadErrorModalVisible(false)}
-            />
-            <ConfirmModal
-                title={translate('common.duplicateExpense')}
-                isVisible={rateErrorModalVisible}
-                onConfirm={() => setRateErrorModalVisible(false)}
-                onCancel={() => setRateErrorModalVisible(false)}
-                confirmText={translate('common.buttonConfirm')}
-                prompt={translate('iou.correctRateError')}
-                shouldShowCancelButton={false}
-            />
-            <ConfirmModal
-                title={translate('common.duplicateExpense')}
-                isVisible={duplicateDistanceErrorModalVisible}
-                onConfirm={() => setDuplicateDistanceErrorModalVisible(false)}
-                onCancel={() => setDuplicateDistanceErrorModalVisible(false)}
-                confirmText={translate('common.buttonConfirm')}
-                prompt={translate('iou.cannotDuplicateDistanceExpense')}
-                shouldShowCancelButton={false}
-            />
-            <ConfirmModal
-                title={translate('common.duplicateExpense')}
-                isVisible={duplicatePerDiemErrorModalVisible}
-                onConfirm={() => setDuplicatePerDiemErrorModalVisible(false)}
-                onCancel={() => setDuplicatePerDiemErrorModalVisible(false)}
-                confirmText={translate('common.buttonConfirm')}
-                prompt={translate('iou.duplicateNonDefaultWorkspacePerDiemError')}
-                shouldShowCancelButton={false}
             />
             {!!rejectModalAction && (
                 <HoldOrRejectEducationalModal

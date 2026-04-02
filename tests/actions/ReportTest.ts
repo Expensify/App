@@ -5078,6 +5078,53 @@ describe('actions/Report', () => {
             const typingStatus = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING}${REPORT_ID}` as const);
             expect(typingStatus?.[CONST.ACCOUNT_ID.CONCIERGE]).toBe(true);
         });
+
+        it('should create Concierge response with timestamp strictly after the user comment', async () => {
+            const reportAction = {
+                reportActionID: REPORT_ACTION_ID,
+                actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+                message: [
+                    {
+                        html: '<p>Here is help</p><followup-list><followup><followup-text>How do I set up QuickBooks?</followup-text><followup-response>To set up QuickBooks, go to Settings...</followup-response></followup></followup-list>',
+                        text: 'Here is help',
+                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                    },
+                ],
+            } as OnyxTypes.ReportAction;
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {
+                [REPORT_ACTION_ID]: reportAction,
+            });
+            await waitForBatchedUpdates();
+
+            resolveSuggestedFollowup(
+                report,
+                undefined,
+                reportAction,
+                {text: 'How do I set up QuickBooks?', response: 'To set up QuickBooks, go to Settings...'},
+                CONST.DEFAULT_TIME_ZONE,
+                TEST_USER_ACCOUNT_ID,
+                TEST_USER_EMAIL,
+            );
+            await waitForBatchedUpdates();
+
+            // Get the pending Concierge response and verify its created timestamp
+            const pendingResponse = await getOnyxValue(`${ONYXKEYS.COLLECTION.PENDING_CONCIERGE_RESPONSE}${REPORT_ID}` as const);
+            expect(pendingResponse).not.toBeNull();
+
+            // Find the user's comment action (any new action that isn't the original Concierge message)
+            const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}` as const);
+            const userCommentAction = Object.values(reportActions ?? {}).find(
+                (action) => action?.reportActionID !== REPORT_ACTION_ID && action?.actorAccountID !== CONST.ACCOUNT_ID.CONCIERGE,
+            );
+
+            // The Concierge response timestamp should be strictly after the user comment
+            expect(userCommentAction).toBeDefined();
+            expect(userCommentAction?.created).toBeDefined();
+            expect(pendingResponse?.reportAction.created).toBeDefined();
+            expect(new Date(pendingResponse?.reportAction.created ?? 0).getTime()).toBeGreaterThan(new Date(userCommentAction?.created ?? 0).getTime());
+        });
     });
 
     // Shared test constants for leave functions
