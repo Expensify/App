@@ -36,4 +36,8 @@ describe('findMatchingDynamicSuffix', () => {
     it('should match a suffix when path has suffix-specific query params', () => {
         expect(findMatchingDynamicSuffix('settings/profile/address/country?country=US')).toBe('country');
     });
+
+    it('should match keyboard-shortcuts dynamic suffix', () => {
+        expect(findMatchingDynamicSuffix('settings/about/keyboard-shortcuts')).toBe('keyboard-shortcuts');
+    });
 });
