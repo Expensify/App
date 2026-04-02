@@ -3528,7 +3528,7 @@ const staticStyles = (theme: ThemeColors) =>
             borderTopRightRadius: variables.componentBorderRadius,
             borderBottomWidth: 1,
             borderColor: theme.border,
-            minHeight: 40,
+            minHeight: 36,
             paddingBottom: 8,
         },
 

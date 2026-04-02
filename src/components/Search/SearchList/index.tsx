@@ -509,6 +509,7 @@ function SearchList({
                                 onAllCheckboxPress();
                             }}
                             disabled={totalItems === 0}
+                            containerStyle={styles.m0}
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH.SELECT_ALL_CHECKBOX}
                         />
                     )}

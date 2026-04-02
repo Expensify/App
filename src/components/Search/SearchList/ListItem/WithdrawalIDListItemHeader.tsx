@@ -186,6 +186,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                             disabled={!!isDisabled || withdrawalIDItem.isDisabledCheckbox}
                             accessibilityLabel={translate('common.select')}
                             isIndeterminate={isIndeterminate}
+                            containerStyle={styles.m0}
                         />
                     )}
                     {!isLargeScreenWidth && (

@@ -278,7 +278,7 @@ function ExpenseReportListItemRow({
                                     onPress={onCheckboxPress}
                                     isChecked={isSelectAllChecked}
                                     isIndeterminate={isIndeterminate}
-                                    containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}
+                                    containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled), styles.m0]}
                                     disabled={isDisabledCheckbox}
                                     accessibilityLabel={item.text ?? ''}
                                     shouldStopMouseDownPropagation
@@ -330,7 +330,7 @@ function ExpenseReportListItemRow({
                         onPress={onCheckboxPress}
                         isChecked={isSelectAllChecked}
                         isIndeterminate={isIndeterminate}
-                        containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}
+                        containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled), styles.m0]}
                         disabled={isDisabledCheckbox}
                         accessibilityLabel={item.text ?? ''}
                         shouldStopMouseDownPropagation
