@@ -32,8 +32,8 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
     const {showConfirmModal} = useConfirmModal();
     const StyleUtils = useStyleUtils();
     const policy = usePolicy(policyID);
-    const icons = useMemoizedLazyExpensifyIcons(['LuggageWithLines', 'NewWindow'] as const);
     const illustrations = useMemoizedLazyIllustrations(['RocketDude'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['LuggageWithLines', 'NewWindow']);
     const {isBetaEnabled} = usePermissions();
     const isTravelInvoicingEnabled = isBetaEnabled(CONST.BETAS.TRAVEL_INVOICING);
     const isPreventSpotnanaTravelEnabled = isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);

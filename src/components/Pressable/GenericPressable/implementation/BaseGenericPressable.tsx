@@ -178,7 +178,7 @@ function GenericPressable({
             onLayout={shouldUseAutoHitSlop ? onLayout : undefined}
             ref={ref as ForwardedRef<View>}
             disabled={fullDisabled}
-            onPress={!isDisabled ? singleExecution(onPressHandler) : undefined}
+            onPress={!isDisabled && interactive ? singleExecution(onPressHandler) : undefined}
             onLongPress={!isDisabled && onLongPress ? onLongPressHandler : undefined}
             onKeyDown={!isDisabled ? handleKeyDown : undefined}
             onPressIn={!isDisabled ? onPressIn : undefined}
@@ -202,6 +202,7 @@ function GenericPressable({
             aria-disabled={isDisabled}
             aria-checked={accessibilityState?.checked}
             aria-selected={accessibilityState?.selected}
+            aria-expanded={accessibilityState?.expanded}
             aria-keyshortcuts={keyboardShortcut && `${keyboardShortcut.modifiers.join('')}+${keyboardShortcut.shortcutKey}`}
             // ios-only form of inputs
             onMagicTap={!isDisabled ? voidOnPressHandler : undefined}

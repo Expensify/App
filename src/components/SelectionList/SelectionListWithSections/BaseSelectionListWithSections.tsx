@@ -12,7 +12,7 @@ import useFlattenedSections, {isItemSelected, shouldTreatItemAsDisabled} from '@
 import useSearchFocusSync from '@components/SelectionList/hooks/useSearchFocusSync';
 import useSelectedItemFocusSync from '@components/SelectionList/hooks/useSelectedItemFocusSync';
 import ListItemRenderer from '@components/SelectionList/ListItem/ListItemRenderer';
-import type {ButtonOrCheckBoxRoles} from '@components/SelectionList/types';
+import type {InteractiveElementRoles} from '@components/SelectionList/types';
 import {getListboxRole} from '@components/SelectionList/utils/getListboxRole';
 import Text from '@components/Text';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -191,6 +191,10 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         innerTextInputRef.current?.focus();
     };
 
+    const clearInputAfterSelect = () => {
+        textInputOptions?.onChangeText?.('');
+    };
+
     const updateAndScrollToFocusedIndex = (index: number, shouldScroll = true) => {
         if (!shouldScroll) {
             suppressNextFocusScrollRef.current = true;
@@ -208,15 +212,21 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         isTextInputFocusedRef.current = isTextInputFocused;
     };
 
-    useImperativeHandle(ref, () => ({
-        focusTextInput,
-        updateAndScrollToFocusedIndex,
-        updateExternalTextInputFocus,
-        getFocusedOption: getFocusedItem,
-    }));
+    useImperativeHandle(
+        ref,
+        () => ({
+            focusTextInput,
+            scrollToIndex,
+            clearInputAfterSelect,
+            updateAndScrollToFocusedIndex,
+            updateExternalTextInputFocus,
+            getFocusedOption: getFocusedItem,
+        }),
+        [focusTextInput, scrollToIndex, clearInputAfterSelect, updateAndScrollToFocusedIndex, updateExternalTextInputFocus, getFocusedItem],
+    );
 
-    // Disable `Enter` shortcut if the active element is a button or checkbox
-    const disableEnterShortcut = activeElementRole && [CONST.ROLE.BUTTON, CONST.ROLE.CHECKBOX].includes(activeElementRole as ButtonOrCheckBoxRoles);
+    // Disable `Enter` shortcut if the active element is a button, checkbox, or switch
+    const disableEnterShortcut = activeElementRole && [CONST.ROLE.BUTTON, CONST.ROLE.CHECKBOX, CONST.ROLE.SWITCH].includes(activeElementRole as InteractiveElementRoles);
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedItem, {
         captureOnInputs: true,
@@ -283,7 +293,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                 accessibilityLabel={textInputOptions?.label}
                 options={textInputOptions}
                 onSubmit={selectFocusedItem}
-                dataLength={flattenedData.length}
+                dataLength={itemsCount}
                 isLoading={isLoadingNewOptions}
                 onFocusChange={(v: boolean) => (isTextInputFocusedRef.current = v)}
                 shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}

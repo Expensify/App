@@ -20,7 +20,6 @@ jest.mock('react-native', () => ({
     Platform: {
         Version: 35,
     },
-    PixelRatio: {getFontScale: () => 1},
 }));
 
 // Mock react-native-keyboard-controller

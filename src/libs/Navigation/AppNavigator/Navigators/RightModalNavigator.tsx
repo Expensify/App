@@ -1,8 +1,8 @@
 import type {NavigatorScreenParams} from '@react-navigation/native';
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import {Animated, InteractionManager} from 'react-native';
+import {Animated, DeviceEventEmitter, InteractionManager} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import {MultifactorAuthenticationContextProviders} from '@components/MultifactorAuthentication/Context';
 import {
@@ -49,7 +49,7 @@ const Stack = createPlatformStackNavigator<RightModalNavigatorParamList, string>
 const singleRHPWidth = variables.sideBarWidth;
 const getWideRHPWidth = (windowWidth: number) => variables.sideBarWidth + calculateReceiptPaneRHPWidth(windowWidth);
 
-function MissingPersonalDetailsWithPinContext(props: Record<string, unknown>) {
+function MissingPersonalDetailsWithPINContext(props: Record<string, unknown>) {
     return (
         <PINContextProvider>
             <ModalStackNavigators.MissingPersonalDetailsModalStackNavigator
@@ -155,10 +155,19 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
             return;
         }
         isExecutingRef.current = true;
-        navigation.goBack();
-        setTimeout(() => {
+        const currentState = navigationRef.getRootState();
+
+        // There is a brief moment when the RHP is not in the state anymore but the overlay is still visible (closing RHP animation)
+        // We need to block overlay press function in such case because it would go back from the currently active full screen.
+        // Without this, the bug described in https://github.com/Expensify/App/issues/78440 would occur.
+        if (currentState.routes.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+            navigation.goBack();
+            setTimeout(() => {
+                isExecutingRef.current = false;
+            }, CONST.ANIMATED_TRANSITION);
+        } else {
             isExecutingRef.current = false;
-        }, CONST.ANIMATED_TRANSITION);
+        }
     }, [navigation]);
 
     const clearWideRHPKeysAfterTabChanged = useCallback(() => {
@@ -181,6 +190,8 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
         }, [syncRHPKeys, clearWideRHPKeysAfterTabChanged]),
     );
 
+    useEffect(() => () => DeviceEventEmitter.emit(CONST.MODAL_EVENTS.CLOSED), []);
+
     return (
         <NarrowPaneContextProvider>
             <MultifactorAuthenticationContextProviders>
@@ -199,10 +210,6 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             screenListeners={screenListeners}
                             id={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
                         >
-                            <Stack.Screen
-                                name={SCREENS.RIGHT_MODAL.SEARCH_ROUTER}
-                                component={ModalStackNavigators.SearchRouterModalStackNavigator}
-                            />
                             <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.SETTINGS}
                                 component={ModalStackNavigators.SettingsModalStackNavigator}
@@ -376,7 +383,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             />
                             <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.MISSING_PERSONAL_DETAILS}
-                                component={MissingPersonalDetailsWithPinContext}
+                                component={MissingPersonalDetailsWithPINContext}
                             />
                             <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.ADD_UNREPORTED_EXPENSE}
