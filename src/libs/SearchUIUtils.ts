@@ -1785,17 +1785,18 @@ function getTransactionsSections({
             // Show amount in report currency, original amount in transaction currency.
             // Search API provides groupAmount/groupCurrency for the report-currency value.
             // Override modifiedAmount/modifiedCurrency too since display functions read those first.
-            const reportCurrencyValue = report?.currency ?? transactionItem.groupCurrency;
+            const reportCurrencyValue = report?.currency ?? transactionItem.groupCurrency ?? '';
             const currentDisplayCurrency = (transactionItem.modifiedCurrency ? transactionItem.modifiedCurrency : transactionItem.currency) ?? '';
-            const shouldSwapAmounts = !!transactionItem.groupAmount && currentDisplayCurrency !== reportCurrencyValue;
+            const groupAmount = transactionItem.groupAmount ?? 0;
+            const shouldSwapAmounts = groupAmount !== 0 && currentDisplayCurrency !== reportCurrencyValue;
             const resolvedAmountFields = shouldSwapAmounts
                 ? {
                       originalAmount: transactionItem.amount,
                       originalCurrency: transactionItem.currency,
-                      amount: transactionItem.groupAmount!,
-                      currency: reportCurrencyValue!,
-                      modifiedAmount: transactionItem.groupAmount!,
-                      modifiedCurrency: reportCurrencyValue!,
+                      amount: groupAmount,
+                      currency: reportCurrencyValue,
+                      modifiedAmount: groupAmount,
+                      modifiedCurrency: reportCurrencyValue,
                   }
                 : {};
 
