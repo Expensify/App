@@ -156,7 +156,6 @@ import type {ButtonWithDropdownMenuRef, DropdownOption} from './ButtonWithDropdo
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from './DelegateNoAccessModalProvider';
 import HeaderLoadingBar from './HeaderLoadingBar';
 import HeaderWithBackButton from './HeaderWithBackButton';
-import Icon from './Icon';
 import {KYCWallContext} from './KYCWall/KYCWallContext';
 import {useLockedAccountActions, useLockedAccountState} from './LockedAccountModalProvider';
 import {ModalActions} from './Modal/Global/ModalContext';
