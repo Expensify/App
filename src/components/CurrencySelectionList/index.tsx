@@ -4,7 +4,6 @@ import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelec
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import {useCurrencyListActions, useCurrencyListState} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
 import getMatchScore from '@libs/getMatchScore';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {CurrencyListItem, CurrencySelectionListProps} from './types';
@@ -23,7 +22,6 @@ function CurrencySelectionList({
     const {getCurrencySymbol} = useCurrencyListActions();
     const [searchValue, setSearchValue] = useState('');
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
     const getUnselectedOptions = (options: CurrencyListItem[]) => options.filter((option) => !option.isSelected);
 
     const currencyOptions: CurrencyListItem[] = Object.entries(currencyList).reduce((acc, [currencyCode, currencyInfo]) => {
@@ -105,13 +103,9 @@ function CurrencySelectionList({
             sections={sections}
             ListItem={SingleSelectListItem}
             onSelectRow={onSelect}
-            style={{
-                listItemWrapperStyle: styles.optionRow,
-            }}
             textInputOptions={textInputOptions}
             shouldShowTextInput={!!searchInputLabel}
             shouldSingleExecuteRowSelect
-            initiallyFocusedItemKey={initiallySelectedCurrencyCode}
             shouldShowLoadingPlaceholder={!didScreenTransitionEnd}
         />
     );
