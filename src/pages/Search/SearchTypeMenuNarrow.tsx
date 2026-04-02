@@ -17,7 +17,6 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
-import useThemeStyles from '@hooks/useThemeStyles';
 import {setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {getAllTaxRates} from '@libs/PolicyUtils';
@@ -38,7 +37,6 @@ type SearchTypeMenuNarrowProps = {
 function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const styles = useThemeStyles();
     const navigation = useNavigation();
     const {typeMenuSections} = useSearchTypeMenuSections();
     const personalDetails = usePersonalDetails();
@@ -193,10 +191,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
     };
 
     return (
-        <View
-            ref={menuAnchorRef}
-            style={[styles.appBG]}
-        >
+        <View ref={menuAnchorRef}>
             <TabSelectorContextProvider activeTabKey={activeKey}>
                 <TabSelectorBase
                     tabs={tabItems}

@@ -49,21 +49,19 @@ function SearchFiltersBarNarrow({queryJSON}: SearchFiltersBarNarrowProps) {
     }
 
     return (
-        <View style={[styles.mb2]}>
-            <FlatList
-                horizontal
-                keyboardShouldPersistTaps="always"
-                style={[styles.flexRow, styles.overflowScroll, styles.flexGrow0]}
-                contentContainerStyle={[styles.flexRow, styles.flexGrow0, styles.gap2, styles.ph5]}
-                ref={scrollRef}
-                showsHorizontalScrollIndicator={false}
-                data={filters}
-                keyExtractor={(item) => item.label}
-                renderItem={renderFilterItem}
-                onEndReached={adjustScroll}
-                onEndReachedThreshold={0.75}
-            />
-        </View>
+        <FlatList
+            horizontal
+            keyboardShouldPersistTaps="always"
+            style={[styles.flexRow, styles.overflowScroll, styles.flexGrow0, styles.mb4]}
+            contentContainerStyle={[styles.flexRow, styles.flexGrow0, styles.gap2, styles.ph5]}
+            ref={scrollRef}
+            showsHorizontalScrollIndicator={false}
+            data={filters}
+            keyExtractor={(item) => item.label}
+            renderItem={renderFilterItem}
+            onEndReached={adjustScroll}
+            onEndReachedThreshold={0.75}
+        />
     );
 }
 

@@ -3492,10 +3492,6 @@ const staticStyles = (theme: ThemeColors) =>
             height: 16,
         },
 
-        searchListContentContainerStyles: {
-            paddingTop: variables.searchListContentMarginTop,
-        },
-
         searchListHeaderContainerStyle: {
             width: '100%',
             flexDirection: 'row',
@@ -6316,6 +6312,10 @@ const dynamicStyles = (theme: ThemeColors) =>
         getEmptyStateCompanyCardsIllustrationContainer: (shouldUseNarrowLayout: boolean) => (shouldUseNarrowLayout ? {height: 220} : {aspectRatio: 680 / 220}),
 
         getEmptyStateCompanyCardsIllustration: (shouldUseNarrowLayout: boolean) => (shouldUseNarrowLayout ? {width: 680, height: 220} : {}),
+
+        searchListContentContainerStyles: (hasFilterBars: boolean) => ({
+            paddingTop: hasFilterBars ? variables.searchListContentWithFiltersMarginTop : variables.searchListContentMarginTop,
+        }),
 
         sectionMenuItem: (shouldUseNarrowLayout: boolean) => ({
             borderRadius: 8,

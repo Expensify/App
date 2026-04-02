@@ -51,7 +51,7 @@ type FilterBarPopupProps = PopoverComponentProps & {
     updateFilterForm: (values: Partial<SearchAdvancedFiltersForm>) => void;
 };
 
-const SKIPPED_FILTERS = new Set<SearchAdvancedFiltersKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY]);
+const SKIPPED_FILTERS = new Set<SearchAdvancedFiltersKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE, CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY]);
 
 /**
  * Extracts only the fields needed by getTypeOptions (canSendInvoice check).
@@ -368,4 +368,4 @@ function useSearchFiltersBar(queryJSON: SearchQueryJSON): UseSearchFiltersBarRes
 
 export default useSearchFiltersBar;
 export type {FilterItem};
-export {typeOptionsPoliciesSelector};
+export {typeOptionsPoliciesSelector, SKIPPED_FILTERS};

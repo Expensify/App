@@ -4323,6 +4323,10 @@ const DATE_FILTER_GROUP_MAP: Partial<Record<SearchAdvancedFiltersKey, DateFilter
     [FILTER_KEYS.WITHDRAWN_RANGE]: {label: 'search.filters.withdrawn', syntax: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN},
 };
 
+function shouldShowFilter(skipFilters: Set<SearchAdvancedFiltersKey> | undefined, key: SearchAdvancedFiltersKey, value: ValueOf<SearchAdvancedFiltersForm>, type: SearchDataTypes) {
+    return !skipFilters?.has(key) && isFilterSupported(key, type) && value && (!Array.isArray(value) || value.length > 0);
+}
+
 function mapFiltersFormToLabelValueList<T extends Record<string, unknown>>(
     searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>,
     policyIDQuery: string[] | undefined,
@@ -4371,7 +4375,7 @@ function mapFiltersFormToLabelValueList<T extends Record<string, unknown>>(
 
     for (const filterKey of Object.keys(searchAdvancedFiltersForm)) {
         const key = filterKey as SearchAdvancedFiltersKey;
-        if (key === FILTER_KEYS.TYPE || skipFilters?.has(key) || !isFilterSupported(key, type)) {
+        if (!shouldShowFilter(skipFilters, key, searchAdvancedFiltersForm[key], type)) {
             continue;
         }
         const extra = mapper?.(key) ?? ({} as T);
@@ -5222,6 +5226,7 @@ export {
     getSearchReportAvatarProps,
     isTodoSearch,
     adjustTimeRangeToDateFilters,
+    shouldShowFilter,
     mapFiltersFormToLabelValueList,
     isEligibleForApproveSuggestion,
     applySelectionToItem,
