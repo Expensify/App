@@ -1,6 +1,7 @@
 import React, {useContext, useEffect, useState} from 'react';
 import type {ValueOf} from 'type-fest';
 import CONST from './CONST';
+import {addBootsplashBreadcrumb} from './libs/telemetry/bootsplashTelemetry';
 import type ChildrenProps from './types/utils/ChildrenProps';
 
 type SplashScreenState = ValueOf<typeof CONST.BOOT_SPLASH_STATE>;
@@ -10,7 +11,7 @@ type SplashScreenStateContextType = {
 };
 
 type SplashScreenActionsContextType = {
-    setSplashScreenState: React.Dispatch<React.SetStateAction<SplashScreenState>>;
+    setSplashScreenState: (state: SplashScreenState) => void;
 };
 
 const SplashScreenStateContext = React.createContext<SplashScreenStateContextType>({
@@ -28,7 +29,12 @@ function loadPostSplashScreenModules() {
 }
 
 function SplashScreenStateContextProvider({children}: ChildrenProps) {
-    const [splashScreenState, setSplashScreenState] = useState<SplashScreenState>(CONST.BOOT_SPLASH_STATE.VISIBLE);
+    const [splashScreenState, setSplashScreenStateRaw] = useState<SplashScreenState>(CONST.BOOT_SPLASH_STATE.VISIBLE);
+
+    const setSplashScreenState = (state: SplashScreenState) => {
+        addBootsplashBreadcrumb(`splashScreenState changed to ${state}`);
+        setSplashScreenStateRaw(state);
+    };
 
     // Load post-splash-screen modules when the splash screen is hidden
     useEffect(() => {

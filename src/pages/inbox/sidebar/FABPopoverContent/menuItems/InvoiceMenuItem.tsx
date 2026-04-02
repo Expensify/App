@@ -25,7 +25,7 @@ type InvoiceMenuItemProps = {
 function InvoiceMenuItem({reportID}: InvoiceMenuItemProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const icons = useMemoizedLazyExpensifyIcons(['InvoiceGeneric'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['InvoiceGeneric']);
     const {shouldRedirectToExpensifyClassic, showRedirectToExpensifyClassicModal} = useRedirectToExpensifyClassic();
     const [allPolicies] = useMappedPolicies(policyMapper);
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
