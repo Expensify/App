@@ -196,7 +196,7 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
     // should be able to reach those comments.
     const actionsForLastEditable = isOnSearchMoneyRequestReport ? filteredReportActions : combinedReportActions;
     const lastReportAction = useMemo(
-        () => [...actionsForLastEditable, parentReportAction].find((action) => canEditReportAction(action) && !isMoneyRequestAction(action)),
+        () => [...actionsForLastEditable, parentReportAction].find((action) => !isMoneyRequestAction(action) && canEditReportAction(action, undefined)),
         [actionsForLastEditable, parentReportAction],
     );
 
