@@ -167,7 +167,7 @@ function useSelectedTransactionsActions({
     }
 
     const handleDeleteTransactions = () => {
-        const deletedThreadReportIDs = deleteTransactions(selectedTransactionIDs, duplicateTransactions, duplicateTransactionViolations, currentSearchHash, false);
+        const deletedThreadReportIDs = deleteTransactions(selectedTransactionIDs, duplicateTransactions, duplicateTransactionViolations, isOnSearch ? currentSearchHash : undefined, false);
         clearSelectedTransactions(true);
         setIsDeleteModalVisible(false);
         Navigation.removeReportScreen(new Set(deletedThreadReportIDs));
