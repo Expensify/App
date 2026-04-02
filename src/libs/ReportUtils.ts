@@ -2783,6 +2783,11 @@ function getChildReportNotificationPreference(reportAction: OnyxInputOrEntry<Rep
         return childReportNotificationPreference;
     }
 
+    const childReport = getReportOrDraftReport(reportAction?.childReportID);
+    if (childReport) {
+        return getReportNotificationPreference(childReport);
+    }
+
     return isActionCreator(reportAction) ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
 }
 
