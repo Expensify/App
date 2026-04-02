@@ -2026,6 +2026,13 @@ function updateSplitTransactions({
             });
 
             onyxData.successData?.push(...successData);
+            onyxData.successData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportActionsReportID}`,
+                value: {
+                    [firstIOU.reportActionID]: {pendingAction: null},
+                },
+            });
 
             onyxData.failureData?.push({
                 onyxMethod: Onyx.METHOD.MERGE,
