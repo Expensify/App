@@ -43,7 +43,7 @@ type PaymentMethodItem = PaymentMethod & {
     errors?: Errors;
     iconRight?: IconAsset;
     isMethodActive?: boolean;
-    isSuspended?: boolean;
+    isInactive?: boolean;
     cardID?: number;
     plaidUrl?: string;
     onThreeDotsMenuPress?: (e: GestureResponderEvent | KeyboardEvent | undefined) => void;
@@ -170,7 +170,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                 />
             );
         }
-        if (item.isSuspended) {
+        if (item.isInactive) {
             return (
                 <Badge
                     text={translate('walletPage.cardInactive')}
@@ -180,7 +180,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
             );
         }
         return undefined;
-    }, [item.isCardFrozen, item.isSuspended, icons.FreezeCard, styles.ml0, styles.mr1, translate]);
+    }, [item.isCardFrozen, item.isInactive, icons.FreezeCard, styles.ml0, styles.mr1, translate]);
 
     return (
         <OfflineWithFeedback

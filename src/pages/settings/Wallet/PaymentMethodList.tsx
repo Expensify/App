@@ -315,7 +315,7 @@ function PaymentMethodList({
                         iconWidth: variables.cardIconWidth,
                         iconHeight: variables.cardIconHeight,
                         isMethodActive: activePaymentMethodID === card.cardID,
-                        isSuspended: isCardInactive(card),
+                        isInactive: isCardInactive(card),
                         onPress: cardOnPress,
                     });
                     continue;
@@ -383,7 +383,7 @@ function PaymentMethodList({
                     iconStyles: [styles.cardIcon],
                     iconWidth: variables.cardIconWidth,
                     iconHeight: variables.cardIconHeight,
-                    isSuspended: isCardInactive(card),
+                    isInactive: isCardInactive(card),
                     isCardFrozen: isCardFrozen(card),
                 });
             }

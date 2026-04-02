@@ -672,12 +672,14 @@ function MenuItem({
         return (
             <View style={descriptionContainerStyle}>
                 {descriptionAddon}
-                <Text
-                    style={descriptionTextStyles}
-                    numberOfLines={numberOfLinesDescription}
-                >
-                    {description}
-                </Text>
+                {!!description && (
+                    <Text
+                        style={descriptionTextStyles}
+                        numberOfLines={numberOfLinesDescription}
+                    >
+                        {description}
+                    </Text>
+                )}
             </View>
         );
     };
