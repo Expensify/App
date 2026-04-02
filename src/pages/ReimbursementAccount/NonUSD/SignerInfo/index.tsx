@@ -1,10 +1,9 @@
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import DotIndicatorMessage from '@components/DotIndicatorMessage';
+import FormHelpMessage from '@components/FormHelpMessage';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import YesNoStep from '@components/SubStepForms/YesNoStep';
-import TextLink from '@components/TextLink';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -192,23 +191,11 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames, currentSubPage, bac
                 >
                     {showNoPolicyError && (
                         <View style={[styles.flex1, styles.justifyContentEnd]}>
-                            <DotIndicatorMessage
+                            <FormHelpMessage
                                 style={styles.mt3}
-                                type="error"
-                                messages={{
-                                    connectToWorkspace: (
-                                        <>
-                                            {`${translate('signerInfoStep.error.connectToWorkspacePrefix')} `}
-                                            <TextLink
-                                                style={styles.fontSizeLabel}
-                                                onPress={() => Navigation.navigate(ROUTES.WORKSPACES_LIST.getRoute())}
-                                            >
-                                                {translate('signerInfoStep.error.connectToWorkspaceLink')}
-                                            </TextLink>
-                                            {` ${translate('signerInfoStep.error.connectToWorkspaceSuffix')}`}
-                                        </>
-                                    ),
-                                }}
+                                isError
+                                shouldRenderMessageAsHTML
+                                message={translate('signerInfoStep.error.connectToWorkspace', ROUTES.WORKSPACES_LIST.getRoute())}
                             />
                         </View>
                     )}
