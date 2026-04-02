@@ -2236,6 +2236,7 @@ const translations: TranslationDeepObject<typeof en> = {
         enableWallet: '启用钱包',
         addBankAccountToSendAndReceive: '添加银行账户以进行或接收付款。',
         addDebitOrCreditCard: '添加借记卡或信用卡',
+        cardInactive: '未激活',
         assignedCards: '已分配的卡片',
         assignedCardsDescription: '这些银行卡的交易会自动同步。',
         expensifyCard: 'Expensify 卡',

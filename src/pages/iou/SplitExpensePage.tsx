@@ -50,6 +50,7 @@ import type {SplitExpenseParamList} from '@libs/Navigation/types';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {getReportOrDraftReport, getTransactionDetails, isReportApproved, isSelfDM, isSettled as isSettledReportUtils} from '@libs/ReportUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
+import {getActiveGroupSearchHashes} from '@libs/SearchUIUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
 import {
@@ -82,7 +83,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const {showConfirmModal} = useConfirmModal();
 
     const [errorMessage, setErrorMessage] = React.useState<string>('');
-    const {currentSearchResults, currentSearchHash} = useSearchStateContext();
+    const {currentSearchResults, currentSearchHash, currentSearchQueryJSON} = useSearchStateContext();
     const {clearSelectedTransactions} = useSearchActionsContext();
 
     const {getCurrencySymbol} = useCurrencyListActions();
@@ -103,6 +104,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const [allSnapshots] = useOnyx(ONYXKEYS.COLLECTION.SNAPSHOT);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
     const currentReport = report ?? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`];
@@ -113,6 +115,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const currentPolicy = Object.keys(policy?.employeeList ?? {}).length
         ? policy
         : currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(currentReport?.policyID)}`];
+    const isSearchBackToRoute = backTo?.startsWith('search') ?? false;
+    const activeGroupSearchHashes = isSearchBackToRoute ? getActiveGroupSearchHashes(currentSearchResults?.data, currentSearchQueryJSON) : [];
 
     const isSplitExpenseEditable = (splitExpense: SplitExpense) => {
         const currentTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${splitExpense?.transactionID}`];
@@ -316,13 +320,14 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportNameValuePairsList: allReportNameValuePairs,
+            allSnapshots,
             transactionData: {
                 reportID: draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
                 originalTransactionID: draftTransaction?.comment?.originalTransactionID ?? String(CONST.DEFAULT_NUMBER_ID),
                 splitExpenses,
                 splitExpensesTotal: draftTransaction?.comment?.splitExpensesTotal ?? 0,
             },
-            searchContext: {currentSearchHash, clearSelectedTransactions},
+            searchContext: {currentSearchHash: isSearchBackToRoute ? currentSearchHash : undefined, activeGroupSearchHashes, clearSelectedTransactions},
             policyCategories,
             policy: expenseReportPolicy,
             policyRecentlyUsedCategories,
