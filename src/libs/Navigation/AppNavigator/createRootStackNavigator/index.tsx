@@ -1,6 +1,7 @@
 import type {NavigationProp, NavigatorTypeBagBase, ParamListBase, StaticConfig, TypedNavigator} from '@react-navigation/native';
 import {createNavigatorFactory} from '@react-navigation/native';
 import RootNavigatorExtraContent from '@components/Navigation/RootNavigatorExtraContent';
+import addRootHistoryRouterExtension from '@libs/Navigation/AppNavigator/routerExtensions/addRootHistoryRouterExtension';
 import useNavigationResetOnLayoutChange from '@libs/Navigation/AppNavigator/useNavigationResetOnLayoutChange';
 import createPlatformStackNavigatorComponent from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent';
 import defaultPlatformStackScreenOptions from '@libs/Navigation/PlatformStackNavigation/defaultPlatformStackScreenOptions';
@@ -9,7 +10,7 @@ import RootStackRouter from './RootStackRouter';
 import useCustomRootStackNavigatorState from './useCustomRootStackNavigatorState';
 
 const RootStackNavigatorComponent = createPlatformStackNavigatorComponent('RootStackNavigator', {
-    createRouter: RootStackRouter,
+    createRouter: addRootHistoryRouterExtension(RootStackRouter),
     defaultScreenOptions: defaultPlatformStackScreenOptions,
     useCustomEffects: useNavigationResetOnLayoutChange,
     useCustomState: useCustomRootStackNavigatorState,

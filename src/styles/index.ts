@@ -11,6 +11,7 @@ import type {SharedValue} from 'react-native-reanimated';
 import {interpolate} from 'react-native-reanimated';
 import type {MixedStyleDeclaration, MixedStyleRecord} from 'react-native-render-html';
 import type {ValueOf} from 'type-fest';
+import {CHART_CONTENT_MIN_HEIGHT} from '@components/Charts/constants';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import {ACTIVE_LABEL_SCALE} from '@components/TextInput/styleConst';
 import {animatedReceiptPaneRHPWidth, animatedSuperWideRHPWidth, animatedWideRHPWidth} from '@components/WideRHPContextProvider';
@@ -1096,6 +1097,11 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadius,
             borderColor: theme.border,
         },
+        searchRouterBorder: {
+            borderWidth: 1,
+            borderRadius: variables.componentBorderRadius,
+            borderColor: theme.bordersBold,
+        },
 
         borderColorFocus: {
             borderColor: theme.borderFocus,
@@ -1275,7 +1281,7 @@ const staticStyles = (theme: ThemeColors) =>
             padding: 8,
             paddingBottom: 0,
             borderRadius: 8,
-            borderColor: theme.border,
+            borderColor: theme.bordersBold,
         },
 
         cannotBeEditedSplitInputContainer: {
@@ -1368,7 +1374,7 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: 'transparent',
             borderRadius: variables.componentBorderRadiusNormal,
             height: variables.inputComponentSizeNormal,
-            borderColor: theme.border,
+            borderColor: theme.bordersBold,
             borderWidth: 1,
             color: theme.text,
             ...FontUtils.fontFamily.platform.EXP_NEUE,
@@ -1421,7 +1427,7 @@ const staticStyles = (theme: ThemeColors) =>
             borderBottomWidth: 2,
             paddingLeft: 0,
             borderStyle: 'solid',
-            borderColor: theme.border,
+            borderColor: theme.bordersBold,
             justifyContent: 'center',
             backgroundColor: 'transparent',
             height: variables.inputHeight,
@@ -1703,10 +1709,8 @@ const staticStyles = (theme: ThemeColors) =>
 
         floatingGpsButton: {
             position: 'absolute',
-            // floatingActionButton top property value (componentSizeLarge + 16) +
-            // + floatingCameraButton height (componentSizeLarge) + gap (12) + floatingGpsButton height (componentSizeLarge) + gap (12) = 3 * variables.componentSizeLarge + 40
-            top: 3 * -variables.componentSizeLarge - 40,
-            right: 16,
+            top: -variables.componentSizeSmall - 16,
+            alignSelf: 'center',
             zIndex: 10,
         },
 
@@ -2081,7 +2085,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         chatItemComposeBoxColor: {
-            borderColor: theme.border,
+            borderColor: theme.bordersBold,
         },
 
         chatItemComposeBoxFocusedColor: {
@@ -2131,7 +2135,7 @@ const staticStyles = (theme: ThemeColors) =>
             theme,
             {
                 backgroundColor: theme.componentBG,
-                borderColor: theme.border,
+                borderColor: theme.bordersBold,
                 color: theme.text,
                 ...FontUtils.fontFamily.platform.EXP_NEUE,
                 fontSize: variables.fontSizeNormal,
@@ -2185,7 +2189,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         textInputComposeBorder: {
             borderLeftWidth: 1,
-            borderColor: theme.border,
+            borderColor: theme.bordersBold,
         },
 
         chatItemSubmitButton: {
@@ -2541,6 +2545,11 @@ const staticStyles = (theme: ThemeColors) =>
             paddingRight: 12,
         },
 
+        newSearchResultsHeaderBar: {
+            display: 'flex',
+            position: 'relative',
+        },
+
         headerBarHeight: {
             height: variables.contentHeaderHeight,
         },
@@ -2599,6 +2608,11 @@ const staticStyles = (theme: ThemeColors) =>
             maxWidth: 475,
             alignSelf: 'center',
             flex: undefined,
+        },
+
+        selectBankStepIconSize: {
+            width: variables.iconSizeExtraLarge,
+            height: variables.iconSizeExtraLarge,
         },
 
         forcedBlockingViewContainer: {
@@ -2857,7 +2871,7 @@ const staticStyles = (theme: ThemeColors) =>
         selectCircle: {
             width: variables.componentSizeSmall,
             height: variables.componentSizeSmall,
-            borderColor: theme.border,
+            borderColor: theme.bordersBold,
             borderWidth: 1,
             borderRadius: variables.componentSizeSmall / 2,
             justifyContent: 'center',
@@ -3026,7 +3040,7 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: 14,
             height: 28,
             width: 28,
-            borderColor: theme.border,
+            borderColor: theme.bordersBold,
             borderWidth: 1,
             justifyContent: 'center',
             alignItems: 'center',
@@ -3037,7 +3051,7 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusRounded,
             height: variables.iconSizeNormal,
             width: variables.iconSizeNormal,
-            borderColor: theme.border,
+            borderColor: theme.bordersBold,
             borderWidth: 2,
             justifyContent: 'center',
             alignItems: 'center',
@@ -3456,8 +3470,13 @@ const staticStyles = (theme: ThemeColors) =>
 
         searchAutocompleteInputResults: {
             borderWidth: 1,
-            borderColor: theme.border,
+            borderColor: theme.bordersBold,
             height: 54,
+        },
+
+        newSearchAutocompleteInputResults: {
+            borderWidth: 1,
+            borderColor: theme.border,
         },
 
         searchAutocompleteInputResultsFocused: {
@@ -4856,15 +4875,37 @@ const staticStyles = (theme: ThemeColors) =>
             minHeight: variables.componentSizeSmall,
         },
 
+        filtersBar: {
+            flexDirection: 'row',
+            gap: 8,
+            marginTop: 3,
+        },
+
         searchFiltersBarContainer: {
             marginTop: 8,
             flexDirection: 'row',
             alignItems: 'center',
         },
 
-        searchFiltersBarCreateButton: {
+        searchActionsBarContainer: {
+            marginTop: 12,
+            marginBottom: 16,
+            paddingHorizontal: 20,
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            zIndex: 10,
+        },
+
+        searchActionsBarCreateButton: {
             marginLeft: 'auto',
             alignSelf: 'flex-start',
+        },
+
+        searchPageInputTouchableWrapper: {height: 32, width: 200},
+        searchPageInputPlaceholder: {
+            // Extra 2 to account for the borders
+            height: 34,
+            width: 202,
         },
 
         walletStaticIllustration: {
@@ -5791,6 +5832,10 @@ const staticStyles = (theme: ThemeColors) =>
             width: 112,
             height: 160,
         },
+        helpStaticIllustration: {
+            width: 174,
+            height: 156,
+        },
         aboutStaticIllustration: {
             width: 100,
             height: 106,
@@ -5808,6 +5853,15 @@ const staticStyles = (theme: ThemeColors) =>
         },
         transactionReceiptButton: {
             minWidth: variables.transactionReceiptButtonWidth,
+        },
+        chartWebFallback: {
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: theme.highlightBG,
+            borderRadius: variables.componentBorderRadiusLarge,
+            padding: 20,
+            minHeight: CHART_CONTENT_MIN_HEIGHT,
         },
         chartHeader: {
             flexDirection: 'row',
@@ -5842,27 +5896,16 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.transparent,
             borderStyle: 'solid',
         },
-        barChartContainer: {
+        chartContainer: {
             borderRadius: variables.componentBorderRadiusLarge,
         },
-        barChartChartContainer: {
-            minHeight: 250,
+        chartContent: {
+            minHeight: CHART_CONTENT_MIN_HEIGHT,
         },
-        lineChartContainer: {
-            borderRadius: variables.componentBorderRadiusLarge,
-            paddingTop: variables.qrShareHorizontalPadding,
-            paddingHorizontal: variables.qrShareHorizontalPadding,
-        },
-        lineChartChartContainer: {
-            minHeight: 250,
-        },
-        pieChartContainer: {
-            borderRadius: variables.componentBorderRadiusLarge,
-            padding: variables.qrShareHorizontalPadding,
-        },
-        pieChartChartContainer: {
-            height: 250,
-            position: 'relative',
+        chartActivityIndicator: {
+            minHeight: CHART_CONTENT_MIN_HEIGHT,
+            justifyContent: 'center',
+            alignItems: 'center',
         },
         pieChartLegendContainer: {
             display: 'flex',
@@ -6130,18 +6173,33 @@ const dynamicStyles = (theme: ThemeColors) =>
                 fontSize: variables.fontSizeLabel,
             }) satisfies TextStyle,
 
-        tabBackground: (hovered: boolean, isFocused: boolean, background: string | Animated.AnimatedInterpolation<string>) => ({
-            backgroundColor: hovered && !isFocused ? theme.highlightBG : (background as string),
-        }),
+        tabBackground: (hovered: boolean, isFocused: boolean, isDisabled: boolean, background: string | Animated.AnimatedInterpolation<string>) => {
+            if (isDisabled) {
+                return {backgroundColor: undefined};
+            }
+
+            return {
+                backgroundColor: hovered && !isFocused ? theme.highlightBG : (background as string),
+            };
+        },
 
         tabOpacity: (
+            isDisabled: boolean,
             hovered: boolean,
             isFocused: boolean,
             activeOpacityValue: number | Animated.AnimatedInterpolation<number>,
             inactiveOpacityValue: number | Animated.AnimatedInterpolation<number>,
-        ) => ({
-            opacity: hovered && !isFocused ? inactiveOpacityValue : activeOpacityValue,
-        }),
+        ) => {
+            if (isDisabled) {
+                return {
+                    opacity: activeOpacityValue,
+                };
+            }
+
+            return {
+                opacity: hovered && !isFocused ? inactiveOpacityValue : activeOpacityValue,
+            };
+        },
 
         overscrollSpacer: (backgroundColor: string, height: number) =>
             ({
@@ -6413,7 +6471,7 @@ const plainStyles = (theme: ThemeColors) =>
         getWidgetContainerHeaderStyle: (shouldUseNarrowLayout: boolean) =>
             ({
                 flexDirection: 'row',
-                alignItems: 'flex-start',
+                alignItems: 'center',
                 marginBottom: 20,
                 marginHorizontal: shouldUseNarrowLayout ? 20 : 32,
                 marginTop: shouldUseNarrowLayout ? 20 : 32,

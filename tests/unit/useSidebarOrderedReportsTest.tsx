@@ -205,7 +205,7 @@ describe('useSidebarOrderedReports', () => {
             expect.any(Function), // localeCompare
             expect.any(Object), // reportsDrafts
             expect.any(Object), // reportNameValuePairs
-            undefined, // conciergeReportID - undefined when not set in Onyx
+            expect.anything(), // reportAttributes
         );
     });
 
