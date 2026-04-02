@@ -62,7 +62,9 @@ import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {
     findSelfDMReportID,
     generateReportID,
+    getChatByParticipants,
     getReportOrDraftReport,
+    getReportTransactions,
     hasViolations as hasViolationsReportUtils,
     isMoneyRequestReport,
     isProcessingReport,
@@ -874,7 +876,15 @@ function IOURequestStepConfirmation({
                     quickAction,
                 });
             } else {
-                const result = submitPerDiemExpenseIOUActions({
+                const isExpenseReport = isMoneyRequestReport(report);
+                const existingChatReport = isExpenseReport ? getReportOrDraftReport(report?.chatReportID) : report;
+                const chatReportForNav = existingChatReport?.reportID
+                    ? existingChatReport
+                    : getChatByParticipants([participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID]);
+                const optimisticChatReportID = chatReportForNav?.reportID ? undefined : generateReportID();
+                const activeReportID = isExpenseReport && Navigation.getTopmostReportId() === report?.reportID ? report?.reportID : (chatReportForNav?.reportID ?? optimisticChatReportID);
+
+                submitPerDiemExpenseIOUActions({
                     report,
                     participantParams: {
                         payeeEmail: currentUserPersonalDetails.login,
@@ -911,13 +921,14 @@ function IOURequestStepConfirmation({
                     quickAction,
                     betas,
                     personalDetails,
+                    optimisticChatReportID,
                 });
-                if (result) {
+                if (activeReportID) {
                     navigateAfterExpenseCreate({
-                        activeReportID: result.activeReportID,
+                        activeReportID,
                         transactionID: transaction.transactionID,
                         isFromGlobalCreate: transaction.isFromFloatingActionButton ?? transaction.isFromGlobalCreate,
-                        hasMultipleTransactions: result.hasMultipleTransactions,
+                        hasMultipleTransactions: getReportTransactions(activeReportID).length > 0,
                     });
                 }
             }
@@ -1459,39 +1470,34 @@ function IOURequestStepConfirmation({
                 return;
             }
 
+            const existingChat = report?.reportID ? report : getChatByParticipants([participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID]);
+            const optimisticChatReportID = existingChat?.reportID ? undefined : generateReportID();
+            const chatReportID = existingChat?.reportID ?? optimisticChatReportID;
+            const sendMoneyParams = {
+                report,
+                quickAction,
+                amount: transaction.amount,
+                currency,
+                comment: trimmedComment,
+                currentUserAccountID: currentUserPersonalDetails.accountID,
+                recipient: participant,
+                created: transaction.created,
+                merchant: transaction.merchant,
+                receipt: receiptFiles[transaction.transactionID],
+                optimisticChatReportID,
+            };
+
             if (paymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
                 setIsConfirmed(true);
-                const {chatReportID} = sendMoneyElsewhere(
-                    report,
-                    quickAction,
-                    transaction.amount,
-                    currency,
-                    trimmedComment,
-                    currentUserPersonalDetails.accountID,
-                    participant,
-                    transaction.created,
-                    transaction.merchant,
-                    receiptFiles[transaction.transactionID],
-                );
-                dismissModalAndOpenReportInInboxTabHelper(chatReportID, undefined, false);
+                sendMoneyElsewhere(sendMoneyParams);
+                dismissModalAndOpenReportInInboxTabHelper(chatReportID, undefined, getReportTransactions(chatReportID).length > 0);
                 return;
             }
 
             if (paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
                 setIsConfirmed(true);
-                const {chatReportID} = sendMoneyWithWallet(
-                    report,
-                    quickAction,
-                    transaction.amount,
-                    currency,
-                    trimmedComment,
-                    currentUserPersonalDetails.accountID,
-                    participant,
-                    transaction.created,
-                    transaction.merchant,
-                    receiptFiles[transaction.transactionID],
-                );
-                dismissModalAndOpenReportInInboxTabHelper(chatReportID, undefined, false);
+                sendMoneyWithWallet(sendMoneyParams);
+                dismissModalAndOpenReportInInboxTabHelper(chatReportID, undefined, getReportTransactions(chatReportID).length > 0);
             }
         },
         [

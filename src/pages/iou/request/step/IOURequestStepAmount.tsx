@@ -26,7 +26,18 @@ import {calculateDefaultReimbursable, getExistingTransactionID, isMovingTransact
 import dismissModalAndOpenReportInInboxTabHelper from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {getPolicyExpenseChat, getReportOrDraftReport, getTransactionDetails, isMoneyRequestReport, isPolicyExpenseChat, isSelfDM, shouldEnableNegative} from '@libs/ReportUtils';
+import {
+    generateReportID,
+    getChatByParticipants,
+    getPolicyExpenseChat,
+    getReportOrDraftReport,
+    getReportTransactions,
+    getTransactionDetails,
+    isMoneyRequestReport,
+    isPolicyExpenseChat,
+    isSelfDM,
+    shouldEnableNegative,
+} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getRequestType, getTaxValue, hasReceipt, isDistanceRequest, isExpenseUnreported} from '@libs/TransactionUtils';
 import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
@@ -246,13 +257,25 @@ function IOURequestStepAmount({
                     transactionReportID: report?.reportID,
                 });
                 if (iouType === CONST.IOU.TYPE.PAY || iouType === CONST.IOU.TYPE.SEND) {
+                    const existingChat = report?.reportID ? report : getChatByParticipants([participants.at(0)?.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserAccountIDParam]);
+                    const optimisticChatReportID = existingChat?.reportID ? undefined : generateReportID();
+                    const chatReportID = existingChat?.reportID ?? optimisticChatReportID;
+                    const sendMoneyParams = {
+                        report,
+                        quickAction,
+                        amount: backendAmount,
+                        currency: selectedCurrency,
+                        comment: '',
+                        currentUserAccountID: currentUserAccountIDParam,
+                        recipient: participants.at(0) ?? {},
+                        optimisticChatReportID,
+                    };
                     if (paymentMethod && paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-                        const {chatReportID} = sendMoneyWithWallet(report, quickAction, backendAmount, selectedCurrency, '', currentUserAccountIDParam, participants.at(0) ?? {});
-                        dismissModalAndOpenReportInInboxTabHelper(chatReportID, undefined, false);
-                        return;
+                        sendMoneyWithWallet(sendMoneyParams);
+                    } else {
+                        sendMoneyElsewhere(sendMoneyParams);
                     }
-                    const {chatReportID} = sendMoneyElsewhere(report, quickAction, backendAmount, selectedCurrency, '', currentUserAccountIDParam, participants.at(0) ?? {});
-                    dismissModalAndOpenReportInInboxTabHelper(chatReportID, undefined, false);
+                    dismissModalAndOpenReportInInboxTabHelper(chatReportID, undefined, getReportTransactions(chatReportID).length > 0);
                     return;
                 }
                 if (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.REQUEST) {

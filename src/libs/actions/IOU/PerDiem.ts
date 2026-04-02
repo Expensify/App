@@ -55,7 +55,6 @@ import {
     dismissModalAndOpenReportInInboxTab,
     getAllPersonalDetails,
     getAllReports,
-    getAllTransactions,
     getCurrentUserEmail,
     getPolicyTags,
     getReportPreviewAction,
@@ -251,6 +250,7 @@ type PerDiemExpenseInformation = {
     shouldPlaySound?: boolean;
     optimisticReportPreviewActionID?: string;
     shouldDeferAutoSubmit?: boolean;
+    optimisticChatReportID?: string;
 };
 
 type PerDiemExpenseInformationParams = {
@@ -270,6 +270,7 @@ type PerDiemExpenseInformationParams = {
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     optimisticReportPreviewActionID?: string;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    optimisticChatReportID?: string;
 };
 
 type PerDiemExpenseInformationForSelfDM = {
@@ -318,6 +319,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         betas,
         optimisticReportPreviewActionID,
         personalDetails,
+        optimisticChatReportID,
     } = perDiemExpenseInformation;
     const {payeeAccountID = getUserAccountID(), payeeEmail = getCurrentUserEmail(), participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
@@ -355,6 +357,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         isNewChatReport = true;
         chatReport = buildOptimisticChatReport({
             participantList: [payerAccountID, payeeAccountID],
+            optimisticReportID: optimisticChatReportID,
         });
     }
 
@@ -907,6 +910,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         shouldPlaySound: shouldPlaySoundParam = true,
         optimisticReportPreviewActionID,
         shouldDeferAutoSubmit,
+        optimisticChatReportID,
     } = submitPerDiemExpenseInformation;
     const {currency, comment = '', category, tag, created, customUnit, attendees, isFromGlobalCreate} = transactionParams;
 
@@ -956,6 +960,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         betas,
         optimisticReportPreviewActionID,
         personalDetails,
+        optimisticChatReportID,
     });
 
     const activeReportID = isMoneyRequestReport && Navigation.getTopmostReportId() === report?.reportID ? report?.reportID : chatReport.reportID;
@@ -1018,13 +1023,11 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
 
     highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transaction.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
 
-    const hasMultipleTransactions = Object.values(getAllTransactions()).filter((t) => t?.reportID === activeReportID).length > 0;
-
     if (activeReportID) {
         notifyNewAction(activeReportID, undefined, participantParams.payeeAccountID === currentUserAccountIDParam);
     }
 
-    return {iouReport, activeReportID, hasMultipleTransactions};
+    return {iouReport};
 }
 
 /**
