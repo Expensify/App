@@ -3373,12 +3373,22 @@ function shallowOptionsListCompare(a: OptionList, b: OptionList): boolean {
     for (let i = 0; i < a.reports.length; i++) {
         const aReport = a.reports.at(i);
         const bReport = b.reports.at(i);
-        if (aReport?.reportID !== bReport?.reportID || aReport?.text !== bReport?.text) {
+        if (
+            aReport?.reportID !== bReport?.reportID ||
+            aReport?.text !== bReport?.text ||
+            aReport?.alternateText !== bReport?.alternateText ||
+            aReport?.subtitle !== bReport?.subtitle ||
+            aReport?.lastMessageText !== bReport?.lastMessageText
+        ) {
             return false;
         }
     }
     for (let i = 0; i < a.personalDetails.length; i++) {
-        if (a.personalDetails.at(i)?.login !== b.personalDetails.at(i)?.login) {
+        if (
+            a.personalDetails.at(i)?.login !== b.personalDetails.at(i)?.login ||
+            a.personalDetails.at(i)?.text !== b.personalDetails.at(i)?.text ||
+            a.personalDetails.at(i)?.alternateText !== b.personalDetails.at(i)?.alternateText
+        ) {
             return false;
         }
     }
