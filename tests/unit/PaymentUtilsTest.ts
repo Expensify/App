@@ -195,9 +195,9 @@ describe('PaymentUtils', () => {
             iouReport: {reportID: '1'} as Report,
             iouReportNextStep: undefined,
             betas: [],
-            userBillingGraceEndPeriods: undefined,
+            userBillingGracePeriodEnds: undefined,
             amountOwed: 0,
-            ownerBillingGraceEndPeriod: undefined,
+            ownerBillingGracePeriodEnd: undefined,
         };
 
         beforeEach(() => {
@@ -207,7 +207,7 @@ describe('PaymentUtils', () => {
 
         it('should navigate to restricted action page when billable actions are restricted and amountOwed > 0', () => {
             mockShouldRestrict.mockReturnValue(true);
-            const params = {...baseParams, amountOwed: 100, ownerBillingGraceEndPeriod: 999};
+            const params = {...baseParams, amountOwed: 100, ownerBillingGracePeriodEnd: 999};
 
             selectPaymentType(params);
 
@@ -217,19 +217,19 @@ describe('PaymentUtils', () => {
 
         it('should not navigate to restricted action page when amountOwed is 0', () => {
             mockShouldRestrict.mockReturnValue(false);
-            const params = {...baseParams, amountOwed: 0, ownerBillingGraceEndPeriod: undefined};
+            const params = {...baseParams, amountOwed: 0, ownerBillingGracePeriodEnd: undefined};
 
             selectPaymentType(params);
 
             expect(mockOnPress).toHaveBeenCalledWith({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE});
         });
 
-        it('should pass amountOwed and ownerBillingGraceEndPeriod to shouldRestrictUserBillableActions', () => {
-            const params = {...baseParams, amountOwed: 42, ownerBillingGraceEndPeriod: 999};
+        it('should pass amountOwed and ownerBillingGracePeriodEnd to shouldRestrictUserBillableActions', () => {
+            const params = {...baseParams, amountOwed: 42, ownerBillingGracePeriodEnd: 999};
 
             selectPaymentType(params);
 
-            expect(mockShouldRestrict).toHaveBeenCalledWith(testPolicyID, params.userBillingGraceEndPeriods, 42, 999);
+            expect(mockShouldRestrict).toHaveBeenCalledWith(testPolicyID, 999, params.userBillingGracePeriodEnds, 42);
         });
 
         it('should trigger KYC flow for EXPENSIFY payment type when user is validated', () => {
@@ -261,8 +261,8 @@ describe('PaymentUtils', () => {
             expect(approveMoneyRequest).not.toHaveBeenCalled();
         });
 
-        it('should call approveMoneyRequest with amountOwed and ownerBillingGraceEndPeriod when payment type is APPROVE and no confirmApproval', () => {
-            const params = {...baseParams, iouPaymentType: CONST.IOU.REPORT_ACTION_TYPE.APPROVE as PaymentMethodType, amountOwed: 42, ownerBillingGraceEndPeriod: 999};
+        it('should call approveMoneyRequest with amountOwed and ownerBillingGracePeriodEnd when payment type is APPROVE and no confirmApproval', () => {
+            const params = {...baseParams, iouPaymentType: CONST.IOU.REPORT_ACTION_TYPE.APPROVE as PaymentMethodType, amountOwed: 42, ownerBillingGracePeriodEnd: 999};
 
             selectPaymentType(params);
 
@@ -275,15 +275,15 @@ describe('PaymentUtils', () => {
                 isASAPSubmitBetaEnabled: params.isASAPSubmitBetaEnabled,
                 expenseReportCurrentNextStepDeprecated: params.iouReportNextStep,
                 betas: params.betas,
-                userBillingGraceEndPeriods: params.userBillingGraceEndPeriods,
+                userBillingGracePeriodEnds: params.userBillingGracePeriodEnds,
                 amountOwed: 42,
-                ownerBillingGraceEndPeriod: 999,
+                ownerBillingGracePeriodEnd: 999,
                 full: true,
             });
         });
 
-        it('should pass amountOwed and ownerBillingGraceEndPeriod as undefined to approveMoneyRequest when they are undefined', () => {
-            const params = {...baseParams, iouPaymentType: CONST.IOU.REPORT_ACTION_TYPE.APPROVE as PaymentMethodType, amountOwed: undefined, ownerBillingGraceEndPeriod: undefined};
+        it('should pass amountOwed and ownerBillingGracePeriodEnd as undefined to approveMoneyRequest when they are undefined', () => {
+            const params = {...baseParams, iouPaymentType: CONST.IOU.REPORT_ACTION_TYPE.APPROVE as PaymentMethodType, amountOwed: undefined, ownerBillingGracePeriodEnd: undefined};
 
             selectPaymentType(params);
 
@@ -296,9 +296,9 @@ describe('PaymentUtils', () => {
                 isASAPSubmitBetaEnabled: params.isASAPSubmitBetaEnabled,
                 expenseReportCurrentNextStepDeprecated: params.iouReportNextStep,
                 betas: params.betas,
-                userBillingGraceEndPeriods: params.userBillingGraceEndPeriods,
+                userBillingGracePeriodEnds: params.userBillingGracePeriodEnds,
                 amountOwed: undefined,
-                ownerBillingGraceEndPeriod: undefined,
+                ownerBillingGracePeriodEnd: undefined,
                 full: true,
             });
         });
@@ -320,12 +320,12 @@ describe('PaymentUtils', () => {
             expect(mockOnPress).toHaveBeenCalledWith({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE});
         });
 
-        it('should pass amountOwed and ownerBillingGraceEndPeriod as undefined when they are undefined', () => {
-            const params = {...baseParams, amountOwed: undefined, ownerBillingGraceEndPeriod: undefined};
+        it('should pass amountOwed and ownerBillingGracePeriodEnd as undefined when they are undefined', () => {
+            const params = {...baseParams, amountOwed: undefined, ownerBillingGracePeriodEnd: undefined};
 
             selectPaymentType(params);
 
-            expect(mockShouldRestrict).toHaveBeenCalledWith(testPolicyID, params.userBillingGraceEndPeriods, undefined, undefined);
+            expect(mockShouldRestrict).toHaveBeenCalledWith(testPolicyID, params.userBillingGracePeriodEnds, undefined, undefined);
         });
     });
 
@@ -360,9 +360,13 @@ describe('PaymentUtils', () => {
             );
         });
 
-        it('drops non-OPEN state', () => {
-            const methods: PaymentMethod[] = [createMockPaymentMethod({accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, state: CONST.BANK_ACCOUNT.STATE.LOCKED}})];
-            expect(getBusinessBankAccountOptions(methods)).toHaveLength(0);
+        it('drops non-OPEN and non-LOCKED state', () => {
+            const methods: PaymentMethod[] = [
+                createMockPaymentMethod({accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, state: CONST.BANK_ACCOUNT.STATE.VERIFYING}}),
+                createMockPaymentMethod({accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, state: CONST.BANK_ACCOUNT.STATE.OPEN}}),
+                createMockPaymentMethod({accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, state: CONST.BANK_ACCOUNT.STATE.LOCKED}}),
+            ];
+            expect(getBusinessBankAccountOptions(methods)).toHaveLength(2);
         });
 
         it('drops methods with null or undefined methodID', () => {
@@ -396,15 +400,16 @@ describe('PaymentUtils', () => {
             expect(result.at(1)?.methodID).toBe(2);
         });
 
-        it('filters to only valid BUSINESS OPEN with methodID and maps rest correctly', () => {
+        it('filters to only valid BUSINESS OPEN or LOCKED with methodID and maps rest correctly', () => {
             const methods: PaymentMethod[] = [
                 createMockPaymentMethod({accountData: {type: CONST.BANK_ACCOUNT.TYPE.PERSONAL, state: CONST.BANK_ACCOUNT.STATE.OPEN}, title: 'Personal'}),
                 createMockPaymentMethod({title: 'Valid Business'}),
                 createMockPaymentMethod({accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, state: CONST.BANK_ACCOUNT.STATE.SETUP}, title: 'Setup'}),
+                createMockPaymentMethod({accountData: {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, state: CONST.BANK_ACCOUNT.STATE.LOCKED}, title: 'Locked'}),
             ];
             const result = getBusinessBankAccountOptions(methods);
 
-            expect(result).toHaveLength(1);
+            expect(result).toHaveLength(2);
             expect(result.at(0)?.text).toBe('Valid Business');
         });
     });

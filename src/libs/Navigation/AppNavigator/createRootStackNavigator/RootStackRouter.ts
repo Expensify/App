@@ -1,5 +1,5 @@
 import {CommonActions, StackRouter} from '@react-navigation/native';
-import type {NavigationState, PartialState, RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
+import type {RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
 import {createGuardContext, evaluateGuards} from '@libs/Navigation/guards';
 import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
@@ -94,26 +94,10 @@ function handleNavigationGuards(
             return null;
         }
 
-        const redirectRoute = redirectState.routes.at(-1);
-
-        // If the focused route is already the redirect target (e.g., multiple actions triggered
-        // on fresh app open all fire the same guard), don't add it again.
-        if (redirectRoute && state.routes[state.index]?.name === redirectRoute.name) {
-            return state;
-        }
-
-        const hasExistingFullScreenRoute = state.routes.some((route) => isFullScreenName(route.name));
-
-        // When the current stack already has a fullscreen route (e.g., a deep-linked report),
-        // append only the redirect target on top of the existing routes so the user returns
-        // to them after the redirect screen is dismissed. Otherwise (fresh app with no stack),
-        // use the full redirect state which includes the base route (e.g., Home).
-        const routes = hasExistingFullScreenRoute && redirectRoute ? [...state.routes, redirectRoute] : redirectState.routes;
-
         const resetAction = CommonActions.reset({
-            index: routes.length - 1,
-            routes,
-        } as PartialState<NavigationState>);
+            index: redirectState.index ?? redirectState.routes.length - 1,
+            routes: redirectState.routes,
+        });
 
         return stackRouter.getStateForAction(state, resetAction, configOptions);
     }

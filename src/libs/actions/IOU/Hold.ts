@@ -32,7 +32,7 @@ import {getAllReports, getAllTransactions, getAllTransactionViolations, getCurre
 /**
  * Put expense on HOLD
  */
-function putOnHold(transactionID: string, comment: string, initialReportID: string | undefined, ancestors: Ancestor[] = []) {
+function putOnHold(transactionID: string, comment: string, initialReportID: string | undefined, isOffline: boolean, ancestors: Ancestor[] = []) {
     const allTransactions = getAllTransactions();
     const allTransactionViolations = getAllTransactionViolations();
     const allReports = getAllReports();
@@ -318,21 +318,21 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
 
     API.write(WRITE_COMMANDS.HOLD_MONEY_REQUEST, params, {optimisticData, successData, failureData});
 
-    const currentReportID = getDisplayedReportID(reportID);
+    const currentReportID = getDisplayedReportID(reportID, isOffline);
     Navigation.setNavigationActionToMicrotaskQueue(() => notifyNewAction(currentReportID, undefined, true));
 }
 
-function putTransactionsOnHold(transactionsID: string[], comment: string, reportID: string, ancestors: Ancestor[] = []) {
+function putTransactionsOnHold(transactionsID: string[], comment: string, reportID: string, isOffline: boolean, ancestors: Ancestor[] = []) {
     for (const transactionID of transactionsID) {
         const {childReportID} = getIOUActionForReportID(reportID, transactionID) ?? {};
-        putOnHold(transactionID, comment, childReportID, ancestors);
+        putOnHold(transactionID, comment, childReportID, isOffline, ancestors);
     }
 }
 
 /**
  * Remove expense from HOLD
  */
-function unholdRequest(transactionID: string, reportID: string, policy: OnyxEntry<Policy>) {
+function unholdRequest(transactionID: string, reportID: string, policy: OnyxEntry<Policy>, isOffline: boolean) {
     const allTransactions = getAllTransactions();
     const allTransactionViolations = getAllTransactionViolations();
     const allReports = getAllReports();
@@ -526,7 +526,7 @@ function unholdRequest(transactionID: string, reportID: string, policy: OnyxEntr
         {optimisticData, successData, failureData},
     );
 
-    const currentReportID = getDisplayedReportID(reportID);
+    const currentReportID = getDisplayedReportID(reportID, isOffline);
     notifyNewAction(currentReportID, undefined, true);
 }
 
