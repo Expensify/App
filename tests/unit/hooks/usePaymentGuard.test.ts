@@ -128,11 +128,11 @@ describe('usePaymentGuard', () => {
         expect(mockShowLockedAccountModal).not.toHaveBeenCalled();
     });
 
-    it('exposes userBillingGraceEndPeriods for approve action consumption', async () => {
+    it('exposes userBillingGracePeriodEnds for approve action consumption', async () => {
         const {result} = renderHook(() => usePaymentGuard(CHAT_REPORT_ID, REPORT_ID, undefined));
 
         await waitFor(() => {
-            expect(result.current).toHaveProperty('userBillingGraceEndPeriods');
+            expect(result.current).toHaveProperty('userBillingGracePeriodEnds');
         });
     });
 });
