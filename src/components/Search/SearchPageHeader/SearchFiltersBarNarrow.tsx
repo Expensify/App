@@ -52,7 +52,7 @@ function SearchFiltersBarNarrow({queryJSON}: SearchFiltersBarNarrowProps) {
         <FlatList
             horizontal
             keyboardShouldPersistTaps="always"
-            style={[styles.flexRow, styles.overflowScroll, styles.flexGrow0, styles.mb4]}
+            style={[styles.flexRow, styles.overflowScroll, styles.flexGrow0, !!filters.length && styles.mb4]}
             contentContainerStyle={[styles.flexRow, styles.flexGrow0, styles.gap2, styles.ph5]}
             ref={scrollRef}
             showsHorizontalScrollIndicator={false}
