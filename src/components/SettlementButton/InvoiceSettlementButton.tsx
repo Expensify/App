@@ -85,8 +85,8 @@ function InvoiceSettlementButton({
             policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.LOCKED) &&
         !lastPaymentMethod;
 
-    const {checkForNecessaryAction, userBillingGraceEndPeriods} = usePaymentGuard(chatReportID, reportID, policy);
-    const {approveButtonOption, handleApprove} = useApproveAction({iouReport, policyID, formattedAmount, shouldDisableApproveButton, confirmApproval, userBillingGraceEndPeriods});
+    const {checkForNecessaryAction, userBillingGracePeriodEnds} = usePaymentGuard(chatReportID, reportID, policy);
+    const {approveButtonOption, handleApprove} = useApproveAction({iouReport, policyID, formattedAmount, shouldDisableApproveButton, confirmApproval, userBillingGracePeriodEnds});
     const {buildInvoiceOptions} = useInvoicePaymentOptions({data, checkForNecessaryAction, onPress, formattedAmount, lastPaymentMethod, hasIntentToPay});
 
     // Build payment button options — invoice reports: invoice submenus + approve

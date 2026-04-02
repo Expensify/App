@@ -81,8 +81,8 @@ function ExpenseSettlementButton({
     const bankAccount = bankAccountList?.[lastBankAccountID ?? CONST.DEFAULT_NUMBER_ID];
     const hasIntentToPay = (policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.OPEN || policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.LOCKED) && !lastPaymentMethod;
 
-    const {checkForNecessaryAction, userBillingGraceEndPeriods} = usePaymentGuard(chatReportID, reportID, policy);
-    const {approveButtonOption, handleApprove} = useApproveAction({iouReport, policyID, formattedAmount, shouldDisableApproveButton, confirmApproval, userBillingGraceEndPeriods});
+    const {checkForNecessaryAction, userBillingGracePeriodEnds} = usePaymentGuard(chatReportID, reportID, policy);
+    const {approveButtonOption, handleApprove} = useApproveAction({iouReport, policyID, formattedAmount, shouldDisableApproveButton, confirmApproval, userBillingGracePeriodEnds});
 
     const businessBankAccountOptions = businessBankAccountOptionList.length
         ? businessBankAccountOptionList.map((account) => ({...account, value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT}))

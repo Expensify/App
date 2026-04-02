@@ -18,14 +18,14 @@ type ApproveActionParams = {
     formattedAmount: string;
     shouldDisableApproveButton: boolean;
     confirmApproval?: () => void;
-    userBillingGraceEndPeriods: OnyxCollection<BillingGraceEndPeriod>;
+    userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
 };
 
 /**
  * Handles the approve action: builds the approve button option and provides
  * the handler that calls approveMoneyRequest with all required parameters.
  */
-function useApproveAction({iouReport, policyID, formattedAmount, shouldDisableApproveButton, confirmApproval, userBillingGraceEndPeriods}: ApproveActionParams) {
+function useApproveAction({iouReport, policyID, formattedAmount, shouldDisableApproveButton, confirmApproval, userBillingGracePeriodEnds}: ApproveActionParams) {
     const icons = useMemoizedLazyExpensifyIcons(['ThumbsUp'] as const);
     const {translate} = useLocalize();
     const policy = usePolicy(policyID);
@@ -34,7 +34,7 @@ function useApproveAction({iouReport, policyID, formattedAmount, shouldDisableAp
     const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID}`);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const transactionViolationsSelector = (violations: OnyxCollection<TransactionViolation[]>) => hasViolationsReportUtils(iouReport?.reportID, violations, accountID, email ?? '');
     const [hasViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: transactionViolationsSelector});
 
@@ -61,9 +61,9 @@ function useApproveAction({iouReport, policyID, formattedAmount, shouldDisableAp
                 isASAPSubmitBetaEnabled,
                 expenseReportCurrentNextStepDeprecated: iouReportNextStep,
                 betas,
-                userBillingGraceEndPeriods,
+                userBillingGracePeriodEnds,
                 amountOwed,
-                ownerBillingGraceEndPeriod,
+                ownerBillingGracePeriodEnd,
                 full: false,
             });
         }
