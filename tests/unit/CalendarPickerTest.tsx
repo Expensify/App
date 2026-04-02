@@ -388,6 +388,42 @@ describe('CalendarPicker', () => {
         expect(within(screen.getByTestId('currentMonthText')).getByText(monthNames.at(3) ?? '')).toBeTruthy();
     });
 
+    test('clicking next month arrow in December should update year to next year', () => {
+        const minDate = new Date('2020-01-01');
+        const maxDate = new Date('2030-12-31');
+        const value = '2025-12-15';
+        render(
+            <CalendarPicker
+                value={value}
+                minDate={minDate}
+                maxDate={maxDate}
+            />,
+        );
+
+        fireEvent.press(screen.getByTestId('next-month-arrow'));
+
+        expect(within(screen.getByTestId('currentYearText')).getByText('2026')).toBeTruthy();
+        expect(screen.getByText(monthNames.at(0) ?? '')).toBeTruthy();
+    });
+
+    test('clicking previous month arrow in January should update year to previous year', () => {
+        const minDate = new Date('2020-01-01');
+        const maxDate = new Date('2030-12-31');
+        const value = '2025-01-15';
+        render(
+            <CalendarPicker
+                value={value}
+                minDate={minDate}
+                maxDate={maxDate}
+            />,
+        );
+
+        fireEvent.press(screen.getByTestId('prev-month-arrow'));
+
+        expect(within(screen.getByTestId('currentYearText')).getByText('2024')).toBeTruthy();
+        expect(screen.getByText(monthNames.at(11) ?? '')).toBeTruthy();
+    });
+
     test('month picker filtering should exclude months before minDate', () => {
         const currentYear = 2023;
         const minDate = new Date('2023-06-01');
