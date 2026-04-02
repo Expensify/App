@@ -1535,7 +1535,18 @@ function getCardHintText(validFrom: string | undefined, validThru: string | unde
  * This ensures the report layout matches the search page.
  */
 function resolveTransactionCardFields<
-    T extends {cardID?: number; cardName?: string; bank?: string; amount?: number; convertedAmount?: number; currency?: string; originalAmount?: number; originalCurrency?: string},
+    T extends {
+        cardID?: number;
+        cardName?: string;
+        bank?: string;
+        amount?: number;
+        convertedAmount?: number;
+        currency?: string;
+        originalAmount?: number;
+        originalCurrency?: string;
+        modifiedAmount?: number | string;
+        modifiedCurrency?: string;
+    },
 >(
     transactions: T[],
     cardList: CardList | undefined,
@@ -1563,14 +1574,18 @@ function resolveTransactionCardFields<
         }
 
         // For report view: use convertedAmount as amount (in report currency),
-        // and the original amount/currency as originalAmount/originalCurrency
-        if (reportCurrency && transaction.convertedAmount && transaction.currency !== reportCurrency) {
+        // and the original amount/currency as originalAmount/originalCurrency.
+        // Override modifiedAmount/modifiedCurrency too since display functions read those first.
+        const currentDisplayCurrency = (transaction.modifiedCurrency ? String(transaction.modifiedCurrency) : transaction.currency) ?? '';
+        if (reportCurrency && transaction.convertedAmount && currentDisplayCurrency !== reportCurrency) {
             updates = {
                 ...updates,
                 originalAmount: transaction.amount,
                 originalCurrency: transaction.currency,
                 amount: transaction.convertedAmount,
                 currency: reportCurrency,
+                modifiedAmount: transaction.convertedAmount,
+                modifiedCurrency: reportCurrency,
             } as Partial<T & {isCardFeedDeleted?: boolean}>;
         }
 

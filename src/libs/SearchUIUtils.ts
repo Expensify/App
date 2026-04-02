@@ -1782,8 +1782,26 @@ function getTransactionsSections({
             const actions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ?? [];
             const reportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`] ?? {};
             const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, reportMetadata, actions);
+            // Show amount in report currency, original amount in transaction currency.
+            // Search API provides groupAmount/groupCurrency for the report-currency value.
+            // Override modifiedAmount/modifiedCurrency too since display functions read those first.
+            const reportCurrencyValue = report?.currency ?? transactionItem.groupCurrency;
+            const currentDisplayCurrency = (transactionItem.modifiedCurrency ? transactionItem.modifiedCurrency : transactionItem.currency) ?? '';
+            const shouldSwapAmounts = !!transactionItem.groupAmount && currentDisplayCurrency !== reportCurrencyValue;
+            const resolvedAmountFields = shouldSwapAmounts
+                ? {
+                      originalAmount: transactionItem.amount,
+                      originalCurrency: transactionItem.currency,
+                      amount: transactionItem.groupAmount!,
+                      currency: reportCurrencyValue!,
+                      modifiedAmount: transactionItem.groupAmount!,
+                      modifiedCurrency: reportCurrencyValue!,
+                  }
+                : {};
+
             const transactionSection: TransactionListItemType = {
                 ...transactionItem,
+                ...resolvedAmountFields,
                 keyForList: transactionItem.transactionID,
                 action: allActions.at(0) ?? CONST.SEARCH.ACTION_TYPES.VIEW,
                 allActions,
