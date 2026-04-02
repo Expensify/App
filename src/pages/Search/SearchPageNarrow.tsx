@@ -226,7 +226,6 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
                                         {!searchRouterListVisible && (
                                             <SearchActionsBarNarrow
                                                 queryJSON={queryJSON}
-                                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                                                 searchResults={searchResults}
                                                 onSort={onSortPressedCallback}
                                             />

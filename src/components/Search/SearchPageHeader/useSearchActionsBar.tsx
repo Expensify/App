@@ -186,7 +186,7 @@ function makeDateFilterItem(
     };
 }
 
-function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEnabled: boolean): UseSearchActionsBarResult {
+function useSearchActionsBar(queryJSON: SearchQueryJSON): UseSearchActionsBarResult {
     const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const type = queryJSON.type;
     const styles = useThemeStyles();
@@ -200,7 +200,7 @@ function useSearchActionsBar(queryJSON: SearchQueryJSON, isMobileSelectionModeEn
 
     const hasErrors = Object.keys(currentSearchResults?.errors ?? {}).length > 0 && !isOffline;
     const hasSelectedItems = selectedTransactionsKeys.length > 0;
-    const shouldShowSelectedDropdown = hasSelectedItems && (!shouldUseNarrowLayout || isMobileSelectionModeEnabled);
+    const shouldShowSelectedDropdown = hasSelectedItems && !shouldUseNarrowLayout;
 
     const updateFilterForm = (values: Partial<SearchAdvancedFiltersForm>) => {
         const updatedFilterFormValues: Partial<SearchAdvancedFiltersForm> = {

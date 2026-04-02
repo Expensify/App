@@ -72,7 +72,7 @@ const FILTER_KEY_TO_COMPONENT: Partial<Record<SearchAdvancedFiltersKey, React.Co
 };
 
 function SearchActionsBarWide({queryJSON, searchResults, handleSearch, onSort}: SearchActionsBarWideProps) {
-    const {filters, hasErrors, shouldShowActionsBarLoading, shouldShowSelectedDropdown, styles} = useSearchActionsBar(queryJSON, false);
+    const {filters, hasErrors, shouldShowActionsBarLoading, shouldShowSelectedDropdown, styles} = useSearchActionsBar(queryJSON);
 
     if (hasErrors) {
         return null;

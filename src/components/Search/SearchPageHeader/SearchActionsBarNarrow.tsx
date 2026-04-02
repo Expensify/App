@@ -12,13 +12,12 @@ import useSearchActionsBar from './useSearchActionsBar';
 
 type SearchActionsBarNarrowProps = {
     queryJSON: SearchQueryJSON;
-    isMobileSelectionModeEnabled: boolean;
     searchResults: OnyxEntry<SearchResults>;
     onSort: () => void;
 };
 
-function SearchActionsBarNarrow({queryJSON, isMobileSelectionModeEnabled, searchResults, onSort}: SearchActionsBarNarrowProps) {
-    const {hasErrors, shouldShowActionsBarLoading, styles} = useSearchActionsBar(queryJSON, isMobileSelectionModeEnabled);
+function SearchActionsBarNarrow({queryJSON, searchResults, onSort}: SearchActionsBarNarrowProps) {
+    const {hasErrors, shouldShowActionsBarLoading, styles} = useSearchActionsBar(queryJSON);
 
     if (hasErrors) {
         return null;
