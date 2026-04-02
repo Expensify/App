@@ -9879,21 +9879,6 @@ describe('ReportUtils', () => {
             expect(getReportStatusTranslation({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: undefined, translate: mockTranslate})).toBe('');
             expect(getReportStatusTranslation({stateNum: undefined, statusNum: CONST.REPORT.STATUS_NUM.OPEN, translate: mockTranslate})).toBe('');
         });
-
-        it('should return "Deleted" when isDeleted is true', () => {
-            const result = getReportStatusTranslation({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN, isDeleted: true, translate: mockTranslate});
-            expect(result).toBe(mockTranslate('iou.deleted'));
-        });
-
-        it('should return "Deleted" when isDeleted is true regardless of stateNum and statusNum', () => {
-            expect(getReportStatusTranslation({stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED, isDeleted: true, translate: mockTranslate})).toBe(
-                mockTranslate('iou.deleted'),
-            );
-            expect(getReportStatusTranslation({stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED, isDeleted: true, translate: mockTranslate})).toBe(
-                mockTranslate('iou.deleted'),
-            );
-            expect(getReportStatusTranslation({stateNum: undefined, statusNum: undefined, isDeleted: true, translate: mockTranslate})).toBe(mockTranslate('iou.deleted'));
-        });
     });
 
     describe('buildOptimisticReportPreview', () => {

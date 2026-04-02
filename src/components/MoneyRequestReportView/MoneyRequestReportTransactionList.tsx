@@ -266,8 +266,9 @@ function MoneyRequestReportTransactionList({
             shouldShowBillableColumn,
             shouldShowReimbursableColumn: hasNonReimbursableTransactions(transactions),
             reportCurrency: report?.currency,
+            policy,
         });
-    }, [transactions, currentUserDetails?.accountID, isExpenseReportViewFromIOUReport, shouldShowBillableColumn, reportDetailsColumns, report?.currency]);
+    }, [currentUserDetails?.accountID, transactions, isExpenseReportViewFromIOUReport, reportDetailsColumns, shouldShowBillableColumn, report?.currency, policy]);
 
     const {windowWidth, windowHeight} = useWindowDimensions();
     const minTableWidth = getTableMinWidth(columnsToShow);
