@@ -12,7 +12,7 @@ import type {
     PlatformStackNavigatorProps,
     PlatformStackRouterOptions,
 } from '@libs/Navigation/PlatformStackNavigation/types';
-import ScreenFreezeWrapper from './ScreenFreezeWrapper';
+import wrapDescriptorsWithFreeze from './wrapDescriptorsWithFreeze';
 
 function createPlatformStackNavigatorComponent<RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions>(
     displayName: string,
@@ -89,20 +89,7 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
         // Executes custom effects defined in "useCustomEffects" navigator option.
         useCustomEffects(customCodePropsWithCustomState);
 
-        let wrappedDescriptors = descriptors;
-        if (freezeNonTopScreens) {
-            const topRouteKey = state.routes[state.index]?.key;
-            const result: typeof descriptors = {};
-            for (const [key, descriptor] of Object.entries(descriptors)) {
-                const isOnTop = key === topRouteKey;
-                const isScreenBlurred = !isOnTop;
-                result[key] = {
-                    ...descriptor,
-                    render: () => <ScreenFreezeWrapper isScreenBlurred={isScreenBlurred}>{descriptor.render()}</ScreenFreezeWrapper>,
-                };
-            }
-            wrappedDescriptors = result;
-        }
+        const wrappedDescriptors = freezeNonTopScreens ? wrapDescriptorsWithFreeze(descriptors, state) : descriptors;
 
         const Content = useMemo(
             () => (

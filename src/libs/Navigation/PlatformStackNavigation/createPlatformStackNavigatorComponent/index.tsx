@@ -12,7 +12,7 @@ import type {
     PlatformStackNavigatorProps,
     PlatformStackRouterOptions,
 } from '@libs/Navigation/PlatformStackNavigation/types';
-import ScreenFreezeWrapper from './ScreenFreezeWrapper';
+import wrapDescriptorsWithFreeze from './wrapDescriptorsWithFreeze';
 
 function createPlatformStackNavigatorComponent<RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions>(
     displayName: string,
@@ -101,24 +101,7 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
             };
         }, [persistentScreens, state]);
 
-        // Wrap each screen's render function with ScreenFreezeWrapper to freeze non-top screens.
-        // This prevents off-screen components from re-rendering.
-        // Persistent screens (e.g. sidebar) are excluded from freezing so they stay interactive.
-        let wrappedDescriptors = descriptors;
-        if (freezeNonTopScreens) {
-            const topRouteKey = state.routes[state.index]?.key;
-            const result: typeof descriptors = {};
-            for (const [key, descriptor] of Object.entries(descriptors)) {
-                const isOnTop = key === topRouteKey;
-                const isPersistent = persistentScreens?.includes(descriptor.route.name);
-                const isScreenBlurred = !isOnTop && !isPersistent;
-                result[key] = {
-                    ...descriptor,
-                    render: () => <ScreenFreezeWrapper isScreenBlurred={isScreenBlurred}>{descriptor.render()}</ScreenFreezeWrapper>,
-                };
-            }
-            wrappedDescriptors = result;
-        }
+        const wrappedDescriptors = freezeNonTopScreens ? wrapDescriptorsWithFreeze(descriptors, state, persistentScreens) : descriptors;
 
         const Content = useMemo(
             () => (
