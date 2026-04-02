@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
-import {useContext, useRef} from 'react';
+import {useContext} from 'react';
+import type {RefObject} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {scheduleOnUI} from 'react-native-worklets';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -12,7 +12,6 @@ import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useShortMentionsList from '@hooks/useShortMentionsList';
 import {addComment} from '@libs/actions/Report';
-import ComposerFocusManager from '@libs/ComposerFocusManager';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import {rand64} from '@libs/NumberUtils';
@@ -28,17 +27,14 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
-import type {ComposerRef} from './ComposerWithSuggestions/ComposerWithSuggestions';
 
 type UseComposerSubmitParams = {
     report: OnyxEntry<OnyxTypes.Report>;
     reportID: string;
-    composerRefShared: {get: () => Partial<ComposerRef>};
-    updateShouldShowSuggestionMenuToFalse: () => void;
-    setIsAttachmentPreviewActive: (value: boolean) => void;
+    attachmentFileRef: RefObject<FileObject | FileObject[] | null>;
 };
 
-function useComposerSubmit({report, reportID, composerRefShared, updateShouldShowSuggestionMenuToFalse, setIsAttachmentPreviewActive}: UseComposerSubmitParams) {
+function useComposerSubmit({report, reportID, attachmentFileRef}: UseComposerSubmitParams) {
     const isInSidePanel = useIsInSidePanel();
     const {kickoffWaitingIndicator} = useAgentZeroStatusActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -64,28 +60,7 @@ function useComposerSubmit({report, reportID, composerRefShared, updateShouldSho
     const reportAncestors = useAncestors(report);
     const targetReportAncestors = useAncestors(targetReport);
 
-    const attachmentFileRef = useRef<FileObject | FileObject[] | null>(null);
-
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
-
-    const addAttachment = (file: FileObject | FileObject[]) => {
-        attachmentFileRef.current = file;
-
-        const clearWorklet = composerRefShared.get().clearWorklet;
-
-        if (!clearWorklet) {
-            throw new Error('The composerRef.clearWorklet function is not set yet. This should never happen, and indicates a developer error.');
-        }
-
-        scheduleOnUI(clearWorklet);
-    };
-
-    const onAttachmentPreviewClose = () => {
-        updateShouldShowSuggestionMenuToFalse();
-        setIsAttachmentPreviewActive(false);
-        // This enables Composer refocus when the attachments modal is closed by the browser navigation
-        ComposerFocusManager.setReadyToFocus();
-    };
 
     const handleCreateTask = (text: string): boolean => {
         const match = text.match(CONST.REGEX.TASK_TITLE_WITH_OPTIONAL_SHORT_MENTION);
@@ -189,7 +164,7 @@ function useComposerSubmit({report, reportID, composerRefShared, updateShouldSho
         });
     };
 
-    return {submitForm, addAttachment, onAttachmentPreviewClose};
+    return {submitForm};
 }
 
 export default useComposerSubmit;
