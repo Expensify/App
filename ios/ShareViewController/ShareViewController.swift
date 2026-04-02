@@ -9,17 +9,17 @@ class ShareViewController: UIViewController {
     let APP_GROUP_ID = "group.com.expensify.new"
     let FILES_DIRECTORY_NAME = "sharedFiles"
     let READ_FROM_FILE_FILE_NAME = "text_to_read.txt"
-    
+
     enum FileSaveError: String {
         case CouldNotLoad
         case URLError
         case GroupSharedFolderNotFound
     }
-    
+
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         os_log("viewDidAppear triggered")
-        
+
         if let content = extensionContext!.inputItems[0] as? NSExtensionItem {
             os_log("Received NSExtensionItem: %@", content)
             saveFileToAppGroup(content: content) { error in
@@ -30,11 +30,11 @@ class ShareViewController: UIViewController {
             }
         }
     }
-    
+
     private func saveFileToFolder(folder: URL, filename: String, fileData: NSData) -> URL? {
         let filePath = folder.appendingPathComponent(filename)
         os_log("Saving file to: %@", filePath.path)
-        
+
         do {
             try fileData.write(to: filePath, options: .completeFileProtection)
             os_log("File saved successfully at: %@", filePath.path)
@@ -44,27 +44,27 @@ class ShareViewController: UIViewController {
             return nil
         }
     }
-    
+
     private func saveFileToAppGroup(content: NSExtensionItem, completion: @escaping (FileSaveError?) -> Void) {
         guard let groupURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: self.APP_GROUP_ID) else {
             completion(.GroupSharedFolderNotFound)
             os_log("Group shared folder not found")
             return
         }
-        
+
         let sharedFileFolder = groupURL.appendingPathComponent(FILES_DIRECTORY_NAME, isDirectory: true)
         os_log("Shared file folder: %@", sharedFileFolder.path)
         setupSharedFolder(folder: sharedFileFolder)
-        
+
         guard let attachments = content.attachments else {
             completion(.CouldNotLoad)
             os_log("Could not load attachments")
             return
         }
-        
+
         processAttachments(attachments, in: sharedFileFolder, completion: completion)
     }
-    
+
     private func setupSharedFolder(folder: URL) {
         os_log("Setting up shared folder: %@", folder.path)
         do {
@@ -73,11 +73,11 @@ class ShareViewController: UIViewController {
             os_log("Failed to create folder: %@, error: %@", folder.path, error.localizedDescription)
             return
         }
-        
+
         do {
             let filePaths = try FileManager.default.contentsOfDirectory(atPath: folder.path)
             os_log("Clearing folder with contents: %@", filePaths)
-            
+
             for filePath in filePaths {
                 try FileManager.default.removeItem(atPath: folder.appendingPathComponent(filePath).path)
             }
@@ -85,11 +85,11 @@ class ShareViewController: UIViewController {
             os_log("Could not clear temp folder: %@", error.localizedDescription)
         }
     }
-    
+
     private func processAttachments(_ attachments: [NSItemProvider], in folder: URL, completion: @escaping (FileSaveError?) -> Void) {
         os_log("Processing attachments")
         let group = DispatchGroup()
-        
+
         for attachment in attachments {
             group.enter()
             os_log("Processing attachment")
@@ -101,37 +101,81 @@ class ShareViewController: UIViewController {
                 }
             }
         }
-        
+
         group.notify(queue: .main) {
             os_log("Finished processing all attachments")
             self.openMainApp()
         }
     }
-    
+
     private func loadData(for attachment: NSItemProvider, in folder: URL, group: DispatchGroup, completion: @escaping (FileSaveError?) -> Void) {
         os_log("Loading data for attachment")
+        os_log("Registered type identifiers: %@", attachment.registeredTypeIdentifiers.joined(separator: ", "))
         let isURL = attachment.hasItemConformingToTypeIdentifier("public.url") && !attachment.hasItemConformingToTypeIdentifier("public.file-url")
-        let typeIdentifier = isURL ? (kUTTypeURL as String) : (kUTTypeData as String)
-        
+
+        if isURL {
+            attachment.loadItem(forTypeIdentifier: UTType.url.identifier, options: nil) { (data, error) in
+                DispatchQueue.main.async {
+                    if let error = error {
+                        os_log("Sharing error: %@", error.localizedDescription)
+                        completion(.CouldNotLoad)
+                        return
+                    }
+                    if let url = data as? URL {
+                        os_log("Handling URL: %@", url.absoluteString)
+                        self.handleURL(url, folder: folder, completion: completion)
+                    } else {
+                        completion(.CouldNotLoad)
+                    }
+                }
+            }
+        } else if attachment.hasItemConformingToTypeIdentifier(UTType.image.identifier) {
+            os_log("Loading image via public.image type identifier")
+            attachment.loadItem(forTypeIdentifier: UTType.image.identifier, options: nil) { (data, error) in
+                DispatchQueue.main.async {
+                    if let error = error {
+                        os_log("Image loadItem error: %@, falling back to registered type", error.localizedDescription)
+                        self.loadGenericData(for: attachment, in: folder, completion: completion)
+                        return
+                    }
+                    if let image = data as? UIImage {
+                        os_log("Got UIImage directly from loadItem")
+                        self.handleImageData(image, folder: folder, completion: completion)
+                    } else if let imageData = data as? Data, let image = UIImage(data: imageData) {
+                        os_log("Got Data from loadItem, converted to UIImage")
+                        self.handleImageData(image, folder: folder, completion: completion)
+                    } else if let url = data as? URL {
+                        os_log("Got file URL from loadItem: %@", url.path)
+                        self.handleURLData(url as NSURL, folder: folder, completion: completion)
+                    } else {
+                        os_log("Unrecognized image data type, falling back to registered type")
+                        self.loadGenericData(for: attachment, in: folder, completion: completion)
+                    }
+                }
+            }
+        } else {
+            loadGenericData(for: attachment, in: folder, completion: completion)
+        }
+    }
+
+    private func loadGenericData(for attachment: NSItemProvider, in folder: URL, completion: @escaping (FileSaveError?) -> Void) {
+        // Use the provider's own registered type instead of the generic "public.data".
+        // Screenshot previews register via NSItemProviderWriting with specific types
+        // (e.g. public.png) and may fail when asked for the generic "public.data" type.
+        let typeIdentifier = attachment.registeredTypeIdentifiers.first ?? UTType.data.identifier
+        os_log("Loading data with type identifier: %@", typeIdentifier)
         attachment.loadItem(forTypeIdentifier: typeIdentifier, options: nil) { (data, error) in
             DispatchQueue.main.async {
                 if let error = error {
-                    os_log("Sharing error: %@", error.localizedDescription)
+                    os_log("Data load error: %@", error.localizedDescription)
                     completion(.CouldNotLoad)
                     return
                 }
-                
-                if isURL, let url = data as? URL {
-                    os_log("Handling URL: %@", url.absoluteString)
-                    self.handleURL(url, folder: folder, completion: completion)
-                } else {
-                    os_log("Handling data for attachment")
-                    self.handleData(data, folder: folder, completion: completion)
-                }
+                self.handleData(data, folder: folder, completion: completion)
             }
         }
     }
-    
+
     private func handleURL(_ url: URL, folder: URL, completion: @escaping (FileSaveError?) -> Void) {
         os_log("Handling URL: %@", url.absoluteString)
         if let fileData = url.absoluteString.data(using: .utf8) as NSData? {
@@ -147,7 +191,7 @@ class ShareViewController: UIViewController {
             completion(.URLError)
         }
     }
-    
+
     private func handleData(_ data: Any?, folder: URL, completion: @escaping (FileSaveError?) -> Void) {
         os_log("Handling generic data")
         guard let data = data else {
@@ -155,7 +199,7 @@ class ShareViewController: UIViewController {
             completion(.CouldNotLoad)
             return
         }
-        
+
         if let dataString = data as? String {
             os_log("Handling string data: %@", dataString)
             handleStringData(dataString, folder: folder, completion: completion)
@@ -165,19 +209,34 @@ class ShareViewController: UIViewController {
         } else if let file = data as? UIImage {
             os_log("Handling image data")
             handleImageData(file, folder: folder, completion: completion)
+        } else if let rawData = data as? Data {
+            os_log("Handling raw Data bytes")
+            if let image = UIImage(data: rawData) {
+                handleImageData(image, folder: folder, completion: completion)
+            } else {
+                processAndSave(data: rawData, filename: "shared_file", folder: folder, completion: completion)
+            }
         } else {
             os_log("Received data of unhandled type", type: .error)
             completion(.URLError)
         }
     }
-    
+
     private func handleStringData(_ dataString: String, folder: URL, completion: @escaping (FileSaveError?) -> Void) {
-        os_log("Handling string data without file prefix")
-        if !dataString.hasPrefix("file://") {
+        if dataString.hasPrefix("file://") {
+            os_log("Handling string data with file:// prefix")
+            if let url = NSURL(string: dataString) {
+                handleURLData(url, folder: folder, completion: completion)
+            } else {
+                os_log("Invalid file:// URL string")
+                completion(.URLError)
+            }
+        } else {
+            os_log("Handling string data as text")
             processAndSave(data: dataString.data(using: .utf8), filename: READ_FROM_FILE_FILE_NAME, folder: folder, completion: completion)
         }
     }
-    
+
     private func handleURLData(_ url: NSURL, folder: URL, completion: @escaping (FileSaveError?) -> Void) {
         os_log("Handling NSURL data")
         guard let filename = url.lastPathComponent else {
@@ -185,17 +244,17 @@ class ShareViewController: UIViewController {
             completion(.CouldNotLoad)
             return
         }
-        
+
         let fileData = NSData(contentsOf: url as URL) as Data?
         processAndSave(data: fileData, filename: filename, folder: folder, completion: completion)
     }
-    
+
     private func handleImageData(_ image: UIImage, folder: URL, completion: @escaping (FileSaveError?) -> Void) {
         os_log("Handling image data")
         let filename = "shared_image.png"
         processAndSave(data: image.pngData(), filename: filename, folder: folder, completion: completion)
     }
-    
+
     private func processAndSave(data: Data?, filename: String, folder: URL, completion: @escaping (FileSaveError?) -> Void) {
         os_log("Processing and saving data")
         guard let fileData = data as NSData? else {
@@ -203,7 +262,7 @@ class ShareViewController: UIViewController {
             completion(.CouldNotLoad)
             return
         }
-        
+
         if saveFileToFolder(folder: folder, filename: filename, fileData: fileData) != nil {
             os_log("File saved successfully: %@", filename)
             completion(nil)
@@ -212,11 +271,11 @@ class ShareViewController: UIViewController {
             completion(.CouldNotLoad)
         }
     }
-    
+
     private func openMainApp() {
         os_log("Attempting to open main app")
         let url = URL(string: "new-expensify://share/root")!
-        
+
         if launchApp(customURL: url) {
             os_log("Main app opened successfully")
             self.extensionContext!.completeRequest(returningItems: nil, completionHandler: nil)
@@ -225,14 +284,14 @@ class ShareViewController: UIViewController {
             self.extensionContext!.cancelRequest(withError: NSError(domain: "", code: 0, userInfo: nil))
         }
     }
-    
+
     private func launchApp(customURL: URL?) -> Bool {
         os_log("Launching app with custom URL")
         guard let url = customURL else {
             os_log("Invalid custom URL")
             return false
         }
-        
+
         var responder: UIResponder? = self
         while responder != nil {
             if let application = responder as? UIApplication {
