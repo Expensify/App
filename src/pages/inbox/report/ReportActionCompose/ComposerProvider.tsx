@@ -20,7 +20,6 @@ import type {SuggestionsRef} from './ComposerContext';
 import type {ComposerRef} from './ComposerWithSuggestions/ComposerWithSuggestions';
 import useAttachmentUploadValidation from './useAttachmentUploadValidation';
 import useComposerFocus from './useComposerFocus';
-import useComposerSubmit from './useComposerSubmit';
 import useShouldAddOrReplaceReceipt from './useShouldAddOrReplaceReceipt';
 
 const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
@@ -105,12 +104,6 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
         suggestionsRef,
         actionButtonRef,
         setIsFocused,
-    });
-
-    const {submitForm} = useComposerSubmit({
-        report,
-        reportID,
-        attachmentFileRef,
     });
 
     const addAttachment = (file: FileObject | FileObject[]) => {

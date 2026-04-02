@@ -3,7 +3,6 @@ import type {MeasureInWindowOnSuccessCallback} from 'react-native';
 import useIsScrollLikelyLayoutTriggered from '@hooks/useIsScrollLikelyLayoutTriggered';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import FS from '@libs/Fullstory';
 import {chatIncludesChronos, chatIncludesConcierge} from '@libs/ReportUtils';
 import {isEmojiPickerVisible} from '@userActions/EmojiPickerAction';

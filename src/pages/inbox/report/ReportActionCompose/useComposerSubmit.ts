@@ -128,6 +128,7 @@ function useComposerSubmit({report, reportID, attachmentFileRef}: UseComposerSub
                 shouldPlaySound: true,
                 isInSidePanel,
             });
+            // eslint-disable-next-line no-param-reassign
             attachmentFileRef.current = null;
             return;
         }
