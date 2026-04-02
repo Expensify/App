@@ -47,7 +47,7 @@ function TaskAssigneeSelectorModal() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
-    const [delegateEmail = ''] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
+    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
 
     const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, areOptionsInitialized} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,

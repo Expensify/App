@@ -8381,8 +8381,8 @@ function buildOptimisticCardAssignedReportAction(assigneeAccountID: number, curr
     };
 }
 
-function buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID: number, currentUserAccountID: number, delegateEmailParam: string): OptimisticEditedTaskReportAction {
-    const delegateAccountDetails = getPersonalDetailByEmail(delegateEmailParam);
+function buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID: number, currentUserAccountID: number, delegateEmailParam: string | undefined): OptimisticEditedTaskReportAction {
+    const delegateAccountDetails = delegateEmailParam ? getPersonalDetailByEmail(delegateEmailParam) : undefined;
 
     return {
         reportActionID: rand64(),

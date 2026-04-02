@@ -974,7 +974,7 @@ describe('actions/Task', () => {
             expect(reportAction?.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
         });
 
-        it('should set delegateAccountID to undefined when delegateEmail is empty', () => {
+        it('should set delegateAccountID to undefined when delegateEmail is undefined', () => {
             const reportID = 'task_report_edit_2';
             const taskReport = {
                 reportID,
@@ -982,7 +982,7 @@ describe('actions/Task', () => {
                 reportName: 'Original Task Title',
             };
 
-            editTask(taskReport, {title: 'Updated Title'}, '');
+            editTask(taskReport, {title: 'Updated Title'}, undefined);
 
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
             const calls = (API.write as jest.Mock).mock.calls;
@@ -1053,7 +1053,7 @@ describe('actions/Task', () => {
             expect(reportAction?.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
         });
 
-        it('should set delegateAccountID to undefined when delegateEmail is empty', () => {
+        it('should set delegateAccountID to undefined when delegateEmail is undefined', () => {
             const reportID = 'task_report_assignee_2';
             const taskReport = {
                 reportID,
@@ -1061,7 +1061,7 @@ describe('actions/Task', () => {
                 reportName: 'Task with assignee',
             };
 
-            editTaskAssignee(taskReport, undefined, CURRENT_USER_ACCOUNT_ID, 'assignee@example.com', 'user@example.com', CURRENT_USER_ACCOUNT_ID, false, '', ASSIGNEE_ACCOUNT_ID);
+            editTaskAssignee(taskReport, undefined, CURRENT_USER_ACCOUNT_ID, 'assignee@example.com', 'user@example.com', CURRENT_USER_ACCOUNT_ID, false, undefined, ASSIGNEE_ACCOUNT_ID);
 
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
             const calls = (API.write as jest.Mock).mock.calls;

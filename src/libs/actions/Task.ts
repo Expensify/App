@@ -726,7 +726,7 @@ function editTaskAssignee(
     currentUserEmail: string,
     currentUserAccountID: number,
     hasOutstandingChildTask: boolean,
-    delegateEmail: string,
+    delegateEmail: string | undefined,
     assigneeAccountID: number | null = 0,
     assigneeChatReport?: OnyxEntry<OnyxTypes.Report>,
     isOptimisticReport?: boolean,
