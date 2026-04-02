@@ -13,6 +13,7 @@ function ConnectToQuickbooksDesktopFlow({policyID}: ConnectToQuickbooksDesktopFl
             return;
         }
         Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_SETUP_REQUIRED_DEVICE_MODAL.getRoute(policyID));
+        // Runs once on mount — re-running when hasPoliciesConnectedToQBD changes mid-flow would interrupt an in-progress setup.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
