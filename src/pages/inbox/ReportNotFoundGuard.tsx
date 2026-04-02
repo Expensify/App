@@ -102,6 +102,7 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
             subtitleStyle={[styles.textSupporting]}
             shouldShowBackButton={shouldUseNarrowLayout}
             onBackButtonPress={Navigation.goBack}
+            shouldShowLink={false}
             shouldDisplaySearchRouter
         >
             {children}
