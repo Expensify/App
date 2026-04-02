@@ -1067,7 +1067,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                                     characterLimit={100}
                                     shouldCheckActionAllowedOnPress={false}
                                     description={translate('reportDescriptionPage.roomDescription')}
-                                    onPress={() => Navigation.navigate(ROUTES.REPORT_DESCRIPTION.getRoute(report.reportID))}
+                                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DESCRIPTION.path))}
                                 />
                             </MentionReportContext.Provider>
                         </OfflineWithFeedback>
