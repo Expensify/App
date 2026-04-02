@@ -1824,6 +1824,7 @@ function updateSplitTransactions({
                 reportAction: currentReportAction,
                 updatedReportPreviewAction: (updatedReportPreviewAction ?? originalReportPreviewAction) as OnyxTypes.ReportAction,
                 shouldAddUpdatedReportPreviewActionToOnyxData: false,
+                currentUserAccountID: currentUserPersonalDetails.accountID,
             });
             updatedReportPreviewAction = cleanUpTransactionThreadReportOnyxData.updatedReportPreviewAction;
         }
@@ -1877,6 +1878,7 @@ function updateSplitTransactions({
                 shouldDeleteTransactionThread: true,
                 reportAction: firstIOU,
                 updatedReportPreviewAction: updatedReportPreviewAction as OnyxTypes.ReportAction,
+                currentUserAccountID: currentUserPersonalDetails.accountID,
             });
 
             onyxData.optimisticData?.push(...optimisticData);
