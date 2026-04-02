@@ -419,21 +419,20 @@ describe('canEditFieldOfMoneyRequest', () => {
             });
 
             it.each([CONST.EXPENSE_PENDING_ACTION.APPROVE, CONST.EXPENSE_PENDING_ACTION.SUBMIT])(
-                'should allow move for forwarded-like DEW report when pendingExpenseAction is %s',
+                'should hide move for forwarded-like DEW report when pendingExpenseAction is %s',
                 async (pendingExpenseAction) => {
                     await seedForwardedLikeMoveFixture({pendingExpenseAction});
-                    const {currentPolicy, currentReport, currentTransaction, reportMetadata} = await getCurrentMoveFixture();
+                    const {currentPolicy, currentReport, reportMetadata} = await getCurrentMoveFixture();
                     const submitToAccountID = getSubmitToAccountID(currentPolicy, currentReport);
 
                     expect(reportMetadata?.pendingExpenseAction).toBe(pendingExpenseAction);
                     expect(submitToAccountID).toBe(FORWARDED_APPROVER_ACCOUNT_ID);
                     expect(submitToAccountID).not.toBe(currentReport?.managerID);
-                    expect(canEditMoneyRequest(reportAction, false, currentReport, currentPolicy, currentTransaction)).toBe(true);
 
                     const outstandingReportsByPolicyID = await OnyxUtils.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
                     const canEditReportField = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, undefined, outstandingReportsByPolicyID);
 
-                    expect(canEditReportField).toBe(true);
+                    expect(canEditReportField).toBe(false);
                 },
             );
 

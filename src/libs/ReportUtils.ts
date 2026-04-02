@@ -206,8 +206,6 @@ import {
     getReportActionMessageText,
     getReportActionText,
     getSortedReportActions,
-    hasPendingDEWApprove,
-    hasPendingDEWSubmit,
     isActionableCardFraudAlert,
     isActionableJoinRequestPending,
     isActionableTrackExpense,
@@ -11686,16 +11684,8 @@ function hasCurrentForwardingWorkflowAction(reportID: string): boolean {
  */
 function hasForwardedByManagerChange(iouReport: OnyxInputOrEntry<Report>): boolean {
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`];
-    const reportMetadata = getReportMetadata(iouReport?.reportID);
 
     if (!iouReport || !policy || !iouReport.reportID || !isProcessingReport(iouReport) || !isNumber(iouReport.managerID)) {
-        return false;
-    }
-
-    const isDEWPolicy = hasDynamicExternalWorkflow(policy);
-    const isDEWPending = hasPendingDEWApprove(reportMetadata, isDEWPolicy) || hasPendingDEWSubmit(reportMetadata, isDEWPolicy);
-
-    if (isDEWPending) {
         return false;
     }
 
