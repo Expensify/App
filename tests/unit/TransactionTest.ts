@@ -134,6 +134,7 @@ describe('Transaction', () => {
                 allTransactions,
                 translate: TestHelper.translateLocal,
                 toLocaleDigit: TestHelper.toLocaleDigit,
+                policyTagList: undefined,
             });
             await waitForBatchedUpdates();
             const reportActions = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
@@ -172,6 +173,7 @@ describe('Transaction', () => {
                 allTransactions,
                 translate: TestHelper.translateLocal,
                 toLocaleDigit: TestHelper.toLocaleDigit,
+                policyTagList: undefined,
             });
             await waitForBatchedUpdates();
             const reportActions = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
@@ -224,6 +226,7 @@ describe('Transaction', () => {
                 allTransactions,
                 translate: TestHelper.translateLocal,
                 toLocaleDigit: TestHelper.toLocaleDigit,
+                policyTagList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -278,6 +281,7 @@ describe('Transaction', () => {
                 allTransactions,
                 translate: TestHelper.translateLocal,
                 toLocaleDigit: TestHelper.toLocaleDigit,
+                policyTagList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -320,6 +324,7 @@ describe('Transaction', () => {
                 allTransactions,
                 translate: TestHelper.translateLocal,
                 toLocaleDigit: TestHelper.toLocaleDigit,
+                policyTagList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -374,6 +379,7 @@ describe('Transaction', () => {
                 allTransactions,
                 translate: TestHelper.translateLocal,
                 toLocaleDigit: TestHelper.toLocaleDigit,
+                policyTagList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -420,6 +426,7 @@ describe('Transaction', () => {
                 allTransactions,
                 translate: TestHelper.translateLocal,
                 toLocaleDigit: TestHelper.toLocaleDigit,
+                policyTagList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -463,6 +470,7 @@ describe('Transaction', () => {
                 allTransactions,
                 translate: TestHelper.translateLocal,
                 toLocaleDigit: TestHelper.toLocaleDigit,
+                policyTagList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -512,6 +520,7 @@ describe('Transaction', () => {
                 allTransactions,
                 translate: TestHelper.translateLocal,
                 toLocaleDigit: TestHelper.toLocaleDigit,
+                policyTagList: undefined,
             });
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -561,6 +570,7 @@ describe('Transaction', () => {
                 allTransactions,
                 translate: TestHelper.translateLocal,
                 toLocaleDigit: TestHelper.toLocaleDigit,
+                policyTagList: undefined,
             });
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -617,6 +627,7 @@ describe('Transaction', () => {
                 allTransactions,
                 translate: TestHelper.translateLocal,
                 toLocaleDigit: TestHelper.toLocaleDigit,
+                policyTagList: undefined,
             });
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -672,6 +683,7 @@ describe('Transaction', () => {
                 allTransactions,
                 translate: TestHelper.translateLocal,
                 toLocaleDigit: TestHelper.toLocaleDigit,
+                policyTagList: undefined,
             });
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -720,6 +732,7 @@ describe('Transaction', () => {
                 allTransactions,
                 translate: TestHelper.translateLocal,
                 toLocaleDigit: TestHelper.toLocaleDigit,
+                policyTagList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -770,6 +783,7 @@ describe('Transaction', () => {
                 allTransactions,
                 translate: TestHelper.translateLocal,
                 toLocaleDigit: TestHelper.toLocaleDigit,
+                policyTagList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -826,6 +840,7 @@ describe('Transaction', () => {
                 allTransactions,
                 translate: TestHelper.translateLocal,
                 toLocaleDigit: TestHelper.toLocaleDigit,
+                policyTagList: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -882,6 +897,7 @@ describe('Transaction', () => {
                 allTransactions,
                 translate: TestHelper.translateLocal,
                 toLocaleDigit: TestHelper.toLocaleDigit,
+                policyTagList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -922,6 +938,7 @@ describe('Transaction', () => {
                 allTransactions,
                 translate: TestHelper.translateLocal,
                 toLocaleDigit: TestHelper.toLocaleDigit,
+                policyTagList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -957,6 +974,7 @@ describe('Transaction', () => {
                 allTransactions,
                 translate: TestHelper.translateLocal,
                 toLocaleDigit: TestHelper.toLocaleDigit,
+                policyTagList: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1005,6 +1023,7 @@ describe('Transaction', () => {
                 allTransactions,
                 translate: TestHelper.translateLocal,
                 toLocaleDigit: TestHelper.toLocaleDigit,
+                policyTagList: undefined,
             });
             await waitForBatchedUpdates();
 
