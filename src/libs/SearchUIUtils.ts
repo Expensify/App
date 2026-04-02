@@ -2469,8 +2469,10 @@ function getReportSections({
 
             const transactionReportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`] ?? {};
             const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, transactionReportMetadata, actions);
+            const transactionPendingAction = transactionItem.pendingAction ?? (transactionItem.pendingFields ? Object.values(transactionItem.pendingFields).find(Boolean) : undefined);
             const transaction = {
                 ...transactionItem,
+                ...(transactionPendingAction ? {pendingAction: transactionPendingAction} : {}),
                 action: allActions.at(0) ?? CONST.SEARCH.ACTION_TYPES.VIEW,
                 allActions,
                 report,
