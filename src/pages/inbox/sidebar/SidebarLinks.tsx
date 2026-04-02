@@ -97,7 +97,7 @@ function SidebarLinks({insets, optionListItems, priorityMode = CONST.PRIORITY_MO
                     onFirstItemRendered={setSidebarLoaded}
                 />
                 {isLoadingReportData && optionListItems?.length === 0 && (
-                    <View style={[StyleSheet.absoluteFillObject, styles.appBG, styles.mt3]}>
+                    <View style={[StyleSheet.absoluteFill, styles.appBG, styles.mt3]}>
                         <OptionsListSkeletonView
                             shouldAnimate
                             reasonAttributes={sidebarSkeletonReasonAttributes}
