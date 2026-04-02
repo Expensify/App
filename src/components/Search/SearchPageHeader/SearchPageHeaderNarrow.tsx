@@ -23,6 +23,7 @@ function SearchPageHeaderNarrow({queryJSON, shouldShowLoadingBar = false, isMobi
             shouldShowLoadingBar={shouldShowLoadingBar}
             breadcrumbLabel={translate('common.reports')}
             shouldDisplaySearch={false}
+            shouldDisplayHelpButton
             cancelSearch={cancelSearch}
         />
     );
