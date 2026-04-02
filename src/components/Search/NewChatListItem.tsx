@@ -78,6 +78,7 @@ function NewChatListItem<TItem extends ListItem>({
             keyForList={item.keyForList}
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
+            shouldHighlightSelectedItem
         >
             {(hovered?: boolean) => (
                 <>
