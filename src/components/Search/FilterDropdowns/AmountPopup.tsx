@@ -104,7 +104,7 @@ function AmountPopup({filterKey, label, value, closeOverlay, updateFilterForm}: 
 
         const save = (rawAmount: string) => {
             if (rawAmount.trim() === '') {
-                setAmountValues((prevAmountValues) => ({...prevAmountValues, [selectedModifier]: null}));
+                setAmountValues((prevAmountValues) => ({...prevAmountValues, [selectedModifier]: undefined}));
                 goBack();
                 return;
             }
