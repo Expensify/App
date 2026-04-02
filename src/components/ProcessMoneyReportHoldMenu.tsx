@@ -6,8 +6,9 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import {hasOnlyNonReimbursableTransactions} from '@libs/ReportUtils';
 import {payMoneyRequest} from '@userActions/IOU';
-import type CONST from '@src/CONST';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -50,6 +51,12 @@ type ProcessMoneyReportHoldMenuProps = {
 
     /** Whether the report has non held expenses */
     hasNonHeldExpenses?: boolean;
+
+    /** Callback when user attempts to pay via ACH but report has only non-reimbursable expenses */
+    onNonReimbursablePaymentError?: () => void;
+
+    /** Transactions associated with report */
+    transactions?: OnyxTypes.Transaction[];
 };
 
 function ProcessMoneyReportHoldMenu({
@@ -64,15 +71,17 @@ function ProcessMoneyReportHoldMenu({
     transactionCount,
     startAnimation,
     hasNonHeldExpenses,
+    onNonReimbursablePaymentError,
+    transactions,
 }: ProcessMoneyReportHoldMenuProps) {
     const {translate} = useLocalize();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const activePolicy = usePolicy(activePolicyID);
     const policy = usePolicy(moneyRequestReport?.policyID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -88,6 +97,13 @@ function ProcessMoneyReportHoldMenu({
             showDelegateNoAccessModal();
             return;
         }
+
+        if (chatReport && hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID, transactions) && paymentType && paymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+            onClose();
+            onNonReimbursablePaymentError?.();
+            return;
+        }
+
         if (chatReport && paymentType) {
             payMoneyRequest({
                 paymentType,
@@ -101,9 +117,9 @@ function ProcessMoneyReportHoldMenu({
                 policy,
                 betas,
                 isSelfTourViewed,
-                userBillingGraceEndPeriods,
+                userBillingGracePeriodEnds,
                 amountOwed,
-                ownerBillingGraceEndPeriod,
+                ownerBillingGracePeriodEnd,
                 methodID,
                 onPaid: startAnimation,
             });

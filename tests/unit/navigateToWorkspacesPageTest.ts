@@ -32,14 +32,12 @@ describe('navigateToWorkspacesPage', () => {
             callback();
         });
     }
-    it('does nothing if no full screen route', () => {
-        navigateToWorkspacesPage({...baseParams, topmostFullScreenRoute: undefined});
-        expect(Navigation.navigate).not.toHaveBeenCalled();
-        expect(Navigation.goBack).not.toHaveBeenCalled();
-    });
-
-    it('calls goBack if top route is WORKSPACE_SPLIT_NAVIGATOR', () => {
-        navigateToWorkspacesPage({...baseParams, topmostFullScreenRoute: {name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR}});
+    it('calls goBack if WORKSPACE_NAVIGATOR is topmost and a split navigator is inside', () => {
+        navigateToWorkspacesPage({
+            ...baseParams,
+            topmostFullScreenRoute: {name: NAVIGATORS.WORKSPACE_NAVIGATOR},
+            lastWorkspacesTabNavigatorRoute: {name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR},
+        });
         expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.WORKSPACES_LIST.route);
     });
 
