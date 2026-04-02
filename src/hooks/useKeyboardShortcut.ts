@@ -69,5 +69,5 @@ export default function useKeyboardShortcut(shortcut: Shortcut, callback: (e?: G
             unregisterFreezeDefer();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isActive, callback, captureOnInputs, excludedNodes, priority, shortcut.descriptionKey, shortcut.modifiers.join(), shortcut.shortcutKey, shouldBubble, shouldPreventDefault]);
+    }, [isActive, callback, captureOnInputs, excludedNodes, priority, shortcut.descriptionKey, shortcut.modifiers?.join(), shortcut.shortcutKey, shouldBubble, shouldPreventDefault]);
 }
