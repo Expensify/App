@@ -2,7 +2,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
-import {getWorkspaceChats} from '@libs/ReportUtils';
+import {generateReportID, getWorkspaceChats} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -93,8 +93,9 @@ function getPolicyChatForActivePolicy(): OnyxEntry<Report> {
  * Start a scan request (used by FAB long-press).
  * Reads all necessary data from module-level Onyx subscriptions — no hooks needed in the component.
  */
-function startScan(reportID: string) {
+function startScan() {
     interceptAnonymousUser(() => {
+        const reportID = generateReportID();
         startMoneyRequest(CONST.IOU.TYPE.CREATE, reportID, getDraftTransactionIDs(), CONST.IOU.REQUEST_TYPE.SCAN, false, undefined, true);
     });
 }
@@ -103,8 +104,9 @@ function startScan(reportID: string) {
  * Start a quick scan request (used by FloatingReceiptButton press).
  * Reads all necessary data from module-level Onyx subscriptions — no hooks needed in the component.
  */
-function startQuickScan(reportID: string) {
+function startQuickScan() {
     interceptAnonymousUser(() => {
+        const reportID = generateReportID();
         const policyChat = getPolicyChatForActivePolicy();
         const policyChatPolicyID = policyChat?.policyID;
         const policyChatReportID = policyChat?.reportID;

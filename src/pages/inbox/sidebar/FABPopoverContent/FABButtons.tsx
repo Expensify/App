@@ -1,11 +1,10 @@
-import React, {useState} from 'react';
+import React from 'react';
 import type {RefObject} from 'react';
 import FloatingActionButton from '@components/FloatingActionButton';
 import FloatingReceiptButton from '@components/FloatingReceiptButton';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {startQuickScan, startScan} from '@libs/actions/Scan';
-import {generateReportID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import useRedirectToExpensifyClassic from './useRedirectToExpensifyClassic';
 
@@ -19,14 +18,13 @@ function FABButtons({isActive, fabRef, onPress}: FABButtonsProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {shouldRedirectToExpensifyClassic, showRedirectToExpensifyClassicModal} = useRedirectToExpensifyClassic();
-    const [reportID] = useState(() => generateReportID());
 
     const handleScan = () => {
         if (shouldRedirectToExpensifyClassic) {
             showRedirectToExpensifyClassicModal();
             return;
         }
-        startScan(reportID);
+        startScan();
     };
 
     const handleQuickScan = () => {
@@ -34,7 +32,7 @@ function FABButtons({isActive, fabRef, onPress}: FABButtonsProps) {
             showRedirectToExpensifyClassicModal();
             return;
         }
-        startQuickScan(reportID);
+        startQuickScan();
     };
 
     return (
