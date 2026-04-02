@@ -74,6 +74,9 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     // If we have a merge transaction, we need to use the receipt from the merge transaction
     const [mergeTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(mergeTransactionID)}`);
 
+    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const policyTagList = policy ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy.id}`] : {};
+
     const isDraftTransaction = !!action;
     const draftTransactionID = isDraftTransaction ? transactionID : undefined;
 
@@ -255,7 +258,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
      * Detach the receipt and close the modal.
      */
     const deleteReceiptAndClose = useCallback(() => {
-        detachReceipt(transaction?.transactionID, policy, policyCategories);
+        detachReceipt(transaction?.transactionID, policy, policyTagList, policyCategories);
         navigation.goBack();
     }, [navigation, transaction?.transactionID, policy, policyCategories]);
 
