@@ -93,7 +93,7 @@ const handleUnvalidatedUserNavigation = (chatReportID: string, reportID?: string
  * Retrieves SettlementButton payment methods.
  */
 const useSettlementButtonPaymentMethods = (hasActivatedWallet: boolean, translate: LocaleContextProps['translate']) => {
-    const icons = useMemoizedLazyExpensifyIcons(['User', 'Building', 'CheckCircle'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['User', 'Building', 'CheckCircle']);
 
     const paymentMethods = useMemo(() => {
         return {

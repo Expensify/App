@@ -3,7 +3,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type UseEmptyLHNIllustration from './types';
 
 const useEmptyLHNIllustration: UseEmptyLHNIllustration = () => {
-    const illustrations = useMemoizedLazyIllustrations(['Fireworks'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Fireworks']);
     const styles = useThemeStyles();
 
     return {
