@@ -295,7 +295,7 @@ describe('useReceiptScan', () => {
             expect(result.current.receiptFiles.at(0)).toEqual(receiptFile);
         });
 
-        it('should clear receiptFiles when isMultiScanEnabled changes from true to false', async () => {
+        it('should not clear receiptFiles when isMultiScanEnabled changes from true to false', async () => {
             const {result} = renderHook(() => useReceiptScan(params));
             await act(async () => {
                 result.current.setIsMultiScanEnabled(true);
@@ -313,7 +313,7 @@ describe('useReceiptScan', () => {
                 result.current.setIsMultiScanEnabled(false);
             });
             await waitForBatchedUpdatesWithAct();
-            expect(result.current.receiptFiles).toEqual([]);
+            expect(result.current.receiptFiles).toEqual([receiptFile]);
         });
     });
 
