@@ -422,7 +422,7 @@ describe('canEditFieldOfMoneyRequest', () => {
                 'should hide move for forwarded-like DEW report when pendingExpenseAction is %s',
                 async (pendingExpenseAction) => {
                     await seedForwardedLikeMoveFixture({pendingExpenseAction});
-                    const {currentPolicy, currentReport, reportMetadata} = await getCurrentMoveFixture();
+                    const {currentPolicy, currentReport, currentTransaction, reportMetadata} = await getCurrentMoveFixture();
                     const submitToAccountID = getSubmitToAccountID(currentPolicy, currentReport);
 
                     expect(reportMetadata?.pendingExpenseAction).toBe(pendingExpenseAction);
@@ -430,7 +430,14 @@ describe('canEditFieldOfMoneyRequest', () => {
                     expect(submitToAccountID).not.toBe(currentReport?.managerID);
 
                     const outstandingReportsByPolicyID = await OnyxUtils.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
-                    const canEditReportField = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, undefined, outstandingReportsByPolicyID);
+                    const canEditReportField = canEditFieldOfMoneyRequest({
+                        reportAction,
+                        fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
+                        outstandingReportsByPolicyID,
+                        transaction: currentTransaction,
+                        report: currentReport,
+                        policy: currentPolicy,
+                    });
 
                     expect(canEditReportField).toBe(false);
                 },
@@ -450,10 +457,17 @@ describe('canEditFieldOfMoneyRequest', () => {
                 expect(reportMetadata).toBeNull();
                 expect(submitToAccountID).toBe(FORWARDED_APPROVER_ACCOUNT_ID);
                 expect(submitToAccountID).not.toBe(currentReport?.managerID);
-                expect(canEditMoneyRequest(reportAction, false, currentReport, currentPolicy, currentTransaction)).toBe(true);
+                expect(canEditMoneyRequest(reportAction, currentTransaction, false, currentReport, currentPolicy)).toBe(false);
 
                 const outstandingReportsByPolicyID = await OnyxUtils.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
-                const canEditReportField = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, undefined, outstandingReportsByPolicyID);
+                const canEditReportField = canEditFieldOfMoneyRequest({
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
+                    outstandingReportsByPolicyID,
+                    transaction: currentTransaction,
+                    report: currentReport,
+                    policy: currentPolicy,
+                });
 
                 expect(canEditReportField).toBe(false);
             });
@@ -486,12 +500,19 @@ describe('canEditFieldOfMoneyRequest', () => {
                 expect(fixtureBeforeMutation.reportMetadata).toBeNull();
                 expect(submitToBeforeMutation).toBe(FORWARDED_APPROVER_ACCOUNT_ID);
                 expect(submitToBeforeMutation).toBe(fixtureBeforeMutation.currentReport?.managerID);
-                expect(canEditMoneyRequest(reportAction, false, fixtureBeforeMutation.currentReport, fixtureBeforeMutation.currentPolicy, fixtureBeforeMutation.currentTransaction)).toBe(
+                expect(canEditMoneyRequest(reportAction, fixtureBeforeMutation.currentTransaction, false, fixtureBeforeMutation.currentReport, fixtureBeforeMutation.currentPolicy)).toBe(
                     true,
                 );
 
                 const outstandingReportsBeforeMutation = await OnyxUtils.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
-                const canEditBeforeMutation = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, undefined, outstandingReportsBeforeMutation);
+                const canEditBeforeMutation = canEditFieldOfMoneyRequest({
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
+                    outstandingReportsByPolicyID: outstandingReportsBeforeMutation,
+                    transaction: fixtureBeforeMutation.currentTransaction,
+                    report: fixtureBeforeMutation.currentReport,
+                    policy: fixtureBeforeMutation.currentPolicy,
+                });
                 expect(canEditBeforeMutation).toBe(true);
 
                 await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
@@ -512,10 +533,17 @@ describe('canEditFieldOfMoneyRequest', () => {
                 expect(fixtureAfterMutation.reportMetadata).toBeNull();
                 expect(submitToAfterMutation).toBe(FORWARDED_APPROVER_ACCOUNT_ID_2);
                 expect(submitToAfterMutation).not.toBe(fixtureAfterMutation.currentReport?.managerID);
-                expect(canEditMoneyRequest(reportAction, false, fixtureAfterMutation.currentReport, fixtureAfterMutation.currentPolicy, fixtureAfterMutation.currentTransaction)).toBe(true);
+                expect(canEditMoneyRequest(reportAction, fixtureAfterMutation.currentTransaction, false, fixtureAfterMutation.currentReport, fixtureAfterMutation.currentPolicy)).toBe(true);
 
                 const outstandingReportsAfterMutation = await OnyxUtils.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
-                const canEditAfterMutation = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, undefined, outstandingReportsAfterMutation);
+                const canEditAfterMutation = canEditFieldOfMoneyRequest({
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
+                    outstandingReportsByPolicyID: outstandingReportsAfterMutation,
+                    transaction: fixtureAfterMutation.currentTransaction,
+                    report: fixtureAfterMutation.currentReport,
+                    policy: fixtureAfterMutation.currentPolicy,
+                });
                 expect(canEditAfterMutation).toBe(true);
             });
 
@@ -563,10 +591,17 @@ describe('canEditFieldOfMoneyRequest', () => {
 
                 expect(submitToAccountID).toBe(FORWARDED_APPROVER_ACCOUNT_ID_2);
                 expect(submitToAccountID).not.toBe(currentReport?.managerID);
-                expect(canEditMoneyRequest(reportAction, false, currentReport, currentPolicy, currentTransaction)).toBe(true);
+                expect(canEditMoneyRequest(reportAction, currentTransaction, false, currentReport, currentPolicy)).toBe(true);
 
                 const outstandingReportsByPolicyID = await OnyxUtils.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
-                const canEditReportField = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, undefined, outstandingReportsByPolicyID);
+                const canEditReportField = canEditFieldOfMoneyRequest({
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
+                    outstandingReportsByPolicyID,
+                    transaction: currentTransaction,
+                    report: currentReport,
+                    policy: currentPolicy,
+                });
 
                 expect(canEditReportField).toBe(true);
             });
@@ -610,10 +645,17 @@ describe('canEditFieldOfMoneyRequest', () => {
                     expect(reportMetadata).toBeNull();
                     expect(submitToAccountID).toBe(forwardedApproverAccountID);
                     expect(submitToAccountID).not.toBe(currentReport?.managerID);
-                    expect(canEditMoneyRequest(reportAction, false, currentReport, currentPolicy, currentTransaction)).toBe(true);
+                    expect(canEditMoneyRequest(reportAction, currentTransaction, false, currentReport, currentPolicy)).toBe(true);
 
                     const outstandingReportsByPolicyID = await OnyxUtils.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
-                    const canEditReportField = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, undefined, outstandingReportsByPolicyID);
+                    const canEditReportField = canEditFieldOfMoneyRequest({
+                        reportAction,
+                        fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
+                        outstandingReportsByPolicyID,
+                        transaction: currentTransaction,
+                        report: currentReport,
+                        policy: currentPolicy,
+                    });
 
                     expect(canEditReportField).toBe(false);
                 },
@@ -670,10 +712,17 @@ describe('canEditFieldOfMoneyRequest', () => {
 
                 expect(submitToAccountID).toBe(FORWARDED_APPROVER_ACCOUNT_ID_2);
                 expect(submitToAccountID).not.toBe(currentReport?.managerID);
-                expect(canEditMoneyRequest(reportAction, false, currentReport, currentPolicy, currentTransaction)).toBe(true);
+                expect(canEditMoneyRequest(reportAction, currentTransaction, false, currentReport, currentPolicy)).toBe(true);
 
                 const outstandingReportsByPolicyID = await OnyxUtils.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
-                const canEditReportField = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, undefined, outstandingReportsByPolicyID);
+                const canEditReportField = canEditFieldOfMoneyRequest({
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
+                    outstandingReportsByPolicyID,
+                    transaction: currentTransaction,
+                    report: currentReport,
+                    policy: currentPolicy,
+                });
 
                 expect(canEditReportField).toBe(true);
             });
@@ -715,10 +764,17 @@ describe('canEditFieldOfMoneyRequest', () => {
                 expect(reportMetadata).toBeNull();
                 expect(submitToAccountID).toBe(forwardedApproverAccountID);
                 expect(submitToAccountID).not.toBe(currentReport?.managerID);
-                expect(canEditMoneyRequest(reportAction, false, currentReport, currentPolicy, currentTransaction)).toBe(true);
+                expect(canEditMoneyRequest(reportAction, currentTransaction, false, currentReport, currentPolicy)).toBe(true);
 
                 const outstandingReportsByPolicyID = await OnyxUtils.get(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
-                const canEditReportField = canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, undefined, outstandingReportsByPolicyID);
+                const canEditReportField = canEditFieldOfMoneyRequest({
+                    reportAction,
+                    fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
+                    outstandingReportsByPolicyID,
+                    transaction: currentTransaction,
+                    report: currentReport,
+                    policy: currentPolicy,
+                });
 
                 expect(canEditReportField).toBe(false);
             });
