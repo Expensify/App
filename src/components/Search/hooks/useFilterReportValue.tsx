@@ -13,8 +13,8 @@ function useFilterReportValue(reportIDs: SearchFilter['value']): string {
 
     return reportIDs
         .map((id) => getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`], reportAttributes?.reports))
-        ?.filter(Boolean)
-        ?.join(', ');
+        .filter(Boolean)
+        .join(', ');
 }
 
 export default useFilterReportValue;

@@ -49,7 +49,7 @@ function CategorySelectPopup({closeOverlay, updateFilterForm}: CategorySelectPop
     );
     const selectedPoliciesCategories: PolicyCategory[] = Object.keys(allPolicyCategories ?? {})
         .filter((key) => policyIDs?.map((policyID) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`)?.includes(key))
-        ?.map((key) => Object.values(allPolicyCategories?.[key] ?? {}))
+        .map((key) => Object.values(allPolicyCategories?.[key] ?? {}))
         .flat();
 
     const categoryItems = [{text: translate('search.noCategory'), value: CONST.SEARCH.CATEGORY_EMPTY_VALUE as string}];

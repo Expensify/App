@@ -125,9 +125,9 @@ function CardSelectPopup({updateFilterForm, closeOverlay}: CardSelectPopupProps)
     const applyChanges = () => {
         const feeds = cardFeedsSectionData.selected.map((feed) => feed.cardFeedKey);
         const cardsFromSelectedFeed = getSelectedCardsFromFeeds(userCardList, workspaceCardFeeds, feeds);
-        const IDs = selectedCards.filter((card) => !cardsFromSelectedFeed.includes(card));
+        const cardIDs = selectedCards.filter((card) => !cardsFromSelectedFeed.includes(card));
 
-        updateFilterForm({cardID: IDs, feed: feeds});
+        updateFilterForm({cardID: cardIDs, feed: feeds});
         closeOverlay();
     };
 
