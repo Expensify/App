@@ -48,6 +48,7 @@ import {
     getExistingTransactionID,
     isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
     navigateToStartMoneyRequestStep,
+    resolveOptimisticChatReportID,
     shouldShowReceiptEmptyState,
     shouldUseTransactionDraft,
 } from '@libs/IOUUtils';
@@ -62,7 +63,6 @@ import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {
     findSelfDMReportID,
     generateReportID,
-    getChatByParticipants,
     getReportOrDraftReport,
     getReportTransactions,
     hasViolations as hasViolationsReportUtils,
@@ -883,11 +883,11 @@ function IOURequestStepConfirmation({
                 } else if (!report?.reportID && participant.isPolicyExpenseChat && participant.reportID) {
                     existingChatReport = getReportOrDraftReport(participant.reportID);
                 }
-                if (!existingChatReport?.reportID) {
-                    existingChatReport = getChatByParticipants([participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID]);
-                }
-                const optimisticChatReportID = existingChatReport?.reportID ? undefined : generateReportID();
-                const activeReportID = isExpenseReport && Navigation.getTopmostReportId() === report?.reportID ? report?.reportID : (existingChatReport?.reportID ?? optimisticChatReportID);
+                const {optimisticChatReportID, chatReportID} = resolveOptimisticChatReportID(
+                    [participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID],
+                    existingChatReport,
+                );
+                const activeReportID = isExpenseReport && Navigation.getTopmostReportId() === report?.reportID ? report?.reportID : chatReportID;
 
                 const result = submitPerDiemExpenseIOUActions({
                     report,
@@ -1475,9 +1475,7 @@ function IOURequestStepConfirmation({
                 return;
             }
 
-            const existingChat = report?.reportID ? report : getChatByParticipants([participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID]);
-            const optimisticChatReportID = existingChat?.reportID ? undefined : generateReportID();
-            const chatReportID = existingChat?.reportID ?? optimisticChatReportID;
+            const {optimisticChatReportID, chatReportID} = resolveOptimisticChatReportID([participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID], report);
             const sendMoneyParams = {
                 report,
                 quickAction,
@@ -1495,15 +1493,13 @@ function IOURequestStepConfirmation({
             if (paymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
                 setIsConfirmed(true);
                 sendMoneyElsewhere(sendMoneyParams);
-                dismissModalAndOpenReportInInboxTabHelper(chatReportID, undefined, getReportTransactions(chatReportID).length > 0);
-                return;
-            }
-
-            if (paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+            } else if (paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
                 setIsConfirmed(true);
                 sendMoneyWithWallet(sendMoneyParams);
-                dismissModalAndOpenReportInInboxTabHelper(chatReportID, undefined, getReportTransactions(chatReportID).length > 0);
+            } else {
+                return;
             }
+            dismissModalAndOpenReportInInboxTabHelper(chatReportID, undefined, getReportTransactions(chatReportID).length > 0);
         },
         [
             transaction?.currency,

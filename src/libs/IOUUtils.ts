@@ -11,7 +11,7 @@ import {getCurrencyUnit} from './CurrencyUtils';
 import Navigation from './Navigation/Navigation';
 import {isPaidGroupPolicy} from './PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from './ReportActionsUtils';
-import {getReportTransactions, isSelfDM} from './ReportUtils';
+import {generateReportID, getChatByParticipants, getReportTransactions, isSelfDM} from './ReportUtils';
 import {endSpan, getSpan, startSpan} from './telemetry/activeSpans';
 import {getCurrency, getTagArrayFromName} from './TransactionUtils';
 
@@ -459,6 +459,17 @@ function getInitialPerDiemTargetReport(
     return {targetReport, targetIouType, transactionReportID};
 }
 
+/**
+ * Resolves the chat report for post-action navigation and generates an optimistic report ID if no existing chat is found.
+ * Used by sendMoney and submitPerDiemExpense UI callers to pre-compute the navigation target before calling the action.
+ */
+function resolveOptimisticChatReportID(participantAccountIDs: number[], existingReport?: OnyxInputOrEntry<Report>) {
+    const existingChat = existingReport?.reportID ? existingReport : getChatByParticipants(participantAccountIDs);
+    const optimisticChatReportID = existingChat?.reportID ? undefined : generateReportID();
+    const chatReportID = existingChat?.reportID ?? optimisticChatReportID;
+    return {optimisticChatReportID, chatReportID};
+}
+
 export {
     calculateAmount,
     calculateSplitAmountFromPercentage,
@@ -477,4 +488,5 @@ export {
     navigateToConfirmationPage,
     calculateDefaultReimbursable,
     getInitialPerDiemTargetReport,
+    resolveOptimisticChatReportID,
 };
