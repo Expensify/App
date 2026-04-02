@@ -83,7 +83,7 @@ function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps)
               })
               .join(', ');
 
-    const categoriesMenuTitle = categories.map((categoryName) => translate(`workspace.rules.spendRules.categoryOptions.${categoryName}`)).join(', ');
+    const categoriesMenuTitle = categories.map((category) => translate(`workspace.rules.spendRules.categoryOptions.${category}`)).join(', ');
 
     const selectedCardsCurrencies = new Set<string>();
     for (const id of cardIDs ?? []) {

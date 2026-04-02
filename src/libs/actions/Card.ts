@@ -31,12 +31,13 @@ import {isReportOpenOrUnsubmitted} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SpendRuleForm} from '@src/types/form';
+import {isSpendRuleCategory} from '@src/types/form/SpendRuleForm';
 import type {Card, CompanyCardFeedWithDomainID, Report, Transaction} from '@src/types/onyx';
 import type {CardLimitType, ExpensifyCardDetails, IssueNewCardData, IssueNewCardStep} from '@src/types/onyx/Card';
+import type {ExpensifyCardRule, ExpensifyCardRuleFilter} from '@src/types/onyx/ExpensifyCardSettings';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {SavedCSVColumnLayoutData} from '@src/types/onyx/SavedCSVColumnLayout';
-import type {ExpensifyCardRuleFilter, ExpensifyCardRule} from '@src/types/onyx/ExpensifyCardSettings';
 
 type ReplacementReason = 'damaged' | 'stolen';
 
@@ -1690,7 +1691,7 @@ function getSpendRuleFormValuesFromCardRule(cardRule: ExpensifyCardRule): SpendR
         }
 
         if (left === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY) {
-            formValues.categories = right;
+            formValues.categories = right.filter(isSpendRuleCategory);
             return;
         }
 

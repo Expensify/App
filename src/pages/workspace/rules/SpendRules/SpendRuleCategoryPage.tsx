@@ -21,10 +21,11 @@ import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import CONST from '@src/CONST';
+import {SPEND_RULE_CATEGORIES} from '@src/types/form/SpendRuleForm';
+import type {SpendRuleCategory} from '@src/types/form/SpendRuleForm';
 
 type CategoryListItem = ListItem & {
-    value: string;
+    value: SpendRuleCategory;
 };
 
 type SpendRuleCategoryPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_SPEND_CATEGORY>;
@@ -37,7 +38,7 @@ function SpendRuleCategoryPage({route}: SpendRuleCategoryPageProps) {
 
     const [spendRuleForm] = useOnyx(ONYXKEYS.FORMS.SPEND_RULE_FORM);
 
-    const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+    const [selectedCategories, setSelectedCategories] = useState<SpendRuleCategory[]>([]);
 
     useFocusEffect(
         useCallback(() => {
@@ -45,7 +46,7 @@ function SpendRuleCategoryPage({route}: SpendRuleCategoryPageProps) {
         }, [spendRuleForm?.categories]),
     );
 
-    const categoryItems = Object.values(CONST.SPEND_RULES.CATEGORIES).map((category) => ({
+    const categoryItems: CategoryListItem[] = SPEND_RULE_CATEGORIES.map((category) => ({
         keyForList: category,
         text: translate(`workspace.rules.spendRules.categoryOptions.${category}`),
         value: category,
