@@ -163,14 +163,14 @@ describe('NativeBiometricsHSM helpers', () => {
         it('should return KEY_NOT_FOUND for key not found error code', () => {
             // Given the exact error code for when the signing key does not exist in the keystore
             // When mapping the error code
-            // Then it should resolve to KEYSTORE.KEY_NOT_FOUND
+            // Then it should resolve to HSM.KEY_NOT_FOUND
             expect(mapSignErrorCodeToReason(NATIVE_BIOMETRIC_HSM_VALUES.ERROR_CODE.KEY_NOT_FOUND)).toBe(VALUES.REASON.HSM.KEY_NOT_FOUND);
         });
 
         it('should return REGISTRATION_REQUIRED for key access failed error code', () => {
             // Given the exact error code for when the key cannot be accessed (e.g. biometric enrollment changed)
             // When mapping the error code
-            // Then it should resolve to KEYSTORE.REGISTRATION_REQUIRED to trigger re-registration
+            // Then it should resolve to HSM.KEY_ACCESS_FAILED to trigger re-registration
             expect(mapSignErrorCodeToReason(NATIVE_BIOMETRIC_HSM_VALUES.ERROR_CODE.KEY_ACCESS_FAILED)).toBe(VALUES.REASON.HSM.KEY_ACCESS_FAILED);
         });
 
@@ -218,7 +218,7 @@ describe('NativeBiometricsHSM helpers', () => {
         it('should return KEY_NOT_FOUND for Error with KEY_NOT_FOUND code', () => {
             // Given an Error object with a code property matching the key not found error code
             // When mapping the library error
-            // Then it should resolve to KEYSTORE.KEY_NOT_FOUND
+            // Then it should resolve to HSM.KEY_NOT_FOUND
             const error = Object.assign(new Error('Cryptographic key not found'), {code: NATIVE_BIOMETRIC_HSM_VALUES.ERROR_CODE.KEY_NOT_FOUND});
             expect(mapLibraryErrorToReason(error)).toBe(VALUES.REASON.HSM.KEY_NOT_FOUND);
         });
@@ -226,7 +226,7 @@ describe('NativeBiometricsHSM helpers', () => {
         it('should return REGISTRATION_REQUIRED for Error with KEY_ACCESS_FAILED code', () => {
             // Given an Error object with a code property matching the key access failed error code
             // When mapping the library error
-            // Then it should resolve to KEYSTORE.REGISTRATION_REQUIRED to trigger re-registration
+            // Then it should resolve to HSM.KEY_ACCESS_FAILED to trigger re-registration
             const error = Object.assign(new Error('Failed to access cryptographic key'), {code: NATIVE_BIOMETRIC_HSM_VALUES.ERROR_CODE.KEY_ACCESS_FAILED});
             expect(mapLibraryErrorToReason(error)).toBe(VALUES.REASON.HSM.KEY_ACCESS_FAILED);
         });

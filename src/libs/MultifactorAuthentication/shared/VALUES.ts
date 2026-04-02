@@ -107,7 +107,7 @@ const REASON = {
         GENERIC: 'An unknown WebAuthn error occurred',
     },
     HSM: {
-        CANCELED: 'Authentication canceled by user',
+        CANCELED: 'Biometric authentication canceled by user',
         NOT_AVAILABLE: 'Biometric authentication not available',
         LOCKOUT: 'Biometric authentication locked out',
         LOCKOUT_PERMANENT: 'Biometric authentication permanently locked out',
@@ -115,7 +115,7 @@ const REASON = {
         SIGNATURE_FAILED: 'Signature creation failed',
         KEY_CREATION_FAILED: 'Key creation failed',
         KEY_ACCESS_FAILED: 'Failed to access cryptographic key',
-        GENERIC: 'An error occurred',
+        GENERIC: 'An HSM error occurred',
     },
 } as const;
 

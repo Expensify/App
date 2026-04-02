@@ -87,11 +87,10 @@ const LIBRARY_ERROR_CODE_MAP: Record<string, MultifactorAuthenticationReason> = 
  * Maps caught exceptions from the library to REASON values.
  */
 function mapLibraryErrorToReason(error: unknown): MultifactorAuthenticationReason | undefined {
-    const code = error instanceof Error ? (error as Error & {code?: string}).code : undefined;
-    if (code) {
-        return LIBRARY_ERROR_CODE_MAP[code];
+    if (!(error instanceof Error && 'code' in error && typeof error.code === 'string')) {
+        return undefined;
     }
-    return undefined;
+    return LIBRARY_ERROR_CODE_MAP[error.code];
 }
 
 /**

@@ -412,6 +412,56 @@ describe('useNativeBiometricsHSM hook', () => {
             );
         });
 
+        it('should delete local keys and return KEY_NOT_FOUND when local credential is not in allowCredentials', async () => {
+            // Given a local HSM key exists but its credential ID does not match any ID in the challenge's allowCredentials list
+            // When the authorize flow checks for a matching credential
+            // Then it should delete the orphaned local key and return KEY_NOT_FOUND so the app can prompt re-registration
+            const keyAlias = '12345_HSM_KEY';
+            mockGetAllKeys.mockResolvedValue({keys: [{alias: keyAlias, publicKey: 'abc+def/ghi='}]});
+
+            const challengeWithDifferentCredential: AuthenticationChallenge = {
+                ...mockChallenge,
+                allowCredentials: [{id: 'different-credential-id', type: 'public-key'}],
+            };
+
+            const {result} = renderHook(() => useNativeBiometricsHSM());
+            const onResult = jest.fn();
+
+            await act(async () => {
+                await result.current.authorize({challenge: challengeWithDifferentCredential}, onResult);
+            });
+
+            expect(mockDeleteKeys).toHaveBeenCalledWith(keyAlias);
+            expect(onResult).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    success: false,
+                    reason: VALUES.REASON.HSM.KEY_NOT_FOUND,
+                }),
+            );
+            expect(mockSignWithOptions).not.toHaveBeenCalled();
+        });
+
+        it('should return BAD_REQUEST when mapAuthTypeNumber returns undefined', async () => {
+            // Given the biometric sign operation succeeds but returns an unrecognized authType number
+            // When mapAuthTypeNumber cannot map the authType to a known value and returns undefined
+            // Then onResult should receive a failure with BAD_REQUEST because the response cannot be trusted without a valid auth type
+            mockSignWithOptions.mockResolvedValue({success: true, signature: 'c2lnbmF0dXJl', authType: 999});
+
+            const {result} = renderHook(() => useNativeBiometricsHSM());
+            const onResult = jest.fn();
+
+            await act(async () => {
+                await result.current.authorize({challenge: mockChallenge}, onResult);
+            });
+
+            expect(onResult).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    success: false,
+                    reason: VALUES.REASON.GENERIC.BAD_REQUEST,
+                }),
+            );
+        });
+
         it('should handle thrown errors with unknown error code', async () => {
             // Given the biometric library throws an error without a recognized code property
             // When the authorize flow catches the thrown error
