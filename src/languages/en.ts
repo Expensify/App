@@ -2378,6 +2378,7 @@ const translations = {
         enableWallet: 'Enable wallet',
         addBankAccountToSendAndReceive: 'Add a bank account to make or receive payments.',
         addDebitOrCreditCard: 'Add debit or credit card',
+        cardInactive: 'Inactive',
         assignedCards: 'Assigned cards',
         assignedCardsDescription: 'Transactions from these cards sync automatically.',
         expensifyCard: 'Expensify Card',

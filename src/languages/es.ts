@@ -2230,6 +2230,7 @@ const translations: TranslationDeepObject<typeof en> = {
         enableWallet: 'Habilitar billetera',
         addBankAccountToSendAndReceive: 'Añade una cuenta bancaria para hacer o recibir pagos.',
         addDebitOrCreditCard: 'Añadir tarjeta de débito o crédito',
+        cardInactive: 'Inactiva',
         assignedCards: 'Tarjetas asignadas',
         assignedCardsDescription: 'Las transacciones de estas tarjetas se sincronizan automáticamente.',
         expensifyCard: 'Tarjeta Expensify',
