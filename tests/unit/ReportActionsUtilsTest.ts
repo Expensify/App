@@ -12,6 +12,8 @@ import CONST from '../../src/CONST';
 import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
 import {
     findLastReportActions,
+    getAddedCardFeedMessage,
+    getAssignedCompanyCardMessage,
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
     getCardIssuedMessage,
@@ -27,11 +29,16 @@ import {
     getPolicyChangeLogMaxExpenseAgeMessage,
     getPolicyChangeLogMaxExpenseAmountMessage,
     getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
+    getRemovedCardFeedMessage,
+    getRenamedCardFeedMessage,
     getReportActionActorAccountID,
     getSendMoneyFlowAction,
     getSortedReportActions,
     getSortedReportActionsForDisplay,
+    getUnassignedCompanyCardMessage,
     getUpdateACHAccountMessage,
+    getUpdatedCardFeedLiabilityMessage,
+    getUpdatedCardFeedStatementPeriodMessage,
     hasNextActionMadeBySameActor,
     hasReasoning,
     isConsecutiveActionMadeByPreviousActor,
@@ -3167,6 +3174,149 @@ describe('ReportActionsUtils', () => {
             } as ReportAction;
             const result = getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(translateLocal, action);
             expect(result).toBe('changed receipt required amount to "$75.00" (previously "$25.00")');
+        });
+    });
+
+    describe('getAddedCardFeedMessage', () => {
+        it('should return translated message when feedName is present', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CARD_FEED,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    feedName: 'Visa Commercial',
+                },
+            } as ReportAction;
+            const result = getAddedCardFeedMessage(translateLocal, action);
+            expect(result).toBe('added card feed "Visa Commercial"');
+        });
+    });
+
+    describe('getRemovedCardFeedMessage', () => {
+        it('should return translated message when feedName is present', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CARD_FEED,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    feedName: 'Amex Corporate',
+                },
+            } as ReportAction;
+            const result = getRemovedCardFeedMessage(translateLocal, action);
+            expect(result).toBe('removed card feed "Amex Corporate"');
+        });
+    });
+
+    describe('getRenamedCardFeedMessage', () => {
+        it('should return translated message when oldName and newName are present', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.RENAME_CARD_FEED,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldName: 'Old Feed Name',
+                    newName: 'New Feed Name',
+                },
+            } as ReportAction;
+            const result = getRenamedCardFeedMessage(translateLocal, action);
+            expect(result).toBe('renamed card feed to "New Feed Name" (previously "Old Feed Name")');
+        });
+    });
+
+    describe('getAssignedCompanyCardMessage', () => {
+        it('should return translated message when email and cardLastFour are present', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ASSIGN_COMPANY_CARD,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    email: 'user@example.com',
+                    feedName: 'US Bank',
+                    cardLastFour: '1234',
+                },
+            } as ReportAction;
+            const result = getAssignedCompanyCardMessage(translateLocal, action);
+            expect(result).toBe('assigned user@example.com "US Bank" company card ending in 1234');
+        });
+    });
+
+    describe('getUnassignedCompanyCardMessage', () => {
+        it('should return translated message when email and cardLastFour are present', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UNASSIGN_COMPANY_CARD,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    email: 'user@example.com',
+                    feedName: 'US Bank',
+                    cardLastFour: '5678',
+                },
+            } as ReportAction;
+            const result = getUnassignedCompanyCardMessage(translateLocal, action);
+            expect(result).toBe('unassigned user@example.com "US Bank" company card ending in 5678');
+        });
+    });
+
+    describe('getUpdatedCardFeedLiabilityMessage', () => {
+        it('should return enabled message when liabilityType is ALLOW', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_LIABILITY,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    feedName: 'Visa Commercial',
+                    liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.ALLOW,
+                },
+            } as ReportAction;
+            const result = getUpdatedCardFeedLiabilityMessage(translateLocal, action);
+            expect(result).toBe('enabled cardholders to delete card transactions for card feed "Visa Commercial"');
+        });
+    });
+
+    describe('getUpdatedCardFeedStatementPeriodMessage', () => {
+        it('should return translated message with numeric day values', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_STATEMENT_PERIOD,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    feedName: 'Visa Commercial',
+                    statementPeriodEndDay: '15',
+                    previousStatementPeriodEndDay: '20',
+                },
+            } as ReportAction;
+            const result = getUpdatedCardFeedStatementPeriodMessage(translateLocal, action);
+            expect(result).toBe('changed card feed "Visa Commercial" statement period end day to "15" (previously "20")');
+        });
+
+        it('should translate LAST_DAY_OF_MONTH value', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_STATEMENT_PERIOD,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    feedName: 'Amex Corporate',
+                    statementPeriodEndDay: CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH,
+                    previousStatementPeriodEndDay: '10',
+                },
+            } as ReportAction;
+            const result = getUpdatedCardFeedStatementPeriodMessage(translateLocal, action);
+            expect(result).toBe('changed card feed "Amex Corporate" statement period end day to "Last day of the month" (previously "10")');
+        });
+
+        it('should translate LAST_BUSINESS_DAY_OF_MONTH value', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_STATEMENT_PERIOD,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    feedName: 'Mastercard',
+                    statementPeriodEndDay: CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_BUSINESS_DAY_OF_MONTH,
+                    previousStatementPeriodEndDay: CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH,
+                },
+            } as ReportAction;
+            const result = getUpdatedCardFeedStatementPeriodMessage(translateLocal, action);
+            expect(result).toBe('changed card feed "Mastercard" statement period end day to "Last business day of the month" (previously "Last day of the month")');
         });
     });
 

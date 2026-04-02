@@ -7,6 +7,7 @@ import type {
     ConciergeBrokenCardConnectionParams,
     CreatedReportForUnapprovedTransactionsParams,
     MultifactorAuthenticationTranslationParams,
+    NextStepParams,
     PaidElsewhereParams,
     UpdatedPolicyTagParams,
     ViolationsRterParams,
@@ -54,7 +55,9 @@ const translations: TranslationDeepObject<typeof en> = {
         save: 'Guardar',
         saveChanges: 'Guardar cambios',
         submit: 'Enviar',
+        markAsDone: 'Marcar como listo',
         submitted: 'Enviado',
+        markedAsDoneStatus: 'Marcado como listo',
         rotate: 'Rotar',
         zoom: 'Zoom',
         password: 'Contraseña',
@@ -394,6 +397,7 @@ const translations: TranslationDeepObject<typeof en> = {
         on: 'El',
         before: 'Antes',
         after: 'Después',
+        range: 'Rango',
         reschedule: 'Reprogramar',
         general: 'General',
         workspacesTabTitle: 'Espacios',
@@ -776,6 +780,7 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistory: (users) => `Este chat es con ${users}.`,
         beginningOfChatHistoryPolicyExpenseChat: (workspaceName, submitterDisplayName) =>
             `Aquí es donde <strong>${submitterDisplayName}</strong> enviará los gastos al espacio de trabajo <strong>${workspaceName}</strong>. Solo usa el botón +.`,
+        beginningOfChatHistoryPolicyExpenseChatTrack: 'Aquí es donde harás seguimiento de los gastos',
         beginningOfChatHistorySelfDM: 'Este es tu espacio personal. Úsalo para notas, tareas, borradores y recordatorios.',
         beginningOfChatHistorySystemDM: '¡Bienvenido! Vamos a configurar tu cuenta.',
         chatWithAccountManager: 'Chatea con tu gestor de cuenta aquí',
@@ -856,16 +861,7 @@ const translations: TranslationDeepObject<typeof en> = {
         forYou: 'Para ti',
         timeSensitiveSection: {
             title: 'Requiere atención inmediata',
-            cta: 'Reclamar',
             ctaFix: 'Corrige',
-            offer50off: {
-                title: '¡Obtén 50% de descuento en tu primer año!',
-                subtitle: ({formattedTime}: {formattedTime: string}) => `${formattedTime} restantes`,
-            },
-            offer25off: {
-                title: '¡Obtén 25% de descuento en tu primer año!',
-                subtitle: ({days}: {days: number}) => `${days} ${days === 1 ? 'día' : 'días'} restantes`,
-            },
             fixCompanyCardConnection: {
                 title: ({feedName}: {feedName: string}) => (feedName ? `Reconectar la tarjeta corporativa de ${feedName}` : 'Reconectar la tarjeta corporativa'),
                 defaultSubtitle: 'Espacio de trabajo',
@@ -910,6 +906,19 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: 'No pudimos cobrar a la tarjeta registrada.',
                 subtitle: 'Suscripción',
             },
+        },
+        freeTrialSection: {
+            title: ({days}: {days: number}) => `Prueba gratuita: ${days} ${days === 1 ? 'día' : 'días'} restantes!`,
+            offer50Body: '¡Obtén 50% de descuento en tu primer año!',
+            offer25Body: '¡Obtén 25% de descuento en tu primer año!',
+            addCardBody: '¡No esperes! Añade tu tarjeta de pago ahora.',
+            ctaClaim: 'Reclamar',
+            ctaAdd: 'Añadir tarjeta',
+            timeRemaining: ({formattedTime}: {formattedTime: string}) => `Tiempo restante: ${formattedTime}`,
+            timeRemainingDays: () => ({
+                one: 'Tiempo restante: 1 día',
+                other: (pluralCount: number) => `Tiempo restante: ${pluralCount} días`,
+            }),
         },
         assignedCards: 'Tus tarjetas Expensify',
         assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} restantes`,
@@ -1003,7 +1012,18 @@ const translations: TranslationDeepObject<typeof en> = {
         emptyMappedField: (fieldName) => `¡Vaya! El campo ("${fieldName}") contiene uno o más valores vacíos. Por favor, revísalo e inténtalo de nuevo.`,
         importFailedTitle: 'Fallo en la importación',
         importFailedDescription: 'Por favor, asegúrate de que todos los campos estén llenos correctamente e inténtalo de nuevo. Si el problema persiste, por favor contacta a Concierge.',
-        importCategoriesSuccessfulDescription: ({categories}) => (categories > 1 ? `Se han agregado ${categories} categorías.` : 'Se ha agregado 1 categoría.'),
+        importCategoriesSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
+            if (!added && !updated) {
+                return 'No se han añadido ni actualizado categorías.';
+            }
+            if (added && updated) {
+                return `Se añadieron ${added} categoría${added === 1 ? '' : 's'} y se actualizaron ${updated} categoría${updated === 1 ? '' : 's'}.`;
+            }
+            if (added) {
+                return added === 1 ? 'Se añadió 1 categoría.' : `Se añadieron ${added} categorías.`;
+            }
+            return updated === 1 ? 'Se actualizó 1 categoría.' : `Se actualizaron ${updated} categorías.`;
+        },
         importMembersSuccessfulDescription: ({added, updated}) => {
             if (!added && !updated) {
                 return 'No se han añadido ni actualizado miembros.';
@@ -1024,6 +1044,8 @@ const translations: TranslationDeepObject<typeof en> = {
         importMultiLevelTagsSuccessfulDescription: 'Etiquetas de nivel múltiple han sido agregadas.',
         importPerDiemRatesSuccessfulDescription: ({rates}) => (rates > 1 ? `Se han añadido ${rates} tasas de per diem.` : 'Se ha añadido 1 tasa de per diem.'),
         importTransactionsSuccessfulDescription: ({transactions}) => (transactions > 1 ? `Se han importado ${transactions} transacciones.` : 'Se ha importado 1 transacción.'),
+        importCompanyCardTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
+            transactions > 1 ? `Se han importado ${transactions} transacciones.` : 'Se ha importado 1 transacción.',
         importSuccessfulTitle: 'Importar categorías',
         importDescription: 'Elige qué campos mapear desde tu hoja de cálculo haciendo clic en el menú desplegable junto a cada columna importada a continuación.',
         sizeNotMet: 'El archivo adjunto debe ser más grande que 0 bytes.',
@@ -1246,6 +1268,7 @@ const translations: TranslationDeepObject<typeof en> = {
         sendInvoice: (amount) => `Enviar factura de ${amount}`,
         expenseAmount: (formattedAmount, comment) => `${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         submitted: (memo) => `enviado${memo ? `, dijo ${memo}` : ''}`,
+        markedAsDone: (memo) => `marcado como listo${memo ? `, dijo ${memo}` : ''}`,
         automaticallySubmitted: `envió mediante <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">retrasar envíos</a>`,
         queuedToSubmitViaDEW: 'en cola para enviar a través del flujo de aprobación personalizado',
         failedToAutoSubmitViaDEW: (reason: string) => `no ha podido enviar este informe mediante <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">retrasar envíos</a>. ${reason}`,
@@ -1345,6 +1368,11 @@ const translations: TranslationDeepObject<typeof en> = {
             endDateSameAsStartDate: 'La fecha de finalización no puede ser la misma que la fecha de inicio',
             manySplitsProvided: `La cantidad máxima de divisiones permitidas es ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `El rango de fechas no puede exceder los ${CONST.IOU.SPLITS_LIMIT} días.`,
+            nonReimbursablePayment: 'No se puede pagar a través de Expensify',
+            nonReimbursablePaymentDescription: (isMultiple?: boolean) =>
+                isMultiple
+                    ? 'Uno o más informes seleccionados no tienen gastos reembolsables. Vuelve a revisar los gastos o márcalos manualmente como pagados.'
+                    : 'El informe no tiene gastos reembolsables. Vuelve a revisar los gastos o márcalo manualmente como pagado.',
         },
         dismissReceiptError: 'Descartar error',
         dismissReceiptErrorConfirmation: '¡Atención! Descartar este error eliminará completamente tu recibo cargado. ¿Estás seguro?',
@@ -1433,6 +1461,7 @@ const translations: TranslationDeepObject<typeof en> = {
         bookingArchived: 'Esta reserva está archivada',
         bookingArchivedDescription: 'Esta reserva está archivada porque la fecha del viaje ha pasado. Agregue un gasto por el monto final si es necesario.',
         attendees: 'Asistentes',
+        totalPerAttendee: 'Por asistente',
         whoIsYourAccountant: '¿Quién es tu contador?',
         paymentComplete: 'Pago completo',
         time: 'Tiempo',
@@ -1476,6 +1505,18 @@ const translations: TranslationDeepObject<typeof en> = {
                 rejectedExpense: 'rechazó este gasto',
                 markedAsResolved: 'marcó el motivo del rechazo como resuelto',
             },
+        },
+        rejectReport: {
+            title: 'Rechazar informe',
+            description: 'Explica por qué rechazas este informe:',
+            rejectReason: 'Motivo del rechazo',
+            selectTarget: 'Elige al miembro al que devolver este informe para su revisión:',
+            lastApprover: 'Último aprobador',
+            submitter: 'Remitente',
+            rejectedReportMessage: 'Este informe fue rechazado.',
+            rejectedNextStep: 'Este informe fue rechazado. Esperando a que corrijas los problemas y lo vuelvas a enviar manualmente.',
+            selectMemberError: 'Selecciona un miembro al que devolver este informe.',
+            couldNotReject: 'No se pudo rechazar el informe. Por favor, inténtalo de nuevo.',
         },
 
         moveExpenses: 'Mover a informe',
@@ -1705,6 +1746,18 @@ const translations: TranslationDeepObject<typeof en> = {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (_) =>
                 `¡Ups! Parece que estás enviando el informe a <strong>ti mismo</strong>. Aprobar tus propios informes está <strong>prohibido</strong> por tu espacio de trabajo. Por favor, envía este informe a otra persona o contacta a tu administrador para cambiar la persona a la que lo envías.`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: ({actor, actorType}: NextStepParams) => {
+                // All ACTOR_TYPE enum values are explicitly handled
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Este informe fue rechazado. Esperando a que <strong>tú</strong> corrijas los problemas y lo vuelvas a enviar manualmente.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Este informe fue rechazado. Esperando a que <strong>${actor}</strong> corrija los problemas y lo vuelva a enviar manualmente.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Este informe fue rechazado. Esperando a que un administrador corrija los problemas y lo vuelva a enviar manualmente.`;
+                }
+            },
         },
         eta: {
             [CONST.NEXT_STEP.ETA_KEY.SHORTLY]: 'en breve',
@@ -1876,6 +1929,7 @@ const translations: TranslationDeepObject<typeof en> = {
             softKillTheApp: 'Desactivar la aplicación',
             kill: 'Matar',
             sentryDebug: 'Depuración de Sentry',
+            sentrySendDescription: 'Enviar datos a Sentry',
             sentryDebugDescription: 'Registrar las solicitudes de Sentry en la consola',
             sentryHighlightedSpanOps: 'Nombres de spans resaltados',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigation, ui.load',
@@ -1887,6 +1941,13 @@ const translations: TranslationDeepObject<typeof en> = {
         versionLetter: 'v',
         readTheTermsAndPrivacy: `Leer los <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Términos de Servicio</a> y <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacidad</a>.`,
         help: 'Ayuda',
+        helpPage: {
+            title: 'Ayuda y soporte',
+            description: 'Estamos aquí para ayudarte las 24 horas, los 7 días de la semana',
+            helpSite: 'Sitio de ayuda',
+            conciergeChat: 'Concierge',
+            conciergeChatDescription: 'Tu agente personal de IA',
+        },
         whatIsNew: 'Qué hay de nuevo',
         accountSettings: 'Configuración de la cuenta',
         account: 'Cuenta',
@@ -2824,13 +2885,8 @@ ${amount} para ${merchant} - ${date}`,
                         4. Busca ${integrationName}.
                         5. Haz clic en *Conectar*.
 
-                        ${
-                            integrationName && CONST.connectionsVideoPaths[integrationName]
-                                ? `[Ir a contabilidad](${workspaceAccountingLink}).
-
-                        ![Conéctate a ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
-                                : `[Ir a contabilidad](${workspaceAccountingLink}).`
-                        }`),
+                        [Ir a contabilidad](${workspaceAccountingLink}).
+                    `),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `Conecta [tu tarjeta corporativa](${corporateCardLink})`,
@@ -3970,6 +4026,7 @@ ${amount} para ${merchant} - ${date}`,
             defaultNote: `Los recibos enviados a ${CONST.EMAIL.RECEIPTS} aparecerán en este espacio de trabajo.`,
             deleteConfirmation: '¿Estás seguro de que quieres eliminar este espacio de trabajo?',
             deleteWithCardsConfirmation: '¿Estás seguro de que quieres eliminar este espacio de trabajo? Se eliminarán todos los datos de las tarjetas y las tarjetas asignadas.',
+            deleteOpenExpensifyCardsError: 'Su empresa todavía tiene tarjetas Expensify activas.',
             outstandingBalanceWarning:
                 'Tienes un saldo pendiente que debe liquidarse antes de eliminar tu último espacio de trabajo. Por favor, ve a la configuración de tu suscripción para resolver el pago.',
             settleBalance: 'Ir a Suscripción',
@@ -4893,6 +4950,9 @@ ${amount} para ${merchant} - ${date}`,
         companyCards: {
             addCards: 'Añadir tarjetas',
             selectCards: 'Seleccionar tarjetas',
+            fromOtherWorkspaces: 'De otros espacios de trabajo',
+            addWorkEmail: 'Añade tu correo electrónico de trabajo',
+            addWorkEmailDescription: 'Por favor, añade tu correo de trabajo para poder usar los feeds existentes de otros espacios de trabajo.',
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Error al cargar las fuentes de tarjetas del espacio de trabajo',
                 workspaceFeedsCouldNotBeLoadedMessage:
@@ -4903,6 +4963,11 @@ ${amount} para ${merchant} - ${date}`,
             },
             addNewCard: {
                 other: 'Otros',
+                fileImport: 'Importar transacciones desde un archivo',
+                createFileFeedHelpText: `<muted-text>Siga este <a href="${CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}">guía de ayuda</a> para importar las transacciones de su tarjeta de empresa!</muted-text>`,
+                companyCardLayoutName: 'Nombre del layout de la tarjeta de empresa',
+                cardLayoutNameRequired: 'El nombre del layout de la tarjeta de empresa es requerido',
+                useAdvancedFields: 'Usar campos avanzados (no recomendado)',
                 cardProviders: {
                     gl1025: 'Tarjetas de empresa American Express',
                     cdf: 'Tarjetas comerciales Mastercard',
@@ -4965,6 +5030,24 @@ ${amount} para ${merchant} - ${date}`,
                     confirmText: 'Informar problema',
                     cancelText: 'Saltar',
                 },
+                csvColumns: {
+                    cardNumber: 'Número de la tarjeta',
+                    postedDate: 'Fecha',
+                    merchant: 'Comercio',
+                    amount: 'Cantidad',
+                    currency: 'Moneda',
+                    ignore: 'Ignorar',
+                    originalTransactionDate: 'Fecha original de la transacción',
+                    originalAmount: 'Cantidad original',
+                    originalCurrency: 'Moneda original',
+                    comment: 'Comentario',
+                    category: 'Categoría',
+                    tag: 'Etiqueta',
+                },
+                csvErrors: {
+                    requiredColumns: (missingColumns: string) => `Por favor, asigna una columna a cada uno de los atributos: ${missingColumns}.`,
+                    duplicateColumns: (duplicateColumn: string) => `¡Ups! Has asignado un solo campo ("${duplicateColumn}") a múltiples columnas. Por favor, revisa y vuelve a intentarlo.`,
+                },
             },
             statementCloseDate: {
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Último día del mes',
@@ -5016,6 +5099,7 @@ ${amount} para ${merchant} - ${date}`,
                 flipAmountSign: 'Invertir el signo del monto',
                 importButton: 'Importar transacciones',
             },
+            deletedCard: 'Tarjeta eliminada',
             assignNewCards: {
                 title: 'Asignar nuevas tarjetas',
                 description: 'Obtén las últimas tarjetas para asignar desde tu banco',
@@ -6756,6 +6840,17 @@ ${amount} para ${merchant} - ${date}`,
             }`;
         },
         deleteReportField: ({fieldType, fieldName}: {fieldType: string; fieldName?: string}) => `eliminó el campo de informe ${fieldType} "${fieldName}"`,
+        addedCardFeed: (feedName: string) => `añadió la fuente de tarjetas "${feedName}"`,
+        removedCardFeed: (feedName: string) => `eliminó la fuente de tarjetas "${feedName}"`,
+        renamedCardFeed: (newName: string, oldName: string) => `renombró la fuente de tarjetas a "${newName}" (previamente "${oldName}")`,
+        assignedCompanyCard: (email: string, feedName: string, cardLastFour: string) =>
+            `asignó la tarjeta de empresa ${feedName ? `"${feedName}" ` : ''}que termina en ${cardLastFour} a ${email}`,
+        unassignedCompanyCard: (email: string, feedName: string, cardLastFour: string) =>
+            `desasignó la tarjeta de empresa ${feedName ? `"${feedName}" ` : ''}que termina en ${cardLastFour} de ${email}`,
+        updatedCardFeedLiability: (feedName: string, enabled: boolean) =>
+            `${enabled ? 'habilitó' : 'deshabilitó'} que los titulares de tarjetas eliminen transacciones de la fuente de tarjetas "${feedName}"`,
+        updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
+            `cambió el día de cierre del período de estado de cuenta de la fuente de tarjetas "${feedName}"${newValue ? ` a "${newValue}"` : ''}${previousValue ? ` (previamente "${previousValue}")` : ''}`,
         preventSelfApproval: ({oldValue, newValue}) =>
             `actualizó "Evitar la autoaprobación" a "${newValue === 'true' ? 'Habilitada' : 'Deshabilitada'}" (previamente "${oldValue === 'true' ? 'Habilitada' : 'Deshabilitada'}")`,
         setReceiptRequiredAmount: (newValue) => `estableció el importe requerido del recibo en "${newValue}"`,
@@ -7212,6 +7307,9 @@ ${amount} para ${merchant} - ${date}`,
         deleteSavedSearchConfirm: '¿Estás seguro de que quieres eliminar esta búsqueda?',
         groupedExpenses: 'gastos agrupados',
         bulkActions: {
+            editMultiple: 'Editar múltiples',
+            editMultipleTitle: 'Editar múltiples gastos',
+            editMultipleDescription: 'Los cambios se aplicarán a todos los gastos seleccionados y anularán cualquier valor previamente establecido.',
             approve: 'Aprobar',
             pay: 'Pagar',
             delete: 'Eliminar',
@@ -7226,6 +7324,8 @@ ${amount} para ${merchant} - ${date}`,
                 before: (date) => `Antes de ${date ?? ''}`,
                 after: (date) => `Después de ${date ?? ''}`,
                 on: (date) => `En ${date ?? ''}`,
+                customDate: 'Fecha personalizada',
+                customRange: 'Rango personalizado',
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Nunca',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'El mes pasado',
@@ -7331,6 +7431,9 @@ ${amount} para ${merchant} - ${date}`,
         exportAll: {
             selectAllMatchingItems: 'Seleccionar todos los elementos coincidentes',
             allMatchingItemsSelected: 'Todos los elementos coincidentes seleccionados',
+        },
+        errors: {
+            pleaseSelectDatesForBothFromAndTo: 'Por favor, selecciona fechas para Desde y Hasta',
         },
     },
     genericErrorPage: {
