@@ -527,7 +527,7 @@ function IOURequestStepConfirmation({
                 if (hasExpiredImages) {
                     setIsStitchingReceipt(false);
                     clearOdometerTransactionState(transaction, shouldUseTransactionDraft(action, iouType));
-                    navigateToStartMoneyRequestStep(requestType, iouType, currentTransactionID, reportID);
+                    navigateToStartMoneyRequestStep(requestType, iouType, currentTransactionID, reportID, action, backToReport);
                     return;
                 }
                 runStitch();
@@ -539,7 +539,7 @@ function IOURequestStepConfirmation({
         return () => {
             ignore = true;
         };
-    }, [isOdometerDistanceRequest, isFocused, currentTransactionID, transaction, action, translate, iouType, requestType, reportID]);
+    }, [isOdometerDistanceRequest, isFocused, currentTransactionID, transaction, action, backToReport, translate, iouType, requestType, reportID]);
 
     const defaultBillable = !!policy?.defaultBillable;
     useEffect(() => {
@@ -730,9 +730,9 @@ function IOURequestStepConfirmation({
                 return;
             }
             removeDraftTransactionsByIDs(draftTransactionIDs, true);
-            navigateToStartMoneyRequestStep(requestType, iouType, initialTransactionID, reportID);
+            navigateToStartMoneyRequestStep(requestType, iouType, initialTransactionID, reportID, action, backToReport);
         });
-    }, [requestType, iouType, initialTransactionID, reportID, action, report, transactions, participants]);
+    }, [requestType, iouType, initialTransactionID, reportID, action, backToReport, report, transactions, participants, draftTransactionIDs]);
 
     const requestMoney = useCallback(
         (selectedParticipants: Participant[], gpsPoint?: GpsPoint) => {
