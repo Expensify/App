@@ -5,7 +5,7 @@ import type {OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} fr
 import Onyx from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {ReportExportType} from '@components/ButtonWithDropdownMenu/types';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type PolicyData from '@hooks/usePolicyData/types';
 import * as API from '@libs/API';
 import type {
@@ -2153,6 +2153,51 @@ function setDuplicateWorkspaceData(data: Partial<DuplicateWorkspace>) {
 
 function clearDuplicateWorkspace() {
     Onyx.set(ONYXKEYS.DUPLICATE_WORKSPACE, {});
+}
+
+function getDisplayNameForWorkspace(email: string) {
+    const emailParts = email.split('@');
+    const domain = emailParts.at(1) ?? '';
+    const isSMSDomain = `@${domain}` === CONST.SMS.DOMAIN;
+    if (isSMSDomain) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return translateLocal('workspace.new.myGroupWorkspace', {});
+    }
+
+    if (!PUBLIC_DOMAINS_SET.has(domain.toLowerCase())) {
+        return Str.UCFirst(domain.split('.').at(0) ?? '');
+    }
+
+    const userDetails = PersonalDetailsUtils.getPersonalDetailByEmail(email);
+    const displayName = userDetails?.displayName?.trim();
+    if (displayName) {
+        return Str.UCFirst(displayName);
+    }
+
+    const username = emailParts.at(0) ?? '';
+    return Str.UCFirst(username);
+}
+
+/**
+ * Generate a policy name based on an email and policy list.
+ * @param [email] the email to base the workspace name on. If not passed, will use the logged-in user's email instead
+ * @param [lastWorkspaceNumber] the last workspace number
+ */
+function newGenerateDefaultWorkspaceName(email: string, lastWorkspaceNumber: number | undefined, localeTranslate: LocalizedTranslate): string {
+    const emailParts = email ? email.split('@') : deprecatedSessionEmail.split('@');
+    if (!emailParts || emailParts.length !== 2) {
+        return '';
+    }
+    const domain = emailParts.at(1) ?? '';
+    const isSMSDomain = `@${domain}` === CONST.SMS.DOMAIN;
+
+    if (isSMSDomain) {
+        return localeTranslate('workspace.new.myGroupWorkspace', {workspaceNumber: lastWorkspaceNumber !== undefined ? lastWorkspaceNumber + 1 : undefined});
+    }
+
+    const displayNameForWorkspace = getDisplayNameForWorkspace(email || deprecatedSessionEmail);
+
+    return localeTranslate('workspace.new.workspaceName', displayNameForWorkspace, lastWorkspaceNumber !== undefined ? lastWorkspaceNumber + 1 : undefined);
 }
 
 /**
@@ -7004,6 +7049,8 @@ export {
     updateLastAccessedWorkspace,
     clearDeleteWorkspaceError,
     setWorkspaceDefaultSpendCategory,
+    getDisplayNameForWorkspace,
+    newGenerateDefaultWorkspaceName,
     generateDefaultWorkspaceName,
     updateGeneralSettings,
     deleteWorkspaceAvatar,
