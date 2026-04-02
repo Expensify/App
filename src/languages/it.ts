@@ -1646,6 +1646,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `approvazione non riuscita tramite le <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regole dello spazio di lavoro</a>. ${reason}`,
         failedToApproveViaDEW: (reason: string) => `approvazione non riuscita. ${reason}`,
         cannotDuplicateDistanceExpense: 'Non puoi duplicare le spese chilometriche tra diversi spazi di lavoro perché le tariffe potrebbero essere diverse.',
+        deleted: 'Eliminato',
     },
     transactionMerge: {
         listPage: {
@@ -7413,6 +7414,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             unhold: 'Rimuovi blocco',
             reject: 'Rifiuta',
             noOptionsAvailable: 'Nessuna opzione disponibile per il gruppo di spese selezionato.',
+            undelete: 'Ripristina',
         },
         filtersHeader: 'Filtri',
         filters: {

@@ -51,7 +51,7 @@ import {
 import {serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
 import {navigateToSearchRHP, shouldShowDeleteOption} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {hasTransactionBeenRejected} from '@libs/TransactionUtils';
+import {hasTransactionBeenRejected, isDeletedTransaction} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import {canIOUBePaid, dismissRejectUseExplanation, initBulkEditDraftTransaction} from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -73,6 +73,7 @@ import usePersonalPolicy from './usePersonalPolicy';
 import useSelfDMReport from './useSelfDMReport';
 import useTheme from './useTheme';
 import useThemeStyles from './useThemeStyles';
+import useUndeleteTransactions from './useUndeleteTransactions';
 
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
 
@@ -125,6 +126,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const {isBetaEnabled} = usePermissions();
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const undeleteTransactions = useUndeleteTransactions();
 
     // Cache the last search results that had data, so the merge option remains available
     // while results are temporarily unset (e.g. during sorting/loading).
@@ -167,6 +169,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         'Exclamation',
         'MoneyBag',
         'ArrowSplit',
+        'RotateLeft',
         'QBOSquare',
         'XeroSquare',
         'NetSuiteSquare',
@@ -734,6 +737,23 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             return CONST.EMPTY_ARRAY as unknown as Array<DropdownOption<SearchHeaderOptionValue>>;
         }
 
+        const allSelectedAreDeleted = selectedTransactionsKeys.length > 0 && selectedTransactionsKeys.every((id) => isDeletedTransaction(selectedTransactions[id] ?? {}));
+
+        if (allSelectedAreDeleted) {
+            return [
+                {
+                    icon: expensifyIcons.RotateLeft,
+                    text: translate('search.bulkActions.undelete'),
+                    value: CONST.SEARCH.BULK_ACTION_TYPES.UNDELETE,
+                    shouldCloseModalOnSelect: true,
+                    onSelected: () => {
+                        undeleteTransactions(selectedTransactionsKeys);
+                        clearSelectedTransactions();
+                    },
+                },
+            ];
+        }
+
         const options: Array<DropdownOption<SearchHeaderOptionValue>> = [];
         const isAnyTransactionOnHold = Object.values(selectedTransactions).some((transaction) => transaction.isHeld);
 
@@ -1235,6 +1255,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         expensifyIcons.ArrowSplit,
         expensifyIcons.Pencil,
         expensifyIcons.Trashcan,
+        expensifyIcons.RotateLeft,
         expensifyIcons.Exclamation,
         translate,
         areAllMatchingItemsSelected,
@@ -1278,6 +1299,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         firstTransaction,
         firstTransactionPolicy,
         handleDeleteSelectedTransactions,
+        undeleteTransactions,
+        currentUserPersonalDetails?.email,
         theme.icon,
         styles.colorMuted,
         styles.fontWeightNormal,

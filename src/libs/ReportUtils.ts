@@ -997,6 +997,7 @@ type GetReportNameParams = {
 type GetReportStatusParams = {
     stateNum?: number;
     statusNum?: number;
+    isDeleted?: boolean;
     translate: LocaleContextProps['translate'];
 };
 
@@ -13251,7 +13252,10 @@ function buildOptimisticMarkedAsResolvedReportAction(created = DateUtils.getDBTi
  * ========================================
  */
 
-function getReportStatusTranslation({stateNum, statusNum, translate}: GetReportStatusParams): string {
+function getReportStatusTranslation({stateNum, statusNum, isDeleted, translate}: GetReportStatusParams): string {
+    if (isDeleted) {
+        return translate('iou.deleted');
+    }
     if (stateNum === undefined || statusNum === undefined) {
         return '';
     }
@@ -13279,7 +13283,10 @@ function getReportStatusTranslation({stateNum, statusNum, translate}: GetReportS
     return '';
 }
 
-function getReportStatusColorStyle(theme: ThemeColors, stateNum?: number, statusNum?: number): {backgroundColor?: ColorValue; textColor?: ColorValue} | undefined {
+function getReportStatusColorStyle(theme: ThemeColors, stateNum?: number, statusNum?: number, isDeleted?: boolean): {backgroundColor?: ColorValue; textColor?: ColorValue} | undefined {
+    if (isDeleted) {
+        return theme.reportStatusBadge.deleted;
+    }
     if (stateNum === undefined || statusNum === undefined) {
         return undefined;
     }
