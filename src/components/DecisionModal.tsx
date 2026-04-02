@@ -112,4 +112,5 @@ function DecisionModal({
     );
 }
 
+export type {DecisionModalProps};
 export default DecisionModal;
