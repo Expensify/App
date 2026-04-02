@@ -882,7 +882,8 @@ function IOURequestStepConfirmation({
                     existingChatReport = getReportOrDraftReport(report?.chatReportID);
                 } else if (!report?.reportID && participant.isPolicyExpenseChat && participant.reportID) {
                     existingChatReport = getReportOrDraftReport(participant.reportID);
-                } else if (!report?.reportID) {
+                }
+                if (!existingChatReport?.reportID) {
                     existingChatReport = getChatByParticipants([participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID]);
                 }
                 const optimisticChatReportID = existingChatReport?.reportID ? undefined : generateReportID();
