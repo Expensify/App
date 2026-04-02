@@ -36,12 +36,14 @@ import {
     payMoneyRequest,
     rejectExpenseReport,
     rejectMoneyRequest,
+    removeMoneyRequestOdometerImage,
     replaceReceipt,
     requestMoney,
     resetDraftTransactionsCustomUnit,
     retractReport,
     setMoneyRequestCategory,
     setMoneyRequestDistanceRate,
+    setMoneyRequestOdometerImage,
     shouldOptimisticallyUpdateSearch,
     submitReport,
     trackExpense,
@@ -9698,7 +9700,7 @@ describe('actions/IOU', () => {
 
                     const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
                     // Change the approval mode for the policy since default is Submit and Close
-                    setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
+                    setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL);
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -9845,7 +9847,7 @@ describe('actions/IOU', () => {
                     });
 
                     const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-                    setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, {});
+                    setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, {});
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -10418,7 +10420,7 @@ describe('actions/IOU', () => {
             return waitForBatchedUpdates()
                 .then(async () => {
                     policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-                    setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, {});
+                    setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, RORY_ACCOUNT_ID, RORY_EMAIL, {});
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -10645,7 +10647,7 @@ describe('actions/IOU', () => {
                 hasActiveAdminPolicies: false,
             });
 
-            setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, {});
+            setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, {});
             await waitForBatchedUpdates();
 
             let chatReport: OnyxEntry<Report>;
@@ -14160,7 +14162,7 @@ describe('actions/IOU', () => {
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
                 // Change the approval mode for the policy since default is Submit and Close
-                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, {});
+                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, {});
                 await waitForBatchedUpdates();
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.REPORT,
@@ -14336,7 +14338,7 @@ describe('actions/IOU', () => {
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
                 // Change the approval mode for the policy since default is Submit and Close
-                setWorkspaceApprovalMode(policy, RORY_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, {});
+                setWorkspaceApprovalMode(policy, RORY_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, {});
                 await waitForBatchedUpdates();
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.REPORT,
@@ -14515,7 +14517,7 @@ describe('actions/IOU', () => {
                 });
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, {});
+                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, {});
                 await waitForBatchedUpdates();
 
                 await getOnyxData({
@@ -14705,7 +14707,7 @@ describe('actions/IOU', () => {
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
                 // Change the approval mode for the policy since default is Submit and Close
-                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, {});
+                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, {});
                 await waitForBatchedUpdates();
 
                 await getOnyxData({
@@ -17516,6 +17518,87 @@ describe('actions/IOU', () => {
             const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
             expect(updatedTransaction?.comment?.customUnit?.name).toBe(CONST.CUSTOM_UNITS.NAME_DISTANCE);
             expect(updatedTransaction?.comment?.customUnit?.quantity).toBe(100);
+        });
+    });
+
+    describe('setMoneyRequestOdometerImage and removeMoneyRequestOdometerImage', () => {
+        beforeEach(() => {
+            jest.mock('@libs/OdometerImageUtils', () => ({
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                __esModule: true,
+                default: jest.fn(),
+            }));
+        });
+
+        afterEach(() => {
+            jest.unmock('@libs/OdometerImageUtils');
+        });
+        it('should set odometer start image on a draft transaction', async () => {
+            const transaction = createRandomTransaction(1);
+            const transactionID = transaction.transactionID;
+            const file = {uri: 'image.uri', name: 'image.jpg', type: 'image/jpeg', size: 1234};
+            const imageType = CONST.IOU.ODOMETER_IMAGE_TYPE.START;
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, transaction);
+
+            setMoneyRequestOdometerImage(transaction, imageType, file, true, false);
+            await waitForBatchedUpdates();
+
+            const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+            expect(draftTransaction?.comment?.odometerStartImage).toEqual(file);
+        });
+
+        it('should set odometer end image on a non-draft transaction', async () => {
+            const transaction = createRandomTransaction(1);
+            const transactionID = transaction.transactionID;
+            const file = {uri: 'image.uri', name: 'image.jpg', type: 'image/jpeg', size: 1234};
+            const imageType = CONST.IOU.ODOMETER_IMAGE_TYPE.END;
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+
+            setMoneyRequestOdometerImage(transaction, imageType, file, false, false);
+            await waitForBatchedUpdates();
+
+            const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(updatedTransaction?.comment?.odometerEndImage).toEqual(file);
+        });
+
+        it('should remove odometer start image from a draft transaction', async () => {
+            const transaction = {
+                ...createRandomTransaction(1),
+                comment: {
+                    odometerStartImage: {uri: 'image.uri'},
+                },
+            } as Transaction;
+            const transactionID = transaction.transactionID;
+            const imageType = CONST.IOU.ODOMETER_IMAGE_TYPE.START;
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, transaction);
+
+            removeMoneyRequestOdometerImage(transaction, imageType, true, false);
+            await waitForBatchedUpdates();
+
+            const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+            expect(draftTransaction?.comment?.odometerStartImage).toBeUndefined();
+        });
+
+        it('should remove odometer end image from a non-draft transaction', async () => {
+            const transaction = {
+                ...createRandomTransaction(1),
+                comment: {
+                    odometerEndImage: {uri: 'image.uri'},
+                },
+            } as Transaction;
+            const transactionID = transaction.transactionID;
+            const imageType = CONST.IOU.ODOMETER_IMAGE_TYPE.END;
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+
+            removeMoneyRequestOdometerImage(transaction, imageType, false, false);
+            await waitForBatchedUpdates();
+
+            const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(updatedTransaction?.comment?.odometerEndImage).toBeUndefined();
         });
     });
 
