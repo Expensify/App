@@ -34,6 +34,7 @@ function DecisionModalWrapper({closeModal, onModalHide, ...props}: DecisionModal
 
     return (
         <DecisionModal
+            // Spreading is needed to forward all modal configuration props from the wrapper to the underlying DecisionModal.
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             isVisible={isVisible}

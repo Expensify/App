@@ -384,6 +384,23 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
     const [exportModalStatus, setExportModalStatus] = useState<ExportType | null>(null);
     const {showConfirmModal} = useConfirmModal();
     const {showDecisionModal} = useDecisionModal();
+
+    const showOfflineModal = () => {
+        showDecisionModal({
+            title: translate('common.youAppearToBeOffline'),
+            prompt: translate('common.offlinePrompt'),
+            secondOptionText: translate('common.buttonConfirm'),
+        });
+    };
+
+    const showDownloadErrorModal = () => {
+        showDecisionModal({
+            title: translate('common.downloadFailedTitle'),
+            prompt: translate('common.downloadFailedDescription'),
+            secondOptionText: translate('common.buttonConfirm'),
+        });
+    };
+
     const {isPaidAnimationRunning, isApprovedAnimationRunning, isSubmittingAnimationRunning, startAnimation, stopAnimation, startApprovedAnimation, startSubmittingAnimation} =
         usePaymentAnimations();
     const styles = useThemeStyles();
@@ -585,20 +602,8 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         reportActions,
         allTransactionsLength: transactions.length,
         session,
-        onExportFailed: () => {
-            showDecisionModal({
-                title: translate('common.downloadFailedTitle'),
-                prompt: translate('common.downloadFailedDescription'),
-                secondOptionText: translate('common.buttonConfirm'),
-            });
-        },
-        onExportOffline: () => {
-            showDecisionModal({
-                title: translate('common.youAppearToBeOffline'),
-                prompt: translate('common.offlinePrompt'),
-                secondOptionText: translate('common.buttonConfirm'),
-            });
-        },
+        onExportFailed: showDownloadErrorModal,
+        onExportOffline: showOfflineModal,
         policy,
         beginExportWithTemplate: (templateName, templateType, transactionIDList, policyID) => beginExportWithTemplate(templateName, templateType, transactionIDList, policyID),
         isOnSearch,

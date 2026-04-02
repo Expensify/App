@@ -11,6 +11,7 @@ const useDecisionModal = () => {
         return context.showModal({
             component: DecisionModalWrapper,
             props: {
+                shouldHandleNavigationBack: true,
                 ...options,
             },
         });
