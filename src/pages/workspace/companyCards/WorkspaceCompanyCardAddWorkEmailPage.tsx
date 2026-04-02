@@ -137,6 +137,7 @@ function WorkspaceCompanyCardAddWorkEmailPage({route}: WorkspaceCompanyCardAddWo
                 testID="WorkspaceCompanyCardAddWorkEmailPage"
                 shouldEnablePickerAvoiding={false}
                 shouldEnableMaxHeight
+                onEntryTransitionEnd={() => emailInputRef.current?.focus()}
             >
                 <HeaderWithBackButton title={translate('workspace.companyCards.addWorkEmail')} />
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5]}>{translate('workspace.companyCards.addWorkEmail')}</Text>
@@ -150,7 +151,6 @@ function WorkspaceCompanyCardAddWorkEmailPage({route}: WorkspaceCompanyCardAddWo
                     style={[styles.flex1, styles.ph5, styles.pb3]}
                 >
                     <InputWrapper
-                        autoFocus
                         InputComponent={TextInput}
                         label={`${translate('common.workEmail')}`}
                         aria-label={`${translate('common.workEmail')}`}
