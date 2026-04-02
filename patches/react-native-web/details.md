@@ -147,4 +147,4 @@
     ```
 - Upstream PR/issue: 🛑
 - E/App issue: https://github.com/Expensify/App/issues/79243
-- PR introducing patch: TBD
+- PR introducing patch: https://github.com/Expensify/App/pull/86731

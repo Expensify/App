@@ -2,13 +2,10 @@ diff --git a/node_modules/react-native-web/dist/exports/Pressable/index.js b/nod
 index 2837507..a1b2c3d 100644
 --- a/node_modules/react-native-web/dist/exports/Pressable/index.js
 +++ b/node_modules/react-native-web/dist/exports/Pressable/index.js
-@@ -69,6 +69,12 @@ function Pressable(props, forwardedRef) {
+@@ -69,6 +69,9 @@ function Pressable(props, forwardedRef) {
      onPressEnd: onPressOut
    }), [delayLongPress, delayPressIn, delayPressOut, disabled, onLongPress, onPress, onPressIn, onPressMove, onPressOut, setPressed]);
    var pressEventHandlers = usePressEvents(hostRef, pressConfig);
-+  // When no press or longPress callbacks are configured, remove the onClick
-+  // handler so that assistive technology (e.g. TalkBack on Android mWeb) does
-+  // not detect a click listener and announce the element as actionable.
 +  if (onPress == null && onLongPress == null) {
 +    pressEventHandlers = _objectWithoutPropertiesLoose(pressEventHandlers, ["onClick"]);
 +  }
