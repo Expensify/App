@@ -6641,7 +6641,7 @@ const translations = {
             },
             merchantRules: {
                 title: 'Merchant',
-                subtitle: 'Set the merchant rules so expenses arrive correctly coded and require less cleanup.',
+                subtitle: 'Set merchant rules so expenses arrive correctly coded and require less cleanup.',
                 addRule: 'Add merchant rule',
                 addRuleTitle: 'Add rule',
                 editRuleTitle: 'Edit rule',
