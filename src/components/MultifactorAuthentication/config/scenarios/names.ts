@@ -16,10 +16,10 @@ const SCENARIO_NAMES = {
 
 /**
  * Prompt identifiers for multifactor authentication scenarios.
- * TODO: update the BIOMETRIC_HSM type
+ * TODO: update the BIOMETRICS_HSM type
  */
 const PROMPT_NAMES = {
-    BIOMETRIC_HSM: 'biometrics',
+    BIOMETRICS_HSM: 'biometrics',
     BIOMETRICS: 'biometrics',
     PASSKEYS: 'passkeys',
 } as const;

@@ -8,7 +8,7 @@ import VALUES from '@libs/MultifactorAuthentication/VALUES';
  * Exported to a separate file to avoid circular dependencies.
  */
 export default {
-    [VALUES.PROMPT.BIOMETRIC_HSM]: {
+    [VALUES.PROMPT.BIOMETRICS_HSM]: {
         illustration: LottieAnimations.Fingerprint,
         title: 'multifactorAuthentication.verifyYourself.biometrics',
         subtitle: 'multifactorAuthentication.enableQuickVerification.biometrics',

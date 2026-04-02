@@ -98,7 +98,7 @@ describe('useNativeBiometricsHSM hook', () => {
             // Then it should report BIOMETRICS as its device verification type so the MFA system can distinguish it from other verification methods
             const {result} = renderHook(() => useNativeBiometricsHSM());
 
-            expect(result.current.deviceVerificationType).toBe(CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRIC_HSM);
+            expect(result.current.deviceVerificationType).toBe(CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS_HSM);
         });
     });
 
@@ -286,7 +286,7 @@ describe('useNativeBiometricsHSM hook', () => {
                     reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.LOCAL_REGISTRATION_COMPLETE,
                     keyInfo: expect.objectContaining({
                         rawId: 'abc-def_ghi',
-                        type: CONST.MULTIFACTOR_AUTHENTICATION.BIOMETRIC_HSM_TYPE,
+                        type: CONST.MULTIFACTOR_AUTHENTICATION.BIOMETRICS_HSM_TYPE,
                     }),
                 }),
             );
@@ -345,7 +345,7 @@ describe('useNativeBiometricsHSM hook', () => {
                     success: true,
                     reason: VALUES.REASON.CHALLENGE.CHALLENGE_SIGNED,
                     signedChallenge: expect.objectContaining({
-                        type: CONST.MULTIFACTOR_AUTHENTICATION.BIOMETRIC_HSM_TYPE,
+                        type: CONST.MULTIFACTOR_AUTHENTICATION.BIOMETRICS_HSM_TYPE,
                     }),
                 }),
             );

@@ -4,14 +4,14 @@
  * This ensures CONST.MULTIFACTOR_AUTHENTICATION continues working everywhere.
  */
 import NATIVE_BIOMETRICS_VALUES from './NativeBiometrics/VALUES';
-import NATIVE_BIOMETRIC_HSM_VALUES from './NativeBiometricsHSM/VALUES';
+import NATIVE_BIOMETRICS_HSM_VALUES from './NativeBiometricsHSM/VALUES';
 import PASSKEY_VALUES from './Passkeys/VALUES';
 import SHARED_VALUES from './shared/VALUES';
 
 const MULTIFACTOR_AUTHENTICATION_VALUES = {
     ...SHARED_VALUES,
     ...NATIVE_BIOMETRICS_VALUES,
-    ...NATIVE_BIOMETRIC_HSM_VALUES,
+    ...NATIVE_BIOMETRICS_HSM_VALUES,
     ...PASSKEY_VALUES,
 } as const;
 

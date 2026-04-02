@@ -96,7 +96,7 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
             const clientDataJSON = JSON.stringify({challenge: registrationChallenge.challenge});
             const keyInfo: NativeBiometricsHSMKeyInfo = {
                 rawId: credentialID,
-                type: CONST.MULTIFACTOR_AUTHENTICATION.BIOMETRIC_HSM_TYPE,
+                type: CONST.MULTIFACTOR_AUTHENTICATION.BIOMETRICS_HSM_TYPE,
                 response: {
                     clientDataJSON: Base64URL.encode(clientDataJSON),
                     biometric: {
@@ -171,7 +171,7 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
                 reason: VALUES.REASON.CHALLENGE.CHALLENGE_SIGNED,
                 signedChallenge: {
                     rawId: credentialID,
-                    type: CONST.MULTIFACTOR_AUTHENTICATION.BIOMETRIC_HSM_TYPE,
+                    type: CONST.MULTIFACTOR_AUTHENTICATION.BIOMETRICS_HSM_TYPE,
                     response: {
                         authenticatorData: Base64URL.base64ToBase64url(authenticatorData.toString('base64')),
                         clientDataJSON: Base64URL.encode(clientDataJSON),
@@ -195,7 +195,7 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
     const hasLocalCredentials = async () => !!(await getLocalCredentialID());
 
     return {
-        deviceVerificationType: CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRIC_HSM,
+        deviceVerificationType: CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS_HSM,
         serverKnownCredentialIDs,
         haveCredentialsEverBeenConfigured,
         getLocalCredentialID,

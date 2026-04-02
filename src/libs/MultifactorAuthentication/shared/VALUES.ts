@@ -291,7 +291,7 @@ const SHARED_VALUES = {
      * Maps authentication type to the corresponding prompt type.
      */
     PROMPT_TYPE_MAP: {
-        BIOMETRIC_HSM: PROMPT_NAMES.BIOMETRIC_HSM,
+        BIOMETRICS_HSM: PROMPT_NAMES.BIOMETRICS_HSM,
         BIOMETRICS: PROMPT_NAMES.BIOMETRICS,
         PASSKEYS: PROMPT_NAMES.PASSKEYS,
     },
@@ -300,7 +300,7 @@ const SHARED_VALUES = {
      * Authentication type identifiers.
      */
     TYPE: {
-        BIOMETRIC_HSM: 'BIOMETRIC_HSM',
+        BIOMETRICS_HSM: 'BIOMETRIC_HSM',
         BIOMETRICS: 'BIOMETRICS',
         PASSKEYS: 'PASSKEYS',
     },

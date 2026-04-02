@@ -4,11 +4,11 @@
 // import {AuthType} from '@sbaiahmed1/react-native-biometrics/types';
 import MARQETA_VALUES from '@libs/MultifactorAuthentication/shared/MarqetaValues';
 
-const NATIVE_BIOMETRIC_HSM_VALUES = {
+const NATIVE_BIOMETRICS_HSM_VALUES = {
     /**
      * HSM key type identifier
      */
-    BIOMETRIC_HSM_TYPE: 'biometric-hsm',
+    BIOMETRICS_HSM_TYPE: 'biometric-hsm',
 
     /**
      * Key alias suffix for HSM keys managed by react-native-biometrics.
@@ -97,4 +97,4 @@ const NATIVE_BIOMETRIC_HSM_VALUES = {
     },
 } as const;
 
-export default NATIVE_BIOMETRIC_HSM_VALUES;
+export default NATIVE_BIOMETRICS_HSM_VALUES;

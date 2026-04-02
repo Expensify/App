@@ -7,7 +7,7 @@ import type VALUES from './VALUES';
 
 type NativeBiometricsHSMKeyInfo = {
     rawId: Base64URLString;
-    type: typeof VALUES.BIOMETRIC_HSM_TYPE;
+    type: typeof VALUES.BIOMETRICS_HSM_TYPE;
     response: {
         clientDataJSON: Base64URLString;
         biometric: {
