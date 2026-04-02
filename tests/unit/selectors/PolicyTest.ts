@@ -129,8 +129,8 @@ describe('adminPoliciesConnectedToQBDSelector', () => {
         expect(adminPoliciesConnectedToQBDSelector({})).toEqual([]);
     });
 
-    it('returns empty array for null collection', () => {
-        expect(adminPoliciesConnectedToQBDSelector(null)).toEqual([]);
+    it('returns empty array for undefined collection', () => {
+        expect(adminPoliciesConnectedToQBDSelector(undefined)).toEqual([]);
     });
 });
 
