@@ -737,7 +737,7 @@ function IOURequestStepConfirmation({
 
                 const existingTransactionID = getExistingTransactionID(item.linkedTrackedExpenseReportAction);
                 const existingTransactionDraft = transactionDrafts.find((tx) => tx.transactionID === existingTransactionID);
-                const existingTransaction = existingTransactionID ? transactions?.find((tx) => tx?.transactionID === existingTransactionID) : undefined;
+                const existingStoredTransaction = existingTransactionID ? transactions?.find((tx) => tx?.transactionID === existingTransactionID) : undefined;
                 let merchantToUse = isTestReceipt ? CONST.TEST_RECEIPT.MERCHANT : item.merchant;
                 if (!isTestReceipt && isManualDistanceRequestTransactionUtils(item)) {
                     const distance = item.comment?.customUnit?.quantity;
@@ -819,7 +819,7 @@ function IOURequestStepConfirmation({
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                     quickAction,
                     existingTransactionDraft,
-                    existingTransaction,
+                    existingTransaction: existingStoredTransaction,
                     draftTransactionIDs,
                     isSelfTourViewed,
                     betas,
