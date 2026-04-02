@@ -14,7 +14,7 @@ import type {Transaction} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import useOnyx from './useOnyx';
 
-function clearOdometerTransactionState(transaction: OnyxEntry<Transaction>, draftTransactionIDs: string[] | undefined, isDraft: boolean): void {
+function clearOdometerTransactionState(transaction: OnyxEntry<Transaction>, isDraft: boolean): void {
     if (!transaction) {
         return;
     }
@@ -22,7 +22,7 @@ function clearOdometerTransactionState(transaction: OnyxEntry<Transaction>, draf
     setMoneyRequestOdometerReading(transaction.transactionID, null, null, isDraft);
     removeMoneyRequestOdometerImage(transaction, CONST.IOU.ODOMETER_IMAGE_TYPE.START, isDraft, true);
     removeMoneyRequestOdometerImage(transaction, CONST.IOU.ODOMETER_IMAGE_TYPE.END, isDraft, true);
-    removeDraftTransactionsByIDs(draftTransactionIDs, true);
+    removeDraftTransactionsByIDs([transaction.transactionID], true);
 }
 
 // When the component mounts, if there are odometer images or a stitched receipt, see if the files can be read from the disk.
@@ -31,7 +31,7 @@ function clearOdometerTransactionState(transaction: OnyxEntry<Transaction>, draf
 // and if the browser is refreshed, then the images cease to exist.
 // The best way for the user to recover from this is to start over from the start of the request process.
 const useRestartOnOdometerImagesFailure = (transaction: OnyxEntry<Transaction>, reportID: string, iouType: IOUType, action: IOUAction) => {
-    const [draftTransactionIDs, draftTransactionsMetadata] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+    const [, draftTransactionsMetadata] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
     useEffect(() => {
         if (Platform.OS !== 'web' || !transaction || action !== CONST.IOU.ACTION.CREATE || isLoadingOnyxValue(draftTransactionsMetadata)) {
@@ -41,7 +41,6 @@ const useRestartOnOdometerImagesFailure = (transaction: OnyxEntry<Transaction>, 
         // Capture all values from this render — the effect runs intentionally once per
         // draftTransactionsMetadata load, so we pin the snapshot explicitly.
         const capturedTransaction = transaction;
-        const capturedDraftTransactionIDs = draftTransactionIDs;
         const capturedIouType = iouType;
         const capturedReportID = reportID;
 
@@ -91,7 +90,7 @@ const useRestartOnOdometerImagesFailure = (transaction: OnyxEntry<Transaction>, 
                 return;
             }
 
-            clearOdometerTransactionState(capturedTransaction, capturedDraftTransactionIDs, true);
+            clearOdometerTransactionState(capturedTransaction, true);
             navigateToStartMoneyRequestStep(requestType, capturedIouType, capturedTransaction.transactionID, capturedReportID);
         });
 
