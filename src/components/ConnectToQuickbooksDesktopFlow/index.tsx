@@ -20,7 +20,8 @@ function ConnectToQuickbooksDesktopFlow({policyID}: ConnectToQuickbooksDesktopFl
         } else {
             Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_SETUP_MODAL.getRoute(policyID));
         }
-    }, [policyID, hasPoliciesConnectedToQBD]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     return null;
 }
