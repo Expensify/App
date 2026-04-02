@@ -9,7 +9,7 @@ import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import usePrevious from '@hooks/usePrevious';
 // eslint-disable-next-line @dword-design/import-alias/prefer-alias
-import {doesReportContainRequestsFromMultipleUsers, getReportOrDraftReport} from '@libs/ReportUtils';
+import {doesReportContainRequestsFromMultipleUsers, getReportOrDraftReport, isThread} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
@@ -4543,27 +4543,30 @@ function hasReasoning(action: OnyxInputOrEntry<ReportAction>): boolean {
  * Given all report actions and all reports, return report actions keyed by reportID
  * for reports whose policyID matches the given policyID.
  */
-function filterReportActionsByPolicyID(allReportActions: OnyxCollection<ReportActions>, allReports: OnyxCollection<Report>, policyID: string | undefined): Record<string, ReportActions> {
-    if (!allReportActions || !allReports || !policyID) {
+function filterReportActionsByPolicyID(
+    allReportActionsParam: OnyxCollection<ReportActions>,
+    allReportsPram: OnyxCollection<Report>,
+    policyID: string | undefined,
+): Record<string, ReportActions> {
+    if (!allReportActionsParam || !allReportsPram || !policyID) {
         return {};
     }
 
     const policyReportIDs = new Set<string>();
-    for (const [key, report] of Object.entries(allReports)) {
-        if (report?.policyID === policyID) {
-            const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT, '');
-            policyReportIDs.add(reportID);
+    for (const [, report] of Object.entries(allReportsPram)) {
+        if (report?.policyID === policyID && isPolicyExpenseChat(report) && !isThread(report)) {
+            policyReportIDs.add(report.reportID);
         }
     }
 
     const result: Record<string, ReportActions> = {};
-    for (const [key, actions] of Object.entries(allReportActions)) {
+    for (const [key, actions] of Object.entries(allReportActionsParam)) {
         if (!actions) {
             continue;
         }
         const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
         if (policyReportIDs.has(reportID)) {
-            result[reportID] = actions;
+            result[key] = actions;
         }
     }
 

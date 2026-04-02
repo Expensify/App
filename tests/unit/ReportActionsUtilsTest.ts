@@ -11,6 +11,7 @@ import {chatReportR14932 as mockChatReport, iouReportR14932 as mockIOUReport} fr
 import CONST from '../../src/CONST';
 import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
 import {
+    filterReportActionsByPolicyID,
     findLastReportActions,
     getAddedCardFeedMessage,
     getAssignedCompanyCardMessage,
@@ -4674,6 +4675,110 @@ describe('ReportActionsUtils', () => {
                     isOffline: false,
                 }),
             ).toBe(false);
+        });
+    });
+
+    describe('filterReportActionsByPolicyID', () => {
+        const policyID = 'policy123';
+        const otherPolicyID = 'otherPolicy';
+
+        const policyExpenseReport: Report = {
+            reportID: '1',
+            policyID,
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            type: CONST.REPORT.TYPE.CHAT,
+            reportName: 'Expense Chat',
+        };
+
+        const otherPolicyReport: Report = {
+            reportID: '2',
+            policyID: otherPolicyID,
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            type: CONST.REPORT.TYPE.CHAT,
+            reportName: 'Other Policy Chat',
+        };
+
+        const threadReport: Report = {
+            reportID: '3',
+            policyID,
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            type: CONST.REPORT.TYPE.CHAT,
+            parentReportID: '1',
+            parentReportActionID: 'action1',
+            reportName: 'Thread',
+        };
+
+        const nonExpenseChatReport: Report = {
+            reportID: '4',
+            policyID,
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+            type: CONST.REPORT.TYPE.CHAT,
+            reportName: 'Policy Room',
+        };
+
+        const actions1: ReportActions = {action1: createRandomReportAction(1)};
+        const actions2: ReportActions = {action2: createRandomReportAction(2)};
+        const actions3: ReportActions = {action3: createRandomReportAction(3)};
+        const actions4: ReportActions = {action4: createRandomReportAction(4)};
+
+        const allReports = {
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            report_1: policyExpenseReport,
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            report_2: otherPolicyReport,
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            report_3: threadReport,
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            report_4: nonExpenseChatReport,
+        };
+
+        const allReportActions = {
+            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: actions1,
+            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: actions2,
+            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}3`]: actions3,
+            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}4`]: actions4,
+        };
+
+        it('returns empty object when allReportActions is undefined', () => {
+            expect(filterReportActionsByPolicyID(undefined, allReports, policyID)).toEqual({});
+        });
+
+        it('returns empty object when allReports is undefined', () => {
+            expect(filterReportActionsByPolicyID(allReportActions, undefined, policyID)).toEqual({});
+        });
+
+        it('returns empty object when policyID is undefined', () => {
+            expect(filterReportActionsByPolicyID(allReportActions, allReports, undefined)).toEqual({});
+        });
+
+        it('returns only actions for policy expense chats matching the policyID', () => {
+            const result = filterReportActionsByPolicyID(allReportActions, allReports, policyID);
+            expect(result).toHaveProperty('1');
+            expect(result['1']).toBe(actions1);
+        });
+
+        it('excludes reports with a different policyID', () => {
+            const result = filterReportActionsByPolicyID(allReportActions, allReports, policyID);
+            expect(result).not.toHaveProperty('2');
+        });
+
+        it('excludes thread reports', () => {
+            const result = filterReportActionsByPolicyID(allReportActions, allReports, policyID);
+            expect(result).not.toHaveProperty('3');
+        });
+
+        it('excludes non-policy-expense-chat reports', () => {
+            const result = filterReportActionsByPolicyID(allReportActions, allReports, policyID);
+            expect(result).not.toHaveProperty('4');
+        });
+
+        it('skips null actions entries', () => {
+            const actionsWithNull = {
+                ...allReportActions,
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: null,
+            };
+            const result = filterReportActionsByPolicyID(actionsWithNull, allReports, policyID);
+            expect(result).toEqual({});
         });
     });
 });

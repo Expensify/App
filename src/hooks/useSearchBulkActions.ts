@@ -681,7 +681,26 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 clearSelectedTransactions();
             });
         },
-        [hash, isOffline, isDelegateAccessRestricted, selectedReports, selectedTransactions, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed, policies, showDelegateNoAccessModal, allReports, personalPolicyID, lastPaymentMethods, allTransactions, policyIDsWithVBBA, allReportActions, formatPhoneNumber, clearSelectedTransactions],
+        [
+            hash,
+            isOffline,
+            isDelegateAccessRestricted,
+            selectedReports,
+            selectedTransactions,
+            userBillingGracePeriodEnds,
+            ownerBillingGracePeriodEnd,
+            amountOwed,
+            policies,
+            showDelegateNoAccessModal,
+            allReports,
+            personalPolicyID,
+            lastPaymentMethods,
+            allTransactions,
+            policyIDsWithVBBA,
+            allReportActions,
+            formatPhoneNumber,
+            clearSelectedTransactions,
+        ],
     );
 
     const onBulkPaySelectedRef = useRef(onBulkPaySelected);
