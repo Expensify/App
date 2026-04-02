@@ -54,6 +54,14 @@ function measureTextWidth(text: string, font: SkFont): number {
 }
 
 /**
+ * Returns true when all characters in `text` have glyphs in the provided font.
+ */
+function canFontRenderText(font: SkFont, text: string): boolean {
+    const glyphIDs = font.getGlyphIDs(text);
+    return glyphIDs.every((id) => id !== 0);
+}
+
+/**
  * Post-rotation horizontal translation to center a rotated label on its tick mark.
  *
  * Text baselines sit closer to glyph tops (ascent > descent), so rotating around
@@ -350,6 +358,7 @@ export {
     getChartColor,
     DEFAULT_CHART_COLOR,
     measureTextWidth,
+    canFontRenderText,
     rotatedLabelCenterCorrection,
     rotatedLabelYOffset,
     calculateMinDomainPadding,

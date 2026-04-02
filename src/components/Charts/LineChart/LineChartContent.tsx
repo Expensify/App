@@ -1,7 +1,7 @@
-import {useFont} from '@shopify/react-native-skia';
+import {matchFont, useFont} from '@shopify/react-native-skia';
 import React, {useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
-import {View} from 'react-native';
+import {Platform, View} from 'react-native';
 import {GestureDetector} from 'react-native-gesture-handler';
 import {useSharedValue} from 'react-native-reanimated';
 import type {CartesianChartRenderArg, ChartBounds, Scale} from 'victory-native';
@@ -24,7 +24,8 @@ import fontSource from '@components/Charts/font';
 import type {ComputeGeometryFn, HitTestArgs} from '@components/Charts/hooks';
 import {useChartInteractions, useChartLabelFormats, useChartLabelLayout, useDynamicYDomain, useLabelHitTesting, useTooltipData} from '@components/Charts/hooks';
 import type {CartesianChartProps, ChartDataPoint} from '@components/Charts/types';
-import {calculateMinDomainPadding, DEFAULT_CHART_COLOR, measureTextWidth, rotatedLabelYOffset} from '@components/Charts/utils';
+import {calculateMinDomainPadding, canFontRenderText, DEFAULT_CHART_COLOR, measureTextWidth, rotatedLabelYOffset} from '@components/Charts/utils';
+import Text from '@components/Text';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -76,10 +77,21 @@ function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left
     const theme = useTheme();
     const styles = useThemeStyles();
     const font = useFont(fontSource, variables.iconSizeExtraSmall);
+    const xAxisFont = React.useMemo(() => {
+        if (!font) {
+            return null;
+        }
+        const hasUnsupportedLabel = data.some((point) => !canFontRenderText(font, point.label));
+        const canUseMatchFont = Platform.OS !== 'web';
+        return hasUnsupportedLabel && canUseMatchFont ? matchFont({fontSize: variables.iconSizeExtraSmall}) : font;
+    }, [data, font]);
     const [chartWidth, setChartWidth] = useState(0);
     const [plotAreaWidth, setPlotAreaWidth] = useState(0);
+    const [axisBounds, setAxisBounds] = useState<ChartBounds | null>(null);
     const [boundsLeft, setBoundsLeft] = useState(0);
     const [boundsRight, setBoundsRight] = useState(0);
+    const hasUnsupportedLabel = React.useMemo(() => data.some((point) => !font || !canFontRenderText(font, point.label)), [data, font]);
+    const shouldUseWebTextFallback = Platform.OS === 'web' && hasUnsupportedLabel;
 
     const yAxisDomain = useDynamicYDomain(data);
     const chartData = data.map((point, index) => ({
@@ -139,7 +151,7 @@ function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left
 
     const {labelRotation, labelSkipInterval, truncatedLabels, xAxisLabelHeight} = useChartLabelLayout({
         data,
-        font,
+        font: xAxisFont,
         tickSpacing,
         labelAreaWidth: plotAreaWidth,
         firstTickLeftSpace: boundsLeft + domainPadding.left * paddingScale,
@@ -155,7 +167,7 @@ function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left
     });
 
     const {isCursorOverLabel, findLabelCursorX, updateTickPositions} = useLabelHitTesting({
-        font,
+        font: xAxisFont ?? font,
         truncatedLabels,
         labelRotation,
         labelSkipInterval,
@@ -165,6 +177,7 @@ function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left
 
     const handleChartBoundsChange = (bounds: ChartBounds) => {
         setPlotAreaWidth(bounds.right - bounds.left);
+        setAxisBounds(bounds);
         setBoundsLeft(bounds.left);
         setBoundsRight(bounds.right);
         chartBottom.set(bounds.bottom);
@@ -210,12 +223,12 @@ function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left
                     radius={DOT_RADIUS}
                     color={DEFAULT_CHART_COLOR}
                 />
-                {!!font && xAxisLabelHeight !== undefined && (
+                {!shouldUseWebTextFallback && !!xAxisFont && xAxisLabelHeight !== undefined && (
                     <ChartXAxisLabels
                         labels={truncatedLabels}
                         labelRotation={labelRotation}
                         labelSkipInterval={labelSkipInterval}
-                        font={font}
+                        font={xAxisFont}
                         labelColor={theme.textSupporting}
                         xScale={args.xScale}
                         chartBoundsBottom={args.chartBounds.bottom}
@@ -248,7 +261,7 @@ function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left
     return (
         <GestureDetector gesture={customGestures}>
             <View
-                style={[styles.chartContent, dynamicChartStyle, isOverClickableTarget && styles.cursorPointer]}
+                style={[styles.chartContent, dynamicChartStyle, styles.pRelative, isOverClickableTarget && styles.cursorPointer]}
                 onLayout={handleLayout}
             >
                 {chartWidth > 0 && (
@@ -288,6 +301,45 @@ function LineChartContent({data, isLoading, yAxisUnit, yAxisUnitPosition = 'left
                             />
                         )}
                     </CartesianChart>
+                )}
+                {shouldUseWebTextFallback && (
+                    <View
+                        pointerEvents="none"
+                        style={[styles.pAbsolute, styles.t0, styles.l0, styles.r0, styles.b0]}
+                    >
+                        {!!axisBounds &&
+                            truncatedLabels.map((label, index) => {
+                                if (index % labelSkipInterval !== 0) {
+                                    return null;
+                                }
+
+                                const innerTickSpacing = (axisBounds.right - axisBounds.left) / data.length;
+                                const tickCenter = axisBounds.left + index * innerTickSpacing + innerTickSpacing / 2;
+                                const labelLeft = labelRotation === -45 ? tickCenter - innerTickSpacing : tickCenter - innerTickSpacing / 2;
+
+                                return (
+                                    <Text
+                                        key={`x-label-${index}-${label}`}
+                                        style={[
+                                            styles.textSupporting,
+                                            {
+                                                position: 'absolute',
+                                                top: axisBounds.bottom + AXIS_LABEL_GAP,
+                                                left: labelLeft,
+                                                width: innerTickSpacing,
+                                                fontSize: variables.iconSizeExtraSmall,
+                                                lineHeight: variables.iconSizeExtraSmall,
+                                                textAlign: labelRotation === -45 ? 'right' : 'center',
+                                                transform: [{rotate: `${labelRotation}deg`}],
+                                            },
+                                        ]}
+                                        numberOfLines={1}
+                                    >
+                                        {label}
+                                    </Text>
+                                );
+                            })}
+                    </View>
                 )}
                 {isTooltipActive && !!tooltipData && (
                     <ChartTooltip
