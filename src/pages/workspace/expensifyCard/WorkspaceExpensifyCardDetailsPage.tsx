@@ -58,7 +58,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const [isFreezeModalVisible, setIsFreezeModalVisible] = useState(false);
     const [isUnfreezeModalVisible, setIsUnfreezeModalVisible] = useState(false);
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'FreezeCard', 'Hourglass', 'MoneySearch', 'Trashcan'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar', 'FreezeCard', 'Hourglass', 'MoneySearch', 'Trashcan']);
     const illustrations = useMemoizedLazyIllustrations(['ExpensifyCardImage']);
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth

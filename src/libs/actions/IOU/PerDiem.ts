@@ -6,10 +6,12 @@ import type {CreatePerDiemRequestParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {convertAmountToDisplayString, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
+import {registerDeferredWrite} from '@libs/deferredLayoutWrite';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {updateIOUOwnerAndTotal} from '@libs/IOUUtils';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {validateAmount} from '@libs/MoneyRequestUtils';
+import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
@@ -58,6 +60,7 @@ import {
     getReportPreviewAction,
     getUserAccountID,
     handleNavigateAfterExpenseCreate,
+    highlightTransactionOnSearchRouteIfNeeded,
     mergePolicyRecentlyUsedCategories,
     mergePolicyRecentlyUsedCurrencies,
 } from '.';
@@ -512,6 +515,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
 
     // STEP 5: Build Onyx Data
     const {optimisticData, successData, failureData} = buildOnyxDataForMoneyRequest({
+        participant,
         isNewChatReport,
         shouldCreateNewMoneyRequestReport,
         policyParams: {
@@ -998,10 +1002,25 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
     if (shouldPlaySoundParam) {
         playSound(SOUNDS.DONE);
     }
-    API.write(WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST, parameters, onyxData);
+
+    const shouldDeferWrite = shouldHandleNavigation && isFromGlobalCreate && !isReportTopmostSplitNavigator();
+    const apiWrite = () => {
+        API.write(WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST, parameters, onyxData);
+    };
+
+    if (shouldDeferWrite) {
+        registerDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH, apiWrite, {
+            optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+        });
+    } else {
+        apiWrite();
+    }
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
+
+    highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transaction.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
+
     handleNavigateAfterExpenseCreate({activeReportID, transactionID: transaction.transactionID, isFromGlobalCreate, shouldHandleNavigation});
 
     if (activeReportID) {

@@ -138,6 +138,7 @@ const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.SHOULD_USE_STAGING_SERVER,
     ONYXKEYS.IS_DEBUG_MODE_ENABLED,
     ONYXKEYS.COLLECTION.PASSKEY_CREDENTIALS,
+    ONYXKEYS.COLLECTION.DEVICE_BIOMETRICS,
 
     // Preserve IS_USING_IMPORTED_STATE so that when the app restarts (especially in HybridApp mode),
     // we know if we're in imported state mode and should skip API calls that would cause infinite loading
@@ -567,8 +568,7 @@ type CreateWorkspaceWithPolicyDraftParams = {
     currentUserEmailParam: string;
     shouldCreateControlPolicy?: boolean;
     type?: PolicyType;
-    // TODO: Remove optional (?) once allBetas Onyx.connect is removed (https://github.com/Expensify/App/issues/66417)
-    betas?: OnyxEntry<OnyxTypes.Beta[]>;
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
     hasActiveAdminPolicies: boolean;
 };
 
@@ -685,8 +685,7 @@ type SavePolicyDraftByNewWorkspaceParams = {
     allReportsParam: OnyxCollection<OnyxTypes.Report>;
     shouldCreateControlPolicy?: boolean;
     type?: PolicyType;
-    // TODO: Remove optional (?) once allBetas Onyx.connect is removed (https://github.com/Expensify/App/issues/66417)
-    betas?: OnyxEntry<OnyxTypes.Beta[]>;
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
     hasActiveAdminPolicies: boolean;
 };
 
@@ -754,6 +753,7 @@ function setUpPoliciesAndNavigate(
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
     activePolicyID: string | undefined,
     isSelfTourViewed: boolean | undefined,
+    betas: OnyxEntry<OnyxTypes.Beta[]>,
     hasActiveAdminPolicies: boolean,
 ) {
     const currentUrl = getCurrentUrl();
@@ -786,6 +786,7 @@ function setUpPoliciesAndNavigate(
             currentUserAccountIDParam: currentSessionData.accountID ?? CONST.DEFAULT_NUMBER_ID,
             currentUserEmailParam: currentSessionData.email ?? '',
             isSelfTourViewed,
+            betas,
             hasActiveAdminPolicies,
         });
         return;

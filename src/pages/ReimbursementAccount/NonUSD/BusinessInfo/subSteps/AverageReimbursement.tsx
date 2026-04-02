@@ -3,12 +3,13 @@ import PushRowFieldsStep from '@components/SubStepForms/PushRowFieldsStep';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import getListOptionsFromCorpayPicklist from '@pages/ReimbursementAccount/NonUSD/utils/getListOptionsFromCorpayPicklist';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-type AverageReimbursementProps = SubStepProps;
+type AverageReimbursementProps = SubPageProps;
 
 const {TRADE_VOLUME} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 const STEP_FIELDS = [TRADE_VOLUME];
@@ -20,7 +21,8 @@ function AverageReimbursement({onNext, onMove, isEditing}: AverageReimbursementP
     const [corpayOnboardingFields] = useOnyx(ONYXKEYS.CORPAY_ONBOARDING_FIELDS);
     const policyID = reimbursementAccount?.achData?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const currency = policy?.outputCurrency ?? reimbursementAccountDraft?.currency ?? '';
+    const country = reimbursementAccountDraft?.country ?? reimbursementAccount?.achData?.country ?? '';
+    const currency = policy?.outputCurrency ?? reimbursementAccountDraft?.currency ?? CONST.BBA_COUNTRY_CURRENCY_MAP[country] ?? '';
 
     const tradeVolumeRangeListOptions = useMemo(
         () => getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.TradeVolumeRange),
