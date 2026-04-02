@@ -159,15 +159,18 @@ class ShareViewController: UIViewController {
     }
 
     private func loadGenericData(for attachment: NSItemProvider, in folder: URL, completion: @escaping (FileSaveError?) -> Void) {
-        os_log("Loading generic data via public.data type identifier")
-        attachment.loadItem(forTypeIdentifier: UTType.data.identifier, options: nil) { (data, error) in
+        // Use the provider's own registered type instead of the generic "public.data".
+        // Screenshot previews register via NSItemProviderWriting with specific types
+        // (e.g. public.png) and may fail when asked for the generic "public.data" type.
+        let typeIdentifier = attachment.registeredTypeIdentifiers.first ?? UTType.data.identifier
+        os_log("Loading data with type identifier: %@", typeIdentifier)
+        attachment.loadItem(forTypeIdentifier: typeIdentifier, options: nil) { (data, error) in
             DispatchQueue.main.async {
                 if let error = error {
-                    os_log("Generic data load error: %@", error.localizedDescription)
+                    os_log("Data load error: %@", error.localizedDescription)
                     completion(.CouldNotLoad)
                     return
                 }
-                os_log("Handling data for attachment")
                 self.handleData(data, folder: folder, completion: completion)
             }
         }
