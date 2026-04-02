@@ -977,6 +977,7 @@ describe('mergeTransactionRequest', () => {
                 introSelected: undefined,
                 participants,
                 personalDetails: allPersonalDetails,
+                betas: undefined,
                 newReportObject: thread,
                 parentReportActionID: sourceIOUAction.reportActionID,
             });
@@ -1158,6 +1159,7 @@ describe('mergeTransactionRequest', () => {
                 introSelected: undefined,
                 participants,
                 personalDetails: allPersonalDetails,
+                betas: undefined,
                 newReportObject: thread,
                 parentReportActionID: sourceIOUAction.reportActionID,
             });

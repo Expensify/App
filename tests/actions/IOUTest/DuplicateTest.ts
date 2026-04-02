@@ -434,6 +434,7 @@ describe('actions/Duplicate', () => {
                 introSelected: undefined,
                 personalDetails: allPersonalDetails,
                 participants,
+                betas: undefined,
                 newReportObject: transactionThreadReport1,
                 parentReportActionID: iouAction1?.reportActionID,
             });
@@ -442,6 +443,7 @@ describe('actions/Duplicate', () => {
                 introSelected: undefined,
                 personalDetails: allPersonalDetails,
                 participants,
+                betas: undefined,
                 newReportObject: transactionThreadReport1,
                 parentReportActionID: iouAction2?.reportActionID,
             });
