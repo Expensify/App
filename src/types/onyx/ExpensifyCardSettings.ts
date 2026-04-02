@@ -112,7 +112,7 @@ type ExpensifyCardSettings = OnyxCommon.OnyxValueWithOfflineFeedback<
         TRAVEL_US?: ExpensifyCardSettingsBase;
 
         /** Spend rules for the feed keyed by rule ID - stringified JSON of ExpensifyCardRule */
-        cardRules?: Record<string, string>;
+        cardRules?: Record<string, ExpensifyCardRule>;
 
         /** Whether the card settings has been loaded before */
         hasOnceLoaded?: boolean;

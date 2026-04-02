@@ -36,6 +36,7 @@ import type {CardLimitType, ExpensifyCardDetails, IssueNewCardData, IssueNewCard
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {SavedCSVColumnLayoutData} from '@src/types/onyx/SavedCSVColumnLayout';
+import type {ExpensifyCardRuleFilter, ExpensifyCardRule} from '@src/types/onyx/ExpensifyCardSettings';
 
 type ReplacementReason = 'damaged' | 'stolen';
 
@@ -1557,32 +1558,20 @@ function queueExpensifyCardForBilling(feedCountry: string, domainAccountID: numb
     API.write(WRITE_COMMANDS.QUEUE_EXPENSIFY_CARD_FOR_BILLING, parameters);
 }
 
-type SpendRuleASTNode = {
-    left: SpendRuleASTNode | string;
-    operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
-    right: SpendRuleASTNode | string[];
-};
-
-type SpendRuleAST = {
-    created: string;
-    action: ValueOf<typeof CONST.SPEND_CARD_RULE.ACTION>;
-    filters: SpendRuleASTNode;
-};
-
-function isSpendRuleASTNode(value: unknown): value is SpendRuleASTNode {
+function isSpendRuleASTNode(value: unknown): value is ExpensifyCardRuleFilter {
     return !!value && typeof value === 'object' && 'left' in value && 'operator' in value && 'right' in value;
 }
 
-function combineSpendRuleASTNodes(nodes: SpendRuleASTNode[], operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>): SpendRuleASTNode | undefined {
+function combineSpendRuleASTNodes(nodes: ExpensifyCardRuleFilter[], operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>): ExpensifyCardRuleFilter | undefined {
     const [firstNode, ...remainingNodes] = nodes;
     if (!firstNode) {
         return undefined;
     }
 
-    return remainingNodes.reduce<SpendRuleASTNode>((accumulator, node) => ({left: accumulator, operator, right: node}), firstNode);
+    return remainingNodes.reduce<ExpensifyCardRuleFilter>((accumulator, node) => ({left: accumulator, operator, right: node}), firstNode);
 }
 
-function buildSpendRuleAST(spendRuleValues: SpendRuleForm): SpendRuleAST | undefined {
+function buildSpendRuleAST(spendRuleValues: SpendRuleForm): ExpensifyCardRule | undefined {
     const cardIDs = spendRuleValues.cardIDs ?? [];
     if (cardIDs.length === 0) {
         return undefined;
@@ -1593,7 +1582,7 @@ function buildSpendRuleAST(spendRuleValues: SpendRuleForm): SpendRuleAST | undef
     const categories = (spendRuleValues.categories ?? []).map((category) => category.trim()).filter((category) => category !== '');
     const maxAmount = spendRuleValues.maxAmount?.trim() ?? '';
 
-    const cardNode: SpendRuleASTNode = {
+    const cardNode: ExpensifyCardRuleFilter = {
         left: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
         operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
         right: cardIDs,
@@ -1601,7 +1590,7 @@ function buildSpendRuleAST(spendRuleValues: SpendRuleForm): SpendRuleAST | undef
 
     const exactMerchantNames = merchantNames.filter((_, index) => merchantMatchTypes.at(index) === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
     const containsMerchantNames = merchantNames.filter((_, index) => merchantMatchTypes.at(index) !== CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
-    const merchantNodes: SpendRuleASTNode[] = [];
+    const merchantNodes: ExpensifyCardRuleFilter[] = [];
 
     if (exactMerchantNames.length > 0) {
         merchantNodes.push({
@@ -1629,7 +1618,7 @@ function buildSpendRuleAST(spendRuleValues: SpendRuleForm): SpendRuleAST | undef
               }
             : undefined;
 
-    const criteriaNode = combineSpendRuleASTNodes([merchantNode, categoryNode].filter(Boolean) as SpendRuleASTNode[], CONST.SEARCH.SYNTAX_OPERATORS.OR);
+    const criteriaNode = combineSpendRuleASTNodes([merchantNode, categoryNode].filter(Boolean) as ExpensifyCardRuleFilter[], CONST.SEARCH.SYNTAX_OPERATORS.OR);
     const amountNode =
         maxAmount !== ''
             ? {
@@ -1640,10 +1629,10 @@ function buildSpendRuleAST(spendRuleValues: SpendRuleForm): SpendRuleAST | undef
             : undefined;
 
     const ruleNode = combineSpendRuleASTNodes(
-        [amountNode, criteriaNode].filter(Boolean) as SpendRuleASTNode[],
+        [amountNode, criteriaNode].filter(Boolean) as ExpensifyCardRuleFilter[],
         spendRuleValues.restrictionAction === CONST.SPEND_CARD_RULE.ACTION.BLOCK ? CONST.SEARCH.SYNTAX_OPERATORS.OR : CONST.SEARCH.SYNTAX_OPERATORS.AND,
     );
-    const filters = combineSpendRuleASTNodes([cardNode, ruleNode].filter(Boolean) as SpendRuleASTNode[], CONST.SEARCH.SYNTAX_OPERATORS.AND);
+    const filters = combineSpendRuleASTNodes([cardNode, ruleNode].filter(Boolean) as ExpensifyCardRuleFilter[], CONST.SEARCH.SYNTAX_OPERATORS.AND);
 
     if (!filters) {
         return undefined;
@@ -1656,34 +1645,25 @@ function buildSpendRuleAST(spendRuleValues: SpendRuleForm): SpendRuleAST | undef
     };
 }
 
-function getSpendRuleFormValuesFromCardRule(cardRule: string): SpendRuleForm | undefined {
-    let parsedRule: unknown;
-
-    try {
-        parsedRule = JSON.parse(cardRule);
-    } catch {
+function getSpendRuleFormValuesFromCardRule(cardRule: ExpensifyCardRule): SpendRuleForm | undefined {
+    if (!cardRule || typeof cardRule !== 'object' || !('filters' in cardRule) || !('action' in cardRule)) {
         return undefined;
     }
 
-    if (!parsedRule || typeof parsedRule !== 'object' || !('filters' in parsedRule) || !('action' in parsedRule)) {
-        return undefined;
-    }
-
-    const rule = parsedRule as {filters: unknown; action: ValueOf<typeof CONST.SPEND_CARD_RULE.ACTION>};
-    if (!isSpendRuleASTNode(rule.filters)) {
+    if (!isSpendRuleASTNode(cardRule.filters)) {
         return undefined;
     }
 
     const formValues: SpendRuleForm = {
         cardIDs: [],
-        restrictionAction: rule.action,
+        restrictionAction: cardRule.action,
         merchantNames: [],
         merchantMatchTypes: [],
         categories: [],
         maxAmount: '',
     };
 
-    const traverseFilters = (filterNode: SpendRuleASTNode) => {
+    const traverseFilters = (filterNode: ExpensifyCardRuleFilter) => {
         const {left, operator, right} = filterNode;
 
         if (isSpendRuleASTNode(left)) {
@@ -1720,7 +1700,7 @@ function getSpendRuleFormValuesFromCardRule(cardRule: string): SpendRuleForm | u
         }
     };
 
-    traverseFilters(rule.filters);
+    traverseFilters(cardRule.filters);
 
     return formValues;
 }
@@ -1732,14 +1712,13 @@ function setExpensifyCardRule(domainAccountID: number, cardRuleID: string, spend
         return;
     }
 
-    const cardRuleValue = JSON.stringify(ruleAST);
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`,
             value: {
                 cardRules: {
-                    [ruleID]: cardRuleValue,
+                    [ruleID]: ruleAST,
                 },
             },
         },
@@ -1760,23 +1739,10 @@ function setExpensifyCardRule(domainAccountID: number, cardRuleID: string, spend
     const parameters: SetExpensifyCardRuleParams = {
         domainAccountID,
         cardRuleID: ruleID,
-        cardRuleValue,
+        cardRuleValue: JSON.stringify(ruleAST),
     };
 
     API.write(WRITE_COMMANDS.SET_EXPENSIFY_CARD_RULE, parameters, {optimisticData, failureData});
-}
-
-function getSpendCardRuleValueJSON(cardIDStrings: string[], action: ValueOf<typeof CONST.SPEND_CARD_RULE.ACTION>) {
-    const numericIDs = cardIDStrings.map((id) => Number(id)).filter((id) => Number.isFinite(id));
-    return JSON.stringify({
-        created: new Date().toISOString(),
-        filters: {
-            left: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
-            operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
-            right: numericIDs,
-        },
-        action,
-    });
 }
 
 /**
@@ -1881,7 +1847,6 @@ export {
     setDraftInviteAccountID,
     resolveFraudAlert,
     setExpensifyCardRule,
-    getSpendCardRuleValueJSON,
     getSpendRuleFormValuesFromCardRule,
 };
 export type {ReplacementReason};

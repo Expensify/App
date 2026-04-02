@@ -35,6 +35,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Card, ExpensifyCardSettings, WorkspaceCardsList} from '@src/types/onyx';
+import type {ExpensifyCardRule} from '@src/types/onyx/ExpensifyCardSettings';
 
 type ExpensifyCardListItem = ListItem &
     AdditionalCardProps & {
@@ -43,7 +44,7 @@ type ExpensifyCardListItem = ListItem &
 
 type SpendRuleCardPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_SPEND_CARD>;
 
-function getCardIDsWithSpendRules(cardRules: Record<string, string> | undefined): Set<number> {
+function getCardIDsWithSpendRules(cardRules: Record<string, ExpensifyCardRule> | undefined): Set<number> {
     const cardIDs = new Set<number>();
     if (!cardRules) {
         return cardIDs;
