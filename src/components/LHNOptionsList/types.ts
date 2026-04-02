@@ -153,6 +153,9 @@ type OptionRowLHNProps = {
 
     /** The concierge report ID from Onyx */
     conciergeReportID: OnyxEntry<string>;
+
+    /** Whether the report's policy has approvals disabled (submit and close) */
+    isApprovalDisabledForReport?: boolean;
 };
 
 type RenderItemProps = {item: Report; index: number};
