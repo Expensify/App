@@ -7,6 +7,7 @@ import type {TransactionWithOptionalHighlight} from '@components/MoneyRequestRep
 import {PressableWithFeedback} from '@components/Pressable';
 import RadioButton from '@components/RadioButton';
 import ActionCell from '@components/Search/SearchList/ListItem/ActionCell';
+import AttendeesCell from '@components/Search/SearchList/ListItem/AttendeesCell';
 import DateCell from '@components/Search/SearchList/ListItem/DateCell';
 import ExportedIconCell from '@components/Search/SearchList/ListItem/ExportedIconCell';
 import StatusCell from '@components/Search/SearchList/ListItem/StatusCell';
@@ -16,6 +17,7 @@ import UserInfoCell from '@components/Search/SearchList/ListItem/UserInfoCell';
 import WorkspaceCell from '@components/Search/SearchList/ListItem/WorkspaceCell';
 import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -29,6 +31,9 @@ import {getReportName} from '@libs/ReportNameUtils';
 import {isExpenseReport, isIOUReport, isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {
+    getAmount,
+    getAttendees,
+    getCurrency,
     getDescription,
     getExchangeRate,
     getMerchant,
@@ -39,10 +44,10 @@ import {
     getCreated as getTransactionCreated,
     hasMissingSmartscanFields,
     isAmountMissing,
-    isDeletedTransaction as isDeletedTransactionUtil,
     isMerchantMissing,
     isScanning,
     isTimeRequest,
+    shouldShowAttendees as shouldShowAttendeesUtils,
 } from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -202,8 +207,8 @@ function TransactionItemRow({
     const hasCategoryOrTag = !isCategoryMissing(transactionItem?.category) || !!transactionItem.tag;
     const createdAt = getTransactionCreated(transactionItem);
     const expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const transactionThreadReportID = reportActions ? getIOUActionForTransactionID(reportActions, transactionItem.transactionID)?.childReportID : undefined;
-    const isDeletedTransaction = isDeletedTransactionUtil(transactionItem);
 
     const isDateColumnWide = dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isSubmittedColumnWide = submittedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
@@ -264,6 +269,21 @@ function TransactionItemRow({
         }
         return transactionItem.cardName;
     }, [transactionItem.cardID, transactionItem.cardName, transactionItem.isCardFeedDeleted, customCardNames, translate]);
+
+    const transactionAttendees = useMemo(() => getAttendees(transactionItem, currentUserPersonalDetails), [transactionItem, currentUserPersonalDetails]);
+
+    const shouldShowAttendees = shouldShowAttendeesUtils(CONST.IOU.TYPE.SUBMIT, policy) && transactionAttendees.length > 0;
+
+    const totalPerAttendee = useMemo(() => {
+        const attendeesCount = transactionAttendees.length ?? 0;
+        const totalAmount = getAmount(transactionItem);
+
+        if (!attendeesCount || totalAmount === undefined) {
+            return undefined;
+        }
+
+        return totalAmount / attendeesCount;
+    }, [transactionAttendees.length, transactionItem]);
 
     const renderColumn = (column: SearchColumnType): React.ReactNode => {
         switch (column) {
@@ -493,6 +513,21 @@ function TransactionItemRow({
                         <TextCell text={cardName} />
                     </View>
                 );
+            case CONST.SEARCH.TABLE_COLUMNS.ATTENDEES:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ATTENDEES)]}
+                    >
+                        {shouldShowAttendees && (
+                            <AttendeesCell
+                                attendees={transactionAttendees}
+                                isHovered={isHover}
+                                isPressed={isSelected}
+                            />
+                        )}
+                    </View>
+                );
             case CONST.SEARCH.TABLE_COLUMNS.COMMENTS:
                 return (
                     <View
@@ -525,6 +560,21 @@ function TransactionItemRow({
                             shouldShowTooltip={shouldShowTooltip}
                             shouldUseNarrowLayout={shouldUseNarrowLayout}
                         />
+                    </View>
+                );
+            case CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE:
+                return (
+                    <View
+                        key={column}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE, undefined, isAmountColumnWide)]}
+                    >
+                        {shouldShowAttendees && (
+                            <AmountCell
+                                total={totalPerAttendee ?? 0}
+                                currency={getCurrency(transactionItem)}
+                                isScanning={isScanning(transactionItem)}
+                            />
+                        )}
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT:
@@ -613,7 +663,6 @@ function TransactionItemRow({
                         <StatusCell
                             stateNum={transactionItem.report?.stateNum}
                             statusNum={transactionItem.report?.statusNum}
-                            isDeleted={isDeletedTransaction}
                         />
                     </View>
                 );
