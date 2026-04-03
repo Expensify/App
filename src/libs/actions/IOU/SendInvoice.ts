@@ -620,6 +620,7 @@ function getSendInvoiceInformation({
             participantList: [receiverAccountID, currentUserAccountID],
             chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
             policyID: senderWorkspaceID,
+            currentUserAccountID,
         });
     }
 

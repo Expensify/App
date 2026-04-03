@@ -1603,6 +1603,7 @@ function createPolicyExpenseChats(
             policyID,
             ownerAccountID: cleanAccountID,
             notificationPreference,
+            currentUserAccountID: deprecatedSessionAccountID,
         });
 
         // Set correct notification preferences: visible for the submitter, hidden for others until there's activity

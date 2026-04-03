@@ -3347,6 +3347,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         chatReport = buildOptimisticChatReport({
             participantList: [payerAccountID, payeeAccountID],
             optimisticReportID: optimisticChatReportID,
+            currentUserAccountID: currentUserAccountIDParam,
         });
     }
 
@@ -7065,6 +7066,7 @@ function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string 
             reportName: '',
             chatType: CONST.REPORT.CHAT_TYPE.GROUP,
             notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+            currentUserAccountID,
         });
 
         return {existingSplitChatReport: null, splitChatReport};
@@ -7073,6 +7075,7 @@ function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string 
     // Otherwise, create a new 1:1 chat report
     const splitChatReport = buildOptimisticChatReport({
         participantList: participantAccountIDs,
+        currentUserAccountID,
     });
     return {existingSplitChatReport: null, splitChatReport};
 }
@@ -7392,6 +7395,7 @@ function createSplitsAndOnyxData({
                 existingChatReport ??
                 buildOptimisticChatReport({
                     participantList: [accountID, currentUserAccountID],
+                    currentUserAccountID,
                 });
         }
 
