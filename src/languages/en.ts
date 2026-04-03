@@ -1105,6 +1105,14 @@ const translations = {
                 fireworksDescription: 'Upcoming to-dos will appear here.',
             },
         },
+        gettingStartedSection: {
+            title: 'Getting started',
+            createWorkspace: 'Create a workspace',
+            connectAccounting: ({integrationName}: {integrationName: string}) => `Connect to ${integrationName}`,
+            customizeCategories: 'Customize accounting categories',
+            linkCompanyCards: 'Link company cards',
+            setupRules: 'Set up spend rules',
+        },
         upcomingTravel: 'Upcoming travel',
         upcomingTravelSection: {
             flightTo: ({destination}: {destination: string}) => `Flight to ${destination}`,

@@ -1066,6 +1066,14 @@ const translations: TranslationDeepObject<typeof en> = {
                 other: (pluralCount: number) => `Resterende tijd: ${pluralCount} dagen`,
             }),
         },
+        gettingStartedSection: {
+            title: 'Aan de slag',
+            createWorkspace: 'Maak een werkruimte',
+            connectAccounting: ({integrationName}: {integrationName: string}) => `Verbind met ${integrationName}`,
+            customizeCategories: 'Boekhoudcategorieën aanpassen',
+            linkCompanyCards: 'Bedrijfspassen koppelen',
+            setupRules: 'Uitgavenregels instellen',
+        },
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
