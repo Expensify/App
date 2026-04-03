@@ -144,7 +144,6 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
     };
 
     const composerSendState = {
-        isEmpty,
         isSendDisabled,
         exceededMaxLength,
         hasExceededMaxTaskTitleLength,
@@ -153,7 +152,6 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
 
     const composerActions = {
         setValue,
-        setIsFocused,
         setMenuVisibility,
         setIsFullComposerAvailable,
         setComposerRef,
@@ -169,8 +167,6 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
     const composerSendActions = {
         handleSendMessage,
         onValueChange,
-        validateMaxLength,
-        debouncedValidate,
     };
 
     const composerMeta = {

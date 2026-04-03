@@ -28,7 +28,6 @@ type ComposerState = {
 
 // Warm — changes based on content + policy
 type ComposerSendState = {
-    isEmpty: boolean;
     isSendDisabled: boolean;
     exceededMaxLength: number | null;
     hasExceededMaxTaskTitleLength: boolean;
@@ -38,7 +37,6 @@ type ComposerSendState = {
 // Frozen — stable references, never changes after mount
 type ComposerActions = {
     setValue: (v: string) => void;
-    setIsFocused: (v: boolean) => void;
     setMenuVisibility: (v: boolean) => void;
     setIsFullComposerAvailable: (v: boolean) => void;
     setComposerRef: (ref: ComposerRef | null) => void;
@@ -55,12 +53,6 @@ type ComposerActions = {
 type ComposerSendActions = {
     handleSendMessage: () => void;
     onValueChange: (value: string) => void;
-    validateMaxLength: (value: string) => boolean;
-    debouncedValidate: {
-        (value: string): boolean | undefined;
-        cancel: () => void;
-        flush: () => boolean | undefined;
-    };
 };
 
 // Frozen — stable refs, set once
@@ -85,7 +77,6 @@ const defaultState: ComposerState = {
 const ComposerStateContext = createContext<ComposerState>(defaultState);
 
 const defaultSendState: ComposerSendState = {
-    isEmpty: true,
     isSendDisabled: true,
     exceededMaxLength: null,
     hasExceededMaxTaskTitleLength: false,
@@ -95,7 +86,6 @@ const ComposerSendStateContext = createContext<ComposerSendState>(defaultSendSta
 
 const defaultActions: ComposerActions = {
     setValue: noop,
-    setIsFocused: noop,
     setMenuVisibility: noop,
     setIsFullComposerAvailable: noop,
     setComposerRef: noop,
@@ -112,8 +102,6 @@ const ComposerActionsContext = createContext<ComposerActions>(defaultActions);
 const defaultSendActions: ComposerSendActions = {
     handleSendMessage: noop,
     onValueChange: noop,
-    validateMaxLength: () => true,
-    debouncedValidate: Object.assign(() => true as boolean | undefined, {cancel: noop, flush: () => true as boolean | undefined}),
 };
 const ComposerSendActionsContext = createContext<ComposerSendActions>(defaultSendActions);
 
