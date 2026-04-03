@@ -216,7 +216,13 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
-    const {reportActions: unfilteredReportActions, linkedAction, hasNewerActions, hasOlderActions, oldestUnreadReportAction} = usePaginatedReportActions(reportID, reportActionIDFromRoute);
+    const {
+        reportActions: unfilteredReportActions,
+        linkedAction,
+        hasNewerActions,
+        hasOlderActions,
+        oldestUnreadReportAction,
+    } = usePaginatedReportActions(reportID, reportActionIDFromRoute, {shouldLinkToOldestUnreadReportAction: true});
     // wrapping in useMemo because this is array operation and can cause performance issues
     const reportActions = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
     const viewportOffsetTop = useViewportOffsetTop();
