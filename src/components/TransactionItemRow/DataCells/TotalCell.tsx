@@ -10,7 +10,6 @@ import {convertToBackendAmount, convertToDisplayString, convertToFrontendAmountA
 import {parseFloatAnyLocale, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import {getCurrency as getTransactionCurrency, isScanning} from '@libs/TransactionUtils';
-import variables from '@styles/variables';
 import type TransactionDataCellProps from './TransactionDataCellProps';
 
 type TotalCellProps = TransactionDataCellProps & EditableProps<number>;
@@ -85,10 +84,10 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave}: TotalC
                     // EditableCell is responsible for the cell's hover and focus styles (border, background).
                     // Suppress MoneyRequestAmountInput's own border and background to avoid visual conflicts.
                     containerStyle={[styles.editableCellInputStyle]}
-                    inputStyle={[styles.textAlignRight]}
-                    touchableInputWrapperStyle={[styles.editableCellInputStyle]}
+                    inputStyle={[styles.textAlignRight, styles.pr0]}
+                    touchableInputWrapperStyle={styles.editableCellInputStyle}
                     scrollViewStyle={[styles.flexRow, styles.justifyContentEnd]}
-                    symbolTextStyle={[{fontSize: variables.fontSizeNormal}, styles.textSupporting]}
+                    symbolTextStyle={styles.editableCellSymbolStyle}
                 />
             }
         >

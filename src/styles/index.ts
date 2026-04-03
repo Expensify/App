@@ -1143,6 +1143,12 @@ const staticStyles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeNormal,
         },
 
+        editableCellSymbolStyle: {
+            ...FontUtils.fontFamily.platform.EXP_NEUE,
+            color: theme.textSupporting,
+            fontSize: variables.fontSizeNormal,
+        },
+
         borderColorFocus: {
             borderColor: theme.borderFocus,
         },
