@@ -17,8 +17,10 @@ import Icon from '@components/Icon';
 import ImageSVG from '@components/ImageSVG';
 import LocationPermissionModal from '@components/LocationPermissionModal';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -73,6 +75,7 @@ function IOURequestStepScan({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {isLoaderVisible} = useFullScreenLoaderState();
+    const isInLandscapeMode = useIsInLandscapeMode();
     const {setIsLoaderVisible} = useFullScreenLoaderActions();
     const {windowWidth, windowHeight} = useWindowDimensions();
     const device = useCameraDevice('back', {
@@ -483,26 +486,28 @@ function IOURequestStepScan({
                 {PDFValidationComponent}
                 <View style={[styles.flex1]}>
                     {cameraPermissionStatus !== RESULTS.GRANTED && (
-                        <View style={[styles.cameraView, styles.permissionView, styles.userSelectNone]}>
-                            <ImageSVG
-                                contentFit="contain"
-                                src={lazyIllustrations.Hand}
-                                width={CONST.RECEIPT.HAND_ICON_WIDTH}
-                                height={CONST.RECEIPT.HAND_ICON_HEIGHT}
-                                style={styles.pb5}
-                            />
+                        <ScrollView>
+                            <View style={[styles.cameraView, isInLandscapeMode ? styles.permissionViewLandscape : styles.permissionView, styles.userSelectNone]}>
+                                <ImageSVG
+                                    contentFit="contain"
+                                    src={lazyIllustrations.Hand}
+                                    width={CONST.RECEIPT.HAND_ICON_WIDTH}
+                                    height={CONST.RECEIPT.HAND_ICON_HEIGHT}
+                                    style={styles.pb5}
+                                />
 
-                            <Text style={[styles.textFileUpload]}>{translate('receipt.takePhoto')}</Text>
-                            <Text style={[styles.subTextFileUpload]}>{translate('receipt.cameraAccess')}</Text>
-                            <Button
-                                success
-                                text={translate('common.continue')}
-                                accessibilityLabel={translate('common.continue')}
-                                style={[styles.p9, styles.pt5]}
-                                onPress={capturePhoto}
-                                sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.SCAN_SUBMIT_BUTTON}
-                            />
-                        </View>
+                                <Text style={[styles.textFileUpload]}>{translate('receipt.takePhoto')}</Text>
+                                <Text style={[styles.subTextFileUpload]}>{translate('receipt.cameraAccess')}</Text>
+                                <Button
+                                    success
+                                    text={translate('common.continue')}
+                                    accessibilityLabel={translate('common.continue')}
+                                    style={[styles.p9, styles.pt5]}
+                                    onPress={capturePhoto}
+                                    sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.SCAN_SUBMIT_BUTTON}
+                                />
+                            </View>
+                        </ScrollView>
                     )}
                     {cameraPermissionStatus === RESULTS.GRANTED && device == null && (
                         <View style={[styles.cameraView]}>
