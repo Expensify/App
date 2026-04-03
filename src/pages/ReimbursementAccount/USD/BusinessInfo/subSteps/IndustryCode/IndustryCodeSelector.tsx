@@ -1,4 +1,5 @@
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
@@ -23,14 +24,16 @@ function IndustryCodeSelector({onInputChange, value, errorText}: IndustryCodeSel
     const [shouldDisplayChildItems, setShouldDisplayChildItems] = useState(false);
     const {translate} = useLocalize();
 
-    useEffect(() => {
-        const timeout = setTimeout(() => {
-            setIsReady(true);
-            selectionListRef.current?.focusTextInput();
-        }, CONST.ANIMATED_TRANSITION);
+    useFocusEffect(
+        useCallback(() => {
+            const timeout = setTimeout(() => {
+                setIsReady(true);
+                selectionListRef.current?.focusTextInput();
+            }, CONST.ANIMATED_TRANSITION);
 
-        return () => clearTimeout(timeout);
-    }, []);
+            return () => clearTimeout(timeout);
+        }, []),
+    );
 
     const codeOptions = useMemo(() => {
         if (!searchValue) {
