@@ -9,6 +9,7 @@ import type {SearchColumnType} from '@components/Search/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -46,6 +47,7 @@ type ExpenseReportListItemRowProps = {
     isDisabledCheckbox?: boolean;
     isHovered?: boolean;
     isFocused?: boolean;
+    isPendingDelete?: boolean;
     columns?: SearchColumnType[];
 };
 
@@ -64,6 +66,7 @@ function ExpenseReportListItemRow({
     columns = [],
     isHovered = false,
     isFocused = false,
+    isPendingDelete = false,
 }: ExpenseReportListItemRowProps) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
@@ -71,6 +74,7 @@ function ExpenseReportListItemRow({
     const {translate} = useLocalize();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const policy = usePolicy(item.policyID);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
     const currency = item.currency ?? CONST.CURRENCY.USD;
@@ -205,6 +209,7 @@ function ExpenseReportListItemRow({
                     reportID={item.reportID}
                     hash={item.hash}
                     amount={item.total}
+                    shouldDisablePointerEvents={isPendingDelete}
                 />
             </View>
         ),
@@ -235,7 +240,7 @@ function ExpenseReportListItemRow({
         const isInMobileSelectionMode = shouldUseNarrowLayout && !!canSelectMultiple;
 
         // Compute accessible group label (user name, subtitle, report title, status, amount)
-        const parentNavigationSubtitleData = getParentNavigationSubtitle(item, conciergeReportID);
+        const parentNavigationSubtitleData = getParentNavigationSubtitle(item, policy, conciergeReportID);
         const subtitleLabel = translate('threads.parentNavigationSummary', parentNavigationSubtitleData);
         const statusLabel = getReportStatusTranslation({stateNum: item.stateNum, statusNum: item.statusNum, translate});
         const amountLabel = convertToDisplayString(totalDisplaySpend, currency);
@@ -310,7 +315,7 @@ function ExpenseReportListItemRow({
                         hash={item.hash}
                         amount={item.total}
                         extraSmall
-                        shouldDisablePointerEvents={isInMobileSelectionMode}
+                        shouldDisablePointerEvents={isInMobileSelectionMode || isPendingDelete}
                     />
                 </View>
             </View>
@@ -352,8 +357,8 @@ function ExpenseReportListItemRow({
             <View style={styles.ml2}>
                 <Icon
                     src={expensifyIcons.ArrowRight}
-                    width={variables.iconSizeSmall}
-                    height={variables.iconSizeSmall}
+                    width={variables.iconSizeNormal}
+                    height={variables.iconSizeNormal}
                     fill={theme.icon}
                     additionalStyles={!isHovered && styles.opacitySemiTransparent}
                 />

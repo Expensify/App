@@ -255,6 +255,14 @@ jest.mock('../src/components/Icon/ExpensifyIconLoader.ts', () => ({
         };
         return Promise.resolve({default: mockIcon});
     }),
+    loadExpensifyIconsChunk: jest.fn(() => Promise.resolve({})),
+    getExpensifyIconsChunk: jest.fn(() => ({})),
+}));
+
+jest.mock('../src/components/Icon/IllustrationLoader.ts', () => ({
+    loadIllustration: jest.fn(() => Promise.resolve({default: {src: 'mock-illustration', height: 20, width: 20}})),
+    loadIllustrationsChunk: jest.fn(() => Promise.resolve({})),
+    getIllustrationsChunk: jest.fn(() => ({})),
 }));
 
 jest.mock(

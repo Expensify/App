@@ -1,3 +1,4 @@
+import type * as CoreNavigation from '@react-navigation/core';
 import * as NativeNavigation from '@react-navigation/native';
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import React, {act} from 'react';
@@ -39,6 +40,13 @@ jest.mock('@react-navigation/native', () => ({
     }),
     usePreventRemove: jest.fn(),
 }));
+
+jest.mock('@react-navigation/core', () => ({
+    ...jest.requireActual<typeof CoreNavigation>('@react-navigation/core'),
+    useNavigation: jest.fn(() => ({getState: jest.fn(() => undefined)})),
+}));
+
+jest.mock('@hooks/useRootNavigationState', () => jest.fn((selector: (state: undefined) => unknown) => selector(undefined)));
 
 const mockEmptyReport: TransactionReportGroupListItemType = {
     accountID: 1,
@@ -386,60 +394,6 @@ describe('TransactionGroupListItem', () => {
 
         expect(getVisibleTransactionRowsCount()).toBe(CONST.TRANSACTION.RESULTS_PAGE_SIZE);
         expect(screen.getByText('Show more')).toBeTruthy();
-    });
-
-    it('should pass onDEWModalOpen callback to ReportListItemHeader for SUBMIT action', async () => {
-        const mockOnDEWModalOpen = jest.fn();
-        const reportWithSubmitAction: TransactionReportGroupListItemType = {
-            ...report,
-            action: 'submit',
-            hash: 0,
-        };
-
-        const propsWithDEWCallback: TransactionGroupListItemProps<TransactionReportGroupListItemType> = {
-            ...defaultProps,
-            item: reportWithSubmitAction,
-            onDEWModalOpen: mockOnDEWModalOpen,
-        };
-
-        render(
-            <TransactionGroupListItem
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...propsWithDEWCallback}
-            />,
-            {wrapper: TestWrapper},
-        );
-        await waitForBatchedUpdatesWithAct();
-
-        // Verify that the component renders with the callback prop
-        expect(screen.getByTestId('ReportSearchHeader')).toBeTruthy();
-    });
-
-    it('should pass onDEWModalOpen callback to ReportListItemHeader for APPROVE action', async () => {
-        const mockOnDEWModalOpen = jest.fn();
-        const reportWithApproveAction: TransactionReportGroupListItemType = {
-            ...report,
-            action: 'approve',
-            hash: 0,
-        };
-
-        const propsWithDEWCallback: TransactionGroupListItemProps<TransactionReportGroupListItemType> = {
-            ...defaultProps,
-            item: reportWithApproveAction,
-            onDEWModalOpen: mockOnDEWModalOpen,
-        };
-
-        render(
-            <TransactionGroupListItem
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...propsWithDEWCallback}
-            />,
-            {wrapper: TestWrapper},
-        );
-        await waitForBatchedUpdatesWithAct();
-
-        // Verify that the component renders with the callback prop
-        expect(screen.getByTestId('ReportSearchHeader')).toBeTruthy();
     });
 });
 

@@ -57,7 +57,7 @@ function TransactionItemRowRBRInner({transaction, violations, report, containerS
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
-    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
     const transactionThreadId = reportActions ? getIOUActionForTransactionID(Object.values(reportActions ?? {}), transaction.transactionID)?.childReportID : undefined;
     const [transactionThreadActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadId}`);
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
