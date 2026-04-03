@@ -2929,7 +2929,7 @@ ${amount} pour ${merchant} - ${date}`,
                 description: dedent(`
                     *Soumettez une dépense* en saisissant un montant ou en scannant un reçu.
 
-                    1. Cliquez sur le bouton ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} *+*.
+                    1. Cliquez sur le bouton *+*.
                     2. Choisissez *Créer une dépense*.
                     3. Saisissez un montant ou scannez un reçu.
                     4. Ajoutez l’e-mail ou le numéro de téléphone de votre responsable.
@@ -2943,7 +2943,7 @@ ${amount} pour ${merchant} - ${date}`,
                 description: dedent(`
                     *Soumettez une dépense* en saisissant un montant ou en scannant un reçu.
 
-                    1. Cliquez sur le bouton ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} *+*.
+                    1. Cliquez sur le bouton *+*.
                     2. Choisissez *Créer une dépense*.
                     3. Saisissez un montant ou scannez un reçu.
                     4. Confirmez les détails.
@@ -2957,7 +2957,7 @@ ${amount} pour ${merchant} - ${date}`,
                 description: dedent(`
                     *Enregistrez une dépense* dans n’importe quelle devise, que vous ayez un reçu ou non.
 
-                    1. Cliquez sur le bouton ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} *+*.
+                    1. Cliquez sur le bouton *+*.
                     2. Choisissez *Créer une dépense*.
                     3. Saisissez un montant ou scannez un reçu.
                     4. Choisissez votre espace *personnel*.
@@ -3054,7 +3054,7 @@ ${amount} pour ${merchant} - ${date}`,
                 description: dedent(`
                     *Lancez une discussion* avec n'importe qui en utilisant son e-mail ou son numéro de téléphone.
 
-                    1. Cliquez sur le bouton ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} *+*.
+                    1. Cliquez sur le bouton *+*.
                     2. Choisissez *Démarrer une discussion*.
                     3. Saisissez une adresse e-mail ou un numéro de téléphone.
 
@@ -3068,7 +3068,7 @@ ${amount} pour ${merchant} - ${date}`,
                 description: dedent(`
                     *Répartissez les dépenses* avec une ou plusieurs personnes.
 
-                    1. Cliquez sur le bouton ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} *+*.
+                    1. Cliquez sur le bouton *+*.
                     2. Choisissez *Démarrer une discussion*.
                     3. Saisissez des e-mails ou des numéros de téléphone.
                     4. Cliquez sur le bouton *+* gris dans la discussion > *Répartir la dépense*.
@@ -3092,7 +3092,7 @@ ${amount} pour ${merchant} - ${date}`,
                 description: dedent(`
                     Voici comment créer une note de frais :
 
-                    1. Cliquez sur le bouton ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} *+*.
+                    1. Cliquez sur le bouton *+*.
                     2. Choisissez *Créer une note de frais*.
                     3. Cliquez sur *Ajouter une dépense*.
                     4. Ajoutez votre première dépense.
@@ -7391,19 +7391,19 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             emptyExpenseResults: {
                 title: 'Vous n’avez encore créé aucune dépense',
                 subtitle: 'Créez une dépense ou faites un essai d’Expensify pour en savoir plus.',
-                subtitleWithOnlyCreateButton: 'Utilisez le bouton vert *+* ci-dessous pour créer une dépense.',
+                subtitleWithOnlyCreateButton: 'Utilisez le bouton vert ci-dessous pour créer une dépense.',
             },
             emptyReportResults: {
                 title: 'Vous n’avez encore créé aucune note de frais',
                 subtitle: 'Créez une note de frais ou faites un essai d’Expensify pour en savoir plus.',
-                subtitleWithOnlyCreateButton: 'Utilisez le bouton vert *+* ci-dessous pour créer une note de frais.',
+                subtitleWithOnlyCreateButton: 'Utilisez le bouton vert ci-dessous pour créer une note de frais.',
             },
             emptyInvoiceResults: {
                 title: dedent(`
                     Vous n'avez pas encore créé de factures
                 `),
                 subtitle: 'Envoyez une facture ou faites un essai d’Expensify pour en savoir plus.',
-                subtitleWithOnlyCreateButton: 'Utilisez le bouton vert *+* ci-dessous pour envoyer une facture.',
+                subtitleWithOnlyCreateButton: 'Utilisez le bouton vert ci-dessous pour envoyer une facture.',
             },
             emptyTripResults: {
                 title: 'Aucun voyage à afficher',

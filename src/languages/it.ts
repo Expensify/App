@@ -2919,7 +2919,7 @@ ${amount} per ${merchant} - ${date}`,
                 description: dedent(`
                     *Invia una spesa* inserendo un importo o scansionando una ricevuta.
 
-                    1. Fai clic sul pulsante ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} *+*.
+                    1. Fai clic sul pulsante *+*.
                     2. Scegli *Crea spesa*.
                     3. Inserisci un importo o scansiona una ricevuta.
                     4. Aggiungi l’email o il numero di telefono del tuo responsabile.
@@ -2933,7 +2933,7 @@ ${amount} per ${merchant} - ${date}`,
                 description: dedent(`
                     *Invia una spesa* inserendo un importo o scansionando una ricevuta.
 
-                    1. Fai clic sul pulsante ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} *+*.
+                    1. Fai clic sul pulsante *+*.
                     2. Scegli *Crea spesa*.
                     3. Inserisci un importo o scansiona una ricevuta.
                     4. Conferma i dettagli.
@@ -2947,7 +2947,7 @@ ${amount} per ${merchant} - ${date}`,
                 description: dedent(`
                     *Registra una spesa* in qualsiasi valuta, che tu abbia una ricevuta o meno.
 
-                    1. Fai clic sul pulsante ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} *+*.
+                    1. Fai clic sul pulsante *+*.
                     2. Scegli *Crea spesa*.
                     3. Inserisci un importo oppure scansiona una ricevuta.
                     4. Scegli il tuo spazio *personale*.
@@ -3044,7 +3044,7 @@ ${amount} per ${merchant} - ${date}`,
                 description: dedent(`
                     *Avvia una chat* con chiunque utilizzando la sua email o il suo numero di telefono.
 
-                    1. Fai clic sul pulsante ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} *+*.
+                    1. Fai clic sul pulsante *+*.
                     2. Scegli *Avvia chat*.
                     3. Inserisci un'email o un numero di telefono.
 
@@ -3058,7 +3058,7 @@ ${amount} per ${merchant} - ${date}`,
                 description: dedent(`
                     *Dividi le spese* con una o più persone.
 
-                    1. Fai clic sul pulsante ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} *+*.
+                    1. Fai clic sul pulsante *+*.
                     2. Scegli *Avvia chat*.
                     3. Inserisci email o numeri di telefono.
                     4. Fai clic sul pulsante *+* grigio nella chat > *Dividi spesa*.
@@ -3082,7 +3082,7 @@ ${amount} per ${merchant} - ${date}`,
                 description: dedent(`
                     Ecco come creare un report:
 
-                    1. Fai clic sul pulsante ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} *+*.
+                    1. Fai clic sul pulsante *+*.
                     2. Scegli *Crea report*.
                     3. Fai clic su *Aggiungi spesa*.
                     4. Aggiungi la tua prima spesa.
@@ -7356,12 +7356,12 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             emptyExpenseResults: {
                 title: 'Non hai ancora creato alcuna spesa',
                 subtitle: 'Crea una spesa o prova una demo di Expensify per saperne di più.',
-                subtitleWithOnlyCreateButton: 'Usa il pulsante verde *+* qui sotto per creare una spesa.',
+                subtitleWithOnlyCreateButton: 'Usa il pulsante verde qui sotto per creare una spesa.',
             },
             emptyReportResults: {
                 title: 'Non hai ancora creato alcun rapporto',
                 subtitle: 'Crea un report o fai un giro di prova con Expensify per saperne di più.',
-                subtitleWithOnlyCreateButton: 'Usa il pulsante verde *+* qui sotto per creare un report.',
+                subtitleWithOnlyCreateButton: 'Usa il pulsante verde qui sotto per creare un report.',
             },
             emptyInvoiceResults: {
                 title: dedent(`
@@ -7369,7 +7369,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                     alcuna fattura
                 `),
                 subtitle: 'Invia una fattura o fai un giro di prova con Expensify per saperne di più.',
-                subtitleWithOnlyCreateButton: 'Usa il pulsante verde *+* qui sotto per inviare una fattura.',
+                subtitleWithOnlyCreateButton: 'Usa il pulsante verde qui sotto per inviare una fattura.',
             },
             emptyTripResults: {
                 title: 'Nessun viaggio da visualizzare',

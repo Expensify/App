@@ -2979,7 +2979,7 @@ const translations = {
                 description: dedent(`
                     *Submit an expense* by entering an amount or scanning a receipt.
 
-                    1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} *+* button.
+                    1. Click the *+* button.
                     2. Choose *Create expense*.
                     3. Enter an amount or scan a receipt.
                     4. Add your boss's email or phone number.
@@ -2993,7 +2993,7 @@ const translations = {
                 description: dedent(`
                     *Submit an expense* by entering an amount or scanning a receipt.
 
-                    1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} *+* button.
+                    1. Click the *+* button.
                     2. Choose *Create expense*.
                     3. Enter an amount or scan a receipt.
                     4. Confirm details.
@@ -3007,7 +3007,7 @@ const translations = {
                 description: dedent(`
                     *Track an expense* in any currency, whether you have a receipt or not.
 
-                    1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} *+* button.
+                    1. Click the *+* button.
                     2. Choose *Create expense*.
                     3. Enter an amount or scan a receipt.
                     4. Choose your *personal* space.
@@ -3112,7 +3112,7 @@ const translations = {
                 description: dedent(`
                     *Start a chat* with anyone using their email or phone number.
 
-                    1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} *+* button.
+                    1. Click the *+* button.
                     2. Choose *Start chat*.
                     3. Enter an email or phone number.
 
@@ -3127,7 +3127,7 @@ const translations = {
                 description: dedent(`
                     *Split expenses* with one or more people.
 
-                    1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} *+* button.
+                    1. Click the *+* button.
                     2. Choose *Start chat*.
                     3. Enter emails or phone numbers.
                     4. Click the grey *+* button in the chat > *Split expense*.
@@ -3153,7 +3153,7 @@ const translations = {
                 description: dedent(`
                     Here's how to create a report:
 
-                    1. Click the ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} *+* button.
+                    1. Click the *+* button.
                     2. Choose *Create report*.
                     3. Click *Add expense*.
                     4. Add your first expense.
@@ -7350,12 +7350,12 @@ const translations = {
             emptyExpenseResults: {
                 title: "You haven't created any expenses yet",
                 subtitle: 'Create an expense or take a test drive of Expensify to learn more.',
-                subtitleWithOnlyCreateButton: 'Use the green *+* button below to create an expense.',
+                subtitleWithOnlyCreateButton: 'Use the green button below to create an expense.',
             },
             emptyReportResults: {
                 title: "You haven't created any reports yet",
                 subtitle: 'Create a report or take a test drive of Expensify to learn more.',
-                subtitleWithOnlyCreateButton: 'Use the green *+* button below to create a report.',
+                subtitleWithOnlyCreateButton: 'Use the green button below to create a report.',
             },
             emptyInvoiceResults: {
                 title: dedent(`
@@ -7363,7 +7363,7 @@ const translations = {
                     invoices yet
                 `),
                 subtitle: 'Send an invoice or take a test drive of Expensify to learn more.',
-                subtitleWithOnlyCreateButton: 'Use the green *+* button below to send an invoice.',
+                subtitleWithOnlyCreateButton: 'Use the green button below to send an invoice.',
             },
             emptyTripResults: {
                 title: 'No trips to display',
