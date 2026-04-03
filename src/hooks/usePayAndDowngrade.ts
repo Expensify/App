@@ -1,4 +1,4 @@
-import {useEffect, useRef} from 'react';
+import {useCallback, useEffect, useRef} from 'react';
 import {close} from '@libs/actions/Modal';
 import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -10,9 +10,13 @@ function usePayAndDowngrade(continueAction: () => void) {
     const [shouldBillWhenDowngrading] = useOnyx(ONYXKEYS.SHOULD_BILL_WHEN_DOWNGRADING);
     const isDeletingPaidWorkspaceRef = useRef(false);
 
-    const setIsDeletingPaidWorkspace = (value: boolean) => {
+    const setIsDeletingPaidWorkspace = useCallback((value: boolean) => {
         isDeletingPaidWorkspaceRef.current = value;
-    };
+    }, []);
+
+    const continueActionRef = useRef(continueAction);
+    // eslint-disable-next-line react-hooks/refs
+    continueActionRef.current = continueAction;
 
     useEffect(() => {
         if (!isDeletingPaidWorkspaceRef.current || isLoadingBill) {
@@ -20,13 +24,13 @@ function usePayAndDowngrade(continueAction: () => void) {
         }
 
         if (!shouldBillWhenDowngrading) {
-            close(continueAction);
+            close(continueActionRef.current);
         } else {
             Navigation.navigate(ROUTES.WORKSPACE_PAY_AND_DOWNGRADE.getRoute(Navigation.getActiveRoute()));
         }
 
         isDeletingPaidWorkspaceRef.current = false;
-    }, [isLoadingBill, shouldBillWhenDowngrading, continueAction]);
+    }, [isLoadingBill, shouldBillWhenDowngrading]);
 
     return {setIsDeletingPaidWorkspace, isLoadingBill};
 }
