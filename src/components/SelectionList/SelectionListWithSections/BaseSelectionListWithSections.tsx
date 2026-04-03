@@ -13,7 +13,7 @@ import useSearchFocusSync from '@components/SelectionList/hooks/useSearchFocusSy
 import useSelectedItemFocusSync from '@components/SelectionList/hooks/useSelectedItemFocusSync';
 import ListItemRenderer from '@components/SelectionList/ListItem/ListItemRenderer';
 import type {InteractiveElementRoles} from '@components/SelectionList/types';
-import {getListboxRole} from '@components/SelectionList/utils/getListboxRole';
+import {getContainerRole} from '@components/SelectionList/utils/getContainerRole';
 import Text from '@components/Text';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useActiveElementRole from '@hooks/useActiveElementRole';
@@ -382,7 +382,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                 renderListEmptyContent()
             ) : (
                 <FlashList
-                    role={getListboxRole(canSelectMultiple)}
+                    role={getContainerRole(canSelectMultiple)}
                     data={flattenedData}
                     renderItem={renderItem}
                     ref={listRef}

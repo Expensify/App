@@ -6,6 +6,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import type {PressableWithFeedbackProps} from '@components/Pressable/PressableWithFeedback';
 import getAccessibilityLabel from '@components/SelectionList/utils/getAccessibilityLabel';
+import {getItemRole} from '@components/SelectionList/utils/getItemRole';
 import useHover from '@hooks/useHover';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import {useMouseActions, useMouseState} from '@hooks/useMouseContext';
@@ -31,7 +32,19 @@ function getAccessibilityProps<TItem extends ListItem>({
     isFocused,
     canSelectMultiple,
 }: AccessibilityProps & Pick<BaseListItemProps<TItem>, 'item' | 'isFocused' | 'canSelectMultiple'>) {
-    const accessibilityState = role === CONST.ROLE.CHECKBOX || role === CONST.ROLE.RADIO ? {checked: !!item.isSelected, selected: !!isFocused} : {selected: !!item.isSelected};
+    // Multi-select (checkbox/radio) keeps its existing role and state.
+    const isSelectableOption = !canSelectMultiple && role !== CONST.ROLE.CHECKBOX && role !== CONST.ROLE.RADIO;
+    const effectiveRole = getItemRole(role, isSelectableOption);
+
+    // role="radio" expects aria-checked; original checkbox/radio also use checked+selected; others use selected.
+    let accessibilityState: {checked?: boolean; selected?: boolean};
+    if (role === CONST.ROLE.CHECKBOX || role === CONST.ROLE.RADIO) {
+        accessibilityState = {checked: !!item.isSelected, selected: !!isFocused};
+    } else if (effectiveRole === CONST.ROLE.RADIO) {
+        accessibilityState = {checked: !!item.isSelected, selected: !!item.isSelected};
+    } else {
+        accessibilityState = {selected: !!item.isSelected};
+    }
 
     if (accessible === false) {
         return {
@@ -43,11 +56,6 @@ function getAccessibilityProps<TItem extends ListItem>({
     }
 
     const accessibilityLabel = getAccessibilityLabel(item);
-
-    // For single-select lists, use role="option" with aria-selected so screen readers announce "selected"/"not selected".
-    // For multi-select (checkbox/radio), keep existing role and state.
-    const isSelectableOption = !canSelectMultiple && role !== CONST.ROLE.CHECKBOX && role !== CONST.ROLE.RADIO;
-    const effectiveRole = isSelectableOption ? CONST.ROLE.OPTION : role;
 
     return {
         role: effectiveRole,

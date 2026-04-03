@@ -1,6 +1,6 @@
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 
-function getAccessibilityLabel<TItem extends ListItem>(item: TItem) {
+function getAccessibilityLabel<TItem extends ListItem>(item: TItem): string {
     if (item.accessibilityLabel) {
         return item.accessibilityLabel;
     }
