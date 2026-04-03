@@ -524,8 +524,9 @@ describe('TransactionUtils', () => {
             expect(TransactionUtils.getTransactionType(null as unknown as Transaction)).toBe(CONST.SEARCH.TRANSACTION_TYPE.CASH);
         });
 
-        it('returns distance when the transaction has a distance custom unit', () => {
+        it('returns distance when the transaction has a distance iouRequestType', () => {
             const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
                 comment: {
                     type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
                     customUnit: {
@@ -538,8 +539,9 @@ describe('TransactionUtils', () => {
             expect(TransactionUtils.getTransactionType(transaction)).toBe(CONST.SEARCH.TRANSACTION_TYPE.DISTANCE);
         });
 
-        it('returns per diem when the transaction has an international per diem custom unit', () => {
+        it('returns per diem when the transaction has a per-diem iouRequestType', () => {
             const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
                 comment: {
                     type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
                     customUnit: {
@@ -570,8 +572,9 @@ describe('TransactionUtils', () => {
             expect(TransactionUtils.getTransactionType(transaction)).toBe(CONST.SEARCH.TRANSACTION_TYPE.CASH);
         });
 
-        it('returns time when the transaction has a comment with time type', () => {
+        it('returns time when the transaction has a time iouRequestType', () => {
             const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.TIME,
                 comment: {
                     type: 'time',
                     units: {
