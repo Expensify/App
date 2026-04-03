@@ -181,7 +181,19 @@ type MoneyReportHeaderProps = {
     onBackButtonPress: () => void;
 };
 
-function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = false, onBackButtonPress}: MoneyReportHeaderProps) {
+function MoneyReportHeader({reportID, shouldDisplayBackButton = false, onBackButtonPress}: MoneyReportHeaderProps) {
+    return (
+        <MoneyReportHeaderModals reportID={reportID}>
+            <MoneyReportHeaderContent
+                reportID={reportID}
+                shouldDisplayBackButton={shouldDisplayBackButton}
+                onBackButtonPress={onBackButtonPress}
+            />
+        </MoneyReportHeaderModals>
+    );
+}
+
+function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButton = false, onBackButtonPress}: MoneyReportHeaderProps) {
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDProp}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [reportMetadataInternal] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDProp}`);
@@ -2118,87 +2130,85 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
     };
 
     return (
-        <MoneyReportHeaderModals reportID={reportIDProp}>
-            <View style={[styles.pt0, styles.borderBottom]}>
-                <HeaderWithBackButton
-                    shouldShowReportAvatarWithDisplay
-                    shouldDisplayStatus
-                    shouldShowPinButton={false}
-                    report={moneyRequestReport}
-                    policy={policy}
-                    shouldShowBackButton={shouldShowBackButton}
-                    shouldDisplaySearchRouter={shouldDisplaySearchRouter}
-                    shouldDisplayHelpButton={!(isReportInRHP && shouldUseNarrowLayout)}
-                    onBackButtonPress={onBackButtonPress}
-                    shouldShowBorderBottom={false}
-                    shouldEnableDetailPageNavigation
-                    openParentReportInCurrentTab
-                >
-                    {shouldDisplayNarrowMoreButton && (
-                        <View style={[styles.flexRow, styles.gap2]}>
-                            {!shouldShowSelectedTransactionsButton && primaryActionComponent}
-                            {!!applicableSecondaryActions.length && !shouldShowSelectedTransactionsButton && (
-                                <MoneyReportHeaderKYCDropdown
-                                    chatReportID={chatReport?.reportID}
-                                    iouReport={moneyRequestReport}
-                                    onPaymentSelect={onPaymentSelect}
-                                    onSuccessfulKYC={(type) => confirmPayment({paymentType: type})}
-                                    primaryAction={primaryAction}
-                                    applicableSecondaryActions={applicableSecondaryActions}
-                                    dropdownMenuRef={dropdownMenuRef}
-                                    onOptionsMenuHide={handleOptionsMenuHide}
-                                    ref={kycWallRef}
-                                />
-                            )}
-                            {shouldShowSelectedTransactionsButton && <View>{renderSelectionModeDropdown()}</View>}
-                        </View>
-                    )}
-                </HeaderWithBackButton>
-                {!shouldDisplayNarrowMoreButton &&
-                    (shouldShowSelectedTransactionsButton ? (
-                        <View style={[styles.dFlex, styles.w100, styles.ph5, styles.pb3]}>{renderSelectionModeDropdown(styles.w100)}</View>
-                    ) : (
-                        <View style={[styles.flexRow, styles.gap2, styles.pb3, styles.ph5, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                            {!!primaryAction && <View style={[styles.flex1]}>{primaryActionComponent}</View>}
-                            {!!applicableSecondaryActions.length && (
-                                <MoneyReportHeaderKYCDropdown
-                                    chatReportID={chatReport?.reportID}
-                                    iouReport={moneyRequestReport}
-                                    onPaymentSelect={onPaymentSelect}
-                                    onSuccessfulKYC={(type) => confirmPayment({paymentType: type})}
-                                    primaryAction={primaryAction}
-                                    applicableSecondaryActions={applicableSecondaryActions}
-                                    dropdownMenuRef={dropdownMenuRef}
-                                    onOptionsMenuHide={handleOptionsMenuHide}
-                                    ref={kycWallRef}
-                                />
-                            )}
-                        </View>
-                    ))}
-
-                {shouldShowMoreContent && (
-                    <View style={[styles.flexRow, styles.gap2, styles.justifyContentStart, styles.flexNoWrap, styles.ph5, styles.pb3]}>
-                        <View style={[styles.flexShrink1, styles.flexGrow1, styles.mnw0, styles.flexWrap, styles.justifyContentCenter]}>
-                            {showNextStepBar && <MoneyReportHeaderStatusBar nextStep={optimisticNextStep} />}
-                            {showNextStepSkeleton && <MoneyReportHeaderStatusBarSkeleton reasonAttributes={nextStepSkeletonReasonAttributes} />}
-                            <MoneyReportHeaderStatusBarSection
-                                reportID={reportIDProp}
-                                statusBarType={statusBarType}
-                                iouTransactionID={transaction?.transactionID}
+        <View style={[styles.pt0, styles.borderBottom]}>
+            <HeaderWithBackButton
+                shouldShowReportAvatarWithDisplay
+                shouldDisplayStatus
+                shouldShowPinButton={false}
+                report={moneyRequestReport}
+                policy={policy}
+                shouldShowBackButton={shouldShowBackButton}
+                shouldDisplaySearchRouter={shouldDisplaySearchRouter}
+                shouldDisplayHelpButton={!(isReportInRHP && shouldUseNarrowLayout)}
+                onBackButtonPress={onBackButtonPress}
+                shouldShowBorderBottom={false}
+                shouldEnableDetailPageNavigation
+                openParentReportInCurrentTab
+            >
+                {shouldDisplayNarrowMoreButton && (
+                    <View style={[styles.flexRow, styles.gap2]}>
+                        {!shouldShowSelectedTransactionsButton && primaryActionComponent}
+                        {!!applicableSecondaryActions.length && !shouldShowSelectedTransactionsButton && (
+                            <MoneyReportHeaderKYCDropdown
+                                chatReportID={chatReport?.reportID}
+                                iouReport={moneyRequestReport}
+                                onPaymentSelect={onPaymentSelect}
+                                onSuccessfulKYC={(type) => confirmPayment({paymentType: type})}
+                                primaryAction={primaryAction}
+                                applicableSecondaryActions={applicableSecondaryActions}
+                                dropdownMenuRef={dropdownMenuRef}
+                                onOptionsMenuHide={handleOptionsMenuHide}
+                                ref={kycWallRef}
                             />
-                        </View>
-                        {isReportInSearch && (
-                            <MoneyRequestReportNavigation
-                                reportID={moneyRequestReport?.reportID}
-                                shouldDisplayNarrowVersion={!shouldDisplayNarrowMoreButton}
+                        )}
+                        {shouldShowSelectedTransactionsButton && <View>{renderSelectionModeDropdown()}</View>}
+                    </View>
+                )}
+            </HeaderWithBackButton>
+            {!shouldDisplayNarrowMoreButton &&
+                (shouldShowSelectedTransactionsButton ? (
+                    <View style={[styles.dFlex, styles.w100, styles.ph5, styles.pb3]}>{renderSelectionModeDropdown(styles.w100)}</View>
+                ) : (
+                    <View style={[styles.flexRow, styles.gap2, styles.pb3, styles.ph5, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                        {!!primaryAction && <View style={[styles.flex1]}>{primaryActionComponent}</View>}
+                        {!!applicableSecondaryActions.length && (
+                            <MoneyReportHeaderKYCDropdown
+                                chatReportID={chatReport?.reportID}
+                                iouReport={moneyRequestReport}
+                                onPaymentSelect={onPaymentSelect}
+                                onSuccessfulKYC={(type) => confirmPayment({paymentType: type})}
+                                primaryAction={primaryAction}
+                                applicableSecondaryActions={applicableSecondaryActions}
+                                dropdownMenuRef={dropdownMenuRef}
+                                onOptionsMenuHide={handleOptionsMenuHide}
+                                ref={kycWallRef}
                             />
                         )}
                     </View>
-                )}
+                ))}
 
-                <HeaderLoadingBar />
-            </View>
-        </MoneyReportHeaderModals>
+            {shouldShowMoreContent && (
+                <View style={[styles.flexRow, styles.gap2, styles.justifyContentStart, styles.flexNoWrap, styles.ph5, styles.pb3]}>
+                    <View style={[styles.flexShrink1, styles.flexGrow1, styles.mnw0, styles.flexWrap, styles.justifyContentCenter]}>
+                        {showNextStepBar && <MoneyReportHeaderStatusBar nextStep={optimisticNextStep} />}
+                        {showNextStepSkeleton && <MoneyReportHeaderStatusBarSkeleton reasonAttributes={nextStepSkeletonReasonAttributes} />}
+                        <MoneyReportHeaderStatusBarSection
+                            reportID={reportIDProp}
+                            statusBarType={statusBarType}
+                            iouTransactionID={transaction?.transactionID}
+                        />
+                    </View>
+                    {isReportInSearch && (
+                        <MoneyRequestReportNavigation
+                            reportID={moneyRequestReport?.reportID}
+                            shouldDisplayNarrowVersion={!shouldDisplayNarrowMoreButton}
+                        />
+                    )}
+                </View>
+            )}
+
+            <HeaderLoadingBar />
+        </View>
     );
 }
 
