@@ -541,6 +541,10 @@ const staticStyles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeLarge,
         },
 
+        textXLarge: {
+            fontSize: variables.fontSizeXLarge,
+        },
+
         textXXLarge: {
             fontSize: variables.fontSizeXXLarge,
         },
@@ -6445,7 +6449,7 @@ const plainStyles = (theme: ThemeColors) =>
             }) satisfies CustomPickerStyle,
         mapDirection: {
             lineColor: theme.success,
-            lineWidth: 7,
+            lineWidth: 8,
         },
 
         mapDirectionLayer: {

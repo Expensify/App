@@ -1,8 +1,14 @@
-import React, {useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
+import type {ReactNode} from 'react';
 import {View} from 'react-native';
+import DistanceMapView from '@components/DistanceMapView';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
+import ImageSVG from '@components/ImageSVG';
+import type {MapViewHandle, WayPoint} from '@components/MapView/MapViewTypes';
+import mapUtils from '@components/MapView/utils';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -12,9 +18,11 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setGPSTransactionDraftData} from '@libs/actions/IOU';
 import {handleMoneyRequestStepDistanceNavigation} from '@libs/actions/IOU/MoneyRequest';
+import {init as initMapboxToken, stop as stopMapboxToken} from '@libs/actions/MapboxToken';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getGPSConvertedDistance, getGPSCoordinates, getGPSWaypoints} from '@libs/GPSDraftDetailsUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -29,7 +37,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {hasSeenTourSelector} from '@src/selectors/Onboarding';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
-import DistanceCounter from './DistanceCounter';
+import type IconAsset from '@src/types/utils/IconAsset';
 import GPSButtons from './GPSButtons';
 import type IOURequestStepDistanceGPSProps from './types';
 import Waypoints from './Waypoints';
@@ -43,9 +51,11 @@ function IOURequestStepDistanceGPS({
     currentUserPersonalDetails,
 }: IOURequestStepDistanceGPSProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
 
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicatorUnfilled', 'Location']);
 
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
@@ -61,6 +71,7 @@ function IOURequestStepDistanceGPS({
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [mapboxAccessToken] = useOnyx(ONYXKEYS.MAPBOX_ACCESS_TOKEN);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreatingNewRequest = !isEditing;
     // eslint-disable-next-line rulesdir/no-negated-variables
@@ -150,6 +161,76 @@ function IOURequestStepDistanceGPS({
         return {};
     };
 
+    useEffect(() => {
+        initMapboxToken();
+        return stopMapboxToken;
+    }, []);
+
+    const mapRef = useRef<MapViewHandle>(null);
+
+    const getMarkerComponent = (icon: IconAsset): ReactNode => (
+        <ImageSVG
+            src={icon}
+            width={CONST.MAP_MARKER_SIZE}
+            height={CONST.MAP_MARKER_SIZE}
+            fill={theme.icon}
+        />
+    );
+
+    const directionCoordinates: Array<[number, number]> = (gpsDraftDetails?.gpsPoints ?? []).map(({lat, long}) => [long, lat]);
+    const isTripCaptured = !gpsDraftDetails?.isTracking && (gpsDraftDetails?.gpsPoints?.length ?? 0) > 0;
+
+    const getWaypointMarkers = (): WayPoint[] => {
+        const points = gpsDraftDetails?.gpsPoints ?? [];
+        const firstPoint = points.at(0);
+        const lastPoint = points.at(-1);
+        const markers: WayPoint[] = [];
+
+        if (firstPoint) {
+            const StartIcon = expensifyIcons.DotIndicatorUnfilled;
+            markers.push({
+                id: 'gps-start',
+                coordinate: [firstPoint.long, firstPoint.lat],
+                markerComponent: (): ReactNode => getMarkerComponent(StartIcon),
+            });
+        }
+
+        if (lastPoint && lastPoint !== firstPoint && isTripCaptured) {
+            const EndIcon = expensifyIcons.Location;
+            markers.push({
+                id: 'gps-end',
+                coordinate: [lastPoint.long, lastPoint.lat],
+                markerComponent: (): ReactNode => getMarkerComponent(EndIcon),
+            });
+        }
+
+        return markers;
+    };
+
+    const waypointMarkers = getWaypointMarkers();
+
+    useEffect(() => {
+        if (!gpsDraftDetails?.isTracking) {
+            return;
+        }
+        const latestPoint = gpsDraftDetails.gpsPoints?.at(-1);
+        if (!latestPoint) {
+            return;
+        }
+        mapRef.current?.flyTo([latestPoint.long, latestPoint.lat], CONST.MAPBOX.DEFAULT_ZOOM, 1000);
+    }, [gpsDraftDetails?.gpsPoints, gpsDraftDetails?.isTracking]);
+
+    const showFullRouteAfterStopping = () => {
+        if (directionCoordinates.length < 2) {
+            return;
+        }
+        const {northEast, southWest} = mapUtils.getBounds(
+            waypointMarkers.map((waypoint) => waypoint.coordinate),
+            directionCoordinates,
+        );
+        mapRef.current?.fitBounds(northEast, southWest, CONST.MAPBOX.PADDING, 1000);
+    };
+
     return (
         <StepScreenWrapper
             headerTitle={translate('common.distance')}
@@ -158,9 +239,26 @@ function IOURequestStepDistanceGPS({
             shouldShowNotFoundPage={shouldShowNotFoundPage}
             shouldShowWrapper={!isCreatingNewRequest}
         >
-            <DistanceCounter unit={unit} />
-            <View style={[styles.w100, styles.pAbsolute, styles.b0, styles.r0, styles.l0]}>
-                <Waypoints />
+            <View style={styles.mapViewContainer}>
+                <DistanceMapView
+                    accessToken={mapboxAccessToken?.token ?? ''}
+                    mapPadding={CONST.MAPBOX.PADDING}
+                    pitchEnabled={false}
+                    initialState={{
+                        zoom: CONST.MAPBOX.DEFAULT_ZOOM,
+                        location: waypointMarkers?.at(0)?.coordinate ?? CONST.MAPBOX.DEFAULT_COORDINATE,
+                    }}
+                    style={[styles.mapView, styles.mapEditView]}
+                    overlayStyle={styles.mapEditView}
+                    styleURL={CONST.MAPBOX.STYLE_URL}
+                    waypoints={waypointMarkers}
+                    directionCoordinates={directionCoordinates}
+                    ref={mapRef}
+                />
+            </View>
+
+            <View style={[styles.w100]}>
+                <Waypoints unit={unit} />
                 <DotIndicatorMessage
                     style={[styles.ph5, styles.pb3]}
                     messages={getError()}
@@ -170,6 +268,7 @@ function IOURequestStepDistanceGPS({
                     navigateToNextStep={navigateToNextStep}
                     setShouldShowStartError={setShouldShowStartError}
                     setShouldShowPermissionsError={setShouldShowPermissionsError}
+                    onTripStopped={showFullRouteAfterStopping}
                     reportID={reportID}
                     unit={unit}
                 />
