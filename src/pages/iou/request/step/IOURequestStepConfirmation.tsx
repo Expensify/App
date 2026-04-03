@@ -49,10 +49,13 @@ import {
     getExistingTransactionID,
     isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
     navigateToStartMoneyRequestStep,
+    resolveOptimisticChatReportID,
     shouldShowReceiptEmptyState,
     shouldUseTransactionDraft,
 } from '@libs/IOUUtils';
 import Log from '@libs/Log';
+import dismissModalAndOpenReportInInboxTabHelper from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
+import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
@@ -63,6 +66,7 @@ import {
     findSelfDMReportID,
     generateReportID,
     getReportOrDraftReport,
+    getReportTransactions,
     hasViolations as hasViolationsReportUtils,
     isMoneyRequestReport,
     isProcessingReport,
@@ -893,7 +897,20 @@ function IOURequestStepConfirmation({
                     quickAction,
                 });
             } else {
-                submitPerDiemExpenseIOUActions({
+                const isExpenseReport = isMoneyRequestReport(report);
+                let existingChatReport = report;
+                if (isExpenseReport) {
+                    existingChatReport = getReportOrDraftReport(report?.chatReportID);
+                } else if (!report?.reportID && participant.isPolicyExpenseChat && participant.reportID) {
+                    existingChatReport = getReportOrDraftReport(participant.reportID);
+                }
+                const {optimisticChatReportID, chatReportID} = resolveOptimisticChatReportID(
+                    [participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID],
+                    existingChatReport,
+                );
+                const activeReportID = isExpenseReport && Navigation.getTopmostReportId() === report?.reportID ? report?.reportID : chatReportID;
+
+                const result = submitPerDiemExpenseIOUActions({
                     report,
                     participantParams: {
                         payeeEmail: currentUserPersonalDetails.login,
@@ -930,7 +947,16 @@ function IOURequestStepConfirmation({
                     quickAction,
                     betas,
                     personalDetails,
+                    optimisticChatReportID,
                 });
+                if (result && activeReportID) {
+                    navigateAfterExpenseCreate({
+                        activeReportID,
+                        transactionID: transaction.transactionID,
+                        isFromGlobalCreate: transaction.isFromFloatingActionButton ?? transaction.isFromGlobalCreate,
+                        hasMultipleTransactions: getReportTransactions(activeReportID).length > 0,
+                    });
+                }
             }
         },
         [
@@ -1470,38 +1496,31 @@ function IOURequestStepConfirmation({
                 return;
             }
 
+            const {optimisticChatReportID, chatReportID} = resolveOptimisticChatReportID([participant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID], report);
+            const sendMoneyParams = {
+                report,
+                quickAction,
+                amount: transaction.amount,
+                currency,
+                comment: trimmedComment,
+                currentUserAccountID: currentUserPersonalDetails.accountID,
+                recipient: participant,
+                created: transaction.created,
+                merchant: transaction.merchant,
+                receipt: receiptFiles[transaction.transactionID],
+                optimisticChatReportID,
+            };
+
             if (paymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
                 setIsConfirmed(true);
-                sendMoneyElsewhere(
-                    report,
-                    quickAction,
-                    transaction.amount,
-                    currency,
-                    trimmedComment,
-                    currentUserPersonalDetails.accountID,
-                    participant,
-                    transaction.created,
-                    transaction.merchant,
-                    receiptFiles[transaction.transactionID],
-                );
+                sendMoneyElsewhere(sendMoneyParams);
+            } else if (paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+                setIsConfirmed(true);
+                sendMoneyWithWallet(sendMoneyParams);
+            } else {
                 return;
             }
-
-            if (paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-                setIsConfirmed(true);
-                sendMoneyWithWallet(
-                    report,
-                    quickAction,
-                    transaction.amount,
-                    currency,
-                    trimmedComment,
-                    currentUserPersonalDetails.accountID,
-                    participant,
-                    transaction.created,
-                    transaction.merchant,
-                    receiptFiles[transaction.transactionID],
-                );
-            }
+            dismissModalAndOpenReportInInboxTabHelper(chatReportID, undefined, getReportTransactions(chatReportID).length > 0);
         },
         [
             transaction?.currency,

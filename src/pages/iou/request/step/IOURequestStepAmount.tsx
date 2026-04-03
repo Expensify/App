@@ -23,10 +23,27 @@ import {requestMoney} from '@libs/actions/IOU/TrackExpense';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {calculateDefaultReimbursable, getExistingTransactionID, isMovingTransactionFromTrackExpense, navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
+import {
+    calculateDefaultReimbursable,
+    getExistingTransactionID,
+    isMovingTransactionFromTrackExpense,
+    navigateToConfirmationPage,
+    navigateToParticipantPage,
+    resolveOptimisticChatReportID,
+} from '@libs/IOUUtils';
+import dismissModalAndOpenReportInInboxTabHelper from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {getPolicyExpenseChat, getReportOrDraftReport, getTransactionDetails, isMoneyRequestReport, isPolicyExpenseChat, isSelfDM, shouldEnableNegative} from '@libs/ReportUtils';
+import {
+    getPolicyExpenseChat,
+    getReportOrDraftReport,
+    getReportTransactions,
+    getTransactionDetails,
+    isMoneyRequestReport,
+    isPolicyExpenseChat,
+    isSelfDM,
+    shouldEnableNegative,
+} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getRequestType, getTaxValue, hasReceipt, isDistanceRequest, isExpenseUnreported} from '@libs/TransactionUtils';
 import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
@@ -245,11 +262,26 @@ function IOURequestStepAmount({
                     transactionReportID: report?.reportID,
                 });
                 if (iouType === CONST.IOU.TYPE.PAY || iouType === CONST.IOU.TYPE.SEND) {
+                    const {optimisticChatReportID, chatReportID} = resolveOptimisticChatReportID(
+                        [participants.at(0)?.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserAccountIDParam],
+                        report,
+                    );
+                    const sendMoneyParams = {
+                        report,
+                        quickAction,
+                        amount: backendAmount,
+                        currency: selectedCurrency,
+                        comment: '',
+                        currentUserAccountID: currentUserAccountIDParam,
+                        recipient: participants.at(0) ?? {},
+                        optimisticChatReportID,
+                    };
                     if (paymentMethod && paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-                        sendMoneyWithWallet(report, quickAction, backendAmount, selectedCurrency, '', currentUserAccountIDParam, participants.at(0) ?? {});
-                        return;
+                        sendMoneyWithWallet(sendMoneyParams);
+                    } else {
+                        sendMoneyElsewhere(sendMoneyParams);
                     }
-                    sendMoneyElsewhere(report, quickAction, backendAmount, selectedCurrency, '', currentUserAccountIDParam, participants.at(0) ?? {});
+                    dismissModalAndOpenReportInInboxTabHelper(chatReportID, undefined, getReportTransactions(chatReportID).length > 0);
                     return;
                 }
                 if (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.REQUEST) {
