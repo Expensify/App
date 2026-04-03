@@ -1,5 +1,3 @@
-import type CONST from '@src/CONST';
-
 type SidePanel = {
     /** Whether the Side Panel is open on large screens */
     open: boolean;
