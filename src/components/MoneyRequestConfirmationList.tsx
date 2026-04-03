@@ -58,6 +58,7 @@ import {
     isScanning,
     isScanRequest as isScanRequestUtil,
 } from '@libs/TransactionUtils';
+import {isInvalidMerchantValue, isValidInputLength} from '@libs/ValidationUtils';
 import {getIsViolationFixed} from '@libs/Violations/ViolationsUtils';
 import {hasInvoicingDetails} from '@userActions/Policy/Policy';
 import type {IOUAction, IOUType} from '@src/CONST';
@@ -472,6 +473,21 @@ function MoneyRequestConfirmationList({
 
     const isMerchantEmpty = useMemo(() => !iouMerchant || isMerchantMissing(transaction), [transaction, iouMerchant]);
     const isMerchantRequired = isPolicyExpenseChat && (!isScanRequest || isEditingSplitBill) && shouldShowMerchant;
+    const isMerchantFieldValid = useMemo(() => {
+        const merchantValue = iouMerchant ?? '';
+        const trimmedMerchant = merchantValue.trim();
+        const {isValid} = isValidInputLength(merchantValue, CONST.MERCHANT_NAME_MAX_BYTES);
+
+        if (!isValid) {
+            return false;
+        }
+
+        if (!trimmedMerchant) {
+            return !isMerchantRequired;
+        }
+
+        return !isInvalidMerchantValue(trimmedMerchant);
+    }, [iouMerchant, isMerchantRequired]);
 
     const isCategoryRequired = !!policy?.requiresCategory && !isTypeInvoice;
 
@@ -503,6 +519,10 @@ function MoneyRequestConfirmationList({
             setFormError('iou.receiptScanningFailed');
             return;
         }
+        if (formError === 'iou.error.invalidMerchant' && isMerchantFieldValid) {
+            setFormError('');
+            return;
+        }
         // Check 1: If formError does NOT start with "violations.", clear it and return
         // Reset the form error whenever the screen gains or loses focus
         // but preserve violation-related errors since those represent real validation issues
@@ -517,7 +537,7 @@ function MoneyRequestConfirmationList({
             setFormError('');
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we don't want this effect to run if it's just setFormError that changes
-    }, [isFocused, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit, isViolationFixed]);
+    }, [isFocused, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit, isViolationFixed, isMerchantFieldValid]);
 
     const prevPolicy = usePrevious(policy);
 
@@ -645,6 +665,9 @@ function MoneyRequestConfirmationList({
             }
         } else if (isTypeSplit) {
             text = translate('iou.splitAmount', formattedAmount);
+            if (isNewManualExpenseFlowEnabled) {
+                text = translate('iou.splitExpense');
+            }
         } else if (iouAmount === 0) {
             text = translate('iou.createExpense');
         } else if (isNewManualExpenseFlowEnabled) {
@@ -1041,10 +1064,19 @@ function MoneyRequestConfirmationList({
                 return;
             }
 
+            const merchantValue = iouMerchant ?? '';
+            const {isValid: isMerchantLengthValid} = isValidInputLength(merchantValue, CONST.MERCHANT_NAME_MAX_BYTES);
+
+            if (!isMerchantLengthValid) {
+                setFormError('iou.error.invalidMerchant');
+                return;
+            }
+
             if (!isEditingSplitBill && isMerchantRequired && (isMerchantEmpty || (shouldDisplayFieldError && isMerchantMissing(transaction)))) {
                 setFormError('iou.error.invalidMerchant');
                 return;
             }
+
             if (iouCategory.length > CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH) {
                 setFormError('iou.error.invalidCategoryLength');
                 return;
@@ -1158,6 +1190,7 @@ function MoneyRequestConfirmationList({
             isEditingSplitBill,
             isMerchantRequired,
             isMerchantEmpty,
+            iouMerchant,
             shouldDisplayFieldError,
             shouldShowTax,
             transaction,
@@ -1181,6 +1214,7 @@ function MoneyRequestConfirmationList({
             currentUserPersonalDetails,
             isTimeRequest,
             getCurrencyDecimals,
+            isNewManualExpenseFlowEnabled,
         ],
     );
 
@@ -1360,6 +1394,7 @@ function MoneyRequestConfirmationList({
                 isMerchantRequired={isMerchantRequired}
                 isPolicyExpenseChat={isPolicyExpenseChat}
                 isReadOnly={isReadOnly}
+                isEditingSplitBill={isEditingSplitBill}
                 isTypeInvoice={isTypeInvoice}
                 onToggleBillable={onToggleBillable}
                 policy={policy}
