@@ -1,4 +1,3 @@
-import 'core-js/features/array/at';
 // eslint-disable-next-line no-restricted-imports
 import type {CSSProperties} from 'react';
 import React, {memo, useCallback, useEffect, useState} from 'react';
@@ -138,6 +137,7 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, sty
             accessibilityRole={CONST.ROLE.BUTTON}
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             accessibilityLabel={fileName || translate('attachmentView.unknownFilename')}
+            sentryLabel={CONST.SENTRY_LABEL.PDF_VIEW.DOCUMENT}
         >
             {renderPDFView()}
         </PressableWithoutFeedback>

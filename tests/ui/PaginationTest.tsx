@@ -26,7 +26,6 @@ jest.mock('@libs/BootSplash', () => ({
 }));
 jest.mock('@react-navigation/native');
 jest.mock('../../src/libs/Notification/LocalNotification');
-jest.mock('../../src/components/Icon/Expensicons');
 jest.mock('../../src/components/ConfirmedRoute.tsx');
 jest.mock('@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators', () => jest.fn());
 
@@ -149,6 +148,7 @@ function mockOpenReport(messageCount: number, initialID: string) {
                       ]
                     : [],
             hasOlderActions: !comments['1'],
+            // When comment-linking (reportActionID present), there may be newer actions beyond the cursor.
             hasNewerActions: !!reportActionID,
             oldestUnreadReportActionID: null,
         };
@@ -233,7 +233,7 @@ async function signInAndGetApp(): Promise<void> {
 
     await act(async () => {
         await Promise.all([
-            Onyx.merge(ONYXKEYS.IS_LOADING_APP, false),
+            Onyx.merge(ONYXKEYS.RAM_ONLY_IS_LOADING_APP, false),
             // Simulate setting an unread report and personal details
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
                 reportID: REPORT_ID,

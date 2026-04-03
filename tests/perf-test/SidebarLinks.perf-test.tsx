@@ -28,10 +28,8 @@ jest.mock('../../src/libs/Navigation/navigationRef', () => ({
     addListener: () => () => {},
     isReady: () => true,
 }));
-jest.mock('@components/Icon/Expensicons');
 
 jest.mock('@react-navigation/native');
-jest.mock('@src/hooks/useLHNEstimatedListSize/index.native.ts');
 
 const getMockedReportsMap = (length = 100) => {
     const mockReports = Object.fromEntries(
@@ -82,7 +80,7 @@ describe('SidebarLinks', () => {
             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
             [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS],
             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
-            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+            [ONYXKEYS.RAM_ONLY_IS_LOADING_REPORT_DATA]: false,
             ...mockedResponseMap,
         });
 
@@ -104,7 +102,7 @@ describe('SidebarLinks', () => {
             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
             [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS],
             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
-            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+            [ONYXKEYS.RAM_ONLY_IS_LOADING_REPORT_DATA]: false,
             ...mockedResponseMap,
         });
 

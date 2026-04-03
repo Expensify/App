@@ -3,8 +3,6 @@ import lodashSortBy from 'lodash/sortBy';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
 import type IllustrationsType from '@styles/theme/illustrations/types';
-// eslint-disable-next-line no-restricted-imports
-import type * as Illustrations from '@src/components/Icon/Illustrations';
 import CONST from '@src/CONST';
 import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
 import IntlStore from '@src/languages/IntlStore';
@@ -455,6 +453,7 @@ const mockCompanyCardFeedIcons: CompanyCardFeedIconsMock = {
     BrexCompanyCardDetailLarge: mockIcon('BrexCompanyCardDetailLarge'),
     StripeCompanyCardDetailLarge: mockIcon('StripeCompanyCardDetailLarge'),
     PlaidCompanyCardDetailLarge: mockIcon('PlaidCompanyCardDetailLarge'),
+    ExpensifyCardImage: mockIcon('ExpensifyCardImage'),
 };
 const mockCompanyCardBankIcons: CompanyCardBankIconsMock = {
     AmexCardCompanyCardDetail: mockIcon('AmexCardCompanyCardDetail'),
@@ -469,8 +468,6 @@ const mockCompanyCardBankIcons: CompanyCardBankIconsMock = {
     VisaCompanyCardDetail: mockIcon('VisaCompanyCardDetail'),
     PlaidCompanyCardDetail: mockIcon('PlaidCompanyCardDetail'),
 };
-
-jest.mock('@src/components/Icon/Illustrations', () => require('../../__mocks__/Illustrations') as typeof Illustrations);
 
 describe('CardUtils', () => {
     describe('Expiration date formatting', () => {
@@ -1149,6 +1146,20 @@ describe('CardUtils', () => {
                 },
             };
             expect(buildFeedKeysWithAssignedCards(allWorkspaceCards as unknown as OnyxCollection<WorkspaceCardsList>)).toStrictEqual({});
+        });
+
+        it('Should include CSV feed keys even when entries only have cardList', () => {
+            const csvFeed = `${CONST.COMPANY_CARD.FEED_BANK_NAME.CSV}_123456_`;
+            const allWorkspaceCards = {
+                [`cards_12345_${csvFeed}`]: {
+                    cardList: {
+                        'CREDIT CARD...1234': 'encrypted_value',
+                    },
+                },
+            };
+            expect(buildFeedKeysWithAssignedCards(allWorkspaceCards as unknown as OnyxCollection<WorkspaceCardsList>, [CONST.BETAS.CSV_CARD_IMPORT])).toStrictEqual({
+                [`12345_${csvFeed}`]: true,
+            });
         });
 
         it('Should extract feed keys that have assigned cards', () => {
@@ -2455,7 +2466,7 @@ describe('CardUtils', () => {
             expect(result).toHaveLength(2); // Both cards shown (admin-issued virtual is not grouped)
         });
 
-        it('should show travel cards separately', () => {
+        it('should exclude travel cards', () => {
             const cardList = {
                 1: {
                     accountID: 10160771,
@@ -2492,7 +2503,8 @@ describe('CardUtils', () => {
                 },
             } as unknown as CardList;
             const result = getDisplayableExpensifyCards(cardList);
-            expect(result).toHaveLength(2); // Both cards shown (travel card is not grouped)
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.cardID).toBe(18468850);
         });
 
         it('should show cards from different domains separately', () => {

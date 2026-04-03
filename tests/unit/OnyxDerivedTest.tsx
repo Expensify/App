@@ -21,13 +21,16 @@ const onyxDerivedTestSetup = () => {
 };
 
 describe('OnyxDerived', () => {
+    beforeAll(async () => {
+        onyxDerivedTestSetup();
+    });
+
     beforeEach(async () => {
         await Onyx.clear();
     });
 
     describe('reportAttributes', () => {
         beforeAll(async () => {
-            onyxDerivedTestSetup();
             await IntlStore.load(CONST.LOCALES.EN);
             await waitForBatchedUpdates();
         });
@@ -35,7 +38,7 @@ describe('OnyxDerived', () => {
         beforeEach(async () => {
             // The reportAttributes locale connection uses initWithStoredValues: false,
             // so it doesn't fire after Onyx.clear(). Setting this triggers recomputation.
-            await Onyx.set(ONYXKEYS.ARE_TRANSLATIONS_LOADING, false);
+            await Onyx.set(ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING, false);
             await waitForBatchedUpdates();
         });
 
@@ -402,7 +405,6 @@ describe('OnyxDerived', () => {
 
     describe('nonPersonalAndWorkspaceCardList', () => {
         beforeAll(async () => {
-            onyxDerivedTestSetup();
             // Initialize dependency keys so Onyx.clear() in beforeEach triggers derived value recomputation
             await Onyx.set(ONYXKEYS.CARD_LIST, {});
             await waitForBatchedUpdates();
@@ -510,10 +512,6 @@ describe('OnyxDerived', () => {
     });
 
     describe('personalAndWorkspaceCardList', () => {
-        beforeAll(async () => {
-            onyxDerivedTestSetup();
-        });
-
         it('merges cardList and workspaceCardFeeds when dependencies are set', async () => {
             // Non-personal cards (fundID !== '0') from cardList are kept, workspace cards are always included
             const nonPersonalCard1 = createRandomExpensifyCard(1, {fundID: '123'});
@@ -592,7 +590,6 @@ describe('OnyxDerived', () => {
 
     describe('todos', () => {
         beforeAll(async () => {
-            onyxDerivedTestSetup();
             // Initialize dependency keys so Onyx.clear() in beforeEach triggers derived value recomputation
             await Onyx.set(ONYXKEYS.SESSION, {});
             await waitForBatchedUpdates();

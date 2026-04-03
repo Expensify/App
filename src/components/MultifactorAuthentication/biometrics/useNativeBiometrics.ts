@@ -6,11 +6,21 @@ import {PrivateKeyStore, PublicKeyStore} from '@libs/MultifactorAuthentication/N
 import {SECURE_STORE_VALUES} from '@libs/MultifactorAuthentication/NativeBiometrics/SecureStore';
 import type {NativeBiometricsKeyInfo} from '@libs/MultifactorAuthentication/NativeBiometrics/types';
 import type {RegistrationChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
+import type {MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/shared/types';
 import VALUES from '@libs/MultifactorAuthentication/VALUES';
 import CONST from '@src/CONST';
 import Base64URL from '@src/utils/Base64URL';
 import type {AuthorizeParams, AuthorizeResult, RegisterResult, UseBiometricsReturn} from './shared/types';
 import useServerCredentials from './shared/useServerCredentials';
+
+const EXPO_TO_GENERIC_REASON: Partial<Record<MultifactorAuthenticationReason, MultifactorAuthenticationReason>> = {
+    [VALUES.REASON.EXPO.NO_METHOD_AVAILABLE]: VALUES.REASON.GENERIC.NO_AUTHENTICATION_METHODS_ENROLLED,
+    [VALUES.REASON.EXPO.NOT_SUPPORTED]: VALUES.REASON.GENERIC.NO_AUTHENTICATION_METHODS_ENROLLED,
+};
+
+function normalizeExpoReason(reason: MultifactorAuthenticationReason): MultifactorAuthenticationReason {
+    return EXPO_TO_GENERIC_REASON[reason] ?? reason;
+}
 
 /**
  * Clears local credentials to allow re-registration.
@@ -30,7 +40,7 @@ function useNativeBiometrics(): UseBiometricsReturn {
      * Verifies both biometrics and credentials authentication capabilities.
      * @returns True if biometrics or credentials authentication is supported on the device.
      */
-    const doesDeviceSupportAuthenticationMethod = useCallback(() => {
+    const doesDeviceSupportAuthenticationMethod = useCallback(async () => {
         const {biometrics, credentials} = PublicKeyStore.supportedAuthentication;
         return biometrics || credentials;
     }, []);
@@ -74,7 +84,7 @@ function useNativeBiometrics(): UseBiometricsReturn {
         if (!privateKeyResult.value || authType === undefined) {
             onResult({
                 success: false,
-                reason: privateKeyResult.reason,
+                reason: normalizeExpoReason(privateKeyResult.reason),
             });
             return;
         }
@@ -89,7 +99,7 @@ function useNativeBiometrics(): UseBiometricsReturn {
             await PrivateKeyStore.delete(accountID);
             onResult({
                 success: false,
-                reason: publicKeyResult.reason,
+                reason: normalizeExpoReason(publicKeyResult.reason),
             });
             return;
         }
@@ -111,7 +121,6 @@ function useNativeBiometrics(): UseBiometricsReturn {
             success: true,
             reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.LOCAL_REGISTRATION_COMPLETE,
             keyInfo,
-            authenticationMethod: authType,
         });
     };
 
@@ -127,7 +136,7 @@ function useNativeBiometrics(): UseBiometricsReturn {
         if (!privateKeyData.value) {
             onResult({
                 success: false,
-                reason: privateKeyData.reason || VALUES.REASON.KEYSTORE.KEY_MISSING,
+                reason: normalizeExpoReason(privateKeyData.reason || VALUES.REASON.KEYSTORE.KEY_MISSING),
             });
             return;
         }
@@ -181,6 +190,7 @@ function useNativeBiometrics(): UseBiometricsReturn {
         haveCredentialsEverBeenConfigured,
         getLocalCredentialID,
         doesDeviceSupportAuthenticationMethod,
+        deviceCheckFailureReason: VALUES.REASON.GENERIC.NO_AUTHENTICATION_METHODS_ENROLLED,
         hasLocalCredentials,
         areLocalCredentialsKnownToServer,
         register,

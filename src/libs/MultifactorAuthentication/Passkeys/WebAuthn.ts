@@ -1,4 +1,6 @@
 import type {ValueOf} from 'type-fest';
+import {getErrorMessage} from '@libs/ErrorUtils';
+import Log from '@libs/Log';
 import type {AuthenticationChallenge, RegistrationChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
 import MARQETA_VALUES from '@libs/MultifactorAuthentication/shared/MarqetaValues';
 import type {MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/shared/types';
@@ -111,18 +113,38 @@ function buildAllowedCredentialDescriptors(credentials: Array<{id: string; trans
         transports: c.transports?.filter(isSupportedTransport),
     }));
 }
+/**
+ * Extracts the AAGUID (Authenticator Attestation Globally Unique Identifier) from WebAuthn authenticatorData.
+ * The AAGUID occupies bytes 37-52: after rpIdHash (32 bytes), flags (1 byte), and signCount (4 bytes).
+ * Returns a UUID-formatted string, or empty string if authenticatorData is too short.
+ */
+function extractAAGUID(authData: ArrayBuffer): string | undefined {
+    const bytes = new Uint8Array(authData);
+    if (bytes.length < 53) {
+        return undefined;
+    }
+    const aaguidBytes = bytes.slice(37, 53);
+    const hex = Array.from(aaguidBytes, (b) => b.toString(16).padStart(2, '0')).join('');
+    return [hex.slice(0, 8), hex.slice(8, 12), hex.slice(12, 16), hex.slice(16, 20), hex.slice(20, 32)].join('-');
+}
 
 function isWebAuthnReason(name: string): name is MultifactorAuthenticationReason {
     return Object.values<string>(VALUES.REASON.WEBAUTHN).includes(name);
 }
 
+type DecodedWebAuthnError = {
+    reason: MultifactorAuthenticationReason;
+    message?: string;
+};
+
 /** Decodes WebAuthn DOMException errors and maps them to authentication error reasons. */
-function decodeWebAuthnError(error: unknown): MultifactorAuthenticationReason {
+function decodeWebAuthnError(error: unknown): DecodedWebAuthnError {
+    Log.info('[Passkey] WebAuthn error', false, {error: getErrorMessage(error)});
     if (error instanceof DOMException && isWebAuthnReason(error.name)) {
-        return error.name;
+        return {reason: error.name};
     }
 
-    return VALUES.REASON.WEBAUTHN.GENERIC;
+    return {reason: VALUES.REASON.WEBAUTHN.GENERIC, message: getErrorMessage(error)};
 }
 
 export {
@@ -136,5 +158,6 @@ export {
     authenticateWithPasskey,
     buildAllowedCredentialDescriptors,
     isSupportedTransport,
+    extractAAGUID,
     decodeWebAuthnError,
 };

@@ -1,3 +1,6 @@
+// NOTE: This component has a static twin in SearchPageNarrow/StaticTabSelector.tsx
+// used for fast perceived performance. If you change the UI here, verify the
+// static version still looks visually identical.
 import {useNavigation} from '@react-navigation/native';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -15,6 +18,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setSearchContext} from '@libs/actions/Search';
@@ -34,10 +38,41 @@ type SearchPageTabSelectorProps = {
     onTabPress?: () => void;
 };
 
+type SearchPageTabSelectorContentProps = {
+    tabs: TabSelectorBaseItem[];
+    activeTabKey: string;
+    onActiveTabPress?: (key: string) => void;
+    onTabPress?: (key: string) => void;
+    onLongTabPress?: (key: string) => void;
+    containerRef?: React.RefObject<View | null>;
+    children?: React.ReactNode;
+};
+
+function SearchPageTabSelectorContent({tabs, activeTabKey, onActiveTabPress, onTabPress: onTabPressContent, onLongTabPress, containerRef, children}: SearchPageTabSelectorContentProps) {
+    const styles = useThemeStyles();
+
+    return (
+        <View
+            ref={containerRef}
+            style={[styles.appBG]}
+        >
+            <TabSelectorContextProvider activeTabKey={activeTabKey}>
+                <TabSelectorBase
+                    tabs={tabs}
+                    activeTabKey={activeTabKey}
+                    onActiveTabPress={onActiveTabPress}
+                    onTabPress={onTabPressContent}
+                    onLongTabPress={onLongTabPress}
+                />
+            </TabSelectorContextProvider>
+            {children}
+        </View>
+    );
+}
+
 function SearchPageTabSelector({queryJSON, onTabPress}: SearchPageTabSelectorProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const styles = useThemeStyles();
     const navigation = useNavigation();
     const {typeMenuSections} = useSearchTypeMenuSections();
     const personalDetails = usePersonalDetails();
@@ -52,7 +87,7 @@ function SearchPageTabSelector({queryJSON, onTabPress}: SearchPageTabSelectorPro
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const [reportCounts = CONST.EMPTY_TODOS_REPORT_COUNTS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosReportCountsSelector});
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const reportAttributes = useReportAttributes();
 
     const taxRates = getAllTaxRates(allPolicies);
     const cardsForSavedSearchDisplay = mergeCardListWithWorkspaceFeeds(workspaceCardList ?? CONST.EMPTY_OBJECT, cardList);
@@ -76,6 +111,11 @@ function SearchPageTabSelector({queryJSON, onTabPress}: SearchPageTabSelectorPro
         'Bookmark',
         'ExpensifyCard',
         'Pencil',
+        'Trashcan',
+        'Document',
+        'Send',
+        'ThumbsUp',
+        'CheckCircle',
     ] as const);
 
     const queryMap = new Map<string, {query: string; name?: string}>();
@@ -105,7 +145,7 @@ function SearchPageTabSelector({queryJSON, onTabPress}: SearchPageTabSelectorPro
                           autoCompleteWithSpace: false,
                           translate,
                           feedKeysWithCards,
-                          conciergeReportID,
+                          reportAttributes,
                       });
                   }
 
@@ -134,13 +174,12 @@ function SearchPageTabSelector({queryJSON, onTabPress}: SearchPageTabSelectorPro
             tabItems.push(...savedSearchesTabItems);
         } else {
             for (const item of section.menuItems) {
-                const icon = typeof item.icon === 'string' ? expensifyIcons[item.icon] : item.icon;
                 const badgeText = getItemBadgeText(item.key, reportCounts);
                 const title = translate(item.translationPath);
 
                 tabItems.push({
                     key: item.key,
-                    icon,
+                    icon: expensifyIcons[item.icon],
                     title,
                     badgeText,
                 });
@@ -188,19 +227,14 @@ function SearchPageTabSelector({queryJSON, onTabPress}: SearchPageTabSelectorPro
     };
 
     return (
-        <View
-            ref={menuAnchorRef}
-            style={[styles.appBG]}
+        <SearchPageTabSelectorContent
+            tabs={tabItems}
+            activeTabKey={activeKey}
+            onActiveTabPress={handleActiveTabPress}
+            onTabPress={handleTabPress}
+            onLongTabPress={handleLongTabPress}
+            containerRef={menuAnchorRef}
         >
-            <TabSelectorContextProvider activeTabKey={activeKey}>
-                <TabSelectorBase
-                    tabs={tabItems}
-                    activeTabKey={activeKey}
-                    onActiveTabPress={handleActiveTabPress}
-                    onTabPress={handleTabPress}
-                    onLongTabPress={handleLongTabPress}
-                />
-            </TabSelectorContextProvider>
             <PopoverMenu
                 onClose={() => setSavedSearchToModifyKey(null)}
                 onModalHide={() => setRestoreFocusType(undefined)}
@@ -221,8 +255,9 @@ function SearchPageTabSelector({queryJSON, onTabPress}: SearchPageTabSelectorPro
                 shouldEnableNewFocusManagement
                 restoreFocusType={restoreFocusType}
             />
-        </View>
+        </SearchPageTabSelectorContent>
     );
 }
 
+export {SearchPageTabSelectorContent};
 export default SearchPageTabSelector;

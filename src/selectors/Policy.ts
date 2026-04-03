@@ -1,4 +1,7 @@
+import escapeRegExp from 'lodash/escapeRegExp';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {getDisplayNameForWorkspace} from '@libs/actions/Policy/Policy';
+import {translate} from '@libs/Localize';
 import {areAllGroupPoliciesExpenseChatDisabled, getActiveAdminWorkspaces, getOwnedPaidPolicies, isPaidGroupPolicy, shouldShowPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import type {Policy, PolicyReportField} from '@src/types/onyx';
@@ -134,6 +137,32 @@ const hasPoliciesConnectedToSageIntacctSelector = (policies: OnyxCollection<Poli
 
 const hasPoliciesConnectedToNetSuiteSelector = (policies: OnyxCollection<Policy>) => !!adminPoliciesConnectedToNetSuiteSelector(policies).length;
 
+function lastWorkspaceNumberSelector(policies: OnyxCollection<Policy>, email: string): number | undefined {
+    const emailParts = email.split('@');
+    if (emailParts.length !== 2) {
+        return undefined;
+    }
+
+    const displayNameForWorkspace = getDisplayNameForWorkspace(email);
+    // find default named workspaces and increment the last number
+    const escapedName = escapeRegExp(displayNameForWorkspace);
+    const workspaceTranslations = Object.values(CONST.LOCALES)
+        .map((lang) => translate(lang, 'workspace.common.workspace'))
+        .join('|');
+
+    const domain = emailParts.at(1) ?? '';
+    const isSMSDomain = `@${domain}` === CONST.SMS.DOMAIN;
+    const workspaceRegex = isSMSDomain ? new RegExp(`^${escapedName}\\s*(\\d+)?$`, 'i') : new RegExp(`^(?=.*${escapedName})(?:.*(?:${workspaceTranslations})\\s*(\\d+)?)`, 'i');
+
+    const workspaceNumbers = Object.values(policies ?? {})
+        .map((policy) => workspaceRegex.exec(policy?.name ?? ''))
+        .filter(Boolean) // Remove null matches
+        .map((match) => Number(match?.[1] ?? '0'));
+    const lastWorkspaceNumber = workspaceNumbers.length > 0 ? Math.max(...workspaceNumbers) : undefined;
+
+    return lastWorkspaceNumber;
+}
+
 export {
     activePolicySelector,
     createAllPolicyReportFieldsSelector,
@@ -150,4 +179,5 @@ export {
     adminPoliciesConnectedToNetSuiteSelector,
     hasPoliciesConnectedToSageIntacctSelector,
     hasPoliciesConnectedToNetSuiteSelector,
+    lastWorkspaceNumberSelector,
 };
