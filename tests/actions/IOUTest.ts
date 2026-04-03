@@ -159,6 +159,7 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     getActiveRoute: jest.fn(),
     navigationRef: {
         getRootState: jest.fn(),
+        isReady: jest.fn(() => true),
     },
 }));
 
@@ -10148,6 +10149,7 @@ describe('actions/IOU', () => {
                                 lastUsedPaymentMethods: undefined,
                                 localeCompare,
                                 currentUserAccountID: CARLOS_ACCOUNT_ID,
+                                accountIDToLogin: {},
                             });
                         }
                         return waitForBatchedUpdates();
