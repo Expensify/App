@@ -1,3 +1,4 @@
+import {sortedActionsSelector} from '@selectors/SortedReportActions';
 import type {Ref} from 'react';
 import React, {useEffect, useImperativeHandle, useRef} from 'react';
 import {View} from 'react-native';
@@ -54,6 +55,7 @@ function ShareTab({ref}: ShareTabProps) {
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+    const [sortedActions] = useOnyx(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS, {selector: sortedActionsSelector});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
@@ -92,6 +94,7 @@ function ShareTab({ref}: ShareTabProps) {
               currentUserEmail,
               policyCollection: allPolicies,
               personalDetails,
+              sortedActions,
           })
         : defaultListOptions;
 

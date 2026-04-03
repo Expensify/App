@@ -33,6 +33,7 @@ import {searchUserInServer} from '@userActions/Report';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {sortedActionsSelector} from '@src/selectors/SortedReportActions';
 import type {Accountant} from '@src/types/onyx/IOU';
 
 const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 5, monitoringName: 'MoneyRequestAccountantSelector.getValidOptions'});
@@ -73,6 +74,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const privateIsArchivedMap = usePrivateIsArchivedMap();
+    const [sortedActions] = useOnyx(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS, {selector: sortedActionsSelector});
 
     useEffect(() => {
         searchUserInServer(debouncedSearchTerm.trim());
@@ -100,6 +102,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
                 action,
                 personalDetails,
                 countryCode,
+                sortedActions,
             },
         );
 
@@ -124,6 +127,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         currentUserAccountID,
         currentUserEmail,
         personalDetails,
+        sortedActions,
     ]);
 
     const chatOptions = useMemo(() => {

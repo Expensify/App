@@ -815,6 +815,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
+                sortedActions: undefined,
             });
 
             // Then all personal details (including those that have reports) should be returned
@@ -844,6 +845,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS,
+                sortedActions: undefined,
             });
 
             // Then the current user should be included in personalDetails
@@ -875,6 +877,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS,
+                sortedActions: undefined,
             });
 
             // Then the current user should not be included in personalDetails
@@ -904,6 +907,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS,
+                sortedActions: undefined,
             });
 
             // Then recent reports should include the workspace room
@@ -933,6 +937,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS,
+                sortedActions: undefined,
             });
 
             // Then it should still return personal details
@@ -961,6 +966,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS,
+                sortedActions: undefined,
             });
 
             // Then it should still return personal details
@@ -1098,6 +1104,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 {
                     excludeLogins: {[CONST.EMAIL.CONCIERGE]: true},
+                    sortedActions: undefined,
                 },
             );
 
@@ -1120,6 +1127,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 {
                     excludeLogins: {[CONST.EMAIL.CHRONOS]: true},
+                    sortedActions: undefined,
                 },
             );
 
@@ -1145,6 +1153,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 {
                     excludeLogins: {[CONST.EMAIL.RECEIPTS]: true},
+                    sortedActions: undefined,
                 },
             );
 
@@ -1174,6 +1183,7 @@ describe('OptionsListUtils', () => {
                     includeP2P: true,
                     canShowManagerMcTest: true,
                     betas: [CONST.BETAS.NEWDOT_MANAGER_MCTEST],
+                    sortedActions: undefined,
                 },
             );
 
@@ -1198,6 +1208,7 @@ describe('OptionsListUtils', () => {
                     includeP2P: true,
                     canShowManagerMcTest: false,
                     betas: [CONST.BETAS.NEWDOT_MANAGER_MCTEST],
+                    sortedActions: undefined,
                 },
             );
 
@@ -1231,6 +1242,7 @@ describe('OptionsListUtils', () => {
                             includeP2P: true,
                             canShowManagerMcTest: true,
                             betas: [CONST.BETAS.NEWDOT_MANAGER_MCTEST],
+                            sortedActions: undefined,
                         },
                     );
 
@@ -1286,6 +1298,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 {
                     includeMultipleParticipantReports: true,
+                    sortedActions: undefined,
                 },
             );
             const adminRoomOption = results.recentReports.find((report) => report.reportID === '1455140530846319');
@@ -1341,6 +1354,7 @@ describe('OptionsListUtils', () => {
                 {
                     includeMultipleParticipantReports: true,
                     showRBR: true,
+                    sortedActions: undefined,
                 },
             );
             expect(results.recentReports.at(0)?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
@@ -1393,6 +1407,7 @@ describe('OptionsListUtils', () => {
                 {
                     includeMultipleParticipantReports: true,
                     showRBR: false,
+                    sortedActions: undefined,
                 },
             );
             expect(results.recentReports.at(0)?.brickRoadIndicator).toBe(null);
@@ -1450,6 +1465,7 @@ describe('OptionsListUtils', () => {
                     includeRecentReports: true,
                     shouldUnreadBeBold: true,
                     includeMultipleParticipantReports: true,
+                    sortedActions: undefined,
                 },
             );
 
@@ -1483,6 +1499,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 {
                     personalDetails: customPersonalDetails,
+                    sortedActions: undefined,
                 },
             );
 
@@ -1502,6 +1519,7 @@ describe('OptionsListUtils', () => {
                 includeMultipleParticipantReports: true,
                 includeP2P: true,
                 includeOwnedWorkspaceChats: true,
+                sortedActions: undefined,
             });
 
             // Then the result should include all reports except the currently logged in user
@@ -1536,6 +1554,7 @@ describe('OptionsListUtils', () => {
                 includeOwnedWorkspaceChats: true,
                 shouldSeparateWorkspaceChat: true,
                 personalDetails: customPersonalDetails,
+                sortedActions: undefined,
             });
 
             // Then the function should process without errors and return workspace chats
@@ -1554,6 +1573,7 @@ describe('OptionsListUtils', () => {
                 includeOwnedWorkspaceChats: true,
                 shouldSeparateWorkspaceChat: true,
                 personalDetails: undefined,
+                sortedActions: undefined,
             });
 
             // Then the function should fall back to allPersonalDetails and process without errors
@@ -1571,6 +1591,7 @@ describe('OptionsListUtils', () => {
                 includeOwnedWorkspaceChats: true,
                 shouldSeparateWorkspaceChat: true,
                 personalDetails: {},
+                sortedActions: undefined,
             });
 
             // Then the function should fall back to allPersonalDetails and process without errors
@@ -1588,6 +1609,7 @@ describe('OptionsListUtils', () => {
                 includeOwnedWorkspaceChats: true,
                 shouldSeparateWorkspaceChat: true,
                 personalDetails: {},
+                sortedActions: undefined,
             });
 
             // Then the function should fall back to allPersonalDetails and process without errors
@@ -1631,6 +1653,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 {
                     excludeLogins: {'peterparker@expensify.com': true},
+                    sortedActions: undefined,
                 },
             );
 
@@ -1674,6 +1697,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 {
                     excludeLogins: {[CONST.EMAIL.CONCIERGE]: true},
+                    sortedActions: undefined,
                 },
             );
 
@@ -1697,6 +1721,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 {
                     excludeLogins: {[CONST.EMAIL.CHRONOS]: true},
+                    sortedActions: undefined,
                 },
             );
 
@@ -1723,6 +1748,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 {
                     excludeLogins: {[CONST.EMAIL.RECEIPTS]: true},
+                    sortedActions: undefined,
                 },
             );
 
@@ -1747,6 +1773,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 {
                     maxRecentReportElements: maxRecentReports,
+                    sortedActions: undefined,
                 },
             );
 
@@ -1776,6 +1803,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 {
                     maxRecentReportElements: 2,
+                    sortedActions: undefined,
                 },
             );
 
@@ -1805,6 +1833,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 {
                     maxRecentReportElements: 2,
+                    sortedActions: undefined,
                 },
             );
 
@@ -1828,6 +1857,7 @@ describe('OptionsListUtils', () => {
                 {
                     maxElements: maxTotalElements,
                     maxRecentReportElements: maxRecentReports,
+                    sortedActions: undefined,
                 },
             );
 
@@ -1872,6 +1902,7 @@ describe('OptionsListUtils', () => {
                     includeSelfDM: true,
                     searchString: '',
                     includeUserToInvite: false,
+                    sortedActions: undefined,
                 },
             );
 
@@ -1913,6 +1944,7 @@ describe('OptionsListUtils', () => {
                     includeSelfDM: true,
                     searchString: '',
                     includeUserToInvite: false,
+                    sortedActions: undefined,
                 },
             );
 
@@ -2110,6 +2142,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
+                sortedActions: undefined,
             });
             // When we pass the returned options to filterAndOrderOptions with an empty search value
             const filteredOptions = filterAndOrderOptions(options, '', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -2133,6 +2166,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
+                sortedActions: undefined,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value and sortByReportTypeInSearch param
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
@@ -2165,6 +2199,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
+                sortedActions: undefined,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -2194,6 +2229,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
+                sortedActions: undefined,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -2220,6 +2256,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS_WITH_PERIODS,
+                sortedActions: undefined,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value and sortByReportTypeInSearch param
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS_WITH_PERIODS, {
@@ -2246,6 +2283,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS,
+                sortedActions: undefined,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -2270,6 +2308,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
+                sortedActions: undefined,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -2302,6 +2341,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS,
+                sortedActions: undefined,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value
             const filterOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -2326,6 +2366,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
+                sortedActions: undefined,
             });
             // When we call filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -2351,6 +2392,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
+                sortedActions: undefined,
             });
             // When we call filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -2372,6 +2414,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 {
                     excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+                    sortedActions: undefined,
                 },
             );
             // When we call filterAndOrderOptions with a search value and excluded logins list
@@ -2396,6 +2439,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
+                sortedActions: undefined,
             });
             // When we call filterAndOrderOptions with a search value and excludeLogins
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
@@ -2419,6 +2463,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
+                sortedActions: undefined,
             });
             // When we call filterAndOrderOptions with a search value and maxRecentReportsToShow set to 2
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
@@ -2452,6 +2497,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
+                sortedActions: undefined,
             });
             // When we call filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -2493,6 +2539,7 @@ describe('OptionsListUtils', () => {
                     includeSelfDM: true,
                     searchString: '',
                     includeUserToInvite: false,
+                    sortedActions: undefined,
                 },
             );
             // When we pass the returned options to filterAndOrderOptions with a search value that does not match the group chat name
@@ -2535,6 +2582,7 @@ describe('OptionsListUtils', () => {
                     includeSelfDM: true,
                     searchString: '',
                     includeUserToInvite: false,
+                    sortedActions: undefined,
                 },
             );
             // When we pass the returned options to filterAndOrderOptions with a search value that matches the group chat name
@@ -2577,6 +2625,7 @@ describe('OptionsListUtils', () => {
                     includeSelfDM: true,
                     searchString: '',
                     includeUserToInvite: false,
+                    sortedActions: undefined,
                 },
             );
             // When we pass the returned options to filterAndOrderOptions with a search value that does not match the group chat name
@@ -2641,6 +2690,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: PERSONAL_DETAILS,
                 searchQuery: 'Spider-Man',
                 policyCollection: allPolicies,
+                sortedActions: undefined,
             });
 
             // Then one report should be returned
@@ -2682,6 +2732,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: PERSONAL_DETAILS,
                 searchQuery: 'peterparker@expensify.com',
                 policyCollection: allPolicies,
+                sortedActions: undefined,
             });
 
             // Then one report should be returned
@@ -2723,6 +2774,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: PERSONAL_DETAILS,
                 searchQuery: 'Black Panther',
                 policyCollection: allPolicies,
+                sortedActions: undefined,
             });
 
             // Then one report should be returned
@@ -2764,6 +2816,7 @@ describe('OptionsListUtils', () => {
                 personalDetails: PERSONAL_DETAILS,
                 searchQuery: 'Wolverine',
                 policyCollection: allPolicies,
+                sortedActions: undefined,
             });
 
             // Then no reports should be returned
@@ -2801,6 +2854,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS,
                 policyCollection: allPolicies,
+                sortedActions: undefined,
             });
 
             // When we pass the returned options to filterAndOrderOptions with any search value
@@ -2993,6 +3047,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 {
                     includeUserToInvite: true,
+                    sortedActions: undefined,
                 },
             );
 
@@ -3017,6 +3072,7 @@ describe('OptionsListUtils', () => {
                 CURRENT_USER_EMAIL,
                 {
                     includeUserToInvite: true,
+                    sortedActions: undefined,
                 },
             );
 
@@ -3110,6 +3166,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
+                sortedActions: undefined,
             });
             // When we call filterAndOrderOptions with a search value that matches a personal detail
             const filteredOptions = filterAndOrderOptions(options, 'spider', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -3132,6 +3189,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
+                sortedActions: undefined,
             });
             // When we call filterAndOrderOptions with a search value that matches multiple items
             const filteredOptions = filterAndOrderOptions(options, 'fantastic', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -3158,6 +3216,7 @@ describe('OptionsListUtils', () => {
                         currentUserEmail: CURRENT_USER_EMAIL,
                         policyCollection: allPolicies,
                         personalDetails: PERSONAL_DETAILS_WITH_PERIODS,
+                        sortedActions: undefined,
                     });
                     // When we pass the returned options to filterAndOrderOptions with a search value
                     const filteredResults = filterAndOrderOptions(
@@ -3198,6 +3257,7 @@ describe('OptionsListUtils', () => {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 policyCollection: allPolicies,
                 personalDetails: PERSONAL_DETAILS,
+                sortedActions: undefined,
             });
             // When we call filterAndOrderOptions with a an empty search value
             const filteredOptions = filterAndOrderOptions(options, '', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -3224,6 +3284,7 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS,
+                sortedActions: undefined,
             });
             // When we call filterAndOrderOptions with a search value
             const filteredOptions = filterAndOrderOptions(options, searchTerm, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
@@ -5267,6 +5328,7 @@ describe('OptionsListUtils', () => {
                 {
                     betas: [],
                     includeRecentReports: true,
+                    sortedActions: undefined,
                 },
             );
 
@@ -6684,9 +6746,29 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserEmail: CURRENT_USER_EMAIL,
                 personalDetails: PERSONAL_DETAILS,
+                sortedActions: undefined,
             });
 
             // Then the function should complete without errors and return valid results
+            expect(options).toBeDefined();
+            expect(options.recentReports).toBeDefined();
+            expect(options.personalDetails).toBeDefined();
+        });
+
+        it('getSearchOptions should forward sortedActions to getValidOptions', () => {
+            const sortedActions = {};
+            const options = getSearchOptions({
+                options: OPTIONS,
+                draftComments: {},
+                nvpDismissedProductTraining,
+                loginList,
+                policyCollection: {},
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                personalDetails: PERSONAL_DETAILS,
+                sortedActions,
+            });
+
             expect(options).toBeDefined();
             expect(options.recentReports).toBeDefined();
             expect(options.personalDetails).toBeDefined();
@@ -7729,6 +7811,203 @@ describe('OptionsListUtils', () => {
 
             const resultOption = results.recentReports.at(0);
             expect(resultOption?.lastIOUCreationDate).toBeUndefined();
+        });
+    });
+
+    describe('getSearchOptions with sortedActions', () => {
+        it('should forward sortedActions through getSearchOptions without errors', async () => {
+            const reportID = 'search-sorted-1';
+            const iouReportID = 'search-iou-1';
+
+            const report: Report = {
+                ...createRegularChat(Number(reportID), [1]),
+                reportID,
+                reportName: 'Search Sorted Test',
+                lastVisibleActionCreated: '2025-06-15 10:00:00.000',
+                lastActorAccountID: 1,
+                lastMessageText: 'Test',
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await waitForBatchedUpdates();
+
+            const reportPreviewAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                originalMessage: {linkedReportID: iouReportID},
+            } as ReportAction;
+
+            const iouAction: ReportAction = {
+                ...createRandomReportAction(2),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                lastModified: '2025-06-15 10:30:00.000',
+            } as ReportAction;
+
+            const inputOption: SearchOption<Report> = {
+                item: report,
+                reportID,
+                text: 'Search Sorted Test',
+                isUnread: false,
+                participantsList: [],
+                keyForList: reportID,
+                isChatRoom: true,
+                policyID: '123',
+                lastMessageText: 'Test',
+                lastVisibleActionCreated: report.lastVisibleActionCreated,
+                notificationPreference: 'always',
+                accountID: 0,
+                login: '',
+                alternateText: '',
+                subtitle: '',
+                firstName: '',
+                lastName: '',
+                icons: [],
+                isSelected: false,
+                isDisabled: false,
+                brickRoadIndicator: null,
+                isBold: false,
+            };
+
+            const sortedActions = {
+                [reportID]: [reportPreviewAction],
+                [iouReportID]: [iouAction],
+            };
+
+            const results = getSearchOptions({
+                options: {reports: [inputOption], personalDetails: []},
+                draftComments: {},
+                nvpDismissedProductTraining,
+                betas: [CONST.BETAS.ALL],
+                loginList,
+                policyCollection: allPolicies,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                sortedActions,
+            });
+
+            expect(results.recentReports.length).toBe(1);
+        });
+
+        it('should handle undefined sortedActions via getSearchOptions', async () => {
+            const reportID = 'search-sorted-2';
+
+            const report: Report = {
+                ...createRegularChat(Number(reportID), [1]),
+                reportID,
+                reportName: 'Search Sorted Test 2',
+                lastVisibleActionCreated: '2025-06-15 10:00:00.000',
+                lastActorAccountID: 1,
+                lastMessageText: 'Test',
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await waitForBatchedUpdates();
+
+            const inputOption: SearchOption<Report> = {
+                item: report,
+                reportID,
+                text: 'Search Sorted Test 2',
+                isUnread: false,
+                participantsList: [],
+                keyForList: reportID,
+                isChatRoom: true,
+                policyID: '123',
+                lastMessageText: 'Test',
+                lastVisibleActionCreated: report.lastVisibleActionCreated,
+                notificationPreference: 'always',
+                accountID: 0,
+                login: '',
+                alternateText: '',
+                subtitle: '',
+                firstName: '',
+                lastName: '',
+                icons: [],
+                isSelected: false,
+                isDisabled: false,
+                brickRoadIndicator: null,
+                isBold: false,
+            };
+
+            const results = getSearchOptions({
+                options: {reports: [inputOption], personalDetails: []},
+                draftComments: {},
+                nvpDismissedProductTraining,
+                betas: [CONST.BETAS.ALL],
+                loginList,
+                policyCollection: allPolicies,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                sortedActions: undefined,
+            });
+
+            expect(results.recentReports.length).toBe(1);
+            expect(results.recentReports.at(0)?.lastIOUCreationDate).toBeUndefined();
+        });
+
+        it('should use sortedActions for unread computation with shouldUnreadBeBold on IOU reports', async () => {
+            const reportID = 'search-sorted-3';
+
+            const report: Report = {
+                ...createRegularChat(Number(reportID), [1]),
+                reportID,
+                reportName: 'Search IOU Test',
+                lastVisibleActionCreated: '2025-06-15 10:00:00.000',
+                lastActorAccountID: 1,
+                lastMessageText: 'Test',
+                type: CONST.REPORT.TYPE.IOU,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await waitForBatchedUpdates();
+
+            const iouAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            } as ReportAction;
+
+            const inputOption: SearchOption<Report> = {
+                item: report,
+                reportID,
+                text: 'Search IOU Test',
+                isUnread: true,
+                participantsList: [],
+                keyForList: reportID,
+                isChatRoom: false,
+                policyID: '123',
+                lastMessageText: 'Test',
+                lastVisibleActionCreated: report.lastVisibleActionCreated,
+                notificationPreference: 'always',
+                accountID: 0,
+                login: '',
+                alternateText: '',
+                subtitle: '',
+                firstName: '',
+                lastName: '',
+                icons: [],
+                isSelected: false,
+                isDisabled: false,
+                brickRoadIndicator: null,
+                isBold: false,
+            };
+
+            const sortedActions = {
+                [reportID]: [iouAction],
+            };
+
+            const results = getSearchOptions({
+                options: {reports: [inputOption], personalDetails: []},
+                draftComments: {},
+                nvpDismissedProductTraining,
+                betas: [CONST.BETAS.ALL],
+                loginList,
+                policyCollection: allPolicies,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: CURRENT_USER_EMAIL,
+                shouldUnreadBeBold: true,
+                sortedActions,
+            });
+
+            expect(results.recentReports.length).toBe(1);
         });
     });
 });
