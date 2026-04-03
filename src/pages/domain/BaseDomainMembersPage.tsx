@@ -216,17 +216,15 @@ function BaseDomainMembersPage({
         searchBarAccessory || shouldShowSearchBar ? (
             <View style={styles.flexColumn}>
                 <View style={[styles.mh5, styles.gap3, styles.mb5, shouldUseNarrowLayout ? styles.flexColumn : styles.flexRow]}>
-                    {!!searchBarAccessory && (
-                        <View
-                            style={[
-                                shouldUseNarrowLayout && styles.w100,
-                                shouldShowSearchBar && !shouldUseNarrowLayout && styles.h13,
-                                shouldShowSearchBar && !shouldUseNarrowLayout && styles.justifyContentCenter,
-                            ]}
-                        >
-                            {searchBarAccessory}
-                        </View>
-                    )}
+                    <View
+                        style={[
+                            shouldUseNarrowLayout && styles.w100,
+                            shouldShowSearchBar && !shouldUseNarrowLayout && styles.h13,
+                            shouldShowSearchBar && !shouldUseNarrowLayout && styles.justifyContentCenter,
+                        ]}
+                    >
+                        {searchBarAccessory}
+                    </View>
                     {shouldShowSearchBar && (
                         <View style={[shouldUseNarrowLayout && styles.w100]}>
                             <SearchBar
