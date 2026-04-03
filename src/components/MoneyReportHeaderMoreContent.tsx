@@ -1,10 +1,10 @@
 import {useRoute} from '@react-navigation/native';
 import React from 'react';
 import {View} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import useMoneyReportHeaderStatusBar from '@hooks/useMoneyReportHeaderStatusBar';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import useOptimisticNextStep from '@hooks/useOptimisticNextStep';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -16,13 +16,11 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {isInvoiceReport as isInvoiceReportUtil} from '@libs/ReportUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
+import MoneyReportHeaderNextStep from './MoneyReportHeaderNextStep';
 import MoneyReportHeaderStatusBarSection from './MoneyReportHeaderStatusBarSection';
-import MoneyReportHeaderStatusBarSkeleton from './MoneyReportHeaderStatusBarSkeleton';
 import MoneyRequestReportNavigation from './MoneyRequestReportView/MoneyRequestReportNavigation';
 
 type MoneyReportHeaderMoreContentProps = {
@@ -30,13 +28,6 @@ type MoneyReportHeaderMoreContentProps = {
 };
 
 function MoneyReportHeaderMoreContent({reportID}: MoneyReportHeaderMoreContentProps) {
-    const styles = useThemeStyles();
-    const {isOffline} = useNetwork();
-    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
-    const shouldDisplayNarrowVersion = shouldUseNarrowLayout || isMediumScreenWidth;
-    const {isWideRHPDisplayedOnWideLayout, isSuperWideRHPDisplayedOnWideLayout} = useResponsiveLayoutOnWideRHP();
-    const shouldDisplayNarrowMoreButton = !shouldDisplayNarrowVersion || isWideRHPDisplayedOnWideLayout || isSuperWideRHPDisplayedOnWideLayout;
-
     const route = useRoute<
         | PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
         | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.EXPENSE_REPORT>
@@ -47,14 +38,50 @@ function MoneyReportHeaderMoreContent({reportID}: MoneyReportHeaderMoreContentPr
 
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
-    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`);
-    const isLoadingInitialReportActions = reportMetadata?.isLoadingInitialReportActions;
+    const {shouldShowStatusBar, statusBarType} = useMoneyReportHeaderStatusBar(reportID, moneyRequestReport?.chatReportID);
+
+    const policyType = policy?.type;
+    const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
+    const isInvoiceReport = isInvoiceReportUtil(moneyRequestReport);
+    const shouldShowNextStep = isFromPaidPolicy && !isInvoiceReport && !shouldShowStatusBar;
+
+    const shouldShowMoreContent = shouldShowNextStep || !!statusBarType || isReportInSearch;
+
+    if (!shouldShowMoreContent) {
+        return null;
+    }
+
+    return (
+        <MoneyReportHeaderMoreContentBody
+            reportID={reportID}
+            statusBarType={statusBarType}
+            isReportInSearch={isReportInSearch}
+            shouldShowNextStep={shouldShowNextStep}
+        />
+    );
+}
+
+type MoneyReportHeaderMoreContentBodyProps = {
+    reportID: string | undefined;
+    statusBarType: ValueOf<typeof CONST.REPORT.STATUS_BAR_TYPE> | undefined;
+    isReportInSearch: boolean;
+    shouldShowNextStep: boolean;
+};
+
+function MoneyReportHeaderMoreContentBody({reportID, statusBarType, isReportInSearch, shouldShowNextStep}: MoneyReportHeaderMoreContentBodyProps) {
+    const styles = useThemeStyles();
+    const {isOffline} = useNetwork();
+    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    const shouldDisplayNarrowVersion = shouldUseNarrowLayout || isMediumScreenWidth;
+    const {isWideRHPDisplayedOnWideLayout, isSuperWideRHPDisplayedOnWideLayout} = useResponsiveLayoutOnWideRHP();
+    const shouldDisplayNarrowMoreButton = !shouldDisplayNarrowVersion || isWideRHPDisplayedOnWideLayout || isSuperWideRHPDisplayedOnWideLayout;
+
+    const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID}`);
 
     const {reportActions: unfilteredReportActions} = usePaginatedReportActions(moneyRequestReport?.reportID);
     const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
 
-    // Derive iouTransactionID for the single-transaction case
     const allReportTransactions = useReportTransactionsCollection(reportID);
     const nonDeletedTransactions = getAllNonDeletedTransactions(allReportTransactions, reportActions, isOffline, true);
     const visibleTransactionsForThreadID = nonDeletedTransactions?.filter((t) => isOffline || t.pendingAction !== 'delete');
@@ -67,36 +94,10 @@ function MoneyReportHeaderMoreContent({reportID}: MoneyReportHeaderMoreContentPr
 
     const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
 
-    // Status bar and next step
-    const {shouldShowStatusBar, statusBarType} = useMoneyReportHeaderStatusBar(reportID, moneyRequestReport?.chatReportID);
-    const optimisticNextStep = useOptimisticNextStep(reportID);
-
-    const policyType = policy?.type;
-    const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
-    const isInvoiceReport = isInvoiceReportUtil(moneyRequestReport);
-    const shouldShowNextStep = isFromPaidPolicy && !isInvoiceReport && !shouldShowStatusBar;
-
-    const showNextStepBar = shouldShowNextStep && !!optimisticNextStep && (('message' in optimisticNextStep && !!optimisticNextStep.message?.length) || 'messageKey' in optimisticNextStep);
-    const showNextStepSkeleton = shouldShowNextStep && !optimisticNextStep && !!isLoadingInitialReportActions && !isOffline;
-    const shouldShowMoreContent = showNextStepBar || showNextStepSkeleton || !!statusBarType || isReportInSearch;
-
-    if (!shouldShowMoreContent) {
-        return null;
-    }
-
-    const nextStepSkeletonReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'MoneyReportHeaderMoreContent',
-        shouldShowNextStep,
-        isLoadingInitialReportActions: !!isLoadingInitialReportActions,
-        isOffline,
-        hasOptimisticNextStep: !!optimisticNextStep,
-    };
-
     return (
         <View style={[styles.flexRow, styles.gap2, styles.justifyContentStart, styles.flexNoWrap, styles.ph5, styles.pb3]}>
             <View style={[styles.flexShrink1, styles.flexGrow1, styles.mnw0, styles.flexWrap, styles.justifyContentCenter]}>
-                {showNextStepBar && <MoneyReportHeaderStatusBar nextStep={optimisticNextStep} />}
-                {showNextStepSkeleton && <MoneyReportHeaderStatusBarSkeleton reasonAttributes={nextStepSkeletonReasonAttributes} />}
+                {shouldShowNextStep && <MoneyReportHeaderNextStep reportID={reportID} />}
                 <MoneyReportHeaderStatusBarSection
                     reportID={reportID}
                     statusBarType={statusBarType}
