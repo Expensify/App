@@ -99,7 +99,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
         mode: isDevelopment ? 'development' : 'production',
         devtool: 'source-map',
         entry: {
-            main: ['babel-polyfill', './index.js'],
+            main: './index.js',
         },
         output: {
             // Use simple filenames in development to prevent memory leaks from contenthash changes
@@ -135,7 +135,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
             new PreloadWebpackPlugin({
                 rel: 'preload',
                 as: 'font',
-                fileWhitelist: [/\.woff2$/],
+                fileWhitelist: [/\.woff2|ttf$/],
                 include: 'allAssets',
             }),
             new PreloadWebpackPlugin({
@@ -299,7 +299,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                     use: isDevelopment ? ['style-loader', 'css-loader'] : [MiniCssExtractPlugin.loader, 'css-loader'],
                 },
                 {
-                    test: /\.(woff|woff2)$/i,
+                    test: /\.(woff|woff2|ttf)$/i,
                     type: 'asset',
                 },
                 {

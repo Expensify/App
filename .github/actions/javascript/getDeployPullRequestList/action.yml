@@ -16,5 +16,5 @@ outputs:
     MOBILE_EXPENSIFY_PR_LIST:
         description: Array of Mobile-Expensify pull request numbers
 runs:
-    using: 'node20'
+    using: 'node24'
     main: './index.js'

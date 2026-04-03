@@ -19,15 +19,17 @@ function useSpendOverTimeData() {
     const [searchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash}`);
     const isSearchLoading = !!searchResults?.search?.isLoading;
 
+    const {isOffline} = useNetwork();
+
     const fetchData = () => {
-        if (!queryJSON || isSearchLoading) {
+        if (!queryJSON || isSearchLoading || isOffline) {
             return;
         }
         search({
             queryJSON,
             searchKey,
             offset: 0,
-            isOffline: false,
+            isOffline,
             isLoading: false,
             shouldUpdateLastSearchParams: false,
         });
@@ -37,9 +39,7 @@ function useSpendOverTimeData() {
 
     useEffect(() => {
         onConfigChanged();
-    }, [config.hash]);
-
-    const {isOffline} = useNetwork({onReconnect: fetchData});
+    }, [config.hash, isOffline]);
 
     const sortedData =
         searchResults?.data && queryJSON && groupBy && login
@@ -67,8 +67,8 @@ function useSpendOverTimeData() {
               ) as GroupedItem[])
             : undefined;
 
-    const shouldShowOfflineIndicator = isOffline && !sortedData;
-    const shouldShowErrorIndicator = !shouldShowOfflineIndicator && Object.keys(searchResults?.errors ?? {}).length > 0;
+    const shouldShowOfflineIndicator = isOffline && (!sortedData || sortedData.length === 0);
+    const shouldShowErrorIndicator = !isOffline && Object.keys(searchResults?.errors ?? {}).length > 0;
     const shouldShowLoadingIndicator = !shouldShowOfflineIndicator && !shouldShowErrorIndicator && !isSearchDataLoaded(searchResults, queryJSON);
 
     return {
