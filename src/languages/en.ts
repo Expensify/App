@@ -8833,9 +8833,12 @@ const translations = {
                 one: 'Close account',
                 other: 'Close accounts',
             }),
+            moveToGroup: 'Move to group',
+            chooseWhereToMove: ({count}: {count: number}) => `Choose where to move ${count} ${count === 1 ? 'member' : 'members'}.`,
             error: {
                 addMember: 'Unable to add this member. Please try again.',
                 removeMember: 'Unable to remove this user. Please try again.',
+                moveMember: 'Unable to move this member. Please try again.',
                 vacationDelegate: 'Unable to set this user as a vacation delegate. Please try again.',
             },
             cannotSetVacationDelegateForMember: (email: string) => `You can't set a vacation delegate for ${email} because they're currently the delegate for the following members:`,

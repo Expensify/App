@@ -9429,6 +9429,7 @@ const CONST = {
             },
             BULK_ACTION_TYPES: {
                 CLOSE_ACCOUNT: 'closeAccount',
+                MOVE_TO_GROUP: 'moveToGroup',
             },
         },
     },

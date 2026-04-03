@@ -9118,6 +9118,7 @@ ${amount} para ${merchant} - ${date}`,
                 removeMember: 'No se pudo eliminar a este usuario. Por favor, inténtalo de nuevo.',
                 addMember: 'No se pudo añadir este miembro. Por favor, inténtalo de nuevo.',
                 vacationDelegate: 'No se pudo establecer a este usuario como delegado de vacaciones. Por favor, inténtalo de nuevo.',
+                moveMember: 'No se pudo mover este miembro. Por favor, inténtalo de nuevo.',
             },
             cannotSetVacationDelegateForMember: (email: string) =>
                 `No puedes establecer un delegado de vacaciones para ${email} porque actualmente es el delegado de los siguientes miembros:`,
@@ -9126,6 +9127,8 @@ ${amount} para ${merchant} - ${date}`,
                 `¿Estás seguro? Esto bloqueará la cuenta de <strong>${email}</strong>. <br /><br /> Nuestro equipo revisará la cuenta y eliminará cualquier acceso no autorizado. Para recuperar el acceso, deberá comunicarse con Concierge.`,
             reportSuspiciousActivityConfirmationPrompt:
                 'Revisaremos la cuenta para verificar que sea seguro desbloquearla y nos comunicaremos a través de Concierge si tenemos alguna pregunta.',
+            moveToGroup: 'Mover al grupo',
+            chooseWhereToMove: ({count}: {count: number}) => `Elige a dónde mover ${count} ${count === 1 ? 'miembro' : 'miembros'}.`,
         },
         common: {
             settings: 'Configuración',

@@ -8572,12 +8572,15 @@ ${reportName}
                 removeMember: '无法移除此用户。请重试。',
                 addMember: '无法添加此成员。请重试。',
                 vacationDelegate: '无法将此用户设置为休假代理人。请重试。',
+                moveMember: '无法移动此成员。请重试。',
             },
             cannotSetVacationDelegateForMember: (email: string) => `您无法为 ${email} 设置休假代理人，因为 TA 当前是以下成员的代理人：`,
             reportSuspiciousActivityPrompt: (email: string) =>
                 `你确定要这样做吗？这将锁定 <strong>${email}</strong> 的账户。<br /><br />我们的团队随后会审核该账户并移除任何未经授权的访问。若要重新获得访问权限，他们需要与 Concierge 配合处理。`,
             reportSuspiciousActivityConfirmationPrompt: '我们会审核账户以确认解锁是否安全，如有任何问题将通过 Concierge 与您联系。',
             emptyMembers: {title: '此群组中没有成员', subtitle: '添加成员或尝试更改上方的筛选条件。'},
+            moveToGroup: '移至群组',
+            chooseWhereToMove: ({count}: {count: number}) => `选择将 ${count} 个 ${count === 1 ? '成员' : '成员'} 移动到哪里。`,
         },
         common: {
             settings: '设置',

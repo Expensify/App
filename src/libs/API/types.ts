@@ -571,6 +571,7 @@ const WRITE_COMMANDS = {
     RESET_DOMAIN_MEMBER_TWO_FACTOR_AUTH: 'ResetDomainMemberTwoFactorAuth',
     EXPORT_DOMAIN_MEMBERS_CSV: 'ExportDomainMembersCSV',
     INITIATE_BANK_ACCOUNT_UNLOCK: 'InitiateBankAccountUnlock',
+    CHANGE_DOMAIN_SECURITY_GROUP: 'ChangeDomainSecurityGroup',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -1159,6 +1160,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SET_TWO_FACTOR_AUTH_EXEMPT_EMAIL_FOR_DOMAIN]: Parameters.SetTwoFactorAuthExemptEmailForDomainParams;
     [WRITE_COMMANDS.RESET_DOMAIN_MEMBER_TWO_FACTOR_AUTH]: Parameters.ResetDomainMemberTwoFactorAuthParams;
     [WRITE_COMMANDS.EXPORT_DOMAIN_MEMBERS_CSV]: Parameters.ExportDomainMembersCSVParams;
+    [WRITE_COMMANDS.CHANGE_DOMAIN_SECURITY_GROUP]: Parameters.ChangeDomainSecurityGroupParams;
 };
 
 const READ_COMMANDS = {

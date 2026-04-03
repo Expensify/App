@@ -484,6 +484,7 @@ export type {default as SetTechnicalContactEmailParams} from './SetTechnicalCont
 export type {default as ToggleConsolidatedDomainBillingParams} from './ToggleConsolidatedDomainBillingParams';
 export type {default as RemoveDomainAdminParams} from './RemoveDomainAdminParams';
 export type {default as DeleteDomainMemberParams} from './DeleteDomainMemberParams';
+export type {default as ChangeDomainSecurityGroupParams} from './ChangeDomainSecurityGroupParams';
 export type {default as DeleteDomainParams} from './DeleteDomainParams';
 export type {default as GetDuplicateTransactionDetailsParams} from './GetDuplicateTransactionDetailsParams';
 export type {default as SetPolicyCategoryReceiptsAndItemizedReceiptRequiredParams} from './SetPolicyCategoryReceiptsAndItemizedReceiptRequiredParams';
