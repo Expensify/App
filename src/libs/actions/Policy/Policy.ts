@@ -3942,6 +3942,7 @@ function createWorkspaceFromIOUPayment(
     currentUserEmail: string,
     iouReportOwnerEmail: string,
     conciergeReportID: string | undefined,
+    localCurrency: string,
 ): WorkspaceFromIOUCreationData | undefined {
     // This flow only works for IOU reports
     if (!iouReport || !ReportUtils.isIOUReportUsingReport(iouReport)) {
@@ -3952,7 +3953,7 @@ function createWorkspaceFromIOUPayment(
     const policyID = generatePolicyID();
     const workspaceName = generateDefaultWorkspaceName(currentUserEmail);
     const employeeAccountID = iouReport?.ownerAccountID;
-    const {customUnits, customUnitID, customUnitRateID} = buildOptimisticDistanceRateCustomUnits(iouReport?.currency);
+    const {customUnits, customUnitID, customUnitRateID} = buildOptimisticDistanceRateCustomUnits(iouReport?.currency ?? localCurrency);
     const oldPersonalPolicyID = iouReport?.policyID;
     const iouReportID = iouReport?.reportID;
 
@@ -7091,6 +7092,7 @@ export {
     openPolicyMoreFeaturesPage,
     openPolicyProfilePage,
     openPolicyInitialPage,
+    buildOptimisticDistanceRateCustomUnits,
     generateCustomUnitID,
     clearQBOErrorField,
     clearXeroErrorField,
