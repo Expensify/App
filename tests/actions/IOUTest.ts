@@ -17643,7 +17643,7 @@ describe('actions/IOU', () => {
         it('should do nothing when transactionID is undefined', async () => {
             const transactionsBefore = await getOnyxValue(ONYXKEYS.COLLECTION.TRANSACTION);
 
-            detachReceipt(undefined, undefined, undefined);
+            detachReceipt(undefined, undefined, undefined, undefined);
             await waitForBatchedUpdates();
 
             const transactionsAfter = await getOnyxValue(ONYXKEYS.COLLECTION.TRANSACTION);
@@ -17656,7 +17656,7 @@ describe('actions/IOU', () => {
             await seedOnyx();
 
             try {
-                detachReceipt(transactionID, undefined, undefined);
+                detachReceipt(transactionID, undefined, undefined, undefined);
                 await waitForBatchedUpdates();
 
                 const onyxData = writeSpy.mock.calls.at(0)?.at(2) as {optimisticData?: Array<{key: string; value: unknown}>};
@@ -17675,7 +17675,7 @@ describe('actions/IOU', () => {
         it('should create an optimistic report action and update report timestamps', async () => {
             await seedOnyx();
 
-            detachReceipt(transactionID, undefined, undefined);
+            detachReceipt(transactionID, undefined, undefined, undefined);
             await waitForBatchedUpdates();
 
             // Then a new report action should be created on the report
@@ -17694,7 +17694,7 @@ describe('actions/IOU', () => {
             await seedOnyx();
 
             try {
-                detachReceipt(transactionID, undefined, undefined);
+                detachReceipt(transactionID, undefined, undefined, undefined);
                 await waitForBatchedUpdates();
 
                 expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.DETACH_RECEIPT, expect.objectContaining({transactionID}), expect.anything(), expect.anything());
@@ -17706,7 +17706,7 @@ describe('actions/IOU', () => {
         it('should compute violations when policy is paid group', async () => {
             await seedOnyx();
 
-            detachReceipt(transactionID, policy, policyTagList);
+            detachReceipt(transactionID, policy, policyTagList, undefined);
             await waitForBatchedUpdates();
 
             const violations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
