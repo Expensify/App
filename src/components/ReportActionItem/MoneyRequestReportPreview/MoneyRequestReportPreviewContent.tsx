@@ -152,7 +152,7 @@ function MoneyRequestReportPreviewContent({
 
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [requestType, setRequestType] = useState<ActionHandledType>();
-    const {showNonReimbursablePaymentErrorModal, nonReimbursablePaymentErrorDecisionModal} = useNonReimbursablePaymentModal(iouReport, transactions);
+    const {showNonReimbursablePaymentErrorModal} = useNonReimbursablePaymentModal(iouReport, transactions);
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
     const [shouldShowPayButton, setShouldShowPayButton] = useState(false);
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(iouReport?.reportID);
@@ -748,7 +748,6 @@ function MoneyRequestReportPreviewContent({
                         );
                     })()}
             </OfflineWithFeedback>
-            {nonReimbursablePaymentErrorDecisionModal}
         </View>
     );
 }
