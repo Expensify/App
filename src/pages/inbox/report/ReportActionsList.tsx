@@ -893,6 +893,7 @@ function ReportActionsList({
                     onViewableItemsChanged={onViewableItemsChanged}
                     extraData={extraData}
                     key={listID}
+                    getItemType={(item) => item.actionName}
                     initialScrollKey={linkedReportActionID}
                     onContentSizeChange={() => {
                         trackVerticalScrolling(undefined);
