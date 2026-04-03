@@ -716,6 +716,9 @@ const translations: TranslationDeepObject<typeof en> = {
         addAttachment: 'Añadir archivo adjunto',
         writeSomething: 'Escribe algo...',
         blockedFromConcierge: 'Comunicación no permitida',
+        askConciergeToUpdate: 'Prueba "Actualizar un gasto"...',
+        askConciergeToCorrect: 'Prueba "Corregir un gasto"...',
+        askConciergeForHelp: 'Pide ayuda a Concierge AI...',
         fileUploadFailed: 'Subida fallida. El archivo no es compatible.',
         localTime: (user, time) => `Son las ${time} para ${user}`,
         edited: '(editado)',
@@ -3782,6 +3785,8 @@ ${amount} para ${merchant} - ${date}`,
             `está conectando una cuenta bancaria comercial en ${currency} que termina en ${bankAccountLastFour} a Expensify para pagar a los empleados en ${currency}. El siguiente paso requiere la información del firmante de un director.`,
         error: {
             emailsMustBeDifferent: 'Los correos electrónicos deben ser diferentes',
+            connectToWorkspace: (workspaceRoute: string) =>
+                `Por favor, conecta esta cuenta bancaria a un <a href="${workspaceRoute}">espacio de trabajo</a> para invitar a un director a firmar.`,
         },
     },
     agreementsStep: {
@@ -6622,6 +6627,17 @@ ${amount} para ${merchant} - ${date}`,
             customRules: {
                 title: 'Reglas personalizadas',
                 cardSubtitle: 'Aquí es donde se definen las reglas de tu equipo, para que todos sepan lo que esta cubierto.',
+            },
+            spendRules: {
+                title: 'Gastos',
+                subtitle: 'Aprueba o rechaza transacciones de la tarjeta Expensify en tiempo real.',
+                defaultRuleDescription: 'Todas las tarjetas',
+                block: 'Bloquear',
+                defaultRuleTitle: 'Categorías: Servicios para adultos, cajeros automáticos, juegos de azar, transferencias de dinero',
+                builtInProtectionModal: {
+                    title: 'Las tarjetas Expensify ofrecen protección integrada, siempre',
+                    description: `Expensify siempre rechaza estos cargos:\n\n  • Servicios para adultos\n  • Cajeros automáticos\n  • Juegos de azar\n  • Transferencias de dinero\n\nAgregue más reglas de gasto para proteger el flujo de caja de la empresa.`,
+                },
             },
         },
     },

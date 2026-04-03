@@ -166,6 +166,7 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     getActiveRoute: jest.fn(),
     navigationRef: {
         getRootState: jest.fn(),
+        isReady: jest.fn(() => true),
     },
 }));
 
