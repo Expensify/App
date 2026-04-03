@@ -35,12 +35,14 @@ import {
     payMoneyRequest,
     rejectExpenseReport,
     rejectMoneyRequest,
+    removeMoneyRequestOdometerImage,
     replaceReceipt,
     requestMoney,
     resetDraftTransactionsCustomUnit,
     retractReport,
     setMoneyRequestCategory,
     setMoneyRequestDistanceRate,
+    setMoneyRequestOdometerImage,
     shouldOptimisticallyUpdateSearch,
     submitReport,
     trackExpense,
@@ -157,6 +159,7 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     getActiveRoute: jest.fn(),
     navigationRef: {
         getRootState: jest.fn(),
+        isReady: jest.fn(() => true),
     },
 }));
 
@@ -6945,6 +6948,7 @@ describe('actions/IOU', () => {
                         currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                         currentUserEmailParam: CARLOS_EMAIL,
                         isSelfTourViewed: false,
+                        betas: undefined,
                         hasActiveAdminPolicies: false,
                     });
                     return waitForBatchedUpdates();
@@ -7105,6 +7109,7 @@ describe('actions/IOU', () => {
                         currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                         currentUserEmailParam: CARLOS_EMAIL,
                         isSelfTourViewed: false,
+                        betas: undefined,
                         hasActiveAdminPolicies: false,
                     });
                     return waitForBatchedUpdates();
@@ -7676,6 +7681,7 @@ describe('actions/IOU', () => {
                         currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                         currentUserEmailParam: CARLOS_EMAIL,
                         isSelfTourViewed: false,
+                        betas: undefined,
                         hasActiveAdminPolicies: false,
                     });
                     return waitForBatchedUpdates();
@@ -7938,6 +7944,7 @@ describe('actions/IOU', () => {
                     isChatIOUReportArchived: true,
                     allTransactionViolationsParam: {},
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    currentUserEmail: TEST_USER_LOGIN,
                 });
             }
             await waitForBatchedUpdates();
@@ -8027,6 +8034,7 @@ describe('actions/IOU', () => {
                     isChatIOUReportArchived: true,
                     allTransactionViolationsParam: {},
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    currentUserEmail: TEST_USER_LOGIN,
                 });
             }
             await waitForBatchedUpdates();
@@ -8109,6 +8117,7 @@ describe('actions/IOU', () => {
                     chatReport,
                     allTransactionViolationsParam: {},
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    currentUserEmail: TEST_USER_LOGIN,
                 });
             }
             await waitForBatchedUpdates();
@@ -8179,6 +8188,7 @@ describe('actions/IOU', () => {
             openReport({
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
+                betas: undefined,
                 participantLoginList: userLogins,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
@@ -8219,6 +8229,7 @@ describe('actions/IOU', () => {
                     chatReport,
                     allTransactionViolationsParam: {},
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    currentUserEmail: TEST_USER_LOGIN,
                 });
             }
             await waitForBatchedUpdates();
@@ -8278,6 +8289,7 @@ describe('actions/IOU', () => {
             openReport({
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
+                betas: undefined,
                 participantLoginList: userLogins,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
@@ -8366,6 +8378,7 @@ describe('actions/IOU', () => {
                     chatReport,
                     allTransactionViolationsParam: {},
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    currentUserEmail: TEST_USER_LOGIN,
                 });
             }
             await waitForBatchedUpdates();
@@ -8400,6 +8413,7 @@ describe('actions/IOU', () => {
             openReport({
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
+                betas: undefined,
                 participantLoginList: userLogins,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
@@ -8478,6 +8492,7 @@ describe('actions/IOU', () => {
                     chatReport,
                     allTransactionViolationsParam: {},
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    currentUserEmail: TEST_USER_LOGIN,
                 });
             }
             await waitForBatchedUpdates();
@@ -8536,6 +8551,7 @@ describe('actions/IOU', () => {
             openReport({
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
+                betas: undefined,
                 participantLoginList: userLogins,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
@@ -8663,6 +8679,7 @@ describe('actions/IOU', () => {
                     isChatIOUReportArchived: undefined,
                     allTransactionViolationsParam: {},
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    currentUserEmail: TEST_USER_LOGIN,
                 });
             }
             await waitForBatchedUpdates();
@@ -8776,6 +8793,7 @@ describe('actions/IOU', () => {
                     isChatIOUReportArchived: undefined,
                     allTransactionViolationsParam: {},
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    currentUserEmail: TEST_USER_LOGIN,
                 });
             }
             await waitForBatchedUpdates();
@@ -8841,6 +8859,7 @@ describe('actions/IOU', () => {
             openReport({
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
+                betas: undefined,
                 participantLoginList: userLogins,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
@@ -8879,6 +8898,7 @@ describe('actions/IOU', () => {
                     isSingleTransactionView: true,
                     allTransactionViolationsParam: {},
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    currentUserEmail: TEST_USER_LOGIN,
                 });
             }
 
@@ -8936,6 +8956,7 @@ describe('actions/IOU', () => {
                     chatReport,
                     allTransactionViolationsParam: {},
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    currentUserEmail: TEST_USER_LOGIN,
                 });
             }
             // Then we expect to navigate to the chat report
@@ -9012,6 +9033,7 @@ describe('actions/IOU', () => {
             openReport({
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
+                betas: undefined,
                 participantLoginList: userLogins,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
@@ -9099,6 +9121,7 @@ describe('actions/IOU', () => {
                     chatReport,
                     allTransactionViolationsParam: {},
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    currentUserEmail: TEST_USER_LOGIN,
                 });
             }
 
@@ -9281,6 +9304,7 @@ describe('actions/IOU', () => {
             openReport({
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
+                betas: undefined,
                 participantLoginList: userLogins,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
@@ -9380,6 +9404,7 @@ describe('actions/IOU', () => {
             openReport({
                 reportID: thread.reportID,
                 introSelected: TEST_INTRO_SELECTED,
+                betas: undefined,
                 participantLoginList: userLogins,
                 newReportObject: thread,
                 parentReportActionID: createIOUAction?.reportActionID,
@@ -9427,6 +9452,7 @@ describe('actions/IOU', () => {
 
     describe('bulk deleteMoneyRequest', () => {
         const TEST_USER_ACCOUNT_ID = 1;
+        const TEST_USER_LOGIN = 'test@email.com';
 
         it('update IOU report total properly for bulk deletion of expenses', async () => {
             const expenseReport: Report = {
@@ -9491,6 +9517,7 @@ describe('actions/IOU', () => {
                 selectedTransactionIDs,
                 allTransactionViolationsParam: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                currentUserEmail: TEST_USER_LOGIN,
             });
             deleteMoneyRequest({
                 transactionID: transaction2.transactionID,
@@ -9503,6 +9530,7 @@ describe('actions/IOU', () => {
                 selectedTransactionIDs,
                 allTransactionViolationsParam: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                currentUserEmail: TEST_USER_LOGIN,
             });
             await waitForBatchedUpdates();
 
@@ -9524,6 +9552,7 @@ describe('actions/IOU', () => {
 
     describe('deleteMoneyRequest with allTransactionViolationsParam', () => {
         const TEST_USER_ACCOUNT_ID = 1;
+        const TEST_USER_LOGIN = 'test@email.com';
         it('should pass transaction violations to hasOutstandingChildRequest correctly', async () => {
             // Given an expense report with a transaction
             const expenseReport: Report = {
@@ -9578,6 +9607,7 @@ describe('actions/IOU', () => {
                 chatReport: expenseReport,
                 allTransactionViolationsParam: transactionViolations,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                currentUserEmail: TEST_USER_LOGIN,
             });
 
             await waitForBatchedUpdates();
@@ -9641,6 +9671,7 @@ describe('actions/IOU', () => {
                 chatReport: expenseReport,
                 allTransactionViolationsParam: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                currentUserEmail: TEST_USER_LOGIN,
             });
 
             await waitForBatchedUpdates();
@@ -9679,12 +9710,13 @@ describe('actions/IOU', () => {
                         currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                         currentUserEmailParam: CARLOS_EMAIL,
                         isSelfTourViewed: false,
+                        betas: undefined,
                         hasActiveAdminPolicies: false,
                     });
 
                     const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
                     // Change the approval mode for the policy since default is Submit and Close
-                    setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
+                    setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL);
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -9826,11 +9858,12 @@ describe('actions/IOU', () => {
                         currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                         currentUserEmailParam: CARLOS_EMAIL,
                         isSelfTourViewed: false,
+                        betas: undefined,
                         hasActiveAdminPolicies: false,
                     });
 
                     const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-                    setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, {});
+                    setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, {});
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -9907,6 +9940,7 @@ describe('actions/IOU', () => {
                             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                             currentUserEmailParam: CARLOS_EMAIL,
                             isSelfTourViewed: false,
+                            betas: undefined,
                             hasActiveAdminPolicies: false,
                         });
                         return waitForBatchedUpdates();
@@ -10132,6 +10166,7 @@ describe('actions/IOU', () => {
                                 lastUsedPaymentMethods: undefined,
                                 localeCompare,
                                 currentUserAccountID: CARLOS_ACCOUNT_ID,
+                                accountIDToLogin: {},
                             });
                         }
                         return waitForBatchedUpdates();
@@ -10176,6 +10211,7 @@ describe('actions/IOU', () => {
                             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                             currentUserEmailParam: CARLOS_EMAIL,
                             isSelfTourViewed: false,
+                            betas: undefined,
                             hasActiveAdminPolicies: false,
                         });
                         return waitForBatchedUpdates();
@@ -10395,12 +10431,13 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                 currentUserEmailParam: CARLOS_EMAIL,
                 isSelfTourViewed: false,
+                betas: undefined,
                 hasActiveAdminPolicies: false,
             });
             return waitForBatchedUpdates()
                 .then(async () => {
                     policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-                    setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, {});
+                    setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, RORY_ACCOUNT_ID, RORY_EMAIL, {});
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -10623,10 +10660,11 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                 currentUserEmailParam: CARLOS_EMAIL,
                 isSelfTourViewed: false,
+                betas: undefined,
                 hasActiveAdminPolicies: false,
             });
 
-            setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, {});
+            setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, {});
             await waitForBatchedUpdates();
 
             let chatReport: OnyxEntry<Report>;
@@ -11604,7 +11642,7 @@ describe('actions/IOU', () => {
         it('should return false if the report has negative total and onlyShowPayElsewhere is false', async () => {
             const policyChat = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
             const fakePolicy: Policy = {
-                ...createRandomPolicy(Number('AA')),
+                ...createRandomPolicy(1),
                 id: 'AA',
                 type: CONST.POLICY.TYPE.TEAM,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
@@ -11628,6 +11666,50 @@ describe('actions/IOU', () => {
 
             expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, [], false)).toBeFalsy();
             expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, [], true)).toBeTruthy();
+        });
+
+        it('allows admins to mark report with only non-reimbursable expenses as paid (onlyShowPayElsewhere=true)', async () => {
+            const policyChat = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+            const reportID = '999';
+
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(1),
+                id: 'AA',
+                type: CONST.POLICY.TYPE.TEAM,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                role: CONST.POLICY.ROLE.ADMIN,
+            };
+
+            const fakeReport: Report = {
+                ...createRandomReport(Number(reportID), undefined),
+                reportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: 'AA',
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                ownerAccountID: CARLOS_ACCOUNT_ID,
+                managerID: RORY_ACCOUNT_ID,
+                isWaitingOnBankAccount: false,
+                total: 100,
+                nonReimbursableTotal: 100,
+            };
+
+            const onlyNonReimbursableTransactions: Transaction[] = [
+                {
+                    ...createRandomTransaction(1),
+                    reportID,
+                    amount: 100,
+                    currency: 'USD',
+                    reimbursable: false,
+                },
+            ];
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+
+            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, [], false)).toBeFalsy();
+            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, onlyNonReimbursableTransactions, false)).toBeFalsy();
+            expect(canIOUBePaid(fakeReport, policyChat, fakePolicy, {}, onlyNonReimbursableTransactions, true)).toBeTruthy();
         });
     });
 
@@ -13542,6 +13624,7 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                 currentUserEmailParam: CARLOS_EMAIL,
                 isSelfTourViewed: false,
+                betas: undefined,
                 hasActiveAdminPolicies: false,
             });
             await waitForBatchedUpdates();
@@ -13644,6 +13727,7 @@ describe('actions/IOU', () => {
                 currentUserEmailParam: CARLOS_EMAIL,
                 activePolicyID: '123',
                 isSelfTourViewed: false,
+                betas: undefined,
                 hasActiveAdminPolicies: false,
             });
             await waitForBatchedUpdates();
@@ -14089,12 +14173,13 @@ describe('actions/IOU', () => {
                     currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                     currentUserEmailParam: CARLOS_EMAIL,
                     isSelfTourViewed: false,
+                    betas: undefined,
                     hasActiveAdminPolicies: false,
                 });
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
                 // Change the approval mode for the policy since default is Submit and Close
-                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, {});
+                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, {});
                 await waitForBatchedUpdates();
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.REPORT,
@@ -14264,12 +14349,13 @@ describe('actions/IOU', () => {
                     currentUserAccountIDParam: RORY_ACCOUNT_ID,
                     currentUserEmailParam: RORY_EMAIL,
                     isSelfTourViewed: false,
+                    betas: undefined,
                     hasActiveAdminPolicies: false,
                 });
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
                 // Change the approval mode for the policy since default is Submit and Close
-                setWorkspaceApprovalMode(policy, RORY_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, {});
+                setWorkspaceApprovalMode(policy, RORY_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, {});
                 await waitForBatchedUpdates();
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.REPORT,
@@ -14443,11 +14529,12 @@ describe('actions/IOU', () => {
                     currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                     currentUserEmailParam: CARLOS_EMAIL,
                     isSelfTourViewed: false,
+                    betas: undefined,
                     hasActiveAdminPolicies: false,
                 });
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, {});
+                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, {});
                 await waitForBatchedUpdates();
 
                 await getOnyxData({
@@ -14631,12 +14718,13 @@ describe('actions/IOU', () => {
                     currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                     currentUserEmailParam: CARLOS_EMAIL,
                     isSelfTourViewed: false,
+                    betas: undefined,
                     hasActiveAdminPolicies: false,
                 });
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
                 // Change the approval mode for the policy since default is Submit and Close
-                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, {});
+                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, {});
                 await waitForBatchedUpdates();
 
                 await getOnyxData({
@@ -17447,6 +17535,87 @@ describe('actions/IOU', () => {
             const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
             expect(updatedTransaction?.comment?.customUnit?.name).toBe(CONST.CUSTOM_UNITS.NAME_DISTANCE);
             expect(updatedTransaction?.comment?.customUnit?.quantity).toBe(100);
+        });
+    });
+
+    describe('setMoneyRequestOdometerImage and removeMoneyRequestOdometerImage', () => {
+        beforeEach(() => {
+            jest.mock('@libs/OdometerImageUtils', () => ({
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                __esModule: true,
+                default: jest.fn(),
+            }));
+        });
+
+        afterEach(() => {
+            jest.unmock('@libs/OdometerImageUtils');
+        });
+        it('should set odometer start image on a draft transaction', async () => {
+            const transaction = createRandomTransaction(1);
+            const transactionID = transaction.transactionID;
+            const file = {uri: 'image.uri', name: 'image.jpg', type: 'image/jpeg', size: 1234};
+            const imageType = CONST.IOU.ODOMETER_IMAGE_TYPE.START;
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, transaction);
+
+            setMoneyRequestOdometerImage(transaction, imageType, file, true, false);
+            await waitForBatchedUpdates();
+
+            const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+            expect(draftTransaction?.comment?.odometerStartImage).toEqual(file);
+        });
+
+        it('should set odometer end image on a non-draft transaction', async () => {
+            const transaction = createRandomTransaction(1);
+            const transactionID = transaction.transactionID;
+            const file = {uri: 'image.uri', name: 'image.jpg', type: 'image/jpeg', size: 1234};
+            const imageType = CONST.IOU.ODOMETER_IMAGE_TYPE.END;
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+
+            setMoneyRequestOdometerImage(transaction, imageType, file, false, false);
+            await waitForBatchedUpdates();
+
+            const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(updatedTransaction?.comment?.odometerEndImage).toEqual(file);
+        });
+
+        it('should remove odometer start image from a draft transaction', async () => {
+            const transaction = {
+                ...createRandomTransaction(1),
+                comment: {
+                    odometerStartImage: {uri: 'image.uri'},
+                },
+            } as Transaction;
+            const transactionID = transaction.transactionID;
+            const imageType = CONST.IOU.ODOMETER_IMAGE_TYPE.START;
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, transaction);
+
+            removeMoneyRequestOdometerImage(transaction, imageType, true, false);
+            await waitForBatchedUpdates();
+
+            const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+            expect(draftTransaction?.comment?.odometerStartImage).toBeUndefined();
+        });
+
+        it('should remove odometer end image from a non-draft transaction', async () => {
+            const transaction = {
+                ...createRandomTransaction(1),
+                comment: {
+                    odometerEndImage: {uri: 'image.uri'},
+                },
+            } as Transaction;
+            const transactionID = transaction.transactionID;
+            const imageType = CONST.IOU.ODOMETER_IMAGE_TYPE.END;
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+
+            removeMoneyRequestOdometerImage(transaction, imageType, false, false);
+            await waitForBatchedUpdates();
+
+            const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(updatedTransaction?.comment?.odometerEndImage).toBeUndefined();
         });
     });
 });

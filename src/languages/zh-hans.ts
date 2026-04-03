@@ -148,7 +148,9 @@ const translations: TranslationDeepObject<typeof en> = {
         selectMultiple: '多选',
         saveChanges: '保存更改',
         submit: '提交',
+        markAsDone: '标记为完成',
         submitted: '已提交',
+        markedAsDoneStatus: '已标记为完成',
         rotate: '旋转',
         zoom: '缩放',
         password: '密码',
@@ -485,6 +487,7 @@ const translations: TranslationDeepObject<typeof en> = {
         on: '开打开',
         before: '之前',
         after: '之后',
+        range: '范围',
         reschedule: '重新安排',
         general: '常规',
         workspacesTabTitle: '工作区',
@@ -796,6 +799,9 @@ const translations: TranslationDeepObject<typeof en> = {
         emoji: '表情符号',
         collapse: '折叠',
         expand: '展开',
+        askConciergeToUpdate: '试试“更新一笔报销”…',
+        askConciergeToCorrect: '尝试搜索“更正一笔报销”…',
+        askConciergeForHelp: '向 Concierge AI 寻求帮助…',
     },
     reportActionContextMenu: {
         copyMessage: '复制消息',
@@ -850,7 +856,8 @@ const translations: TranslationDeepObject<typeof en> = {
             `此聊天用于 <strong>${invoicePayer}</strong> 与 <strong>${invoiceReceiver}</strong> 之间的发票。请使用 + 按钮发送发票。`,
         beginningOfChatHistory: (users: string) => `此聊天对象为 ${users}。`,
         beginningOfChatHistoryPolicyExpenseChat: (workspaceName: string, submitterDisplayName: string) =>
-            `这是 <strong>${submitterDisplayName}</strong> 向 <strong>${workspaceName}</strong> 提交报销的地方。只需使用“+”按钮即可。`,
+            `这是 <strong>${submitterDisplayName}</strong> 向 <strong>${workspaceName}</strong> 提交报销的地方。只需使用”+”按钮即可。`,
+        beginningOfChatHistoryPolicyExpenseChatTrack: '在这里跟踪你的报销费用',
         beginningOfChatHistorySelfDM: '这是你的个人空间。可在此记录笔记、任务、草稿和提醒事项。',
         beginningOfChatHistorySystemDM: '欢迎！让我们帮你完成设置。',
         chatWithAccountManager: '在这里与您的客户经理聊天',
@@ -1054,7 +1061,18 @@ const translations: TranslationDeepObject<typeof en> = {
         singleFieldMultipleColumns: (fieldName: string) => `哎呀！你已将单个字段（“${fieldName}”）映射到多个列。请检查后重试。`,
         emptyMappedField: (fieldName: string) => `哎呀！字段（“${fieldName}”）包含一个或多个空值。请检查后重试。`,
         importSuccessfulTitle: '导入成功',
-        importCategoriesSuccessfulDescription: ({categories}: {categories: number}) => (categories > 1 ? `已添加 ${categories} 个类别。` : '已添加 1 个类别。'),
+        importCategoriesSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
+            if (!added && !updated) {
+                return '尚未添加或更新任何类别。';
+            }
+            if (added && updated) {
+                return `已添加 ${added} 个，${added === 1 ? '类别' : '类别'} 新增；已更新 ${updated} 个，${updated === 1 ? '类别' : '类别'} 更新。`;
+            }
+            if (added) {
+                return added === 1 ? '已添加 1 个类别。' : `已添加 ${added} 个类别。`;
+            }
+            return updated === 1 ? '1 个类别已更新。' : `已更新 ${updated} 个类别。`;
+        },
         importCompanyCardTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) => (transactions > 1 ? `已添加 ${transactions} 笔交易。` : '已添加 1 笔交易。'),
         importMembersSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
             if (!added && !updated) {
@@ -1111,7 +1129,6 @@ const translations: TranslationDeepObject<typeof en> = {
         flash: '闪光',
         multiScan: '多重扫描',
         shutter: '快门',
-        flipCamera: '切换摄像头',
         gallery: '图库',
         deleteReceipt: '删除收据',
         deleteConfirmation: '确定要删除这张收据吗？',
@@ -1295,6 +1312,7 @@ const translations: TranslationDeepObject<typeof en> = {
         sendInvoice: (amount: string) => `发送 ${amount} 发票`,
         expenseAmount: (formattedAmount: string, comment?: string) => `${formattedAmount}${comment ? `用于 ${comment}` : ''}`,
         submitted: (memo?: string) => `已提交${memo ? `，备注为 ${memo}` : ''}`,
+        markedAsDone: (memo) => `标记为已完成${memo ? `，说明：${memo}` : ''}`,
         automaticallySubmitted: `通过<a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">延迟提交</a>提交`,
         queuedToSubmitViaDEW: '已排队，待通过自定义审批流程提交',
         queuedToApproveViaDEW: '已排队，等待通过自定义审批流程批准',
@@ -1385,6 +1403,9 @@ const translations: TranslationDeepObject<typeof en> = {
             manySplitsProvided: `允许的最大拆分数为 ${CONST.IOU.SPLITS_LIMIT}。`,
             dateRangeExceedsMaxDays: `日期范围不能超过 ${CONST.IOU.SPLITS_LIMIT} 天。`,
             stitchOdometerImagesFailed: '合并里程表图片失败。请稍后重试。',
+            nonReimbursablePayment: '无法通过 Expensify 付款',
+            nonReimbursablePaymentDescription: (isMultiple?: boolean) =>
+                isMultiple ? '一个或多个所选报告没有可报销的费用。请再次检查费用，或手动将其标记为已支付。' : '该报告没有可报销的费用。请再次检查费用，或手动将其标记为已支付。',
         },
         dismissReceiptError: '忽略错误',
         dismissReceiptErrorConfirmation: '提醒：关闭此错误将彻底删除你上传的收据。确定要继续吗？',
@@ -1471,6 +1492,7 @@ const translations: TranslationDeepObject<typeof en> = {
         bookingArchived: '此预订已归档',
         bookingArchivedDescription: '此预订已归档，因为行程日期已过。如有需要，请为最终金额添加一笔报销。',
         attendees: '参与者',
+        totalPerAttendee: '每位参与者',
         whoIsYourAccountant: '你的会计是谁？',
         paymentComplete: '付款完成',
         time: '时间',
@@ -1572,7 +1594,6 @@ const translations: TranslationDeepObject<typeof en> = {
         failedToAutoApproveViaDEW: (reason: string) => `未能通过<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">工作区规则</a>批准。${reason}`,
         failedToApproveViaDEW: (reason: string) => `批准失败。${reason}`,
         cannotDuplicateDistanceExpense: '你无法在不同工作区之间复制里程报销，因为各个工作区的费率可能不同。',
-        deleted: '已删除',
     },
     transactionMerge: {
         listPage: {
@@ -1943,7 +1964,7 @@ const translations: TranslationDeepObject<typeof en> = {
         accountSettings: '账户设置',
         account: '账户',
         general: '常规',
-        helpPage: {title: '帮助与支持', description: '我们全天候 24/7 为您提供帮助', helpSite: '帮助网站'},
+        helpPage: {title: '帮助与支持', description: '我们全天候 24/7 为您提供帮助', helpSite: '帮助网站', conciergeChat: 'Concierge', conciergeChatDescription: '你的个人 AI 助理'},
     },
     closeAccountPage: {
         closeAccount: '关闭账户',
@@ -2218,6 +2239,7 @@ const translations: TranslationDeepObject<typeof en> = {
         enableWallet: '启用钱包',
         addBankAccountToSendAndReceive: '添加银行账户以进行或接收付款。',
         addDebitOrCreditCard: '添加借记卡或信用卡',
+        cardInactive: '未激活',
         assignedCards: '已分配的卡片',
         assignedCardsDescription: '这些银行卡的交易会自动同步。',
         expensifyCard: 'Expensify 卡',
@@ -3278,11 +3300,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         confirmationStepHeader: '请检查您的信息。',
         confirmationStepSubHeader: '请仔细核对以下详细信息，并勾选条款复选框以确认。',
         toGetStarted: '添加个人银行账户以接收报销、支付发票或启用 Expensify 钱包。',
-        updatePersonalInfo: '更新银行账户',
-        updatePersonalInfoFailure: '无法更新银行账户信息。请稍后重试。',
-        updateSuccessTitle: '银行账户已更新！',
-        updateSuccessHeader: '银行账户已更新',
-        updateSuccessMessage: '恭喜，您的银行账户已设置完成，可以开始接收报销款了。',
     },
     addPersonalBankAccountPage: {
         enterPassword: '输入 Expensify 密码',
@@ -3738,6 +3755,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             `正在连接一 个以 ${bankAccountLastFour} 结尾的 ${currency} 企业银行账户到 Expensify，以便以 ${currency} 支付员工。下一步需要一位董事的签署人信息。`,
         error: {
             emailsMustBeDifferent: '电子邮箱地址必须不同',
+            connectToWorkspace: (workspaceRoute: string) => `请将此银行账户关联到<a href="${workspaceRoute}">工作区</a>以邀请董事签署。`,
         },
     },
     agreementsStep: {
@@ -6505,6 +6523,24 @@ ${reportName}
                 title: '报销政策',
                 cardSubtitle: '这是你们团队的报销政策所在之处，让所有人都清楚哪些内容在报销范围之内。',
             },
+            spendRules: {
+                title: '支出',
+                subtitle: '实时批准或拒绝 Expensify 卡交易。',
+                defaultRuleDescription: '所有卡片',
+                block: '屏蔽',
+                defaultRuleTitle: '类别：成人服务、ATM、赌博、转账',
+                builtInProtectionModal: {
+                    title: 'Expensify 卡始终提供内置保护',
+                    description: `Expensify 始终会拒绝以下消费：
+
+  • 成人服务
+  • ATM
+  • 赌博
+  • 转账
+
+添加更多消费规则以保护公司现金流。`,
+                },
+            },
         },
         planTypePage: {
             planTypes: {
@@ -7175,7 +7211,6 @@ ${reportName}
             unhold: '解除保留',
             reject: '拒绝',
             noOptionsAvailable: '所选报销的费用组没有可用选项。',
-            undelete: '取消删除',
         },
         filtersHeader: '筛选器',
         filters: {
@@ -7183,6 +7218,8 @@ ${reportName}
                 before: (date?: string) => `在 ${date ?? ''} 之前`,
                 after: (date?: string) => `在 ${date ?? ''} 之后`,
                 on: (date?: string) => `在 ${date ?? ''} 上`,
+                customDate: '自定义日期',
+                customRange: '自定义范围',
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: '从不',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: '上个月',
@@ -7304,6 +7341,9 @@ ${reportName}
         exportAll: {
             selectAllMatchingItems: '选择所有匹配的项目',
             allMatchingItemsSelected: '已选择所有匹配的项目',
+        },
+        errors: {
+            pleaseSelectDatesForBothFromAndTo: '请选择起始和结束日期',
         },
         spendOverTime: '随时间支出',
     },
