@@ -195,7 +195,7 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames, currentSubPage, bac
                                 style={styles.mt3}
                                 isError
                                 shouldRenderMessageAsHTML
-                                message={translate('signerInfoStep.error.connectToWorkspace', ROUTES.WORKSPACES_LIST.getRoute())}
+                                message={translate('signerInfoStep.error.connectToWorkspace', `/${ROUTES.WORKSPACES_LIST.getRoute()}`)}
                             />
                         </View>
                     )}
