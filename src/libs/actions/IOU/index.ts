@@ -11563,8 +11563,8 @@ function payInvoice({
 function detachReceipt(
     transactionID: string | undefined,
     transactionPolicy: OnyxEntry<OnyxTypes.Policy>,
-    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
-    transactionPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
+    transactionPolicyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
+    transactionPolicyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
     if (!transactionID) {
         return;
@@ -11626,9 +11626,9 @@ function detachReceipt(
             newTransaction,
             currentTransactionViolations,
             transactionPolicy,
-            policyTagList ?? {},
+            transactionPolicyTagList ?? {},
             transactionPolicyCategories ?? {},
-            hasDependentTags(transactionPolicy, policyTagList ?? {}),
+            hasDependentTags(transactionPolicy, transactionPolicyTagList ?? {}),
             isInvoiceReportReportUtils(expenseReport),
         );
         optimisticData.push(violationsOnyxData);
