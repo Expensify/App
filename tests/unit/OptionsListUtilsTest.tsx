@@ -24,13 +24,11 @@ import {
     filterWorkspaceChats,
     formatMemberForList,
     formatSectionsFromSearchTerm,
-    getCurrentUserSearchTerms,
     getFilteredRecentAttendees,
     getIOUReportIDOfLastAction,
     getLastActorDisplayName,
     getLastActorDisplayNameFromLastVisibleActions,
     getLastMessageTextForReport,
-    getPersonalDetailSearchTerms,
     getPolicyExpenseReportOption,
     getReportDisplayOption,
     getReportOption,
@@ -45,6 +43,7 @@ import {
     shouldShowLastActorDisplayName,
     sortAlphabetically,
 } from '@libs/OptionsListUtils';
+import {getCurrentUserSearchTerms, getPersonalDetailSearchTerms} from '@libs/OptionsListUtils/searchMatchUtils';
 import Parser from '@libs/Parser';
 import {
     getAddedCardFeedMessage,
