@@ -70,7 +70,7 @@ function MemberListItemHeader<TItem extends ListItem>({
                 key={CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM}
                 style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)}
             >
-                <View style={[styles.gap1, styles.flexShrink1]}>
+                <View style={styles.flexShrink1}>
                     <TextWithTooltip
                         text={formattedDisplayName}
                         style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}
@@ -129,7 +129,7 @@ function MemberListItemHeader<TItem extends ListItem>({
                                     />
                                 </View>
                             </UserDetailsTooltip>
-                            <View style={[styles.gap1, styles.flexShrink1]}>
+                            <View style={styles.flexShrink1}>
                                 <TextWithTooltip
                                     text={formattedDisplayName}
                                     style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}
