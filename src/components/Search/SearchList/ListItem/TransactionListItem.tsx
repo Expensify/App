@@ -2,7 +2,7 @@
 // SearchStaticList (src/components/Search/SearchStaticList.tsx) used for fast
 // perceived performance. If you change the narrow-layout UI here, verify the
 // static version still looks visually identical.
-import React, {useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 // Use the original useOnyx hook to get the real-time data from Onyx and not from the snapshot
@@ -14,6 +14,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import {useSearchStateContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
+import {useEditingCellState} from '@components/Table/EditableCell';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -23,12 +24,13 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionInlineEdit from '@hooks/useTransactionInlineEdit';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import {handleActionButtonPress as handleActionButtonPressUtil} from '@libs/actions/Search';
 import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isInvoiceReport} from '@libs/ReportUtils';
-import {isViolationDismissed, mergeProhibitedViolations, shouldShowViolation} from '@libs/TransactionUtils';
+import {isExpenseUnreported, isViolationDismissed, mergeProhibitedViolations, shouldShowViolation} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -61,7 +63,7 @@ function TransactionListItem<TItem extends ListItem>({
     const theme = useTheme();
 
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
-    const {currentSearchHash, currentSearchKey, currentSearchResults} = useSearchStateContext();
+    const {currentSearchHash, currentSearchKey, currentSearchResults, currentSearchQueryJSON} = useSearchStateContext();
     const snapshotReport = (currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`] ?? {}) as Report;
 
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
@@ -72,11 +74,13 @@ function TransactionListItem<TItem extends ListItem>({
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
 
-    // Use report's policyID as fallback when transaction doesn't have policyID directly
-    // Use active policy as final fallback for SelfDM (tracking expenses)
-    // NOTE: Using || instead of ?? to treat empty string "" as falsy
+    const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionItem.reportID)}`);
+    const [transactionThreadReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionItem?.reportAction?.childReportID}`);
+    const [transaction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionItem.transactionID)}`);
+
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const policyID = transactionItem.policyID || snapshotReport?.policyID || activePolicyID;
+    const transactionPolicyID = transactionItem.policyID || snapshotReport?.policyID;
+    const policyID = isExpenseUnreported(transaction) ? activePolicyID : transactionPolicyID;
     const [parentPolicy] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(policyID)}`);
     const snapshotPolicy = (currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${transactionItem.policyID}`] ?? {}) as Policy;
 
@@ -86,9 +90,6 @@ function TransactionListItem<TItem extends ListItem>({
     // Fetch policy categories directly from Onyx since they are not included in the search snapshot
     const [policyCategories] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
 
-    const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionItem.reportID)}`);
-    const [transactionThreadReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionItem?.reportAction?.childReportID}`);
-    const [transaction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionItem.transactionID)}`);
     const parentReportActionSelector = (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => reportActions?.[`${transactionItem?.reportAction?.reportActionID}`];
     const [parentReportAction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(transactionItem.reportID)}`, {selector: parentReportActionSelector}, [
         transactionItem,
@@ -155,6 +156,68 @@ function TransactionListItem<TItem extends ListItem>({
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
+    const transactionID = transactionItem.transactionID;
+
+    const {isEditingCell, wasRecentlyEditingCell} = useEditingCellState();
+    const [shouldDisableHoverStyle, setShouldDisableHoverStyle] = useState(false);
+
+    // When a popover is opened during inline editing, onHoverOut never fires after editing ends, leaving the hover style stuck.
+    // Disable it until the next intentional hover (onHoverIn).
+    // See: https://github.com/Expensify/App/pull/83127#issuecomment-4114490080
+    useEffect(() => {
+        if (!wasRecentlyEditingCell) {
+            return;
+        }
+        queueMicrotask(() => setShouldDisableHoverStyle(true));
+    }, [wasRecentlyEditingCell]);
+
+    const {
+        canEditDate,
+        canEditMerchant,
+        canEditDescription,
+        canEditCategory,
+        canEditAmount,
+        canEditTag,
+        onEditDate,
+        onEditMerchant,
+        onEditDescription,
+        onEditCategory,
+        onEditAmount,
+        onEditTag,
+        wasEditingOnMouseDownRef,
+    } = useTransactionInlineEdit({
+        transactionID,
+        reportID: transactionItem.reportID,
+        reportActionID: transactionItem.reportAction?.reportActionID,
+        parentReportAction,
+        hash: currentSearchHash,
+        queryJSON: currentSearchQueryJSON,
+        fallbackReport: snapshotReport,
+    });
+
+    const handleOnPress = () => {
+        // Consume the tap that dismissed an editing cell — a second tap will open the row.
+        // We check the ref rather than isEditingCell because blur fires before onPress and resets the state.
+        if (wasEditingOnMouseDownRef.current) {
+            wasEditingOnMouseDownRef.current = false;
+            return;
+        }
+        // react-native-web fires onPress on Space for role="button" elements; suppress it while a cell is being edited.
+        if (isEditingCell) {
+            return;
+        }
+        onSelectRow(item, transactionPreviewData);
+    };
+
+    const handleOnMouseDown = (e?: React.MouseEvent) => {
+        wasEditingOnMouseDownRef.current = isEditingCell;
+
+        // Skip preventDefault when editing so the browser naturally blurs the input (triggering save/cancel).
+        if (!isEditingCell) {
+            e?.preventDefault();
+        }
+    };
+
     const handleActionButtonPress = () => {
         handleActionButtonPressUtil({
             hash: currentSearchHash,
@@ -182,13 +245,14 @@ function TransactionListItem<TItem extends ListItem>({
             <PressableWithFeedback
                 ref={pressableRef}
                 onLongPress={() => onLongPressRow?.(item)}
-                onPress={() => onSelectRow(item, transactionPreviewData)}
+                onPress={handleOnPress}
                 disabled={isDisabled && !item.isSelected}
                 accessibilityLabel={item.text ?? ''}
                 role={getButtonRole(true)}
                 isNested
-                onMouseDown={(e) => e.preventDefault()}
-                hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, item.isSelected && styles.activeComponentBG]}
+                onMouseDown={handleOnMouseDown}
+                onHoverIn={() => setShouldDisableHoverStyle(false)}
+                hoverStyle={[!item.isDisabled && !shouldDisableHoverStyle && styles.hoveredComponentBG, item.isSelected && styles.activeComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
                 id={item.keyForList ?? ''}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM}
@@ -237,6 +301,18 @@ function TransactionListItem<TItem extends ListItem>({
                             isHover={hovered}
                             customCardNames={customCardNames}
                             reportActions={exportedReportActions}
+                            onEditDate={onEditDate}
+                            onEditMerchant={onEditMerchant}
+                            onEditDescription={onEditDescription}
+                            onEditCategory={onEditCategory}
+                            onEditAmount={onEditAmount}
+                            onEditTag={onEditTag}
+                            canEditDate={canEditDate}
+                            canEditMerchant={canEditMerchant}
+                            canEditDescription={canEditDescription}
+                            canEditCategory={canEditCategory}
+                            canEditAmount={canEditAmount}
+                            canEditTag={canEditTag}
                         />
                     </>
                 )}

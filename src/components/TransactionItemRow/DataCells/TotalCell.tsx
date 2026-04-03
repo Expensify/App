@@ -1,13 +1,20 @@
-import React from 'react';
+import React, {useRef} from 'react';
+import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
+import {EditableCell, useInlineEditState} from '@components/Table/EditableCell';
+import type {EditableProps} from '@components/Table/EditableCell';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
+import {convertToBackendAmount, convertToDisplayString, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
+import {parseFloatAnyLocale, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import {getCurrency as getTransactionCurrency, isScanning} from '@libs/TransactionUtils';
 import type TransactionDataCellProps from './TransactionDataCellProps';
 
-function TotalCell({shouldShowTooltip, transactionItem}: TransactionDataCellProps) {
+type TotalCellProps = TransactionDataCellProps & EditableProps<number>;
+
+function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave}: TotalCellProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const currency = getTransactionCurrency(transactionItem);
@@ -18,12 +25,74 @@ function TotalCell({shouldShowTooltip, transactionItem}: TransactionDataCellProp
         amountToDisplay = translate('iou.receiptStatusTitle');
     }
 
-    return (
+    const absoluteAmount = Math.abs(amount ?? 0);
+
+    const handleAmountSave = (amountString: string) => {
+        const parsedValue = parseFloatAnyLocale(amountString);
+        if (!Number.isNaN(parsedValue) && parsedValue >= 0) {
+            const normalizedValue = roundToTwoDecimalPlaces(parsedValue);
+            onSave?.(convertToBackendAmount(normalizedValue));
+        }
+    };
+
+    // localValue tracks the frontend-format amount string (e.g. "12.34") while editing
+    const {isEditing, setLocalValue, startEditing, save} = useInlineEditState(canEdit, convertToFrontendAmountAsString(absoluteAmount, currency), handleAmountSave);
+
+    // Ref used to programmatically focus the input when edit mode starts
+    const inputRef = useRef<BaseTextInputRef | null>(null);
+
+    const focusOnMount = (ref: BaseTextInputRef | null) => {
+        inputRef.current = ref;
+        ref?.focus();
+    };
+
+    const handleAmountChange = (amountString: string) => {
+        setLocalValue(amountString);
+    };
+
+    const handleBlur = () => {
+        save();
+    };
+
+    const displayContent = (
         <TextWithTooltip
             shouldShowTooltip={shouldShowTooltip}
             text={amountToDisplay}
-            style={[styles.optionDisplayName, styles.justifyContentCenter, styles.flexShrink0]}
+            style={[styles.optionDisplayName, styles.justifyContentCenter, styles.flexShrink1, styles.textAlignRight]}
         />
+    );
+
+    return (
+        <EditableCell
+            canEdit={canEdit}
+            isEditing={isEditing}
+            onStartEditing={startEditing}
+            editContent={
+                <MoneyRequestAmountInput
+                    ref={focusOnMount}
+                    amount={absoluteAmount}
+                    currency={currency}
+                    disableKeyboard={false}
+                    isCurrencyPressable={false}
+                    hideFocusedState
+                    shouldShowBigNumberPad={false}
+                    shouldWrapInputInContainer={false}
+                    shouldApplyPaddingToContainer={false}
+                    shouldRefocusOnScrollViewClick
+                    onAmountChange={handleAmountChange}
+                    onBlur={handleBlur}
+                    // EditableCell is responsible for the cell's hover and focus styles (border, background).
+                    // Suppress MoneyRequestAmountInput's own border and background to avoid visual conflicts.
+                    containerStyle={[styles.editableCellInputStyle]}
+                    inputStyle={[styles.textAlignRight, styles.pr0]}
+                    touchableInputWrapperStyle={styles.editableCellInputStyle}
+                    scrollViewStyle={[styles.flexRow, styles.justifyContentEnd]}
+                    symbolTextStyle={styles.editableCellSymbolStyle}
+                />
+            }
+        >
+            {displayContent}
+        </EditableCell>
     );
 }
 

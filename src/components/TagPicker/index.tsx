@@ -1,4 +1,6 @@
 import React, {useMemo, useState} from 'react';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -11,8 +13,6 @@ import {getTagArrayFromName} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTag, PolicyTags} from '@src/types/onyx';
-import RadioListItem from './SelectionList/ListItem/RadioListItem';
-import SelectionListWithSections from './SelectionList/SelectionListWithSections';
 
 type TagPickerProps = {
     /** The policyID we are getting tags for */

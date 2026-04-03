@@ -1,6 +1,7 @@
 import {setYear} from 'date-fns';
 import React, {useEffect, useRef, useState} from 'react';
 import type {View} from 'react-native';
+import ConfirmCancelButtonRow from '@components/ConfirmCancelButtonRow';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -13,10 +14,17 @@ const DEFAULT_ANCHOR_ORIGIN = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
-const popoverDimensions = {
-    height: CONST.POPOVER_DATE_MIN_HEIGHT,
-    width: CONST.POPOVER_DATE_WIDTH,
-};
+
+/**
+ * Returns popover dimensions based on whether confirm buttons are shown.
+ * Uses taller height with buttons, otherwise they could get cut off at screen bottom.
+ */
+function getPopoverDimensions(shouldShowConfirmButtons?: boolean) {
+    return {
+        height: shouldShowConfirmButtons ? CONST.POPOVER_DROPDOWN_MAX_HEIGHT : CONST.POPOVER_DATE_MIN_HEIGHT,
+        width: CONST.POPOVER_DATE_WIDTH,
+    };
+}
 
 function DatePickerModal({
     value,
@@ -31,10 +39,12 @@ function DatePickerModal({
     isVisible,
     onClose,
     anchorPosition,
+    anchorAlignment = DEFAULT_ANCHOR_ORIGIN,
     onSelected,
     shouldCloseWhenBrowserNavigationChanged = false,
     shouldPositionFromTop = false,
     forwardedFSClass,
+    shouldShowConfirmButtons = false,
 }: DatePickerProps) {
     const [selectedDate, setSelectedDate] = useState(value ?? defaultValue ?? undefined);
     const anchorRef = useRef<View>(null);
@@ -45,19 +55,39 @@ function DatePickerModal({
     const {isSmallScreenWidth} = useResponsiveLayout();
 
     useEffect(() => {
+        // In confirm mode, selectedDate is a pending selection and should not be synced with value until the user confirms
+        if (shouldShowConfirmButtons) {
+            return;
+        }
         if (shouldSaveDraft && formID) {
             setDraftValues(formID, {[inputID]: selectedDate});
         }
         if (selectedDate !== value) {
             setSelectedDate(value);
         }
-    }, [formID, inputID, selectedDate, shouldSaveDraft, value]);
+    }, [formID, inputID, selectedDate, shouldSaveDraft, shouldShowConfirmButtons, value]);
+
+    const commitDate = (date: string) => {
+        onSelected?.(date);
+        onTouched?.();
+        onInputChange?.(date);
+        if (shouldSaveDraft && formID) {
+            setDraftValues(formID, {[inputID]: date});
+        }
+    };
 
     const handleDateSelection = (newValue: string) => {
-        onSelected?.(newValue);
-        onTouched?.();
-        onInputChange?.(newValue);
         setSelectedDate(newValue);
+        if (!shouldShowConfirmButtons) {
+            commitDate(newValue);
+        }
+    };
+
+    const handleConfirm = () => {
+        if (selectedDate) {
+            commitDate(selectedDate);
+        }
+        onClose();
     };
 
     return (
@@ -66,10 +96,11 @@ function DatePickerModal({
             isVisible={isVisible}
             onClose={onClose}
             anchorPosition={anchorPosition}
-            popoverDimensions={popoverDimensions}
+            popoverDimensions={getPopoverDimensions(shouldShowConfirmButtons)}
             shouldCloseWhenBrowserNavigationChanged={shouldCloseWhenBrowserNavigationChanged}
             innerContainerStyle={isSmallScreenWidth ? styles.w100 : {width: CONST.POPOVER_DATE_WIDTH}}
-            anchorAlignment={DEFAULT_ANCHOR_ORIGIN}
+            anchorAlignment={anchorAlignment}
+            restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
             shouldSwitchPositionIfOverflow
             shouldReturnFocus={false}
             shouldMeasureAnchorPositionFromTop={shouldPositionFromTop}
@@ -83,6 +114,13 @@ function DatePickerModal({
                 value={selectedDate}
                 onSelected={handleDateSelection}
             />
+            {shouldShowConfirmButtons && (
+                <ConfirmCancelButtonRow
+                    onConfirm={handleConfirm}
+                    onCancel={onClose}
+                    isConfirmDisabled={!selectedDate}
+                />
+            )}
         </PopoverWithMeasuredContent>
     );
 }

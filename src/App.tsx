@@ -34,6 +34,7 @@ import ScrollOffsetContextProvider from './components/ScrollOffsetContextProvide
 import {SearchRouterContextProvider} from './components/Search/SearchRouter/SearchRouterContext';
 import SidePanelContextProvider from './components/SidePanel/SidePanelContextProvider';
 import SVGDefinitionsProvider from './components/SVGDefinitionsProvider';
+import {EditingCellProvider} from './components/Table/EditableCell';
 import ThemeIllustrationsProvider from './components/ThemeIllustrationsProvider';
 import ThemeProvider from './components/ThemeProvider';
 import ThemeStylesProvider from './components/ThemeStylesContextProvider';
@@ -135,6 +136,7 @@ function App() {
                                         TravelCVVContextProvider,
                                         KYCWallContextProvider,
                                         WideRHPContextProvider,
+                                        EditingCellProvider,
                                     ]}
                                 >
                                     <CustomStatusBarAndBackground />

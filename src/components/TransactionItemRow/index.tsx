@@ -20,6 +20,7 @@ import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -44,6 +45,7 @@ import {
     getCreated as getTransactionCreated,
     hasMissingSmartscanFields,
     isAmountMissing,
+    isExpenseUnreported,
     isMerchantMissing,
     isScanning,
     isTimeRequest,
@@ -53,6 +55,7 @@ import {
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Policy, Report, ReportAction, TransactionViolation} from '@src/types/onyx';
 import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
 import CategoryCell from './DataCells/CategoryCell';
@@ -147,6 +150,22 @@ type TransactionItemRowProps = {
     customCardNames?: Record<number, string>;
     reportActions?: ReportAction[];
     checkboxSentryLabel?: string;
+
+    /** Callbacks for inline cell editing (desktop only) */
+    onEditDate?: (newDate: string) => void;
+    onEditMerchant?: (newMerchant: string) => void;
+    onEditDescription?: (newDescription: string) => void;
+    onEditCategory?: (newCategory: string) => void;
+    onEditAmount?: (newAmount: number) => void;
+    onEditTag?: (newTag: string) => void;
+
+    /** Per-field edit permissions — controls whether the cell shows editable affordance */
+    canEditDate?: boolean;
+    canEditMerchant?: boolean;
+    canEditDescription?: boolean;
+    canEditCategory?: boolean;
+    canEditAmount?: boolean;
+    canEditTag?: boolean;
 };
 
 const EMPTY_ACTIVE_STYLE: StyleProp<ViewStyle> = [];
@@ -199,6 +218,18 @@ function TransactionItemRow({
     customCardNames,
     reportActions,
     checkboxSentryLabel,
+    onEditDate,
+    onEditMerchant,
+    onEditDescription,
+    onEditCategory,
+    onEditAmount,
+    onEditTag,
+    canEditDate,
+    canEditMerchant,
+    canEditDescription,
+    canEditCategory,
+    canEditAmount,
+    canEditTag,
 }: TransactionItemRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -206,6 +237,11 @@ function TransactionItemRow({
     const theme = useTheme();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const hasCategoryOrTag = !isCategoryMissing(transactionItem?.category) || !!transactionItem.tag;
+
+    // For unreported expenses (SelfDM), use active policy to show policy-specific fields like categories and tags
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const reportPolicyID = report?.policyID ?? transactionItem.report?.policyID;
+    const effectivePolicyID = isExpenseUnreported(transactionItem) ? activePolicyID : reportPolicyID;
     const createdAt = getTransactionCreated(transactionItem);
     const expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -326,6 +362,9 @@ function TransactionItemRow({
                             transactionItem={transactionItem}
                             shouldShowTooltip={shouldShowTooltip}
                             shouldUseNarrowLayout={shouldUseNarrowLayout}
+                            canEdit={canEditTag}
+                            onSave={onEditTag}
+                            policyID={effectivePolicyID}
                         />
                     </View>
                 );
@@ -336,7 +375,9 @@ function TransactionItemRow({
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, isDateColumnWide, false, false)]}
                     >
                         <DateCell
+                            canEdit={canEditDate}
                             date={createdAt}
+                            onSave={onEditDate}
                             showTooltip={shouldShowTooltip}
                             isLargeScreenWidth={!shouldUseNarrowLayout}
                         />
@@ -404,6 +445,9 @@ function TransactionItemRow({
                             transactionItem={transactionItem}
                             shouldShowTooltip={shouldShowTooltip}
                             shouldUseNarrowLayout={shouldUseNarrowLayout}
+                            canEdit={canEditCategory}
+                            onSave={onEditCategory}
+                            policyID={effectivePolicyID}
                         />
                     </View>
                 );
@@ -453,13 +497,13 @@ function TransactionItemRow({
                         key={column}
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.MERCHANT)]}
                     >
-                        {!!merchant && (
-                            <MerchantOrDescriptionCell
-                                merchantOrDescription={merchant}
-                                shouldShowTooltip={shouldShowTooltip}
-                                shouldUseNarrowLayout={false}
-                            />
-                        )}
+                        <MerchantOrDescriptionCell
+                            merchantOrDescription={merchant ?? ''}
+                            shouldShowTooltip={shouldShowTooltip}
+                            shouldUseNarrowLayout={false}
+                            canEdit={canEditMerchant}
+                            onSave={onEditMerchant}
+                        />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
@@ -468,14 +512,14 @@ function TransactionItemRow({
                         key={column}
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION)]}
                     >
-                        {!!description && (
-                            <MerchantOrDescriptionCell
-                                merchantOrDescription={description}
-                                shouldShowTooltip={shouldShowTooltip}
-                                shouldUseNarrowLayout={false}
-                                isDescription
-                            />
-                        )}
+                        <MerchantOrDescriptionCell
+                            merchantOrDescription={description}
+                            shouldShowTooltip={shouldShowTooltip}
+                            shouldUseNarrowLayout={false}
+                            isDescription
+                            canEdit={canEditDescription}
+                            onSave={onEditDescription}
+                        />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.TO:
@@ -563,6 +607,8 @@ function TransactionItemRow({
                             transactionItem={transactionItem}
                             shouldShowTooltip={shouldShowTooltip}
                             shouldUseNarrowLayout={shouldUseNarrowLayout}
+                            canEdit={canEditAmount}
+                            onSave={onEditAmount}
                         />
                     </View>
                 );
@@ -783,11 +829,13 @@ function TransactionItemRow({
                                         transactionItem={transactionItem}
                                         shouldShowTooltip={shouldShowTooltip}
                                         shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                        policyID={effectivePolicyID}
                                     />
                                     <TagCell
                                         transactionItem={transactionItem}
                                         shouldShowTooltip={shouldShowTooltip}
                                         shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                        policyID={effectivePolicyID}
                                     />
                                 </View>
                             )}

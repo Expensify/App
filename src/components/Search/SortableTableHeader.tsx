@@ -16,6 +16,7 @@ type ColumnConfig = {
     icon?: IconAsset;
     isColumnSortable?: boolean;
     canBeMissing?: boolean;
+    canEdit?: boolean;
 };
 
 type SearchTableHeaderProps = {
@@ -60,7 +61,7 @@ function SortableTableHeader({
     return (
         <View style={[styles.flex1]}>
             <View style={[styles.flex1, styles.flexRow, styles.gap3, containerStyles]}>
-                {columns.map(({columnName, translationKey, icon, isColumnSortable}) => {
+                {columns.map(({columnName, translationKey, icon, isColumnSortable, canEdit}) => {
                     if (!shouldShowColumn(columnName)) {
                         return null;
                     }
@@ -79,6 +80,7 @@ function SortableTableHeader({
                             isActive={isActive}
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH.SORTABLE_HEADER}
                             containerStyle={[
+                                canEdit && styles.editableCellHeader,
                                 StyleUtils.getReportTableColumnStyles(
                                     columnName,
                                     dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
