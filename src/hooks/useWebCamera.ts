@@ -138,15 +138,13 @@ function useWebCamera({onUnmount}: UseWebCameraOptions = {}) {
             .finally(() => {
                 setIsQueriedPermissionState(true);
             });
-        return () => {
-            setDeviceConstraints(undefined);
-        };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isTabActive]);
 
     useEffect(
         () => () => {
             onUnmount?.();
+            setDeviceConstraints(undefined);
             if (!getScreenshotTimeoutRef.current) {
                 return;
             }
