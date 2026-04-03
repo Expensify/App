@@ -433,6 +433,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                             isChatIOUReportArchived,
                             allTransactionViolationsParam: allTransactionViolations,
                             currentUserAccountID: accountID,
+                            currentUserEmail: currentUserLogin ?? '',
                         });
                     } else {
                         // eslint-disable-next-line @typescript-eslint/no-deprecated
