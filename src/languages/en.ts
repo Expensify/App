@@ -3873,6 +3873,10 @@ const translations = {
         youCanChange: 'You can change your workspace currency in your',
         findCountry: 'Find country',
         selectCountry: 'Select country',
+        error: {
+            connectToWorkspace: (workspaceRoute: string) =>
+                `Please connect this bank account to a <a href="${workspaceRoute}">workspace</a> so you can invite a director to sign in a later step.`,
+        },
     },
     bankInfoStep: {
         whatAreYour: 'What are your business bank account details?',
