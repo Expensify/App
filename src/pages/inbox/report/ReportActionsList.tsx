@@ -1,14 +1,14 @@
-import type {ListRenderItemInfo} from '@react-native/virtualized-lists';
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import {isUserValidatedSelector} from '@selectors/Account';
 import {tierNameSelector} from '@selectors/UserWallet';
+import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React, {memo, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
 import Button from '@components/Button';
-import InvertedFlatList from '@components/FlatList/InvertedFlatList';
+import InvertedFlashList from '@components/FlashList/InvertedFlashList';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -22,6 +22,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScrollToEndOnNewMessageReceived from '@hooks/useScrollToEndOnNewMessageReceived';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
@@ -119,9 +120,6 @@ type ReportActionsListProps = {
     /** ID of the list */
     listID: number;
 
-    /** Should enable auto scroll to top threshold */
-    shouldEnableAutoScrollToTopThreshold?: boolean;
-
     /** Whether the optimistic CREATED report action was added */
     hasCreatedActionAdded?: boolean;
 
@@ -157,8 +155,6 @@ function keyExtractor(item: OnyxTypes.ReportAction): string {
     return item.reportActionID;
 }
 
-const onScrollToIndexFailed = () => {};
-
 function ReportActionsList({
     report,
     transactionThreadReport,
@@ -172,7 +168,6 @@ function ReportActionsList({
     onLayout,
     isComposerFullSize,
     listID,
-    shouldEnableAutoScrollToTopThreshold,
     parentReportActionForTransactionThread,
     hasCreatedActionAdded,
     isConciergeSidePanel,
@@ -184,6 +179,7 @@ function ReportActionsList({
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const personalDetailsList = usePersonalDetails();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['UpArrow']);
     const {windowHeight} = useWindowDimensions();
@@ -218,14 +214,13 @@ function ReportActionsList({
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`);
 
     const backTo = route?.params?.backTo as string;
-    // Display the new message indicator when comment linking and not close to the newest message.
-    const reportActionID = route?.params?.reportActionID;
+    const linkedReportActionID = route?.params?.reportActionID;
 
     const isTransactionThreadReport = useMemo(() => isTransactionThread(parentReportAction) && !isSentMoneyReportAction(parentReportAction), [parentReportAction]);
     const isMoneyRequestOrInvoiceReport = useMemo(() => isMoneyRequestReport(report) || isInvoiceReport(report), [report]);
     const shouldFocusToTopOnMount = useMemo(() => isTransactionThreadReport || isMoneyRequestOrInvoiceReport, [isMoneyRequestOrInvoiceReport, isTransactionThreadReport]);
     const topReportAction = sortedVisibleReportActions.at(-1);
-    const [shouldScrollToEndAfterLayout, setShouldScrollToEndAfterLayout] = useState(shouldFocusToTopOnMount && !reportActionID);
+    const [shouldScrollToEndAfterLayout, setShouldScrollToEndAfterLayout] = useState(shouldFocusToTopOnMount && !linkedReportActionID);
     const isAnonymousUser = useIsAnonymousUser();
 
     useEffect(() => {
@@ -238,7 +233,6 @@ function ReportActionsList({
 
     const readActionSkipped = useRef(false);
     const hasHeaderRendered = useRef(false);
-    const linkedReportActionID = route?.params?.reportActionID;
 
     const lastAction = sortedVisibleReportActions.at(0);
     const sortedVisibleReportActionsObjects: OnyxTypes.ReportActions = useMemo(
@@ -871,20 +865,22 @@ function ReportActionsList({
                 fsClass={reportActionsListFSClass}
             >
                 {shouldScrollToEndAfterLayout && topReportAction ? renderTopReportActions() : undefined}
-                <InvertedFlatList
+                <InvertedFlashList
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
                     ref={reportScrollManager.ref}
                     testID="report-actions-list"
                     style={[styles.overscrollBehaviorContain, shouldScrollToEndAfterLayout && styles.flex0]}
                     data={sortedVisibleReportActions}
                     renderItem={renderItem}
-                    renderScrollComponent={renderActionSheetAwareScrollView}
-                    contentContainerStyle={[styles.chatContentScrollView, shouldFocusToTopOnMount ? styles.justifyContentEnd : undefined]}
-                    shouldHideContent={shouldScrollToEndAfterLayout}
-                    shouldDisableVisibleContentPosition={shouldScrollToEndAfterLayout}
-                    showsVerticalScrollIndicator={!shouldScrollToEndAfterLayout}
                     keyExtractor={keyExtractor}
-                    initialNumToRender={initialNumToRender}
+                    drawDistance={1500}
+                    renderScrollComponent={renderActionSheetAwareScrollView}
+                    contentContainerStyle={[
+                        styles.chatContentScrollView,
+                        shouldFocusToTopOnMount && styles.justifyContentEnd,
+                        shouldScrollToEndAfterLayout && StyleUtils.getHiddenChatContentStyle(),
+                    ]}
+                    showsVerticalScrollIndicator={!shouldScrollToEndAfterLayout}
                     onEndReached={onEndReached}
                     onEndReachedThreshold={0.75}
                     onStartReached={onStartReached}
@@ -895,11 +891,10 @@ function ReportActionsList({
                     onLayout={onLayoutInner}
                     onScroll={trackVerticalScrolling}
                     onViewableItemsChanged={onViewableItemsChanged}
-                    onScrollToIndexFailed={onScrollToIndexFailed}
                     extraData={extraData}
                     key={listID}
-                    shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScrollToTopThreshold}
-                    initialScrollKey={reportActionID}
+                    getItemType={(item) => item.actionName}
+                    initialScrollKey={linkedReportActionID}
                     onContentSizeChange={() => {
                         trackVerticalScrolling(undefined);
                     }}
