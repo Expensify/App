@@ -1336,6 +1336,14 @@ type OriginalMessageTakeControl = {
 };
 
 /**
+ * Model of Reassign Approver action original message (system-generated when approval workflow changes)
+ */
+type OriginalMessageReassignApprover = {
+    /** Account ID of the new approver assigned by the system */
+    newApproverID: number;
+};
+
+/**
  * Minimal transaction data needed to render the MFA authorize transaction preview.
  */
 type OriginalMessageActionableCard3DSTransactionApproval = TransactionPending3DSReview;
@@ -1482,6 +1490,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.RETRACTED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REOPENED]: never;
     [CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED]: never;
+    [CONST.REPORT.ACTIONS.TYPE.REASSIGN_APPROVER]: OriginalMessageReassignApprover;
     [CONST.REPORT.ACTIONS.TYPE.REROUTE]: OriginalMessageTakeControl;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED]: OriginalMessageReimbursementDirectorInformationRequired;
     [CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED]: OriginalMessageSettlementAccountLocked;
