@@ -1183,8 +1183,7 @@ describe('MoneyRequest', () => {
                     gpsCoordinates: undefined,
                     odometerEnd: undefined,
                     odometerStart: undefined,
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                    taxCode: expect.any(String),
+                    taxCode: '',
                     taxAmount: 0,
                 },
                 isASAPSubmitBetaEnabled: baseParams.isASAPSubmitBetaEnabled,
