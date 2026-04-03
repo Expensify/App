@@ -45,6 +45,7 @@ import useIsSidebarRouteActive from '@libs/Navigation/helpers/useIsSidebarRouteA
 import Navigation from '@libs/Navigation/Navigation';
 import {getFreeTrialText, hasSubscriptionRedDotError} from '@libs/SubscriptionUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import {isOldAppRedirectBlocked} from '@libs/TryNewDotUtils';
 import {getProfilePageBrickRoadIndicator} from '@libs/UserUtils';
 import type SETTINGS_TO_RHP from '@navigation/linkingConfig/RELATIONS/SETTINGS_TO_RHP';
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
@@ -313,7 +314,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     };
 
     let classicRedirectMenuItem: MenuData | null = null;
-    if (!tryNewDot?.classicRedirect?.isLockedToNewDot) {
+    if (!isOldAppRedirectBlocked(tryNewDot, CONFIG.IS_HYBRID_APP)) {
         const shouldOpenSurveyReasonPage = tryNewDot?.classicRedirect?.dismissed === false;
 
         classicRedirectMenuItem = {
