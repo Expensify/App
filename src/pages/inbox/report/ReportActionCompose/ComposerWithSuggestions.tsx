@@ -404,10 +404,6 @@ function ComposerWithSuggestions({
             wasEditingInComposerRef.current = false;
             applyComposerValue(draftComment ?? '');
         }
-
-        if (shouldUseNarrowLayout) {
-            applyComposerValue(editingMessage ?? '', {isEditingInComposer: true});
-        }
     }, [applyComposerValue, draftComment, editingMessage, editingState, selection, shouldUseNarrowLayout, updateNativeSelectionValue]);
 
     const {superWideRHPRouteKeys} = useWideRHPState();
