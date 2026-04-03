@@ -7,16 +7,14 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isSubmitAndClose} from '@libs/PolicyUtils';
 import {getNextApproverAccountID, isReportOwner} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import useConfirmApproval from './useConfirmApproval';
 
 type ApprovePrimaryActionProps = {
     reportID: string | undefined;
     startApprovedAnimation: () => void;
-    onHoldMenuOpen: (requestType: string, paymentType?: PaymentMethodType) => void;
 };
 
-function ApprovePrimaryAction({reportID, startApprovedAnimation, onHoldMenuOpen}: ApprovePrimaryActionProps) {
+function ApprovePrimaryAction({reportID, startApprovedAnimation}: ApprovePrimaryActionProps) {
     const {translate} = useLocalize();
 
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
@@ -29,7 +27,7 @@ function ApprovePrimaryAction({reportID, startApprovedAnimation, onHoldMenuOpen}
         isReportOwner(moneyRequestReport) && (nextApproverAccountID === moneyRequestReport?.ownerAccountID || moneyRequestReport?.managerID === moneyRequestReport?.ownerAccountID);
     const isBlockSubmitDueToPreventSelfApproval = isSubmitterSameAsNextApprover && policy?.preventSelfApproval;
 
-    const confirmApproval = useConfirmApproval(reportID, startApprovedAnimation, onHoldMenuOpen);
+    const confirmApproval = useConfirmApproval(reportID, startApprovedAnimation);
 
     return (
         <Button
