@@ -205,7 +205,27 @@ function openInitialSettingsPage() {
  * Fetches data when the user opens the EnablePaymentsPage
  */
 function openEnablePaymentsPage() {
-    API.read(READ_COMMANDS.OPEN_ENABLE_PAYMENTS_PAGE, null);
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.USER_WALLET>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.USER_WALLET,
+            value: {
+                isLoading: true,
+            },
+        },
+    ];
+
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.USER_WALLET>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.USER_WALLET,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    API.read(READ_COMMANDS.OPEN_ENABLE_PAYMENTS_PAGE, null, {optimisticData, finallyData});
 }
 
 function updateCurrentStep(currentStep: ValueOf<typeof CONST.WALLET.STEP> | null) {

@@ -138,7 +138,6 @@ import {
     canEditFieldOfMoneyRequest,
     canSubmitAndIsAwaitingForCurrentUser,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
-    computeOptimisticReportName,
     findSelfDMReportID,
     generateReportID,
     getAllHeldTransactions as getAllHeldTransactionsReportUtils,
@@ -189,6 +188,7 @@ import {
     isSettled,
     isTestTransactionReport,
     isTrackExpenseReport,
+    populateOptimisticReportFormula,
     prepareOnboardingOnyxData,
     shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,
     shouldEnableNegative,
@@ -1219,13 +1219,19 @@ function handleNavigateAfterExpenseCreate({
         alreadyOnSearchRoot && isSameSearchType ? CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY : CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH,
     );
     const queryString = buildCannedSearchQuery({type});
-    Navigation.isNavigationReady().then(() => {
+    const navigateToSearch = () => {
         if (getIsNarrowLayout()) {
             Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {forceReplace: true});
         } else {
             Navigation.revealRouteBeforeDismissingModal(ROUTES.SEARCH_ROOT.getRoute({query: queryString}));
         }
-    });
+    };
+
+    if (navigationRef.isReady()) {
+        navigateToSearch();
+    } else {
+        Navigation.isNavigationReady().then(navigateToSearch);
+    }
 }
 
 /**
@@ -3202,7 +3208,7 @@ function getDeleteTrackExpenseInformation(
  * This is needed when report totals change (e.g., adding expenses or changing reimbursable status)
  * to ensure the report title reflects the updated values like {report:reimbursable}.
  */
-function recalculateOptimisticReportName(iouReport: OnyxTypes.Report, policy: OnyxEntry<OnyxTypes.Policy>, newTransaction?: OnyxTypes.Transaction): string | undefined {
+function recalculateOptimisticReportName(iouReport: OnyxTypes.Report, policy: OnyxEntry<OnyxTypes.Policy>): string | undefined {
     if (!policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]) {
         return undefined;
     }
@@ -3210,37 +3216,17 @@ function recalculateOptimisticReportName(iouReport: OnyxTypes.Report, policy: On
     if (!titleFormula) {
         return undefined;
     }
-
-    // Gather existing transactions + the optimistic one not yet in Onyx.
-    const existingTransactions = getReportTransactions(iouReport.reportID);
-    const transactionsRecord: Record<string, OnyxTypes.Transaction> = {};
-    for (const transaction of existingTransactions) {
-        if (transaction?.transactionID) {
-            transactionsRecord[transaction.transactionID] = transaction;
-        }
-    }
-    if (newTransaction?.transactionID) {
-        transactionsRecord[newTransaction.transactionID] = newTransaction;
-    }
-
-    const computedName = computeOptimisticReportName(iouReport, policy, iouReport.policyID, transactionsRecord);
-    return computedName ?? undefined;
+    return populateOptimisticReportFormula(titleFormula, iouReport as Parameters<typeof populateOptimisticReportFormula>[1], policy);
 }
 
-function maybeUpdateReportNameForFormulaTitle(iouReport: OnyxTypes.Report, policy: OnyxEntry<OnyxTypes.Policy>, newTransaction?: OnyxTypes.Transaction): OnyxTypes.Report {
+function maybeUpdateReportNameForFormulaTitle(iouReport: OnyxTypes.Report, policy: OnyxEntry<OnyxTypes.Policy>): OnyxTypes.Report {
     const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`];
     const titleField = reportNameValuePairs?.expensify_text_title;
-
-    // Fall back to policy.fieldList when reportNameValuePairs doesn't exist yet (optimistic reports).
-    const isFormulaTitle = reportNameValuePairs
-        ? titleField?.type === CONST.REPORT_FIELD_TYPES.FORMULA
-        : policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]?.type === CONST.REPORT_FIELD_TYPES.FORMULA;
-
-    if (!isFormulaTitle) {
+    if (titleField?.type !== CONST.REPORT_FIELD_TYPES.FORMULA) {
         return iouReport;
     }
 
-    const updatedReportName = recalculateOptimisticReportName(iouReport, policy, newTransaction);
+    const updatedReportName = recalculateOptimisticReportName(iouReport, policy);
     if (!updatedReportName) {
         return iouReport;
     }
@@ -3424,6 +3410,8 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                         iouReport.nonReimbursableTotal = (iouReport.nonReimbursableTotal ?? 0) - amount;
                     }
                 }
+
+                iouReport = maybeUpdateReportNameForFormulaTitle(iouReport, policy);
             }
             if (typeof iouReport.unheldTotal === 'number') {
                 // Use newReportTotal in scenarios where the total is based on more than just the current transaction amount, and we need to override it manually
@@ -3523,11 +3511,6 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         if (originalConvertedAmount && originalAmount && splitAmount) {
             optimisticTransaction.convertedAmount = Math.round((originalConvertedAmount * splitAmount) / originalAmount);
         }
-    }
-
-    // Recalculate report name after STEP 3 so the optimistic transaction is included in formula computation.
-    if (!shouldCreateNewMoneyRequestReport && isPolicyExpenseChat) {
-        iouReport = maybeUpdateReportNameForFormulaTitle(iouReport, policy, optimisticTransaction);
     }
 
     // STEP 4: Build optimistic reportActions. We need:
@@ -12256,6 +12239,7 @@ function prepareRejectMoneyRequestData(
     // The "rejected this expense" action should come before the reject comment
     const baseTimestamp = DateUtils.getDBTime();
     const optimisticRejectReportAction = buildOptimisticRejectReportAction(baseTimestamp);
+    const parsedComment = getParsedComment(comment);
     const optimisticRejectReportActionComment = buildOptimisticRejectReportActionComment(comment, DateUtils.addMillisecondsFromDateTime(baseTimestamp, 1));
     let movedTransactionAction;
 
@@ -12445,7 +12429,7 @@ function prepareRejectMoneyRequestData(
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 amount: transactionAmount,
                 currency: getCurrency(transaction),
-                comment,
+                comment: parsedComment,
                 payeeEmail: getLoginByAccountID(report.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID) ?? '',
                 participants: [{accountID: report?.ownerAccountID}],
                 transactionID: transaction.transactionID,
@@ -12536,7 +12520,7 @@ function prepareRejectMoneyRequestData(
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 amount: transactionAmount,
                 currency: getCurrency(transaction),
-                comment,
+                comment: parsedComment,
                 payeeEmail: deprecatedCurrentUserEmail,
                 participants: [{accountID: report?.ownerAccountID}],
                 transactionID: transaction.transactionID,
@@ -12937,7 +12921,7 @@ function prepareRejectMoneyRequestData(
     const parameters: RejectMoneyRequestParams = {
         transactionID,
         reportID,
-        comment,
+        comment: parsedComment,
         rejectedToReportID,
         reportPreviewReportActionID: reportPreviewAction?.reportActionID,
         rejectedActionReportActionID: optimisticRejectReportAction.reportActionID,
