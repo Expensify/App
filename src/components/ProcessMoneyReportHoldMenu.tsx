@@ -3,11 +3,12 @@ import React, {useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useNonReimbursablePaymentModal from '@hooks/useNonReimbursablePaymentModal';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import {hasOnlyNonReimbursableTransactions, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+import {hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {approveMoneyRequest, payMoneyRequest} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -50,14 +51,11 @@ type ProcessMoneyReportHoldMenuProps = {
     /** Number of transaction of a money request */
     transactionCount: number;
 
-    /** Callback for displaying payment animation on IOU preview component */
-    startAnimation?: () => void;
+    /** Callback invoked after the user confirms pay/approve, receives whether the full amount was chosen */
+    onConfirm?: (full: boolean) => void;
 
     /** Whether the report has non held expenses */
     hasNonHeldExpenses?: boolean;
-
-    /** Callback when user attempts to pay via ACH but report has only non-reimbursable expenses */
-    onNonReimbursablePaymentError?: () => void;
 
     /** Transactions associated with report */
     transactions?: OnyxTypes.Transaction[];
@@ -74,9 +72,8 @@ function ProcessMoneyReportHoldMenu({
     chatReport,
     moneyRequestReport,
     transactionCount,
-    startAnimation,
+    onConfirm,
     hasNonHeldExpenses,
-    onNonReimbursablePaymentError,
     transactions,
 }: ProcessMoneyReportHoldMenuProps) {
     const {translate} = useLocalize();
@@ -102,17 +99,22 @@ function ProcessMoneyReportHoldMenu({
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const {showNonReimbursablePaymentErrorModal, shouldBlockDirectPayment} = useNonReimbursablePaymentModal(moneyRequestReport, transactions);
+
     const onSubmit = (full: boolean) => {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
             return;
         }
 
-        if (!isApprove && chatReport && hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID, transactions) && paymentType && paymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+        if (!isApprove && paymentType && shouldBlockDirectPayment(paymentType)) {
             onClose();
-            onNonReimbursablePaymentError?.();
+            showNonReimbursablePaymentErrorModal();
             return;
         }
+
+        const animationCallback = () => onConfirm?.(full);
+
         if (isApprove) {
             approveMoneyRequest({
                 expenseReport: moneyRequestReport,
@@ -127,7 +129,7 @@ function ProcessMoneyReportHoldMenu({
                 amountOwed,
                 ownerBillingGracePeriodEnd,
                 full,
-                onApproved: startAnimation,
+                onApproved: animationCallback,
             });
         } else if (chatReport && paymentType) {
             payMoneyRequest({
@@ -146,7 +148,7 @@ function ProcessMoneyReportHoldMenu({
                 amountOwed,
                 ownerBillingGracePeriodEnd,
                 methodID,
-                onPaid: startAnimation,
+                onPaid: animationCallback,
             });
         }
         onClose();

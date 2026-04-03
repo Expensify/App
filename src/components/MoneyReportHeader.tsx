@@ -513,7 +513,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
 
     const shouldDisplayNarrowMoreButton = !shouldDisplayNarrowVersion || isWideRHPDisplayedOnWideLayout || isSuperWideRHPDisplayedOnWideLayout;
 
-    const {showNonReimbursablePaymentErrorModal, shouldBlockDirectPayment, nonReimbursablePaymentErrorDecisionModal} = useNonReimbursablePaymentModal(moneyRequestReport, transactions);
+    const {showNonReimbursablePaymentErrorModal, shouldBlockDirectPayment} = useNonReimbursablePaymentModal(moneyRequestReport, transactions);
 
     const showExportProgressModal = useCallback(() => {
         return showConfirmModal({
@@ -2224,7 +2224,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                     chatReport={chatReport}
                     moneyRequestReport={moneyRequestReport}
                     hasNonHeldExpenses={!hasOnlyHeldExpenses}
-                    startAnimation={() => {
+                    onConfirm={() => {
                         if (isSelectionModePaymentRef.current) {
                             clearSelectedTransactions(true);
                             return;
@@ -2237,7 +2237,6 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                     }}
                     transactionCount={transactionIDs?.length ?? 0}
                     transactions={transactions}
-                    onNonReimbursablePaymentError={showNonReimbursablePaymentErrorModal}
                 />
             )}
             <MoneyReportHeaderEducationalModals
@@ -2249,7 +2248,6 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                 onHoldEducationalDismissed={() => setIsHoldEducationalModalVisible(false)}
                 onRejectModalDismissed={() => setRejectModalAction(null)}
             />
-            {nonReimbursablePaymentErrorDecisionModal}
             <ReportPDFDownloadModal
                 reportID={moneyRequestReport?.reportID}
                 isVisible={isPDFModalVisible}

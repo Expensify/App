@@ -736,14 +736,13 @@ function MoneyRequestReportPreviewContent({
                                 transactionCount={numberOfRequests}
                                 transactions={transactions}
                                 hasNonHeldExpenses={!hasOnlyHeldExpenses}
-                                startAnimation={() => {
+                                onConfirm={() => {
                                     if (requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
                                         startApprovedAnimation();
                                     } else {
                                         startAnimation();
                                     }
                                 }}
-                                onNonReimbursablePaymentError={showNonReimbursablePaymentErrorModal}
                             />
                         );
                     })()}
