@@ -2411,12 +2411,12 @@ function markCommentAsUnread(reportID: string | undefined, reportActions: OnyxEn
         },
     ];
 
-    const reportActionID = reportAction?.reportActionID ?? latestReportActionFromOtherUsers?.reportActionID ?? '';
+    const reportActionID = reportAction?.reportActionID ?? latestReportActionFromOtherUsers?.reportActionID;
 
     const parameters: MarkAsUnreadParams = {
         reportID,
         lastReadTime,
-        reportActionID,
+        ...(reportActionID != null ? {reportActionID} : {}),
     };
 
     API.writeWithNoDuplicatesConflictAction(WRITE_COMMANDS.MARK_AS_UNREAD, parameters, {optimisticData, successData, failureData});
