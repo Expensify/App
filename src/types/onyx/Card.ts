@@ -120,6 +120,9 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Card's primary account identifier token */
     token?: string;
 
+    /** Whether the card is in an offline PIN market */
+    isOfflinePINMarket?: boolean;
+
     /** Additional card data */
     nameValuePairs?: OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** Type of card spending limits */

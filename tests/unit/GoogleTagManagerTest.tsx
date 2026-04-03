@@ -165,6 +165,7 @@ describe('GoogleTagManagerTest', () => {
             activePolicyID: undefined,
             currentUserEmailParam: 'test@test.com',
             isSelfTourViewed: false,
+            betas: undefined,
             hasActiveAdminPolicies: false,
         });
         await waitForBatchedUpdatesWithAct();
@@ -174,6 +175,7 @@ describe('GoogleTagManagerTest', () => {
             currentUserEmailParam: 'test@test.com',
             introSelected: undefined,
             isSelfTourViewed: false,
+            betas: undefined,
             hasActiveAdminPolicies: true,
         });
         await waitForBatchedUpdatesWithAct();
@@ -183,6 +185,7 @@ describe('GoogleTagManagerTest', () => {
             currentUserEmailParam: 'test@test.com',
             introSelected: undefined,
             isSelfTourViewed: false,
+            betas: undefined,
             hasActiveAdminPolicies: true,
         });
         await waitForBatchedUpdatesWithAct();

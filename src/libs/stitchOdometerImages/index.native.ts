@@ -1,12 +1,14 @@
 import {ImageFormat, Skia} from '@shopify/react-native-skia';
 import RNFS from 'react-native-fs';
 import Log from '@libs/Log';
+import {getOdometerImageUri} from '@libs/OdometerImageUtils';
 import type {FileObject} from '@src/types/utils/Attachment';
+import STITCHED_ODOMETER_FILENAME_PREFIX from './constants';
 import calculateStitchLayout from './stitchLayout';
 
 async function stitchOdometerImages(image1: FileObject | string | undefined, image2: FileObject | string | undefined): Promise<FileObject | null> {
-    const source1 = typeof image1 === 'string' ? image1 : (image1?.uri ?? null);
-    const source2 = typeof image2 === 'string' ? image2 : (image2?.uri ?? null);
+    const source1 = getOdometerImageUri(image1);
+    const source2 = getOdometerImageUri(image2);
 
     if (!source1 || !source2) {
         return null;
@@ -46,13 +48,13 @@ async function stitchOdometerImages(image1: FileObject | string | undefined, ima
         // Delete any previously stitched files before creating a new one
         try {
             const tempDirContents = await RNFS.readDir(RNFS.TemporaryDirectoryPath);
-            const oldStitchedFiles = tempDirContents.filter((f) => f.name.startsWith('stitched_odometer_') && f.name.endsWith('.jpg'));
+            const oldStitchedFiles = tempDirContents.filter((f) => f.name.startsWith(`${STITCHED_ODOMETER_FILENAME_PREFIX}_`) && f.name.endsWith('.jpg'));
             await Promise.all(oldStitchedFiles.map((f) => RNFS.unlink(f.path)));
         } catch (error) {
             Log.warn('stitchOdometerImages (native) failed to clean up old stitched files', {error});
         }
 
-        const filename = `stitched_odometer_${Date.now()}.jpg`;
+        const filename = `${STITCHED_ODOMETER_FILENAME_PREFIX}_${Date.now()}.jpg`;
         const tempPath = `${RNFS.TemporaryDirectoryPath}/${filename}`;
         await RNFS.writeFile(tempPath, base64, 'base64');
 

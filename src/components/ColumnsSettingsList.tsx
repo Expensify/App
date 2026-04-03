@@ -13,8 +13,8 @@ import Icon from './Icon';
 import ScreenWrapper from './ScreenWrapper';
 import ScrollView from './ScrollView';
 import type {SearchCustomColumnIds} from './Search/types';
+import MultiSelectListItem from './SelectionList/ListItem/MultiSelectListItem';
 import type {ListItem} from './SelectionList/types';
-import MultiSelectListItem from './SelectionListWithSections/MultiSelectListItem';
 import Text from './Text';
 import TextLink from './TextLink';
 
@@ -217,6 +217,7 @@ function ColumnsSettingsList({allColumns, defaultSelectedColumns, currentColumns
         return (
             <MultiSelectListItem
                 item={item}
+                keyForList={item.keyForList}
                 isFocused={isFocused}
                 showTooltip={false}
                 onSelectRow={onSelectItem}

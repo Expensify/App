@@ -57,6 +57,12 @@ type ReportMetadata = {
 
     /** Transaction IDs that were just submitted/moved to this report and should be highlighted on first load */
     pendingNewTransactionIDs?: Record<string, true | null>;
+
+    /** The newest report action ID from the last pagination response (excludes Pusher-delivered actions) */
+    newestFetchedReportActionID?: string;
+
+    /** The oldest report action ID from the last pagination response, used as advancing cursor for backfill */
+    oldestFetchedReportActionID?: string;
 };
 
 export default ReportMetadata;

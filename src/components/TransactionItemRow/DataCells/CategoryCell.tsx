@@ -1,5 +1,5 @@
 import React from 'react';
-import TextWithIconCell from '@components/SelectionListWithSections/Search/TextWithIconCell';
+import TextWithIconCell from '@components/Search/SearchList/ListItem/TextWithIconCell';
 import TextWithTooltip from '@components/TextWithTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useThemeStyles from '@hooks/useThemeStyles';

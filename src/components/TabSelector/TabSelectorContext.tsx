@@ -1,4 +1,4 @@
-import React, {createContext, useContext, useRef} from 'react';
+import React, {createContext, useContext, useEffect, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView} from 'react-native';
 import {defaultTabSelectorActionsContextValue, defaultTabSelectorStateContextValue} from './default';
@@ -12,6 +12,7 @@ function TabSelectorContextProvider({children, activeTabKey}: TabSelectorContext
     const containerRef = useRef<RNScrollView>(null);
     const containerLayoutRef = useRef<{x: number; width: number}>({x: 0, width: 0});
     const tabsRef = useRef<Record<string, {width: number; x: number}>>({});
+    const lastScrolledToTab = useRef('');
 
     const onContainerLayout = (event: LayoutChangeEvent) => {
         const width = event.nativeEvent.layout.width;
@@ -51,10 +52,31 @@ function TabSelectorContextProvider({children, activeTabKey}: TabSelectorContext
             return;
         }
 
+        lastScrolledToTab.current = tabKey;
+
         const {x: tabX, width: tabWidth} = tabData;
 
         scrollToTabUtil({tabX, tabWidth, containerRef, containerWidth: containerLayoutRef.current.width, containerX: containerLayoutRef.current.x});
     };
+
+    // Sync scroll position when the active tab changes externally (e.g. back/forward browser history buttons, not user tap)
+    useEffect(() => {
+        if (!lastScrolledToTab.current || activeTabKey === lastScrolledToTab.current) {
+            return;
+        }
+
+        lastScrolledToTab.current = activeTabKey;
+
+        const tabData = tabsRef.current[activeTabKey];
+
+        if (!tabData) {
+            return;
+        }
+
+        const {x: tabX, width: tabWidth} = tabData;
+
+        scrollToTabUtil({tabX, tabWidth, containerRef, containerWidth: containerLayoutRef.current.width, containerX: containerLayoutRef.current.x});
+    }, [activeTabKey]);
 
     // Because of the React Compiler we don't need to memoize it manually
     // eslint-disable-next-line react/jsx-no-constructed-context-values
