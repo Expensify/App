@@ -3501,8 +3501,10 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     }
 
     if (isSplitExpense && existingTransaction) {
-        const {convertedAmount: originalConvertedAmount, ...existingTransactionWithoutConvertedAmount} = existingTransaction;
-        optimisticTransaction = fastMerge(existingTransactionWithoutConvertedAmount, optimisticTransaction, false);
+        // Exclude routes from merge - this makes getDistanceInMeters() use customUnit.quantity instead of routes.route0.distance
+        // which allows us to set the proportional distance for split distance expenses
+        const {convertedAmount: originalConvertedAmount, routes: originalRoutes, ...existingTransactionForMerge} = existingTransaction;
+        optimisticTransaction = fastMerge(existingTransactionForMerge, optimisticTransaction, false);
 
         // Calculate proportional convertedAmount for the split based on the original conversion rate
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- modifiedAmount can be empty string
@@ -3511,6 +3513,23 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         const splitAmount = Number(optimisticTransaction.modifiedAmount) || optimisticTransaction.amount;
         if (originalConvertedAmount && originalAmount && splitAmount) {
             optimisticTransaction.convertedAmount = Math.round((originalConvertedAmount * splitAmount) / originalAmount);
+        }
+
+        // Set proportional distance for split distance expenses
+        // This ensures each split shows the correct proportional distance instead of the full original distance
+        if (isDistanceRequestTransactionUtils(existingTransaction) && originalAmount && splitAmount) {
+            const mileageRate = DistanceRequestUtils.getRate({transaction: existingTransaction, policy});
+            const originalDistanceInMeters = getDistanceInMeters(existingTransaction, mileageRate.unit);
+
+            if (originalDistanceInMeters > 0 && mileageRate.unit) {
+                const ratio = Math.abs(splitAmount) / Math.abs(originalAmount);
+                const proportionalDistanceInMeters = originalDistanceInMeters * ratio;
+                const proportionalQuantity = DistanceRequestUtils.convertDistanceUnit(proportionalDistanceInMeters, mileageRate.unit);
+
+                if (optimisticTransaction.comment?.customUnit) {
+                    optimisticTransaction.comment.customUnit.quantity = Math.round(proportionalQuantity * 100) / 100;
+                }
+            }
         }
     }
 

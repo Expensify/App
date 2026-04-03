@@ -66,6 +66,7 @@ import {
     getAmount,
     getChildTransactions,
     getCurrency,
+    getDistanceInMeters,
     getUpdatedTransaction,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isOnHold,
@@ -2407,6 +2408,46 @@ function setIndividualShare(transactionID: string, participantAccountID: number,
 }
 
 /**
+ * Calculate proportional distance merchant for split expenses based on the original transaction and split amount ratio.
+ * This is used to display the correct proportional distance (e.g., "5 mi @ $0.67 / mi" instead of "10 mi @ $0.67 / mi")
+ * when splitting a distance expense.
+ */
+function getProportionalDistanceMerchant(
+    originalTransaction: OnyxEntry<OnyxTypes.Transaction>,
+    splitAmount: number,
+    originalAmount: number,
+    policy?: OnyxEntry<OnyxTypes.Policy>,
+): string | undefined {
+    if (!isDistanceRequestTransactionUtils(originalTransaction) || !originalAmount || originalAmount === 0) {
+        return undefined;
+    }
+
+    const mileageRate = DistanceRequestUtils.getRate({transaction: originalTransaction, policy: policy ?? undefined});
+    const {unit, rate, currency} = mileageRate;
+    const originalDistanceInMeters = getDistanceInMeters(originalTransaction, unit);
+
+    if (!originalDistanceInMeters || originalDistanceInMeters <= 0 || !rate || rate <= 0 || !unit) {
+        return undefined;
+    }
+
+    const ratio = Math.abs(splitAmount) / Math.abs(originalAmount);
+    const proportionalDistanceInMeters = originalDistanceInMeters * ratio;
+    const currencyForMerchant = currency ?? originalTransaction?.currency ?? CONST.CURRENCY.USD;
+    const currentLocale = IntlStore.getCurrentLocale();
+
+    return DistanceRequestUtils.getDistanceMerchant(
+        true,
+        proportionalDistanceInMeters,
+        unit,
+        rate,
+        currencyForMerchant,
+        (phrase, ...parameters) => Localize.translate(currentLocale, phrase, ...parameters),
+        (digit) => toLocaleDigit(currentLocale, digit),
+        getCurrencySymbol,
+    );
+}
+
+/**
  * Calculate merchant for distance transactions based on distance and rate
  */
 function getDistanceMerchantFromDistance(distanceInUnits: number, unit: Unit | undefined, rate: number | undefined, currency: string): string {
@@ -2472,18 +2513,42 @@ function initSplitExpenseItemData(
         merchant,
         customUnit,
         isManuallyEdited,
-    }: {amount?: number; transactionID?: string; reportID?: string; created?: string; merchant?: string; customUnit?: TransactionCustomUnit; isManuallyEdited?: boolean} = {},
+        originalTransaction,
+        originalAmount,
+        policy,
+    }: {
+        amount?: number;
+        transactionID?: string;
+        reportID?: string;
+        created?: string;
+        merchant?: string;
+        customUnit?: TransactionCustomUnit;
+        isManuallyEdited?: boolean;
+        originalTransaction?: OnyxEntry<OnyxTypes.Transaction>;
+        originalAmount?: number;
+        policy?: OnyxEntry<OnyxTypes.Policy>;
+    } = {},
 ): SplitExpense {
     const transactionDetails = getTransactionDetails(transaction);
+    const splitAmount = amount ?? transactionDetails?.amount ?? 0;
+
+    // For distance transactions, calculate proportional merchant based on split amount ratio
+    let finalMerchant = merchant ?? (transaction?.modifiedMerchant ? transaction.modifiedMerchant : (transaction?.merchant ?? ''));
+    if (originalTransaction && originalAmount && isDistanceRequestTransactionUtils(originalTransaction)) {
+        const proportionalMerchant = getProportionalDistanceMerchant(originalTransaction, splitAmount, originalAmount, policy);
+        if (proportionalMerchant) {
+            finalMerchant = proportionalMerchant;
+        }
+    }
 
     return {
         transactionID: transactionID ?? transactionDetails?.transactionID ?? String(CONST.DEFAULT_NUMBER_ID),
-        amount: amount ?? transactionDetails?.amount ?? 0,
+        amount: splitAmount,
         description: transactionDetails?.comment,
         category: transactionDetails?.category,
         tags: transaction?.tag ? [transaction?.tag] : [],
         created: created ?? transactionDetails?.created ?? DateUtils.formatWithUTCTimeZone(DateUtils.getDBTime(), CONST.DATE.FNS_FORMAT_STRING),
-        merchant: merchant ?? transactionDetails?.merchant,
+        merchant: finalMerchant ?? transactionDetails?.merchant,
         statusNum: transactionReport?.statusNum ?? 0,
         reportID: reportID ?? transaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
         reimbursable: transactionDetails?.reimbursable,
@@ -2590,7 +2655,11 @@ function addSplitExpenseField(
         return;
     }
 
-    const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
+    const originalTransactionID = draftTransaction.comment?.originalTransactionID ?? transaction.transactionID;
+    const originalTransaction = getAllTransactions()?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`] ?? transaction;
+    const total = getAmount(draftTransaction, undefined, undefined, true, true);
+    const isDistanceRequest = originalTransaction && isDistanceRequestTransactionUtils(originalTransaction);
+
     let merchant: string | undefined;
     let customUnit: TransactionCustomUnit | undefined;
 
@@ -2622,21 +2691,28 @@ function addSplitExpenseField(
         customUnit,
         merchant,
         isManuallyEdited: false,
+        originalTransaction,
+        originalAmount: total,
+        policy,
     });
 
     const existingSplits = draftTransaction.comment?.splitExpenses ?? [];
     const updatedSplitExpenses = [...existingSplits, newSplitExpense];
 
-    // Get total amount and currency for redistribution
-    const total = getAmount(draftTransaction, undefined, undefined, true, true);
+    // Get currency for redistribution
     const currency = getCurrency(draftTransaction);
-    const originalTransactionID = draftTransaction.comment?.originalTransactionID ?? transaction.transactionID;
 
-    let redistributedSplitExpenses = updatedSplitExpenses;
+    let redistributedSplitExpenses = redistributeSplitExpenseAmounts(updatedSplitExpenses, total, currency);
 
-    // Auto-redistribute amounts for all splits if this is not a distance request
-    if (!isDistanceRequest) {
-        redistributedSplitExpenses = redistributeSplitExpenseAmounts(updatedSplitExpenses, total, currency);
+    // For distance transactions, also update the merchant for redistributed amounts
+    if (isDistanceRequest && originalTransaction) {
+        redistributedSplitExpenses = redistributedSplitExpenses.map((splitExpense) => {
+            const proportionalMerchant = getProportionalDistanceMerchant(originalTransaction, splitExpense.amount, total, policy);
+            if (proportionalMerchant) {
+                return {...splitExpense, merchant: proportionalMerchant};
+            }
+            return splitExpense;
+        });
     }
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, {
@@ -2662,6 +2738,7 @@ function evenlyDistributeSplitExpenseAmounts(draftTransaction: OnyxEntry<OnyxTyp
     }
 
     const originalTransactionID = draftTransaction?.comment?.originalTransactionID;
+    const originalTransaction = getAllTransactions()?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
     const splitExpenses = draftTransaction?.comment?.splitExpenses ?? [];
     const currency = getCurrency(draftTransaction);
 
@@ -2673,7 +2750,7 @@ function evenlyDistributeSplitExpenseAmounts(draftTransaction: OnyxEntry<OnyxTyp
         return;
     }
 
-    const isDistanceRequest = transaction && isDistanceRequestTransactionUtils(transaction);
+    const isDistanceRequest = originalTransaction && isDistanceRequestTransactionUtils(originalTransaction);
 
     // Floor-allocation with full remainder added to the last split so the last is always the largest
     const splitCount = splitExpenses.length;
@@ -2700,6 +2777,15 @@ function evenlyDistributeSplitExpenseAmounts(draftTransaction: OnyxEntry<OnyxTyp
                     ...updatedSplitExpense,
                     customUnit: updatedCustomUnit,
                     merchant,
+                };
+            }
+        } else if (isDistanceRequest && originalTransaction) {
+            // Fallback: Recalculate merchant using proportional distance
+            const proportionalMerchant = getProportionalDistanceMerchant(originalTransaction, amount, total, policy);
+            if (proportionalMerchant) {
+                updatedSplitExpense = {
+                    ...updatedSplitExpense,
+                    merchant: proportionalMerchant,
                 };
             }
         }
@@ -2758,6 +2844,8 @@ function resetSplitExpensesByDateRange(
             transactionID: NumberUtils.rand64(),
             reportID: transaction?.reportID,
             created: format(date, CONST.DATE.FNS_FORMAT_STRING),
+            originalTransaction: transaction,
+            originalAmount: total,
         });
 
         // Update distance for distance transactions based on new amount and rate
@@ -2785,25 +2873,30 @@ function resetSplitExpensesByDateRange(
     });
 }
 
-function removeSplitExpenseField(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, splitExpenseTransactionID: string) {
+function removeSplitExpenseField(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, splitExpenseTransactionID: string, policy?: OnyxEntry<OnyxTypes.Policy>) {
     if (!draftTransaction || !splitExpenseTransactionID) {
         return;
     }
 
     const originalTransactionID = draftTransaction?.comment?.originalTransactionID;
+    const originalTransaction = getAllTransactions()?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
+    const isDistanceRequest = originalTransaction && isDistanceRequestTransactionUtils(originalTransaction);
 
     const splitExpenses = draftTransaction.comment?.splitExpenses?.filter((item) => item.transactionID !== splitExpenseTransactionID) ?? [];
     const total = getAmount(draftTransaction, undefined, undefined, true, true);
     const currency = getCurrency(draftTransaction);
 
-    const originalTransaction = getAllTransactions()?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
-    const isDistanceRequest = originalTransaction && isDistanceRequestTransactionUtils(originalTransaction);
+    let redistributedSplitExpenses = redistributeSplitExpenseAmounts(splitExpenses, total, currency);
 
-    let redistributedSplitExpenses = splitExpenses;
-
-    // Auto-redistribute amounts for all splits if this is not a distance request
-    if (!isDistanceRequest) {
-        redistributedSplitExpenses = redistributeSplitExpenseAmounts(splitExpenses, total, currency);
+    // For distance transactions, also update the merchant for redistributed amounts
+    if (isDistanceRequest && originalTransaction) {
+        redistributedSplitExpenses = redistributedSplitExpenses.map((splitExpense) => {
+            const proportionalMerchant = getProportionalDistanceMerchant(originalTransaction, splitExpense.amount, total, policy);
+            if (proportionalMerchant) {
+                return {...splitExpense, merchant: proportionalMerchant};
+            }
+            return splitExpense;
+        });
     }
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, {
