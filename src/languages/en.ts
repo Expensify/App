@@ -5819,8 +5819,8 @@ const translations = {
             error: 'An error occurred while duplicating your new workspace. Please try again.',
         },
         emptyWorkspace: {
-            title: 'You have no workspaces',
-            subtitle: 'Track receipts, reimburse expenses, manage travel, send invoices, and more.',
+            title: 'No workspaces yet',
+            subtitle: 'Create a workspace to manage your expenses, reimbursements, and company cards.',
             createAWorkspaceCTA: 'Get Started',
             features: {
                 trackAndCollect: 'Track and collect receipts',
