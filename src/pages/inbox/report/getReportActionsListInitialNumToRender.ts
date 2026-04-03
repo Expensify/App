@@ -16,7 +16,7 @@ export default function getReportActionsListInitialNumToRender({
     sortedVisibleReportActionsLength,
     isOffline,
     getInitialNumToRender,
-}: GetReportActionsListInitialNumToRenderParams): number | undefined {
+}: GetReportActionsListInitialNumToRenderParams): number {
     if (shouldScrollToEndAfterLayout && (!hasCreatedActionAdded || isOffline)) {
         return sortedVisibleReportActionsLength;
     }
@@ -25,5 +25,5 @@ export default function getReportActionsListInitialNumToRender({
         return getInitialNumToRender(numToRender);
     }
 
-    return numToRender || undefined;
+    return numToRender;
 }

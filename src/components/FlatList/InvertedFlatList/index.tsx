@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import FlatList from '@components/FlatList/FlatList';
 import useFlatListScrollKey from '@components/FlatList/hooks/useFlatListScrollKey';
 import CellRendererComponent from './CellRendererComponent';
@@ -23,11 +23,20 @@ function InvertedFlatList<T>({
     shouldEnableAutoScrollToTopThreshold,
     initialScrollKey,
     data,
+    initialNumToRender,
     onStartReached,
     renderItem,
     keyExtractor = defaultKeyExtractor,
+    onContentSizeChange,
+    onInitiallyLoaded,
     ...restProps
 }: InvertedFlatListProps<T>) {
+    const [didInitialContentRender, setDidInitialContentRender] = useState(false);
+    const handleContentSizeChange = (contentWidth: number, contentHeight: number) => {
+        onContentSizeChange?.(contentWidth, contentHeight);
+        setDidInitialContentRender(true);
+    };
+
     const {displayedData, maintainVisibleContentPosition, handleStartReached, handleRenderItem, listRef} = useFlatListScrollKey<T>({
         data,
         keyExtractor,
@@ -36,6 +45,9 @@ function InvertedFlatList<T>({
         onStartReached,
         shouldEnableAutoScrollToTopThreshold,
         renderItem,
+        initialNumToRender,
+        didInitialContentRender,
+        onInitiallyLoaded,
         ref,
     });
 
@@ -47,9 +59,11 @@ function InvertedFlatList<T>({
             maintainVisibleContentPosition={maintainVisibleContentPosition}
             inverted
             data={displayedData}
+            initialNumToRender={initialNumToRender}
             renderItem={handleRenderItem}
             keyExtractor={keyExtractor}
             onStartReached={handleStartReached}
+            onContentSizeChange={handleContentSizeChange}
             CellRendererComponent={CellRendererComponent}
             removeClippedSubviews={shouldRemoveClippedSubviews}
         />
