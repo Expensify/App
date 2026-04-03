@@ -77,6 +77,7 @@ function ReportFetchHandler() {
     const [isLoadingApp] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_APP);
     const [isLoadingReportData = true] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_REPORT_DATA);
     const prevIsLoadingReportData = usePrevious(isLoadingReportData);
+    const prevIsLoadingApp = usePrevious(isLoadingApp);
 
     const reportID = reportOnyx?.reportID;
     const report = reportOnyx;
@@ -227,6 +228,29 @@ function ReportFetchHandler() {
         // There should be only one openReport execution per page start or navigating
         fetchReport();
     }, [route, isLinkedMessagePageReady, reportActionIDFromRoute]);
+
+    // Re-trigger fetchReport when isLoadingApp transitions to false for invite onboarding users.
+    // The timing guard in fetchReport blocks openReport while isLoadingApp is true to wait for
+    // policy data. When isLoadingApp becomes false, we need to re-trigger fetchReport so that
+    // openReport can run with the now-available introSelected data and create guided setup tasks.
+    // See: https://github.com/Expensify/App/issues/74781
+    useEffect(() => {
+        if (!prevIsLoadingApp || isLoadingApp) {
+            return;
+        }
+
+        if (isOnboardingCompleted || isInviteOnboardingComplete || !introSelected) {
+            return;
+        }
+
+        const {choice, inviteType} = introSelected;
+        const isInviteIOUorInvoice = inviteType === CONST.ONBOARDING_INVITE_TYPES.IOU || inviteType === CONST.ONBOARDING_INVITE_TYPES.INVOICE;
+        const isInviteChoiceCorrect = choice === CONST.ONBOARDING_CHOICES.ADMIN || choice === CONST.ONBOARDING_CHOICES.SUBMIT || choice === CONST.ONBOARDING_CHOICES.CHAT_SPLIT;
+
+        if (isInviteChoiceCorrect && !isInviteIOUorInvoice) {
+            fetchReport();
+        }
+    }, [isLoadingApp, prevIsLoadingApp, introSelected, isOnboardingCompleted, isInviteOnboardingComplete]);
 
     useEffect(() => {
         // This function is only triggered when a user is invited to a room after opening the link.
