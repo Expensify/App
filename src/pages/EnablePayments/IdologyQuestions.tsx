@@ -117,7 +117,7 @@ function IdologyQuestions({questions, idNumber}: IdologyQuestionsProps) {
                 key={currentQuestionIndex}
                 validate={validate}
                 scrollContextEnabled
-                style={[styles.flexGrow1]}
+                style={styles.flexGrow1}
                 submitButtonStyles={styles.mh5}
                 submitButtonText={translate('common.saveAndContinue')}
                 shouldHideFixErrorsAlert

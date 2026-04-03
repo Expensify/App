@@ -56,7 +56,7 @@ function YesNoStep({title, description, defaultValue, onSelectedValue, submitBut
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
             submitButtonText={translate('common.confirm')}
             onSubmit={handleSubmit}
-            style={[styles.flexGrow1]}
+            style={styles.flexGrow1}
             submitButtonStyles={[submitButtonStyles, styles.mh5]}
             isLoading={isLoading}
             shouldHideFixErrorsAlert
