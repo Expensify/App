@@ -1,4 +1,5 @@
 /* eslint-disable rulesdir/no-deep-equal-in-memo */
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {deepEqual} from 'fast-equals';
 import mapValues from 'lodash/mapValues';
 import React, {memo, use, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
@@ -72,7 +73,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getBankAccountLastFourDigits} from '@libs/PaymentUtils';
 import Permissions from '@libs/Permissions';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {getCleanedTagName, hasDynamicExternalWorkflow, isPolicyAdmin, isPolicyMember, isPolicyOwner} from '@libs/PolicyUtils';
+import {getCleanedTagName, hasDynamicExternalWorkflow, isPolicyAdmin, isPolicyMember, isPolicyOwner, isSubmitAndClose} from '@libs/PolicyUtils';
 import {containsActionableFollowUps, parseFollowupsFromHtml} from '@libs/ReportActionFollowupUtils';
 import {
     extractLinksFromMessageHtml,
@@ -122,6 +123,7 @@ import {
     getRemovedFromApprovalChainMessage,
     getRenamedAction,
     getRenamedCardFeedMessage,
+    getReportActionHtml,
     getReportActionMessage,
     getReportActionText,
     getSetAutoJoinMessage,
@@ -277,7 +279,7 @@ type PureReportActionItemProps = {
     introSelected?: OnyxEntry<OnyxTypes.IntroSelected>;
 
     /** Beta features list */
-    betas?: OnyxEntry<OnyxTypes.Beta[]>;
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
 
     /** All transaction draft IDs */
     draftTransactionIDs: string[] | undefined;
@@ -481,7 +483,7 @@ type PureReportActionItemProps = {
     reportMetadata?: OnyxEntry<OnyxTypes.ReportMetadata>;
 
     /** The billing grace end period's shared NVP collection */
-    userBillingGraceEndPeriods: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
+    userBillingGracePeriodEnds: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
 };
 
 // This is equivalent to returning a negative boolean in normal functions, but we can keep the element return type
@@ -552,16 +554,17 @@ function PureReportActionItem({
     reportNameValuePairsOrigin,
     reportNameValuePairsOriginalID,
     reportMetadata,
-    userBillingGraceEndPeriods,
+    userBillingGracePeriodEnds,
 }: PureReportActionItemProps) {
     const isConciergeGreeting = action.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID;
     const shouldDisplayContextMenuValue = shouldDisplayContextMenu && !isConciergeGreeting;
 
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
-    const {translate, formatPhoneNumber, localeCompare, formatTravelDate, getLocalDateFromDatetime} = useLocalize();
+    const isTrackIntentUser = isTrackIntentUserSelector(introSelected);
+    const {translate, formatPhoneNumber, localeCompare, formatTravelDate, getLocalDateFromDatetime, datetimeToCalendarTime} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const personalDetail = useCurrentUserPersonalDetails();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -965,9 +968,9 @@ function PureReportActionItem({
                             introSelected,
                             draftTransactionIDs,
                             activePolicy,
-                            userBillingGraceEndPeriods,
+                            userBillingGracePeriodEnds,
                             amountOwed,
-                            ownerBillingGraceEndPeriod,
+                            ownerBillingGracePeriodEnd,
                             isRestrictedToPreferredPolicy,
                             preferredPolicyID,
                             transaction: trackExpenseTransaction,
@@ -989,9 +992,9 @@ function PureReportActionItem({
                                 introSelected,
                                 draftTransactionIDs,
                                 activePolicy,
-                                userBillingGraceEndPeriods,
+                                userBillingGracePeriodEnds,
                                 amountOwed,
-                                ownerBillingGraceEndPeriod,
+                                ownerBillingGracePeriodEnd,
                                 transaction: trackExpenseTransaction,
                             });
                         },
@@ -1007,9 +1010,9 @@ function PureReportActionItem({
                                 introSelected,
                                 draftTransactionIDs,
                                 activePolicy,
-                                userBillingGraceEndPeriods,
+                                userBillingGracePeriodEnds,
                                 amountOwed,
-                                ownerBillingGraceEndPeriod,
+                                ownerBillingGracePeriodEnd,
                                 transaction: trackExpenseTransaction,
                             });
                         },
@@ -1156,9 +1159,9 @@ function PureReportActionItem({
         report,
         originalReport,
         personalPolicyID,
-        userBillingGraceEndPeriods,
+        userBillingGracePeriodEnds,
         amountOwed,
-        ownerBillingGraceEndPeriod,
+        ownerBillingGracePeriodEnd,
         trackExpenseTransaction,
     ]);
 
@@ -1366,7 +1369,9 @@ function PureReportActionItem({
             const isDEWPolicy = hasDynamicExternalWorkflow(policy);
 
             const isPendingAdd = action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
-            if (wasSubmittedViaHarvesting) {
+            if (isTrackIntentUser && isSubmitAndClose(policy)) {
+                children = <ReportActionItemBasicMessage message={translate('iou.markedAsDone', getOriginalMessage(action)?.message)} />;
+            } else if (wasSubmittedViaHarvesting) {
                 children = (
                     <ReportActionItemMessageWithExplain
                         message={translate('iou.automaticallySubmitted')}
@@ -1388,7 +1393,9 @@ function PureReportActionItem({
             const isDEWPolicy = hasDynamicExternalWorkflow(policy);
             const isPendingAdd = action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
 
-            if (wasAutoApproved) {
+            if (isTrackIntentUser && isSubmitAndClose(policy)) {
+                children = <ReportActionItemBasicMessage message={translate('iou.markedAsDone')} />;
+            } else if (wasAutoApproved) {
                 children = (
                     <ReportActionItemMessageWithExplain
                         message={translate('iou.automaticallyApproved')}
@@ -1517,6 +1524,12 @@ function PureReportActionItem({
             children = <UnreportedTransactionAction action={action as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION>} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION) {
             children = <ReportActionItemBasicMessage message={translate('systemMessage.mergedWithCashTransaction')} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN || action.actionName === CONST.REPORT.ACTIONS.TYPE.CARD_UNFROZEN) {
+            children = (
+                <ReportActionItemBasicMessage message="">
+                    <RenderHTML html={`<comment><muted-text>${getReportActionHtml(action)}</muted-text></comment>`} />
+                </ReportActionItemBasicMessage>
+            );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION)) {
             children = <ReportActionItemBasicMessage message={getDismissedViolationMessageText(translate, getOriginalMessage(action))} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.RESOLVED_DUPLICATES)) {
@@ -2075,6 +2088,12 @@ function PureReportActionItem({
         );
     };
 
+    // Calculating accessibilityLabel for chat message with sender, date and time and the message content.
+    const displayName = getDisplayNameOrDefault(personalDetails?.[action.actorAccountID ?? CONST.DEFAULT_NUMBER_ID]);
+    const formattedTimestamp = datetimeToCalendarTime(action.created, false);
+    const plainMessage = getReportActionText(action);
+    const accessibilityLabel = `${displayName}, ${formattedTimestamp}, ${plainMessage}`;
+
     return (
         <View>
             {shouldShowCreatedAction && createdActionContent}
@@ -2095,7 +2114,8 @@ function PureReportActionItem({
                 onSecondaryInteraction={showPopover}
                 preventDefaultContextMenu={draftMessage === undefined && !hasErrors}
                 withoutFocusOnSecondaryInteraction
-                accessibilityLabel={translate('accessibilityHints.chatMessage')}
+                accessibilityLabel={accessibilityLabel}
+                accessibilityHint={translate('accessibilityHints.chatMessage')}
                 accessibilityRole={CONST.ROLE.BUTTON}
                 sentryLabel={CONST.SENTRY_LABEL.REPORT.PURE_REPORT_ACTION_ITEM}
             >
