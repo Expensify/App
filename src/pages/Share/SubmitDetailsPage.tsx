@@ -23,6 +23,7 @@ import {getIOURequestPolicyID, getMoneyRequestParticipantsFromReport, initMoneyR
 import DateUtils from '@libs/DateUtils';
 import {getFileName, readFileAsync} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getExistingTransactionID} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
@@ -134,6 +135,8 @@ function SubmitDetailsPage({
     const transactionTaxValue = transaction?.taxValue ?? getTaxValue(policy, transaction, transactionTaxCode) ?? '';
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
+    const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
+    const [storedTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(existingTransactionID)}`);
 
     const finishRequestAndNavigate = (participant: Participant, receipt: Receipt, gpsPoint?: GpsPoint) => {
         if (!transaction) {
@@ -178,7 +181,6 @@ function SubmitDetailsPage({
                 isSelfTourViewed,
             });
         } else {
-            const existingTransactionID = getExistingTransactionID(transaction.linkedTrackedExpenseReportAction);
             const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
 
             requestMoney({
@@ -215,6 +217,7 @@ function SubmitDetailsPage({
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                 quickAction,
                 existingTransactionDraft,
+                existingTransaction: storedTransaction,
                 draftTransactionIDs,
                 isSelfTourViewed,
                 betas,

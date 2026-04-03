@@ -3815,6 +3815,7 @@ describe('actions/IOU', () => {
                 quickAction: undefined,
                 isSelfTourViewed: false,
                 existingTransactionDraft: transaction,
+                existingTransaction: transaction,
                 draftTransactionIDs: [],
                 personalDetails: {},
                 betas: [CONST.BETAS.ALL],

@@ -545,6 +545,7 @@ type RequestMoneyInformation = {
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
     existingTransactionDraft: OnyxEntry<OnyxTypes.Transaction>;
+    existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
     draftTransactionIDs: string[] | undefined;
     isSelfTourViewed: boolean;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
@@ -6361,6 +6362,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         quickAction,
         policyRecentlyUsedCurrencies,
         existingTransactionDraft,
+        existingTransaction,
         draftTransactionIDs = [],
         isSelfTourViewed,
         betas,
@@ -6409,7 +6411,8 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
     const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseIOUUtils(action);
     const existingTransactionID = existingTransactionDraft?.transactionID;
-    const existingTransaction = action === CONST.IOU.ACTION.SUBMIT ? existingTransactionDraft : allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransactionID}`];
+    const existingTransactionRef =
+        action === CONST.IOU.ACTION.SUBMIT ? existingTransactionDraft : (existingTransaction ?? allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransactionID}`]);
 
     const retryParams = {
         ...requestMoneyInformation,
@@ -6444,7 +6447,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         transactionParams,
         moneyRequestReportID,
         existingTransactionID,
-        existingTransaction: isDistanceRequestTransactionUtils(existingTransaction) ? existingTransaction : undefined,
+        existingTransaction: isDistanceRequestTransactionUtils(existingTransactionRef) ? existingTransactionRef : undefined,
         retryParams,
         testDriveCommentReportActionID,
         optimisticChatReportID,
