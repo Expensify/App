@@ -19,7 +19,7 @@ const policyExpenseChatReportsSelector = (reports: OnyxCollection<Report>) => {
  * Returns all reports that satisfy isPolicyExpenseChat && !isThread (via selector),
  * along with reportActions filtered to only those matching reports.
  */
-function usePolicyExpenseChatReportActions() {
+function useAllPolicyExpenseChatReportActions() {
     const [policyExpenseChatReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policyExpenseChatReportsSelector});
 
     const policyExpenseChatReportIDs = useMemo(() => {
@@ -51,4 +51,4 @@ function usePolicyExpenseChatReportActions() {
     return {policyExpenseChatReports, filteredReportActions};
 }
 
-export default usePolicyExpenseChatReportActions;
+export default useAllPolicyExpenseChatReportActions;
