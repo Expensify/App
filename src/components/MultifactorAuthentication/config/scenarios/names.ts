@@ -16,7 +16,6 @@ const SCENARIO_NAMES = {
 
 /**
  * Prompt identifiers for multifactor authentication scenarios.
- * TODO: update the BIOMETRICS_HSM type
  */
 const PROMPT_NAMES = {
     BIOMETRICS_HSM: 'biometrics',

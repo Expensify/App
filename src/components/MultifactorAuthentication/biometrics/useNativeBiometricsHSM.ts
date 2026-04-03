@@ -13,6 +13,8 @@ import useServerCredentials from './shared/useServerCredentials';
 
 /**
  * UTILS START
+ * These utils were added to comply with react compiler requirements:
+ * "Error: Support value blocks (conditional, logical, optional chaining, etc) within a try/catch statement"
  */
 function isCredentialAllowed(credentialID: string | undefined, allowedIDs: string[]): credentialID is string {
     return !!credentialID && allowedIDs.includes(credentialID);

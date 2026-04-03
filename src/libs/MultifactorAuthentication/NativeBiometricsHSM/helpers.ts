@@ -103,7 +103,7 @@ async function buildSigningData(rpId: string, challenge: string): Promise<{authe
     const {hash: rpIdHashB64} = await sha256(rpId);
     const rpIdHash = Buffer.from(rpIdHashB64, 'base64');
 
-    // UP (0x01) | UV (0x04)
+    // User Presence and User Verification flags - UP (0x01) | UV (0x04)
     const flags = Buffer.from([0x05]);
     // 4 zero bytes, big-endian
     const signCount = Buffer.alloc(4);

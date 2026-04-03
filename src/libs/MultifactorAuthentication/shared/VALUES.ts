@@ -297,7 +297,7 @@ const SHARED_VALUES = {
     },
 
     /**
-     * Authentication type identifiers.
+     * Authentication type identifiers used for identification of allowed authentication methods in scenarios
      */
     TYPE: {
         BIOMETRICS_HSM: 'BIOMETRICS_HSM',

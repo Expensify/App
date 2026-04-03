@@ -6,7 +6,7 @@ import MARQETA_VALUES from '@libs/MultifactorAuthentication/shared/MarqetaValues
 
 const NATIVE_BIOMETRICS_HSM_VALUES = {
     /**
-     * HSM key type identifier
+     * HSM key type identifier sent in API requests to identify the HSM-backed biometric authentication method.
      */
     BIOMETRICS_HSM_TYPE: 'biometric-hsm',
 
