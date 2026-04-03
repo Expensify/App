@@ -52,7 +52,16 @@ function CategoryPickerModal({
     const {isSmallScreenWidth} = useResponsiveLayout();
     const anchorRef = useRef<View>(null);
 
-    const [pendingItem, setPendingItem] = useState<ListItem | undefined>(undefined);
+    const [pendingItem, setPendingItem] = useState<ListItem | undefined>(selectedCategory ? {keyForList: selectedCategory, searchText: selectedCategory} : undefined);
+
+    const handleCategorySelect = (item: ListItem) => {
+        // If clicking the same category that's already selected, treat it as deselection
+        if (item.keyForList === pendingItem?.keyForList) {
+            setPendingItem({keyForList: '', searchText: ''});
+        } else {
+            setPendingItem(item);
+        }
+    };
 
     const handleConfirm = () => {
         if (pendingItem) {
@@ -86,9 +95,9 @@ function CategoryPickerModal({
             <View style={[StyleUtils.getHeight(CONST.POPOVER_DROPDOWN_MAX_HEIGHT), styles.flexColumn, styles.pt4]}>
                 <View style={styles.flex1}>
                     <CategoryPicker
+                        selectedCategory={pendingItem?.keyForList}
                         policyID={policyID}
-                        selectedCategory={pendingItem?.keyForList ?? selectedCategory}
-                        onSubmit={setPendingItem}
+                        onSubmit={handleCategorySelect}
                     />
                 </View>
                 <ConfirmCancelButtonRow

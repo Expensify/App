@@ -20,7 +20,11 @@ function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem
     const styles = useThemeStyles();
     const {isEditing, anchorRef, isPopoverVisible, popoverPosition, isInverted, startEditing, cancelEditing} = usePopoverEditState({canEdit});
 
+    // For display: decoded category name for user-readable text
     const categoryForDisplay = isCategoryMissing(transactionItem?.category) ? '' : getDecodedCategoryName(transactionItem?.category ?? '');
+
+    // For picker comparison: raw category name (empty if missing, matches IOURequestStepCategory)
+    const categoryForComparison = isCategoryMissing(transactionItem?.category) ? '' : (transactionItem?.category ?? '');
 
     const handleCategorySelected = (item: ListItem) => {
         if (item.keyForList) {
@@ -54,7 +58,7 @@ function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem
             popoverContent={
                 <CategoryPickerModal
                     policyID={policyID}
-                    selectedCategory={transactionItem?.category ?? ''}
+                    selectedCategory={categoryForComparison}
                     isVisible={isPopoverVisible}
                     onClose={cancelEditing}
                     anchorPosition={popoverPosition}
