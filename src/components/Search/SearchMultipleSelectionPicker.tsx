@@ -16,8 +16,8 @@ type SearchMultipleSelectionPickerItem<T> = {
 };
 
 type SearchMultipleSelectionPickerProps<T> = {
-    items: SearchMultipleSelectionPickerItem<T>[];
-    initiallySelectedItems: SearchMultipleSelectionPickerItem<T>[] | undefined;
+    items: Array<SearchMultipleSelectionPickerItem<T>>;
+    initiallySelectedItems: Array<SearchMultipleSelectionPickerItem<T>> | undefined;
     pickerTitle?: string;
     onSaveSelection: (values: [T] extends [string[]] ? T : T[]) => void;
     shouldShowTextInput?: boolean;
