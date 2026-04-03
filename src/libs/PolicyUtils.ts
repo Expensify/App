@@ -50,7 +50,7 @@ import {shouldShowQBOReimbursableExportDestinationAccountError} from './actions/
 import {getCategoryApproverRule} from './CategoryUtils';
 import {convertToBackendAmount} from './CurrencyUtils';
 import Navigation from './Navigation/Navigation';
-import {isOffline as isOfflineNetworkStore} from './Network/NetworkStore';
+import {getIsOffline} from './NetworkState';
 import {formatMemberForList} from './OptionsListUtils';
 import type {MemberForList} from './OptionsListUtils';
 import {getAccountIDsByLogins, getLoginByAccountID, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
@@ -1205,13 +1205,13 @@ function getAdminEmployees(policy: OnyxEntry<Policy>): PolicyEmployee[] {
 /** Return active policies where current user is an admin */
 function getActiveAdminWorkspaces(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
     const activePolicies = getActivePolicies(policies, currentUserLogin);
-    return activePolicies.filter((policy) => shouldShowPolicy(policy, isOfflineNetworkStore(), currentUserLogin) && isPolicyAdmin(policy, currentUserLogin));
+    return activePolicies.filter((policy) => shouldShowPolicy(policy, getIsOffline(), currentUserLogin) && isPolicyAdmin(policy, currentUserLogin));
 }
 
 /** Return active policies where current user is an employee (of the role "user") */
 function getActiveEmployeeWorkspaces(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
     const activePolicies = getActivePolicies(policies, currentUserLogin);
-    return activePolicies.filter((policy) => shouldShowPolicy(policy, isOfflineNetworkStore(), currentUserLogin) && isPolicyUser(policy, currentUserLogin));
+    return activePolicies.filter((policy) => shouldShowPolicy(policy, getIsOffline(), currentUserLogin) && isPolicyUser(policy, currentUserLogin));
 }
 
 /**

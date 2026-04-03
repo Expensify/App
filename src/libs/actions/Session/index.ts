@@ -40,7 +40,6 @@ import * as MainQueue from '@libs/Network/MainQueue';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
-import NetworkConnection from '@libs/NetworkConnection';
 import Pusher from '@libs/Pusher';
 import {getReportIDFromLink, parseReportRouteParams as parseReportRouteParamsReportUtils} from '@libs/ReportUtils';
 import * as SessionUtils from '@libs/SessionUtils';
@@ -1012,7 +1011,6 @@ function cleanupSession() {
     MainQueue.clear();
     HttpUtils.cancelPendingRequests();
     PersistedRequests.clear();
-    NetworkConnection.clearReconnectionCallbacks();
     SessionUtils.resetDidUserLogInDuringSession();
     resetNavigationState();
     clearCache().then(() => {
