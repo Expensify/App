@@ -1,5 +1,4 @@
 import React, {useState} from 'react';
-import {StyleSheet} from 'react-native';
 import Animated, {useAnimatedReaction, useAnimatedStyle} from 'react-native-reanimated';
 import type {DerivedValue, SharedValue} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
@@ -42,7 +41,7 @@ function ChartTooltipLayer({matchedIndex, isTooltipActive, data, formatValue, ch
     );
 
     const wrapperStyle = useAnimatedStyle(() => ({
-        ...StyleSheet.absoluteFillObject,
+        position: 'absolute',
         opacity: isTooltipActive.get() ? 1 : 0,
     }));
 
