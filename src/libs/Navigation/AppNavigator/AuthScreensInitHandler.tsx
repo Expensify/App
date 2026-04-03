@@ -95,7 +95,9 @@ function AuthScreensInitHandler() {
         const isSupportalTransition = currentUrl.includes('authTokenType=support');
         if (isLoggingInAsNewUser && isTransitioning) {
             Session.signOutAndRedirectToSignIn(false, isSupportalTransition);
-            return;
+            return () => {
+                Session.cleanupSession();
+            };
         }
 
         NetworkConnection.listenForReconnect();
