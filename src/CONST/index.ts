@@ -862,6 +862,7 @@ const CONST = {
         FREEZE_CARD: 'freezeCard',
         BULK_EDIT: 'bulkEdit',
         NEW_MANUAL_EXPENSE_FLOW: 'newManualExpenseFlow',
+        SELECTION_MODE_REPORT_ACTIONS: 'selectionModeReportActions',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',

@@ -17,7 +17,6 @@ import useDecisionModal from '@hooks/useDecisionModal';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
-import useEnvironment from '@hooks/useEnvironment';
 import useExportAgainModal from '@hooks/useExportAgainModal';
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -280,7 +279,6 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
     const draftTransactionIDs = Object.keys(transactionDrafts ?? {});
 
     const {translate, localeCompare, toLocaleDigit} = useLocalize();
-    const {isProduction} = useEnvironment();
     const exportTemplates = useMemo(
         () => getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, policy),
         [integrationsExportTemplates, csvExportLayouts, policy, translate],
@@ -1279,9 +1277,6 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
     }, [isDelegateAccessRestricted, showDelegateNoAccessModal, isAccountLocked, showLockedAccountModal, isUserValidated, moneyRequestReport]);
 
     const selectionModeReportLevelActions = useMemo(() => {
-        if (isProduction) {
-            return [];
-        }
         const actions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon'>> = [];
         if (hasSubmitAction && !shouldBlockSubmit) {
             actions.push({
@@ -1323,7 +1318,6 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         }
         return actions;
     }, [
-        isProduction,
         hasSubmitAction,
         shouldBlockSubmit,
         hasApproveAction,
@@ -1992,7 +1986,8 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
     const shouldShowSelectedTransactionsButton = !!selectedTransactionsOptions.length && !transactionThreadReportID;
     const popoverUseScrollView = shouldPopoverUseScrollView(selectedTransactionsOptions);
 
-    const hasPayInSelectionMode = allExpensesSelected && hasPayAction;
+    const hasActualPaymentOptions = paymentButtonOptions.some((opt) => Object.values(CONST.IOU.PAYMENT_TYPE).some((type) => type === opt.value));
+    const hasPayInSelectionMode = allExpensesSelected && hasPayAction && hasActualPaymentOptions;
 
     const makePaymentSelectHandler = useCallback(
         (fromSelectionMode: boolean) => (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
