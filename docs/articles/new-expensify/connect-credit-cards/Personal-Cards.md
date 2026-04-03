@@ -63,9 +63,9 @@ You can:
 
 # FAQ
 
-## Can I add another personal card?
+## Can I add a new personal card?
 
-Not yet. Only cards connected to your account in Expensify Classic are available to manage in New Expensify. Support for adding new personal cards will be available in a future update.
+Yes! You can connect new personal cards directly in New Expensify. Learn how to [connect a personal card]({{site.url}}/articles/new-expensify/connect-credit-cards/Connect-Personal-Cards).
 
 ## Can I change the reimbursable setting for past transactions?
 
@@ -73,5 +73,5 @@ No. Changes to the reimbursable setting only apply to transactions imported afte
 
 ## Why don’t I see my personal card in the Wallet?
 
-Personal cards appear in the Wallet only if they were previously connected to your account in Expensify Classic. If your card doesn’t show up, it means it wasn’t connected before and isn’t available to manage yet.
+Personal cards appear in the Wallet if they were previously connected to your account in Expensify Classic, or if you connected them directly in New Expensify. If your card doesn’t show up, try [connecting it as a new personal card]({{site.url}}/articles/new-expensify/connect-credit-cards/Connect-Personal-Cards).
 
