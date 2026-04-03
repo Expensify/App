@@ -24,7 +24,7 @@ type MonthPickerModalProps = {
     /** A minimum date (oldest) allowed to select */
     minDate?: Date;
 
-    /** A maximum date (earliest) allowed to select */
+    /** A maximum date (latest) allowed to select */
     maxDate?: Date;
 
     /** Function to call when the user selects a month */
