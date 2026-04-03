@@ -15,10 +15,10 @@ import type {SearchQueryItem} from '@components/Search/SearchList/ListItem/Searc
 import {isSearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
 import {buildSubstitutionsMap} from '@components/Search/SearchRouter/buildSubstitutionsMap';
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
-import {getQueryWithSubstitutions} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
+import {getQueryWithSubstitutions, getSubstitutionMapKeyWithIndex} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import {getUpdatedSubstitutionsMap} from '@components/Search/SearchRouter/getUpdatedSubstitutionsMap';
 import {useSearchRouterActions} from '@components/Search/SearchRouter/SearchRouterContext';
-import type {SearchQueryJSON, SearchQueryString} from '@components/Search/types';
+import type {SearchFilterKey, SearchQueryJSON, SearchQueryString} from '@components/Search/types';
 import type {SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
@@ -35,6 +35,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getTrimmedUserSearchQueryPreservingComma} from '@libs/SearchAutocompleteUtils';
+import {parse as parseSearchQuery} from '@libs/SearchParser/autocompleteParser';
 import {buildUserReadableQueryString, getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 import variables from '@styles/variables';
@@ -229,8 +230,14 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                     onSearchQueryChange(newSearchQuery);
                     setSelection({start: newSearchQuery.length, end: newSearchQuery.length});
 
-                    if (item.mapKey && item.autocompleteID) {
-                        const substitutions = {...autocompleteSubstitutions, [item.mapKey]: item.autocompleteID};
+                    if (item.mapKey && item.autocompleteID && fieldKey) {
+                        const parsed = parseSearchQuery(newSearchQuery) as {ranges: Array<{key: string; value: string}>};
+                        const sameKeyRanges = parsed.ranges?.filter((r) => r.key === fieldKey) ?? [];
+                        const index = sameKeyRanges.length - 1;
+                        const lastRange = sameKeyRanges.at(-1);
+                        const rangeValue = lastRange?.value ?? item.searchQuery;
+                        const substitutionKey = index <= 0 ? item.mapKey : getSubstitutionMapKeyWithIndex(fieldKey as SearchFilterKey, rangeValue, index);
+                        const substitutions = {...autocompleteSubstitutions, [substitutionKey]: item.autocompleteID};
                         setAutocompleteSubstitutions(substitutions);
                     }
                 } else if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.SEARCH) {
@@ -301,6 +308,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                                 allCards={personalAndWorkspaceCards}
                                 allFeeds={allFeeds}
                                 textInputRef={textInputRef}
+                                autocompleteSubstitutions={autocompleteSubstitutions}
                             />
                         </View>
                     )}
@@ -373,6 +381,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                                 allCards={personalAndWorkspaceCards}
                                 allFeeds={allFeeds}
                                 textInputRef={textInputRef}
+                                autocompleteSubstitutions={autocompleteSubstitutions}
                             />
                         </View>
                     )}

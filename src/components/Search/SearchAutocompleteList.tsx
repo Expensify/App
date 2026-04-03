@@ -38,6 +38,7 @@ import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {SearchQueryItem, SearchQueryListItemProps} from './SearchList/ListItem/SearchQueryListItem';
 import SearchQueryListItem, {isSearchQueryItem} from './SearchList/ListItem/SearchQueryListItem';
+import type {SubstitutionMap} from './SearchRouter/getQueryWithSubstitutions';
 import {getSubstitutionMapKey} from './SearchRouter/getQueryWithSubstitutions';
 import type {UserFriendlyKey} from './types';
 
@@ -81,6 +82,9 @@ type SearchAutocompleteListProps = {
 
     /** All cards */
     allCards: CardList | undefined;
+
+    /** Map of display values to actual IDs for filters (e.g. workspace name -> policy ID). Used to exclude by ID when multiple options share the same name. */
+    autocompleteSubstitutions?: SubstitutionMap;
 
     /** Reference to the outer element */
     ref?: ForwardedRef<SelectionListWithSectionsHandle>;
@@ -143,6 +147,7 @@ function SearchAutocompleteList({
     reports,
     allFeeds,
     allCards = CONST.EMPTY_OBJECT,
+    autocompleteSubstitutions,
     ref,
 }: SearchAutocompleteListProps) {
     const styles = useThemeStyles();
@@ -290,6 +295,7 @@ function SearchAutocompleteList({
         personalDetails,
         feedKeysWithCards,
         translate,
+        autocompleteSubstitutions,
     });
 
     const autocompleteQueryWithoutFilters = getQueryWithoutFilters(autocompleteQueryValue);
