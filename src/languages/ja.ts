@@ -1082,15 +1082,12 @@ const translations: TranslationDeepObject<typeof en> = {
             if (!added && !updated) {
                 return 'カテゴリーは追加も更新もされていません。';
             }
-
             if (added && updated) {
                 return `${added}件のカテゴリーを追加し、${updated}件のカテゴリーを更新しました。`;
             }
-
             if (added) {
                 return added === 1 ? 'カテゴリーを1件追加しました。' : `${added}件のカテゴリーを追加しました。`;
             }
-
             return updated === 1 ? 'カテゴリーを1件更新しました。' : `${updated}件のカテゴリーを更新しました。`;
         },
         importCompanyCardTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
@@ -6663,6 +6660,62 @@ ${reportName}
   ・送金
 
 会社のキャッシュフローを守るために、支出ルールをさらに追加しましょう。`,
+                },
+                addSpendRule: '支出ルールを追加',
+                cardPageTitle: 'カード',
+                cardsSectionTitle: 'カード',
+                chooseCards: 'カードを選択',
+                saveRule: 'ルールを保存',
+                allow: '許可する',
+                spendRuleSectionTitle: '支出ルール',
+                restrictionType: '制限タイプ',
+                restrictionTypeHelpAllow: '取引は、いずれかの加盟店またはいずれかのカテゴリに一致し、かつ上限金額を超えない場合に承認されます。',
+                restrictionTypeHelpBlock: '加盟店またはカテゴリに該当する、または上限金額を超えるご利用は拒否されます。',
+                addMerchant: '取引先を追加',
+                merchantContains: '加盟店に次を含む',
+                merchantExactlyMatches: '店舗名が完全一致',
+                noBlockedMerchants: 'ブロック中の加盟店はありません',
+                addMerchantToBlockSpend: '支出をブロックする取引先を追加',
+                noAllowedMerchants: '許可された加盟店はありません',
+                addMerchantToAllowSpend: '支出を許可するには加盟店を追加してください',
+                matchType: '照合タイプ',
+                matchTypeContains: '含む',
+                matchTypeExact: '完全一致',
+                spendCategory: '支出カテゴリ',
+                maxAmount: '最大金額',
+                maxAmountHelp: '加盟店や支出カテゴリの制限にかかわらず、この金額を超えるすべての請求は拒否されます。',
+                currencyMismatchTitle: '通貨の不一致',
+                currencyMismatchPrompt: '上限金額を設定するには、同じ通貨で清算されるカードを選択してください。',
+                reviewSelectedCards: '選択したカードを確認',
+                merchantsMoreCount: ({summary, count}: {summary: string; count: number}) => `${summary}、ほか+${count} 件`,
+                confirmErrorApplyAtLeastOneSpendRuleToOneCard: '少なくとも 1 つの支出ルールを 1 枚のカードに適用してください',
+                confirmErrorCardRequired: 'カードは必須項目です',
+                confirmErrorApplyAtLeastOneSpendRule: '少なくとも 1 つの支出ルールを適用してください',
+                categories: 'カテゴリ',
+                merchants: '加盟店',
+                max: '最大',
+                categoryOptions: {
+                    [CONST.SPEND_RULES.CATEGORIES.AIRLINES]: '航空会社',
+                    [CONST.SPEND_RULES.CATEGORIES.ALCOHOL_AND_BARS]: 'アルコールとバー',
+                    [CONST.SPEND_RULES.CATEGORIES.AMAZON_AND_BOOKSTORES]: 'Amazon と書店',
+                    [CONST.SPEND_RULES.CATEGORIES.AUTOMOTIVE]: '自動車',
+                    [CONST.SPEND_RULES.CATEGORIES.CAR_RENTALS]: 'レンタカー',
+                    [CONST.SPEND_RULES.CATEGORIES.DINING]: '外食',
+                    [CONST.SPEND_RULES.CATEGORIES.FUEL_AND_GAS]: '燃料とガス',
+                    [CONST.SPEND_RULES.CATEGORIES.GOVERNMENT_AND_NON_PROFIT]: '官公庁・非営利団体',
+                    [CONST.SPEND_RULES.CATEGORIES.GROCERIES]: '食料品',
+                    [CONST.SPEND_RULES.CATEGORIES.GYMS_AND_FITNESS]: 'ジム・フィットネス',
+                    [CONST.SPEND_RULES.CATEGORIES.HEALTHCARE]: '医療',
+                    [CONST.SPEND_RULES.CATEGORIES.HOTELS]: 'ホテル',
+                    [CONST.SPEND_RULES.CATEGORIES.INTERNET_AND_PHONE]: 'インターネットと電話',
+                    [CONST.SPEND_RULES.CATEGORIES.OFFICE_SUPPLIES]: '事務用品',
+                    [CONST.SPEND_RULES.CATEGORIES.PARKING_AND_TOLLS]: '駐車場料金と通行料金',
+                    [CONST.SPEND_RULES.CATEGORIES.PROFESSIONAL_SERVICES]: 'プロフェッショナルサービス',
+                    [CONST.SPEND_RULES.CATEGORIES.RETAIL]: '小売',
+                    [CONST.SPEND_RULES.CATEGORIES.SHIPPING_AND_DELIVERY]: '配送と配達',
+                    [CONST.SPEND_RULES.CATEGORIES.SOFTWARE]: 'ソフトウェア',
+                    [CONST.SPEND_RULES.CATEGORIES.TRANSIT_AND_RIDESHARE]: '交通機関・配車サービス',
+                    [CONST.SPEND_RULES.CATEGORIES.TRAVEL_AGENCIES]: '旅行代理店',
                 },
             },
         },

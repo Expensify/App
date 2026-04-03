@@ -1063,6 +1063,8 @@ const ONYXKEYS = {
         EXPENSE_RULE_FORM_DRAFT: 'expenseRuleFormDraft',
         MERCHANT_RULE_FORM: 'merchantRuleForm',
         MERCHANT_RULE_FORM_DRAFT: 'merchantRuleFormDraft',
+        SPEND_RULE_FORM: 'spendRuleForm',
+        SPEND_RULE_FORM_DRAFT: 'spendRuleFormDraft',
         ADD_DOMAIN_MEMBER_FORM: 'addDomainMemberForm',
         ADD_DOMAIN_MEMBER_FORM_DRAFT: 'addDomainMemberFormDraft',
         ADD_WORK_EMAIL_FORM: 'addWorkEmailForm',
@@ -1205,6 +1207,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.SPLIT_EXPENSE_EDIT_DATES]: FormTypes.SplitExpenseEditDateForm;
     [ONYXKEYS.FORMS.EXPENSE_RULE_FORM]: FormTypes.ExpenseRuleForm;
     [ONYXKEYS.FORMS.MERCHANT_RULE_FORM]: FormTypes.MerchantRuleForm;
+    [ONYXKEYS.FORMS.SPEND_RULE_FORM]: FormTypes.SpendRuleForm;
     [ONYXKEYS.FORMS.ADD_DOMAIN_MEMBER_FORM]: FormTypes.AddDomainMemberForm;
     [ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM]: FormTypes.AddWorkEmailForm;
 };
