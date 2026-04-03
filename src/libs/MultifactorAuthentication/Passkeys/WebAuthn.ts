@@ -131,14 +131,19 @@ function isWebAuthnReason(name: string): name is MultifactorAuthenticationReason
     return Object.values<string>(VALUES.REASON.WEBAUTHN).includes(name);
 }
 
+type DecodedWebAuthnError = {
+    reason: MultifactorAuthenticationReason;
+    message?: string;
+};
+
 /** Decodes WebAuthn DOMException errors and maps them to authentication error reasons. */
-function decodeWebAuthnError(error: unknown): MultifactorAuthenticationReason {
+function decodeWebAuthnError(error: unknown): DecodedWebAuthnError {
     Log.info('[Passkey] WebAuthn error', false, {error: error instanceof Error ? error.message : String(error)});
     if (error instanceof DOMException && isWebAuthnReason(error.name)) {
-        return error.name;
+        return {reason: error.name};
     }
 
-    return VALUES.REASON.WEBAUTHN.GENERIC;
+    return {reason: VALUES.REASON.WEBAUTHN.GENERIC, message: error instanceof Error ? error.message : String(error)};
 }
 
 export {

@@ -56,7 +56,8 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
             if (reason === undefined) {
                 reason = VALUES.REASON.HSM.GENERIC;
             }
-            addMFABreadcrumb('Failed to get local credential ID', {reason}, 'error');
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            addMFABreadcrumb('Failed to get local credential ID', {reason, message: errorMessage}, 'error');
             return undefined;
         }
     };
@@ -75,7 +76,8 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
             if (reason === undefined) {
                 reason = VALUES.REASON.HSM.GENERIC;
             }
-            addMFABreadcrumb('Failed to delete local keys', {reason}, 'error');
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            addMFABreadcrumb('Failed to delete local keys', {reason, message: errorMessage}, 'error');
         }
     };
 
@@ -121,6 +123,7 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
             onResult({
                 success: false,
                 reason,
+                message: error instanceof Error ? error.message : String(error),
             });
         }
     };
@@ -158,6 +161,7 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
                 onResult({
                     success: false,
                     reason: failReason,
+                    message: failReason === VALUES.REASON.HSM.GENERIC ? signResult.errorCode : undefined,
                 });
                 return;
             }
@@ -190,6 +194,7 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
             onResult({
                 success: false,
                 reason,
+                message: error instanceof Error ? error.message : String(error),
             });
         }
     };

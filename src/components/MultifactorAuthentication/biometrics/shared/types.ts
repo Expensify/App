@@ -15,6 +15,7 @@ type RegisterResult =
     | ({
           success: false;
           reason: MultifactorAuthenticationReason;
+          message?: string;
       } & Partial<BaseRegisterResult>);
 
 type AuthorizeParams = {
@@ -31,6 +32,7 @@ type AuthorizeResultSuccess = {
 type AuthorizeResultFailure = {
     success: false;
     reason: MultifactorAuthenticationReason;
+    message?: string;
 };
 
 type AuthorizeResult = AuthorizeResultSuccess | AuthorizeResultFailure;

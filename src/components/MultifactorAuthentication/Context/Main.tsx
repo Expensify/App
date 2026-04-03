@@ -283,6 +283,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                     {
                         success: result.success,
                         reason: result.reason,
+                        message: result.success ? undefined : result?.message,
                     },
                     result.success ? 'info' : 'error',
                 );
@@ -382,6 +383,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                             success: result.success,
                             reason: result.reason,
                             authMethod: result.success ? result.authenticationMethod.code : undefined,
+                            message: result.success ? undefined : result?.message,
                         },
                         result.success ? 'info' : 'error',
                     );
