@@ -15,6 +15,7 @@ import DualDropZone from '@components/DropZone/DualDropZone';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
 import ExceededCommentLength from '@components/ExceededCommentLength';
 import ImportedStateIndicator from '@components/ImportedStateIndicator';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {Mention} from '@components/MentionSuggestions';
 import OfflineIndicator from '@components/OfflineIndicator';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -73,6 +74,7 @@ import {
     isChatRoom,
     isGroupChat,
     isInvoiceReport,
+    isMoneyRequestReport,
     isReportApproved,
     isReportTransactionThread,
     isSettled,
@@ -130,13 +132,26 @@ const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
 const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 
+/**
+ * List of AI-aware placeholder translation keys for expense threads
+ */
+const AI_PLACEHOLDER_KEYS = ['reportActionCompose.askConciergeToUpdate', 'reportActionCompose.askConciergeToCorrect', 'reportActionCompose.askConciergeForHelp'] as const;
+
+/**
+ * Returns a random AI-aware placeholder for expense threads
+ */
+function getRandomPlaceholder(translate: LocalizedTranslate): string {
+    const randomIndex = Math.floor(Math.random() * AI_PLACEHOLDER_KEYS.length);
+    return translate(AI_PLACEHOLDER_KEYS[randomIndex]);
+}
+
 // eslint-disable-next-line import/no-mutable-exports
 let onSubmitAction = noop;
 
 function ReportActionCompose({reportID}: ReportActionComposeProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isMediumScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
@@ -196,7 +211,7 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
     // should be able to reach those comments.
     const actionsForLastEditable = isOnSearchMoneyRequestReport ? filteredReportActions : combinedReportActions;
     const lastReportAction = useMemo(
-        () => [...actionsForLastEditable, parentReportAction].find((action) => canEditReportAction(action) && !isMoneyRequestAction(action)),
+        () => [...actionsForLastEditable, parentReportAction].find((action) => !isMoneyRequestAction(action) && canEditReportAction(action, undefined)),
         [actionsForLastEditable, parentReportAction],
     );
 
@@ -300,13 +315,24 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
         return !isRoomOrGroupChat && (canModifyReceipt || hasMoneyRequestOptions) && !isInvoiceReport(report);
     }, [shouldAddOrReplaceReceipt, report, reportParticipantIDs, policy, isReportArchived, isRestrictedToPreferredPolicy, betas]);
 
+    // Check if this is an expense-related report (IOU, expense report, or transaction thread)
+    const isExpenseRelatedReport = useMemo(() => isTransactionThreadView || isMoneyRequestReport(report), [isTransactionThreadView, report]);
+
+    const isEnglishLocale = (preferredLocale ?? CONST.LOCALES.DEFAULT) === CONST.LOCALES.EN;
+
     // Placeholder to display in the chat input.
     const inputPlaceholder = useMemo(() => {
         if (includesConcierge && userBlockedFromConcierge) {
             return translate('reportActionCompose.blockedFromConcierge');
         }
+
+        // Only English should get AI-specific ghost text.
+        if (isExpenseRelatedReport && canUserPerformWriteAction && isEnglishLocale) {
+            return getRandomPlaceholder(translate);
+        }
+
         return translate('reportActionCompose.writeSomething');
-    }, [includesConcierge, translate, userBlockedFromConcierge]);
+    }, [includesConcierge, translate, userBlockedFromConcierge, isExpenseRelatedReport, canUserPerformWriteAction, isEnglishLocale]);
 
     const focus = () => {
         if (composerRef.current === null) {
@@ -350,13 +376,9 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
     }, []);
 
     const attachmentFileRef = useRef<FileObject | FileObject[] | null>(null);
-    /** Object URLs created for dropped files; revoked when the attachment modal closes without confirm */
-    const pendingDropObjectUrlsRef = useRef<string[]>([]);
 
     const addAttachment = useCallback((file: FileObject | FileObject[]) => {
         attachmentFileRef.current = file;
-        // User confirmed; URLs are now on the files and will be used on submit. Stop tracking for revoke-on-close.
-        pendingDropObjectUrlsRef.current = [];
 
         const clearWorklet = composerRef.current?.clearWorklet;
 
@@ -369,15 +391,8 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
 
     /**
      * Event handler to update the state after the attachment preview is closed.
-     * Revokes object URLs for dropped files when the user closed without confirming (avoids leaking blob URLs).
      */
     const onAttachmentPreviewClose = useCallback(() => {
-        if (attachmentFileRef.current === null) {
-            for (const url of pendingDropObjectUrlsRef.current) {
-                URL.revokeObjectURL(url);
-            }
-            pendingDropObjectUrlsRef.current = [];
-        }
         updateShouldShowSuggestionMenuToFalse();
         setIsAttachmentPreviewActive(false);
         // This enables Composer refocus when the attachments modal is closed by the browser navigation
@@ -657,24 +672,6 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
         setIsAttachmentPreviewActive,
     });
 
-    const handleAttachmentDrop = (event: DragEvent) => {
-        const createdUrls: string[] = [];
-        const files = Array.from(event.dataTransfer?.files ?? []).map((file) => {
-            const fileWithUri = file;
-            const objectUrl = URL.createObjectURL(fileWithUri);
-            fileWithUri.uri = objectUrl;
-            createdUrls.push(objectUrl);
-            return fileWithUri;
-        });
-
-        if (files.length === 0) {
-            return;
-        }
-
-        pendingDropObjectUrlsRef.current = createdUrls;
-        validateAttachments({files});
-    };
-
     if (!report) {
         return null;
     }
@@ -764,13 +761,13 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
                         {shouldDisplayDualDropZone && (
                             <DualDropZone
                                 isEditing={shouldAddOrReplaceReceipt && hasReceipt}
-                                onAttachmentDrop={handleAttachmentDrop}
+                                onAttachmentDrop={(dragEvent) => validateAttachments({dragEvent})}
                                 onReceiptDrop={onReceiptDropped}
                                 shouldAcceptSingleReceipt={shouldAddOrReplaceReceipt}
                             />
                         )}
                         {!shouldDisplayDualDropZone && (
-                            <DragAndDropConsumer onDrop={handleAttachmentDrop}>
+                            <DragAndDropConsumer onDrop={(dragEvent) => validateAttachments({dragEvent})}>
                                 <DropZoneUI
                                     icon={icons.MessageInABottle}
                                     dropTitle={translate('dropzone.addAttachments')}

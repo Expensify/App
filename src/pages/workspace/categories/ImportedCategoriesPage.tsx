@@ -113,7 +113,7 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
 
         if (categories) {
             setIsImportingCategories(true);
-            importPolicyCategories(policyID, categories);
+            importPolicyCategories(policyID, categories, policyCategories);
         }
     }, [validate, spreadsheet, containsHeader, policyID, policyCategories]);
 
