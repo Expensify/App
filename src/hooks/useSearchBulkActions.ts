@@ -697,7 +697,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             lastPaymentMethods,
             allTransactions,
             policyIDsWithVBBA,
-            allReportActions,
             policyExpenseChatReportActions,
             formatPhoneNumber,
             clearSelectedTransactions,
