@@ -161,25 +161,25 @@ function PayPrimaryAction({reportID, chatReportID, isPaidAnimationRunning, isApp
 
     return (
         <AnimatedSettlementButton
-                isPaidAnimationRunning={isPaidAnimationRunning}
-                isApprovedAnimationRunning={isApprovedAnimationRunning}
-                onAnimationFinish={stopAnimation}
-                formattedAmount={totalAmount}
-                canIOUBePaid
-                onlyShowPayElsewhere={onlyShowPayElsewhere}
-                currency={moneyRequestReport?.currency}
-                confirmApproval={confirmApproval}
-                policyID={moneyRequestReport?.policyID}
-                chatReportID={chatReport?.reportID}
-                iouReport={moneyRequestReport}
-                onPress={confirmPayment}
-                enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
-                shouldHidePaymentOptions={!shouldShowPayButton}
-                shouldShowApproveButton={shouldShowApproveButton}
-                shouldDisableApproveButton={shouldDisableApproveButton}
-                isDisabled={isOffline && !canAllowSettlement}
-                isLoading={!isOffline && !canAllowSettlement}
-            />
+            isPaidAnimationRunning={isPaidAnimationRunning}
+            isApprovedAnimationRunning={isApprovedAnimationRunning}
+            onAnimationFinish={stopAnimation}
+            formattedAmount={totalAmount}
+            canIOUBePaid
+            onlyShowPayElsewhere={onlyShowPayElsewhere}
+            currency={moneyRequestReport?.currency}
+            confirmApproval={confirmApproval}
+            policyID={moneyRequestReport?.policyID}
+            chatReportID={chatReport?.reportID}
+            iouReport={moneyRequestReport}
+            onPress={confirmPayment}
+            enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
+            shouldHidePaymentOptions={!shouldShowPayButton}
+            shouldShowApproveButton={shouldShowApproveButton}
+            shouldDisableApproveButton={shouldDisableApproveButton}
+            isDisabled={isOffline && !canAllowSettlement}
+            isLoading={!isOffline && !canAllowSettlement}
+        />
     );
 }
 
