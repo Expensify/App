@@ -4,8 +4,9 @@ import FloatingActionButton from '@components/FloatingActionButton';
 import FloatingReceiptButton from '@components/FloatingReceiptButton';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import {startQuickScan, startScan} from '@libs/actions/Scan';
 import CONST from '@src/CONST';
-import useScanActions from './useScanActions';
+import useRedirectToExpensifyClassic from './useRedirectToExpensifyClassic';
 
 type FABButtonsProps = {
     isActive: boolean;
@@ -16,7 +17,23 @@ type FABButtonsProps = {
 function FABButtons({isActive, fabRef, onPress}: FABButtonsProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {startScan, startQuickScan} = useScanActions();
+    const {shouldRedirectToExpensifyClassic, showRedirectToExpensifyClassicModal} = useRedirectToExpensifyClassic();
+
+    const handleScan = () => {
+        if (shouldRedirectToExpensifyClassic) {
+            showRedirectToExpensifyClassicModal();
+            return;
+        }
+        startScan();
+    };
+
+    const handleQuickScan = () => {
+        if (shouldRedirectToExpensifyClassic) {
+            showRedirectToExpensifyClassicModal();
+            return;
+        }
+        startQuickScan();
+    };
 
     return (
         <>
@@ -24,7 +41,7 @@ function FABButtons({isActive, fabRef, onPress}: FABButtonsProps) {
                 <FloatingReceiptButton
                     accessibilityLabel={translate('sidebarScreen.fabScanReceiptExplained')}
                     role={CONST.ROLE.BUTTON}
-                    onPress={startQuickScan}
+                    onPress={handleQuickScan}
                     sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.FLOATING_RECEIPT_BUTTON}
                 />
             )}
@@ -34,7 +51,7 @@ function FABButtons({isActive, fabRef, onPress}: FABButtonsProps) {
                 isActive={isActive}
                 ref={fabRef}
                 onPress={onPress}
-                onLongPress={startScan}
+                onLongPress={handleScan}
                 sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.FLOATING_ACTION_BUTTON}
             />
         </>
