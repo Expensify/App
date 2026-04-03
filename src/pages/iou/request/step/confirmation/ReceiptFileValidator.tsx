@@ -27,9 +27,9 @@ type ReceiptFileValidatorProps = {
 };
 
 /**
- * Side-effect-only component that validates receipt files on mount.
- * If blob URLs have expired (e.g. after a browser refresh), navigates
- * the user back to the start of the request flow to re-capture.
+ * Side-effect-only component that validates receipt files when transactions,
+ * participants, or report change. If blob URLs have expired (e.g. after a
+ * browser refresh), navigates the user back to the start of the request flow.
  */
 function ReceiptFileValidator({
     transactions,
