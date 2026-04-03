@@ -15,7 +15,7 @@ type NativeBiometricsHSMTypeEntry = ValueOf<typeof NATIVE_BIOMETRICS_HSM_VALUES.
 /**
  * Builds the key alias for a given account.
  */
-function getKeyAlias(accountID: AuthType): string {
+function getKeyAlias(accountID: number): string {
     return `${accountID}_${CONST.MULTIFACTOR_AUTHENTICATION.HSM_KEY_SUFFIX}`;
 }
 
@@ -33,7 +33,7 @@ const AUTH_TYPE_NUMBER_MAP = new Map<AuthType, NativeBiometricsHSMTypeEntry>([
     [5, NATIVE_BIOMETRICS_HSM_VALUES.AUTH_TYPE.OPTIC_ID],
 ]);
 
-function mapAuthTypeNumber(authType?: AuthType): AuthTypeInfo | undefined {
+function mapAuthTypeNumber(authType?: number): AuthTypeInfo | undefined {
     if (authType === undefined) {
         return undefined;
     }
