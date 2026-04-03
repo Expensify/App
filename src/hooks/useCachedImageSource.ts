@@ -6,6 +6,9 @@ import CONST from '@src/CONST';
 /** In-memory map of image URI → preloaded blob URL, managed externally via preloadAuthImage/revokeCachedAuthImage */
 const preloadedBlobURLs = new Map<string, string>();
 
+/** Tracks the latest preloadAuthImages promise so cleanup can wait for in-flight fetches to finish */
+let activePreloadPromise: Promise<void[]> = Promise.resolve([]);
+
 /** Returns the shared preloaded blob URL map so callers can check which URIs are already cached or iterate for cleanup. */
 const getPreloadedBlobURLs = () => {
     return preloadedBlobURLs;
@@ -33,13 +36,13 @@ const clearAuthImagesCache = async () => {
  * Fetches authenticated images, stores them in the Cache API, creates blob URLs,
  * and pins them in the in-memory map so useCachedImageSource can resolve them synchronously.
  */
-async function preloadAuthImages(uris: string[], headers: Record<string, string>) {
+function preloadAuthImages(uris: string[], headers: Record<string, string>) {
     if (!('caches' in window)) {
         return;
     }
 
-    await Promise.all(
-        uris.map(async (uri) => {
+    activePreloadPromise = Promise.all(
+        uris.map(async (uri): Promise<void> => {
             if (preloadedBlobURLs.has(uri)) {
                 return;
             }
@@ -66,6 +69,18 @@ async function preloadAuthImages(uris: string[], headers: Record<string, string>
             }
         }),
     );
+}
+
+/**
+ * Waits for any in-flight preloads to finish, then revokes all blob URLs.
+ * Call when leaving the transaction view to avoid leaking object URLs from late-completing fetches.
+ */
+async function clearPreloadedBlobURLs() {
+    await activePreloadPromise;
+    for (const blobURL of preloadedBlobURLs.values()) {
+        URL.revokeObjectURL(blobURL);
+    }
+    preloadedBlobURLs.clear();
 }
 
 /**
@@ -187,4 +202,4 @@ function useCachedImageSource(source: ImageSource | undefined): ImageSource | nu
 }
 
 export default useCachedImageSource;
-export {clearAuthImagesCache, preloadAuthImages, revokeCachedAuthImage, getPreloadedBlobURLs};
+export {clearAuthImagesCache, preloadAuthImages, revokeCachedAuthImage, getPreloadedBlobURLs, clearPreloadedBlobURLs};

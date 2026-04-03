@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import {getPreloadedBlobURLs, revokeCachedAuthImage} from '@hooks/useCachedImageSource';
+import {clearPreloadedBlobURLs} from '@hooks/useCachedImageSource';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 /**
@@ -27,9 +27,7 @@ function setActiveTransactionIDs(ids: string[]) {
 
 function clearActiveTransactionIDs() {
     lastSetIDs = null;
-    for (const uri of getPreloadedBlobURLs().keys()) {
-        revokeCachedAuthImage(uri);
-    }
+    clearPreloadedBlobURLs();
     return Onyx.set(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS, null);
 }
 
