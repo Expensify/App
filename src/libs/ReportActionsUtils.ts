@@ -1238,11 +1238,11 @@ function shouldReportActionBeVisible(
 /**
  * Checks if the new marker should be hidden for the report action.
  */
-function shouldHideNewMarker(reportAction: OnyxEntry<ReportAction>): boolean {
+function shouldHideNewMarker(reportAction: OnyxEntry<ReportAction>, isOffline: boolean): boolean {
     if (!reportAction) {
         return true;
     }
-    return !deprecatedIsNetworkOffline && reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    return !isOffline && reportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
 /**
@@ -1251,7 +1251,7 @@ function shouldHideNewMarker(reportAction: OnyxEntry<ReportAction>): boolean {
  */
 function isReportActionVisible(
     reportAction: OnyxEntry<ReportAction>,
-    reportID: string,
+    reportID: string | undefined,
     canUserPerformWriteAction?: boolean,
     visibleReportActions?: VisibleReportActionsDerivedValue,
 ): boolean {
@@ -1271,7 +1271,7 @@ function isReportActionVisible(
         return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, undefined, reportActionsForReport);
     }
 
-    if (visibleReportActions) {
+    if (visibleReportActions && reportID) {
         const reportCache = visibleReportActions[reportID];
         if (!reportCache) {
             return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, undefined, reportActionsForReport);
@@ -2284,6 +2284,28 @@ function getTravelUpdateMessage(
     }
 }
 
+function getDynamicExternalWorkflowSubmitFailedActionMessage(translate: LocalizedTranslate, action: ReportAction): string {
+    if (!isDynamicExternalWorkflowSubmitFailedAction(action)) {
+        return '';
+    }
+    const originalMessage = getOriginalMessage(action);
+    const wasSubmittedViaHarvesting = originalMessage?.harvesting ?? false;
+    const message = originalMessage?.message ?? translate('iou.error.genericCreateFailureMessage');
+    const failedSubmitReason = wasSubmittedViaHarvesting ? translate('iou.failedToAutoSubmitViaDEW', message) : translate('iou.failedToSubmitViaDEW', message);
+    return failedSubmitReason;
+}
+
+function getDynamicExternalWorkflowApproveFailedActionMessage(translate: LocalizedTranslate, action: ReportAction): string {
+    if (!isDynamicExternalWorkflowApproveFailedAction(action)) {
+        return '';
+    }
+    const originalMessage = getOriginalMessage(action);
+    const wasAutoApproveAction = originalMessage?.automaticAction ?? false;
+    const message = originalMessage?.message ?? translate('iou.error.genericCreateFailureMessage');
+    const failedApproveReason = wasAutoApproveAction ? translate('iou.failedToAutoApproveViaDEW', message) : translate('iou.failedToApproveViaDEW', message);
+    return failedApproveReason;
+}
+
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 function getMemberChangeMessageFragment(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>, getReportNameCallback: typeof getReportName): Message {
     const messageElements: readonly MemberChangeMessageElement[] = getMemberChangeMessageElements(translate, reportAction, getReportNameCallback);
@@ -2369,18 +2391,12 @@ function getReportActionMessageFragments(translate: LocalizedTranslate, action: 
     }
 
     if (isDynamicExternalWorkflowSubmitFailedAction(action)) {
-        const originalMessage = getOriginalMessage(action);
-        const wasSubmittedViaHarvesting = originalMessage?.harvesting ?? false;
-        const message = originalMessage?.message ?? translate('iou.error.genericCreateFailureMessage');
-        const failedSubmitReason = wasSubmittedViaHarvesting ? translate('iou.failedToAutoSubmitViaDEW', message) : translate('iou.failedToSubmitViaDEW', message);
+        const failedSubmitReason = getDynamicExternalWorkflowSubmitFailedActionMessage(translate, action);
         return [{text: failedSubmitReason, html: `<muted-text>${failedSubmitReason}</muted-text>`, type: 'COMMENT'}];
     }
 
     if (isDynamicExternalWorkflowApproveFailedAction(action)) {
-        const originalMessage = getOriginalMessage(action);
-        const wasAutoApproveAction = originalMessage?.automaticAction ?? false;
-        const message = originalMessage?.message ?? translate('iou.error.genericCreateFailureMessage');
-        const failedApproveReason = wasAutoApproveAction ? translate('iou.failedToAutoApproveViaDEW', message) : translate('iou.failedToApproveViaDEW', message);
+        const failedApproveReason = getDynamicExternalWorkflowApproveFailedActionMessage(translate, action);
         return [{text: failedApproveReason, html: `<muted-text>${failedApproveReason}</muted-text>`, type: 'COMMENT'}];
     }
 
@@ -3224,10 +3240,14 @@ function getWorkspaceCustomUnitSubRateDeletedMessage(translate: LocalizedTransla
 }
 
 function getWorkspaceReportFieldAddMessage(translate: LocalizedTranslate, action: ReportAction): string {
-    const {fieldName, fieldType} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
+    const {fieldName, fieldType, defaultValue} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
 
     if (fieldName && fieldType) {
-        return translate('workspaceActions.addedReportField', {fieldType: translate(getReportFieldTypeTranslationKey(fieldType as PolicyReportFieldType)).toLowerCase(), fieldName});
+        return translate('workspaceActions.addedReportField', {
+            fieldType: translate(getReportFieldTypeTranslationKey(fieldType as PolicyReportFieldType)).toLowerCase(),
+            fieldName,
+            defaultValue,
+        });
     }
 
     return getReportActionText(action);
@@ -3750,6 +3770,95 @@ function getRemovedConnectionMessage(translate: LocalizedTranslate, reportAction
     return connectionName ? translate('report.actions.type.removedConnection', {connectionName}) : '';
 }
 
+function getAddedCardFeedMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
+    if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CARD_FEED)) {
+        return '';
+    }
+    const originalMessage = getOriginalMessage(reportAction);
+    const feedName = originalMessage?.feedName;
+    return feedName ? translate('workspaceActions.addedCardFeed', feedName) : getReportActionText(reportAction);
+}
+
+function getRemovedCardFeedMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
+    if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CARD_FEED)) {
+        return '';
+    }
+    const originalMessage = getOriginalMessage(reportAction);
+    const feedName = originalMessage?.feedName;
+    return feedName ? translate('workspaceActions.removedCardFeed', feedName) : getReportActionText(reportAction);
+}
+
+function getRenamedCardFeedMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
+    if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.RENAME_CARD_FEED)) {
+        return '';
+    }
+    const originalMessage = getOriginalMessage(reportAction);
+    const oldName = originalMessage?.oldName;
+    const newName = originalMessage?.newName;
+    return oldName && newName ? translate('workspaceActions.renamedCardFeed', newName, oldName) : getReportActionText(reportAction);
+}
+
+function getAssignedCompanyCardMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
+    if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ASSIGN_COMPANY_CARD)) {
+        return '';
+    }
+    const originalMessage = getOriginalMessage(reportAction);
+    const cardLastFour = originalMessage?.cardLastFour;
+    const email = originalMessage?.email;
+    const feedName = originalMessage?.feedName ?? '';
+    return cardLastFour && email ? translate('workspaceActions.assignedCompanyCard', email, feedName, cardLastFour) : getReportActionText(reportAction);
+}
+
+function getUnassignedCompanyCardMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
+    if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UNASSIGN_COMPANY_CARD)) {
+        return '';
+    }
+    const originalMessage = getOriginalMessage(reportAction);
+    const cardLastFour = originalMessage?.cardLastFour;
+    const email = originalMessage?.email;
+    const feedName = originalMessage?.feedName ?? '';
+    return cardLastFour && email ? translate('workspaceActions.unassignedCompanyCard', email, feedName, cardLastFour) : getReportActionText(reportAction);
+}
+
+function getUpdatedCardFeedLiabilityMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
+    if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_LIABILITY)) {
+        return '';
+    }
+    const originalMessage = getOriginalMessage(reportAction);
+    const feedName = originalMessage?.feedName;
+    const liabilityType = originalMessage?.liabilityType;
+    const enabled = liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.ALLOW;
+    return feedName ? translate('workspaceActions.updatedCardFeedLiability', feedName, enabled) : getReportActionText(reportAction);
+}
+
+function formatStatementPeriodEndDay(translate: LocalizedTranslate, value?: string): string | undefined {
+    if (!value) {
+        return undefined;
+    }
+    if (value === CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH) {
+        return translate(`workspace.companyCards.statementCloseDate.${CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH}`);
+    }
+    if (value === CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_BUSINESS_DAY_OF_MONTH) {
+        return translate(`workspace.companyCards.statementCloseDate.${CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_BUSINESS_DAY_OF_MONTH}`);
+    }
+    return value;
+}
+
+function getUpdatedCardFeedStatementPeriodMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
+    if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_STATEMENT_PERIOD)) {
+        return '';
+    }
+    const originalMessage = getOriginalMessage(reportAction);
+    const feedName = originalMessage?.feedName;
+    const newValue = formatStatementPeriodEndDay(translate, originalMessage?.statementPeriodEndDay);
+    const previousValue = formatStatementPeriodEndDay(translate, originalMessage?.previousStatementPeriodEndDay) ?? '';
+
+    if (feedName && newValue && previousValue) {
+        return translate('workspaceActions.updatedCardFeedStatementPeriod', feedName, newValue, previousValue);
+    }
+    return getReportActionText(reportAction);
+}
+
 function getRenamedAction(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.RENAMED>>, isExpenseReport: boolean, actorName?: string) {
     const originalMessage = getOriginalMessage(reportAction);
     return translate('newRoomPage.renamedRoomAction', originalMessage?.oldName ?? '', originalMessage?.newName ?? '', isExpenseReport, actorName);
@@ -4215,9 +4324,9 @@ function isCardIssuedAction(
     );
 }
 
-function shouldShowAddMissingDetails(actionName?: ReportActionName, privatePersonalDetail?: PrivatePersonalDetails) {
+function shouldShowAddMissingDetails(actionName?: ReportActionName, privatePersonalDetail?: PrivatePersonalDetails, cardState?: ValueOf<typeof CONST.EXPENSIFY_CARD.STATE>) {
     const missingDetails = arePersonalDetailsMissing(privatePersonalDetail);
-    return actionName === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS && missingDetails;
+    return actionName === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS && (missingDetails || cardState === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED);
 }
 
 function shouldShowActivateCard(actionName?: ReportActionName, card?: Card, privatePersonalDetail?: PrivatePersonalDetails) {
@@ -4641,7 +4750,14 @@ export {
     getAddedBudgetMessage,
     getWorkspaceCustomUnitRateDeletedMessage,
     getWorkspaceCustomUnitSubRateUpdatedMessage,
+    getAddedCardFeedMessage,
     getAddedConnectionMessage,
+    getAssignedCompanyCardMessage,
+    getRemovedCardFeedMessage,
+    getRenamedCardFeedMessage,
+    getUnassignedCompanyCardMessage,
+    getUpdatedCardFeedLiabilityMessage,
+    getUpdatedCardFeedStatementPeriodMessage,
     getWorkspaceCustomUnitRateUpdatedMessage,
     getTagListNameUpdatedMessage,
     getTagListUpdatedMessage,
@@ -4682,6 +4798,8 @@ export {
     getReportActionActorAccountID,
     getSettlementAccountLockedMessage,
     stripFollowupListFromHtml,
+    getDynamicExternalWorkflowSubmitFailedActionMessage,
+    getDynamicExternalWorkflowApproveFailedActionMessage,
 };
 
 export type {LastVisibleMessage};

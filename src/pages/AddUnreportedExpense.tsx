@@ -42,7 +42,7 @@ type AddUnreportedExpensePageType = PlatformStackScreenProps<AddUnreportedExpens
 
 function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const {translate} = useLocalize();
-    const illustrations = useMemoizedLazyIllustrations(['FolderWithPapersAndWatch'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['FolderWithPapersAndWatch']);
     const [errorMessage, setErrorMessage] = useState<string>('');
     const [offset, setOffset] = useState(0);
     const {isOffline} = useNetwork();
@@ -58,8 +58,8 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const [isLoadingUnreportedTransactions] = useOnyx(ONYXKEYS.IS_LOADING_UNREPORTED_TRANSACTIONS);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
-    const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const shouldShowUnreportedTransactionsSkeletons = isLoadingUnreportedTransactions && hasMoreUnreportedTransactionsResults && !isOffline;
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
@@ -296,7 +296,11 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                         {
                             buttonText: translate('iou.createExpense'),
                             buttonAction: () => {
-                                if (report && report.policyID && shouldRestrictUserBillableActions(report.policyID, userBillingGraceEndPeriods, undefined, ownerBillingGraceEndPeriod)) {
+                                if (
+                                    report &&
+                                    report.policyID &&
+                                    shouldRestrictUserBillableActions(report.policyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, undefined, policy)
+                                ) {
                                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(report.policyID));
                                     return;
                                 }

@@ -1,4 +1,5 @@
 import {PortalProvider} from '@gorhom/portal';
+import type * as CoreNavigation from '@react-navigation/core';
 import {NavigationContainer} from '@react-navigation/native';
 import type * as reactNavigationNativeImport from '@react-navigation/native';
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
@@ -23,6 +24,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
+
+jest.mock('@react-navigation/core', () => ({
+    ...jest.requireActual<typeof CoreNavigation>('@react-navigation/core'),
+    useNavigation: jest.fn(() => ({getState: jest.fn(() => undefined)})),
+}));
 
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<typeof reactNavigationNativeImport>('@react-navigation/native'),
