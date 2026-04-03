@@ -8,7 +8,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import {hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+import {hasOnlyNonReimbursableTransactions, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {approveMoneyRequest, payMoneyRequest} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -99,7 +99,7 @@ function ProcessMoneyReportHoldMenu({
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const {showNonReimbursablePaymentErrorModal, shouldBlockDirectPayment} = useNonReimbursablePaymentModal(moneyRequestReport, transactions);
+    const {showNonReimbursablePaymentErrorModal} = useNonReimbursablePaymentModal(moneyRequestReport, transactions);
 
     const onSubmit = (full: boolean) => {
         if (isDelegateAccessRestricted) {
@@ -107,7 +107,7 @@ function ProcessMoneyReportHoldMenu({
             return;
         }
 
-        if (!isApprove && paymentType && shouldBlockDirectPayment(paymentType)) {
+        if (!isApprove && chatReport && hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID, transactions) && paymentType && paymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
             onClose();
             showNonReimbursablePaymentErrorModal();
             return;

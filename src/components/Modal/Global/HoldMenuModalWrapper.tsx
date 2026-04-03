@@ -9,11 +9,11 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import {hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
+import {hasOnlyNonReimbursableTransactions, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {approveMoneyRequest, payMoneyRequest} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {ModalProps} from './ModalContext';
@@ -74,8 +74,9 @@ function HoldMenuModalWrapper({
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
-    const transactions: OnyxTypes.Transaction[] = [];
-    const {showNonReimbursablePaymentErrorModal, shouldBlockDirectPayment} = useNonReimbursablePaymentModal(moneyRequestReport, transactions);
+    const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
+    const transactions = Object.values(reportTransactions);
+    const {showNonReimbursablePaymentErrorModal} = useNonReimbursablePaymentModal(moneyRequestReport, transactions);
 
     const onSubmit = (full: boolean) => {
         if (isDelegateAccessRestricted) {
@@ -83,7 +84,7 @@ function HoldMenuModalWrapper({
             return;
         }
 
-        if (!isApprove && paymentType && shouldBlockDirectPayment(paymentType)) {
+        if (!isApprove && chatReport && hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID, transactions) && paymentType && paymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
             setIsVisible(false);
             showNonReimbursablePaymentErrorModal();
             return;
