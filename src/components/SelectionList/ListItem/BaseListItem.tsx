@@ -42,7 +42,7 @@ function getAccessibilityProps<TItem extends ListItem>({
     if (role === CONST.ROLE.CHECKBOX || role === CONST.ROLE.RADIO) {
         accessibilityState = {checked: !!item.isSelected, selected: !!isFocused};
     } else if (effectiveRole === CONST.ROLE.RADIO) {
-        accessibilityState = {checked: !!item.isSelected};
+        accessibilityState = {checked: !!item.isSelected, selected: !!item.isSelected};
     } else {
         accessibilityState = {selected: !!item.isSelected};
     }
