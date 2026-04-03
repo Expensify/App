@@ -1147,7 +1147,8 @@ function getTransactionItemCommonFormattedProperties(
     }
 
     const formattedTo = formatPhoneNumber(toName);
-    const formattedTotal = getTransactionAmount(transactionItem, isExpenseReport);
+    const isDeleted = isDeletedTransaction(transactionItem);
+    const formattedTotal = getTransactionAmount(transactionItem, isExpenseReport, false, isDeleted);
     const date = transactionItem?.modifiedCreated ? transactionItem.modifiedCreated : transactionItem?.created;
     const merchant = getTransactionMerchant(transactionItem);
     const formattedMerchant = isInvalidMerchantValue(merchant) ? '' : merchant;
