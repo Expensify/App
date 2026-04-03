@@ -663,7 +663,9 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             return;
                         }
                         setIsOrganizeWarningModalOpen(false);
-                        Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
+                        requestAnimationFrame(() => {
+                            Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
+                        });
                     }}
                     onCancel={() => setIsOrganizeWarningModalOpen(false)}
                     isVisible={isOrganizeWarningModalOpen}
@@ -678,7 +680,9 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             return;
                         }
                         setIsIntegrateWarningModalOpen(false);
-                        Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
+                        requestAnimationFrame(() => {
+                            Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
+                        });
                     }}
                     onCancel={() => setIsIntegrateWarningModalOpen(false)}
                     isVisible={isIntegrateWarningModalOpen}
@@ -732,7 +736,11 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     isVisible={isDisableWorkflowWarningModalOpen}
                     onConfirm={() => {
                         setIsDisableWorkflowWarningModalOpen(false);
-                        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID));
+                        // Defer navigation to the next frame so the modal has time to start its close
+                        // transition before ScreenFreezeWrapper suspends this screen (see #85184).
+                        requestAnimationFrame(() => {
+                            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID));
+                        });
                     }}
                     onCancel={() => setIsDisableWorkflowWarningModalOpen(false)}
                     prompt={translate('workspace.moreFeatures.workflowWarningModal.featureEnabledText')}
