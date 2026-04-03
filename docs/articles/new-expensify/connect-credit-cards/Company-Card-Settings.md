@@ -19,6 +19,7 @@ To adjust your card feed configuration:
 
 - **Rename the card feed connection**
 - **Control whether cardholders can delete transactions:** Applies only to new transactions going forward
+- **Assign new cards** (direct feeds only): Reconnects to your bank to refresh the card list so newly issued cards appear in the assignment UI. 
 - **Remove the card connection:** Unassigns all cards and deletes unsubmitted expenses in draft reports
 
 ![Tap settings to open the card feed settings page]({{site.url}}/assets/images/Direct Feed HelpDot Images/directfeeds_12.png){:width="100%"}
