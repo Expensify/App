@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Icon from '@components//Icon';
@@ -7,31 +7,27 @@ import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import Navigation from '@navigation/Navigation';
-import type {SettingsNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
 import {switchToOldDot} from '@userActions/ExitSurvey';
 import {openOldDotLink} from '@userActions/Link';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {ExitSurveyResponseForm} from '@src/types/form/ExitSurveyResponseForm';
 import RESPONSE_INPUT_IDS from '@src/types/form/ExitSurveyResponseForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ExitSurveyOffline from './ExitSurveyOffline';
 
-type ExitSurveyConfirmPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.EXIT_SURVEY.CONFIRM>;
-
 const exitResponseSelector = (value: OnyxEntry<ExitSurveyResponseForm>) => value?.[RESPONSE_INPUT_IDS.RESPONSE];
 
-function ExitSurveyConfirmPage({route, navigation}: ExitSurveyConfirmPageProps) {
+function DynamicExitSurveyConfirmPage() {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
@@ -40,37 +36,18 @@ function ExitSurveyConfirmPage({route, navigation}: ExitSurveyConfirmPageProps) 
     const [exitSurveyResponse] = useOnyx(ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM, {
         selector: exitResponseSelector,
     });
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.EXIT_SURVEY_CONFIRM.path);
     const shouldShowQuickTips =
         isEmptyObject(tryNewDot) || tryNewDot?.classicRedirect?.dismissed === true || (!isEmptyObject(tryNewDot) && tryNewDot?.classicRedirect?.dismissed === undefined);
 
-    const getBackToParam = useCallback(() => {
-        if (isOffline) {
-            return ROUTES.SETTINGS;
-        }
-        if (exitSurveyResponse) {
-            return ROUTES.SETTINGS_EXIT_SURVEY_REASON;
-        }
-        return ROUTES.SETTINGS;
-    }, [isOffline, exitSurveyResponse]);
-    const {backTo} = route.params || {};
-    useEffect(() => {
-        const newBackTo = getBackToParam();
-        if (backTo === newBackTo) {
-            return;
-        }
-        navigation.setParams({
-            backTo: newBackTo,
-        });
-    }, [backTo, getBackToParam, navigation]);
-
     return (
         <ScreenWrapper
-            testID="ExitSurveyConfirmPage"
+            testID="DynamicExitSurveyConfirmPage"
             shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
                 title={translate(shouldShowQuickTips ? 'exitSurvey.goToExpensifyClassic' : 'exitSurvey.header')}
-                onBackButtonPress={() => Navigation.goBack(backTo)}
+                onBackButtonPress={() => Navigation.goBack(backPath)}
             />
             <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.mh5]}>
                 {isOffline && <ExitSurveyOffline />}
@@ -107,4 +84,4 @@ function ExitSurveyConfirmPage({route, navigation}: ExitSurveyConfirmPageProps) 
     );
 }
 
-export default ExitSurveyConfirmPage;
+export default DynamicExitSurveyConfirmPage;
