@@ -9,6 +9,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import type NonUSDPageProps from '@pages/ReimbursementAccount/NonUSD/types';
 import {getBankInfoStepValues} from '@pages/ReimbursementAccount/NonUSD/utils/getBankInfoStepValues';
+import getCurrencyForNonUSDBankAccount from '@pages/ReimbursementAccount/NonUSD/utils/getCurrencyForNonUSDBankAccount';
 import getInitialSubStepForBankInfoStep from '@pages/ReimbursementAccount/NonUSD/utils/getInitialSubStepForBankInfoStep';
 import getInputKeysForBankInfoStep from '@pages/ReimbursementAccount/NonUSD/utils/getInputKeysForBankInfoStep';
 import {clearReimbursementAccountBankCreation, createCorpayBankAccount, getCorpayBankAccountFields} from '@userActions/BankAccounts';
@@ -17,13 +18,11 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ReimbursementAccountForm} from '@src/types/form/ReimbursementAccountForm';
-import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import AccountHolderDetails from './subSteps/AccountHolderDetails';
 import BankAccountDetails from './subSteps/BankAccountDetails';
 import Confirmation from './subSteps/Confirmation';
 import type BankInfoSubStepProps from './types';
 
-const {COUNTRY} = INPUT_IDS.ADDITIONAL_DATA;
 const {PAGE_NAME, BANK_INFO_STEP} = CONST.NON_USD_BANK_ACCOUNT;
 const SUB_PAGE_NAMES = BANK_INFO_STEP.SUB_PAGE_NAMES;
 
@@ -40,8 +39,7 @@ function BankInfo({onBackButtonPress, onSubmit, policyID, stepNames, backTo}: No
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const [corpayFields] = useOnyx(ONYXKEYS.CORPAY_FIELDS);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const country = reimbursementAccountDraft?.[COUNTRY] ?? reimbursementAccount?.achData?.[COUNTRY] ?? '';
-    const currency = policy?.outputCurrency ?? reimbursementAccountDraft?.currency ?? CONST.BBA_COUNTRY_CURRENCY_MAP[country] ?? '';
+    const {country, currency} = getCurrencyForNonUSDBankAccount(policy, reimbursementAccountDraft, reimbursementAccount);
     const inputKeys = getInputKeysForBankInfoStep(corpayFields);
     const values = useMemo(() => getBankInfoStepValues(inputKeys, reimbursementAccountDraft, reimbursementAccount), [inputKeys, reimbursementAccount, reimbursementAccountDraft]);
     const startFrom = useMemo(() => getInitialSubStepForBankInfoStep(values, corpayFields), [corpayFields, values]);
