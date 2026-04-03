@@ -68,6 +68,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AccountManagerBanner from './AccountManagerBanner';
 import {AgentZeroStatusProvider} from './AgentZeroStatusContext';
+import {ConciergeDraftProvider} from './ConciergeDraftContext';
 import DeleteTransactionNavigateBackHandler from './DeleteTransactionNavigateBackHandler';
 import HeaderView from './HeaderView';
 import useReportWasDeleted from './hooks/useReportWasDeleted';
@@ -507,28 +508,35 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                             reportID={reportIDFromRoute}
                                             chatType={report?.chatType}
                                         >
-                                            <View
-                                                style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
-                                                testID="report-actions-view-wrapper"
+                                            <ConciergeDraftProvider
+                                                reportID={reportIDFromRoute}
+                                                chatType={report?.chatType}
                                             >
-                                                {(!report || shouldWaitForTransactions) && <ReportActionsSkeletonView />}
-                                                {!!report && !shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? <ReportActionsView reportID={report.reportID} /> : null}
-                                                {!!report && shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
-                                                    <MoneyRequestReportActionsList
-                                                        report={report}
-                                                        hasPendingDeletionTransaction={hasPendingDeletionTransaction}
-                                                        policy={policy}
-                                                        reportActions={reportActions}
-                                                        transactions={visibleTransactions}
-                                                        newTransactions={newTransactions}
-                                                        hasOlderActions={hasOlderActions}
-                                                        hasNewerActions={hasNewerActions}
-                                                        showReportActionsLoadingState={showReportActionsLoadingState}
-                                                        reportPendingAction={reportPendingAction}
-                                                    />
-                                                ) : null}
-                                                <ReportFooter />
-                                            </View>
+                                                <View
+                                                    style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
+                                                    testID="report-actions-view-wrapper"
+                                                >
+                                                    {(!report || shouldWaitForTransactions) && <ReportActionsSkeletonView />}
+                                                    {!!report && !shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
+                                                        <ReportActionsView reportID={report.reportID} />
+                                                    ) : null}
+                                                    {!!report && shouldDisplayMoneyRequestActionsList && !shouldWaitForTransactions ? (
+                                                        <MoneyRequestReportActionsList
+                                                            report={report}
+                                                            hasPendingDeletionTransaction={hasPendingDeletionTransaction}
+                                                            policy={policy}
+                                                            reportActions={reportActions}
+                                                            transactions={visibleTransactions}
+                                                            newTransactions={newTransactions}
+                                                            hasOlderActions={hasOlderActions}
+                                                            hasNewerActions={hasNewerActions}
+                                                            showReportActionsLoadingState={showReportActionsLoadingState}
+                                                            reportPendingAction={reportPendingAction}
+                                                        />
+                                                    ) : null}
+                                                    <ReportFooter />
+                                                </View>
+                                            </ConciergeDraftProvider>
                                         </AgentZeroStatusProvider>
                                     </View>
                                     <PortalHost name="suggestions" />
