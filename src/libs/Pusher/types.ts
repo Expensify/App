@@ -39,11 +39,30 @@ type ConciergeReasoningEvent = {
     loopCount: number;
 };
 
+type ConciergeDraftEvent = {
+    reportID: string;
+    reportActionID: string;
+    streamSessionID: string;
+    sequence: number;
+    status: 'started' | 'updated' | 'completed' | 'failed' | 'cleared';
+    created: string;
+    bodyMarkdown?: string;
+    finalRenderedHTML?: string;
+    startedAt?: string;
+    terminalReason?: string;
+    updatedAt?: string;
+};
+
 type PusherEventMap = {
     [TYPE.USER_IS_TYPING]: UserIsTypingEvent;
     [TYPE.USER_IS_LEAVING_ROOM]: UserIsLeavingRoomEvent;
     [TYPE.PONG]: PingPongEvent;
     [TYPE.CONCIERGE_REASONING]: ConciergeReasoningEvent;
+    [TYPE.CONCIERGE_DRAFT_STARTED]: ConciergeDraftEvent;
+    [TYPE.CONCIERGE_DRAFT_UPDATED]: ConciergeDraftEvent;
+    [TYPE.CONCIERGE_DRAFT_COMPLETED]: ConciergeDraftEvent;
+    [TYPE.CONCIERGE_DRAFT_FAILED]: ConciergeDraftEvent;
+    [TYPE.CONCIERGE_DRAFT_CLEARED]: ConciergeDraftEvent;
 };
 
 type EventData<EventName extends string> = {chunk?: string; id?: string; index?: number; final?: boolean} & (EventName extends keyof PusherEventMap
@@ -103,6 +122,7 @@ export type {
     UserIsLeavingRoomEvent,
     PingPongEvent,
     ConciergeReasoningEvent,
+    ConciergeDraftEvent,
     EventData,
     EventCallbackError,
     ChunkedDataEvents,
