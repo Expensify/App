@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {GroupedTransactions} from '@src/types/onyx';
@@ -64,7 +65,7 @@ function groupTransactionsByCategory(transactions: Transaction[], report: OnyxEn
 
     for (const transaction of transactions) {
         const category = getCategory(transaction);
-        const categoryKey = isCategoryMissing(category) ? '' : category;
+        const categoryKey = isCategoryMissing(category) ? '' : getDecodedCategoryName(category);
 
         if (!groups.has(categoryKey)) {
             groups.set(categoryKey, []);
@@ -75,7 +76,7 @@ function groupTransactionsByCategory(transactions: Transaction[], report: OnyxEn
     const result: GroupedTransactions[] = [];
     for (const [categoryKey, transactionList] of groups) {
         result.push({
-            groupName: categoryKey ? getDecodedCategoryName(categoryKey) : categoryKey,
+            groupName: categoryKey,
             groupKey: categoryKey,
             transactions: transactionList,
             subTotalAmount: calculateGroupTotal(transactionList, reportCurrency),
@@ -99,7 +100,7 @@ function groupTransactionsByTag(transactions: Transaction[], report: OnyxEntry<R
 
     for (const transaction of transactions) {
         const tag = getTag(transaction);
-        const tagKey = isTagMissing(tag) ? '' : tag;
+        const tagKey = isTagMissing(tag) ? '' : Str.htmlDecode(tag);
 
         if (!groups.has(tagKey)) {
             groups.set(tagKey, []);
