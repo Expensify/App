@@ -1466,10 +1466,10 @@ const translations: TranslationDeepObject<typeof en> = {
         heldExpense: 'reteve esta despesa',
         unheldExpense: 'removeu a retenção desta despesa',
         moveUnreportedExpense: 'Mover despesa não relatada',
-        addUnreportedExpense: 'Adicionar despesa não relatada',
+        addUnreportedExpense: 'Adicionar despesa existente',
         selectUnreportedExpense: 'Selecione pelo menos uma despesa para adicionar ao relatório.',
-        emptyStateUnreportedExpenseTitle: 'Nenhuma despesa não reportada',
-        emptyStateUnreportedExpenseSubtitle: 'Parece que você não tem nenhuma despesa não reportada. Tente criar uma abaixo.',
+        emptyStateUnreportedExpenseTitle: 'Nenhuma despesa existente',
+        emptyStateUnreportedExpenseSubtitle: 'Parece que você não tem nenhuma despesa existente. Tente criar uma abaixo.',
         addUnreportedExpenseConfirm: 'Adicionar ao relatório',
         newReport: 'Novo relatório',
         explainHold: () => ({

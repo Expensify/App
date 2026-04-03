@@ -1421,10 +1421,10 @@ const translations: TranslationDeepObject<typeof en> = {
         heldExpense: '已搁置此报销费用',
         unheldExpense: '已取消冻结此报销费用',
         moveUnreportedExpense: '移动未报销费用',
-        addUnreportedExpense: '添加未报销费用',
+        addUnreportedExpense: '添加现有费用',
         selectUnreportedExpense: '请选择至少一笔报销添加到报表中。',
-        emptyStateUnreportedExpenseTitle: '没有未报销的报销单',
-        emptyStateUnreportedExpenseSubtitle: '看起来你没有任何未报销的费用。请在下方创建一笔。',
+        emptyStateUnreportedExpenseTitle: '没有现有费用',
+        emptyStateUnreportedExpenseSubtitle: '看起来你没有任何现有的费用。请在下方创建一笔。',
         addUnreportedExpenseConfirm: '添加到报表',
         newReport: '新报表',
         explainHold: () => ({

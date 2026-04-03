@@ -1523,10 +1523,10 @@ const translations = {
         heldExpense: 'held this expense',
         unheldExpense: 'unheld this expense',
         moveUnreportedExpense: 'Move unreported expense',
-        addUnreportedExpense: 'Add unreported expense',
+        addUnreportedExpense: 'Add existing expense',
         selectUnreportedExpense: 'Select at least one expense to add to the report.',
-        emptyStateUnreportedExpenseTitle: 'No unreported expenses',
-        emptyStateUnreportedExpenseSubtitle: 'Looks like you don’t have any unreported expenses. Try creating one below.',
+        emptyStateUnreportedExpenseTitle: 'No existing expenses',
+        emptyStateUnreportedExpenseSubtitle: 'Looks like you don’t have any existing expenses. Try creating one below.',
         addUnreportedExpenseConfirm: 'Add to report',
         newReport: 'New report',
         explainHold: () => ({
