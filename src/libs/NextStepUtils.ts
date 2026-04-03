@@ -67,7 +67,7 @@ function buildNextStepMessage(nextStep: ReportNextStep, translate: LocaleContext
         etaType = CONST.NEXT_STEP.ETA_TYPE.DATE_TIME;
     }
 
-    return `<next-step>${translate(`nextStep.message.${nextStep.messageKey}`, {actor, actorType, eta, etaType})}</next-step>`;
+    return `<next-step>${translate(`nextStep.message.${nextStep.messageKey}`, actor, actorType, eta, etaType)}</next-step>`;
 }
 
 function doesReportContainTransactions(report: OnyxEntry<Report>): boolean {
