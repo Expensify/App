@@ -14,7 +14,7 @@ import {getTagLists, isMultiLevelTags} from '@libs/PolicyUtils';
 import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, canEditMoneyRequest, canUserPerformWriteAction, isArchivedReport, isReportInGroupPolicy} from '@libs/ReportUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
-import {calculateTaxAmount, getCurrency, getTaxValue, isExpenseUnreported} from '@libs/TransactionUtils';
+import {calculateTaxAmount, getCurrency, getOriginalTransactionWithSplitInfo, getTaxValue, isExpenseUnreported} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
@@ -362,18 +362,30 @@ function getTransactionEditPermissions({
 
     // For restricted fields, delegate to canEditFieldOfMoneyRequest.
     // Unreported expenses bypass this (all restricted fields editable by owner).
-    const canEditRestricted = (field: string) =>
-        isUnreported ||
-        canEditFieldOfMoneyRequest({
-            reportAction: parentReportAction,
-            fieldToEdit: field as ValueOf<typeof CONST.EDIT_REQUEST_FIELD>,
-            isDeleteAction: false,
-            isChatReportArchived,
-            outstandingReportsByPolicyID: undefined,
-            transaction,
-            report: parentReport,
-            policy,
-        });
+    const canEditRestricted = (field: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>) => {
+        if (field === CONST.EDIT_REQUEST_FIELD.AMOUNT) {
+            // Split expense children cannot have their amount edited inline
+            const originalTransactionID = transaction?.comment?.originalTransactionID;
+            const originalTransaction = originalTransactionID ? allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`] : undefined;
+            const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
+
+            if (isExpenseSplit) {
+                return false;
+            }
+        }
+
+        return (
+            isUnreported ||
+            canEditFieldOfMoneyRequest({
+                reportAction: parentReportAction,
+                fieldToEdit: field,
+                isChatReportArchived,
+                transaction,
+                report: parentReport,
+                policy,
+            })
+        );
+    };
 
     return {
         canEditDate: canEditRestricted(CONST.EDIT_REQUEST_FIELD.DATE),
