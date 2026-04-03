@@ -39,7 +39,7 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
 
     const doesDeviceSupportAuthenticationMethod = async () => {
         const sensorResult = await isSensorAvailable();
-        return sensorResult.isDeviceSecure ?? sensorResult.available;
+        return sensorResult.isDeviceSecure;
     };
 
     const getLocalCredentialID = async () => {
