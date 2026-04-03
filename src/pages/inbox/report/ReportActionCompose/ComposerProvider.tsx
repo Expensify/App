@@ -5,10 +5,8 @@ import {useSharedValue} from 'react-native-reanimated';
 import {scheduleOnUI} from 'react-native-worklets';
 import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
 import useHandleExceedMaxTaskTitleLength from '@hooks/useHandleExceedMaxTaskTitleLength';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
-import ComposerFocusManager from '@libs/ComposerFocusManager';
 import {chatIncludesConcierge} from '@libs/ReportUtils';
 import {setIsComposerFullSize} from '@userActions/Report';
 import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
@@ -18,9 +16,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import {ComposerActionsContext, ComposerMetaContext, ComposerSendActionsContext, ComposerSendStateContext, ComposerStateContext, ComposerTextContext} from './ComposerContext';
 import type {SuggestionsRef} from './ComposerContext';
 import type {ComposerRef} from './ComposerWithSuggestions/ComposerWithSuggestions';
-import useAttachmentUploadValidation from './useAttachmentUploadValidation';
 import useComposerFocus from './useComposerFocus';
-import useShouldAddOrReplaceReceipt from './useShouldAddOrReplaceReceipt';
 
 const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
@@ -30,8 +26,6 @@ type ComposerProviderProps = {
 };
 
 function ComposerProvider({children, reportID}: ComposerProviderProps) {
-    const {isOffline} = useNetwork();
-    const {shouldAddOrReplaceReceipt, transactionID} = useShouldAddOrReplaceReceipt(reportID, isOffline);
     const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
     const [shouldShowComposeInput = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT);
     const [initialModalState] = useOnyx(ONYXKEYS.MODAL);
@@ -47,7 +41,6 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
 
     const [isFullComposerAvailable, setIsFullComposerAvailable] = useState(isComposerFullSize);
     const [isMenuVisible, setMenuVisibility] = useState(false);
-    const [isAttachmentPreviewActive, setIsAttachmentPreviewActive] = useState(false);
 
     const [value, setValue] = useState(() => {
         return draftComment ?? '';
@@ -92,13 +85,6 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
 
     const composerRefShared = useSharedValue<Partial<ComposerRef>>({});
 
-    const updateShouldShowSuggestionMenuToFalse = () => {
-        if (!suggestionsRef.current) {
-            return;
-        }
-        suggestionsRef.current.updateShouldShowSuggestionMenuToFalse(false);
-    };
-
     const {onBlur, onFocus, focus, onAddActionPressed, onItemSelected, onTriggerAttachmentPicker, isNextModalWillOpenRef} = useComposerFocus({
         composerRef,
         suggestionsRef,
@@ -106,33 +92,13 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
         setIsFocused,
     });
 
-    const addAttachment = (file: FileObject | FileObject[]) => {
-        attachmentFileRef.current = file;
+    const clearComposer = () => {
         const clearWorklet = composerRefShared.get().clearWorklet;
         if (!clearWorklet) {
             throw new Error('The composerRef.clearWorklet function is not set yet. This should never happen, and indicates a developer error.');
         }
         scheduleOnUI(clearWorklet);
     };
-
-    const onAttachmentPreviewClose = () => {
-        updateShouldShowSuggestionMenuToFalse();
-        setIsAttachmentPreviewActive(false);
-        // This enables Composer refocus when the attachments modal is closed by the browser navigation
-        ComposerFocusManager.setReadyToFocus();
-    };
-
-    const {validateAttachments, onReceiptDropped, PDFValidationComponent, ErrorModal} = useAttachmentUploadValidation({
-        reportID,
-        report,
-        addAttachment,
-        onAttachmentPreviewClose,
-        exceededMaxLength,
-        shouldAddOrReplaceReceipt,
-        transactionID,
-        isAttachmentPreviewActive,
-        setIsAttachmentPreviewActive,
-    });
 
     const handleSendMessage = () => {
         if (isSendDisabled || !debouncedValidate.flush()) {
@@ -183,8 +149,6 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
         exceededMaxLength,
         hasExceededMaxTaskTitleLength,
         isBlockedFromConcierge,
-        validateAttachments,
-        onReceiptDropped,
     };
 
     const composerActions = {
@@ -193,15 +157,13 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
         setMenuVisibility,
         setIsFullComposerAvailable,
         setComposerRef,
-        setIsAttachmentPreviewActive,
         focus,
         onBlur,
         onFocus,
         onAddActionPressed,
         onItemSelected,
         onTriggerAttachmentPicker,
-        addAttachment,
-        onAttachmentPreviewClose,
+        clearComposer,
     };
 
     const composerSendActions = {
@@ -231,8 +193,6 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
                     </ComposerActionsContext.Provider>
                 </ComposerSendStateContext.Provider>
             </ComposerStateContext.Provider>
-            {PDFValidationComponent}
-            {ErrorModal}
         </ComposerTextContext.Provider>
     );
 }
