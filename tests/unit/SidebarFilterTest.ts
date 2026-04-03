@@ -16,7 +16,7 @@ jest.mock('@libs/Permissions');
 
 const ONYXKEYS = {
     PERSONAL_DETAILS_LIST: 'personalDetailsList',
-    IS_LOADING_APP: 'isLoadingApp',
+    RAM_ONLY_IS_LOADING_APP: 'isLoadingApp',
     NVP_PRIORITY_MODE: 'nvp_priorityMode',
     SESSION: 'session',
     BETAS: 'betas',
