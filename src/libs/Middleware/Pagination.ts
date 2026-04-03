@@ -111,7 +111,7 @@ const Pagination: Middleware = (requestResponse, request) => {
 
         const newPage = sortedPageItems.map((item) => getItemID(item));
 
-        const shouldMarkNoNewerActions = response.hasNewerActions === false || response.hasNewerActions === null;
+        const shouldMarkNoNewerActions = response.hasNewerActions === false || response.hasNewerActions === null || (type === 'initial' && !cursorID && response.hasNewerActions !== true);
         if (shouldMarkNoNewerActions) {
             newPage.unshift(CONST.PAGINATION_START_ID);
         }
