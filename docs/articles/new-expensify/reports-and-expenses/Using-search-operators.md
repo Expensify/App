@@ -101,7 +101,7 @@ type:task assignee:"Charlie Brown" status:outstanding
 
 ---
 
-# Available filters for grouping, chart views, and currency conversion
+## How to use grouping, chart views, and currency conversion filters
 
 Use `group-by:` to analyze data by dimension, `view:` to choose how grouped results are displayed, and `group-currency:` to normalize totals.
 
