@@ -210,6 +210,7 @@ type WelcomeMessageParams = {
     reportDetailsLink?: string;
     shouldShowUsePlusButtonText?: boolean;
     additionalText?: string;
+    isTrackIntentUser?: boolean;
 };
 
 function compareStringDates(a: string, b: string): 0 | 1 | -1 {
@@ -696,7 +697,6 @@ function getOptionData({
     reportAttributesDerived,
     policyTags,
     currentUserLogin,
-    reportActions,
 }: {
     report: OnyxEntry<Report>;
     oneTransactionThreadReport: OnyxEntry<Report>;
@@ -721,7 +721,6 @@ function getOptionData({
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     policyTags?: OnyxEntry<PolicyTagLists>;
     currentUserLogin: string;
-    reportActions?: ReportActions;
 }): OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
@@ -802,7 +801,7 @@ function getOptionData({
     result.statusNum = report.statusNum;
     // When the only message of a report is deleted lastVisibleActionCreated is not reset leading to wrongly
     // setting it Unread so we add additional condition here to avoid empty chat LHN from being bold.
-    result.isUnread = isUnread(report, oneTransactionThreadReport, isReportArchived, reportActions) && !!report.lastActorAccountID;
+    result.isUnread = isUnread(report, oneTransactionThreadReport, isReportArchived) && !!report.lastActorAccountID;
     result.isUnreadWithMention = isUnreadWithMention(report);
     result.isPinned = report.isPinned;
     result.iouReportID = report.iouReportID;
@@ -1270,6 +1269,7 @@ function getWelcomeMessage(params: WelcomeMessageParams): WelcomeMessage {
         reportDetailsLink = '',
         shouldShowUsePlusButtonText = false,
         additionalText = '',
+        isTrackIntentUser = false,
     } = params;
 
     const welcomeMessage: WelcomeMessage = {};
@@ -1284,6 +1284,9 @@ function getWelcomeMessage(params: WelcomeMessageParams): WelcomeMessage {
     if (isPolicyExpenseChat(report)) {
         if (policy?.description) {
             welcomeMessage.messageHtml = policy.description;
+            welcomeMessage.messageText = Parser.htmlToText(welcomeMessage.messageHtml);
+        } else if (isTrackIntentUser) {
+            welcomeMessage.messageHtml = translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatTrack');
             welcomeMessage.messageText = Parser.htmlToText(welcomeMessage.messageHtml);
         } else {
             welcomeMessage.messageHtml = translate(

@@ -2072,7 +2072,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             hasActiveAdminPolicies: false,
         });
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-        setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
+        setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL);
         await waitForBatchedUpdates();
 
         await getOnyxData({
@@ -2290,9 +2290,10 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             currentUserEmailParam: CARLOS_EMAIL,
             isSelfTourViewed: false,
             hasActiveAdminPolicies: false,
+            betas: [],
         });
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-        setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
+        setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL);
         await waitForBatchedUpdates();
 
         await getOnyxData({
@@ -2871,7 +2872,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
         // Change the approval mode for the policy since default is Submit and Close
-        setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
+        setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL);
         await waitForBatchedUpdates();
         await getOnyxData({
             key: ONYXKEYS.COLLECTION.REPORT,
@@ -3047,7 +3048,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
         // Change the approval mode for the policy since default is Submit and Close
-        setWorkspaceApprovalMode(policy, RORY_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
+        setWorkspaceApprovalMode(policy, RORY_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL);
         await waitForBatchedUpdates();
         await getOnyxData({
             key: ONYXKEYS.COLLECTION.REPORT,
@@ -3226,7 +3227,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-        setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
+        setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL);
         await waitForBatchedUpdates();
 
         await getOnyxData({
@@ -3416,7 +3417,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
         // Change the approval mode for the policy since default is Submit and Close
-        setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
+        setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL);
         await waitForBatchedUpdates();
 
         await getOnyxData({
@@ -3680,7 +3681,7 @@ describe('updateSplitTransactions', () => {
             hasActiveAdminPolicies: false,
         });
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-        setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
+        setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL);
         await waitForBatchedUpdates();
 
         await getOnyxData({
@@ -3810,7 +3811,7 @@ describe('updateSplitTransactions', () => {
             hasActiveAdminPolicies: false,
         });
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-        setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
+        setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL);
         await waitForBatchedUpdates();
 
         await getOnyxData({
@@ -3949,7 +3950,7 @@ describe('updateSplitTransactions', () => {
             hasActiveAdminPolicies: false,
         });
         const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-        setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
+        setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL);
         await waitForBatchedUpdates();
 
         await getOnyxData({
