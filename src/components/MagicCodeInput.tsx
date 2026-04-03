@@ -106,6 +106,9 @@ type MagicCodeInputProps = {
     /** Accessibility label for the input */
     accessibilityLabel?: string;
 
+    /** Optional: receives the native text input ref so callers can run shared autofocus logic */
+    inputCallbackRef?: (ref: BaseTextInputRef | null) => void;
+
     /** Reference to the outer element */
     ref?: ForwardedRef<MagicCodeInputHandle>;
 
@@ -160,6 +163,7 @@ function MagicCodeInput({
     hasError = false,
     testID = '',
     accessibilityLabel,
+    inputCallbackRef,
     ref,
     secureTextEntry = false,
 }: MagicCodeInputProps) {
@@ -481,6 +485,8 @@ function MagicCodeInput({
                             }}
                             ref={(newRef) => {
                                 inputRef.current = newRef;
+                                // Notify parent/shared hook about the native TextInput ref (optional).
+                                inputCallbackRef?.(newRef);
                             }}
                             autoFocus={autoFocus}
                             inputMode="numeric"

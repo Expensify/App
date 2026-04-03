@@ -1,7 +1,7 @@
 import {useFocusEffect} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import {AccessibilityInfo, View} from 'react-native';
+import {InteractionManager, AccessibilityInfo, View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
@@ -13,6 +13,7 @@ import Text from '@components/Text';
 import ValidateCodeCountdown from '@components/ValidateCodeCountdown';
 import type {ValidateCodeCountdownHandle} from '@components/ValidateCodeCountdown/types';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -20,6 +21,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileSafari} from '@libs/Browser';
+import * as DeviceCapabilities from '@libs/DeviceCapabilities';
 import {getLatestErrorField, getLatestErrorMessage} from '@libs/ErrorUtils';
 import {isValidValidateCode} from '@libs/ValidationUtils';
 import {clearValidateCodeActionError} from '@userActions/User';
@@ -121,15 +123,19 @@ function BaseValidateCodeForm({
     const [formError, setFormError] = useState<ValidateCodeFormError>({});
     const [validateCode, setValidateCode] = useState('');
     const [isCountdownRunning, setIsCountdownRunning] = useState(true);
+    const [focusCycle, setFocusCycle] = useState(0);
 
     const inputValidateCodeRef = useRef<MagicCodeInputHandle>(null);
-    const [account = getEmptyObject<Account>()] = useOnyx(ONYXKEYS.ACCOUNT);
+    const {inputCallbackRef, inputRef} = useAutoFocusInput(false);
+    const [account = getEmptyObject<Account>()] = useOnyx(ONYXKEYS.ACCOUNT, {
+        canBeMissing: true,
+    });
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing doesn't achieve the same result in this case
     const shouldDisableResendValidateCode = !!isOffline || account?.isLoading;
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [canShowError, setCanShowError] = useState<boolean>(false);
-    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
+    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE, {canBeMissing: true});
     const validateCodeSent = useMemo(() => hasMagicCodeBeenSent ?? validateCodeAction?.validateCodeSent, [hasMagicCodeBeenSent, validateCodeAction?.validateCodeSent]);
     const latestValidateCodeError = getLatestErrorField(validateCodeAction, validateCodeActionErrorField);
     const defaultValidateCodeError = getLatestErrorField(validateCodeAction, 'actionVerified');
@@ -163,29 +169,48 @@ function BaseValidateCodeForm({
 
     useFocusEffect(
         useCallback(() => {
-            if (!inputValidateCodeRef.current) {
-                return;
-            }
+            const focusInput = () => {
+                inputValidateCodeRef.current?.focusLastSelected();
+            };
+
+            // Force a fresh input instance on each screen focus to avoid stale native focus state on reopen.
+            setFocusCycle((prev) => prev + 1);
+
+            const runFocusWithRetry = () => {
+                focusInput();
+                focusTimeoutRef.current = setTimeout(() => {
+                    if (inputRef.current?.isFocused?.()) {
+                        return;
+                    }
+                    focusInput();
+                }, CONST.ANIMATED_TRANSITION);
+            };
+
             if (focusTimeoutRef.current) {
                 clearTimeout(focusTimeoutRef.current);
             }
 
-            // Keyboard won't show if we focus the input with a delay, so we need to focus immediately.
-            if (!isMobileSafari()) {
-                focusTimeoutRef.current = setTimeout(() => {
-                    inputValidateCodeRef.current?.focusLastSelected();
-                }, CONST.ANIMATED_TRANSITION);
-            } else {
-                inputValidateCodeRef.current?.focusLastSelected();
+            if (DeviceCapabilities.canUseTouchScreen()) {
+                focusTimeoutRef.current = setTimeout(runFocusWithRetry, 0);
+
+                return () => {
+                    if (!focusTimeoutRef.current) {
+                        return;
+                    }
+                    clearTimeout(focusTimeoutRef.current);
+                };
             }
 
+            const interactionTask = InteractionManager.runAfterInteractions(runFocusWithRetry);
+
             return () => {
+                interactionTask.cancel();
                 if (!focusTimeoutRef.current) {
                     return;
                 }
                 clearTimeout(focusTimeoutRef.current);
             };
-        }, []),
+        }, [inputRef]),
     );
 
     useEffect(() => {
@@ -196,6 +221,7 @@ function BaseValidateCodeForm({
         countdownRef.current?.resetCountdown();
     }, [isCountdownRunning]);
 
+    // ✅ Accessibility announce (added from Code 2)
     useEffect(() => {
         if (!validateCodeSent) {
             return;
@@ -207,9 +233,9 @@ function BaseValidateCodeForm({
         if (!validateCodeSent) {
             return;
         }
-        // Delay prevents the input from gaining focus before the RHP slide-out animation finishes,
-        // which would cause issues with the RHP sliding out smoothly and flickering of the wide RHP in the background.
-        if ((wideRHPRouteKeys.length > 0 && !isMobileSafari()) || isInPageModal) {
+        const shouldDelayClear = !DeviceCapabilities.canUseTouchScreen() && ((wideRHPRouteKeys.length > 0 && !isMobileSafari()) || isInPageModal);
+
+        if (shouldDelayClear) {
             focusTimeoutRef.current = setTimeout(() => {
                 inputValidateCodeRef.current?.clear();
             }, CONST.ANIMATED_TRANSITION);
@@ -218,9 +244,6 @@ function BaseValidateCodeForm({
         }
     }, [validateCodeSent, wideRHPRouteKeys.length, isInPageModal]);
 
-    /**
-     * Request a validate code / magic code be sent to verify this contact method
-     */
     const resendValidateCode = () => {
         sendValidateCode();
         inputValidateCodeRef.current?.clear();
@@ -228,37 +251,25 @@ function BaseValidateCodeForm({
         setIsCountdownRunning(true);
     };
 
-    /**
-     * Handle text input and clear formError upon text change
-     */
     const onTextInput = useCallback(
         (text: string) => {
             setValidateCode(text);
             setFormError({});
 
             if (!isEmptyObject(validateError) || !isEmptyObject(latestValidateCodeError)) {
-                // Clear flow specific error
                 clearError();
-
-                // Clear "incorrect magic code" error
                 clearValidateCodeActionError(validateCodeActionErrorField);
             }
         },
         [validateError, clearError, latestValidateCodeError, validateCodeActionErrorField],
     );
 
-    /**
-     * Check that all the form fields are valid, then trigger the submit callback
-     */
     const validateAndSubmitForm = useCallback(() => {
-        // Clear flow specific error
         clearError();
-
-        // Clear "incorrect magic" code error
         clearValidateCodeActionError(validateCodeActionErrorField);
-
         clearDefaultValidationCodeError();
         setCanShowError(true);
+
         if (!validateCode.trim()) {
             setFormError({validateCode: 'validateCodeForm.error.pleaseFillMagicCode'});
             return;
@@ -289,12 +300,12 @@ function BaseValidateCodeForm({
         setIsCountdownRunning(false);
     }, []);
 
-    // latestValidateCodeError only holds an error related to bad magic code
-    // while validateError holds flow-specific errors
     const finalValidateError = !isEmptyObject(latestValidateCodeError) ? latestValidateCodeError : validateError;
+
     return (
         <>
             <MagicCodeInput
+                key={focusCycle}
                 autoComplete={autoComplete}
                 ref={inputValidateCodeRef}
                 name="validateCode"
@@ -304,6 +315,7 @@ function BaseValidateCodeForm({
                 hasError={canShowError && !isEmptyObject(finalValidateError)}
                 onFulfill={validateAndSubmitForm}
                 autoFocus={false}
+                inputCallbackRef={inputCallbackRef}
             />
             {shouldShowTimer && (
                 <View style={[styles.mt5, styles.flexRow, styles.renderHTML]}>
@@ -313,6 +325,7 @@ function BaseValidateCodeForm({
                     />
                 </View>
             )}
+
             <OfflineWithFeedback
                 pendingAction={validateCodeAction?.pendingFields?.validateCodeSent}
                 errorRowStyles={[styles.mt2]}
@@ -336,12 +349,13 @@ function BaseValidateCodeForm({
                     </View>
                 )}
             </OfflineWithFeedback>
+
+            {/* ✅ accessibility wrapper added (from Code 2) */}
             <View accessibilityLiveRegion="polite">
                 {!!validateCodeSent && (
                     <DotIndicatorMessage
                         type="success"
                         style={[styles.mt6, styles.flex0]}
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
                         messages={{0: translate('validateCodeModal.successfulNewCodeRequest')}}
                     />
                 )}
@@ -368,7 +382,6 @@ function BaseValidateCodeForm({
                         style={[styles.mt4]}
                         success={false}
                         large
-                        sentryLabel={CONST.SENTRY_LABEL.VALIDATE_CODE.SKIP}
                     />
                 )}
                 {!hideSubmitButton && (
@@ -379,9 +392,7 @@ function BaseValidateCodeForm({
                         style={[shouldShowSkipButton ? styles.mt3 : styles.mt4]}
                         success
                         large
-                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         isLoading={account?.isLoading || isLoading}
-                        sentryLabel={CONST.SENTRY_LABEL.VALIDATE_CODE.VERIFY}
                     />
                 )}
             </OfflineWithFeedback>
