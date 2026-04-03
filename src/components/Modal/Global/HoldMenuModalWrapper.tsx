@@ -131,12 +131,9 @@ function HoldMenuModalWrapper({
         setIsVisible(false);
     };
 
-    const promptText = (() => {
-        if (hasNonHeldExpenses) {
-            return translate(isApprove ? 'iou.confirmApprovalAmount' : 'iou.confirmPayAmount');
-        }
-        return translate(isApprove ? 'iou.confirmApprovalAllHoldAmount' : 'iou.confirmPayAllHoldAmount', {count: transactionCount});
-    })();
+    const promptText = hasNonHeldExpenses
+        ? translate(isApprove ? 'iou.confirmApprovalAmount' : 'iou.confirmPayAmount')
+        : translate(isApprove ? 'iou.confirmApprovalAllHoldAmount' : 'iou.confirmPayAllHoldAmount', {count: transactionCount});
 
     return (
         <DecisionModal
