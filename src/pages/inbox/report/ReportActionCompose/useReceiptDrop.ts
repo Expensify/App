@@ -41,7 +41,7 @@ function useReceiptDrop({reportID, report, shouldAddOrReplaceReceipt, transactio
 
     const isReceiptReplace = useRef(false);
 
-    const onFilesValidated = (files: FileObject[], dataTransferItems: DataTransferItem[]) => {
+    const onFilesValidated = (files: FileObject[], _dataTransferItems: DataTransferItem[]) => {
         if (files.length === 0) {
             return;
         }
