@@ -42,6 +42,10 @@ function ChartTooltipLayer({matchedIndex, isTooltipActive, data, formatValue, ch
 
     const wrapperStyle = useAnimatedStyle(() => ({
         position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
         opacity: isTooltipActive.get() ? 1 : 0,
     }));
 
