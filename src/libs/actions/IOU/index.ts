@@ -872,6 +872,7 @@ type DeleteMoneyRequestFunctionParams = {
     selectedTransactionIDs?: string[];
     allTransactionViolationsParam: OnyxCollection<OnyxTypes.TransactionViolations>;
     currentUserAccountID: number;
+    currentUserEmail: string;
 };
 
 type PayMoneyRequestFunctionParams = {
@@ -8608,6 +8609,7 @@ function deleteMoneyRequest({
     selectedTransactionIDs,
     allTransactionViolationsParam,
     currentUserAccountID,
+    currentUserEmail,
 }: DeleteMoneyRequestFunctionParams) {
     if (!transactionID) {
         return;
@@ -8691,14 +8693,7 @@ function deleteMoneyRequest({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
             value: {
-                hasOutstandingChildRequest: hasOutstandingChildRequest(
-                    chatReport,
-                    updatedIOUReport,
-                    deprecatedCurrentUserEmail,
-                    currentUserAccountID,
-                    allTransactionViolationsParam,
-                    undefined,
-                ),
+                hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, updatedIOUReport, currentUserEmail, currentUserAccountID, allTransactionViolationsParam, undefined),
             },
         });
     }
@@ -8717,14 +8712,7 @@ function deleteMoneyRequest({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
                 value: {
-                    hasOutstandingChildRequest: hasOutstandingChildRequest(
-                        chatReport,
-                        iouReport?.reportID,
-                        deprecatedCurrentUserEmail,
-                        currentUserAccountID,
-                        allTransactionViolationsParam,
-                        undefined,
-                    ),
+                    hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, iouReport?.reportID, currentUserEmail, currentUserAccountID, allTransactionViolationsParam, undefined),
                     iouReportID: null,
                     ...optimisticLastReportData,
                 },
@@ -8936,6 +8924,7 @@ function deleteTrackExpense({
             isSingleTransactionView,
             allTransactionViolationsParam,
             currentUserAccountID,
+            currentUserEmail: deprecatedCurrentUserEmail,
         });
         return urlToNavigateBack;
     }
@@ -11543,7 +11532,12 @@ function payInvoice({
     API.write(WRITE_COMMANDS.PAY_INVOICE, params, onyxData);
 }
 
-function detachReceipt(transactionID: string | undefined, transactionPolicy: OnyxEntry<OnyxTypes.Policy>, transactionPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>) {
+function detachReceipt(
+    transactionID: string | undefined,
+    transactionPolicy: OnyxEntry<OnyxTypes.Policy>,
+    transactionPolicyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
+    transactionPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
+) {
     if (!transactionID) {
         return;
     }
@@ -11599,17 +11593,14 @@ function detachReceipt(transactionID: string | undefined, transactionPolicy: Ony
     ];
 
     if (transactionPolicy && isPaidGroupPolicy(transactionPolicy) && newTransaction) {
-        // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) and getPolicyRecentlyUsedTagsData (https://github.com/Expensify/App/issues/71491) with useOnyx hook
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const policyTagList = getPolicyTagsData(transactionPolicy.id);
         const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
         const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
             newTransaction,
             currentTransactionViolations,
             transactionPolicy,
-            policyTagList ?? {},
+            transactionPolicyTagList ?? {},
             transactionPolicyCategories ?? {},
-            hasDependentTags(transactionPolicy, policyTagList ?? {}),
+            hasDependentTags(transactionPolicy, transactionPolicyTagList ?? {}),
             isInvoiceReportReportUtils(expenseReport),
         );
         optimisticData.push(violationsOnyxData);
@@ -11685,6 +11676,7 @@ function replaceReceipt({transactionID, file, source, state, transactionPolicy, 
     const oldReceipt = transaction?.receipt ?? {};
     const receiptOptimistic = {
         source,
+        localSource: null,
         state: state ?? CONST.IOU.RECEIPT_STATE.OPEN,
         filename: file.name,
     };

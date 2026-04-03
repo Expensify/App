@@ -1191,13 +1191,39 @@ function updateSplitTransactions({
     let updatedReportPreviewAction: Partial<OnyxTypes.ReportAction> | undefined;
     const originalReportPreviewAction = getReportPreviewAction(expenseReport?.chatReportID, expenseReport?.reportID);
     const transactionReportActions = getAllReportActions(firstIOU?.childReportID);
-    const allCommentActionsFromOriginalTransactionThread = Object.values(transactionReportActions ?? {})
-        .filter((action) => isAddCommentAction(action) && !isDeletedAction(action) && action?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
-        .sort((a, b) => (a.created > b.created ? 1 : -1));
     const expenseReportNameValuePairs = allReportNameValuePairsList?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport?.reportID}`];
     const isArchivedExpenseReport = isArchivedReport(expenseReportNameValuePairs);
     const canUserPerformWriteAction = chatReport ? !!canUserPerformWriteActionReportUtils(chatReport, isArchivedExpenseReport) : true;
     const lastVisibleAction = getLastVisibleAction(expenseReport?.reportID, canUserPerformWriteAction);
+    const isTransactionOnHold = isOnHold(originalTransaction);
+    const holdReportAction = getReportAction(firstIOU?.childReportID, `${originalTransaction?.comment?.hold ?? ''}`);
+
+    let holdCommentReportAction: OnyxTypes.ReportAction<'ADDCOMMENT'> | undefined;
+    const allCommentActionsFromOriginalTransactionThread: Array<OnyxTypes.ReportAction<'ADDCOMMENT'>> = [];
+    for (const action of Object.values(transactionReportActions ?? {})) {
+        if (!isAddCommentAction(action)) {
+            continue;
+        }
+
+        if (holdReportAction && !(holdCommentReportAction?.timestamp && holdReportAction?.timestamp === holdCommentReportAction.timestamp)) {
+            // The HOLD report action and its corresponding comment share the same `timestamp` value.
+            if (holdReportAction.timestamp !== undefined && holdReportAction.timestamp === action.timestamp) {
+                holdCommentReportAction = action;
+            } else if (action.created >= holdReportAction.created && (!holdCommentReportAction || holdCommentReportAction.created >= action.created)) {
+                // If `timestamp` is unavailable, fall back to finding the comment whose `created` value
+                // is greater than and closest to that of the holdReportAction.
+                holdCommentReportAction = action;
+            }
+        }
+
+        if (isDeletedAction(action) || action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            continue;
+        }
+        allCommentActionsFromOriginalTransactionThread.push(action);
+    }
+    // We will pre-sort to ensure that comments are inserted in the correct order.
+    allCommentActionsFromOriginalTransactionThread.sort((a, b) => (a.created > b.created ? 1 : -1));
+
     const updateParentActions = (iouAction: OnyxTypes.ReportAction, childVisibleActionCountToAdd: number) => {
         if (childVisibleActionCountToAdd <= 0) {
             return undefined;
@@ -1517,7 +1543,10 @@ function updateSplitTransactions({
                 value: fallbackViolations,
             });
         };
-        const addHoldToTransactionThread = (holdReportAction: OnyxTypes.ReportAction, commentAction: OnyxTypes.ReportAction | undefined) => {
+        const addHoldToTransactionThread = (commentAction?: OnyxTypes.ReportAction) => {
+            if (!holdReportAction) {
+                return;
+            }
             // Generate new IDs and timestamps for each split
             const newHoldReportActionID = NumberUtils.rand64();
             const timestamp = DateUtils.getDBTime();
@@ -1606,36 +1635,13 @@ function updateSplitTransactions({
         };
 
         let updatedIOUAction: Partial<OnyxTypes.ReportAction> | undefined;
-        const copyCommentsAndHoldState = ({
-            commentActions,
-            isSourceTransactionOnHold,
-            holdReportAction,
-        }: {
-            commentActions: OnyxTypes.ReportAction[];
-            isSourceTransactionOnHold: boolean;
-            holdReportAction: OnyxTypes.ReportAction | undefined;
-        }) => {
+        const copyCommentsAndHoldState = ({commentActions, isSourceTransactionOnHold}: {commentActions: OnyxTypes.ReportAction[]; isSourceTransactionOnHold: boolean}) => {
             let hasInsertedHoldState = !isSourceTransactionOnHold || !holdReportAction;
 
-            const insertHoldState = (holdCommentAction?: OnyxTypes.ReportAction) => {
-                if (!holdReportAction || hasInsertedHoldState) {
-                    return;
-                }
-
-                addHoldToTransactionThread(holdReportAction, holdCommentAction);
-                hasInsertedHoldState = true;
-            };
-            // Since timestamp is only returned from the backend, we will fallback to comparing the created field of both actions if it doesn't exist
-            const isHoldComment = (holdCommentAction: OnyxTypes.ReportAction, commentAction: OnyxTypes.ReportAction) => {
-                if (holdCommentAction.timestamp !== undefined) {
-                    return holdCommentAction.timestamp === commentAction.timestamp;
-                }
-                return DateUtils.subtractMillisecondsFromDateTime(commentAction.created, 1) === holdCommentAction.created;
-            };
-
             for (const commentAction of commentActions) {
-                if (!hasInsertedHoldState && holdReportAction && isHoldComment(holdReportAction, commentAction)) {
-                    insertHoldState(commentAction);
+                if (!hasInsertedHoldState && holdReportAction && commentAction.reportActionID === holdCommentReportAction?.reportActionID) {
+                    addHoldToTransactionThread(commentAction);
+                    hasInsertedHoldState = true;
                     continue;
                 }
 
@@ -1645,17 +1651,14 @@ function updateSplitTransactions({
             // If the commentAction is not found, it means the action has been deleted.
             // We call insertHoldState here to ensure the hold state is always added.
             if (!hasInsertedHoldState) {
-                insertHoldState();
+                addHoldToTransactionThread();
             }
         };
 
         if (isCreationOfSplits && transactionThreadReportID && firstIOU?.childReportID) {
-            const isTransactionOnHold = isOnHold(originalTransaction);
-            const holdReportAction = getReportAction(firstIOU.childReportID, `${originalTransaction?.comment?.hold ?? ''}`);
             copyCommentsAndHoldState({
                 commentActions: allCommentActionsFromOriginalTransactionThread,
                 isSourceTransactionOnHold: isTransactionOnHold,
-                holdReportAction,
             });
             updatedIOUAction = updateParentActions(iouAction, firstIOU.childVisibleActionCount ?? 0);
         }

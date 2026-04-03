@@ -137,7 +137,7 @@ function ReportActionItemImage({
     const localSource = transaction?.receipt?.localSource;
     const effectiveIsLocalFile = isLocalFile || !!localSource;
     const effectiveThumbnail = localSource ?? thumbnail;
-    const effectiveImage = localSource !== undefined && typeof image === 'string' ? localSource : image;
+    const effectiveImage = localSource != null && typeof image === 'string' ? localSource : image;
 
     const originalImageSource = tryResolveUrlFromApiRoot(effectiveImage ?? '');
     const thumbnailSource = tryResolveUrlFromApiRoot(effectiveThumbnail ?? '');

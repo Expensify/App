@@ -809,6 +809,9 @@ const translations: TranslationDeepObject<typeof en> = {
         emoji: '絵文字',
         collapse: '折りたたむ',
         expand: '展開',
+        askConciergeToUpdate: '「経費を更新」と入力してみてください…',
+        askConciergeToCorrect: '「経費を修正」と入力してみてください…',
+        askConciergeForHelp: 'Concierge AI にヘルプを依頼…',
     },
     reportActionContextMenu: {
         copyMessage: 'メッセージをコピー',

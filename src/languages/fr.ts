@@ -824,6 +824,9 @@ const translations: TranslationDeepObject<typeof en> = {
         emoji: 'Émoji',
         collapse: 'Réduire',
         expand: 'Agrandir',
+        askConciergeToUpdate: 'Essayez « Mettre à jour une dépense »…',
+        askConciergeToCorrect: 'Essayez « Corriger une dépense »...',
+        askConciergeForHelp: "Demander de l'aide à Concierge IA…",
     },
     reportActionContextMenu: {
         copyMessage: 'Copier le message',
