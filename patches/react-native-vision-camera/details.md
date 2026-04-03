@@ -1,6 +1,6 @@
 # `react-native-vision-camera` patches
 
-### [react-native-vision-camera+4.7.2+fix-preview-orientation.patch](react-native-vision-camera+4.7.2+fix-preview-orientation.patch)
+### [react-native-vision-camera+4.7.2+001+fix-camera-preview-orientation.patch](react-native-vision-camera+4.7.2+001+fix-camera-preview-orientation.patch)
 
 - Reason: 
 
