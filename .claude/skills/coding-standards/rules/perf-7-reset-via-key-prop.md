@@ -41,6 +41,8 @@ function ProfileView({ userId }) {
 }
 ```
 
+See also [CLEAN-REACT-PATTERNS-6](clean-react-6-conditional-mounting.md) for the related pattern of conditional mounting when effects have readiness guards.
+
 ---
 
 ### Review Metadata

@@ -11,6 +11,8 @@ Computing derived values directly in the component body ensures they're always s
 
 ### Incorrect
 
+#### Incorrect (redundant state synced via effect)
+
 ```tsx
 function Form() {
   const [firstName, setFirstName] = useState('Taylor');
@@ -21,6 +23,34 @@ function Form() {
   useEffect(() => {
     setFullName(firstName + ' ' + lastName);
   }, [firstName, lastName]);
+}
+```
+
+#### Incorrect (cascading effects — loop hazard)
+
+Chaining effects where one state update triggers another can create infinite loops, especially when a derived value accidentally ends up in a dependency array.
+
+```tsx
+function Cart({ subtotal }) {
+  const [tax, setTax] = useState(0);
+  const [total, setTotal] = useState(0);
+
+  useEffect(() => {
+    setTax(subtotal * 0.1);
+  }, [subtotal]);
+
+  // total in deps creates: state update → render → effect → state update → ...
+  useEffect(() => {
+    setTotal(subtotal + tax);
+  }, [subtotal, tax, total]);
+}
+```
+
+```tsx
+// Good: no effects, no loop risk
+function Cart({ subtotal }) {
+  const tax = subtotal * 0.1;
+  const total = subtotal + tax;
 }
 ```
 
