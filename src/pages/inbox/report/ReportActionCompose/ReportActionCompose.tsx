@@ -249,24 +249,6 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
         setDidResetComposerHeight(false);
     }, [didResetComposerHeight, editingState]);
 
-    // // Track whether the user was editing a message before
-    // const wasEditingBefore = useRef(false);
-    // useEffect(() => {
-    //     if (editingState === 'off') {
-    //         return;
-    //     }
-    //     wasEditingBefore.current = true;
-    // }, [editingState]);
-
-    // // Reset composer focus when editing is turned off, but not on the initial chat open.
-    // useEffect(() => {
-    //     if (editingState !== 'off' || !!draftComment || !wasEditingBefore.current) {
-    //         return;
-    //     }
-
-    //     setIsFocused(false);
-    // }, [draftComment, editingState]);
-
     const reportActionKeys = useMemo(() => (rawReportActions ? Object.keys(rawReportActions) : []), [rawReportActions]);
     const isEditingLastReportAction = useMemo(() => editingReportActionID === reportActionKeys.at(-1), [editingReportActionID, reportActionKeys]);
 
