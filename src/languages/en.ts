@@ -141,6 +141,8 @@ const translations = {
         resend: 'Resend',
         save: 'Save',
         select: 'Select',
+        // @context Status label appended to an accessibility label to indicate the item is currently chosen/active.
+        selected: 'selected',
         deselect: 'Deselect',
         // @context Menu or label title referring to the ability to select multiple items. Should be interpreted as a noun phrase, not a command.
         selectMultiple: 'Select multiple',

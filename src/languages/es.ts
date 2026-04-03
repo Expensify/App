@@ -44,6 +44,7 @@ const translations: TranslationDeepObject<typeof en> = {
         find: 'Encontrar',
         searchWithThreeDots: 'Buscar...',
         select: 'Seleccionar',
+        selected: 'seleccionado',
         deselect: 'Deseleccionar',
         selectMultiple: 'Seleccionar varios',
         next: 'Siguiente',

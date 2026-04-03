@@ -8,6 +8,7 @@ import type {PressableWithFeedbackProps} from '@components/Pressable/PressableWi
 import getAccessibilityLabel from '@components/SelectionList/utils/getAccessibilityLabel';
 import useHover from '@hooks/useHover';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import {useMouseActions, useMouseState} from '@hooks/useMouseContext';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
@@ -30,8 +31,22 @@ function getAccessibilityProps<TItem extends ListItem>({
     item,
     isFocused,
     canSelectMultiple,
-}: AccessibilityProps & Pick<BaseListItemProps<TItem>, 'item' | 'isFocused' | 'canSelectMultiple'>) {
-    const accessibilityState = role === CONST.ROLE.CHECKBOX || role === CONST.ROLE.RADIO ? {checked: !!item.isSelected, selected: !!isFocused} : {selected: !!item.isSelected};
+    selectedLabel,
+}: AccessibilityProps & Pick<BaseListItemProps<TItem>, 'item' | 'isFocused' | 'canSelectMultiple'> & {selectedLabel: string}) {
+    const isSelectableOption = !canSelectMultiple && role !== CONST.ROLE.CHECKBOX && role !== CONST.ROLE.RADIO;
+
+    // Chrome+VoiceOver doesn't announce aria-selected on role="option", so for single-select option items
+    // we bake the state into the label and omit aria-selected to avoid double announcements on screen readers that do support it.
+    const getAccessibilityState = () => {
+        if (role === CONST.ROLE.CHECKBOX || role === CONST.ROLE.RADIO) {
+            return {checked: !!item.isSelected, selected: !!isFocused};
+        }
+        if (isSelectableOption && item.isSelected) {
+            return {};
+        }
+        return {selected: !!item.isSelected};
+    };
+    const accessibilityState = getAccessibilityState();
 
     if (accessible === false) {
         return {
@@ -42,12 +57,11 @@ function getAccessibilityProps<TItem extends ListItem>({
         } satisfies CalculatedAccessibilityProps;
     }
 
-    const accessibilityLabel = getAccessibilityLabel(item);
-
-    // For single-select lists, use role="option" with aria-selected so screen readers announce "selected"/"not selected".
-    // For multi-select (checkbox/radio), keep existing role and state.
-    const isSelectableOption = !canSelectMultiple && role !== CONST.ROLE.CHECKBOX && role !== CONST.ROLE.RADIO;
     const effectiveRole = isSelectableOption ? CONST.ROLE.OPTION : role;
+    let accessibilityLabel = getAccessibilityLabel(item);
+    if (isSelectableOption && item.isSelected) {
+        accessibilityLabel = `${accessibilityLabel}, ${selectedLabel}`;
+    }
 
     return {
         role: effectiveRole,
@@ -98,7 +112,7 @@ function BaseListItem<TItem extends ListItem>({
     const {isMouseDownOnInput} = useMouseState();
     const {setMouseUp} = useMouseActions();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Checkmark', 'DotIndicator']);
-
+    const {translate} = useLocalize();
     const pressableRef = useRef<View>(null);
 
     // Sync focus on an item
@@ -134,6 +148,7 @@ function BaseListItem<TItem extends ListItem>({
         item,
         isFocused,
         canSelectMultiple,
+        selectedLabel: translate('common.selected'),
     });
 
     return (
