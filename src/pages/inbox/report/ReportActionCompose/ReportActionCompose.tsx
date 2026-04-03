@@ -261,7 +261,7 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
 
     // Reset composer focus when editing is turned off, but not on the initial chat open.
     useEffect(() => {
-        if (editingState !== 'off' || !wasEditingBefore.current) {
+        if (editingState !== 'off' || !!draftComment || !wasEditingBefore.current) {
             return;
         }
 
