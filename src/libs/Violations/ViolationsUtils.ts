@@ -825,8 +825,9 @@ const ViolationsUtils = {
         companyCardPageURL?: string,
         connectionLink?: string,
         cardList?: CardList,
-        isMarkAsCash?: boolean,
+        options?: {isMarkAsCash?: boolean; canEdit?: boolean},
     ): string {
+        const {isMarkAsCash, canEdit = true} = options ?? {};
         const errorMessages = extractErrorMessages(transaction?.errors ?? {}, transactionThreadActions?.filter((e) => !!e.errors) ?? [], translate);
         const filteredViolations = filterReceiptViolations(transactionViolations);
 
@@ -841,7 +842,7 @@ const ViolationsUtils = {
                 const message = ViolationsUtils.getViolationTranslation(
                     violation,
                     translate,
-                    true,
+                    canEdit,
                     tags,
                     companyCardPageURL,
                     connectionLink,

@@ -13,7 +13,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {isMarkAsCashActionForTransaction} from '@libs/ReportPrimaryActionUtils';
-import {isSettled} from '@libs/ReportUtils';
+import {isCurrentUserSubmitter, isSettled} from '@libs/ReportUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -63,6 +63,7 @@ function TransactionItemRowRBRInner({transaction, violations, report, containerS
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const isMarkAsCash = parentReport && currentUserLogin && violations ? isMarkAsCashActionForTransaction(currentUserLogin, parentReport, violations, policy) : false;
 
+    const canEdit = isCurrentUserSubmitter(parentReport);
     const RBRMessages = ViolationsUtils.getRBRMessages(
         transaction,
         isSettled(report) ? [] : (violations ?? []),
@@ -73,7 +74,7 @@ function TransactionItemRowRBRInner({transaction, violations, report, containerS
         companyCardPageURL,
         undefined,
         cardList,
-        isMarkAsCash,
+        {isMarkAsCash: isMarkAsCash || undefined, canEdit},
     );
     const hasHTMLTags = HTML_TAG_PATTERN.test(RBRMessages);
 
