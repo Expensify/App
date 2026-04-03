@@ -575,6 +575,7 @@ function IOURequestStepDistance({
             setManualFormError(translate('iou.error.invalidDistance'));
             return;
         }
+        console.log('value', value);
         if (!DistanceRequestUtils.isDistanceAmountWithinLimit(parseFloat(value), distanceRate)) {
             setManualFormError(translate('iou.error.distanceAmountTooLargeReduceDistance'));
             return;
