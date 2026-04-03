@@ -99,9 +99,10 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentTransaction?.reportID}`);
     const [prevThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${prevParentReportAction?.childReportID}`);
     const [nextThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${nextParentReportAction?.childReportID}`);
+    const transactions = [currentTransaction, prevTransaction, nextTransaction];
 
     /** Preload prev/next receipt images on web to avoid loading flash during navigation */
-    usePreloadReceiptImages([currentTransaction, prevTransaction, nextTransaction], session?.encryptedAuthToken);
+    usePreloadReceiptImages(transactions, session?.encryptedAuthToken);
 
     /**
      * We clear the sibling transactionThreadIDs when unmounting this component
