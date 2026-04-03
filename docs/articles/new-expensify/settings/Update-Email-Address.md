@@ -1,6 +1,6 @@
 ---
 title: Update Contact Methods
-description: Add or update contact methods for your Expensify account, including changing your default email or phone number.
+description: Add or update contact methods in Expensify and understand how login and magic codes work with multiple emails or phone numbers.
 keywords: [New Expensify, change email, add email, change phone number, add phone number, contact method, update default email, account access, secondary login, login methods, additional email, multiple logins]
 internalScope: Audience is all members. Covers adding contact methods, login behavior, verification, default contact method rules. Does not cover workspace-level settings, domain controls, account recovery edge cases.
 ---
@@ -22,8 +22,6 @@ Adding an additional contact method helps you:
 - **Log in using multiple options** — any added email or phone number can be used to access your account.
 - **Maintain access** if your primary email is tied to an employer domain.
 - **Switch your default contact method** to a new email or phone number.
-
- **Note:** Even if you log in using a secondary contact method, **the magic code is always sent to your default contact method**.
  
 ---
 
@@ -50,21 +48,13 @@ After verifying, select any contact method to:
 ## How login works with multiple contact methods
 
 - You can log in using any verified email or phone number on your account.
-- All added contact methods can be used as login credentials.
-- The magic code is always sent to your default contact method, regardless of which one you used to log in.
-
-Example:
-- You log in using a secondary email → the magic code is sent to your default email or phone number, not the one you entered.
+- When you enter an email or phone number on the login screen, Expensify sends the magic code to that same email or phone number.
 
 # FAQ
 
-## Why is my magic code sent to a different email than the one I used to log in?
-
-Expensify always sends the magic code to your default contact method. Even if you log in with a secondary email or phone number, the code goes to your default for security and consistency.
-
 ## Can I change where my magic code is sent?
 
-Yes. Set a different contact method as your default, and future magic codes will be sent there.
+Magic codes are always sent to the email or phone number you enter when logging in. To use a different destination, enter a different verified contact method.
 
 ## Can I log in with a phone number instead of an email?
 
