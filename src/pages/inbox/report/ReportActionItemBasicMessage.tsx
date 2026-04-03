@@ -16,7 +16,7 @@ function ReportActionItemBasicMessage({message, children}: ReportActionItemBasic
     const messageContainsCustomEmojiWithText = useMemo(() => containsCustomEmoji(message) && !containsOnlyCustomEmoji(message), [message]);
 
     return (
-        <View>
+        <View testID="ReportActionItemBasicMessage">
             {!!message &&
                 (messageContainsCustomEmojiWithText ? (
                     <TextWithEmojiFragment
