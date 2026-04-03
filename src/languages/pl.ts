@@ -3096,7 +3096,7 @@ ${
         error: {
             dateShouldBeBefore: (dateString: string) => `Data powinna być wcześniejsza niż ${dateString}`,
             dateShouldBeAfter: (dateString: string) => `Data powinna być po ${dateString}`,
-            hasInvalidCharacter: 'Nazwa może zawierać tylko znaki łacińskie',
+            hasInvalidCharacter: 'Nazwa nie może zawierać przecinka ani średnika',
             incorrectZipFormat: (zipFormat?: string) => `Nieprawidłowy format kodu pocztowego${zipFormat ? `Akceptowalny format: ${zipFormat}` : ''}`,
             invalidPhoneNumber: `Upewnij się, że numer telefonu jest prawidłowy (np. ${CONST.EXAMPLE_PHONE_NUMBER})`,
         },

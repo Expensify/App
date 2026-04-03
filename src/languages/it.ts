@@ -3105,7 +3105,7 @@ ${
         error: {
             dateShouldBeBefore: (dateString: string) => `La data deve essere precedente a ${dateString}`,
             dateShouldBeAfter: (dateString: string) => `La data deve essere successiva a ${dateString}`,
-            hasInvalidCharacter: 'Il nome può includere solo caratteri latini',
+            hasInvalidCharacter: 'Il nome non può contenere una virgola o un punto e virgola',
             incorrectZipFormat: (zipFormat?: string) => `Formato del codice postale non valido${zipFormat ? `Formato accettabile: ${zipFormat}` : ''}`,
             invalidPhoneNumber: `Assicurati che il numero di telefono sia valido (ad es. ${CONST.EXAMPLE_PHONE_NUMBER})`,
         },
