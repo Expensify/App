@@ -1,5 +1,6 @@
 import type {KeysOfUnion, ValueOf} from 'type-fest';
-import type {CreateTrackExpenseParams, IOURequestType, ReplaceReceipt, RequestMoneyInformation, StartSplitBilActionParams} from '@libs/actions/IOU';
+import type {IOURequestType, ReplaceReceipt, RequestMoneyInformation, StartSplitBilActionParams} from '@libs/actions/IOU';
+import type {CreateTrackExpenseParams} from '@libs/actions/IOU/TrackExpense';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type {FileObject} from '@src/types/utils/Attachment';
