@@ -156,7 +156,6 @@ function OptionRowLHNData({
         reportAttributesDerived,
         policyTags,
         currentUserLogin: login ?? '',
-        reportActions,
     });
 
     // For single-sender IOUs, trim to the sender's avatar to match the header.
