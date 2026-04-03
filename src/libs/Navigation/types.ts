@@ -2310,11 +2310,9 @@ type WalletStatementNavigatorParamList = {
 };
 
 type FlagCommentNavigatorParamList = {
-    [SCREENS.FLAG_COMMENT_ROOT]: {
+    [SCREENS.DYNAMIC_FLAG_COMMENT]: {
         reportID: string;
         reportActionID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
 };
 
