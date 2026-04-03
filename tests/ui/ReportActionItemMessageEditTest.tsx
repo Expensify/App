@@ -6,14 +6,18 @@ import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {editReportComment} from '@libs/actions/Report';
+import * as ReportActionContextMenu from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import ReportActionItemMessageEdit from '@pages/inbox/report/ReportActionItemMessageEdit';
 import type {ReportActionItemMessageEditProps} from '@pages/inbox/report/ReportActionItemMessageEdit';
+import {draftMessageVideoAttributeCache} from '@pages/inbox/report/useDraftMessageVideoAttributeCache';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Message} from '@src/types/onyx/ReportAction';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 
 const mockEditReportComment = jest.mocked(editReportComment);
+const mockShowDeleteModal = jest.mocked(ReportActionContextMenu.showDeleteModal);
 
 jest.mock('@libs/actions/Report', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -22,6 +26,16 @@ jest.mock('@libs/actions/Report', () => {
     return {
         ...actual,
         editReportComment: jest.fn(),
+    };
+});
+
+jest.mock('@pages/inbox/report/ContextMenu/ReportActionContextMenu', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const actual = jest.requireActual('@pages/inbox/report/ContextMenu/ReportActionContextMenu');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return {
+        ...actual,
+        showDeleteModal: jest.fn(),
     };
 });
 
@@ -51,7 +65,6 @@ TestHelper.setupGlobalFetchMock();
 const defaultReport = LHNTestUtils.getFakeReport();
 const defaultProps: ReportActionItemMessageEditProps = {
     action: LHNTestUtils.getFakeReportAction(),
-    draftMessage: '',
     reportID: defaultReport.reportID,
     originalReportID: defaultReport.reportID,
     index: 0,
@@ -83,6 +96,7 @@ describe('ReportActionCompose Integration Tests', () => {
         await act(async () => {
             await Onyx.clear();
         });
+        draftMessageVideoAttributeCache.clear();
         jest.clearAllMocks();
     });
 
@@ -120,6 +134,65 @@ describe('ReportActionCompose Integration Tests', () => {
 
             // And the error should be displayed
             expect(screen.getByText('composer.commentExceededMaxLength')).toBeOnTheScreen();
+        });
+
+        it('should open delete modal when saving an empty message', async () => {
+            renderReportActionItemMessageEdit();
+            const composer = screen.getByTestId('composer');
+            const saveChangesButton = screen.getByLabelText('common.saveChanges');
+
+            // Given a message that becomes empty after trimming
+            fireEvent.changeText(composer, '   ');
+
+            // When the message is saved
+            fireEvent.press(saveChangesButton);
+
+            // Then the message should NOT be edited
+            expect(mockEditReportComment).toHaveBeenCalledTimes(0);
+
+            // And the delete confirmation flow should be opened
+            expect(mockShowDeleteModal).toHaveBeenCalledTimes(1);
+        });
+
+        it('should cache and forward video attributes when saving an edited message', async () => {
+            const videoSource = 'https://example.com/video.mp4';
+            const videoHtml = `<video src="${videoSource}" data-expensify-source="${videoSource}" data-name="video.mp4" data-expensify-height="100" data-expensify-width="200">video.mp4</video>`;
+
+            const messages = defaultProps.action.message as Message[];
+
+            renderReportActionItemMessageEdit({
+                action: {
+                    ...defaultProps.action,
+                    message: [
+                        {
+                            ...messages.at(0),
+                            type: 'COMMENT',
+                            html: videoHtml,
+                            text: '[Attachment]',
+                        },
+                    ],
+                },
+            });
+
+            const composer = screen.getByTestId('composer');
+            const saveChangesButton = screen.getByLabelText('common.saveChanges');
+
+            // Given a valid edited message
+            fireEvent.changeText(composer, 'Edited message');
+
+            // When the message is saved
+            fireEvent.press(saveChangesButton);
+
+            expect(mockEditReportComment).toHaveBeenCalledTimes(1);
+
+            const editReportCommentArgs = mockEditReportComment.mock.calls.at(0);
+            const videoAttributeCache = editReportCommentArgs?.[7];
+
+            expect(videoAttributeCache).toEqual(expect.any(Object));
+            expect(videoAttributeCache?.[videoSource]).toEqual(expect.any(String));
+            expect(videoAttributeCache?.[videoSource]).toContain('data-name');
+            expect(videoAttributeCache?.[videoSource]).toContain('data-expensify-height');
+            expect(videoAttributeCache?.[videoSource]).toContain('data-expensify-width');
         });
     });
 });

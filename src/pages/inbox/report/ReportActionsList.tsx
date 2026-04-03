@@ -48,7 +48,6 @@ import {
     canShowReportRecipientLocalTime,
     canUserPerformWriteAction,
     chatIncludesChronosWithID,
-    getOriginalReportID,
     getReportLastVisibleActionCreated,
     isArchivedNonExpenseReport,
     isCanceledTaskReport,
@@ -206,7 +205,6 @@ function ReportActionsList({
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: isUserValidatedSelector,
     });
-    const [reportActionsFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`);
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
@@ -684,7 +682,6 @@ function ReportActionsList({
 
     const renderItem = useCallback(
         ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
-            const originalReportID = getOriginalReportID(report.reportID, reportAction, reportActionsFromOnyx);
             const showPreviousMessagesButton = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && !!isConciergeSidePanel && !!showHiddenHistory && !!hasPreviousMessages;
 
             return (
@@ -725,7 +722,6 @@ function ReportActionsList({
                         userWalletTierName={userWalletTierName}
                         isUserValidated={isUserValidated}
                         personalDetails={personalDetailsList}
-                        originalReportID={originalReportID}
                         isReportArchived={isReportArchived}
                         userBillingFundID={userBillingFundID}
                         isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
@@ -736,9 +732,15 @@ function ReportActionsList({
             );
         },
         [
+            report,
+            isConciergeSidePanel,
+            showHiddenHistory,
+            hasPreviousMessages,
+            expensifyIcons.UpArrow,
+            translate,
+            onShowPreviousMessages,
             parentReportAction,
             parentReportActionForTransactionThread,
-            report,
             isOffline,
             transactionThreadReport,
             linkedReportActionID,
@@ -751,19 +753,12 @@ function ReportActionsList({
             userWalletTierName,
             isUserValidated,
             personalDetailsList,
+            isReportArchived,
             userBillingFundID,
             isTryNewDotNVPDismissed,
-            isReportArchived,
             reportNameValuePairs?.origin,
             reportNameValuePairs?.originalID,
-            reportActionsFromOnyx,
-            isConciergeSidePanel,
-            showHiddenHistory,
-            hasPreviousMessages,
-            onShowPreviousMessages,
             styles,
-            translate,
-            expensifyIcons.UpArrow,
         ],
     );
 

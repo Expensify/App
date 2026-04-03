@@ -1,5 +1,4 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {getReportActionsForReportIDs} from '@selectors/ReportAction';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -15,16 +14,16 @@ import {getOriginalMessage, isMoneyRequestAction, isTripPreview} from '@libs/Rep
 import {
     canCurrentUserOpenReport,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
-    getOriginalReportID,
     isArchivedReport,
     navigateToLinkedReportAction,
     shouldExcludeAncestorReportAction,
 } from '@libs/ReportUtils';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Report, ReportAction, ReportActionReactions, ReportActions, ReportActionsDrafts, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+import type {PersonalDetailsList, Report, ReportAction, ReportActionReactions, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import RepliesDivider from './RepliesDivider';
+import {useReportActionActiveEdit} from './ReportActionEditMessageContext';
 import ReportActionItem from './ReportActionItem';
 import ThreadDivider from './ThreadDivider';
 
@@ -133,43 +132,7 @@ function ReportActionItemParentAction({
         [ancestors],
     );
 
-    const ancestorReportActionsSelector = useCallback(
-        (allReportActions: OnyxCollection<ReportActions>) => {
-            const reportIDs = ancestors.map((ancestor) => ancestor.report.reportID);
-            return getReportActionsForReportIDs(allReportActions, reportIDs);
-        },
-        [ancestors],
-    );
-
-    const [ancestorsReportActions] = useOnyx(
-        ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-        {
-            selector: ancestorReportActionsSelector,
-        },
-        [ancestors],
-    );
-
-    const ancestorDraftSelector = useCallback(
-        (allDrafts: OnyxCollection<ReportActionsDrafts>) => {
-            if (!allDrafts) {
-                return {};
-            }
-            const result: OnyxCollection<ReportActionsDrafts> = {};
-            for (const ancestor of ancestors) {
-                const origID = getOriginalReportID(
-                    ancestor.report.reportID,
-                    ancestor.reportAction,
-                    ancestorsReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ancestor.report.reportID}`],
-                );
-                const key = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${origID}`;
-                result[key] = allDrafts[key];
-            }
-            return result;
-        },
-        [ancestors, ancestorsReportActions],
-    );
-
-    const [ancestorDraftMessages] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS, {selector: ancestorDraftSelector}, [ancestors, ancestorsReportActions]);
+    const {editingMessage, editingReportAction} = useReportActionActiveEdit();
 
     const ancestorReactionSelector = useCallback(
         (allReactions: OnyxCollection<ReportActionReactions>) => {
@@ -209,14 +172,8 @@ function ReportActionItemParentAction({
                     const shouldDisplayThreadDivider = !isTripPreview(ancestorReportAction);
                     const isAncestorReportArchived = isArchivedReport(ancestorsReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${ancestorReport.reportID}`]);
 
-                    const originalReportID = getOriginalReportID(
-                        ancestorReport.reportID,
-                        ancestorReportAction,
-                        ancestorsReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ancestorReport.reportID}`],
-                    );
-                    const reportDraftMessages = originalReportID ? ancestorDraftMessages?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`] : undefined;
-                    const matchingDraftMessage = reportDraftMessages?.[ancestorReportAction.reportActionID];
-                    const matchingDraftMessageString = matchingDraftMessage?.message;
+                    const draftMessage = editingReportAction?.reportActionID === ancestorReportAction.reportActionID ? (editingMessage ?? undefined) : undefined;
+
                     const actionEmojiReactions = ancestorReactions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${ancestorReportAction.reportActionID}`];
 
                     return (
@@ -256,7 +213,7 @@ function ReportActionItemParentAction({
                                 userWalletTierName={userWalletTierName}
                                 isUserValidated={isUserValidated}
                                 personalDetails={personalDetails}
-                                draftMessage={matchingDraftMessageString}
+                                draftMessage={draftMessage}
                                 emojiReactions={actionEmojiReactions}
                                 linkedTransactionRouteError={linkedTransactionRouteError}
                                 userBillingFundID={userBillingFundID}

@@ -1,6 +1,5 @@
 import {useRoute} from '@react-navigation/native';
 import {Str} from 'expensify-common';
-import lodashDebounce from 'lodash/debounce';
 import noop from 'lodash/noop';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {BlurEvent, MeasureInWindowOnSuccessCallback, TextInputSelectionChangeEvent} from 'react-native';
@@ -22,14 +21,13 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
-import useHandleExceedMaxTaskTitleLength from '@hooks/useHandleExceedMaxTaskTitleLength';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useIsScrollLikelyLayoutTriggered from '@hooks/useIsScrollLikelyLayoutTriggered';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useOriginalReportID from '@hooks/useOriginalReportID';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParentReportAction from '@hooks/useParentReportAction';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
@@ -86,6 +84,7 @@ import {generateAccountID} from '@libs/UserUtils';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import {useAgentZeroStatusActions} from '@pages/inbox/AgentZeroStatusContext';
 import ParticipantLocalTime from '@pages/inbox/report/ParticipantLocalTime';
+import {useReportActionActiveEdit} from '@pages/inbox/report/ReportActionEditMessageContext';
 import ReportTypingIndicator from '@pages/inbox/report/ReportTypingIndicator';
 import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 import {hideEmojiPicker, isActive as isActiveEmojiPickerAction, isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
@@ -99,9 +98,13 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
-import type {ComposerRef} from './ComposerWithSuggestions/ComposerWithSuggestions';
-import SendButton from './SendButton';
+import type {ComposerWithSuggestionsRef} from './ComposerWithSuggestions';
+import ExpandCollapseComposerButton from './ExpandCollapseComposerButton';
+import MessageEditCancelButton from './MessageEditCancelButton';
+import ReportActionComposeSendButton from './ReportActionComposeSendButton';
 import useAttachmentUploadValidation from './useAttachmentUploadValidation';
+import useDebouncedCommentMaxLengthValidation from './useDebouncedCommentMaxLengthValidation';
+import useEditMessage from './useEditMessage';
 
 type SuggestionsRef = {
     resetSuggestions: () => void;
@@ -162,7 +165,6 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
     const personalDetails = usePersonalDetails();
     const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE);
-    const [shouldShowComposeInput = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const {availableLoginsList} = useShortMentionsList();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
@@ -223,26 +225,45 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
     const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
 
-    const shouldFocusComposerOnScreenFocus = shouldFocusInputOnScreenFocus || !!draftComment;
+    const [rawReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`, {
+        canEvict: false,
+    });
+
+    /**
+     * Updates the Highlight state of the composer
+     */
+    const [isFocused, setIsFocused] = useState(() => {
+        return shouldFocusInputOnScreenFocus && !initialModalState?.isVisible && !initialModalState?.willAlertModalBecomeVisible;
+    });
+
+    const {editingState, editingReportID, editingReportActionID, editingReportAction, editingMessage} = useReportActionActiveEdit();
+
+    const [didResetComposerHeight, setDidResetComposerHeight] = useState(false);
+    const isEditingInComposer = shouldUseNarrowLayout && editingState !== 'off' && !didResetComposerHeight;
+
+    useEffect(() => {
+        if (editingState !== 'off' || !didResetComposerHeight) {
+            return;
+        }
+
+        setDidResetComposerHeight(false);
+    }, [didResetComposerHeight, editingState]);
+
+    const reportActionKeys = useMemo(() => (rawReportActions ? Object.keys(rawReportActions) : []), [rawReportActions]);
+    const isEditingLastReportAction = useMemo(() => editingReportActionID === reportActionKeys.at(-1), [editingReportActionID, reportActionKeys]);
 
     const [targetReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${effectiveTransactionThreadReportID ?? reportID}`);
     const reportAncestors = useAncestors(report);
     const targetReportAncestors = useAncestors(targetReport);
     const {scrollOffsetRef} = useContext(ActionListContext);
 
-    /**
-     * Updates the Highlight state of the composer
-     */
-    const [isFocused, setIsFocused] = useState(() => {
-        return shouldFocusComposerOnScreenFocus && shouldShowComposeInput && !initialModalState?.isVisible && !initialModalState?.willAlertModalBecomeVisible;
-    });
-
     const [isFullComposerAvailable, setIsFullComposerAvailable] = useState(isComposerFullSize);
 
     const {isScrollLayoutTriggered, raiseIsScrollLayoutTriggered} = useIsScrollLikelyLayoutTriggered();
 
+    const effectiveDraft = isEditingInComposer ? editingMessage : draftComment;
     const [isCommentEmpty, setIsCommentEmpty] = useState(() => {
-        return !draftComment || !!draftComment.match(CONST.REGEX.EMPTY_COMMENT);
+        return !effectiveDraft || !!effectiveDraft.match(CONST.REGEX.EMPTY_COMMENT);
     });
 
     /**
@@ -250,20 +271,11 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
      */
     const [isMenuVisible, setMenuVisibility] = useState(false);
     const [isAttachmentPreviewActive, setIsAttachmentPreviewActive] = useState(false);
-    const [didHideComposerInput, setDidHideComposerInput] = useState(!shouldShowComposeInput);
-
-    /**
-     * Updates the composer when the comment length is exceeded
-     * Shows red borders and prevents the comment from being sent
-     */
-    const {hasExceededMaxCommentLength, validateCommentMaxLength, setHasExceededMaxCommentLength} = useHandleExceedMaxCommentLength();
-    const {hasExceededMaxTaskTitleLength, validateTaskTitleMaxLength, setHasExceededMaxTitleLength} = useHandleExceedMaxTaskTitleLength();
-    const [exceededMaxLength, setExceededMaxLength] = useState<number | null>(null);
 
     const icons = useMemoizedLazyExpensifyIcons(['MessageInABottle']);
 
     const suggestionsRef = useRef<SuggestionsRef>(null);
-    const composerRef = useRef<ComposerRef | null>(null);
+    const composerRef = useRef<ComposerWithSuggestionsRef | null>(null);
     const reportParticipantIDs = useMemo(
         () =>
             Object.keys(report?.participants ?? {})
@@ -284,11 +296,8 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
     const isTransactionThreadView = useMemo(() => isReportTransactionThread(report), [report]);
     const isExpensesReport = useMemo(() => reportTransactions && reportTransactions.length > 1, [reportTransactions]);
 
-    const [rawReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`, {
-        canEvict: false,
-    });
-
-    const iouAction = rawReportActions ? Object.values(rawReportActions).find((action) => isMoneyRequestAction(action)) : null;
+    const reportActionValues = useMemo(() => (rawReportActions ? Object.values(rawReportActions) : []), [rawReportActions]);
+    const iouAction = reportActionValues.find((action) => isMoneyRequestAction(action));
     const linkedTransactionID = iouAction && !isExpensesReport ? getLinkedTransactionID(iouAction) : undefined;
 
     const transactionID = useMemo(() => getTransactionID(report) ?? linkedTransactionID, [report, linkedTransactionID]);
@@ -399,12 +408,46 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
         ComposerFocusManager.setReadyToFocus();
     }, [updateShouldShowSuggestionMenuToFalse]);
 
+    const {debouncedCommentMaxLengthValidation, exceededMaxLength, isExceedingMaxLength, isTaskTitle} = useDebouncedCommentMaxLengthValidation({
+        reportID,
+        isEditing: !!editingReportAction,
+    });
+
+    const originalReportID = useOriginalReportID(editingReportID ?? undefined, editingReportAction);
+
+    const {publishDraft, deleteDraft} = useEditMessage({
+        reportID: editingReportID ?? undefined,
+        originalReportID,
+        reportAction: editingReportAction,
+        shouldScrollToLastMessage: isEditingLastReportAction,
+        isFocused,
+        debouncedCommentMaxLengthValidation,
+        composerRef,
+    });
+
+    const isSubmittingDraftCommentDisabled = isBlockedFromConcierge || isExceedingMaxLength || isCommentEmpty;
+    const isSendDisabled = !isEditingInComposer && isSubmittingDraftCommentDisabled;
+
+    // Note: using JS refs is not well supported in reanimated, thus we need to store the function in a shared value
+    // useSharedValue on web doesn't support functions, so we need to wrap it in an object.
+    const composerRefShared = useSharedValue<Partial<ComposerWithSuggestionsRef>>({});
+
     /**
-     * Add a new comment to this chat
+     * Add or edit a comment in the composer
      */
-    const submitForm = useCallback(
-        (newComment: string) => {
-            const newCommentTrimmed = newComment.trim();
+    const validateAndSubmitDraft = useCallback(
+        (draftMessage: string) => {
+            const draftMessageTrimmed = draftMessage.trim();
+
+            const isSubmittingEdit = isEditingInComposer || didResetComposerHeight;
+            if (isSubmittingEdit && !attachmentFileRef.current) {
+                publishDraft(draftMessageTrimmed);
+                return;
+            }
+
+            if (!draftMessageTrimmed && !attachmentFileRef.current) {
+                return;
+            }
 
             kickoffWaitingIndicator();
 
@@ -415,14 +458,14 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
                     ancestors: targetReportAncestors,
                     attachments: attachmentFileRef.current,
                     currentUserAccountID: currentUserPersonalDetails.accountID,
-                    text: newCommentTrimmed,
+                    text: draftMessageTrimmed,
                     timezone: currentUserPersonalDetails.timezone,
                     shouldPlaySound: true,
                     isInSidePanel,
                 });
                 attachmentFileRef.current = null;
             } else {
-                const taskMatch = newCommentTrimmed.match(CONST.REGEX.TASK_TITLE_WITH_OPTIONAL_SHORT_MENTION);
+                const taskMatch = draftMessageTrimmed.match(CONST.REGEX.TASK_TITLE_WITH_OPTIONAL_SHORT_MENTION);
                 if (taskMatch) {
                     let taskTitle = taskMatch[3] ? taskMatch[3].trim().replaceAll('\n', ' ') : undefined;
                     if (taskTitle) {
@@ -477,7 +520,7 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
                         op: CONST.TELEMETRY.SPAN_SEND_MESSAGE,
                         attributes: {
                             [CONST.TELEMETRY.ATTRIBUTE_REPORT_ID]: reportID,
-                            [CONST.TELEMETRY.ATTRIBUTE_MESSAGE_LENGTH]: newCommentTrimmed.length,
+                            [CONST.TELEMETRY.ATTRIBUTE_MESSAGE_LENGTH]: draftMessageTrimmed.length,
                         },
                     });
                 }
@@ -485,7 +528,7 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
                     report: targetReport,
                     notifyReportID: reportID,
                     ancestors: targetReportAncestors,
-                    text: newCommentTrimmed,
+                    text: draftMessageTrimmed,
                     timezoneParam: currentUserPersonalDetails.timezone ?? CONST.DEFAULT_TIME_ZONE,
                     currentUserAccountID: currentUserPersonalDetails.accountID,
                     shouldPlaySound: true,
@@ -495,22 +538,71 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
             }
         },
         [
+            isEditingInComposer,
+            didResetComposerHeight,
             kickoffWaitingIndicator,
+            publishDraft,
             targetReport,
-            report,
             reportID,
             targetReportAncestors,
-            reportAncestors,
             currentUserPersonalDetails.accountID,
             currentUserPersonalDetails.timezone,
             isInSidePanel,
+            scrollOffsetRef,
             currentUserEmail,
             availableLoginsList,
-            personalDetails,
+            report,
             quickAction,
-            scrollOffsetRef,
+            reportAncestors,
+            personalDetails,
         ],
     );
+
+    const submitDraftAndClearComposer = useCallback(() => {
+        if (isSendDisabled || !debouncedCommentMaxLengthValidation.flush()) {
+            return;
+        }
+
+        if (isComposerFullSize) {
+            setIsComposerFullSize(reportID, false);
+        }
+
+        // If there is a draft comment and we are submitting an edit, we don't want to clear the composer height and the draft comment.
+        // Therefore, we directly trigger the validation and submission of the draft comment.
+        if (isEditingInComposer && editingMessage !== null && draftComment) {
+            validateAndSubmitDraft(editingMessage);
+            return;
+        }
+
+        if (effectiveDraft !== null && effectiveDraft !== '') {
+            composerRef.current?.resetHeight();
+            if (isEditingInComposer) {
+                setDidResetComposerHeight(true);
+            }
+        }
+
+        scheduleOnUI(() => {
+            const {clearWorklet} = composerRefShared.get();
+
+            if (!clearWorklet) {
+                throw new Error('The composerRef.clearWorklet function is not set yet. This should never happen, and indicates a developer error.');
+            }
+
+            clearWorklet?.();
+        });
+    }, [
+        isSendDisabled,
+        debouncedCommentMaxLengthValidation,
+        isComposerFullSize,
+        isEditingInComposer,
+        editingMessage,
+        draftComment,
+        effectiveDraft,
+        reportID,
+        validateAndSubmitDraft,
+        composerRefShared,
+    ]);
+    onSubmitAction = submitDraftAndClearComposer;
 
     const onTriggerAttachmentPicker = useCallback(() => {
         isNextModalWillOpenRef.current = true;
@@ -532,25 +624,6 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
         setIsFocused(true);
     }, []);
 
-    useEffect(() => {
-        if (hasExceededMaxTaskTitleLength) {
-            setExceededMaxLength(CONST.TITLE_CHARACTER_LIMIT);
-        } else if (hasExceededMaxCommentLength) {
-            setExceededMaxLength(CONST.MAX_COMMENT_LENGTH);
-        } else {
-            setExceededMaxLength(null);
-        }
-    }, [hasExceededMaxTaskTitleLength, hasExceededMaxCommentLength]);
-
-    useEffect(() => {
-        if (didHideComposerInput || shouldShowComposeInput) {
-            return;
-        }
-        // This is an intentional one-way latch: once the composer input has been hidden, it stays hidden.
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setDidHideComposerInput(true);
-    }, [shouldShowComposeInput, didHideComposerInput]);
-
     // We are returning a callback here as we want to invoke the method on unmount only
     useEffect(
         () => () => {
@@ -570,51 +643,6 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
     const shouldUseFocusedColor = !isBlockedFromConcierge && isFocused;
 
     const hasReportRecipient = !isEmptyObject(reportRecipient);
-
-    const isSendDisabled = isCommentEmpty || isBlockedFromConcierge || !!exceededMaxLength;
-
-    const validateMaxLength = useCallback(
-        (value: string) => {
-            const taskCommentMatch = value?.match(CONST.REGEX.TASK_TITLE_WITH_OPTIONAL_SHORT_MENTION);
-            if (taskCommentMatch) {
-                const title = taskCommentMatch?.[3] ? taskCommentMatch[3].trim().replaceAll('\n', ' ') : '';
-                setHasExceededMaxCommentLength(false);
-                return validateTaskTitleMaxLength(title);
-            }
-            setHasExceededMaxTitleLength(false);
-            return validateCommentMaxLength(value, {reportID});
-        },
-        [setHasExceededMaxCommentLength, setHasExceededMaxTitleLength, validateTaskTitleMaxLength, validateCommentMaxLength, reportID],
-    );
-
-    const debouncedValidate = useMemo(() => lodashDebounce(validateMaxLength, CONST.TIMING.COMMENT_LENGTH_DEBOUNCE_TIME, {leading: true}), [validateMaxLength]);
-
-    // Note: using JS refs is not well supported in reanimated, thus we need to store the function in a shared value
-    // useSharedValue on web doesn't support functions, so we need to wrap it in an object.
-    const composerRefShared = useSharedValue<Partial<ComposerRef>>({});
-
-    const handleSendMessage = useCallback(() => {
-        if (isSendDisabled || !debouncedValidate.flush()) {
-            return;
-        }
-
-        composerRef.current?.resetHeight();
-        if (isComposerFullSize) {
-            setIsComposerFullSize(reportID, false);
-        }
-
-        scheduleOnUI(() => {
-            const {clearWorklet} = composerRefShared.get();
-
-            if (!clearWorklet) {
-                throw new Error('The composerRef.clearWorklet function is not set yet. This should never happen, and indicates a developer error.');
-            }
-
-            clearWorklet?.();
-        });
-    }, [isSendDisabled, debouncedValidate, isComposerFullSize, reportID, composerRefShared]);
-
-    onSubmitAction = handleSendMessage;
 
     const emojiPositionValues = useMemo(
         () => ({
@@ -651,9 +679,9 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
             if (value.length === 0 && isComposerFullSize) {
                 setIsComposerFullSize(reportID, false);
             }
-            debouncedValidate(value);
+            debouncedCommentMaxLengthValidation(value);
         },
-        [isComposerFullSize, reportID, debouncedValidate],
+        [isComposerFullSize, reportID, debouncedCommentMaxLengthValidation],
     );
 
     const {validateAttachments, onReceiptDropped, PDFValidationComponent, ErrorModal} = useAttachmentUploadValidation({
@@ -672,11 +700,39 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
         setIsAttachmentPreviewActive,
     });
 
+    const fsClass = FS.getChatFSClass(report);
+
+    const containerStyles = useMemo(
+        () => [
+            shouldUseFocusedColor ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
+            styles.flexRow,
+            styles.chatItemComposeBox,
+            isComposerFullSize && styles.chatItemFullComposeBox,
+            isExceedingMaxLength && styles.borderColorDanger,
+        ],
+        [
+            shouldUseFocusedColor,
+            styles.chatItemComposeBoxFocusedColor,
+            styles.chatItemComposeBoxColor,
+            styles.flexRow,
+            styles.chatItemComposeBox,
+            styles.chatItemFullComposeBox,
+            styles.borderColorDanger,
+            isComposerFullSize,
+            isExceedingMaxLength,
+        ],
+    );
+
+    const editingButtonsContainerStyles = useMemo(
+        () => [styles.dFlex, styles.alignItemsCenter, styles.flexWrap, styles.justifyContentCenter, {paddingVertical: styles.composerSizeButton.marginHorizontal}],
+        [styles.alignItemsCenter, styles.composerSizeButton.marginHorizontal, styles.dFlex, styles.flexWrap, styles.justifyContentCenter],
+    );
+
+    const expandCollapseComposerButtonStyles = useMemo(() => [styles.flexGrow1, styles.flexShrink0], [styles.flexGrow1, styles.flexShrink0]);
+
     if (!report) {
         return null;
     }
-
-    const fsClass = FS.getChatFSClass(report);
 
     return (
         <View style={[shouldShowReportRecipientLocalTime && !isOffline && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}>
@@ -692,39 +748,48 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
                 >
                     <View
                         ref={containerRef}
-                        style={[
-                            shouldUseFocusedColor ? styles.chatItemComposeBoxFocusedColor : styles.chatItemComposeBoxColor,
-                            styles.flexRow,
-                            styles.chatItemComposeBox,
-                            isComposerFullSize && styles.chatItemFullComposeBox,
-                            !!exceededMaxLength && styles.borderColorDanger,
-                        ]}
+                        style={containerStyles}
                     >
                         {PDFValidationComponent}
-                        <AttachmentPickerWithMenuItems
-                            onAttachmentPicked={(files) => validateAttachments({files})}
-                            reportID={reportID}
-                            report={report}
-                            currentUserPersonalDetails={currentUserPersonalDetails}
-                            reportParticipantIDs={reportParticipantIDs}
-                            isFullComposerAvailable={isFullComposerAvailable}
-                            isComposerFullSize={isComposerFullSize}
-                            disabled={isBlockedFromConcierge}
-                            setMenuVisibility={setMenuVisibility}
-                            isMenuVisible={isMenuVisible}
-                            onTriggerAttachmentPicker={onTriggerAttachmentPicker}
-                            raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLayoutTriggered}
-                            onAddActionPressed={onAddActionPressed}
-                            onItemSelected={onItemSelected}
-                            onCanceledAttachmentPicker={() => {
-                                if (!shouldFocusComposerOnScreenFocus) {
-                                    return;
-                                }
-                                focus();
-                            }}
-                            actionButtonRef={actionButtonRef}
-                            shouldDisableAttachmentItem={!!exceededMaxLength}
-                        />
+                        {isEditingInComposer ? (
+                            <View style={editingButtonsContainerStyles}>
+                                <ExpandCollapseComposerButton
+                                    isFullComposerAvailable={isFullComposerAvailable}
+                                    isComposerFullSize={isComposerFullSize}
+                                    reportID={reportID}
+                                    disabled={isBlockedFromConcierge}
+                                    raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLayoutTriggered}
+                                    setIsComposerFullSize={setIsComposerFullSize}
+                                    style={expandCollapseComposerButtonStyles}
+                                />
+                                <MessageEditCancelButton onCancel={deleteDraft} />
+                            </View>
+                        ) : (
+                            <AttachmentPickerWithMenuItems
+                                onAttachmentPicked={(files) => validateAttachments({files})}
+                                reportID={reportID}
+                                report={report}
+                                currentUserPersonalDetails={currentUserPersonalDetails}
+                                reportParticipantIDs={reportParticipantIDs}
+                                isFullComposerAvailable={isFullComposerAvailable}
+                                isComposerFullSize={isComposerFullSize}
+                                disabled={isBlockedFromConcierge}
+                                setMenuVisibility={setMenuVisibility}
+                                isMenuVisible={isMenuVisible}
+                                onTriggerAttachmentPicker={onTriggerAttachmentPicker}
+                                raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLayoutTriggered}
+                                onAddActionPressed={onAddActionPressed}
+                                onItemSelected={onItemSelected}
+                                onCanceledAttachmentPicker={() => {
+                                    if (!shouldFocusInputOnScreenFocus) {
+                                        return;
+                                    }
+                                    focus();
+                                }}
+                                actionButtonRef={actionButtonRef}
+                                shouldDisableAttachmentItem={isExceedingMaxLength}
+                            />
+                        )}
                         <ComposerWithSuggestions
                             ref={(ref) => {
                                 composerRef.current = ref;
@@ -746,16 +811,14 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
                             isComposerFullSize={isComposerFullSize}
                             setIsFullComposerAvailable={setIsFullComposerAvailable}
                             onPasteFile={(files) => validateAttachments({files})}
-                            onClear={submitForm}
+                            onClear={validateAndSubmitDraft}
                             disabled={isBlockedFromConcierge || isEmojiPickerVisible()}
                             setIsCommentEmpty={setIsCommentEmpty}
-                            onEnterKeyPress={handleSendMessage}
-                            shouldShowComposeInput={shouldShowComposeInput}
+                            onEnterKeyPress={submitDraftAndClearComposer}
                             onFocus={onFocus}
                             onBlur={onBlur}
                             measureParentContainer={measureContainer}
                             onValueChange={onValueChange}
-                            didHideComposerInput={didHideComposerInput}
                             forwardedFSClass={fsClass}
                         />
                         {shouldDisplayDualDropZone && (
@@ -795,9 +858,10 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
                                 shiftVertical={emojiShiftVertical}
                             />
                         )}
-                        <SendButton
+                        <ReportActionComposeSendButton
+                            isEditing={isEditingInComposer}
                             isDisabled={isSendDisabled}
-                            handleSendMessage={handleSendMessage}
+                            onSend={submitDraftAndClearComposer}
                         />
                     </View>
                     {ErrorModal}
@@ -814,7 +878,7 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
                         {!!exceededMaxLength && (
                             <ExceededCommentLength
                                 maxCommentLength={exceededMaxLength}
-                                isTaskTitle={hasExceededMaxTaskTitleLength}
+                                isTaskTitle={isTaskTitle}
                             />
                         )}
                     </View>
@@ -831,4 +895,4 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
 
 export default memo(ReportActionCompose);
 export {onSubmitAction};
-export type {SuggestionsRef, ComposerRef, ReportActionComposeProps};
+export type {SuggestionsRef, ReportActionComposeProps};
