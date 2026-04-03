@@ -2416,7 +2416,7 @@ function markCommentAsUnread(reportID: string | undefined, reportActions: OnyxEn
     const parameters: MarkAsUnreadParams = {
         reportID,
         lastReadTime,
-        ...(reportActionID != null ? {reportActionID} : {}),
+        reportActionID,
     };
 
     API.writeWithNoDuplicatesConflictAction(WRITE_COMMANDS.MARK_AS_UNREAD, parameters, {optimisticData, successData, failureData});
