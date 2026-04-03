@@ -39,7 +39,7 @@ There are two main components:
 ```tsx
 <SelectionList
     data={options}
-    ListItem={RadioListItem}
+    ListItem={SingleSelectListItem}
     onSelectRow={(item) => {
         setSelectedOption(item.keyForList);
         Navigation.goBack();

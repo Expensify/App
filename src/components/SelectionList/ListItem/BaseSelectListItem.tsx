@@ -6,9 +6,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
-import type {ListItem, RadioListItemProps} from './types';
+import type {BaseSelectListItemProps, ListItem} from './types';
 
-function RadioListItem<TItem extends ListItem>({
+function BaseSelectListItem<TItem extends ListItem>({
     item,
     isFocused,
     showTooltip,
@@ -28,7 +28,7 @@ function RadioListItem<TItem extends ListItem>({
     shouldHighlightSelectedItem = true,
     accessibilityRole,
     shouldUseDefaultRightHandSideComponent,
-}: RadioListItemProps<TItem>) {
+}: BaseSelectListItemProps<TItem>) {
     const styles = useThemeStyles();
     const fullTitle = isMultilineSupported ? item.text?.trimStart() : item.text;
     const indentsLength = (item.text?.length ?? 0) - (fullTitle?.length ?? 0);
@@ -112,4 +112,4 @@ function RadioListItem<TItem extends ListItem>({
     );
 }
 
-export default RadioListItem;
+export default BaseSelectListItem;

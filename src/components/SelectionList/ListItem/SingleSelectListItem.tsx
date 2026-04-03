@@ -1,11 +1,11 @@
 import React, {useCallback} from 'react';
 import SelectionCheckbox from '@components/SelectionList/components/SelectionCheckbox';
 import useThemeStyles from '@hooks/useThemeStyles';
-import RadioListItem from './RadioListItem';
+import BaseSelectListItem from './BaseSelectListItem';
 import type {ListItem, SingleSelectListItemProps} from './types';
 
 /**
- * SingleSelectListItem mirrors the behavior of a default RadioListItem, but adds support
+ * SingleSelectListItem mirrors the behavior of a default BaseSelectListItem, but adds support
  * for the new style of single selection lists.
  */
 function SingleSelectListItem<TItem extends ListItem>({
@@ -42,7 +42,7 @@ function SingleSelectListItem<TItem extends ListItem>({
     }, [item, onSelectRow]);
 
     return (
-        <RadioListItem
+        <BaseSelectListItem
             item={item}
             keyForList={item.keyForList}
             isFocused={isFocused}

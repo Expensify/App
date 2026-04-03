@@ -4,11 +4,11 @@ import Avatar from '@components/Avatar';
 import SelectionCheckbox from '@components/SelectionList/components/SelectionCheckbox';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import RadioListItem from './RadioListItem';
+import BaseSelectListItem from './BaseSelectListItem';
 import type {ListItem, MultiSelectListItemProps} from './types';
 
 /**
- * MultiSelectListItem extends RadioListItem with multi-selection support.
+ * MultiSelectListItem extends BaseSelectListItem with multi-selection support.
  * Renders an avatar when icons are provided.
  */
 function MultiSelectListItem<TItem extends ListItem>({
@@ -69,7 +69,7 @@ function MultiSelectListItem<TItem extends ListItem>({
     }, [icon, item, wrapperStyle, styles.mentionSuggestionsAvatarContainer, styles.mr3, styles.optionRowCompact, styles.pv0, styles.mnh13]);
 
     return (
-        <RadioListItem
+        <BaseSelectListItem
             item={itemWithAvatar}
             keyForList={item.keyForList}
             isFocused={isFocused}
