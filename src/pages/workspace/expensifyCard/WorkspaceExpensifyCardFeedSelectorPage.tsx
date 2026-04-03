@@ -89,18 +89,8 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
         }
         updateSelectedExpensifyCardFeed(lastSelectedExpensifyCardFeedID, policyID);
         setIssueNewCardStepAndData({policyID, isChangeAssigneeDisabled: false});
-        Navigation.navigate(
-            ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, exitToIssueNew ? ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID) : Navigation.getActiveRoute()),
-        );
-    }, [
-        policyID,
-        exitToIssueNew,
-        lastSelectedExpensifyCardFeedID,
-        isAccountLocked,
-        isDelegateAccessRestricted,
-        showLockedAccountModal,
-        showDelegateNoAccessModal,
-    ]);
+        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, exitToIssueNew ? ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID) : Navigation.getActiveRoute()));
+    }, [policyID, exitToIssueNew, lastSelectedExpensifyCardFeedID, isAccountLocked, isDelegateAccessRestricted, showLockedAccountModal, showDelegateNoAccessModal]);
 
     const otherWorkspacesSectionHeader = useMemo(
         () => (
