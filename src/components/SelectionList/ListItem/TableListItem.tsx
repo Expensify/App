@@ -1,7 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
-import ReportActionAvatars from '@components/ReportActionAvatars';
+import AccountIDsAvatar from '@components/ReportActionAvatars/AccountIDsAvatar';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -98,7 +98,7 @@ function TableListItem<TItem extends ListItem>({
                         />
                     )}
                     {!!item.accountID && (
-                        <ReportActionAvatars
+                        <AccountIDsAvatar
                             accountIDs={[item.accountID]}
                             fallbackDisplayName={item.text ?? item.alternateText ?? undefined}
                             shouldShowTooltip={showTooltip}
