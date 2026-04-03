@@ -268,6 +268,20 @@ describe('useAdvancedSearchFilters', () => {
             });
         });
 
+        it('shows attendee filter when isAttendeeTrackingEnabled is absent (Classic backwards compat)', async () => {
+            const policy = buildPolicy(1, {type: CONST.POLICY.TYPE.CORPORATE});
+            // Ensure the property is truly absent, not just falsy
+            delete (policy as Record<string, unknown>).isAttendeeTrackingEnabled;
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
+
+            const {result} = renderHook(() => useAdvancedSearchFilters(), {wrapper});
+
+            await waitFor(() => {
+                const allKeys = result.current.typeFiltersKeys.flat();
+                expect(allKeys).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE);
+            });
+        });
+
         it('shows attendee filter when attendee tracking is enabled', async () => {
             const policy = buildPolicy(1, {type: CONST.POLICY.TYPE.CORPORATE, isAttendeeTrackingEnabled: true});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
