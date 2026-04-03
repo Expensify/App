@@ -9,7 +9,28 @@ Use this skill whenever you need to measure how long a named Sentry span takes i
 
 ## Prerequisites
 
-The only hard requirement is that the **user is logged in** to the app before the test starts. Everything else (booting the device, opening the app, launching Chrome) is handled automatically by the skill.
+### Required tools
+
+Check that these are available before starting. Install them if missing.
+
+#### `agent-device` (iOS / Android automation)
+
+```bash
+which agent-device || npm install -g agent-device
+```
+
+Verify: `agent-device --version` should print a version string.
+
+#### `node` + `ws` module (CDP logger / web runner)
+
+```bash
+node --version          # must be present
+# ws is resolved from the project's own node_modules — no extra install needed
+```
+
+### App / login state
+
+The only runtime requirement is that the **user is logged in** to the app. Everything else (booting the device, opening the app, launching Chrome) is handled automatically.
 
 ## Directory layout
 

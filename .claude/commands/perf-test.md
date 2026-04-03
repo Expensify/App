@@ -53,6 +53,18 @@ If the file does not exist, list available files in the `test-cases/` directory 
 
 Override `iterations` if `--iterations` was passed.
 
+### 2.5. Verify tooling
+
+```bash
+# agent-device must be installed globally (used for iOS/Android)
+which agent-device || npm install -g agent-device
+
+# node must be present (used by cdp_logger.js and web_runner.js)
+node --version
+```
+
+If `agent-device` was just installed, confirm the version before continuing.
+
 ### 3. Load the performance-spans skill
 
 Read `.claude/skills/performance-spans/SKILL.md` and follow it for all subsequent steps.
