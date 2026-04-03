@@ -821,6 +821,9 @@ const translations: TranslationDeepObject<typeof en> = {
         emoji: 'Emoji',
         collapse: 'Samenvouwen',
         expand: 'Uitklappen',
+        askConciergeToUpdate: 'Probeer „Een uitgave bijwerken”…',
+        askConciergeToCorrect: 'Probeer “Een uitgave corrigeren”…',
+        askConciergeForHelp: 'Vraag Concierge AI om hulp...',
     },
     reportActionContextMenu: {
         copyMessage: 'Bericht kopiëren',
@@ -3846,6 +3849,8 @@ ${amount} voor ${merchant} - ${date}`,
             `verbindt een zakelijke ${currency}-bankrekening die eindigt op ${bankAccountLastFour} met Expensify om werknemers in ${currency} te betalen. De volgende stap vereist ondertekenaarsgegevens van een directeur.`,
         error: {
             emailsMustBeDifferent: 'E-mails moeten verschillend zijn',
+            connectToWorkspace: (workspaceRoute: string) =>
+                `Koppel deze bankrekening alstublieft aan een <a href="${workspaceRoute}">werkruimte</a> om een directeur uit te nodigen te ondertekenen.`,
         },
     },
     agreementsStep: {
