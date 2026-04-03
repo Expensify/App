@@ -16,7 +16,7 @@ const VideoPopoverMenuStateContext = React.createContext<VideoPopoverMenuStateCo
 const VideoPopoverMenuActionsContext = React.createContext<VideoPopoverMenuActionsContextType | null>(null);
 
 function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Download', 'Meter'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Download', 'Meter']);
     const {translate} = useLocalize();
     const {currentVideoPlayerRef, originalParent} = usePlaybackStateContext();
     const [source, setSource] = useState('');

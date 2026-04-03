@@ -106,4 +106,8 @@ describe('findMatchingDynamicSuffix', () => {
             pathParams: {reportID: '456', reportActionID: 'abc'},
         });
     });
+
+    it('should match keyboard-shortcuts dynamic suffix', () => {
+        expect(findMatchingDynamicSuffix('settings/about/keyboard-shortcuts')).toBe('keyboard-shortcuts');
+    });
 });
