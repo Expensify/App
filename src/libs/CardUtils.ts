@@ -968,16 +968,15 @@ function getCardAssignmentStartDate(isEditing: boolean | undefined, existingStar
     return isEditing ? (existingStartDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING)) : format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
 }
 
-function checkIfNewFeedConnected(prevFeedsData: CompanyFeeds, currentFeedsData: CompanyFeeds, plaidBank?: string) {
+function checkIfNewFeedConnected(prevFeedsData: CombinedCardFeeds, currentFeedsData: CombinedCardFeeds, plaidBank?: string) {
     const prevFeeds = Object.keys(prevFeedsData);
     const currentFeeds = Object.keys(currentFeedsData);
 
     const plaidBankFound =
         plaidBank &&
-        (currentFeeds.includes(`${CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID}.${plaidBank}`) ||
-            currentFeeds.find((feed) => {
-                return splitCardFeedWithDomainID(feed as CompanyCardFeedWithDomainID)?.feedName === `${CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID}.${plaidBank}`;
-            }));
+        currentFeeds.find((feed) => {
+            return splitCardFeedWithDomainID(feed as CompanyCardFeedWithDomainID)?.feedName === `${CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID}.${plaidBank}`;
+        });
 
     return {
         isNewFeedConnected: currentFeeds.length > prevFeeds.length || plaidBankFound,
