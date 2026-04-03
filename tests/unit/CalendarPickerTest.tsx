@@ -1,6 +1,6 @@
 import type * as ReactNavigationNative from '@react-navigation/native';
 import {fireEvent, render, screen, userEvent, within} from '@testing-library/react-native';
-import {addMonths, addYears, endOfMonth, startOfMonth, subMonths, subYears} from 'date-fns';
+import {addMonths, addYears, subMonths, subYears} from 'date-fns';
 import CalendarPicker from '@components/DatePicker/CalendarPicker';
 import DateUtils from '@libs/DateUtils';
 
@@ -425,58 +425,28 @@ describe('CalendarPicker', () => {
     });
 
     test('month picker filtering should exclude months before minDate', () => {
-        const currentYear = 2023;
-        const minDate = new Date('2023-06-01');
-        const maxDate = new Date('2030-12-31');
-
-        const filteredMonths = monthNames
-            .map((month, index) => {
-                const monthStart = startOfMonth(new Date(currentYear, index));
-                const monthEnd = endOfMonth(new Date(currentYear, index));
-                const isBeforeMin = monthEnd < startOfMonth(new Date(minDate));
-                const isAfterMax = monthStart > endOfMonth(new Date(maxDate));
-                if (isBeforeMin || isAfterMax) {
-                    return null;
-                }
-                return {text: month, value: index};
-            })
-            .filter(Boolean);
+        const filteredMonths = DateUtils.getFilteredMonthItems(monthNames, 2023, 6, new Date('2023-06-01'), new Date('2030-12-31'));
 
         // Months before June (index 5) should be excluded
-        expect(filteredMonths.find((m) => m?.value === 0)).toBeUndefined();
-        expect(filteredMonths.find((m) => m?.value === 4)).toBeUndefined();
+        expect(filteredMonths.find((m) => m.value === 0)).toBeUndefined();
+        expect(filteredMonths.find((m) => m.value === 4)).toBeUndefined();
 
         // June and later months should be included
-        expect(filteredMonths.find((m) => m?.value === 5)).toBeTruthy();
-        expect(filteredMonths.find((m) => m?.value === 11)).toBeTruthy();
+        expect(filteredMonths.find((m) => m.value === 5)).toBeTruthy();
+        expect(filteredMonths.find((m) => m.value === 11)).toBeTruthy();
         expect(filteredMonths).toHaveLength(7);
     });
 
     test('month picker filtering should exclude months after maxDate', () => {
-        const currentYear = 2023;
-        const minDate = new Date('2020-01-01');
-        const maxDate = new Date('2023-09-30');
-
-        const filteredMonths = monthNames
-            .map((month, index) => {
-                const monthStart = startOfMonth(new Date(currentYear, index));
-                const monthEnd = endOfMonth(new Date(currentYear, index));
-                const isBeforeMin = monthEnd < startOfMonth(new Date(minDate));
-                const isAfterMax = monthStart > endOfMonth(new Date(maxDate));
-                if (isBeforeMin || isAfterMax) {
-                    return null;
-                }
-                return {text: month, value: index};
-            })
-            .filter(Boolean);
+        const filteredMonths = DateUtils.getFilteredMonthItems(monthNames, 2023, 0, new Date('2020-01-01'), new Date('2023-09-30'));
 
         // Months after September (index 8) should be excluded
-        expect(filteredMonths.find((m) => m?.value === 10)).toBeUndefined();
-        expect(filteredMonths.find((m) => m?.value === 11)).toBeUndefined();
+        expect(filteredMonths.find((m) => m.value === 10)).toBeUndefined();
+        expect(filteredMonths.find((m) => m.value === 11)).toBeUndefined();
 
         // September and earlier months should be included
-        expect(filteredMonths.find((m) => m?.value === 8)).toBeTruthy();
-        expect(filteredMonths.find((m) => m?.value === 0)).toBeTruthy();
+        expect(filteredMonths.find((m) => m.value === 8)).toBeTruthy();
+        expect(filteredMonths.find((m) => m.value === 0)).toBeTruthy();
         expect(filteredMonths).toHaveLength(9);
     });
 });
