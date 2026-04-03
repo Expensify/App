@@ -345,6 +345,7 @@ function ComposerWithSuggestions({
 
     const wasEditing = useRef(isEditing);
     const wasEditingInComposerRef = useRef(shouldUseNarrowLayout);
+    const wasComposerFocusedBeforeEditingRef = useRef(false);
     const previousDraftSelectionRef = useRef<TextSelection | null>(null);
 
     useEffect(() => {
@@ -357,6 +358,9 @@ function ComposerWithSuggestions({
             if (wasEditing.current && wasEditingInComposerRef.current) {
                 // Editing just ended in the composer – restore the draft comment and its previous selection.
                 applyComposerValue(draftComment ?? '', {selection: previousDraftSelectionRef.current, shouldForceNativeValueUpdate: true});
+                if (!wasComposerFocusedBeforeEditingRef.current) {
+                    composerRef.current?.blur();
+                }
             }
 
             wasEditing.current = false;
@@ -367,6 +371,7 @@ function ComposerWithSuggestions({
 
         // Editing just started.
         if (!wasEditing.current) {
+            wasComposerFocusedBeforeEditingRef.current = composerRef.current?.isFocused() ?? false;
             // Store the draft selection before switching into edit mode so we can restore it later.
             previousDraftSelectionRef.current = selection;
 
