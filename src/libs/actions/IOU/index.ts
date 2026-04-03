@@ -13969,6 +13969,21 @@ function rejectExpenseReport(
     API.write(WRITE_COMMANDS.REJECT_EXPENSE_REPORT, parameters, {optimisticData, successData, failureData});
 }
 
+/** Marks a transaction as waiting for an in-situ category creation to complete. */
+function setPendingCategorySelection(transactionID: string) {
+    Onyx.set(ONYXKEYS.PENDING_CATEGORY_SELECTION, {transactionID});
+}
+
+/** Records the newly created category name so IOURequestStepCategory can auto-apply it. */
+function completePendingCategorySelection(categoryName: string) {
+    Onyx.merge(ONYXKEYS.PENDING_CATEGORY_SELECTION, {categoryName});
+}
+
+/** Clears the pending category selection after it has been applied (or cancelled). */
+function clearPendingCategorySelection() {
+    Onyx.set(ONYXKEYS.PENDING_CATEGORY_SELECTION, null);
+}
+
 export {
     approveMoneyRequest,
     canApproveIOU,
@@ -14093,6 +14108,9 @@ export {
     getTrackExpenseInformation,
     getMoneyRequestInformation,
     getOrCreateOptimisticSplitChatReport,
+    setPendingCategorySelection,
+    completePendingCategorySelection,
+    clearPendingCategorySelection,
 };
 export type {
     GPSPoint as GpsPoint,

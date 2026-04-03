@@ -117,6 +117,9 @@ const ONYXKEYS = {
     /** Object containing contact method that's going to be added */
     PENDING_CONTACT_ACTION: 'pendingContactAction',
 
+    /** Stores the category name created in-situ from IOURequestStepCategory so it can be auto-applied to the transaction */
+    PENDING_CATEGORY_SELECTION: 'pendingCategorySelection',
+
     /** Store the information of magic code */
     VALIDATE_ACTION_CODE: 'validateActionCode',
 
@@ -1324,6 +1327,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.USER_LOCATION]: OnyxTypes.UserLocation;
     [ONYXKEYS.LOGIN_LIST]: OnyxTypes.LoginList;
     [ONYXKEYS.PENDING_CONTACT_ACTION]: OnyxTypes.PendingContactAction;
+    [ONYXKEYS.PENDING_CATEGORY_SELECTION]: {transactionID: string; categoryName?: string};
     [ONYXKEYS.VALIDATE_ACTION_CODE]: OnyxTypes.ValidateMagicCodeAction;
     [ONYXKEYS.VALIDATE_DOMAIN_TWO_FACTOR_CODE]: OnyxTypes.ValidateDomainTwoFactorCode;
     [ONYXKEYS.JOINABLE_POLICIES]: OnyxTypes.JoinablePolicies;
