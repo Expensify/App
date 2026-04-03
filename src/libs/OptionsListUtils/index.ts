@@ -696,7 +696,7 @@ function getLastMessageTextForReport({
             }
         }
     } else if (isMoneyRequestAction(lastReportAction)) {
-        const properSchemaForMoneyRequestMessage = getReportPreviewMessage(report, lastReportAction, true, false, null, true);
+        const properSchemaForMoneyRequestMessage = getReportPreviewMessage(report, conciergeReportID, lastReportAction, true, false, null, true);
         lastMessageTextFromReport = formatReportLastMessageText(Parser.htmlToText(properSchemaForMoneyRequestMessage));
     } else if (isReportPreviewAction(lastReportAction)) {
         const iouReport = getReportOrDraftReport(getIOUReportIDFromReportActionPreview(lastReportAction));
@@ -723,6 +723,7 @@ function getLastMessageTextForReport({
         } else {
             const reportPreviewMessage = getReportPreviewMessage(
                 !isEmptyObject(iouReport) ? iouReport : null,
+                conciergeReportID,
                 lastIOUMoneyReportAction ?? lastReportAction,
                 true,
                 reportUtilsIsChatReport(report),
@@ -850,7 +851,7 @@ function getLastMessageTextForReport({
     } else if (isMovedAction(lastReportAction)) {
         lastMessageTextFromReport = Parser.htmlToText(getMovedActionMessage(translate, lastReportAction, report));
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
-        lastMessageTextFromReport = Parser.htmlToText(getUnreportedTransactionMessage(translate, lastReportAction));
+        lastMessageTextFromReport = Parser.htmlToText(getUnreportedTransactionMessage(translate, lastReportAction, conciergeReportID));
     } else if (isActionableMentionWhisper(lastReportAction)) {
         lastMessageTextFromReport = Parser.htmlToText(getActionableMentionWhisperMessage(translate, lastReportAction));
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED)) {
@@ -2301,8 +2302,6 @@ function prepareReportOptionsForDisplay(
         const report = option.item;
         const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
         const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const reportActions = deprecatedAllReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`];
         /**
          * By default, generated options does not have the chat preview line enabled.
          * If showChatPreviewLine or forcePolicyNamePreview are true, let's generate and overwrite the alternate text.
@@ -2330,7 +2329,7 @@ function prepareReportOptionsForDisplay(
                     : undefined;
             const oneTransactionThreadReport = oneTransactionThreadReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`] : undefined;
 
-            isOptionUnread = isUnread(report, oneTransactionThreadReport, option.private_isArchived, reportActions) && !!report.lastActorAccountID;
+            isOptionUnread = isUnread(report, oneTransactionThreadReport, option.private_isArchived) && !!report.lastActorAccountID;
         }
 
         let lastIOUCreationDate;
@@ -3372,12 +3371,22 @@ function shallowOptionsListCompare(a: OptionList, b: OptionList): boolean {
     for (let i = 0; i < a.reports.length; i++) {
         const aReport = a.reports.at(i);
         const bReport = b.reports.at(i);
-        if (aReport?.reportID !== bReport?.reportID || aReport?.text !== bReport?.text) {
+        if (
+            aReport?.reportID !== bReport?.reportID ||
+            aReport?.text !== bReport?.text ||
+            aReport?.alternateText !== bReport?.alternateText ||
+            aReport?.subtitle !== bReport?.subtitle ||
+            aReport?.lastMessageText !== bReport?.lastMessageText
+        ) {
             return false;
         }
     }
     for (let i = 0; i < a.personalDetails.length; i++) {
-        if (a.personalDetails.at(i)?.login !== b.personalDetails.at(i)?.login) {
+        if (
+            a.personalDetails.at(i)?.login !== b.personalDetails.at(i)?.login ||
+            a.personalDetails.at(i)?.text !== b.personalDetails.at(i)?.text ||
+            a.personalDetails.at(i)?.alternateText !== b.personalDetails.at(i)?.alternateText
+        ) {
             return false;
         }
     }
