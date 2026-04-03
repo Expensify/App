@@ -1406,82 +1406,45 @@ describe('getViolationTranslation', () => {
         });
 
         it('should return formatted message with route distance in km', () => {
-            const result = ViolationsUtils.getViolationTranslation(
-                increasedDistanceViolation,
-                translateLocal,
-                true,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
+            const result = ViolationsUtils.getViolationTranslation(increasedDistanceViolation, translateLocal, {
+                canEdit: true,
                 routeDistanceMeters,
-                CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
-            );
+                distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+            });
             expect(result).toBe(`Distance exceeds the calculated route of ${routeDistanceKm}`);
         });
 
         it('should return formatted message with route distance in miles', () => {
-            const result = ViolationsUtils.getViolationTranslation(
-                increasedDistanceViolation,
-                translateLocal,
-                true,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
+            const result = ViolationsUtils.getViolationTranslation(increasedDistanceViolation, translateLocal, {
+                canEdit: true,
                 routeDistanceMeters,
-                CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
-            );
+                distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+            });
             expect(result).toBe(`Distance exceeds the calculated route of ${routeDistanceMi}`);
         });
 
         it('should return fallback message when routeDistanceMeters is zero', () => {
-            const result = ViolationsUtils.getViolationTranslation(
-                increasedDistanceViolation,
-                translateLocal,
-                true,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                0,
-                CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
-            );
+            const result = ViolationsUtils.getViolationTranslation(increasedDistanceViolation, translateLocal, {
+                canEdit: true,
+                routeDistanceMeters: 0,
+                distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+            });
             expect(result).toBe('Distance exceeds the calculated route');
         });
 
         it('should return fallback message when routeDistanceMeters is undefined', () => {
-            const result = ViolationsUtils.getViolationTranslation(
-                increasedDistanceViolation,
-                translateLocal,
-                true,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
-            );
+            const result = ViolationsUtils.getViolationTranslation(increasedDistanceViolation, translateLocal, {
+                canEdit: true,
+                distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+            });
             expect(result).toBe('Distance exceeds the calculated route');
         });
 
         it('should return fallback message when distanceUnit is undefined', () => {
-            const result = ViolationsUtils.getViolationTranslation(
-                increasedDistanceViolation,
-                translateLocal,
-                true,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
+            const result = ViolationsUtils.getViolationTranslation(increasedDistanceViolation, translateLocal, {
+                canEdit: true,
                 routeDistanceMeters,
-                undefined,
-            );
+            });
             expect(result).toBe('Distance exceeds the calculated route');
         });
     });
