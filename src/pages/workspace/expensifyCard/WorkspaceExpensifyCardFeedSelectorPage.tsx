@@ -16,6 +16,7 @@ import useDefaultFundID from '@hooks/useDefaultFundID';
 import useExpensifyCardFeedsForFeedSelector from '@hooks/useExpensifyCardFeedsForFeedSelector';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -48,6 +49,7 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
     const {policyID, exitToIssueNew: exitToIssueNewParam} = route.params;
     const exitToIssueNew = exitToIssueNewParam === 'true';
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['ExpensifyCardImage']);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus']);
@@ -112,11 +114,12 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
         [expensifyIcons.Plus, handleAddCardPress, styles.justifyContentCenter, styles.optionsListSectionHeader, styles.pb3, styles.ph5, styles.textLabelSupporting, translate],
     );
 
-    const toListItem = (entry: ExpensifyCardFeedEntry): ExpensifyFeedListItem => ({
+    const toListItem = (entry: ExpensifyCardFeedEntry, isOtherWorkspaceSection: boolean): ExpensifyFeedListItem => ({
         value: entry.fundID,
         text: getFeedSelectorRowText(entry),
         keyForList: entry.fundID.toString(),
         isSelected: entry.fundID === lastSelectedExpensifyCardFeedID,
+        isDisabled: isOtherWorkspaceSection && isOffline,
         errors: feedWithError?.fundID === entry.fundID ? feedWithError.error : undefined,
         leftElement: (
             <Icon
@@ -131,14 +134,14 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
     const sections: Array<Section<ExpensifyFeedListItem>> = [];
     if (primaryFeeds.length > 0) {
         sections.push({
-            data: primaryFeeds.map(toListItem),
+            data: primaryFeeds.map((entry) => toListItem(entry, false)),
             sectionIndex: sections.length,
         });
     }
     if (otherFeeds.length > 0) {
         sections.push({
             ...(primaryFeeds.length > 0 ? {customHeader: otherWorkspacesSectionHeader} : {title: translate('workspace.expensifyCard.otherWorkspaces')}),
-            data: otherFeeds.map(toListItem),
+            data: otherFeeds.map((entry) => toListItem(entry, true)),
             sectionIndex: sections.length,
         });
     }
@@ -212,6 +215,9 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
                     ListItem={RadioListItem}
                     onSelectRow={(feed) => {
                         if (otherFeedFundIDs.has(feed.value)) {
+                            if (isOffline) {
+                                return;
+                            }
                             selectOtherFeed(feed);
                             return;
                         }
