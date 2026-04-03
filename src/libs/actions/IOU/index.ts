@@ -11685,6 +11685,7 @@ function replaceReceipt({transactionID, file, source, state, transactionPolicy, 
     const oldReceipt = transaction?.receipt ?? {};
     const receiptOptimistic = {
         source,
+        localSource: null,
         state: state ?? CONST.IOU.RECEIPT_STATE.OPEN,
         filename: file.name,
     };
