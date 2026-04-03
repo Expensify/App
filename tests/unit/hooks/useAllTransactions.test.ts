@@ -143,6 +143,45 @@ describe('useAllTransactions', () => {
         expect(result.current?.[`${ONYXKEYS.COLLECTION.TRANSACTION}txn1`]?.amount).toBe(2000);
     });
 
+    it('should preserve search transactionThreadReportID when collection data does not have it yet', async () => {
+        const searchTransaction = createRandomTransaction(1);
+        const collectionTransaction = createRandomTransaction(1);
+        searchTransaction.transactionID = 'txn1';
+        collectionTransaction.transactionID = 'txn1';
+        searchTransaction.transactionThreadReportID = 'thread-report-123';
+        collectionTransaction.transactionThreadReportID = undefined;
+        searchTransaction.amount = 1000;
+        collectionTransaction.amount = 2000;
+
+        mockCurrentSearchResults = {
+            search: {
+                offset: 0,
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                hasMoreResults: false,
+                hasResults: true,
+                isLoading: false,
+            },
+            data: {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}txn1`]: searchTransaction,
+            },
+        } as unknown as SearchResults;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}txn1`, collectionTransaction);
+
+        const {result} = renderHook(() => useAllTransactions());
+
+        await waitFor(() => {
+            expect(result.current).toBeDefined();
+        });
+
+        expect(result.current?.[`${ONYXKEYS.COLLECTION.TRANSACTION}txn1`]).toEqual(
+            expect.objectContaining({
+                amount: 2000,
+                transactionThreadReportID: 'thread-report-123',
+            }),
+        );
+    });
+
     it('should filter out non-transaction keys from search results', async () => {
         const transaction = createRandomTransaction(1);
         transaction.transactionID = 'txn1';

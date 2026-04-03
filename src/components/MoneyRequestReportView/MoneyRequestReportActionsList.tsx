@@ -299,6 +299,7 @@ function MoneyRequestReportActionsList({
         onExportOffline: () => setOfflineModalVisible(true),
         policy,
         beginExportWithTemplate: (templateName, templateType, transactionIDList) => beginExportWithTemplate(templateName, templateType, transactionIDList),
+        isOnSearch: isSearchTopmostFullScreenRoute(),
         onDeleteSelected,
     });
 

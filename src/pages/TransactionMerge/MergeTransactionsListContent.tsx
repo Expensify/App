@@ -32,11 +32,12 @@ import MergeTransactionItem from './MergeTransactionItem';
 type MergeTransactionsListContentProps = {
     transactionID: string;
     mergeTransaction: OnyxEntry<MergeTransaction>;
+    isOnSearch?: boolean;
 };
 
 type MergeTransactionListItemType = Transaction & ListItem;
 
-function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTransactionsListContentProps) {
+function MergeTransactionsListContent({transactionID, mergeTransaction, isOnSearch}: MergeTransactionsListContentProps) {
     const illustrations = useMemoizedLazyIllustrations(['EmptyShelves']);
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
@@ -122,6 +123,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
         // Clear the merge transaction data when select a new source transaction to merge
         setupMergeTransactionData(transactionID, {
             targetTransactionID: transactionID,
+            targetTransactionThreadReportID: mergeTransaction?.targetTransactionThreadReportID,
             sourceTransactionID: item.transactionID,
             eligibleTransactions: mergeTransaction?.eligibleTransactions,
         });
@@ -158,10 +160,17 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
         }
 
         const reports = targetTransactionReport && sourceTransactionReport ? [targetTransactionReport, sourceTransactionReport] : undefined;
-        setupMergeTransactionDataAndNavigate(transactionID, [targetTransaction, sourceTransaction], localeCompare, getCurrencyDecimals, reports, true, undefined, [
-            targetTransactionPolicy,
-            sourceTransactionPolicy,
-        ]);
+        setupMergeTransactionDataAndNavigate(
+            transactionID,
+            [targetTransaction, sourceTransaction],
+            localeCompare,
+            getCurrencyDecimals,
+            reports,
+            true,
+            isOnSearch,
+            [targetTransactionPolicy, sourceTransactionPolicy],
+            mergeTransaction?.targetTransactionThreadReportID,
+        );
     };
 
     const confirmButtonOptions = {
