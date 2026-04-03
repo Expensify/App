@@ -1076,10 +1076,6 @@ const staticStyles = (theme: ThemeColors) =>
             color: theme.badgeDangerText,
         },
 
-        badgeStrongText: {
-            color: colors.white,
-        },
-
         badgeText: {
             color: theme.text,
             fontSize: variables.fontSizeSmall,
@@ -2608,6 +2604,11 @@ const staticStyles = (theme: ThemeColors) =>
             maxWidth: 475,
             alignSelf: 'center',
             flex: undefined,
+        },
+
+        selectBankStepIconSize: {
+            width: variables.iconSizeExtraLarge,
+            height: variables.iconSizeExtraLarge,
         },
 
         forcedBlockingViewContainer: {

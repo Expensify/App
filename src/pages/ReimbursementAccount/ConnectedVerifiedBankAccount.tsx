@@ -57,7 +57,7 @@ function ConnectedVerifiedBankAccount({
     const pendingAction = reimbursementAccount?.pendingAction;
     const shouldShowResetModal = reimbursementAccount?.shouldShowResetModal ?? false;
     const {asset: ThumbsUpStars} = useMemoizedLazyAsset(() => loadIllustration('ThumbsUpStars' as IllustrationName));
-    const icons = useMemoizedLazyExpensifyIcons(['Close'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Close']);
 
     return (
         <ScreenWrapper
