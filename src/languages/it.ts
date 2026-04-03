@@ -3802,6 +3802,10 @@ ${amount} per ${merchant} - ${date}`,
         youCanChange: 'Puoi cambiare la valuta dello spazio di lavoro nelle tue',
         findCountry: 'Trova paese',
         selectCountry: 'Seleziona paese',
+        error: {
+            connectToWorkspace: (workspaceRoute: string) =>
+                `Collega questo conto bancario a un <a href="${workspaceRoute}">spazio di lavoro</a> per poter invitare un direttore a firmare in un passaggio successivo.`,
+        },
     },
     bankInfoStep: {
         whatAreYour: 'Quali sono i dati del tuo conto bancario aziendale?',

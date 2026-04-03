@@ -3799,6 +3799,10 @@ ${amount} voor ${merchant} - ${date}`,
         youCanChange: 'Je kunt de valuta van je werkruimte wijzigen in je',
         findCountry: 'Land zoeken',
         selectCountry: 'Selecteer land',
+        error: {
+            connectToWorkspace: (workspaceRoute: string) =>
+                `Verbind deze bankrekening met een <a href="${workspaceRoute}">werkruimte</a> zodat je in een latere stap een directeur kunt uitnodigen om te ondertekenen.`,
+        },
     },
     bankInfoStep: {
         whatAreYour: 'Wat zijn de gegevens van je zakelijke bankrekening?',

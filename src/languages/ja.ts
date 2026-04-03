@@ -3773,6 +3773,10 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         youCanChange: 'ワークスペースの通貨は、次の場所で変更できます',
         findCountry: '国を検索',
         selectCountry: '国を選択',
+        error: {
+            connectToWorkspace: (workspaceRoute: string) =>
+                `後のステップでディレクターに署名を依頼できるよう、この銀行口座を<a href="${workspaceRoute}">ワークスペース</a>に接続してください。`,
+        },
     },
     bankInfoStep: {
         whatAreYour: 'あなたのビジネス用銀行口座の詳細を教えてください。',

@@ -3705,6 +3705,9 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         youCanChange: '您可以在您的中更改工作区货币',
         findCountry: '查找国家',
         selectCountry: '选择国家',
+        error: {
+            connectToWorkspace: (workspaceRoute: string) => `请将此银行账户连接到<a href="${workspaceRoute}">工作区</a>，以便您在后续步骤中邀请董事签名。`,
+        },
     },
     bankInfoStep: {
         whatAreYour: '您的企业银行账户信息是什么？',

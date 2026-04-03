@@ -3738,6 +3738,10 @@ ${amount} para ${merchant} - ${date}`,
         youCanChange: 'Puede cambiar la moneda de su espacio de trabajo en su',
         findCountry: 'Encontrar país',
         selectCountry: 'Seleccione su país',
+        error: {
+            connectToWorkspace: (workspaceRoute: string) =>
+                `Por favor, conecta esta cuenta bancaria a un <a href="${workspaceRoute}">espacio de trabajo</a> para que puedas invitar a un director a firmar en un paso posterior.`,
+        },
     },
     bankInfoStep: {
         whatAreYour: '¿Cuáles son los detalles de tu cuenta bancaria comercial?',
