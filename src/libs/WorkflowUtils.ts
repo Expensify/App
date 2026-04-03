@@ -432,7 +432,7 @@ function updateWorkflowDataOnApproverRemoval({approvalWorkflows, removedApprover
                 }
 
                 // Update forwardsTo and overLimitForwardsTo if necessary and prepare the new approver object
-                const updatedApprovers = updateApprovers.flatMap((item) => {
+                const updatedApprovers = updateApprovers.map((item) => {
                     let updatedItem = item;
                     if (item.forwardsTo === removedApproverEmail) {
                         updatedItem = {...updatedItem, forwardsTo: ownerEmail};

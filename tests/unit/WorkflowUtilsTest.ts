@@ -938,7 +938,7 @@ describe('WorkflowUtils', () => {
         });
 
         it('Should clear overLimitForwardsTo when a later approver had overLimitForwardsTo pointing to the first approver (which is also the removed approver)', () => {
-            // hasOverLimitToRemovedApprover fires first: all approvers are kept, only overLimitForwardsTo is cleared.
+            // The multi-approver block handles this: removed approver (3) is spliced out and overLimitForwardsTo is cleared.
             const approvalWorkflow1: ApprovalWorkflow = {
                 members: [buildMember(1), buildMember(2)],
                 approvers: [buildApprover(3), buildApprover(4, {overLimitForwardsTo: '3@example.com', approvalLimit: 100}), buildApprover(5)],
@@ -990,7 +990,7 @@ describe('WorkflowUtils', () => {
         });
 
         it('Should clear overLimitForwardsTo pointing to removed approver when a prior approver references them via overLimitForwardsTo (removed approver also in chain)', () => {
-            // hasOverLimitToRemovedApprover fires first: all approvers are kept, only overLimitForwardsTo is cleared.
+            // The multi-approver block handles this: removed approver (3) is spliced out and overLimitForwardsTo is cleared.
             const approvalWorkflow1: ApprovalWorkflow = {
                 members: [buildMember(1), buildMember(2)],
                 approvers: [buildApprover(1), buildApprover(2, {overLimitForwardsTo: '3@example.com', approvalLimit: 100}), buildApprover(3)],
@@ -1093,7 +1093,7 @@ describe('WorkflowUtils', () => {
         });
 
         it('Should clear overLimitForwardsTo pointing to removed approver when a prior approver references them via overLimitForwardsTo (removed approver is last in chain)', () => {
-            // hasOverLimitToRemovedApprover fires first: all approvers are kept, only overLimitForwardsTo is cleared.
+            // The multi-approver block handles this: removed approver (3) is replaced by owner and overLimitForwardsTo is cleared.
             const approvalWorkflow1: ApprovalWorkflow = {
                 members: [buildMember(1), buildMember(2)],
                 approvers: [buildApprover(2, {overLimitForwardsTo: '3@example.com', approvalLimit: 50}), buildApprover(3)],
@@ -1117,35 +1117,6 @@ describe('WorkflowUtils', () => {
                 {
                     ...approvalWorkflow1,
                     approvers: [buildApprover(2, {overLimitForwardsTo: '', approvalLimit: null}), buildApprover(1)],
-                },
-            ]);
-        });
-
-        it('Should clear only overLimitForwardsTo when a prior approver references the removed approver via overLimitForwardsTo (removed approver also present in chain)', () => {
-            // hasOverLimitToRemovedApprover takes priority: clears overLimitForwardsTo but keeps the full chain.
-            const approvalWorkflow1: ApprovalWorkflow = {
-                members: [buildMember(1), buildMember(2)],
-                approvers: [buildApprover(1), buildApprover(2, {overLimitForwardsTo: '3@example.com', approvalLimit: 100}), buildApprover(3)],
-                isDefault: true,
-            };
-
-            const ownerDetails = personalDetails[1];
-            const removedApprover = personalDetails[3];
-
-            if (!removedApprover || !ownerDetails) {
-                return;
-            }
-
-            const result = updateWorkflowDataOnApproverRemoval({
-                approvalWorkflows: [approvalWorkflow1],
-                removedApprover,
-                ownerDetails,
-            });
-
-            expect(result).toEqual([
-                {
-                    ...approvalWorkflow1,
-                    approvers: [buildApprover(1), buildApprover(2, {overLimitForwardsTo: '', approvalLimit: null})],
                 },
             ]);
         });
