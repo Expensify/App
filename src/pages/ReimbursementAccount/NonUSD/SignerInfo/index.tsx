@@ -128,7 +128,7 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames, currentSubPage, bac
 
     const handleIsDirectorSelected = useCallback(
         (value: boolean) => {
-            if (!policyID && (!value || currency === CONST.CURRENCY.AUD)) {
+            if (!policyID && !value) {
                 setShowNoPolicyError(true);
                 return;
             }
@@ -140,7 +140,7 @@ function SignerInfo({onBackButtonPress, onSubmit, stepNames, currentSubPage, bac
                 Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.SIGNER_INFO, subPage: SUB_PAGE_NAMES.ENTER_EMAIL, backTo}));
             }
         },
-        [policyID, currency, isUserOwner, backTo],
+        [policyID, isUserOwner, backTo],
     );
 
     const handleBackButtonPress = useCallback(() => {
