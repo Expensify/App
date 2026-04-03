@@ -62,7 +62,7 @@ function useNewTransactions(
                 reportID,
                 pendingTransactions.map((transaction) => transaction.transactionID),
             );
-        }, CONST.PENDING_TRANSACTION_DELETION_AFTER_HIGHLIGHT_TIMEOUT);
+        }, CONST.PENDING_TRANSACTION_DELETION_DELAY);
     }, [pendingNewTransactionIDs, newTransactions, reportID]);
 
     // In case when we have loaded the report, but there were no transactions in it, then we need to explicitly set skipFirstTransactionsChange to false, as it will be not set in the useMemo above.

@@ -1005,7 +1005,13 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
 
     highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transaction.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
 
-    handleNavigateAfterExpenseCreate({activeReportID, transactionID: transaction.transactionID, isFromGlobalCreate, shouldHandleNavigation});
+    handleNavigateAfterExpenseCreate({
+        activeReportID,
+        shouldAddPendingNewTransactionIDs: activeReportID === chatReport.reportID,
+        transactionID: transaction.transactionID,
+        isFromGlobalCreate,
+        shouldHandleNavigation,
+    });
 
     if (activeReportID) {
         notifyNewAction(activeReportID, undefined, payeeAccountID === currentUserAccountIDParam);
