@@ -139,6 +139,14 @@ function SearchDatePresetFilterBasePage({dateKey, titleKey}: SearchDatePresetFil
                     });
                     Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
                 }}
+                onReset={(values) => {
+                    updateAdvancedFilters({
+                        [dateOnKey]: values[CONST.SEARCH.DATE_MODIFIERS.ON] ?? null,
+                        [dateBeforeKey]: values[CONST.SEARCH.DATE_MODIFIERS.BEFORE] ?? null,
+                        [dateAfterKey]: values[CONST.SEARCH.DATE_MODIFIERS.AFTER] ?? null,
+                        [dateRangeKey]: values[CONST.SEARCH.DATE_MODIFIERS.RANGE] ?? null,
+                    });
+                }}
             />
         </ScreenWrapper>
     );
