@@ -28,7 +28,6 @@ import type {OptionRowLHNDataProps} from './types';
 function OptionRowLHNData({
     isOptionFocused = false,
     fullReport,
-    reportAttributes,
     reportAttributesDerived,
     oneTransactionThreadReport,
     personalDetails = {},
@@ -40,6 +39,7 @@ function OptionRowLHNData({
     ...propsToForward
 }: OptionRowLHNDataProps) {
     const reportID = propsToForward.reportID;
+    const reportAttributes = reportAttributesDerived?.[reportID];
     const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
     const isReportFocused = isOptionFocused && currentReportIDValue === reportID;
 
