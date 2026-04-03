@@ -167,6 +167,7 @@ function TaskAssigneeSelectorModal() {
                     undefined, // passing null as report because for editing task the report will be task details report page not the actual report where task was created
                     isCurrentUser({...option, accountID: option?.accountID ?? CONST.DEFAULT_NUMBER_ID, login: option?.login ?? ''}, loginList, currentUserEmail),
                 );
+                // Pass through the selected assignee
                 editTaskAssignee({
                     report,
                     parentReport,
