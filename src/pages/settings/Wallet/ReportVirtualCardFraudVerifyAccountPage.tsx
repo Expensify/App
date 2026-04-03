@@ -60,7 +60,7 @@ function ReportVirtualCardFraudVerifyAccountPage({
     };
 
     const handleClearError = () => {
-        clearValidateCodeActionError(ONYXKEYS.VALIDATE_ACTION_CODE);
+        clearValidateCodeActionError('reportVirtualCard');
         if (!virtualCard?.cardID) {
             return;
         }
