@@ -1,8 +1,8 @@
 import {PortalHost} from '@gorhom/portal';
 import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {InteractionManager} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import MoneyRequestReportView from '@components/MoneyRequestReportView/MoneyRequestReportView';
@@ -12,6 +12,7 @@ import useShowSuperWideRHPVersion from '@components/WideRHPContextProvider/useSh
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
 import useActionListContextValue from '@hooks/useActionListContextValue';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDocumentTitle from '@hooks/useDocumentTitle';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -36,6 +37,7 @@ import {
     getReportAction,
     isMoneyRequestAction,
 } from '@libs/ReportActionsUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import {isMoneyRequestReport, isMoneyRequestReportPendingDeletion, isValidReportIDFromPath} from '@libs/ReportUtils';
 import {cancelSpansByPrefix} from '@libs/telemetry/activeSpans';
 import {doesDeleteNavigateBackUrlIncludeDuplicatesReview, getParentReportActionDeletionStatus, hasLoadedReportActions, isThreadReportDeleted} from '@libs/TransactionNavigationUtils';
@@ -46,7 +48,8 @@ import {clearDeleteTransactionNavigateBackUrl, createTransactionThreadReport, op
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import type {Policy, Transaction, TransactionViolations} from '@src/types/onyx';
+import {reportByIDsSelector} from '@src/selectors/Attributes';
+import type {Policy, ReportAttributesDerivedValue, Transaction, TransactionViolations} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 type SearchMoneyRequestPageProps =
@@ -135,7 +138,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`);
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_APP);
     const isReportArchived = useReportIsArchived(report?.reportID);
 
     const {isEditingDisabled, isCurrentReportLoadedFromOnyx} = useIsReportReadyToDisplay(report, reportIDFromRoute, isReportArchived);
@@ -158,6 +161,11 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const oneTransactionID = reportTransactions.at(0)?.transactionID;
 
     const reportID = report?.reportID;
+
+    const reportAttributesSelector = useCallback((attributes: OnyxEntry<ReportAttributesDerivedValue>) => reportByIDsSelector(reportID ? [reportID] : [])(attributes), [reportID]);
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportAttributesSelector});
+    useDocumentTitle(getReportName(report, reportAttributes));
+
     const doesReportIDLookValid = isValidReportIDFromPath(reportID);
     const hasLoadedReportActionsForAccessError = hasLoadedReportActions(reportMetadata, isOffline);
     const isReportPendingDeletion = isMoneyRequestReportPendingDeletion(report);

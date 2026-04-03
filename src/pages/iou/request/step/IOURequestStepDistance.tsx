@@ -95,7 +95,8 @@ function IOURequestStepDistance({
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
@@ -340,7 +341,8 @@ function IOURequestStepDistance({
             draftTransactionIDs,
             isSelfTourViewed: !!isSelfTourViewed,
             amountOwed,
-            ownerBillingGraceEndPeriod,
+            userBillingGracePeriodEnds,
+            ownerBillingGracePeriodEnd,
         });
     }, [
         iouType,
@@ -378,7 +380,8 @@ function IOURequestStepDistance({
         draftTransactionIDs,
         isSelfTourViewed,
         amountOwed,
-        ownerBillingGraceEndPeriod,
+        userBillingGracePeriodEnds,
+        ownerBillingGracePeriodEnd,
     ]);
 
     const getError = () => {
@@ -467,7 +470,7 @@ function IOURequestStepDistance({
             }
             if (transaction?.transactionID && report?.reportID) {
                 updateMoneyRequestDistance({
-                    transactionID: transaction?.transactionID,
+                    transaction,
                     transactionThreadReport: report,
                     parentReport,
                     waypoints,
@@ -502,8 +505,7 @@ function IOURequestStepDistance({
         originalSplitTransactionDraft,
         transactionBackup,
         waypoints,
-        transaction?.routes,
-        transaction?.transactionID,
+        transaction,
         report,
         navigateBack,
         currentTransaction?.comment?.waypoints,

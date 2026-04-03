@@ -7525,7 +7525,6 @@ describe('SearchUIUtils', () => {
         });
 
         test('Should fallback to childReportID from IOU action when transaction thread report is not in Onyx', async () => {
-            (createTransactionThreadReport as jest.Mock).mockReset();
             const childReportID = 'child-thread-456';
             // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
             const multiTransactionItem = transactionsListItems.at(2) as TransactionListItemType;
@@ -7639,6 +7638,49 @@ describe('SearchUIUtils', () => {
             const transactionThread = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}456`);
 
             expect(transactionThread).toBeTruthy();
+        });
+    });
+
+    describe('getSearchBulkEditPolicyID', () => {
+        it('returns the active policy when there are no selected transactions', () => {
+            const result = SearchUIUtils.getSearchBulkEditPolicyID([], 'policy-1', undefined, undefined);
+            expect(result).toBe('policy-1');
+        });
+
+        it('returns the shared policy when all selected transactions match', () => {
+            const transaction1 = {transactionID: 't1', reportID: 'r1'} as OnyxTypes.Transaction;
+            const transaction2 = {transactionID: 't2', reportID: 'r2'} as OnyxTypes.Transaction;
+            const transactions: OnyxCollection<OnyxTypes.Transaction> = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
+            };
+            const bulkReport1 = {reportID: 'r1', policyID: 'policy-1'} as OnyxTypes.Report;
+            const bulkReport2 = {reportID: 'r2', policyID: 'policy-1'} as OnyxTypes.Report;
+            const reports: OnyxCollection<OnyxTypes.Report> = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${bulkReport1.reportID}`]: bulkReport1,
+                [`${ONYXKEYS.COLLECTION.REPORT}${bulkReport2.reportID}`]: bulkReport2,
+            };
+
+            const result = SearchUIUtils.getSearchBulkEditPolicyID(['t1', 't2'], 'policy-2', transactions, reports);
+            expect(result).toBe('policy-1');
+        });
+
+        it('falls back to the active policy when selected transactions are from different policies', () => {
+            const transaction1 = {transactionID: 't1', reportID: 'r1'} as OnyxTypes.Transaction;
+            const transaction2 = {transactionID: 't2', reportID: 'r2'} as OnyxTypes.Transaction;
+            const transactions: OnyxCollection<OnyxTypes.Transaction> = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
+            };
+            const bulkReport1 = {reportID: 'r1', policyID: 'policy-1'} as OnyxTypes.Report;
+            const bulkReport2 = {reportID: 'r2', policyID: 'policy-2'} as OnyxTypes.Report;
+            const reports: OnyxCollection<OnyxTypes.Report> = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${bulkReport1.reportID}`]: bulkReport1,
+                [`${ONYXKEYS.COLLECTION.REPORT}${bulkReport2.reportID}`]: bulkReport2,
+            };
+
+            const result = SearchUIUtils.getSearchBulkEditPolicyID(['t1', 't2'], 'policy-3', transactions, reports);
+            expect(result).toBe('policy-3');
         });
     });
 
