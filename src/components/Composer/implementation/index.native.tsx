@@ -12,6 +12,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {containsOnlyEmojis} from '@libs/EmojiUtils';
 import {splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
+import Log from '@libs/Log';
 import Parser from '@libs/Parser';
 import getFileSize from '@pages/Share/getFileSize';
 import CONST from '@src/CONST';
@@ -89,20 +90,35 @@ function Composer({
 
     const pasteFile = useCallback(
         (e: NativeSyntheticEvent<TextInputPasteEventData>) => {
-            const clipboardContent = e.nativeEvent.items.at(0);
-            if (clipboardContent?.type === 'text/plain') {
-                return;
-            }
-            const mimeType = clipboardContent?.type ?? '';
-            const fileURI = clipboardContent?.data;
-            const baseFileName = fileURI?.split('/').pop() ?? 'file';
-            const {fileName: stem, fileExtension: originalFileExtension} = splitExtensionFromFileName(baseFileName);
-            const fileExtension = originalFileExtension || (mimeDb[mimeType].extensions?.[0] ?? 'bin');
-            const fileName = `${stem}.${fileExtension}`;
-            let file: FileObject = {uri: fileURI, name: fileName, type: mimeType, size: 0};
-            getFileSize(file.uri ?? '')
-                .then((size) => (file = {...file, size}))
-                .finally(() => onPasteFile(file));
+            const filePromises: Array<Promise<FileObject | undefined>> = e.nativeEvent.items.map(async (clipboardFile) => {
+                const mimeType = clipboardFile?.type ?? '';
+                const fileURI = clipboardFile?.data;
+                const baseFileName = fileURI?.split('/').pop() ?? 'file';
+                const {fileName: stem, fileExtension: originalFileExtension} = splitExtensionFromFileName(baseFileName);
+                const fileExtension = originalFileExtension || (mimeDb[mimeType].extensions?.[0] ?? 'bin');
+                const fileName = `${stem}.${fileExtension}`;
+                const file: FileObject = {uri: fileURI, name: fileName, type: mimeType, size: 0};
+
+                try {
+                    const size = await getFileSize(file.uri ?? '');
+                    return {...file, size};
+                } catch {
+                    return file;
+                }
+            });
+
+            // Use Promise.allSettled so one bad URI/type doesn't drop valid files from mixed clipboard payloads
+            Promise.allSettled(filePromises).then((results) => {
+                const files: FileObject[] = [];
+                for (const [index, result] of results.entries()) {
+                    if (result.status === 'fulfilled' && result.value !== undefined) {
+                        files.push(result.value);
+                    } else if (result.status === 'rejected') {
+                        Log.warn('Pasted file could not be processed', {error: result.reason, index});
+                    }
+                }
+                onPasteFile(files);
+            });
         },
         [onPasteFile],
     );

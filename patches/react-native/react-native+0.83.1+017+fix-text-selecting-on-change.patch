@@ -1,16 +1,16 @@
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.kt
-index ffba031..87e18c2 100644
+index fa6bb24..770ed8b 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.kt
 +++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.kt
 @@ -146,6 +146,7 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
+   private var autoFocus = false
    private var contextMenuHidden = false
    private var didAttachToWindow = false
++  private var hasSelectedTextOnFocus = false
    private var selectTextOnFocus = false
-+  private var hasSelectedTextOnFocus = false;
    private var placeholder: String? = null
    private var overflow = Overflow.VISIBLE
- 
-@@ -291,11 +292,11 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
+@@ -298,11 +299,11 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
  
    override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
      onContentSizeChange()
@@ -24,7 +24,7 @@ index ffba031..87e18c2 100644
      }
    }
  
-@@ -437,6 +438,7 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
+@@ -498,6 +499,7 @@ public open class ReactEditText public constructor(context: Context) : AppCompat
        showSoftKeyboard()
      }
  
