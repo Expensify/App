@@ -25,11 +25,11 @@ You can manage the following options:
 
 - **Allow deleting transactions**  
   Enable this setting to allow cardholders to delete card transactions.  
-**Note:** This setting only applies to transactions imported after the setting is enabled.
+  **Note:** This setting only applies to transactions imported after the setting is enabled.
 
 - **Remove card feed**  
   Remove the card feed from the workspace and unassign all cards. If the feed is not connected to another workspace, it is permanently deleted.  
-**Note:** Removing the feed or unassigning a card deletes all imported expenses in the **Unreported** and **Draft** states.
+  **Note:** Removing the feed or unassigning a card deletes all imported expenses in the **Unreported** and **Draft** states.
 
 ![Tap settings to open the card feed settings page]({{site.url}}/assets/images/Direct Feed HelpDot Images/directfeeds_12.png){:width="100%"}
 
