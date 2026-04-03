@@ -35,7 +35,6 @@ import {isValidTimeExpenseAmount} from '@libs/TimeTrackingUtils';
 import {
     areRequiredFieldsEmpty,
     calculateTaxAmount,
-    getAmount,
     getAttendees,
     getBillable,
     getCategory,
@@ -296,7 +295,7 @@ function MoneyRequestConfirmationList({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
 
-    const iouAmount = getAmount(transaction);
+    const iouAmount = transaction?.amount ?? 0;
     const iouComment = getDescription(transaction);
     const iouCurrencyCode = getCurrency(transaction);
     const iouMerchant = getMerchant(transaction);
