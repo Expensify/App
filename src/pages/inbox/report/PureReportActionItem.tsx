@@ -125,6 +125,7 @@ import {
     getRenamedCardFeedMessage,
     getReportActionHtml,
     getReportActionMessage,
+    getReportActionMessageText,
     getReportActionText,
     getSetAutoJoinMessage,
     getSettlementAccountLockedMessage,
@@ -1704,7 +1705,8 @@ function PureReportActionItem({
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION)) {
             children = <ExportIntegration action={action} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED)) {
-            children = <ReportActionItemBasicMessage message={translate('iou.receiptScanningFailed')} />;
+            const htmlMessage = getReportActionMessageText(action) ?? translate('iou.receiptScanningFailed');
+            children = <ReportActionItemBasicMessage message={htmlMessage} />;
         } else if (isRenamedAction(action)) {
             const message = getRenamedAction(translate, action, isExpenseReport(report));
             children = <ReportActionItemBasicMessage message={message} />;
