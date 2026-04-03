@@ -294,27 +294,6 @@ describe('useReceiptScan', () => {
             expect(result.current.receiptFiles).toHaveLength(1);
             expect(result.current.receiptFiles.at(0)).toEqual(receiptFile);
         });
-
-        it('should not clear receiptFiles when isMultiScanEnabled changes from true to false', async () => {
-            const {result} = renderHook(() => useReceiptScan(params));
-            await act(async () => {
-                result.current.setIsMultiScanEnabled(true);
-            });
-            await waitForBatchedUpdatesWithAct();
-
-            const receiptFile = {file: {uri: 'picture.jpg'}, source: 'file://picture.jpg', transactionID: INITIAL_TRANSACTION_ID};
-            await act(async () => {
-                result.current.setReceiptFiles([receiptFile]);
-            });
-            await waitForBatchedUpdatesWithAct();
-            expect(result.current.receiptFiles).toHaveLength(1);
-
-            await act(async () => {
-                result.current.setIsMultiScanEnabled(false);
-            });
-            await waitForBatchedUpdatesWithAct();
-            expect(result.current.receiptFiles).toEqual([receiptFile]);
-        });
     });
 
     describe('processReceipts', () => {

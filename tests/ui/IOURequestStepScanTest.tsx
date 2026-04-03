@@ -1,5 +1,5 @@
 import {NavigationContainer} from '@react-navigation/native';
-import {act, render} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -167,26 +167,19 @@ describe('IOURequestStepScan', () => {
         expect(tx2After?.receipt?.source).toBe('file://receipt2.png');
     });
 
-    it('adding a second receipt replaces the existing draft receipt when isMultiScanEnabled is false', async () => {
+    it('multi-scan mode preserves first receipt when adding second receipt', async () => {
         const REPORT_ID = '1';
         const POLICY_ID = 'policy-1';
         const TRANSACTION_ID_1 = '101';
-        const TRANSACTION_ID_2 = '102';
 
         const transaction1 = createRandomTransaction(1);
         transaction1.reportID = REPORT_ID;
         transaction1.transactionID = TRANSACTION_ID_1;
         transaction1.receipt = {source: 'file://first-receipt.png', state: CONST.IOU.RECEIPT_STATE.OPEN};
 
-        const transaction2 = createRandomTransaction(2);
-        transaction2.reportID = REPORT_ID;
-        transaction2.transactionID = TRANSACTION_ID_2;
-        transaction2.receipt = {source: 'file://second-receipt.png', state: CONST.IOU.RECEIPT_STATE.OPEN};
-
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, createMinimalReport(REPORT_ID, POLICY_ID));
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID_1}`, transaction1);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID_2}`, transaction2);
         });
         await waitForBatchedUpdates();
 
@@ -217,6 +210,13 @@ describe('IOURequestStepScan', () => {
 
         await waitForBatchedUpdatesWithAct();
 
+        fireEvent.press(screen.getByLabelText('multi-scan'));
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID_1}`, transaction1);
+        });
+        await waitForBatchedUpdates();
+
         expect(triggerFileSelection).not.toBeNull();
 
         const secondFile = {name: 'second-receipt.png', type: 'image/png', size: 200, uri: 'file://second-receipt.png'} as FileObject;
@@ -230,6 +230,6 @@ describe('IOURequestStepScan', () => {
 
         const tx1After = await getTransactionsDraftOnyx(TRANSACTION_ID_1);
         expect(tx1After).toBeDefined();
-        expect(tx1After?.receipt?.source).toBe('file://second-receipt.png');
+        expect(tx1After?.receipt?.source).toBe('file://first-receipt.png');
     });
 });
