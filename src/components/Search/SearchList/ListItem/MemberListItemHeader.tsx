@@ -70,7 +70,7 @@ function MemberListItemHeader<TItem extends ListItem>({
                 key={CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM}
                 style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)}
             >
-                <View style={[styles.gap1, styles.flexShrink1]}>
+                <View style={styles.flexShrink1}>
                     <TextWithTooltip
                         text={formattedDisplayName}
                         style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}
@@ -105,7 +105,7 @@ function MemberListItemHeader<TItem extends ListItem>({
 
     return (
         <View>
-            <View style={[styles.pv1Half, styles.pl3, styles.flexRow, styles.alignItemsCenter, isLargeScreenWidth ? styles.gap3 : styles.justifyContentStart]}>
+            <View style={[styles.pl3, styles.flexRow, styles.alignItemsCenter, isLargeScreenWidth ? [styles.pv1, styles.gap3] : [styles.pv1Half, styles.justifyContentStart]]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                     {!!canSelectMultiple && (
                         <Checkbox
@@ -114,7 +114,7 @@ function MemberListItemHeader<TItem extends ListItem>({
                             isIndeterminate={isIndeterminate}
                             disabled={!!isDisabled || memberItem.isDisabledCheckbox}
                             accessibilityLabel={translate('common.select')}
-                            style={isLargeScreenWidth && styles.mr1}
+                            containerStyle={styles.m0}
                         />
                     )}
                     {!isLargeScreenWidth && (
@@ -129,7 +129,7 @@ function MemberListItemHeader<TItem extends ListItem>({
                                     />
                                 </View>
                             </UserDetailsTooltip>
-                            <View style={[styles.gap1, styles.flexShrink1]}>
+                            <View style={styles.flexShrink1}>
                                 <TextWithTooltip
                                     text={formattedDisplayName}
                                     style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}
@@ -151,6 +151,7 @@ function MemberListItemHeader<TItem extends ListItem>({
                                             type={CONST.ICON_TYPE_AVATAR}
                                             name={formattedDisplayName}
                                             avatarID={memberItem.accountID}
+                                            size={CONST.AVATAR_SIZE.SMALL}
                                         />
                                     </View>
                                 </UserDetailsTooltip>

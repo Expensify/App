@@ -4,9 +4,11 @@ import Checkbox from '@components/Checkbox';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import variables from '@styles/variables';
 import BaseListItem from './BaseListItem';
 import type {ListItem, TableListItemProps} from './types';
 
@@ -27,13 +29,15 @@ function TableListItem<TItem extends ListItem>({
     shouldUseDefaultRightHandSideCheckmark,
     shouldShowRightCaret,
     errorRowStyles,
+    isLastItem,
 }: TableListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
+    const {isLargeScreenWidth} = useResponsiveLayout();
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
-        borderRadius: styles.selectionListPressableItemWrapper.borderRadius,
+        borderRadius: isLargeScreenWidth ? 0 : styles.selectionListPressableItemWrapper.borderRadius,
         shouldHighlight: !!item.shouldAnimateInHighlight,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.highlightBG,
@@ -42,6 +46,9 @@ function TableListItem<TItem extends ListItem>({
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
     const hoveredBackgroundColor = styles.sidebarLinkHover?.backgroundColor ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
 
+    const compactRowStyle = isLargeScreenWidth
+        ? StyleUtils.getSearchTableRowPressableStyle(!!isLastItem, !!item.isSelected, {vertical: variables.tableRowPaddingVertical, horizontal: variables.tableRowPaddingHorizontal})
+        : {};
     const handleCheckboxPress = () => {
         if (onCheckboxPress) {
             onCheckboxPress(item);
@@ -60,10 +67,11 @@ function TableListItem<TItem extends ListItem>({
                 item.shouldAnimateInHighlight ? styles.bgTransparent : undefined,
                 item.isSelected && styles.activeComponentBG,
                 item.cursorStyle,
+                compactRowStyle,
             ]}
             pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
             wrapperStyle={[styles.flexRow, styles.flex1, styles.justifyContentBetween, styles.userSelectNone, styles.alignItemsCenter]}
-            containerStyle={styles.mb2}
+            containerStyle={!isLargeScreenWidth && styles.mb2}
             isFocused={isFocused}
             isDisabled={isDisabled}
             showTooltip={showTooltip}
@@ -93,7 +101,7 @@ function TableListItem<TItem extends ListItem>({
                             onPress={handleCheckboxPress}
                             shouldStopMouseDownPropagation
                             style={[item.cursorStyle, styles.p5, styles.mln5, styles.mhv5, styles.mrn2]}
-                            containerStyle={[StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled), item.cursorStyle]}
+                            containerStyle={[StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled), item.cursorStyle, styles.m0]}
                             testID={`TableListItemCheckbox-${item.text}`}
                         />
                     )}

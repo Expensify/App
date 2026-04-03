@@ -1534,9 +1534,11 @@ function Search({
         navigation.setParams({q: newQuery, rawQuery: undefined});
     };
 
-    const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted, shouldShowYearExported} = shouldShowYearUtil(
+    const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted, shouldShowYearExported, shouldShowYearWithdrawn} = shouldShowYearUtil(
         searchResults?.data,
         isExpenseReportType ?? false,
+        undefined,
+        !isExpenseReportType,
     );
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(searchResults?.data);
     const shouldShowTableHeader = isLargeScreenWidth && !isChat;
@@ -1617,10 +1619,12 @@ function Search({
                                     shouldShowYearApproved={shouldShowYearApproved}
                                     shouldShowYearPosted={shouldShowYearPosted}
                                     shouldShowYearExported={shouldShowYearExported}
+                                    shouldShowYearWithdrawn={shouldShowYearWithdrawn}
                                     isAmountColumnWide={shouldShowAmountInWideColumn}
                                     isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
                                     shouldShowSorting
                                     groupBy={validGroupBy}
+                                    isExpenseReportView={isExpenseReportType}
                                 />
                             </View>
                         )
@@ -1639,6 +1643,7 @@ function Search({
                                 shouldAnimate
                                 fixedNumItems={shouldShowLoadingMoreItems ? 5 : 1}
                                 reasonAttributes={showPendingExpensePlaceholder ? pendingExpenseReasonAttributes : loadMoreSkeletonReasonAttributes}
+                                isLoadMore
                             />
                         ) : undefined
                     }

@@ -17,6 +17,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {handleActionButtonPress} from '@libs/actions/Search';
@@ -46,9 +47,11 @@ function ExpenseReportListItem<TItem extends ListItem>({
     onCheckboxPress,
     lastPaymentMethod,
     personalPolicyID,
+    isLastItem,
 }: ExpenseReportListItemProps<TItem>) {
     const reportItem = item as unknown as ExpenseReportListItemType;
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const {translate} = useLocalize();
     const {isLargeScreenWidth} = useResponsiveLayout();
@@ -170,8 +173,9 @@ function ExpenseReportListItem<TItem extends ListItem>({
             item.isSelected && styles.activeComponentBG,
             styles.mh0,
             isPendingDelete && styles.cursorDisabled,
+            isLargeScreenWidth && StyleUtils.getSearchTableRowPressableStyle(!!isLastItem, item.isSelected, {vertical: variables.tableRowPaddingVertical}),
         ],
-        [styles, item.isSelected, isPendingDelete],
+        [styles, item.isSelected, isLargeScreenWidth, isLastItem, isPendingDelete, StyleUtils],
     );
 
     const listItemWrapperStyle = useMemo(
@@ -184,7 +188,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     );
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
-        borderRadius: variables.componentBorderRadius,
+        borderRadius: StyleUtils.getSearchTableHighlightBorderRadius(isLargeScreenWidth),
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.highlightBG,
@@ -249,7 +253,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             item={item}
             pressableStyle={listItemPressableStyle}
             wrapperStyle={listItemWrapperStyle}
-            containerStyle={[styles.mb2]}
+            containerStyle={!isLargeScreenWidth && [styles.mb2]}
             isFocused={isFocused}
             showTooltip={showTooltip}
             canSelectMultiple={canSelectMultiple}
@@ -260,7 +264,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             onLongPressRow={onLongPressRow}
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={item.isSelected && styles.activeComponentBG}
-            pressableWrapperStyle={[styles.mh5, animatedHighlightStyle, isPendingDelete && styles.cursorDisabled]}
+            pressableWrapperStyle={[styles.mh5, animatedHighlightStyle, isPendingDelete && styles.cursorDisabled, isLargeScreenWidth && isLastItem && styles.searchTableBottomRadius]}
             accessible={false}
             shouldShowRightCaret={false}
             shouldUseDefaultRightHandSideCheckmark={false}

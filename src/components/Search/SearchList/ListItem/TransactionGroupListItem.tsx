@@ -77,6 +77,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     newTransactionID,
     lastPaymentMethod,
     personalPolicyID,
+    isLastItem,
 }: TransactionGroupListItemProps<TItem>) {
     const groupItem = item as unknown as TransactionGroupListItemType;
 
@@ -171,8 +172,10 @@ function TransactionGroupListItem<TItem extends ListItem>({
         });
     };
 
+    const StyleUtils = useStyleUtils();
+
     const animatedHighlightStyle = useAnimatedHighlightStyle({
-        borderRadius: variables.componentBorderRadius,
+        borderRadius: StyleUtils.getSearchTableHighlightBorderRadius(isLargeScreenWidth),
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.highlightBG,
@@ -180,9 +183,16 @@ function TransactionGroupListItem<TItem extends ListItem>({
 
     const isItemSelected = isSelectAllChecked || item?.isSelected;
 
-    const pressableStyle = [styles.transactionGroupListItemStyle, isItemSelected && styles.activeComponentBG];
-
-    const StyleUtils = useStyleUtils();
+    const pressableStyle = [
+        styles.transactionGroupListItemStyle,
+        isLargeScreenWidth && {
+            ...styles.searchTableRowHeight,
+            borderRadius: 0,
+            paddingVertical: variables.tableGroupRowPaddingVertical,
+            ...(isLastItem ? styles.searchTableBottomRadius : {}),
+        },
+        isItemSelected && styles.activeComponentBG,
+    ];
     const pressableRef = useRef<View>(null);
 
     useEffect(() => {
@@ -464,7 +474,13 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     isFocused && StyleUtils.getItemBackgroundColorStyle(!!isItemSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
                 ]}
                 onFocus={onFocus}
-                wrapperStyle={[styles.mb2, styles.mh5, animatedHighlightStyle, styles.userSelectNone]}
+                wrapperStyle={[
+                    !isLargeScreenWidth && styles.mb2,
+                    styles.mh5,
+                    animatedHighlightStyle,
+                    styles.userSelectNone,
+                    isLargeScreenWidth && StyleUtils.getSearchTableRowBorderStyle(isLastItem, isItemSelected),
+                ]}
             >
                 {({hovered}) => (
                     <View style={styles.flex1}>
@@ -472,8 +488,9 @@ function TransactionGroupListItem<TItem extends ListItem>({
                             isExpanded={isExpanded}
                             header={getHeader(hovered)}
                             onPress={onExpandIconPress}
-                            expandButtonStyle={styles.pv4Half}
+                            expandButtonStyle={isLargeScreenWidth ? styles.pv2 : styles.pv4Half}
                             shouldShowToggleButton={isLargeScreenWidth}
+                            borderBottomStyle={isLargeScreenWidth && styles.borderNone}
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH.GROUP_EXPAND_TOGGLE}
                         >
                             <TransactionGroupListExpandedItem

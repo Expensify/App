@@ -16,6 +16,7 @@ type ListItemRendererProps<TItem extends ListItem> = Omit<BaseListItemProps<TIte
         singleExecution: ReturnType<typeof useSingleExecution>['singleExecution'];
         titleStyles?: StyleProp<TextStyle>;
         titleContainerStyles?: StyleProp<ViewStyle>;
+        isLastItem?: boolean;
         shouldHighlightSelectedItem: boolean;
     };
 
@@ -53,6 +54,7 @@ function ListItemRenderer<TItem extends ListItem>({
     shouldDisableHoverStyle,
     shouldShowRightCaret,
     errorRowStyles,
+    isLastItem,
 }: ListItemRendererProps<TItem>) {
     const handleOnCheckboxPress = () => {
         if (isTransactionGroupListItemType(item)) {
@@ -111,6 +113,7 @@ function ListItemRenderer<TItem extends ListItem>({
                 shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                 shouldDisableHoverStyle={shouldDisableHoverStyle}
                 shouldShowRightCaret={shouldShowRightCaret}
+                isLastItem={isLastItem}
             />
             {item.footerContent && item.footerContent}
         </>

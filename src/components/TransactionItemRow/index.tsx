@@ -313,6 +313,7 @@ function TransactionItemRow({
                         <ReceiptCell
                             transactionItem={transactionItem}
                             isSelected={isSelected}
+                            shouldUseNarrowLayout={shouldUseNarrowLayout}
                         />
                     </View>
                 );
@@ -704,6 +705,7 @@ function TransactionItemRow({
                                 accessibilityLabel={CONST.ROLE.CHECKBOX}
                                 isChecked={isSelected}
                                 style={styles.mr3}
+                                containerStyle={styles.m0}
                                 wrapperStyle={styles.justifyContentCenter}
                                 sentryLabel={checkboxSentryLabel}
                             />
@@ -712,6 +714,7 @@ function TransactionItemRow({
                             transactionItem={transactionItem}
                             isSelected={isSelected}
                             style={styles.mr3}
+                            shouldUseNarrowLayout={shouldUseNarrowLayout}
                         />
                         <View style={[styles.flex2, styles.flexColumn, styles.justifyContentEvenly]}>
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.minHeight5, styles.maxHeight5]}>
@@ -834,7 +837,7 @@ function TransactionItemRow({
                             }}
                             accessibilityLabel={CONST.ROLE.CHECKBOX}
                             isChecked={isSelected}
-                            style={styles.mr1}
+                            containerStyle={styles.m0}
                             wrapperStyle={styles.justifyContentCenter}
                             sentryLabel={checkboxSentryLabel}
                         />
@@ -855,7 +858,7 @@ function TransactionItemRow({
                         <PressableWithFeedback
                             disabled={!!isDisabled}
                             onPress={() => onArrowRightPress?.()}
-                            style={[styles.p3Half, styles.pl0half, styles.pr0half, styles.justifyContentCenter, styles.alignItemsEnd]}
+                            style={[styles.pv2, styles.justifyContentCenter, styles.alignItemsEnd]}
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={CONST.ROLE.BUTTON}
                             sentryLabel={CONST.SENTRY_LABEL.TRANSACTION_ITEM_ROW.ARROW_RIGHT}

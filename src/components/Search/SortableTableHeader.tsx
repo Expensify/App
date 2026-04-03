@@ -28,6 +28,7 @@ type SearchTableHeaderProps = {
     approvedColumnSize?: TableColumnSize;
     postedColumnSize?: TableColumnSize;
     exportedColumnSize?: TableColumnSize;
+    withdrawnColumnSize?: TableColumnSize;
     amountColumnSize: TableColumnSize;
     taxAmountColumnSize: TableColumnSize;
     containerStyles?: StyleProp<ViewStyle>;
@@ -46,6 +47,7 @@ function SortableTableHeader({
     approvedColumnSize,
     postedColumnSize,
     exportedColumnSize,
+    withdrawnColumnSize,
     containerStyles,
     shouldShowSorting,
     onSortPress,
@@ -89,6 +91,7 @@ function SortableTableHeader({
                                     postedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                     exportedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                     shouldRemoveTotalColumnFlex,
+                                    withdrawnColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                 ),
                             ]}
                             isSortable={isSortable}
