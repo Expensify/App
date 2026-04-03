@@ -1478,23 +1478,21 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_SETTINGS]: {
                             path: ROUTES.SETTINGS_TAGS_SETTINGS.route,
                         },
-                        [SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_EDIT]: {
-                            path: ROUTES.SETTINGS_TAGS_EDIT.route,
+                        [SCREENS.SETTINGS_TAGS.DYNAMIC_TAGS_EDIT]: {
+                            path: DYNAMIC_ROUTES.SETTINGS_TAGS_EDIT.path,
                             parse: {
                                 orderWeight: Number,
                             },
                         },
-                        [SCREENS.SETTINGS_TAGS.SETTINGS_TAG_CREATE]: {
-                            path: ROUTES.SETTINGS_TAG_CREATE.route,
-                        },
-                        [SCREENS.SETTINGS_TAGS.SETTINGS_TAG_EDIT]: {
-                            path: ROUTES.SETTINGS_TAG_EDIT.route,
+                        [SCREENS.SETTINGS_TAGS.DYNAMIC_TAG_CREATE]: DYNAMIC_ROUTES.SETTINGS_TAG_CREATE.path,
+                        [SCREENS.SETTINGS_TAGS.DYNAMIC_TAG_EDIT]: {
+                            path: DYNAMIC_ROUTES.SETTINGS_TAG_EDIT.path,
                             parse: {
                                 orderWeight: Number,
                             },
                         },
-                        [SCREENS.SETTINGS_TAGS.SETTINGS_TAG_SETTINGS]: {
-                            path: ROUTES.SETTINGS_TAG_SETTINGS.route,
+                        [SCREENS.SETTINGS_TAGS.DYNAMIC_TAG_SETTINGS]: {
+                            path: DYNAMIC_ROUTES.SETTINGS_TAG_SETTINGS.path,
                             parse: {
                                 orderWeight: Number,
                             },
@@ -1511,8 +1509,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 orderWeight: Number,
                             },
                         },
-                        [SCREENS.SETTINGS_TAGS.SETTINGS_TAG_GL_CODE]: {
-                            path: ROUTES.SETTINGS_TAG_GL_CODE.route,
+                        [SCREENS.SETTINGS_TAGS.DYNAMIC_TAG_GL_CODE]: {
+                            path: DYNAMIC_ROUTES.SETTINGS_TAG_GL_CODE.path,
                             parse: {
                                 orderWeight: Number,
                             },
