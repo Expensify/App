@@ -44,7 +44,7 @@ function RangeDatePicker({fromValue, toValue, onFromSelected, onToSelected, shou
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const shouldStack = forceVertical || isSmallScreenWidth;
-    const fromMaxDate = parseCalendarDate(toValue) ?? CONST.CALENDAR_PICKER.MAX_DATE;
+    const fromMaxDate = parseCalendarDate(toValue);
     const toMinDate = parseCalendarDate(fromValue) ?? CONST.CALENDAR_PICKER.MIN_DATE;
 
     return (
@@ -70,7 +70,6 @@ function RangeDatePicker({fromValue, toValue, onFromSelected, onToSelected, shou
                             value={toValue}
                             onSelected={onToSelected}
                             minDate={toMinDate}
-                            maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
                             headerContainerStyle={styles.ph4}
                         />
                     </View>

@@ -149,10 +149,14 @@ function DatePresetFilterBase({
     const getRangeEphemeralValuesFromDateValues = useCallback((dateValues: SearchDateValues) => {
         const rangeBoundaries = getRangeBoundariesFromFormValue(dateValues[CONST.SEARCH.DATE_MODIFIERS.RANGE]);
 
-        return {
-            from: rangeBoundaries.from,
-            to: rangeBoundaries.to,
-        };
+        if (rangeBoundaries.from && rangeBoundaries.to) {
+            return {
+                from: rangeBoundaries.from,
+                to: rangeBoundaries.to,
+            };
+        }
+
+        return {};
     }, []);
 
     const notifyDateValuesChange = useCallback(
@@ -261,6 +265,9 @@ function DatePresetFilterBase({
         }
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setDateValue(CONST.SEARCH.DATE_MODIFIERS.RANGE, getRangeQueryValue(rangeEphemeralValues.from, rangeEphemeralValues.to) || undefined);
+        if (rangeEphemeralValues.from && rangeEphemeralValues.to) {
+            onRangeValidationErrorChange?.(false);
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [rangeEphemeralValues.from, rangeEphemeralValues.to]);
 
@@ -349,6 +356,7 @@ function DatePresetFilterBase({
 
                 if (selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE) {
                     setRangeEphemeralValues({});
+                    rangeEntrySnapshotRef.current = undefined;
                 } else {
                     setEphemeralDateValue(undefined);
                 }
@@ -444,9 +452,15 @@ function DatePresetFilterBase({
                 fromValue={rangeEphemeralValues.from}
                 toValue={rangeEphemeralValues.to}
                 onFromSelected={(date) => {
+                    if (date && rangeEphemeralValues.to) {
+                        onRangeValidationErrorChange?.(false);
+                    }
                     setRangeEphemeralValues((prev) => ({...prev, from: date}));
                 }}
                 onToSelected={(date) => {
+                    if (rangeEphemeralValues.from && date) {
+                        onRangeValidationErrorChange?.(false);
+                    }
                     setRangeEphemeralValues((prev) => ({...prev, to: date}));
                 }}
                 shouldShowError={shouldShowRangeError}

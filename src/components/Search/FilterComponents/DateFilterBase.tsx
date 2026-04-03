@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -71,6 +71,7 @@ function DateFilterBase({
 
     const normalizedDefaultDateValues = useMemo(() => ({...getEmptyDateValues(), ...defaultDateValues}), [defaultDateValues]);
     const searchDatePresetFilterBaseRef = useRef<SearchDatePresetFilterBaseHandle>(null);
+    const scrollViewRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
     const [selectedDateModifierState, setSelectedDateModifierState] = useState<SearchDateModifier | null>(null);
     const [shouldShowRangeError, setShouldShowRangeError] = useState(false);
     const [rangeDisplayText, setRangeDisplayText] = useState(() =>
@@ -149,6 +150,13 @@ function DateFilterBase({
 
     const computedTitle = getDateModifierTitle(selectedDateModifier, title ?? '', translate);
 
+    useLayoutEffect(() => {
+        if (!shouldShowRangeError || selectedDateModifier !== CONST.SEARCH.DATE_MODIFIERS.RANGE) {
+            return;
+        }
+        scrollViewRef.current?.scrollToEnd({animated: true});
+    }, [selectedDateModifier, shouldShowRangeError]);
+
     const reset = useCallback(() => {
         if (!searchDatePresetFilterBaseRef.current) {
             return;
@@ -200,6 +208,7 @@ function DateFilterBase({
                 />
             )}
             <ScrollView
+                ref={scrollViewRef}
                 keyboardShouldPersistTaps="handled"
                 contentContainerStyle={[styles.flexGrow1]}
             >
@@ -215,13 +224,13 @@ function DateFilterBase({
                     onRangeValidationErrorChange={setShouldShowRangeError}
                     forceVerticalCalendars
                 />
-                {shouldShowRangeSummary && (
-                    <Text style={[styles.textLabelSupporting, styles.mh5, styles.mt2]}>
-                        {`${translate('common.range')}: `}
-                        <Text style={[styles.textLabel]}>{rangeDisplayText}</Text>
-                    </Text>
-                )}
             </ScrollView>
+            {shouldShowRangeSummary && (
+                <Text style={[styles.textLabelSupporting, styles.mh5, styles.mt2]}>
+                    {`${translate('common.range')}: `}
+                    <Text style={[styles.textLabel]}>{rangeDisplayText}</Text>
+                </Text>
+            )}
             {shouldShowActionButtons && (
                 <>
                     <Button
