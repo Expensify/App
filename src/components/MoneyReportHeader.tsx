@@ -172,6 +172,7 @@ import type {PopoverMenuItem} from './PopoverMenu';
 import type {ActionHandledType} from './ProcessMoneyReportHoldMenu';
 import ProcessMoneyReportHoldMenu from './ProcessMoneyReportHoldMenu';
 import ReportPDFDownloadModal from './ReportPDFDownloadModal';
+import BulkDuplicateHandler from './Search/BulkDuplicateHandler';
 import {useSearchActionsContext, useSearchStateContext} from './Search/SearchContext';
 import type {PaymentActionParams} from './SettlementButton/types';
 import Text from './Text';
@@ -562,6 +563,10 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         options: originalSelectedTransactionsOptions,
         handleDeleteTransactions,
         handleDeleteTransactionsWithNavigation,
+        isDuplicateOptionVisible,
+        setDuplicateHandler,
+        allTransactions: allTransactionsForDuplicate,
+        allReports: allReportsForDuplicate,
     } = useSelectedTransactionsActions({
         report: moneyRequestReport,
         reportActions,
@@ -2130,132 +2135,144 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
     };
 
     return (
-        <View style={[styles.pt0, styles.borderBottom]}>
-            <HeaderWithBackButton
-                shouldShowReportAvatarWithDisplay
-                shouldDisplayStatus
-                shouldShowPinButton={false}
-                report={moneyRequestReport}
-                policy={policy}
-                shouldShowBackButton={shouldShowBackButton}
-                shouldDisplaySearchRouter={shouldDisplaySearchRouter}
-                shouldDisplayHelpButton={!(isReportInRHP && shouldUseNarrowLayout)}
-                onBackButtonPress={onBackButtonPress}
-                shouldShowBorderBottom={false}
-                shouldEnableDetailPageNavigation
-                openParentReportInCurrentTab
-            >
-                {shouldDisplayNarrowMoreButton && (
-                    <View style={[styles.flexRow, styles.gap2]}>
-                        {!shouldShowSelectedTransactionsButton && primaryActionComponent}
-                        {!!applicableSecondaryActions.length && !shouldShowSelectedTransactionsButton && (
-                            <MoneyReportHeaderKYCDropdown
-                                chatReportID={chatReport?.reportID}
-                                iouReport={moneyRequestReport}
-                                onPaymentSelect={onPaymentSelect}
-                                onSuccessfulKYC={(type) => confirmPayment({paymentType: type})}
-                                primaryAction={primaryAction}
-                                applicableSecondaryActions={applicableSecondaryActions}
-                                dropdownMenuRef={dropdownMenuRef}
-                                onOptionsMenuHide={handleOptionsMenuHide}
-                                ref={kycWallRef}
-                            />
-                        )}
-                        {shouldShowSelectedTransactionsButton && <View>{renderSelectionModeDropdown()}</View>}
-                    </View>
-                )}
-            </HeaderWithBackButton>
-            {!shouldDisplayNarrowMoreButton &&
-                (shouldShowSelectedTransactionsButton ? (
-                    <View style={[styles.dFlex, styles.w100, styles.ph5, styles.pb3]}>{renderSelectionModeDropdown(styles.w100)}</View>
-                ) : (
-                    <View style={[styles.flexRow, styles.gap2, styles.pb3, styles.ph5, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                        {!!primaryAction && <View style={[styles.flex1]}>{primaryActionComponent}</View>}
-                        {!!applicableSecondaryActions.length && (
-                            <MoneyReportHeaderKYCDropdown
-                                chatReportID={chatReport?.reportID}
-                                iouReport={moneyRequestReport}
-                                onPaymentSelect={onPaymentSelect}
-                                onSuccessfulKYC={(type) => confirmPayment({paymentType: type})}
-                                primaryAction={primaryAction}
-                                applicableSecondaryActions={applicableSecondaryActions}
-                                dropdownMenuRef={dropdownMenuRef}
-                                onOptionsMenuHide={handleOptionsMenuHide}
-                                ref={kycWallRef}
-                            />
-                        )}
-                    </View>
-                ))}
-
-            {shouldShowMoreContent && (
-                <View style={[styles.flexRow, styles.gap2, styles.justifyContentStart, styles.flexNoWrap, styles.ph5, styles.pb3]}>
-                    <View style={[styles.flexShrink1, styles.flexGrow1, styles.mnw0, styles.flexWrap, styles.justifyContentCenter]}>
-                        {showNextStepBar && <MoneyReportHeaderStatusBar nextStep={optimisticNextStep} />}
-                        {showNextStepSkeleton && <MoneyReportHeaderStatusBarSkeleton reasonAttributes={nextStepSkeletonReasonAttributes} />}
-                        <MoneyReportHeaderStatusBarSection
-                            reportID={reportIDProp}
-                            statusBarType={statusBarType}
-                            iouTransactionID={transaction?.transactionID}
-                        />
-                    </View>
-                    {isReportInSearch && (
-                        <MoneyRequestReportNavigation
-                            reportID={moneyRequestReport?.reportID}
-                            shouldDisplayNarrowVersion={!shouldDisplayNarrowMoreButton}
-                        />
-                    )}
-                </View>
-            )}
-
-            <HeaderLoadingBar />
-            {isHoldMenuVisible && requestType !== undefined && (
-                <ProcessMoneyReportHoldMenu
-                    nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
-                    requestType={requestType}
-                    fullAmount={fullAmount}
-                    onClose={() => {
-                        setSelectedVBBAToPayFromHoldMenu(undefined);
-                        setIsHoldMenuVisible(false);
-                        isSelectionModePaymentRef.current = false;
-                    }}
-                    isVisible={isHoldMenuVisible}
-                    paymentType={paymentType}
-                    methodID={paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? selectedVBBAToPayFromHoldMenu : undefined}
-                    chatReport={chatReport}
-                    moneyRequestReport={moneyRequestReport}
-                    hasNonHeldExpenses={!hasOnlyHeldExpenses}
-                    startAnimation={() => {
-                        if (isSelectionModePaymentRef.current) {
-                            clearSelectedTransactions(true);
-                            return;
-                        }
-                        if (requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
-                            startApprovedAnimation();
-                        } else {
-                            startAnimation();
-                        }
-                    }}
-                    transactionCount={transactionIDs?.length ?? 0}
-                    transactions={transactions}
-                    onNonReimbursablePaymentError={showNonReimbursablePaymentErrorModal}
+        <>
+            {isDuplicateOptionVisible && (
+                <BulkDuplicateHandler
+                    selectedTransactionsKeys={selectedTransactionIDs}
+                    allTransactions={allTransactionsForDuplicate}
+                    allReports={allReportsForDuplicate}
+                    searchData={undefined}
+                    onHandlerReady={setDuplicateHandler}
+                    onAfterDuplicate={() => clearSelectedTransactions(true)}
                 />
             )}
-            <MoneyReportHeaderEducationalModals
-                requestParentReportAction={requestParentReportAction}
-                transaction={transaction}
-                reportID={moneyRequestReport?.reportID}
-                isHoldEducationalVisible={isHoldEducationalModalVisible}
-                rejectModalAction={rejectModalAction}
-                onHoldEducationalDismissed={() => setIsHoldEducationalModalVisible(false)}
-                onRejectModalDismissed={() => setRejectModalAction(null)}
-            />
-            {nonReimbursablePaymentErrorDecisionModal}
-            <ReportPDFDownloadModal
-                reportID={moneyRequestReport?.reportID}
-                isVisible={isPDFModalVisible}
-                onClose={() => setIsPDFModalVisible(false)}
-            />
-        </View>
+            <View style={[styles.pt0, styles.borderBottom]}>
+                <HeaderWithBackButton
+                    shouldShowReportAvatarWithDisplay
+                    shouldDisplayStatus
+                    shouldShowPinButton={false}
+                    report={moneyRequestReport}
+                    policy={policy}
+                    shouldShowBackButton={shouldShowBackButton}
+                    shouldDisplaySearchRouter={shouldDisplaySearchRouter}
+                    shouldDisplayHelpButton={!(isReportInRHP && shouldUseNarrowLayout)}
+                    onBackButtonPress={onBackButtonPress}
+                    shouldShowBorderBottom={false}
+                    shouldEnableDetailPageNavigation
+                    openParentReportInCurrentTab
+                >
+                    {shouldDisplayNarrowMoreButton && (
+                        <View style={[styles.flexRow, styles.gap2]}>
+                            {!shouldShowSelectedTransactionsButton && primaryActionComponent}
+                            {!!applicableSecondaryActions.length && !shouldShowSelectedTransactionsButton && (
+                                <MoneyReportHeaderKYCDropdown
+                                    chatReportID={chatReport?.reportID}
+                                    iouReport={moneyRequestReport}
+                                    onPaymentSelect={onPaymentSelect}
+                                    onSuccessfulKYC={(type) => confirmPayment({paymentType: type})}
+                                    primaryAction={primaryAction}
+                                    applicableSecondaryActions={applicableSecondaryActions}
+                                    dropdownMenuRef={dropdownMenuRef}
+                                    onOptionsMenuHide={handleOptionsMenuHide}
+                                    ref={kycWallRef}
+                                />
+                            )}
+                            {shouldShowSelectedTransactionsButton && <View>{renderSelectionModeDropdown()}</View>}
+                        </View>
+                    )}
+                </HeaderWithBackButton>
+                {!shouldDisplayNarrowMoreButton &&
+                    (shouldShowSelectedTransactionsButton ? (
+                        <View style={[styles.dFlex, styles.w100, styles.ph5, styles.pb3]}>{renderSelectionModeDropdown(styles.w100)}</View>
+                    ) : (
+                        <View style={[styles.flexRow, styles.gap2, styles.pb3, styles.ph5, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                            {!!primaryAction && <View style={[styles.flex1]}>{primaryActionComponent}</View>}
+                            {!!applicableSecondaryActions.length && (
+                                <MoneyReportHeaderKYCDropdown
+                                    chatReportID={chatReport?.reportID}
+                                    iouReport={moneyRequestReport}
+                                    onPaymentSelect={onPaymentSelect}
+                                    onSuccessfulKYC={(type) => confirmPayment({paymentType: type})}
+                                    primaryAction={primaryAction}
+                                    applicableSecondaryActions={applicableSecondaryActions}
+                                    dropdownMenuRef={dropdownMenuRef}
+                                    onOptionsMenuHide={handleOptionsMenuHide}
+                                    ref={kycWallRef}
+                                />
+                            )}
+                        </View>
+                    ))}
+
+                {shouldShowMoreContent && (
+                    <View style={[styles.flexRow, styles.gap2, styles.justifyContentStart, styles.flexNoWrap, styles.ph5, styles.pb3]}>
+                        <View style={[styles.flexShrink1, styles.flexGrow1, styles.mnw0, styles.flexWrap, styles.justifyContentCenter]}>
+                            {showNextStepBar && <MoneyReportHeaderStatusBar nextStep={optimisticNextStep} />}
+                            {showNextStepSkeleton && <MoneyReportHeaderStatusBarSkeleton reasonAttributes={nextStepSkeletonReasonAttributes} />}
+                            <MoneyReportHeaderStatusBarSection
+                                reportID={reportIDProp}
+                                statusBarType={statusBarType}
+                                iouTransactionID={transaction?.transactionID}
+                            />
+                        </View>
+                        {isReportInSearch && (
+                            <MoneyRequestReportNavigation
+                                reportID={moneyRequestReport?.reportID}
+                                shouldDisplayNarrowVersion={!shouldDisplayNarrowMoreButton}
+                            />
+                        )}
+                    </View>
+                )}
+
+                <HeaderLoadingBar />
+                {isHoldMenuVisible && requestType !== undefined && (
+                    <ProcessMoneyReportHoldMenu
+                        nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
+                        requestType={requestType}
+                        fullAmount={fullAmount}
+                        onClose={() => {
+                            setSelectedVBBAToPayFromHoldMenu(undefined);
+                            setIsHoldMenuVisible(false);
+                            isSelectionModePaymentRef.current = false;
+                        }}
+                        isVisible={isHoldMenuVisible}
+                        paymentType={paymentType}
+                        methodID={paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? selectedVBBAToPayFromHoldMenu : undefined}
+                        chatReport={chatReport}
+                        moneyRequestReport={moneyRequestReport}
+                        hasNonHeldExpenses={!hasOnlyHeldExpenses}
+                        startAnimation={() => {
+                            if (isSelectionModePaymentRef.current) {
+                                clearSelectedTransactions(true);
+                                return;
+                            }
+                            if (requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
+                                startApprovedAnimation();
+                            } else {
+                                startAnimation();
+                            }
+                        }}
+                        transactionCount={transactionIDs?.length ?? 0}
+                        transactions={transactions}
+                        onNonReimbursablePaymentError={showNonReimbursablePaymentErrorModal}
+                    />
+                )}
+                <MoneyReportHeaderEducationalModals
+                    requestParentReportAction={requestParentReportAction}
+                    transaction={transaction}
+                    reportID={moneyRequestReport?.reportID}
+                    isHoldEducationalVisible={isHoldEducationalModalVisible}
+                    rejectModalAction={rejectModalAction}
+                    onHoldEducationalDismissed={() => setIsHoldEducationalModalVisible(false)}
+                    onRejectModalDismissed={() => setRejectModalAction(null)}
+                />
+                {nonReimbursablePaymentErrorDecisionModal}
+                <ReportPDFDownloadModal
+                    reportID={moneyRequestReport?.reportID}
+                    isVisible={isPDFModalVisible}
+                    onClose={() => setIsPDFModalVisible(false)}
+                />
+            </View>
+        </>
     );
 }
 

@@ -7435,6 +7435,7 @@ const translations = {
             hold: 'Hold',
             unhold: 'Remove hold',
             reject: 'Reject',
+            duplicateExpense: ({count}: {count: number}) => `Duplicate ${count === 1 ? 'expense' : 'expenses'}`,
             noOptionsAvailable: 'No options available for the selected group of expenses.',
         },
         filtersHeader: 'Filters',
