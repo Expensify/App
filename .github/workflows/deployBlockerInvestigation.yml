@@ -70,8 +70,9 @@ jobs:
 
       - name: Run Claude to investigate deploy blocker
         if: steps.validate.outputs.valid == 'true'
-        uses: anthropics/claude-code-action@bee87b3258c251f9279e5371b0cc3660f37f3f77 # v1.0.83
+        uses: anthropics/claude-code-action@ba026a3e56b9f646ae3b1be02dd9c0812aa2f8ae # v1.0.86
         with:
+          display_report: "true"
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.OS_BOTIFY_TOKEN }}
           prompt: "/investigate-deploy-blocker ISSUE_URL: ${{ env.ISSUE_URL }}"

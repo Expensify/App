@@ -821,6 +821,9 @@ const translations: TranslationDeepObject<typeof en> = {
         emoji: 'Emoji',
         collapse: 'Recolher',
         expand: 'Expandir',
+        askConciergeToUpdate: 'Tente "Atualizar uma despesa"...',
+        askConciergeToCorrect: 'Tente "Corrigir uma despesa"...',
+        askConciergeForHelp: 'Peça ajuda à Concierge AI...',
     },
     reportActionContextMenu: {
         copyMessage: 'Copiar mensagem',
@@ -3791,6 +3794,10 @@ ${amount} para ${merchant} - ${date}`,
         youCanChange: 'Você pode mudar a moeda do seu workspace em seu',
         findCountry: 'Encontrar país',
         selectCountry: 'Selecione o país',
+        error: {
+            connectToWorkspace: (workspaceRoute: string) =>
+                `Por favor, conecte esta conta bancária a um <a href="${workspaceRoute}">espaço de trabalho</a> para que você possa convidar um diretor para assinar em uma etapa posterior.`,
+        },
     },
     bankInfoStep: {
         whatAreYour: 'Quais são os dados da sua conta bancária empresarial?',
