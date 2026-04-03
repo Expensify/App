@@ -60,7 +60,16 @@ const NATIVE_BIOMETRICS_HSM_VALUES = {
         },
     },
     /**
-     * Error codes returned by react-native-biometrics.
+     * Subset of error codes returned by react-native-biometrics.
+     *
+     * Specified codes are user-actionable or are connected to particular flow:
+     * - Cancellation (user/system) — distinguish from failures
+     * - Availability/lockout — inform the user why biometrics can't be used
+     * - Key/signature errors — trigger re-registration or specific recovery paths
+     * - Authentication failed — biometric match failure (wrong finger/face)
+     *
+     * Codes not listed here (INVALID_INPUT_ENCODING, INVALID_KEY_TYPE, etc.) are mainly implementation errors
+     * that fallback to REASON.HSM.GENERIC.
      *
      * signWithOptions resolves with { errorCode?: string }.
      * createKeys/deleteKeys/getAllKeys reject with Error objects having { code: string, message: string }.
@@ -87,6 +96,9 @@ const NATIVE_BIOMETRICS_HSM_VALUES = {
         CREATE_KEYS_ERROR: 'CREATE_KEYS_ERROR',
         KEY_ALREADY_EXISTS: 'KEY_ALREADY_EXISTS',
         KEY_ACCESS_FAILED: 'KEY_ACCESS_FAILED',
+
+        // Authentication failed
+        AUTHENTICATION_FAILED: 'AUTHENTICATION_FAILED', // Both
 
         // System cancel
         SYSTEM_CANCEL: 'SYSTEM_CANCEL', // iOS

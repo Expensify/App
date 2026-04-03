@@ -115,6 +115,7 @@ const REASON = {
         SIGNATURE_FAILED: 'Signature creation failed',
         KEY_CREATION_FAILED: 'Key creation failed',
         KEY_ACCESS_FAILED: 'Failed to access cryptographic key',
+        AUTHENTICATION_FAILED: 'Biometric authentication failed',
         GENERIC: 'An HSM error occurred',
     },
 } as const;
@@ -238,6 +239,7 @@ const ROUTINE_FAILURES = new Set<ReasonValue>([
     REASON.HSM.CANCELED,
     REASON.HSM.NOT_AVAILABLE,
     REASON.HSM.LOCKOUT,
+    REASON.HSM.AUTHENTICATION_FAILED,
 ]);
 
 /** Known errors that should rarely happen and may indicate a bug or unexpected state. Logged at 'error' level. Any reason not in either set is treated as UNCLASSIFIED (e.g. 5xx, missing reason). */
