@@ -25,7 +25,9 @@ import type {Unit} from '@src/types/onyx/Policy';
 import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ViolationFixParams from './types';
 
-type ViolationTranslationOptions = {
+type ViolationTranslationParams = {
+    violation: TransactionViolation;
+    translate: LocaleContextProps['translate'];
     canEdit?: boolean;
     tags?: PolicyTagLists;
     companyCardPageURL?: string;
@@ -674,8 +676,8 @@ const ViolationsUtils = {
      * possible values could be either translation keys that resolve to  strings or translation keys that resolve to
      * functions.
      */
-    getViolationTranslation(violation: TransactionViolation, translate: LocaleContextProps['translate'], options?: ViolationTranslationOptions): string {
-        const {canEdit = true, tags, companyCardPageURL, connectionLink, card, isMarkAsCash, routeDistanceMeters, distanceUnit} = options ?? {};
+    getViolationTranslation(params: ViolationTranslationParams): string {
+        const {violation, translate, canEdit = true, tags, companyCardPageURL, connectionLink, card, isMarkAsCash, routeDistanceMeters, distanceUnit} = params;
         const {
             brokenBankConnection = false,
             isAdmin = false,
@@ -839,7 +841,9 @@ const ViolationsUtils = {
             ...filteredViolations.map((violation) => {
                 const cardID = violation?.data?.cardID;
                 const card = cardID ? cardList?.[cardID] : undefined;
-                const message = ViolationsUtils.getViolationTranslation(violation, translate, {
+                const message = ViolationsUtils.getViolationTranslation({
+                    violation,
+                    translate,
                     tags,
                     companyCardPageURL,
                     connectionLink,
@@ -895,6 +899,6 @@ const ViolationsUtils = {
 };
 
 export {getIsViolationFixed};
-export type {ViolationFixParams, ViolationTranslationOptions};
+export type {ViolationFixParams, ViolationTranslationParams};
 export default ViolationsUtils;
 export {filterReceiptViolations};

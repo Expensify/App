@@ -598,7 +598,9 @@ function MoneyRequestView({
                 .map((violation) => {
                     const cardID = violation.data?.cardID;
                     const card = cardID ? cardList?.[cardID] : undefined;
-                    return ViolationsUtils.getViolationTranslation(violation, translate, {
+                    return ViolationsUtils.getViolationTranslation({
+                        violation,
+                        translate,
                         canEdit,
                         companyCardPageURL,
                         connectionLink,

@@ -132,7 +132,9 @@ function TransactionPreviewContent({
     const isMarkAsCash = parentReport && currentUserLogin ? isMarkAsCashActionForTransaction(currentUserLogin, parentReport, violations, policy) : false;
 
     const violationMessage = firstViolation
-        ? ViolationsUtils.getViolationTranslation(firstViolation, translate, {
+        ? ViolationsUtils.getViolationTranslation({
+              violation: firstViolation,
+              translate,
               canEdit,
               companyCardPageURL,
               connectionLink,

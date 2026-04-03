@@ -260,7 +260,9 @@ function MoneyRequestReceiptView({
             if (isReceiptFieldViolation || isReceiptImageViolation || isRTERViolation) {
                 const cardID = violation.data?.cardID;
                 const card = cardID ? cardList?.[cardID] : undefined;
-                const violationMessage = ViolationsUtils.getViolationTranslation(violation, translate, {
+                const violationMessage = ViolationsUtils.getViolationTranslation({
+                    violation,
+                    translate,
                     canEdit,
                     companyCardPageURL,
                     connectionLink,

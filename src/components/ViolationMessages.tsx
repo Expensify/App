@@ -48,7 +48,9 @@ export default function ViolationMessages({
                 const card = cardID ? cardList?.[cardID] : undefined;
                 return [
                     violation.name,
-                    ViolationsUtils.getViolationTranslation(violation, translate, {
+                    ViolationsUtils.getViolationTranslation({
+                        violation,
+                        translate,
                         canEdit,
                         companyCardPageURL,
                         connectionLink,
