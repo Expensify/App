@@ -4239,6 +4239,9 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
     // For split transactions, the merchant and amount are already computed in transactionChanges,
     // so we can build a valid optimistic MODIFIED_EXPENSE even when waypoints are pending.
     const hasSplitDistanceMessageFields = !!isSplitTransaction && hasModifiedMerchant && hasModifiedAmount;
+    // When distance is provided alongside waypoints (route was already calculated), we have valid
+    // merchant/amount data to build the optimistic report action instead of waiting for the server.
+    const hasDistanceWithWaypoints = hasPendingWaypoints && 'distance' in transactionChanges;
     if (transaction && updatedTransaction && (hasPendingWaypoints || hasModifiedDistanceRate)) {
         // Delete the draft transaction when editing waypoints when the server responds successfully and there are no errors
         successData.push({
@@ -4274,7 +4277,11 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
     const updatedReportAction = shouldBuildOptimisticModifiedExpenseReportAction
         ? buildOptimisticModifiedExpenseReportAction(transactionThreadReport, transaction, transactionChanges, isFromExpenseReport, policy, updatedTransaction, allowNegative)
         : null;
-    if ((!hasPendingWaypoints || hasSplitDistanceMessageFields) && !(hasModifiedDistanceRate && isFetchingWaypointsFromServer(transaction)) && updatedReportAction) {
+    if (
+        (!hasPendingWaypoints || hasSplitDistanceMessageFields || hasDistanceWithWaypoints) &&
+        !(hasModifiedDistanceRate && isFetchingWaypointsFromServer(transaction)) &&
+        updatedReportAction
+    ) {
         apiParams.reportActionID = updatedReportAction.reportActionID;
 
         optimisticData.push({

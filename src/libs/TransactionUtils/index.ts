@@ -726,7 +726,9 @@ function getUpdatedTransaction({
             const mileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy});
             const {unit, rate} = mileageRate;
 
-            const distanceInMeters = getDistanceInMeters(transaction, unit);
+            // Use route distance directly since waypoints changed and the route was recalculated.
+            // getDistanceInMeters prefers quantity which may hold a stale manually-edited value.
+            const distanceInMeters = transactionChanges.routes?.route0?.distance ?? getDistanceInMeters(transaction, unit);
             const amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
             const updatedAmount = isFromExpenseReport || isUnReportedExpense ? -amount : amount;
             const updatedMerchant = DistanceRequestUtils.getDistanceMerchant(
@@ -862,6 +864,7 @@ function getUpdatedTransaction({
         const distance = roundToTwoDecimalPlaces(transactionChanges.distance ?? 0);
 
         lodashSet(updatedTransaction, 'comment.customUnit.quantity', distance);
+        lodashSet(updatedTransaction, 'routes.route0.distance', null);
         shouldStopSmartscan = true;
 
         const updatedMileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy, useTransactionDistanceUnit: false});
