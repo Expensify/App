@@ -85,7 +85,7 @@ function SidebarLinks({insets, optionListItems, priorityMode = CONST.PRIORITY_MO
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const contentContainerStyles = useMemo(() => StyleSheet.flatten([styles.pt2, {paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]), [insets]);
 
-    const shouldShowEmptyLHN = optionListItems.length === 0 && !isLoadingReportData;
+    const shouldShowEmptyLHN = optionListItems.length === 0;
 
     return (
         <View style={[styles.flex1, styles.h100]}>
