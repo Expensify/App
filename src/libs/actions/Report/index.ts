@@ -2419,7 +2419,7 @@ function markCommentAsUnread(reportID: string | undefined, reportActions: OnyxEn
         reportActionID,
     };
 
-    API.writeWithNoDuplicatesConflictAction(WRITE_COMMANDS.MARK_AS_UNREAD, parameters, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.MARK_AS_UNREAD, parameters, {optimisticData, successData, failureData});
     DeviceEventEmitter.emit(`unreadAction_${reportID}`, lastReadTime);
 }
 
