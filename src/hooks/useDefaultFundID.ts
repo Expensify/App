@@ -25,17 +25,21 @@ function useDefaultFundID(policyID: string | undefined) {
 
     const getDomainFundID = useCallback(
         (cardSettings: OnyxCollection<ExpensifyCardSettings>) => {
-            const matchingKey = Object.entries(cardSettings ?? {}).find(([key, settings]) => {
-                if (!settings || key.includes(workspaceAccountID.toString())) {
-                    return false;
-                }
-                if (policyID && isPolicyIDInLinkedExpensifyCardPolicyList(getLinkedPolicyIdsFromExpensifyCardSettings(settings), policyID)) {
-                    return true;
-                }
-                return !!policyID && getPreferredPolicyFromExpensifyCardSettings(settings)?.toUpperCase() === policyID.toUpperCase();
-            });
+            const eligibleEntries = Object.entries(cardSettings ?? {}).filter(([key, settings]) => !!settings && !key.includes(workspaceAccountID.toString()));
 
-            return getFundIdFromSettingsKey(matchingKey?.[0] ?? '');
+            if (policyID) {
+                const preferredMatch = eligibleEntries.find(([, settings]) => getPreferredPolicyFromExpensifyCardSettings(settings)?.toUpperCase() === policyID.toUpperCase());
+                if (preferredMatch) {
+                    return getFundIdFromSettingsKey(preferredMatch[0]);
+                }
+
+                const linkedMatch = eligibleEntries.find(([, settings]) => isPolicyIDInLinkedExpensifyCardPolicyList(getLinkedPolicyIdsFromExpensifyCardSettings(settings), policyID));
+                if (linkedMatch) {
+                    return getFundIdFromSettingsKey(linkedMatch[0]);
+                }
+            }
+
+            return getFundIdFromSettingsKey('');
         },
         [policyID, workspaceAccountID],
     );

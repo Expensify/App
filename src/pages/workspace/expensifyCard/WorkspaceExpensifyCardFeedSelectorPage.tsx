@@ -68,6 +68,22 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
     const {primaryFeeds, otherFeeds} = useExpensifyCardFeedsForFeedSelector(policyID);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
+    const getIssueCardFundID = () => {
+        if (primaryFeeds.length === 0) {
+            return undefined;
+        }
+        const matchingPrimary = primaryFeeds.find((entry) => entry.fundID === lastSelectedExpensifyCardFeedID);
+        if (matchingPrimary) {
+            return matchingPrimary.fundID;
+        }
+        if (primaryFeeds.length === 1) {
+            return primaryFeeds.at(0)?.fundID;
+        }
+        return undefined;
+    };
+
+    const issueCardFundID = getIssueCardFundID();
+
     const getFeedSelectorRowText = (entry: ExpensifyCardFeedEntry) => {
         const domainName = entry.settings?.domainName ?? '';
         if (domainName) {
@@ -80,6 +96,9 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
     };
 
     const handleAddCardPress = () => {
+        if (issueCardFundID === undefined) {
+            return;
+        }
         clearIssueNewCardFormData();
         if (isAccountLocked) {
             showLockedAccountModal();
@@ -89,9 +108,23 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
             showDelegateNoAccessModal();
             return;
         }
-        updateSelectedExpensifyCardFeed(lastSelectedExpensifyCardFeedID, policyID);
+        updateSelectedExpensifyCardFeed(issueCardFundID, policyID);
         setIssueNewCardStepAndData({policyID, isChangeAssigneeDisabled: false});
         Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, exitToIssueNew ? ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID) : Navigation.getActiveRoute()));
+    };
+
+    /** When there is no primary feed for this workspace, mirror empty-state flow: bank account / new program setup (same as WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT). */
+    const handleSetUpNewProgramPress = () => {
+        clearIssueNewCardFormData();
+        if (isAccountLocked) {
+            showLockedAccountModal();
+            return;
+        }
+        if (isDelegateAccessRestricted) {
+            showDelegateNoAccessModal();
+            return;
+        }
+        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT.getRoute(policyID));
     };
 
     const toListItem = (entry: ExpensifyCardFeedEntry, isOtherWorkspaceSection: boolean): ExpensifyFeedListItem => ({
@@ -164,9 +197,9 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
     const issueNewCardAndOtherFeedsFooter = (
         <View style={[styles.w100, styles.flexColumn]}>
             <MenuItem
-                title={translate('workspace.expensifyCard.issueCard')}
+                title={translate(issueCardFundID !== undefined ? 'workspace.expensifyCard.issueCard' : 'workspace.expensifyCard.issueNewCard')}
                 icon={expensifyIcons.Plus}
-                onPress={handleAddCardPress}
+                onPress={issueCardFundID !== undefined ? handleAddCardPress : handleSetUpNewProgramPress}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CARD_BUTTON}
             />
             {otherFeeds.length > 0 && (
