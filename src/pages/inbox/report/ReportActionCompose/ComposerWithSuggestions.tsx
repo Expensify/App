@@ -347,6 +347,7 @@ function ComposerWithSuggestions({
     const wasEditingInComposerRef = useRef(shouldUseNarrowLayout);
     const wasComposerFocusedBeforeEditingRef = useRef(false);
     const previousDraftSelectionRef = useRef<TextSelection | null>(null);
+    const previousEditingReportActionIDRef = useRef<string | null>(null);
 
     useEffect(() => {
         // If the draft message is already being submitted, do nothing.
@@ -400,8 +401,16 @@ function ComposerWithSuggestions({
         if (!shouldUseNarrowLayout && wasEditingInComposerRef.current) {
             wasEditingInComposerRef.current = false;
             applyComposerValue(draftComment ?? '');
+            return;
         }
-    }, [applyComposerValue, draftComment, editingMessage, editingState, selection, shouldUseNarrowLayout, updateNativeSelectionValue]);
+
+        // The editing report action and message changed
+        if (shouldUseNarrowLayout && editingReportActionID !== previousEditingReportActionIDRef.current) {
+            applyComposerValue(editingMessage ?? '', {isEditingInComposer: true, shouldForceNativeValueUpdate: true});
+        }
+
+        previousEditingReportActionIDRef.current = editingReportActionID;
+    }, [applyComposerValue, draftComment, editingMessage, editingReportActionID, editingState, selection, shouldUseNarrowLayout, updateNativeSelectionValue]);
 
     const {superWideRHPRouteKeys} = useWideRHPState();
     // When SearchReport is stacked above another RHP, delay autofocus until after the transition completes to avoid animation jank
