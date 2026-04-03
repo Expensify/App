@@ -15723,11 +15723,144 @@ describe('actions/IOU', () => {
             if (!transaction?.transactionID || !iouReport?.reportID) {
                 throw new Error('Required transaction or report data is missing');
             }
-            markRejectViolationAsResolved(transaction.transactionID, iouReport.reportID);
+            markRejectViolationAsResolved(transaction.transactionID, false, iouReport.reportID);
             await waitForBatchedUpdates();
 
             // Then: Verify violation is removed
             const violations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`);
+            expect(violations).not.toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
+                    }),
+                ]),
+            );
+        });
+
+        it('should do nothing when reportID is not provided', async () => {
+            if (!transaction?.transactionID) {
+                throw new Error('Required transaction data is missing');
+            }
+
+            // When: calling without reportID
+            markRejectViolationAsResolved(transaction.transactionID, false, undefined);
+            await waitForBatchedUpdates();
+
+            // Then: violations should remain unchanged
+            const violations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`);
+            expect(violations).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
+                    }),
+                ]),
+            );
+        });
+
+        it('should create an optimistic report action when resolving', async () => {
+            if (!transaction?.transactionID || !iouReport?.reportID) {
+                throw new Error('Required transaction or report data is missing');
+            }
+
+            // When: Mark violation as resolved
+            markRejectViolationAsResolved(transaction.transactionID, false, iouReport.reportID);
+            await waitForBatchedUpdates();
+
+            // Then: Verify a report action was created
+            const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`);
+            const markedAsResolvedAction = Object.values(reportActions ?? {}).find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED_TRANSACTION_MARKASRESOLVED);
+            expect(markedAsResolvedAction).toBeTruthy();
+        });
+
+        it('should clear pending action after success', async () => {
+            if (!transaction?.transactionID || !iouReport?.reportID) {
+                throw new Error('Required transaction or report data is missing');
+            }
+
+            // When: Mark violation as resolved and batch updates complete (success data applied)
+            markRejectViolationAsResolved(transaction.transactionID, false, iouReport.reportID);
+            await waitForBatchedUpdates();
+
+            // Then: The pending action should be cleared after success
+            const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`);
+            const markedAsResolvedAction = Object.values(reportActions ?? {}).find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED_TRANSACTION_MARKASRESOLVED);
+            expect(markedAsResolvedAction?.pendingAction).toBeFalsy();
+        });
+
+        it('should handle transaction with no existing violations', async () => {
+            if (!transaction?.transactionID || !iouReport?.reportID) {
+                throw new Error('Required transaction or report data is missing');
+            }
+
+            // Given: Transaction has no violations
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`, []);
+            await waitForBatchedUpdates();
+
+            // When: Mark violation as resolved
+            markRejectViolationAsResolved(transaction.transactionID, false, iouReport.reportID);
+            await waitForBatchedUpdates();
+
+            // Then: Violations should be empty and a report action should still be created
+            const violations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`);
+            expect(violations).toEqual([]);
+
+            const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`);
+            const markedAsResolvedAction = Object.values(reportActions ?? {}).find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED_TRANSACTION_MARKASRESOLVED);
+            expect(markedAsResolvedAction).toBeTruthy();
+        });
+
+        it('should remove violation when isOffline is true', async () => {
+            if (!transaction?.transactionID || !iouReport?.reportID) {
+                throw new Error('Required transaction or report data is missing');
+            }
+
+            // When: Mark violation as resolved while offline
+            markRejectViolationAsResolved(transaction.transactionID, true, iouReport.reportID);
+            await waitForBatchedUpdates();
+
+            // Then: Verify violation is removed
+            const violations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction?.transactionID}`);
+            expect(violations).not.toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
+                    }),
+                ]),
+            );
+        });
+
+        it('should preserve other violations when removing rejected expense violation', async () => {
+            if (!transaction?.transactionID || !iouReport?.reportID) {
+                throw new Error('Required transaction or report data is missing');
+            }
+
+            // Given: Transaction has multiple violations
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`, [
+                {
+                    name: CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE,
+                    type: CONST.VIOLATION_TYPES.WARNING,
+                    data: {comment: 'Test reject reason'},
+                },
+                {
+                    name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                },
+            ]);
+            await waitForBatchedUpdates();
+
+            // When: Mark violation as resolved
+            markRejectViolationAsResolved(transaction.transactionID, false, iouReport.reportID);
+            await waitForBatchedUpdates();
+
+            // Then: Only the rejected expense violation should be removed
+            const violations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`);
+            expect(violations).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                    }),
+                ]),
+            );
             expect(violations).not.toEqual(
                 expect.arrayContaining([
                     expect.objectContaining({
