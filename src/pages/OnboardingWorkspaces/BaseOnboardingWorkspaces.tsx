@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -99,33 +99,40 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         );
     };
 
-    const policyIDItems = Object.values(joinablePolicies ?? {}).map((policyInfo) => ({
-        text: policyInfo.policyName,
-        alternateText: translate('onboarding.workspaceMemberList', {employeeCount: policyInfo.employeeCount, policyOwner: policyInfo.policyOwner}),
-        keyForList: policyInfo.policyID,
-        isDisabled: true,
-        rightElement: (
-            <Button
-                isDisabled={isOffline}
-                success
-                medium
-                text={policyInfo.automaticJoiningEnabled ? translate('workspace.workspaceList.joinNow') : translate('workspace.workspaceList.askToJoin')}
-                onPress={() => {
-                    handleJoinWorkspace(policyInfo);
-                }}
-                sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.JOIN_WORKSPACE}
-            />
-        ),
-        icons: [
-            {
-                id: policyInfo.policyID,
-                source: getDefaultWorkspaceAvatar(policyInfo.policyName),
-                fallbackIcon: icons.FallbackWorkspaceAvatar,
-                name: policyInfo.policyName,
-                type: CONST.ICON_TYPE_WORKSPACE,
-            },
-        ],
-    }));
+    const [showAll, setShowAll] = useState(false);
+
+    const allPolicyIDItems = Object.values(joinablePolicies ?? {})
+        .sort((a, b) => b.employeeCount - a.employeeCount)
+        .map((policyInfo) => ({
+            text: policyInfo.policyName,
+            alternateText: translate('onboarding.workspaceMemberList', {employeeCount: policyInfo.employeeCount, policyOwner: policyInfo.policyOwner}),
+            keyForList: policyInfo.policyID,
+            isDisabled: true,
+            rightElement: (
+                <Button
+                    isDisabled={isOffline}
+                    success
+                    medium
+                    text={policyInfo.automaticJoiningEnabled ? translate('workspace.workspaceList.joinNow') : translate('workspace.workspaceList.askToJoin')}
+                    onPress={() => {
+                        handleJoinWorkspace(policyInfo);
+                    }}
+                    sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.JOIN_WORKSPACE}
+                />
+            ),
+            icons: [
+                {
+                    id: policyInfo.policyID,
+                    source: getDefaultWorkspaceAvatar(policyInfo.policyName),
+                    fallbackIcon: icons.FallbackWorkspaceAvatar,
+                    name: policyInfo.policyName,
+                    type: CONST.ICON_TYPE_WORKSPACE,
+                },
+            ],
+        }));
+
+    const hasMoreThanFive = allPolicyIDItems.length > 5;
+    const policyIDItems = !showAll && hasMoreThanFive ? allPolicyIDItems.slice(0, 5) : allPolicyIDItems;
 
     const wrapperPadding = onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5;
 
@@ -185,15 +192,25 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                     </View>
                 }
                 footerContent={
-                    <Button
-                        success={false}
-                        large
-                        text={translate('common.skip')}
-                        testID="onboardingWorkSpaceSkipButton"
-                        onPress={skipJoiningWorkspaces}
-                        style={[styles.mt5]}
-                        sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.SKIP}
-                    />
+                    <>
+                        {hasMoreThanFive && !showAll && (
+                            <Button
+                                large
+                                text={translate('common.showMore')}
+                                onPress={() => setShowAll(true)}
+                                style={[styles.mt5]}
+                            />
+                        )}
+                        <Button
+                            success={false}
+                            large
+                            text={translate('common.skip')}
+                            testID="onboardingWorkSpaceSkipButton"
+                            onPress={skipJoiningWorkspaces}
+                            style={[styles.mt5]}
+                            sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.SKIP}
+                        />
+                    </>
                 }
             />
         </ScreenWrapper>
