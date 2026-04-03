@@ -17,6 +17,7 @@ import useDebugShortcut from './hooks/useDebugShortcut';
 import useIsAuthenticated from './hooks/useIsAuthenticated';
 import useLocalize from './hooks/useLocalize';
 import useOnyx from './hooks/useOnyx';
+import useOnyxWithMountReset from './hooks/useOnyxWithMountReset';
 import {updateLastRoute} from './libs/actions/App';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import {isSafari} from './libs/Browser';
@@ -58,7 +59,7 @@ function Expensify() {
     const {preferredLocale} = useLocalize();
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [lastRoute] = useOnyx(ONYXKEYS.LAST_ROUTE);
-    const [isCheckingPublicRoom = true] = useOnyx(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM);
+    const [isCheckingPublicRoom = true] = useOnyxWithMountReset(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, true);
     const [updateRequired] = useOnyx(ONYXKEYS.RAM_ONLY_UPDATE_REQUIRED);
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
 
