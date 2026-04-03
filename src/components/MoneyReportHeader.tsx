@@ -730,6 +730,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
             showDelegateNoAccessModal,
             showNonReimbursablePaymentErrorModal,
             shouldBlockDirectPayment,
+            openHoldMenu,
             startAnimation,
             moneyRequestReport,
             nextStep,
@@ -1977,6 +1978,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         selectionModeReportLevelActions,
         isDelegateAccessRestricted,
         showDelegateNoAccessModal,
+        openRejectModal,
     ]);
 
     const shouldShowSelectedTransactionsButton = !!selectedTransactionsOptions.length && !transactionThreadReportID;

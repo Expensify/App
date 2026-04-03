@@ -10,6 +10,7 @@ import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getNonHeldAndFullAmount, hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils} from '@libs/ReportUtils';
 import {canIOUBePaid as canIOUBePaidAction} from '@userActions/IOU';
+import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import MoneyReportHeaderEducationalModals from './MoneyReportHeaderEducationalModals';
@@ -51,7 +52,7 @@ function MoneyReportHeaderModals({reportID, children}: MoneyReportHeaderModalsPr
     const transactionIDs = transactions.map((t) => t.transactionID);
 
     // Derive data for educational modals
-    const nonDeletedTransactions = getAllNonDeletedTransactions(transactions, reportActions, isOffline, true);
+    const nonDeletedTransactions = getAllNonDeletedTransactions(reportTransactions, reportActions, isOffline, true);
     const visibleTransactionsForThreadID = nonDeletedTransactions?.filter((t) => isOffline || t.pendingAction !== 'delete');
     const reportTransactionIDs = visibleTransactionsForThreadID?.map((t) => t.transactionID);
     const transactionThreadReportID = getOneTransactionThreadReportID(moneyRequestReport, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
