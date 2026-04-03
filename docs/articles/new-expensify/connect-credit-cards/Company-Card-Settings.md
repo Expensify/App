@@ -20,7 +20,7 @@ To set up a commercial card file feed on a Workspace, see [Commercial Feeds](htt
 To update your Company Card feed settings:
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile) navigate to **Workspaces > [Workspace Name]**.
-2. Within the Workspace, select **Company Cards** and chose the relevant company cardfeed. 
+2. Within the Workspace, select **Company Cards** and chose the relevant company card feed. 
 3. Click **Settings** in the top right corner.
 
 You can manage the following options:
@@ -53,7 +53,7 @@ To apply this setting to all card expenses in the workspace:
 1. Go to **Workspaces > [Workspace Name] > Accounting > Connections > Export**.
 2. Under **Export company card expenses as**, choose **Central account**.
 
-## How to export to individual iccounts
+## How to export to individual accounts
 
 To override the central export account per card:
 
