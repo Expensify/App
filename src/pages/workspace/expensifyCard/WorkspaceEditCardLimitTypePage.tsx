@@ -102,11 +102,17 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
     }, [card?.nameValuePairs?.validThru, assigneeTimeZone]);
 
     const goBack = () => {
+        if (isWorkspaceRhp) {
+            Navigation.goBack(backPath);
+            return;
+        }
+
         if (backTo) {
             Navigation.goBack(backTo);
             return;
         }
-        Navigation.goBack(isWorkspaceRhp ? backPath : ROUTES.EXPENSIFY_CARD_DETAILS.getRoute(policyID, cardID));
+
+        Navigation.goBack(ROUTES.EXPENSIFY_CARD_DETAILS.getRoute(policyID, cardID));
     };
 
     const fetchCardLimitTypeData = () => {
