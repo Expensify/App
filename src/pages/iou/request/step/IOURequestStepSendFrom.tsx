@@ -94,7 +94,7 @@ function IOURequestStepSendFrom({route, transaction}: IOURequestStepSendFromProp
                 onSelectRow={selectWorkspace}
                 shouldSingleExecuteRowSelect
                 ListItem={UserListItem}
-                initiallyFocusedItemKey={selectedWorkspace?.policyID}
+                shouldShowRadioButton
             />
         </StepScreenWrapper>
     );

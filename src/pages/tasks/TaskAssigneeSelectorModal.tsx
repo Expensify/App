@@ -140,8 +140,6 @@ function TaskAssigneeSelectorModal() {
         })),
     }));
 
-    const initiallyFocusedOptionKey = sections.flatMap((section) => section.data).find((mode) => mode.isSelected === true)?.keyForList;
-
     const selectReport = (option: ListItem) => {
         HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_USERS);
         if (!option) {
@@ -235,11 +233,11 @@ function TaskAssigneeSelectorModal() {
                         shouldSingleExecuteRowSelect
                         textInputOptions={textInputOptions}
                         initialScrollIndex={0}
-                        initiallyFocusedItemKey={initiallyFocusedOptionKey}
                         shouldShowLoadingPlaceholder={!areOptionsInitialized}
                         isLoadingNewOptions={!!isSearchingForReports}
                         shouldUpdateFocusedIndex
                         shouldShowTextInput
+                        shouldShowRadioButton
                     />
                 </View>
             </FullPageNotFoundView>

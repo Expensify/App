@@ -126,6 +126,7 @@ function TaskShareDestinationSelectorModal() {
                         isLoadingNewOptions={!!isSearchingForReports}
                         onEndReached={onListEndReached}
                         shouldSingleExecuteRowSelect
+                        shouldShowRadioButton
                     />
                 </View>
             </>
