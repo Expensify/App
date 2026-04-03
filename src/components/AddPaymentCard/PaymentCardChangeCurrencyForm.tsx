@@ -137,6 +137,7 @@ function PaymentCardChangeCurrencyForm({changeBillingCurrency, isSecurityCodeReq
                     selectCurrency(option.value);
                 }}
                 style={{containerStyle: styles.mhn5}}
+                initiallyFocusedItemKey={currency}
                 customListHeader={<PaymentCardCurrencyHeader isSectionList />}
             />
         </View>

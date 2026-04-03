@@ -71,6 +71,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     shouldDebounceScrolling = false,
     shouldUpdateFocusedIndex = false,
     shouldScrollToFocusedIndex = true,
+    shouldHighlightInitiallyFocusedItem = false,
     shouldSingleExecuteRowSelect = false,
     shouldPreventDefaultFocusOnSelectRow = false,
     isRowMultilineSupported = false,
@@ -345,7 +346,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         item={item}
                         index={index}
                         normalizedIndex={index}
-                        isFocused={isItemFocused}
+                        isFocused={isItemFocused && (shouldHighlightInitiallyFocusedItem || hasKeyBeenPressed.current)}
                         isDisabled={isDisabled}
                         canSelectMultiple={canSelectMultiple}
                         shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}

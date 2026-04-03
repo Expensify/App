@@ -71,6 +71,7 @@ function PaymentCardCurrencyModal({isVisible, currencies, currentCurrency = CONS
                     onSelectRow={(option) => {
                         onCurrencyChange(option.value);
                     }}
+                    initiallyFocusedItemKey={currentCurrency}
                     showScrollIndicator
                 />
             </ScreenWrapper>

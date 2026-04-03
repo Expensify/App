@@ -201,6 +201,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
                             data={data}
                             onSelectRow={(option) => selectPolicy(option.policyID)}
                             textInputOptions={textInputOptions}
+                            initiallyFocusedItemKey={report.policyID}
                             shouldShowLoadingPlaceholder={fetchStatus.status === 'loading' || !didScreenTransitionEnd}
                             disableMaintainingScrollPosition
                         />

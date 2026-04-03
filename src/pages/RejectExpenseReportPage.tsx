@@ -199,6 +199,7 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
                                     setSelectedTargetAccountID(item.keyForList ?? '');
                                     setSelectionError('');
                                 }}
+                                initiallyFocusedItemKey={selectedTargetAccountID}
                             />
                         </View>
                     </View>

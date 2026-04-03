@@ -569,6 +569,7 @@ function SearchAutocompleteList({
             ref={setListRef}
             initialScrollIndex={0}
             initiallyFocusedItemKey={!shouldUseNarrowLayout ? firstRecentReportKey : undefined}
+            shouldHighlightInitiallyFocusedItem={!shouldUseNarrowLayout}
             shouldScrollToFocusedIndex={!isInitialRender}
             disableKeyboardShortcuts={!shouldSubscribeToArrowKeyEvents}
             addBottomSafeAreaPadding

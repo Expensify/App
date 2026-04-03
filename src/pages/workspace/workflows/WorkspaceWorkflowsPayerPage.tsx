@@ -292,6 +292,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                                 onChangeText: setSearchTerm,
                                 headerMessage,
                             }}
+                            initiallyFocusedItemKey={formattedAuthorizedPayer.at(0)?.keyForList}
                             shouldSingleExecuteRowSelect
                             addBottomSafeAreaPadding
                             footerContent={

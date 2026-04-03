@@ -84,6 +84,7 @@ function BaseSelectionList<TItem extends ListItem>({
     shouldHeaderBeInsideList = false,
     shouldScrollToFocusedIndex = true,
     shouldScrollToFocusedIndexOnMount = true,
+    shouldHighlightInitiallyFocusedItem = false,
     shouldDebounceScrolling = false,
     shouldUpdateFocusedIndex = false,
     shouldSingleExecuteRowSelect = false,
@@ -348,7 +349,7 @@ function BaseSelectionList<TItem extends ListItem>({
                 }}
                 setFocusedIndex={setFocusedIndex}
                 index={index}
-                isFocused={isItemFocused}
+                isFocused={isItemFocused && (shouldHighlightInitiallyFocusedItem || hasKeyBeenPressed.current)}
                 isDisabled={isItemDisabled}
                 canSelectMultiple={canSelectMultiple}
                 onDismissError={onDismissError}
