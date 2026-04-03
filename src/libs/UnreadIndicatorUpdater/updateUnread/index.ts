@@ -22,6 +22,9 @@ function setPageTitle(title: string) {
  */
 function updateDocumentTitle() {
     const hasUnread = unreadTotalCount !== 0;
+    // Capture the title now so that a clearPageTitle() call between scheduling and
+    // execution doesn't cause the setTimeout callback to fall back to SITE_TITLE.
+    const capturedTitle = currentPageTitle;
     // This setTimeout is required because due to how react rendering messes with the DOM, the document title can't be modified synchronously, and we must wait until all JS is done
     // running before setting the title.
     setTimeout(() => {
@@ -30,7 +33,7 @@ function updateDocumentTitle() {
         document.title = '';
 
         // Use page-specific title if available, otherwise use the default SITE_TITLE
-        const baseTitle = currentPageTitle || CONFIG.SITE_TITLE;
+        const baseTitle = capturedTitle || CONFIG.SITE_TITLE;
         document.title = hasUnread ? `(${unreadTotalCount}) ${baseTitle}` : baseTitle;
 
         const favicon = document.getElementById('favicon');
@@ -52,5 +55,14 @@ window.addEventListener('popstate', () => {
     updateUnread(unreadTotalCount);
 });
 
+/**
+ * Clear the page title without triggering a document title update.
+ * Used as cleanup in useDocumentTitle to avoid the "New Expensify" flash
+ * that occurs when setPageTitle('') queues an async updateDocumentTitle().
+ */
+function clearPageTitle() {
+    currentPageTitle = '';
+}
+
 export default updateUnread;
-export {setPageTitle};
+export {clearPageTitle, setPageTitle};
