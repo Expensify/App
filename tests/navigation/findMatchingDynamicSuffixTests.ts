@@ -7,6 +7,7 @@ jest.mock('@src/ROUTES', () => ({
         COUNTRY: {path: 'country', queryParams: {country: true}},
         FLAG_COMMENT: {path: 'flag/:reportID/:reportActionID'},
         MEMBER_DETAILS: {path: 'member-details/:accountID'},
+        KEYBOARD_SHORTCUTS: {path: 'keyboard-shortcuts'},
     },
 }));
 
@@ -108,6 +109,10 @@ describe('findMatchingDynamicSuffix', () => {
     });
 
     it('should match keyboard-shortcuts dynamic suffix', () => {
-        expect(findMatchingDynamicSuffix('settings/about/keyboard-shortcuts')?.actualSuffix).toEqual('keyboard-shortcuts');
+        expect(findMatchingDynamicSuffix('settings/about/keyboard-shortcuts')).toEqual({
+            pattern: 'keyboard-shortcuts',
+            actualSuffix: 'keyboard-shortcuts',
+            pathParams: {},
+        });
     });
 });
