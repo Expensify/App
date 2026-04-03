@@ -3513,6 +3513,7 @@ const staticStyles = (theme: ThemeColors) =>
         groupSearchListTableContainerStyle: {
             minHeight: variables.h28,
             paddingBottom: 0,
+            paddingRight: 48,
         },
 
         narrowSearchRouterInactiveStyle: {

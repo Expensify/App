@@ -438,7 +438,7 @@ function TransactionItemRow({
                                 action={transactionItem.action}
                                 isSelected={isSelected}
                                 isChildListItem={isReportItemChild}
-                                goToItem={onButtonPress}
+                                onButtonPress={onButtonPress}
                                 isLoading={isActionLoading}
                                 reportID={transactionItem.reportID}
                                 policyID={report?.policyID}
@@ -755,7 +755,7 @@ function TransactionItemRow({
                                 </View>
                             )}
                         </View>
-                        {!!shouldShowArrowRightOnNarrowLayout && (
+                        {!!shouldShowArrowRightOnNarrowLayout && !!onArrowRightPress && (
                             <View style={[styles.justifyContentEnd, styles.alignItemsEnd, styles.mbHalf, styles.ml1]}>
                                 <Icon
                                     src={expensicons.ArrowRight}

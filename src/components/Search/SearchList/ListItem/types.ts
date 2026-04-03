@@ -404,8 +404,8 @@ type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     lastPaymentMethod?: OnyxEntry<LastPaymentMethod>;
     /** The user's personal policy ID */
     personalPolicyID?: string;
-    /** Callback to undelete a transaction by its ID */
-    onUndelete?: (transactionID: string) => void;
+    /** Callback to undelete a transaction */
+    onUndelete?: (transaction: Transaction) => void;
 };
 
 type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -420,11 +420,13 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
     lastPaymentMethod?: OnyxEntry<LastPaymentMethod>;
     /** The user's personal policy ID */
     personalPolicyID?: string;
+    /** Callback to undelete a transaction */
+    onUndelete?: (transaction: Transaction) => void;
 };
 
 type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
     TransactionGroupListItemProps<TItem>,
-    'showTooltip' | 'canSelectMultiple' | 'onCheckboxPress' | 'columns' | 'groupBy' | 'accountID' | 'isOffline' | 'violations' | 'onSelectRow'
+    'showTooltip' | 'canSelectMultiple' | 'onCheckboxPress' | 'columns' | 'groupBy' | 'accountID' | 'isOffline' | 'violations' | 'onSelectRow' | 'onUndelete'
 > & {
     transactions: TransactionListItemType[];
     transactionsVisibleLimit: number;

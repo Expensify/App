@@ -167,7 +167,7 @@ function TransactionListItem<TItem extends ListItem>({
             onDelegateAccessRestricted: showDelegateNoAccessModal,
             personalPolicyID,
             ownerBillingGracePeriodEnd,
-            onUndelete: () => onUndelete?.(transactionItem.transactionID),
+            onUndelete: () => onUndelete?.(transactionItem),
         });
     };
 

@@ -747,7 +747,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     value: CONST.SEARCH.BULK_ACTION_TYPES.UNDELETE,
                     shouldCloseModalOnSelect: true,
                     onSelected: () => {
-                        undeleteTransactions(selectedTransactionsKeys);
+                        undeleteTransactions(selectedTransactionsKeys.map((id) => selectedTransactions[id]?.transaction).filter((t) => t !== undefined));
                         clearSelectedTransactions();
                     },
                 },
