@@ -2718,11 +2718,25 @@ const ROUTES = {
     },
     WORKSPACE_EXPENSIFY_CARD_ADD_WORK_EMAIL: {
         route: 'workspaces/:policyID/expensify-card/:fundID/work-email',
-        getRoute: (policyID: string, fundID: number) => `workspaces/${policyID}/expensify-card/${encodeURIComponent(fundID)}/work-email` as const,
+        getRoute: (policyID: string, fundID: number, exitToIssueNew?: boolean) => {
+            const base = `workspaces/${policyID}/expensify-card/${encodeURIComponent(fundID)}/work-email` as const;
+            if (!exitToIssueNew) {
+                return base;
+            }
+            const separator = base.includes('?') ? '&' : '?';
+            return `${base}${separator}exitToIssueNew=true` as const;
+        },
     },
     WORKSPACE_EXPENSIFY_CARD_VERIFY_WORK_EMAIL: {
         route: 'workspaces/:policyID/expensify-card/:fundID/verify-work-email',
-        getRoute: (policyID: string, fundID: number) => `workspaces/${policyID}/expensify-card/${encodeURIComponent(fundID)}/verify-work-email` as const,
+        getRoute: (policyID: string, fundID: number, exitToIssueNew?: boolean) => {
+            const base = `workspaces/${policyID}/expensify-card/${encodeURIComponent(fundID)}/verify-work-email` as const;
+            if (!exitToIssueNew) {
+                return base;
+            }
+            const separator = base.includes('?') ? '&' : '?';
+            return `${base}${separator}exitToIssueNew=true` as const;
+        },
     },
     WORKSPACE_EXPENSIFY_CARD_SETTINGS_FREQUENCY: {
         route: 'workspaces/:policyID/expensify-card/settings/frequency',
@@ -4161,6 +4175,8 @@ const ROUTES = {
 const SHARED_ROUTE_PARAMS: Partial<Record<Screen, string[]>> = {
     [SCREENS.WORKSPACE.INITIAL]: ['backTo'],
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_SELECT_FEED]: ['exitToIssueNew'],
+    [SCREENS.WORKSPACE.EXPENSIFY_CARD_ADD_WORK_EMAIL]: ['exitToIssueNew'],
+    [SCREENS.WORKSPACE.EXPENSIFY_CARD_VERIFY_WORK_EMAIL]: ['exitToIssueNew'],
 } as const;
 
 export {PUBLIC_SCREENS_ROUTES, SHARED_ROUTE_PARAMS, VERIFY_ACCOUNT, DYNAMIC_ROUTES};

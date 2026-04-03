@@ -3,7 +3,7 @@ import ValidateCodeActionContent from '@components/ValidateCodeActionModal/Valid
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
-import {updateSelectedExpensifyCardFeed} from '@libs/actions/Card';
+import {setIssueNewCardStepAndData, updateSelectedExpensifyCardFeed} from '@libs/actions/Card';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
@@ -14,13 +14,16 @@ import {resendValidateCode} from '@userActions/User';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 type WorkspaceExpensifyCardVerifyWorkAccountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_VERIFY_WORK_EMAIL>;
 
+const DEFAULT_ISSUE_NEW = 'true';
 function WorkspaceExpensifyCardVerifyWorkAccountPage({route}: WorkspaceExpensifyCardVerifyWorkAccountPageProps) {
-    const {policyID, fundID} = route.params;
+    const {policyID, fundID, exitToIssueNew: exitToIssueNewParam} = route.params;
+    const exitToIssueNew = exitToIssueNewParam === DEFAULT_ISSUE_NEW;
     const {translate} = useLocalize();
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const workEmail = usePrimaryContactMethod();
@@ -50,6 +53,11 @@ function WorkspaceExpensifyCardVerifyWorkAccountPage({route}: WorkspaceExpensify
         linkCardFeedToPolicy(Number(fundID), policyID, CONST.COMPANY_CARD.LINK_FEED_TYPE.EXPENSIFY_CARD)
             .then(() => {
                 updateSelectedExpensifyCardFeed(Number(fundID), policyID);
+                if (exitToIssueNew) {
+                    setIssueNewCardStepAndData({policyID, isChangeAssigneeDisabled: false});
+                    Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)));
+                    return;
+                }
                 Navigation.closeRHPFlow();
             })
             .catch((error: TranslationPaths) => {
@@ -57,7 +65,7 @@ function WorkspaceExpensifyCardVerifyWorkAccountPage({route}: WorkspaceExpensify
                     error: getMicroSecondOnyxErrorWithTranslationKey(error),
                 });
             });
-    }, [fundID, isWorkEmailValidated, policyID]);
+    }, [fundID, isWorkEmailValidated, policyID, exitToIssueNew]);
 
     return (
         <ValidateCodeActionContent

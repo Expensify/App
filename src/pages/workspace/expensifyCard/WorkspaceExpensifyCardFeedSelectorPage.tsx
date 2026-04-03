@@ -1,15 +1,15 @@
 import {isUserValidatedSelector} from '@selectors/Account';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
-import Button from '@components/Button';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
+import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
+import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
-import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
-import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useDefaultFundID from '@hooks/useDefaultFundID';
@@ -79,7 +79,7 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
         return (policyIDForName && policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDForName.toUpperCase()}`]?.name) ?? '';
     };
 
-    const handleAddCardPress = useCallback(() => {
+    const handleAddCardPress = () => {
         clearIssueNewCardFormData();
         if (isAccountLocked) {
             showLockedAccountModal();
@@ -92,27 +92,7 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
         updateSelectedExpensifyCardFeed(lastSelectedExpensifyCardFeedID, policyID);
         setIssueNewCardStepAndData({policyID, isChangeAssigneeDisabled: false});
         Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, exitToIssueNew ? ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID) : Navigation.getActiveRoute()));
-    }, [policyID, exitToIssueNew, lastSelectedExpensifyCardFeedID, isAccountLocked, isDelegateAccessRestricted, showLockedAccountModal, showDelegateNoAccessModal]);
-
-    const otherWorkspacesSectionHeader = useMemo(
-        () => (
-            <View>
-                <View style={[styles.ph5, styles.pb3]}>
-                    <Button
-                        success
-                        onPress={handleAddCardPress}
-                        icon={expensifyIcons.Plus}
-                        text={translate('workspace.expensifyCard.issueCard')}
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CARD_BUTTON}
-                    />
-                </View>
-                <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>
-                    <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('workspace.expensifyCard.otherWorkspaces')}</Text>
-                </View>
-            </View>
-        ),
-        [expensifyIcons.Plus, handleAddCardPress, styles.justifyContentCenter, styles.optionsListSectionHeader, styles.pb3, styles.ph5, styles.textLabelSupporting, translate],
-    );
+    };
 
     const toListItem = (entry: ExpensifyCardFeedEntry, isOtherWorkspaceSection: boolean): ExpensifyFeedListItem => ({
         value: entry.fundID,
@@ -131,21 +111,6 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
         ),
     });
 
-    const sections: Array<Section<ExpensifyFeedListItem>> = [];
-    if (primaryFeeds.length > 0) {
-        sections.push({
-            data: primaryFeeds.map((entry) => toListItem(entry, false)),
-            sectionIndex: sections.length,
-        });
-    }
-    if (otherFeeds.length > 0) {
-        sections.push({
-            ...(primaryFeeds.length > 0 ? {customHeader: otherWorkspacesSectionHeader} : {title: translate('workspace.expensifyCard.otherWorkspaces')}),
-            data: otherFeeds.map((entry) => toListItem(entry, true)),
-            sectionIndex: sections.length,
-        });
-    }
-
     const goBack = () => Navigation.goBack(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID));
 
     const onDismissError = () => {
@@ -155,14 +120,14 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
     const selectOtherFeed = (feed: ExpensifyFeedListItem) => {
         const isUserFromPublicDomain = isEmailPublicDomain(primaryContactMethod);
         if (!isUserValidated || isUserFromPublicDomain) {
-            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ADD_WORK_EMAIL.getRoute(policyID, feed.value));
+            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ADD_WORK_EMAIL.getRoute(policyID, feed.value, exitToIssueNew));
             return;
         }
 
         const primaryLoginKey = primaryContactMethod ? Object.keys(loginList ?? {}).find((login) => login.toLowerCase() === primaryContactMethod.toLowerCase()) : undefined;
         const isPrimaryContactValidated = primaryLoginKey ? !!loginList?.[primaryLoginKey]?.validatedDate : !primaryContactMethod;
         if (!isPrimaryContactValidated) {
-            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_VERIFY_WORK_EMAIL.getRoute(policyID, feed.value));
+            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_VERIFY_WORK_EMAIL.getRoute(policyID, feed.value, exitToIssueNew));
             return;
         }
 
@@ -194,7 +159,42 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
         goBack();
     };
 
-    const otherFeedFundIDs = new Set(otherFeeds.map((entry) => entry.fundID));
+    const primaryListData = primaryFeeds.map((entry) => toListItem(entry, false));
+
+    const issueNewCardAndOtherFeedsFooter = (
+        <View style={[styles.w100, styles.flexColumn]}>
+            <MenuItem
+                title={translate('workspace.expensifyCard.issueCard')}
+                icon={expensifyIcons.Plus}
+                onPress={handleAddCardPress}
+                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CARD_BUTTON}
+            />
+            {otherFeeds.length > 0 && (
+                <>
+                    <Text style={[styles.ph5, styles.mv2, styles.textLabelSupporting]}>{translate('workspace.expensifyCard.otherWorkspaces')}</Text>
+                    {otherFeeds.map((entry) => {
+                        const item = toListItem(entry, true);
+                        return (
+                            <RadioListItem
+                                isDisabled={isOffline}
+                                onDismissError={onDismissError}
+                                key={item.keyForList}
+                                keyForList={item.keyForList}
+                                showTooltip={false}
+                                item={item}
+                                onSelectRow={selectOtherFeed}
+                                isMultilineSupported
+                                isAlternateTextMultilineSupported
+                                alternateTextNumberOfLines={2}
+                                titleNumberOfLines={2}
+                                wrapperStyle={[styles.flexReset, styles.w100]}
+                            />
+                        );
+                    })}
+                </>
+            )}
+        </View>
+    );
 
     return (
         <AccessOrNotFoundWrapper
@@ -211,23 +211,26 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
                     title={translate('workspace.companyCards.selectCards')}
                     onBackButtonPress={goBack}
                 />
-                <SelectionListWithSections
-                    ListItem={RadioListItem}
-                    onSelectRow={(feed) => {
-                        if (otherFeedFundIDs.has(feed.value)) {
-                            if (isOffline) {
-                                return;
-                            }
-                            selectOtherFeed(feed);
-                            return;
-                        }
-                        selectFeed(feed);
-                    }}
-                    sections={sections}
-                    initiallyFocusedItemKey={lastSelectedExpensifyCardFeedID.toString()}
-                    addBottomSafeAreaPadding
-                    onDismissError={onDismissError}
-                />
+                {primaryFeeds.length > 0 ? (
+                    <SelectionList
+                        ListItem={RadioListItem}
+                        onSelectRow={selectFeed}
+                        data={primaryListData}
+                        alternateNumberOfSupportedLines={2}
+                        initiallyFocusedItemKey={lastSelectedExpensifyCardFeedID.toString()}
+                        addBottomSafeAreaPadding
+                        listFooterContent={issueNewCardAndOtherFeedsFooter}
+                        onDismissError={onDismissError}
+                    />
+                ) : (
+                    <ScrollView
+                        addBottomSafeAreaPadding
+                        style={styles.flex1}
+                        keyboardShouldPersistTaps="handled"
+                    >
+                        {issueNewCardAndOtherFeedsFooter}
+                    </ScrollView>
+                )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
