@@ -67,6 +67,4 @@ function ChartTooltipLayer({matchedIndex, isTooltipActive, data, formatValue, ch
     );
 }
 
-ChartTooltipLayer.displayName = 'ChartTooltipLayer';
-
 export default ChartTooltipLayer;
