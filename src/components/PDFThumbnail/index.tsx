@@ -8,12 +8,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import '@src/polyfills/Map';
 import mapPolyfillsSource from '@src/polyfills/Map?raw';
 import '@src/polyfills/ReadableStream';
+import uint8ArrayPolyfillsSource from '@src/polyfills/Uint8Array?raw';
 import PDFThumbnailError from './PDFThumbnailError';
 import type PDFThumbnailProps from './types';
 
 // The worker is imported as a string using ?raw + Blob otherwise it will default to loading via an HTTPS request.
 // This causes issues if we have gone offline before the pdfjs web worker is set up, as we won't be able to load it from the server.
-pdfjs.GlobalWorkerOptions.workerSrc = URL.createObjectURL(new Blob([`${mapPolyfillsSource}\n${pdfWorkerSource}`], {type: 'text/javascript'}));
+pdfjs.GlobalWorkerOptions.workerSrc = URL.createObjectURL(new Blob([`${mapPolyfillsSource}\n${uint8ArrayPolyfillsSource}\n${pdfWorkerSource}`], {type: 'text/javascript'}));
 
 function PDFThumbnail({previewSourceURL, style, enabled = true, onPassword, onLoadError, onLoadSuccess}: PDFThumbnailProps) {
     const styles = useThemeStyles();

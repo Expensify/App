@@ -5,8 +5,6 @@
 
 if (typeof ReadableStream.prototype.values !== 'function') {
     Object.defineProperty(ReadableStream.prototype, 'values', {
-        configurable: true,
-        writable: true,
         value({preventCancel = false} = {}) {
             const reader = this.getReader();
             return {
@@ -39,13 +37,17 @@ if (typeof ReadableStream.prototype.values !== 'function') {
                 },
             };
         },
+        configurable: true,
+        writable: true,
+        enumerable: false,
     });
 }
 
 if (typeof ReadableStream.prototype[Symbol.asyncIterator] !== 'function') {
     Object.defineProperty(ReadableStream.prototype, Symbol.asyncIterator, {
+        value: ReadableStream.prototype.values,
         configurable: true,
         writable: true,
-        value: ReadableStream.prototype.values,
+        enumerable: false,
     });
 }
