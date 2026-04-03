@@ -6,6 +6,7 @@ import AnimatedSettlementButton from '@components/SettlementButton/AnimatedSettl
 import type {PaymentActionParams} from '@components/SettlementButton/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
+import useNonReimbursablePaymentModal from '@hooks/useNonReimbursablePaymentModal';
 import useOnyx from '@hooks/useOnyx';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import usePolicy from '@hooks/usePolicy';
@@ -83,6 +84,7 @@ function PayPrimaryAction({
 
     const canIOUBePaid = canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, transaction ? [transaction] : undefined, false, undefined, invoiceReceiverPolicy);
     const reportHasOnlyNonReimbursableTransactions = hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID, transactions);
+    const {showNonReimbursablePaymentErrorModal, shouldBlockDirectPayment, nonReimbursablePaymentErrorDecisionModal} = useNonReimbursablePaymentModal(moneyRequestReport, transactions);
     const onlyShowPayElsewhere = reportHasOnlyNonReimbursableTransactions
         ? false
         : !canIOUBePaid && canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, transaction ? [transaction] : undefined, true, undefined, invoiceReceiverPolicy);
@@ -100,6 +102,10 @@ function PayPrimaryAction({
 
     const confirmPayment = ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
         if (!type || !chatReport) {
+            return;
+        }
+        if (shouldBlockDirectPayment(type)) {
+            showNonReimbursablePaymentErrorModal();
             return;
         }
         if (isDelegateAccessRestricted) {
@@ -157,26 +163,29 @@ function PayPrimaryAction({
     };
 
     return (
-        <AnimatedSettlementButton
-            isPaidAnimationRunning={isPaidAnimationRunning}
-            isApprovedAnimationRunning={isApprovedAnimationRunning}
-            onAnimationFinish={stopAnimation}
-            formattedAmount={totalAmount}
-            canIOUBePaid
-            onlyShowPayElsewhere={onlyShowPayElsewhere}
-            currency={moneyRequestReport?.currency}
-            confirmApproval={confirmApproval}
-            policyID={moneyRequestReport?.policyID}
-            chatReportID={chatReport?.reportID}
-            iouReport={moneyRequestReport}
-            onPress={confirmPayment}
-            enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
-            shouldHidePaymentOptions={!shouldShowPayButton}
-            shouldShowApproveButton={shouldShowApproveButton}
-            shouldDisableApproveButton={shouldDisableApproveButton}
-            isDisabled={isOffline && !canAllowSettlement}
-            isLoading={!isOffline && !canAllowSettlement}
-        />
+        <>
+            <AnimatedSettlementButton
+                isPaidAnimationRunning={isPaidAnimationRunning}
+                isApprovedAnimationRunning={isApprovedAnimationRunning}
+                onAnimationFinish={stopAnimation}
+                formattedAmount={totalAmount}
+                canIOUBePaid
+                onlyShowPayElsewhere={onlyShowPayElsewhere}
+                currency={moneyRequestReport?.currency}
+                confirmApproval={confirmApproval}
+                policyID={moneyRequestReport?.policyID}
+                chatReportID={chatReport?.reportID}
+                iouReport={moneyRequestReport}
+                onPress={confirmPayment}
+                enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
+                shouldHidePaymentOptions={!shouldShowPayButton}
+                shouldShowApproveButton={shouldShowApproveButton}
+                shouldDisableApproveButton={shouldDisableApproveButton}
+                isDisabled={isOffline && !canAllowSettlement}
+                isLoading={!isOffline && !canAllowSettlement}
+            />
+            {nonReimbursablePaymentErrorDecisionModal}
+        </>
     );
 }
 
