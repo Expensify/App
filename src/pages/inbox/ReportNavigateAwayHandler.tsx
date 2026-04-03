@@ -62,7 +62,7 @@ function ReportNavigateAwayHandler() {
     const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
     const isTopMostReportId = currentReportIDValue === reportIDFromRoute;
 
-    const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const [userLeavingStatus = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportIDFromRoute}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -70,9 +70,7 @@ function ReportNavigateAwayHandler() {
     const isSelfTourViewed = onboarding?.selfTourViewed;
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
-    const report = reportOnyx;
-
-    const parentReportAction = useParentReportAction(reportOnyx);
+    const parentReportAction = useParentReportAction(report);
     const deletedParentAction = isDeletedParentAction(parentReportAction);
     const prevDeletedParentAction = usePrevious(deletedParentAction);
 
