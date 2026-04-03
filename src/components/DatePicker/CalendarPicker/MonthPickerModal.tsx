@@ -21,7 +21,7 @@ type MonthPickerModalProps = {
     /** The year currently being viewed */
     currentYear?: number;
 
-    /** A minimum date (oldest) allowed to select */
+    /** A minimum date (earliest) allowed to select */
     minDate?: Date;
 
     /** A maximum date (latest) allowed to select */
