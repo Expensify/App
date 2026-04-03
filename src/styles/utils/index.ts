@@ -1797,7 +1797,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         return isDragging ? styles.cursorGrabbing : styles.cursorZoomOut;
     },
 
-    getReportTableColumnStyles: (columnName: string, options: GetReportTableColumnStylesParams): ViewStyle => {
+    getReportTableColumnStyles: (columnName: string, options: GetReportTableColumnStylesParams = {}): ViewStyle => {
         const {
             isSubmittedColumnWide,
             isApprovedColumnWide,
