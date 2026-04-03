@@ -2504,7 +2504,7 @@ describe('CardUtils', () => {
             } as unknown as CardList;
             const result = getDisplayableExpensifyCards(cardList);
             expect(result).toHaveLength(1);
-            expect(result[0].cardID).toBe(18468850);
+            expect(result.at(0)?.cardID).toBe(18468850);
         });
 
         it('should show cards from different domains separately', () => {
