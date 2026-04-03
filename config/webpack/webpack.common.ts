@@ -162,8 +162,8 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                     {from: 'assets/fonts/web', to: 'fonts'},
                     {from: 'assets/sounds', to: 'sounds'},
                     {from: 'assets/pdfs', to: 'pdfs'},
-                    {from: 'node_modules/react-pdf/dist/esm/Page/AnnotationLayer.css', to: 'css/AnnotationLayer.css'},
-                    {from: 'node_modules/react-pdf/dist/esm/Page/TextLayer.css', to: 'css/TextLayer.css'},
+                    {from: 'node_modules/react-pdf/dist/Page/AnnotationLayer.css', to: 'css/AnnotationLayer.css'},
+                    {from: 'node_modules/react-pdf/dist/Page/TextLayer.css', to: 'css/TextLayer.css'},
                     {from: '.well-known/apple-app-site-association', to: '.well-known/apple-app-site-association', toType: 'file'},
                     {from: '.well-known/assetlinks.json', to: '.well-known/assetlinks.json'},
 
@@ -246,6 +246,8 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 {
                     test: /\.(js|ts)x?$/,
                     loader: 'babel-loader',
+                    // Skip for imports that use `?raw` so their contents remain identical to the original file on disk
+                    resourceQuery: {not: [/raw/]},
 
                     /**
                      * Exclude node_modules except any packages we need to convert for rendering HTML because they import
@@ -256,12 +258,6 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                      * use JSX/JS that needs to be transformed by babel.
                      */
                     exclude: [new RegExp(`node_modules/(?!(${includeModules})/).*|\\.native\\.(js|jsx|ts|tsx)$`)],
-                },
-                // We are importing this worker as a string by using asset/source otherwise it will default to loading via an HTTPS request later.
-                // This causes issues if we have gone offline before the pdfjs web worker is set up as we won't be able to load it from the server.
-                {
-                    test: new RegExp('node_modules/pdfjs-dist/build/pdf.worker.min.mjs'),
-                    type: 'asset/source',
                 },
 
                 // Rule for react-native-web-webview
