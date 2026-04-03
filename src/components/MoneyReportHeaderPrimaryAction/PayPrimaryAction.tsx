@@ -74,7 +74,7 @@ function PayPrimaryAction({reportID, chatReportID, isPaidAnimationRunning, isApp
 
     const canIOUBePaid = canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, transaction ? [transaction] : undefined, false, undefined, invoiceReceiverPolicy);
     const reportHasOnlyNonReimbursableTransactions = hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID, transactions);
-    const {showNonReimbursablePaymentErrorModal, shouldBlockDirectPayment, nonReimbursablePaymentErrorDecisionModal} = useNonReimbursablePaymentModal(moneyRequestReport, transactions);
+    const {showNonReimbursablePaymentErrorModal, shouldBlockDirectPayment} = useNonReimbursablePaymentModal(moneyRequestReport, transactions);
     const onlyShowPayElsewhere = reportHasOnlyNonReimbursableTransactions
         ? false
         : !canIOUBePaid && canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, transaction ? [transaction] : undefined, true, undefined, invoiceReceiverPolicy);
@@ -160,8 +160,7 @@ function PayPrimaryAction({reportID, chatReportID, isPaidAnimationRunning, isApp
     };
 
     return (
-        <>
-            <AnimatedSettlementButton
+        <AnimatedSettlementButton
                 isPaidAnimationRunning={isPaidAnimationRunning}
                 isApprovedAnimationRunning={isApprovedAnimationRunning}
                 onAnimationFinish={stopAnimation}
@@ -181,8 +180,6 @@ function PayPrimaryAction({reportID, chatReportID, isPaidAnimationRunning, isApp
                 isDisabled={isOffline && !canAllowSettlement}
                 isLoading={!isOffline && !canAllowSettlement}
             />
-            {nonReimbursablePaymentErrorDecisionModal}
-        </>
     );
 }
 
