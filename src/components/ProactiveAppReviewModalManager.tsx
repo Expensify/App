@@ -1,4 +1,5 @@
 import React, {useCallback} from 'react';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import useProactiveAppReview from '@hooks/useProactiveAppReview';
 import requestStoreReview from '@libs/actions/StoreReview';
@@ -13,13 +14,16 @@ const CONCIERGE_NEGATIVE_MESSAGE = "Hi there! I'm sorry to hear you aren't fully
 function ProactiveAppReviewModalManager() {
     const {shouldShowModal, proactiveAppReview} = useProactiveAppReview();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentUserEmail = currentUserPersonalDetails?.email;
+    const currentUserAccountID = currentUserPersonalDetails?.accountID;
 
     const handleResponse = useCallback(
         (response: AppReviewResponse, message?: string) => {
             // Call the action which will create an optimistic comment (if the message is provided) and call the API
-            respondToProactiveAppReview(response, proactiveAppReview, message, conciergeReportID);
+            respondToProactiveAppReview(response, proactiveAppReview, currentUserEmail, currentUserAccountID, message, conciergeReportID);
         },
-        [conciergeReportID, proactiveAppReview],
+        [conciergeReportID, proactiveAppReview, currentUserEmail, currentUserAccountID],
     );
 
     const handlePositive = useCallback(() => {

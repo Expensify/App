@@ -9,10 +9,10 @@ import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
 
 type SearchInputSelectionSkeletonProps = {
-    reasonAttributes?: SkeletonSpanReasonAttributes;
+    reasonAttributes: SkeletonSpanReasonAttributes;
 };
 
-function SearchInputSelectionSkeleton({reasonAttributes}: SearchInputSelectionSkeletonProps = {}) {
+function SearchInputSelectionSkeleton({reasonAttributes}: SearchInputSelectionSkeletonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     useSkeletonSpan('SearchInputSelectionSkeleton', reasonAttributes);

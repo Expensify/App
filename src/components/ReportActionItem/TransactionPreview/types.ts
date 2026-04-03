@@ -72,6 +72,9 @@ type TransactionPreviewProps = {
 
     /** Whether the item should be highlighted */
     shouldHighlight?: boolean;
+
+    /** ID of the original report from which the given reportAction is first created */
+    originalReportID?: string;
 };
 
 type TransactionPreviewContentProps = {

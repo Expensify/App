@@ -1,3 +1,4 @@
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -54,6 +55,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const isConciergeChat = isConciergeChatReport(report, conciergeReportID);
     const isChatRoom = isChatRoomReportUtils(report);
     const isSelfDM = isSelfDMReportUtils(report);
@@ -96,13 +98,13 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     } else if (isInvoiceRoom) {
         welcomeHeroText = translate('reportActionsView.sayHello');
     } else if (isChatRoom) {
-        welcomeHeroText = translate('reportActionsView.welcomeToRoom', {roomName: reportName});
+        welcomeHeroText = translate('reportActionsView.welcomeToRoom', reportName);
     } else if (isSelfDM) {
         welcomeHeroText = translate('reportActionsView.yourSpace');
     } else if (isSystemChat) {
         welcomeHeroText = reportName;
     } else if (isPolicyExpenseChat) {
-        welcomeHeroText = translate('reportActionsView.welcomeToRoom', {roomName: policyName});
+        welcomeHeroText = translate('reportActionsView.welcomeToRoom', policyName);
     }
 
     // If we are the only participant (e.g. solo group chat) then keep the current user personal details so the welcome message does not show up empty.
@@ -111,18 +113,21 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const participantPersonalDetailListExcludeCurrentUser = Object.values(
         getPersonalDetailsForAccountIDs(participantAccountIDsExcludeCurrentUser, personalDetails as OnyxInputOrEntry<PersonalDetailsList>),
     );
-    const welcomeMessage = SidebarUtils.getWelcomeMessage(
+    const welcomeMessage = SidebarUtils.getWelcomeMessage({
         report,
         policy,
         invoiceReceiverPolicy,
-        participantPersonalDetailListExcludeCurrentUser,
+        participantPersonalDetailList: participantPersonalDetailListExcludeCurrentUser,
         translate,
         localeCompare,
+        conciergeReportID,
+        reportAttributes,
         isReportArchived,
         reportDetailsLink,
         shouldShowUsePlusButtonText,
         additionalText,
-    );
+        isTrackIntentUser: !!isTrackIntentUser,
+    });
 
     return (
         <>
@@ -138,7 +143,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                 {isSelfDM && (
                     <Text>
                         <Text>{welcomeMessage.messageText}</Text>
-                        {shouldShowUsePlusButtonText && <Text>{translate('reportActionsView.usePlusButton', {additionalText})}</Text>}
+                        {shouldShowUsePlusButtonText && <Text>{translate('reportActionsView.usePlusButton', additionalText)}</Text>}
                     </Text>
                 )}
                 {isSystemChat && (

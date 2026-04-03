@@ -14,7 +14,6 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 
 // Be sure to include the mocked Permissions and Expensicons libraries or else the beta tests won't work
 jest.mock('@src/libs/Permissions');
-jest.mock('@src/components/Icon/Expensicons');
 jest.mock('@src/hooks/useRootNavigationState');
 
 const TEST_USER_ACCOUNT_ID = 1;
@@ -96,7 +95,7 @@ describe('Sidebar', () => {
                                 [ONYXKEYS.BETAS]: betas,
                                 [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                                [ONYXKEYS.IS_LOADING_APP]: false,
+                                [ONYXKEYS.RAM_ONLY_IS_LOADING_APP]: false,
                                 ...reportNameValuePairsCollection,
                                 ...reportCollection,
                                 ...reportAction,
@@ -159,7 +158,7 @@ describe('Sidebar', () => {
                                 [ONYXKEYS.BETAS]: betas,
                                 [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                                [ONYXKEYS.IS_LOADING_APP]: false,
+                                [ONYXKEYS.RAM_ONLY_IS_LOADING_APP]: false,
                                 ...reportNameValuePairsCollection,
                                 ...reportCollection,
                                 ...reportAction,

@@ -134,8 +134,13 @@ function ReportActionItemImage({
         );
     }
 
-    const originalImageSource = tryResolveUrlFromApiRoot(image ?? '');
-    const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail ?? '');
+    const localSource = transaction?.receipt?.localSource;
+    const effectiveIsLocalFile = isLocalFile || !!localSource;
+    const effectiveThumbnail = localSource ?? thumbnail;
+    const effectiveImage = localSource !== undefined && typeof image === 'string' ? localSource : image;
+
+    const originalImageSource = tryResolveUrlFromApiRoot(effectiveImage ?? '');
+    const thumbnailSource = tryResolveUrlFromApiRoot(effectiveThumbnail ?? '');
     const isEReceipt = transaction && !hasReceiptSource(transaction) && hasEReceipt(transaction);
     const isPDF = filename && Str.isPDF(filename);
 
@@ -143,7 +148,7 @@ function ReportActionItemImage({
 
     if (isEReceipt) {
         propsObj = {isEReceipt: true, transactionID: transaction.transactionID, iconSize: isSingleImage ? 'medium' : ('small' as IconSize), shouldUseFullHeight};
-    } else if (thumbnail && !isLocalFile) {
+    } else if (effectiveThumbnail && !effectiveIsLocalFile) {
         propsObj = {
             shouldUseThumbnailImage: shouldUseThumbnailImage ?? true,
 
@@ -158,7 +163,7 @@ function ReportActionItemImage({
             // If the image is full height, use initial position to make sure it will grow properly to fill the container
             shouldUseInitialObjectPosition: isMapDistanceRequest && !shouldUseFullHeight,
         };
-    } else if (isLocalFile && isPDF && typeof originalImageSource === 'string') {
+    } else if (effectiveIsLocalFile && isPDF && typeof originalImageSource === 'string') {
         propsObj = {isPDFThumbnail: true, source: originalImageSource};
     } else {
         propsObj = {
@@ -166,7 +171,7 @@ function ReportActionItemImage({
             ...(isThumbnail && {iconSize: (isSingleImage ? 'medium' : 'small') as IconSize, fileExtension}),
             shouldUseThumbnailImage: shouldUseThumbnailImage ?? true,
             isAuthTokenRequired: false,
-            source: shouldUseThumbnailImage ? (thumbnail ?? image ?? '') : originalImageSource,
+            source: shouldUseThumbnailImage ? (effectiveThumbnail ?? effectiveImage ?? '') : originalImageSource,
 
             // If the image is full height, use initial position to make sure it will grow properly to fill the container
             shouldUseInitialObjectPosition: isMapDistanceRequest && !shouldUseFullHeight,
@@ -200,7 +205,6 @@ function ReportActionItemImage({
                     onLoad={onLoad}
                     shouldUseFullHeight={shouldUseFullHeight}
                     onLoadFailure={onLoadFailure}
-                    isMapDistanceRequest={isMapDistanceRequest}
                 />
             </PressableWithoutFocus>
         );
