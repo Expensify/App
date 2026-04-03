@@ -15,6 +15,8 @@ type MoneyReportHeaderModalsContextValue = {
     openPDFDownload: () => void;
     openHoldEducational: () => void;
     openRejectModal: (action: RejectModalAction) => void;
+    showOfflineModal: () => void;
+    showDownloadErrorModal: () => void;
 };
 
 const defaultValue: MoneyReportHeaderModalsContextValue = {
@@ -22,6 +24,8 @@ const defaultValue: MoneyReportHeaderModalsContextValue = {
     openPDFDownload: () => {},
     openHoldEducational: () => {},
     openRejectModal: () => {},
+    showOfflineModal: () => {},
+    showDownloadErrorModal: () => {},
 };
 
 const MoneyReportHeaderModalsContext = createContext<MoneyReportHeaderModalsContextValue>(defaultValue);

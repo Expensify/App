@@ -13,7 +13,6 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useConfirmPendingRTERAndProceed from '@hooks/useConfirmPendingRTERAndProceed';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDecisionModal from '@hooks/useDecisionModal';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
@@ -375,23 +374,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
 
     const {showConfirmModal} = useConfirmModal();
     const {triggerExportOrConfirm} = useExportAgainModal(moneyRequestReport?.reportID, moneyRequestReport?.policyID);
-    const {showDecisionModal} = useDecisionModal();
-
-    const showOfflineModal = () => {
-        showDecisionModal({
-            title: translate('common.youAppearToBeOffline'),
-            prompt: translate('common.offlinePrompt'),
-            secondOptionText: translate('common.buttonConfirm'),
-        });
-    };
-
-    const showDownloadErrorModal = () => {
-        showDecisionModal({
-            title: translate('common.downloadFailedTitle'),
-            prompt: translate('common.downloadFailedDescription'),
-            secondOptionText: translate('common.buttonConfirm'),
-        });
-    };
+    const {showOfflineModal, showDownloadErrorModal} = useMoneyReportHeaderModals();
 
     const {isPaidAnimationRunning, isApprovedAnimationRunning, isSubmittingAnimationRunning, startAnimation, stopAnimation, startApprovedAnimation, startSubmittingAnimation} =
         usePaymentAnimations();
@@ -525,11 +508,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
     const beginExportWithTemplate = useCallback(
         (templateName: string, templateType: string, transactionIDList: string[], policyID?: string) => {
             if (isOffline) {
-                showDecisionModal({
-                    title: translate('common.youAppearToBeOffline'),
-                    prompt: translate('common.offlinePrompt'),
-                    secondOptionText: translate('common.buttonConfirm'),
-                });
+                showOfflineModal();
                 return;
             }
 
@@ -552,7 +531,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                 policyID,
             });
         },
-        [isOffline, moneyRequestReport, showExportProgressModal, clearSelectedTransactions, showDecisionModal, translate],
+        [isOffline, moneyRequestReport, showExportProgressModal, clearSelectedTransactions, showOfflineModal],
     );
 
     const isOnSearch = route.name.toLowerCase().startsWith('search');
@@ -1103,11 +1082,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                         return;
                     }
                     if (isOffline) {
-                        showDecisionModal({
-                            title: translate('common.youAppearToBeOffline'),
-                            prompt: translate('common.offlinePrompt'),
-                            secondOptionText: translate('common.buttonConfirm'),
-                        });
+                        showOfflineModal();
                         return;
                     }
                     exportReportToCSV(
@@ -1115,13 +1090,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                             reportID: moneyRequestReport.reportID,
                             transactionIDList: transactionIDs,
                         },
-                        () => {
-                            showDecisionModal({
-                                title: translate('common.downloadFailedTitle'),
-                                prompt: translate('common.downloadFailedDescription'),
-                                secondOptionText: translate('common.buttonConfirm'),
-                            });
-                        },
+                        showDownloadErrorModal,
                         translate,
                     );
                 },
@@ -1196,7 +1165,8 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
         exportTemplates,
         beginExportWithTemplate,
         triggerExportOrConfirm,
-        showDecisionModal,
+        showOfflineModal,
+        showDownloadErrorModal,
     ]);
 
     const primaryActionComponent = (

@@ -1,6 +1,8 @@
 import React, {useRef, useState} from 'react';
 import type {ReactNode} from 'react';
+import useDecisionModal from '@hooks/useDecisionModal';
 import useHoldMenuModal from '@hooks/useHoldMenuModal';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -43,8 +45,26 @@ function MoneyReportHeaderModals({reportID, children}: MoneyReportHeaderModalsPr
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(moneyRequestReport?.reportID);
     const transactionIDs = transactions.map((t) => t.transactionID);
 
-    // Imperative hold menu
+    // Imperative modals
     const {showHoldMenu} = useHoldMenuModal();
+    const {showDecisionModal} = useDecisionModal();
+    const {translate} = useLocalize();
+
+    const showOfflineModal = () => {
+        showDecisionModal({
+            title: translate('common.youAppearToBeOffline'),
+            prompt: translate('common.offlinePrompt'),
+            secondOptionText: translate('common.buttonConfirm'),
+        });
+    };
+
+    const showDownloadErrorModal = () => {
+        showDecisionModal({
+            title: translate('common.downloadFailedTitle'),
+            prompt: translate('common.downloadFailedDescription'),
+            secondOptionText: translate('common.buttonConfirm'),
+        });
+    };
 
     const openHoldMenu = async ({requestType, paymentType, methodID, onConfirm}: HoldMenuParams) => {
         await showHoldMenu({
@@ -66,6 +86,8 @@ function MoneyReportHeaderModals({reportID, children}: MoneyReportHeaderModalsPr
         openPDFDownload: () => setIsPDFModalVisible(true),
         openHoldEducational: () => educationalModalsRef.current?.openHoldEducational(),
         openRejectModal: (action: RejectModalAction) => educationalModalsRef.current?.openRejectModal(action),
+        showOfflineModal,
+        showDownloadErrorModal,
     };
 
     return (
