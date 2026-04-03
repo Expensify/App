@@ -21,7 +21,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import createPressHandler from './createPressHandler';
 import type {ProductTrainingTooltipName} from './TOOLTIPS';
 import TOOLTIPS from './TOOLTIPS';
 
@@ -50,7 +49,7 @@ const ProductTrainingContext = createContext<ProductTrainingContextType>({
 });
 
 function ProductTrainingContextProvider({children}: ChildrenProps) {
-    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [isLoadingApp = true] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_APP);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const hasBeenAddedToNudgeMigration = !!tryNewDot?.nudgeMigration?.timestamp;
     const [isOnboardingCompleted = true, isOnboardingCompletedMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
@@ -295,8 +294,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                             shouldUseAutoHitSlop
                             accessibilityLabel={translate('common.noThanks')}
                             role={CONST.ROLE.BUTTON}
-                            // eslint-disable-next-line react/jsx-props-no-spreading
-                            {...createPressHandler(() => hideTooltip(true))}
+                            onPress={() => hideTooltip(true)}
                         >
                             <Icon
                                 src={expensifyIcons.Close}
@@ -313,14 +311,12 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                             success
                             text={translate('productTrainingTooltip.scanTestTooltip.tryItOut')}
                             style={[styles.flex1]}
-                            // eslint-disable-next-line react/jsx-props-no-spreading
-                            {...createPressHandler(config.onConfirm)}
+                            onPress={config.onConfirm}
                         />
                         <Button
                             text={translate('common.noThanks')}
                             style={[styles.flex1]}
-                            // eslint-disable-next-line react/jsx-props-no-spreading
-                            {...createPressHandler(config.onDismiss)}
+                            onPress={config.onDismiss}
                         />
                     </View>
                 )}
