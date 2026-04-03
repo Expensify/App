@@ -15,6 +15,8 @@ import {createNewReport} from '@libs/actions/Report';
 import {changeTransactionsReport} from '@libs/actions/Transaction';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import Navigation from '@libs/Navigation/Navigation';
+import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
+import {getSubmitToAccountID} from '@libs/PolicyUtils';
 import {getPersonalDetailsForAccountID, getReportOrDraftReport, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import IOURequestEditReportCommon from '@pages/iou/request/step/IOURequestEditReportCommon';
@@ -82,8 +84,11 @@ function SearchTransactionsChangeReport() {
             getSearchMoveSelectionValidation(selectedTransactions, {
                 isExpenseReportSearch: currentSearchQueryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                 getOwnerAccountIDForReportID: (reportID) => getReportOrDraftReport(reportID)?.ownerAccountID,
+                getPolicyForPolicyID: (policyID) => (policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] : undefined),
+                getLoginForAccountID: getLoginByAccountID,
+                resolveSubmitToAccountID: (policy, report) => (policy && report ? getSubmitToAccountID(policy, report) : undefined),
             }),
-        [currentSearchQueryJSON?.type, selectedTransactions],
+        [allPolicies, currentSearchQueryJSON?.type, selectedTransactions],
     );
     const targetOwnerPersonalDetails = useMemo(() => getPersonalDetailsForAccountID(targetOwnerAccountID, personalDetails) as PersonalDetails, [personalDetails, targetOwnerAccountID]);
     const createReportForPolicy = (shouldDismissEmptyReportsConfirmation?: boolean) => {

@@ -35,7 +35,8 @@ import initSplitExpense from '@libs/actions/SplitExpenses';
 import {setNameValuePair} from '@libs/actions/User';
 import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getConnectedIntegration} from '@libs/PolicyUtils';
+import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
+import {getConnectedIntegration, getSubmitToAccountID} from '@libs/PolicyUtils';
 import {getSecondaryExportReportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
     canEditMultipleTransactions,
@@ -1147,6 +1148,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         const {canMoveToReport} = getSearchMoveSelectionValidation(selectedTransactions, {
             isExpenseReportSearch: typeExpenseReport,
             getOwnerAccountIDForReportID: (reportID) => getReportOrDraftReport(reportID)?.ownerAccountID,
+            getPolicyForPolicyID: (policyID) => (policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] : undefined),
+            getLoginForAccountID: getLoginByAccountID,
+            resolveSubmitToAccountID: (policy, report) => (policy && report ? getSubmitToAccountID(policy, report) : undefined),
         });
 
         if (canMoveToReport) {
