@@ -2823,9 +2823,6 @@ describe('actions/Report', () => {
                 reportTransactions: {},
                 allTransactionViolations: {},
                 bankAccountList: {},
-                personalPolicy: undefined,
-                translate: TestHelper.translateLocal,
-                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
 
@@ -2936,9 +2933,6 @@ describe('actions/Report', () => {
                 },
                 allTransactionViolations: {},
                 bankAccountList: {},
-                personalPolicy: undefined,
-                translate: TestHelper.translateLocal,
-                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
 

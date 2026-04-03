@@ -69,7 +69,6 @@ import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
-import usePersonalPolicy from './usePersonalPolicy';
 import useSelfDMReport from './useSelfDMReport';
 import useTheme from './useTheme';
 import useThemeStyles from './useThemeStyles';
@@ -97,7 +96,7 @@ function getRestrictedPolicyID(
 }
 
 function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
-    const {translate, localeCompare, formatPhoneNumber, toLocaleDigit} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isOffline} = useNetwork();
@@ -120,7 +119,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS);
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const personalPolicy = usePersonalPolicy();
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const {isBetaEnabled} = usePermissions();
@@ -491,9 +489,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             reportTransactions: validTransactions,
                             allTransactionViolations,
                             bankAccountList,
-                            personalPolicy,
-                            translate,
-                            toLocaleDigit,
                             hash,
                         });
                     }
@@ -510,9 +505,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         reportTransactions: validTransactions,
                         transactionsViolations,
                         bankAccountList,
-                        personalPolicy,
-                        translate,
-                        toLocaleDigit,
                         transactions,
                         allReportNameValuePairs,
                     });
@@ -531,14 +523,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         accountID,
         selectedTransactions,
         bankAccountList,
-        personalPolicy,
         clearSelectedTransactions,
         transactions,
         allReports,
         selfDMReport,
         currentUserPersonalDetails?.email,
         currentUserPersonalDetails?.accountID,
-        toLocaleDigit,
         isExpenseReportType,
         selectedReportIDs,
         allReportNameValuePairs,
