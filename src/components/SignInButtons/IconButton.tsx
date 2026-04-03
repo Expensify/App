@@ -46,6 +46,7 @@ function IconButton({onPress = () => {}, provider}: IconButtonProps) {
             style={styles.signInIconButton}
             role={CONST.ROLE.BUTTON}
             accessibilityLabel={translate(providerData[provider].accessibilityLabel)}
+            accessibilityHint={translate(providerData[provider].accessibilityLabel)}
         >
             <Icon
                 src={providerData[provider].icon}

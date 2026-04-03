@@ -82,6 +82,7 @@ function BaseAnchorForCommentsOnly({
             role={CONST.ROLE.LINK}
             tabIndex={-1}
             accessibilityLabel={href}
+            accessibilityHint={href}
             wrapperStyle={wrapperStyle}
         >
             <Tooltip

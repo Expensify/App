@@ -101,6 +101,7 @@ function CategoryGLCodePage({route}: EditCategoryPageProps) {
                         defaultValue={glCode}
                         label={translate('workspace.categories.glCode')}
                         accessibilityLabel={translate('workspace.categories.glCode')}
+                        accessibilityHint={translate('workspace.categories.glCode')}
                         inputID={INPUT_IDS.GL_CODE}
                         role={CONST.ROLE.PRESENTATION}
                     />

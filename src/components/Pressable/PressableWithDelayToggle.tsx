@@ -145,6 +145,7 @@ function PressableWithDelayToggle({
             ref={ref as any}
             onPress={updatePressState}
             accessibilityLabel={accessibilityLabel}
+            accessibilityHint={accessibilityLabel}
             suppressHighlighting={inline ? true : undefined}
             accessibilityRole={accessibilityRole}
         >
@@ -154,7 +155,7 @@ function PressableWithDelayToggle({
                     text={tooltipTexts}
                     shouldRender
                 >
-                    {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-descriptors -- Inner pressable is intentionally non-accessible (accessible={false}) since the outer PressableView handles accessibility */}
+                    {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-descriptors -- Inner pressable is intentionally non-accessible (accessible={false}) since the outer PressableView handles accessibility. */}
                     <PressableWithoutFeedback
                         tabIndex={-1}
                         accessible={false}

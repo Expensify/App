@@ -48,6 +48,7 @@ describe('MenuItem', () => {
                         icon={mockLinkIcon}
                         iconRight={mockNewWindowIcon}
                         accessibilityLabel={customLabel}
+                        accessibilityHint="Activates this menu item"
                         onPress={() => {}}
                     />
                 </Wrapper>,
@@ -87,6 +88,7 @@ describe('MenuItem', () => {
                         icon={mockCheckmarkIcon}
                         iconRight={mockCheckmarkIcon}
                         accessibilityLabel={customLabel}
+                        accessibilityHint="Activates this menu item"
                         onPress={() => {}}
                     />
                 </Wrapper>,

@@ -45,6 +45,7 @@ function ImTeacherUpdateEmailPage() {
                     success
                     large
                     accessibilityLabel={translate('teachersUnitePage.updateEmail')}
+                    accessibilityHint={translate('teachersUnitePage.updateEmail')}
                     text={translate('teachersUnitePage.updateEmail')}
                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(Navigation.getActiveRouteWithoutParams()))}
                 />

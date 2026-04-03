@@ -1647,7 +1647,9 @@ function PureReportActionItem({
             children = (
                 <View
                     accessibilityRole={CONST.ROLE.ALERT}
+                    accessibilityLiveRegion="assertive"
                     accessibilityLabel={translate('reportFraudConfirmationPage.title')}
+                    accessibilityHint={translate('reportFraudConfirmationPage.title')}
                 >
                     <ReportActionItemBasicMessage message={message} />
                     {actionableItemButtons.length > 0 && (

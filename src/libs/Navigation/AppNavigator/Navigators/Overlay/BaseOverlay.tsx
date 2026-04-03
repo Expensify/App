@@ -43,6 +43,7 @@ function BaseOverlay({onPress, progress, positionLeftValue = -2 * variables.side
                     style={[styles.draggableTopBar, styles.boxShadowNone, styles.cursorAuto]}
                     onPress={onPress}
                     accessibilityLabel={translate('common.close')}
+                    accessibilityHint={translate('common.close')}
                     role={CONST.ROLE.BUTTON}
                     id={CONST.OVERLAY.TOP_BUTTON_NATIVE_ID}
                     tabIndex={-1}
@@ -51,6 +52,7 @@ function BaseOverlay({onPress, progress, positionLeftValue = -2 * variables.side
                     style={[styles.flex1, styles.boxShadowNone, styles.cursorAuto]}
                     onPress={onPress}
                     accessibilityLabel={translate('common.close')}
+                    accessibilityHint={translate('common.close')}
                     role={CONST.ROLE.BUTTON}
                     noDragArea
                     id={CONST.OVERLAY.BOTTOM_BUTTON_NATIVE_ID}

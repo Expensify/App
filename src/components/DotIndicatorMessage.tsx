@@ -118,6 +118,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
                 accessible={isErrorMessage}
                 role={isErrorMessage ? CONST.ROLE.IMG : undefined}
                 accessibilityLabel={isErrorMessage ? (CONST.ACCESSIBILITY_LABELS.ERROR as string) : undefined}
+                accessibilityHint={isErrorMessage ? (CONST.ACCESSIBILITY_LABELS.ERROR as string) : undefined}
             >
                 <Icon
                     src={expensifyIcons.DotIndicator}

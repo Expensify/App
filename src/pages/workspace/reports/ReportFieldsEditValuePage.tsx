@@ -93,6 +93,7 @@ function ReportFieldsEditValuePage({
                         defaultValue={currentValueName}
                         label={translate('common.value')}
                         accessibilityLabel={translate('common.value')}
+                        accessibilityHint={translate('common.value')}
                         inputID={INPUT_IDS.NEW_VALUE_NAME}
                         role={CONST.ROLE.PRESENTATION}
                         ref={inputCallbackRef}

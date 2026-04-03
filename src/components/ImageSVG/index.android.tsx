@@ -52,6 +52,7 @@ function ImageSVG({src, width = '100%', height = '100%', fill, contentFit = 'cov
     // Handle static image sources (traditional approach)
     return (
         <Image
+            accessibilityIgnoresInvertColors
             onLoadEnd={onLoadEnd}
             // Caching images to memory since some SVGs are being displayed with delay
             // See issue: https://github.com/Expensify/App/issues/34881

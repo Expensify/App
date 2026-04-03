@@ -119,6 +119,7 @@ function IntroSchoolPrincipalPage() {
                         name={INPUT_IDS.FIRST_NAME}
                         label={translate('teachersUnitePage.principalFirstName')}
                         accessibilityLabel={translate('teachersUnitePage.principalFirstName')}
+                        accessibilityHint={translate('teachersUnitePage.principalFirstName')}
                         role={CONST.ROLE.PRESENTATION}
                         autoCapitalize="words"
                         autoComplete="given-name"
@@ -131,6 +132,7 @@ function IntroSchoolPrincipalPage() {
                         name={INPUT_IDS.LAST_NAME}
                         label={translate('teachersUnitePage.principalLastName')}
                         accessibilityLabel={translate('teachersUnitePage.principalLastName')}
+                        accessibilityHint={translate('teachersUnitePage.principalLastName')}
                         role={CONST.ROLE.PRESENTATION}
                         autoCapitalize="words"
                         autoComplete="family-name"
@@ -143,6 +145,7 @@ function IntroSchoolPrincipalPage() {
                         name={INPUT_IDS.PARTNER_USER_ID}
                         label={translate('teachersUnitePage.principalWorkEmail')}
                         accessibilityLabel={translate('teachersUnitePage.principalWorkEmail')}
+                        accessibilityHint={translate('teachersUnitePage.principalWorkEmail')}
                         role={CONST.ROLE.PRESENTATION}
                         inputMode={CONST.INPUT_MODE.EMAIL}
                         autoCapitalize="none"

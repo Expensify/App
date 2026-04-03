@@ -468,6 +468,7 @@ function BaseTextInput({
                                         event.preventDefault();
                                     }}
                                     accessibilityLabel={translate('common.visible')}
+                                    accessibilityHint={translate('common.visible')}
                                 >
                                     <Icon
                                         src={passwordHidden ? icons.Eye : icons.EyeDisabled}

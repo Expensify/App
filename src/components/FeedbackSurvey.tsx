@@ -127,6 +127,7 @@ function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerTe
                             inputID={INPUT_IDS.NOTE}
                             label={translate('feedbackSurvey.additionalInfoInputLabel')}
                             accessibilityLabel={translate('feedbackSurvey.additionalInfoInputLabel')}
+                            accessibilityHint={translate('feedbackSurvey.additionalInfoInputLabel')}
                             role={CONST.ROLE.PRESENTATION}
                             onChangeText={handleSetNote}
                             shouldSaveDraft

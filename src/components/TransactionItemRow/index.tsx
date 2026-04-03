@@ -702,6 +702,7 @@ function TransactionItemRow({
                                     onCheckboxPress(transactionItem.transactionID);
                                 }}
                                 accessibilityLabel={CONST.ROLE.CHECKBOX}
+                                accessibilityHint={CONST.ROLE.CHECKBOX}
                                 isChecked={isSelected}
                                 style={styles.mr3}
                                 wrapperStyle={styles.justifyContentCenter}
@@ -770,6 +771,7 @@ function TransactionItemRow({
                                     disabled={isDisabled}
                                     onPress={() => onRadioButtonPress?.(transactionItem.transactionID)}
                                     accessibilityLabel={CONST.ROLE.RADIO}
+                                    accessibilityHint={CONST.ROLE.RADIO}
                                     shouldUseNewStyle
                                 />
                             </View>
@@ -833,6 +835,7 @@ function TransactionItemRow({
                                 onCheckboxPress(transactionItem.transactionID);
                             }}
                             accessibilityLabel={CONST.ROLE.CHECKBOX}
+                            accessibilityHint={CONST.ROLE.CHECKBOX}
                             isChecked={isSelected}
                             style={styles.mr1}
                             wrapperStyle={styles.justifyContentCenter}
@@ -847,6 +850,7 @@ function TransactionItemRow({
                                 disabled={isDisabled}
                                 onPress={() => onRadioButtonPress?.(transactionItem.transactionID)}
                                 accessibilityLabel={CONST.ROLE.RADIO}
+                                accessibilityHint={CONST.ROLE.RADIO}
                                 shouldUseNewStyle
                             />
                         </View>
@@ -858,6 +862,7 @@ function TransactionItemRow({
                             style={[styles.p3Half, styles.pl0half, styles.pr0half, styles.justifyContentCenter, styles.alignItemsEnd]}
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={CONST.ROLE.BUTTON}
+                            accessibilityHint={CONST.ROLE.BUTTON}
                             sentryLabel={CONST.SENTRY_LABEL.TRANSACTION_ITEM_ROW.ARROW_RIGHT}
                         >
                             <Icon

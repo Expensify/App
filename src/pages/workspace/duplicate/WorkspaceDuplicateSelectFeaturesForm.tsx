@@ -356,6 +356,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                     <View style={[styles.searchListHeaderContainerStyle, styles.pv3, styles.ph5, styles.flexRow, styles.alignItemsCenter]}>
                         <Checkbox
                             accessibilityLabel={translate('accessibilityHints.selectAllFeatures')}
+                            accessibilityHint={translate('accessibilityHints.selectAllFeatures')}
                             isChecked={isSelectAllChecked}
                             isIndeterminate={selectedItems.length > 0 && selectedItems.length !== items.length}
                             onPress={toggleAllItems}

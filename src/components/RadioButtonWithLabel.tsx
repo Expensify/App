@@ -28,6 +28,9 @@ type RadioButtonWithLabelProps = ForwardedFSClassProps & {
     /** Specifies the accessibility label for the radio button. Falls back to label if not provided. */
     accessibilityLabel?: string;
 
+    /** Specifies the accessibility hint for the radio button. Falls back to label if not provided. */
+    accessibilityHint?: string;
+
     /** Should the input be styled for errors */
     hasError?: boolean;
 
@@ -51,6 +54,7 @@ function RadioButtonWithLabel({
     style,
     label = '',
     accessibilityLabel,
+    accessibilityHint,
     hasError = false,
     errorText = '',
     isChecked,
@@ -72,6 +76,7 @@ function RadioButtonWithLabel({
                     isChecked={isChecked}
                     onPress={onPress}
                     accessibilityLabel={accessibilityLabel ?? label}
+                    accessibilityHint={accessibilityHint ?? accessibilityLabel ?? label}
                     hasError={hasError}
                 />
                 <PressableWithFeedback

@@ -65,6 +65,7 @@ function RulesProhibitedDefaultPage({
                                 <Switch
                                     isOn={policy?.prohibitedExpenses?.[prohibitedExpense] ?? false}
                                     accessibilityLabel={translate(`workspace.rules.individualExpenseRules.${prohibitedExpense}`)}
+                                    accessibilityHint={translate(`workspace.rules.individualExpenseRules.${prohibitedExpense}`)}
                                     onToggle={() => {
                                         setPolicyProhibitedExpense(policyID, prohibitedExpense, policy?.prohibitedExpenses);
                                     }}

@@ -872,6 +872,7 @@ function MoneyRequestReportActionsList({
                     <View style={[styles.alignItemsCenter, styles.userSelectNone, styles.flexRow, styles.pt6, styles.ph8, styles.pb3]}>
                         <Checkbox
                             accessibilityLabel={translate('accessibilityHints.selectAllItems')}
+                            accessibilityHint={translate('accessibilityHints.selectAllItems')}
                             isChecked={isSelectAllChecked}
                             isIndeterminate={selectedTransactionIDs.length > 0 && selectedTransactionIDs.length !== transactionsWithoutPendingDelete.length}
                             onPress={() => {
@@ -892,6 +893,7 @@ function MoneyRequestReportActionsList({
                                 }
                             }}
                             accessibilityLabel={translate('accessibilityHints.selectAllItems')}
+                            accessibilityHint={translate('accessibilityHints.selectAllItems')}
                             role="button"
                             accessibilityState={{checked: isSelectAllChecked}}
                             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
@@ -924,6 +926,7 @@ function MoneyRequestReportActionsList({
                     <FlatListWithScrollKey
                         initialNumToRender={initialNumToRender}
                         accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
+                        accessibilityHint={translate('sidebarScreen.listOfChatMessages')}
                         testID="money-request-report-actions-list"
                         style={styles.overscrollBehaviorContain}
                         data={visibleReportActions}

@@ -453,6 +453,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 disabled={isDisabled && !isItemSelected}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_GROUP_LIST_ITEM}
                 accessibilityLabel={item.text ?? ''}
+                accessibilityHint={item.text ?? ''}
                 role={getButtonRole(true)}
                 isNested
                 hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, isItemSelected && styles.activeComponentBG]}

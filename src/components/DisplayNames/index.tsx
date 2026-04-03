@@ -17,6 +17,8 @@ function DisplayNames({
     renderAdditionalText,
     forwardedFSClass,
     shouldParseFullTitle = true,
+    accessibilityLabel,
+    accessibilityHint,
 }: DisplayNamesProps) {
     const {translate} = useLocalize();
     const title = useMemo(() => {
@@ -32,6 +34,8 @@ function DisplayNames({
                 fullTitle={title}
                 renderAdditionalText={renderAdditionalText}
                 forwardedFSClass={forwardedFSClass}
+                accessibilityLabel={accessibilityLabel}
+                accessibilityHint={accessibilityHint}
             />
         );
     }
@@ -45,6 +49,8 @@ function DisplayNames({
                 numberOfLines={numberOfLines}
                 renderAdditionalText={renderAdditionalText}
                 forwardedFSClass={forwardedFSClass}
+                accessibilityLabel={accessibilityLabel}
+                accessibilityHint={accessibilityHint}
             />
         );
     }
@@ -58,6 +64,8 @@ function DisplayNames({
             numberOfLines={numberOfLines}
             renderAdditionalText={renderAdditionalText}
             forwardedFSClass={forwardedFSClass}
+            accessibilityLabel={accessibilityLabel}
+            accessibilityHint={accessibilityHint}
         />
     );
 }

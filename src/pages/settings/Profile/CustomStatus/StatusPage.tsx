@@ -219,6 +219,7 @@ function StatusPage() {
                             InputComponent={EmojiPickerButtonDropdown}
                             inputID={INPUT_IDS.EMOJI_CODE}
                             accessibilityLabel={INPUT_IDS.EMOJI_CODE}
+                            accessibilityHint={INPUT_IDS.EMOJI_CODE}
                             role={CONST.ROLE.PRESENTATION}
                             defaultValue={defaultEmoji}
                             style={styles.mb3}
@@ -241,6 +242,7 @@ function StatusPage() {
                             role={CONST.ROLE.PRESENTATION}
                             label={translate('statusPage.message')}
                             accessibilityLabel={INPUT_IDS.STATUS_TEXT}
+                            accessibilityHint={INPUT_IDS.STATUS_TEXT}
                             defaultValue={defaultText}
                         />
                     </View>

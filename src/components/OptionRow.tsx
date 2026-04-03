@@ -210,6 +210,7 @@ function OptionRow({
                             !onSelectRow && !isOptionDisabled ? styles.cursorDefault : null,
                         ]}
                         accessibilityLabel={option.text ?? ''}
+                        accessibilityHint={option.text ?? ''}
                         role={CONST.ROLE.BUTTON}
                         hoverDimmingValue={1}
                         hoverStyle={!optionIsFocused ? (hoverStyle ?? styles.sidebarLinkHover) : undefined}
@@ -232,6 +233,7 @@ function OptionRow({
                                 <View style={contentContainerStyles}>
                                     <DisplayNames
                                         accessibilityLabel={translate('accessibilityHints.chatUserDisplayNames')}
+                                        accessibilityHint={translate('accessibilityHints.chatUserDisplayNames')}
                                         fullTitle={fullTitle}
                                         displayNamesWithTooltips={displayNamesWithTooltips}
                                         tooltipEnabled={showTitleTooltip}
@@ -312,7 +314,8 @@ function OptionRow({
                                             onPress={() => onSelectedStatePressed(option)}
                                             disabled={isDisabled}
                                             role={CONST.ROLE.BUTTON}
-                                            accessibilityLabel={CONST.ROLE.BUTTON}
+                                            accessibilityLabel={option.text ?? selectedStateButtonText ?? translate('common.select')}
+                                            accessibilityHint={option.text ?? selectedStateButtonText ?? translate('common.select')}
                                             sentryLabel={CONST.SENTRY_LABEL.OPTION_ROW.USER_SELECTION_CHECKBOX}
                                             style={[styles.ml2, styles.optionSelectCircle]}
                                         >

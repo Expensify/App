@@ -26,6 +26,7 @@ function TextInputClearButton({style, onPressButton, sentryLabel}: TextInputClea
                 style={[styles.mt4, styles.mh1, style]}
                 accessibilityRole={CONST.ROLE.BUTTON}
                 accessibilityLabel={translate('common.clear')}
+                accessibilityHint={translate('common.clear')}
                 onMouseDown={(e) => {
                     e.preventDefault();
                 }}

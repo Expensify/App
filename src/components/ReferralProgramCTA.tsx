@@ -59,6 +59,7 @@ function ReferralProgramCTA({referralContentType, style, onDismiss}: ReferralPro
                 }}
                 style={[styles.pAbsolute, styles.t0, styles.b0, styles.l0, {right: CLOSE_BUTTON_OFFSET}]}
                 accessibilityLabel={translate(`referralProgram.${referralContentType}.header`)}
+                accessibilityHint={translate(`referralProgram.${referralContentType}.header`)}
                 role={CONST.ROLE.BUTTON}
             />
             {/* Hidden from accessibility — the CTA pressable above already announces this content. */}
@@ -77,6 +78,7 @@ function ReferralProgramCTA({referralContentType, style, onDismiss}: ReferralPro
                     style={[styles.touchableButtonImage]}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate(`referralProgram.${referralContentType}.closeAccessibilityLabel`)}
+                    accessibilityHint={translate(`referralProgram.${referralContentType}.closeAccessibilityLabel`)}
                     sentryLabel={CONST.SENTRY_LABEL.REFERRAL_PROGRAM.DISMISS_BUTTON}
                 >
                     <Icon

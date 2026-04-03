@@ -124,6 +124,7 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
                             name={INPUT_IDS.DESCRIPTION}
                             label={translate('newTaskPage.descriptionOptional')}
                             accessibilityLabel={translate('newTaskPage.descriptionOptional')}
+                            accessibilityHint={translate('newTaskPage.descriptionOptional')}
                             defaultValue={Parser.htmlToMarkdown(report?.description ?? '')}
                             ref={(element: AnimatedTextInputRef | null) => {
                                 if (!element) {

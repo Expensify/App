@@ -101,6 +101,7 @@ function NamePage({
                             inputID={INPUT_IDS.NAME}
                             label={translate('workspace.editor.nameInputLabel')}
                             accessibilityLabel={translate('workspace.editor.nameInputLabel')}
+                            accessibilityHint={translate('workspace.editor.nameInputLabel')}
                             value={name}
                             onChangeText={setName}
                             ref={inputCallbackRef}

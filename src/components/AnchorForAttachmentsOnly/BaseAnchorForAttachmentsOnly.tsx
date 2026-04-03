@@ -62,6 +62,7 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onP
             }}
             shouldUseHapticsOnLongPress
             accessibilityLabel={displayName}
+            accessibilityHint={displayName}
             role={CONST.ROLE.BUTTON}
             sentryLabel={CONST.SENTRY_LABEL.BASE_ANCHOR_FOR_ATTACHMENTS_ONLY.DOWNLOAD_BUTTON}
         >

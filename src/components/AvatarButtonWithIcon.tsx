@@ -102,6 +102,7 @@ function AvatarButtonWithIcon({
                 onPress={onPress}
                 accessibilityRole={CONST.ROLE.BUTTON}
                 accessibilityLabel={text}
+                accessibilityHint={text}
                 disabled={disabled}
                 disabledStyle={disabledStyle}
                 style={[styles.pRelative, type === CONST.ICON_TYPE_AVATAR && styles.alignSelfCenter, avatarStyle]}

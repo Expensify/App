@@ -372,6 +372,9 @@ function PaymentCardForm({
                             accessibilityLabel={`${translate('common.iAcceptThe')} ${translate('common.addCardTermsOfService')} ${translate('common.and')} ${translate(
                                 'common.privacyPolicy',
                             )}`}
+                            accessibilityHint={`${translate('common.iAcceptThe')} ${translate('common.addCardTermsOfService')} ${translate('common.and')} ${translate(
+                                'common.privacyPolicy',
+                            )}`}
                             inputID={INPUT_IDS.ACCEPT_TERMS}
                             defaultValue={!!data?.acceptTerms}
                             LabelComponent={IAcceptTheLabel}

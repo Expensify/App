@@ -272,6 +272,7 @@ function WorkspaceNewRoomPage({ref}: WorkspaceNewRoomPageProps) {
                             inputID={INPUT_IDS.REPORT_DESCRIPTION}
                             label={translate('reportDescriptionPage.roomDescriptionOptional')}
                             accessibilityLabel={translate('reportDescriptionPage.roomDescriptionOptional')}
+                            accessibilityHint={translate('reportDescriptionPage.roomDescriptionOptional')}
                             role={CONST.ROLE.PRESENTATION}
                             autoGrowHeight
                             maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}

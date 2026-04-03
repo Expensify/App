@@ -134,6 +134,7 @@ function ReportFieldsInitialValuePage({
                             inputID={INPUT_IDS.INITIAL_VALUE}
                             label={translate('common.initialValue')}
                             accessibilityLabel={translate('workspace.editor.initialValueInputLabel')}
+                            accessibilityHint={translate('workspace.editor.initialValueInputLabel')}
                             multiline={false}
                             value={initialValue}
                             role={CONST.ROLE.PRESENTATION}

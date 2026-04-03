@@ -27,6 +27,7 @@ jest.mock('@components/MenuItemWithTopDescription', () => {
         <View
             testID={`menu-item-${props.description}`}
             accessibilityLabel={props.description}
+            accessibilityHint="Shows the menu item details"
             onPress={props.onPress}
             accessibilityState={{disabled: !props.interactive}}
         >

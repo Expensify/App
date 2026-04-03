@@ -166,6 +166,7 @@ function BaseGenericTooltip({
                 onPress={isEducationTooltip ? onTooltipPress : undefined}
                 role={isEducationTooltip ? CONST.ROLE.TOOLTIP : undefined}
                 accessibilityLabel={isEducationTooltip ? CONST.ROLE.TOOLTIP : undefined}
+                accessibilityHint={isEducationTooltip ? CONST.ROLE.TOOLTIP : undefined}
                 interactive={isEducationTooltip ? !!onTooltipPress : undefined}
             >
                 {content}

@@ -41,6 +41,7 @@ function OptionItem({title, icon, onPress, isSelected = false, isDisabled, style
             onPress={onPress}
             role={CONST.ROLE.BUTTON}
             accessibilityLabel={translate(title)}
+            accessibilityHint={translate(title)}
             disabled={isDisabled}
             wrapperStyle={[styles.flex1, style]}
             sentryLabel={CONST.SENTRY_LABEL.OPTION_CARD_PICKER.OPTION_ITEM}

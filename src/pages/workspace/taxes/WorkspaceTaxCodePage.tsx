@@ -108,6 +108,7 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
                             inputID={INPUT_IDS.TAX_CODE}
                             label={translate('workspace.taxes.taxCode')}
                             accessibilityLabel={translate('workspace.taxes.taxCode')}
+                            accessibilityHint={translate('workspace.taxes.taxCode')}
                             defaultValue={currentTaxCode}
                             ref={inputCallbackRef}
                         />

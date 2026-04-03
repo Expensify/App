@@ -87,6 +87,7 @@ function ReceiptEmptyState({
                 <Wrapper
                     accessibilityRole="imagebutton"
                     accessibilityLabel={translate('receipt.upload')}
+                    accessibilityHint={translate('receipt.upload')}
                     onPress={() => {
                         if (isDisplayedInWideRHP) {
                             openPicker({

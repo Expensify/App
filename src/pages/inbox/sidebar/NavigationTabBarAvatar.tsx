@@ -74,6 +74,7 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style}: Navigation
         <PressableWithFeedback
             onPress={onPress}
             accessibilityLabel={`${translate('initialSettingsPage.account')}, ${translate('sidebarScreen.buttonMySettings')}. ${status ? `${translate('common.yourReviewIsRequired')}.` : ''}`}
+            accessibilityHint={`${translate('initialSettingsPage.account')}, ${translate('sidebarScreen.buttonMySettings')}. ${status ? `${translate('common.yourReviewIsRequired')}.` : ''}`}
             role={CONST.ROLE.TAB}
             wrapperStyle={styles.flex1}
             accessibilityState={accountAccessibilityState}

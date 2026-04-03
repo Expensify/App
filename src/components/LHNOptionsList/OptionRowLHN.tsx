@@ -345,6 +345,7 @@ function OptionRowLHN({
                                                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, styles.overflowHidden]}>
                                                     <DisplayNames
                                                         accessibilityLabel={translate('accessibilityHints.chatUserDisplayNames')}
+                                                        accessibilityHint={translate('accessibilityHints.chatUserDisplayNames')}
                                                         fullTitle={optionItem.text ?? ''}
                                                         shouldParseFullTitle={shouldParseFullTitle}
                                                         displayNamesWithTooltips={optionItem.displayNamesWithTooltips ?? []}
@@ -379,6 +380,7 @@ function OptionRowLHN({
                                                         style={alternateTextStyle}
                                                         numberOfLines={1}
                                                         accessibilityLabel={translate('accessibilityHints.lastChatMessagePreview')}
+                                                        accessibilityHint={translate('accessibilityHints.lastChatMessagePreview')}
                                                         fsClass={alternateTextFSClass}
                                                     >
                                                         {alternateTextContainsCustomEmojiWithText ? (
@@ -443,6 +445,7 @@ function OptionRowLHN({
                                             <View
                                                 style={styles.ml2}
                                                 accessibilityLabel={translate('sidebarScreen.draftedMessage')}
+                                                accessibilityHint={translate('sidebarScreen.draftedMessage')}
                                             >
                                                 <Icon
                                                     testID="Pencil Icon"
@@ -457,6 +460,7 @@ function OptionRowLHN({
                                                 <View
                                                     style={styles.ml2}
                                                     accessibilityLabel={translate('sidebarScreen.chatPinned')}
+                                                    accessibilityHint={translate('sidebarScreen.chatPinned')}
                                                 >
                                                     <Icon
                                                         testID="Pin Icon"

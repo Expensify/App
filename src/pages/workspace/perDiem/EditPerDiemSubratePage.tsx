@@ -94,6 +94,7 @@ function EditPerDiemSubratePage({route}: EditPerDiemSubratePageProps) {
                         defaultValue={selectedSubrate?.name}
                         label={translate('common.subrate')}
                         accessibilityLabel={translate('common.subrate')}
+                        accessibilityHint={translate('common.subrate')}
                         inputID={INPUT_IDS.SUBRATE}
                         role={CONST.ROLE.PRESENTATION}
                     />

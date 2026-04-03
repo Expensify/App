@@ -92,6 +92,7 @@ function NewTaskTitlePage({route}: NewTaskTitlePageProps) {
                         inputID={INPUT_IDS.TASK_TITLE}
                         label={translate('task.title')}
                         accessibilityLabel={translate('task.title')}
+                        accessibilityHint={translate('task.title')}
                         autoGrowHeight
                         type="markdown"
                         maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}

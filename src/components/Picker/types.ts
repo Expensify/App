@@ -48,6 +48,9 @@ type BasePickerProps<TPickerValue> = {
     /** Accessibility label for screen readers */
     accessibilityLabel?: string;
 
+    /** Accessibility hint for screen readers */
+    accessibilityHint?: string;
+
     /** Should the picker appear disabled? */
     isDisabled?: boolean;
 

@@ -849,6 +849,7 @@ function MoneyRequestConfirmationList({
                             resetSplitShares(transaction);
                         }}
                         accessibilityLabel={CONST.ROLE.BUTTON}
+                        accessibilityHint={CONST.ROLE.BUTTON}
                         role={CONST.ROLE.BUTTON}
                         shouldUseAutoHitSlop
                         sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.RESET_SPLIT_SHARES}

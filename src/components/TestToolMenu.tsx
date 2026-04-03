@@ -76,6 +76,7 @@ function TestToolMenu() {
                     >
                         <Switch
                             accessibilityLabel={translate('initialSettingsPage.troubleshoot.debugMode')}
+                            accessibilityHint={translate('initialSettingsPage.troubleshoot.debugMode')}
                             isOn={isDebugModeEnabled}
                             onToggle={() => setIsDebugModeEnabled(!isDebugModeEnabled)}
                         />
@@ -153,6 +154,7 @@ function TestToolMenu() {
                 >
                     <Switch
                         accessibilityLabel="Use Staging Server"
+                        accessibilityHint="Use Staging Server"
                         isOn={shouldUseStagingServer}
                         onToggle={() => setShouldUseStagingServer(!shouldUseStagingServer)}
                     />
@@ -166,6 +168,7 @@ function TestToolMenu() {
             >
                 <Switch
                     accessibilityLabel="Force offline"
+                    accessibilityHint="Force offline"
                     isOn={!!network?.shouldForceOffline}
                     onToggle={() => setShouldForceOffline(!network?.shouldForceOffline)}
                     disabled={!!isUsingImportedState || !!network?.shouldSimulatePoorConnection || network?.shouldFailAllRequests}
@@ -179,6 +182,7 @@ function TestToolMenu() {
             >
                 <Switch
                     accessibilityLabel="Simulate poor internet connection"
+                    accessibilityHint="Simulate poor internet connection"
                     isOn={!!network?.shouldSimulatePoorConnection}
                     onToggle={() => setShouldSimulatePoorConnection(!network?.shouldSimulatePoorConnection, network?.poorConnectionTimeoutID)}
                     disabled={!!isUsingImportedState || !!network?.shouldFailAllRequests || network?.shouldForceOffline}
@@ -192,6 +196,7 @@ function TestToolMenu() {
             >
                 <Switch
                     accessibilityLabel="Simulate failing network requests"
+                    accessibilityHint="Simulate failing network requests"
                     isOn={!!network?.shouldFailAllRequests}
                     onToggle={() => setShouldFailAllRequests(!network?.shouldFailAllRequests)}
                     disabled={!!network?.shouldForceOffline || network?.shouldSimulatePoorConnection}

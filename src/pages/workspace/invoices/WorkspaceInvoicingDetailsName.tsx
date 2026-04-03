@@ -66,6 +66,7 @@ function WorkspaceInvoicingDetailsName({route}: WorkspaceInvoicingDetailsNamePro
                         inputID={INPUT_IDS.COMPANY_NAME}
                         label={translate('workspace.invoices.companyName')}
                         accessibilityLabel={translate('workspace.invoices.companyName')}
+                        accessibilityHint={translate('workspace.invoices.companyName')}
                         role={CONST.ROLE.PRESENTATION}
                         defaultValue={policy?.invoice?.companyName}
                         ref={inputCallbackRef}

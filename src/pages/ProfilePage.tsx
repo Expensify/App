@@ -183,6 +183,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                 style={[styles.noOutline, styles.mb4]}
                                 onPress={() => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(accountID, Navigation.getActiveRoute()))}
                                 accessibilityLabel={translate('common.profile')}
+                                accessibilityHint={translate('common.profile')}
                                 accessibilityRole={CONST.ROLE.BUTTON}
                                 disabled={!hasAvatar}
                                 sentryLabel={CONST.SENTRY_LABEL.PROFILE_PAGE.AVATAR}

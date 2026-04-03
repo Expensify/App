@@ -106,6 +106,9 @@ type MagicCodeInputProps = {
     /** Accessibility label for the input */
     accessibilityLabel?: string;
 
+    /** Accessibility hint for the input */
+    accessibilityHint?: string;
+
     /** Reference to the outer element */
     ref?: ForwardedRef<MagicCodeInputHandle>;
 
@@ -160,6 +163,7 @@ function MagicCodeInput({
     hasError = false,
     testID = '',
     accessibilityLabel,
+    accessibilityHint,
     ref,
     secureTextEntry = false,
 }: MagicCodeInputProps) {
@@ -502,6 +506,7 @@ function MagicCodeInput({
                             selectionColor="transparent"
                             inputStyle={[styles.inputTransparent]}
                             accessibilityLabel={`${accessibilityLabel ?? translate('common.magicCode')}, ${maxLength} ${translate('common.digits')}`}
+                            accessibilityHint={accessibilityHint ?? `${accessibilityLabel ?? translate('common.magicCode')}, ${maxLength} ${translate('common.digits')}`}
                             style={[styles.inputTransparent]}
                             textInputContainerStyles={[styles.borderTransparent, styles.bgTransparent]}
                             testID={testID}

@@ -95,6 +95,7 @@ function ProfileAvatar(props: Parameters<typeof Avatar>[0] & {useProfileNavigati
         <PressableWithoutFocus
             onPress={onPress}
             accessibilityLabel={translate(isWorkspace ? 'common.workspaces' : 'common.profile')}
+            accessibilityHint={translate(isWorkspace ? 'common.workspaces' : 'common.profile')}
             accessibilityRole={CONST.ROLE.BUTTON}
             sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_AVATAR}
         >

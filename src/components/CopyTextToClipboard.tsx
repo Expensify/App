@@ -49,6 +49,7 @@ function CopyTextToClipboard({
             onPress={copyToClipboard}
             accessible
             accessibilityLabel={translate('common.copyToClipboard')}
+            accessibilityHint={translate('common.copyToClipboard')}
             accessibilityRole={accessibilityRole}
             sentryLabel={CONST.SENTRY_LABEL.COPY_TEXT_TO_CLIPBOARD.COPY_BUTTON}
             shouldHaveActiveBackground={shouldHaveActiveBackground}

@@ -35,6 +35,7 @@ function Default() {
                 <View style={[defaultStyles.w100, defaultStyles.h100, defaultStyles.justifyContentCenter, defaultStyles.alignItemsCenter]}>
                     {fileURL ? (
                         <Image
+                            accessibilityIgnoresInvertColors
                             source={{uri: fileURL}}
                             style={{
                                 width: 200,

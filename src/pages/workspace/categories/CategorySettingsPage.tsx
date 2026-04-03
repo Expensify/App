@@ -285,6 +285,7 @@ function CategorySettingsPage({
                                 <Switch
                                     isOn={policyCategory.enabled}
                                     accessibilityLabel={translate('workspace.categories.enableCategory')}
+                                    accessibilityHint={translate('workspace.categories.enableCategory')}
                                     onToggle={updateWorkspaceCategoryEnabled}
                                     showLockIcon={shouldPreventDisableOrDelete}
                                 />

@@ -28,6 +28,7 @@ function SidePanelButtonBase({style}: SidePanelButtonProps) {
             <PressableWithoutFeedback
                 sentryLabel={CONST.SENTRY_LABEL.SIDE_PANEL.HELP}
                 accessibilityLabel={translate('common.help')}
+                accessibilityHint={translate('common.help')}
                 style={[styles.flexRow, styles.touchableButtonImage, style]}
                 onPress={openSidePanel}
             >

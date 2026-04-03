@@ -122,6 +122,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
                     <Text style={[styles.mutedNormalTextLabel, styles.mr1]}>{translate(`workspace.expensifyCard.${type}`)}</Text>
                     <PressableWithFeedback
                         accessibilityLabel={translate(`workspace.expensifyCard.${type}`)}
+                        accessibilityHint={translate(`workspace.expensifyCard.${type}`)}
                         accessibilityRole={CONST.ROLE.BUTTON}
                         onPress={() => setVisible(true)}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE_CARDS_LIST.INFO_BUTTON}

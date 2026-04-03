@@ -311,6 +311,7 @@ function BaseSelectionList<TItem extends ListItem>({
                 shouldShowTextInput={shouldShowTextInput}
                 onKeyPress={textInputKeyPress}
                 accessibilityLabel={textInputOptions?.label}
+                accessibilityHint={textInputOptions?.label}
                 options={textInputOptions}
                 onSubmit={selectFocusedOption}
                 dataLength={data.length}

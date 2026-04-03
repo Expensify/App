@@ -73,6 +73,7 @@ function ReportActionItemThread({
                 }}
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={`${numberOfReplies} ${replyText}`}
+                accessibilityHint={`${numberOfReplies} ${replyText}`}
                 onSecondaryInteraction={onSecondaryInteraction}
                 sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM_THREAD}
             >

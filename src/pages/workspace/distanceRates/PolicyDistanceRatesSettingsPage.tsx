@@ -153,6 +153,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                         <Switch
                                             isOn={isDistanceTrackTaxEnabled && isPolicyTrackTaxEnabled}
                                             accessibilityLabel={translate('workspace.distanceRates.trackTax')}
+                                            accessibilityHint={translate('workspace.distanceRates.trackTax')}
                                             onToggle={onToggleTrackTax}
                                             disabled={!isPolicyTrackTaxEnabled}
                                         />

@@ -18,6 +18,9 @@ type SwitchProps = {
     /** Accessibility label for the switch */
     accessibilityLabel: string;
 
+    /** Accessibility hint for the switch */
+    accessibilityHint?: string;
+
     /** Whether the switch is disabled */
     disabled?: boolean;
 
@@ -33,7 +36,7 @@ const OFFSET_X = {
     ON: 20,
 };
 
-function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, disabledAction}: SwitchProps) {
+function Switch({isOn, onToggle, accessibilityLabel, accessibilityHint, disabled, showLockIcon, disabledAction}: SwitchProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const offsetX = useSharedValue(isOn ? OFFSET_X.ON : OFFSET_X.OFF);
@@ -104,6 +107,7 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, dis
             role={CONST.ROLE.SWITCH}
             aria-checked={isOn}
             accessibilityLabel={enhancedAccessibilityLabel}
+            accessibilityHint={accessibilityHint ?? enhancedAccessibilityLabel}
             // disable hover dim for switch
             hoverDimmingValue={1}
             pressDimmingValue={0.8}

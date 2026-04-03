@@ -873,6 +873,7 @@ function ReportActionsList({
                 {shouldScrollToEndAfterLayout && topReportAction ? renderTopReportActions() : undefined}
                 <InvertedFlatList
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
+                    accessibilityHint={translate('sidebarScreen.listOfChatMessages')}
                     ref={reportScrollManager.ref}
                     testID="report-actions-list"
                     style={[styles.overscrollBehaviorContain, shouldScrollToEndAfterLayout && styles.flex0]}

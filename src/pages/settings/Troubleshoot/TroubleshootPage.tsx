@@ -223,6 +223,7 @@ function TroubleshootPage() {
                                 <TestToolRow title={translate('initialSettingsPage.troubleshoot.maskExportOnyxStateData')}>
                                     <Switch
                                         accessibilityLabel={translate('initialSettingsPage.troubleshoot.maskExportOnyxStateData')}
+                                        accessibilityHint={translate('initialSettingsPage.troubleshoot.maskExportOnyxStateData')}
                                         isOn={shouldMaskOnyxState}
                                         onToggle={setShouldMaskOnyxState}
                                     />

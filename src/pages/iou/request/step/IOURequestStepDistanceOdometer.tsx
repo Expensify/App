@@ -574,6 +574,7 @@ function IOURequestStepDistanceOdometer({
                                 ref={startReadingInputRef}
                                 label={translate('distance.odometer.startReading')}
                                 accessibilityLabel={translate('distance.odometer.startReading')}
+                                accessibilityHint={translate('distance.odometer.startReading')}
                                 value={startReading}
                                 onChangeText={handleStartReadingChange}
                                 keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
@@ -584,6 +585,7 @@ function IOURequestStepDistanceOdometer({
                             <PressableWithFeedback
                                 accessibilityRole="button"
                                 accessibilityLabel={translate('distance.odometer.startTitle')}
+                                accessibilityHint={translate('distance.odometer.startTitle')}
                                 sentryLabel={CONST.SENTRY_LABEL.ODOMETER_EXPENSE.CAPTURE_IMAGE_START}
                                 onPress={handlePressStartImage}
                                 style={[
@@ -616,6 +618,7 @@ function IOURequestStepDistanceOdometer({
                                 ref={endReadingInputRef}
                                 label={translate('distance.odometer.endReading')}
                                 accessibilityLabel={translate('distance.odometer.endReading')}
+                                accessibilityHint={translate('distance.odometer.endReading')}
                                 value={endReading}
                                 onChangeText={handleEndReadingChange}
                                 keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
@@ -626,6 +629,7 @@ function IOURequestStepDistanceOdometer({
                             <PressableWithFeedback
                                 accessibilityRole="button"
                                 accessibilityLabel={translate('distance.odometer.endTitle')}
+                                accessibilityHint={translate('distance.odometer.endTitle')}
                                 sentryLabel={CONST.SENTRY_LABEL.ODOMETER_EXPENSE.CAPTURE_IMAGE_END}
                                 onPress={handlePressEndImage}
                                 style={[

@@ -146,6 +146,7 @@ function EmployeeTestDriveModal() {
             <TextInput
                 placeholder={translate('testDrive.modal.employee.email')}
                 accessibilityLabel={translate('testDrive.modal.employee.email')}
+                accessibilityHint={translate('testDrive.modal.employee.email')}
                 value={bossEmail}
                 onChangeText={onBossEmailChange}
                 autoCapitalize="none"

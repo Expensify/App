@@ -61,6 +61,7 @@ function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpB
                 {!!cancelSearch && (
                     <PressableWithoutFeedback
                         accessibilityLabel={translate('common.cancel')}
+                        accessibilityHint={translate('common.cancel')}
                         style={styles.textBlue}
                         sentryLabel={CONST.SENTRY_LABEL.TOP_BAR.CANCEL_BUTTON}
                         onPress={() => {

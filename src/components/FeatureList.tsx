@@ -125,6 +125,7 @@ function FeatureList({
                         text={ctaText}
                         onPress={onCtaPress}
                         accessibilityLabel={ctaAccessibilityLabel}
+                        accessibilityHint={ctaAccessibilityLabel}
                         style={styles.w100}
                         success
                         isDisabled={isButtonDisabled}

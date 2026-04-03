@@ -49,6 +49,7 @@ function EmailDeliveryFailurePage() {
                     onPress={() => clearSignInData()}
                     role="button"
                     accessibilityLabel={translate('common.back')}
+                    accessibilityHint={translate('common.back')}
                     // disable hover dim for switch
                     hoverDimmingValue={1}
                     pressDimmingValue={0.2}

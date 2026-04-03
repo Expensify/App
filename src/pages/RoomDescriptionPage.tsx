@@ -120,6 +120,7 @@ function RoomDescriptionPage({report, policy}: RoomDescriptionPageProps) {
                             inputID={INPUT_IDS.REPORT_DESCRIPTION}
                             label={translate('reportDescriptionPage.roomDescription')}
                             accessibilityLabel={translate('reportDescriptionPage.roomDescription')}
+                            accessibilityHint={translate('reportDescriptionPage.roomDescription')}
                             role={CONST.ROLE.PRESENTATION}
                             autoGrowHeight
                             maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}

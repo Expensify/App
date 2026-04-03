@@ -73,6 +73,7 @@ function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false, 
                             role={CONST.ROLE.LISTITEM}
                             accessible={accessible}
                             accessibilityLabel={accessibilityLabel}
+                            accessibilityHint={accessibilityLabel}
                         >
                             <View
                                 aria-hidden

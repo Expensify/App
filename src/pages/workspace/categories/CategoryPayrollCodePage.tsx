@@ -101,6 +101,7 @@ function CategoryPayrollCodePage({route}: EditCategoryPageProps) {
                         defaultValue={payrollCode}
                         label={translate('workspace.categories.payrollCode')}
                         accessibilityLabel={translate('workspace.categories.payrollCode')}
+                        accessibilityHint={translate('workspace.categories.payrollCode')}
                         inputID={INPUT_IDS.PAYROLL_CODE}
                         role={CONST.ROLE.PRESENTATION}
                     />

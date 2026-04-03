@@ -293,6 +293,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                             sentryLabel={CONST.SENTRY_LABEL.PRODUCT_TRAINING.TOOLTIP}
                             shouldUseAutoHitSlop
                             accessibilityLabel={translate('common.noThanks')}
+                            accessibilityHint={translate('common.noThanks')}
                             role={CONST.ROLE.BUTTON}
                             onPress={() => hideTooltip(true)}
                         >

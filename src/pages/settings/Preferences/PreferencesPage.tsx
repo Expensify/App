@@ -91,6 +91,7 @@ function PreferencesPage() {
                                 <View style={[styles.flex1, styles.alignItemsEnd]}>
                                     <Switch
                                         accessibilityLabel={translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}
+                                        accessibilityHint={translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}
                                         isOn={account?.isSubscribedToNewsletter ?? true}
                                         onToggle={updateNewsletterSubscription}
                                     />
@@ -108,6 +109,7 @@ function PreferencesPage() {
                                 <View style={[styles.flex1, styles.alignItemsEnd]}>
                                     <Switch
                                         accessibilityLabel={translate('preferencesPage.muteAllSounds')}
+                                        accessibilityHint={translate('preferencesPage.muteAllSounds')}
                                         isOn={isPlatformMuted ?? false}
                                         onToggle={() => togglePlatformMute(platform, mutedPlatforms)}
                                     />

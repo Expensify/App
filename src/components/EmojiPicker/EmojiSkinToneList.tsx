@@ -54,6 +54,7 @@ function EmojiSkinToneList() {
                     onPress={toggleIsSkinToneListVisible}
                     style={[styles.flexRow, styles.alignSelfCenter, styles.justifyContentStart, styles.alignItemsCenter]}
                     accessibilityLabel={translate('emojiPicker.skinTonePickerLabel')}
+                    accessibilityHint={translate('emojiPicker.skinTonePickerLabel')}
                     role={CONST.ROLE.BUTTON}
                     sentryLabel={CONST.SENTRY_LABEL.EMOJI_PICKER.SKIN_TONE_TOGGLE}
                 >

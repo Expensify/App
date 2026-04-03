@@ -238,6 +238,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                         onPress={() => openExternalLink(CONST.CHASE_ACCOUNT_NUMBER_HELP_URL)}
                         style={[styles.flexRow, styles.alignItemsCenter, styles.alignSelfStart]}
                         accessibilityLabel={translate('walletPage.chaseAccountNumberDifferent')}
+                        accessibilityHint={translate('walletPage.chaseAccountNumberDifferent')}
                         role={CONST.ROLE.LINK}
                         sentryLabel={CONST.SENTRY_LABEL.PAYMENT_METHOD_LIST_ITEM.CHASE_ACCOUNT_HELP}
                     >

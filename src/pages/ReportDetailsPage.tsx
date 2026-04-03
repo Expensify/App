@@ -771,6 +771,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             disabled={policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
                             role={CONST.ROLE.BUTTON}
                             accessibilityLabel={chatRoomSubtitle}
+                            accessibilityHint={chatRoomSubtitle}
                             accessible
                             sentryLabel={CONST.SENTRY_LABEL.REPORT_DETAILS.WORKSPACE_LINK}
                             onPress={() => {

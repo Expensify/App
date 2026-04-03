@@ -435,6 +435,7 @@ function SecuritySettingsPage() {
                                                 style={[styles.link]}
                                                 href={CONST.COPILOT_HELP_URL}
                                                 accessibilityLabel={translate('delegate.learnMoreAboutDelegatedAccess')}
+                                                accessibilityHint={translate('delegate.learnMoreAboutDelegatedAccess')}
                                             >
                                                 {translate('common.learnMore')}
                                             </TextLink>

@@ -29,6 +29,7 @@ function MergeFieldReview({mergeField, onValueSelected, errorText}: MergeFieldRe
                         key={`${field}-${transaction.transactionID}`}
                         onPress={() => onValueSelected(transaction, field)}
                         accessibilityLabel={displayValue}
+                        accessibilityHint={displayValue}
                         accessible={false}
                         hoverStyle={styles.hoveredComponentBG}
                         style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.pv5, styles.ph5]}
@@ -38,6 +39,7 @@ function MergeFieldReview({mergeField, onValueSelected, errorText}: MergeFieldRe
                             isChecked={isSelected}
                             onPress={() => onValueSelected(transaction, field)}
                             accessibilityLabel={displayValue}
+                            accessibilityHint={displayValue}
                             shouldUseNewStyle
                         />
                     </PressableWithoutFeedback>

@@ -465,6 +465,7 @@ function AttachmentPickerWithMenuItems({
                                             disabled={disabled}
                                             role={CONST.ROLE.BUTTON}
                                             accessibilityLabel={translate('common.create')}
+                                            accessibilityHint={translate('common.create')}
                                             sentryLabel={CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_CREATE_BUTTON}
                                         >
                                             <Icon
@@ -493,6 +494,7 @@ function AttachmentPickerWithMenuItems({
                                                     disabled={disabled}
                                                     role={CONST.ROLE.BUTTON}
                                                     accessibilityLabel={translate('reportActionCompose.collapse')}
+                                                    accessibilityHint={translate('reportActionCompose.collapse')}
                                                     sentryLabel={CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_COLLAPSE_BUTTON}
                                                 >
                                                     <Icon
@@ -518,6 +520,7 @@ function AttachmentPickerWithMenuItems({
                                                     disabled={disabled}
                                                     role={CONST.ROLE.BUTTON}
                                                     accessibilityLabel={translate('reportActionCompose.expand')}
+                                                    accessibilityHint={translate('reportActionCompose.expand')}
                                                     sentryLabel={CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_EXPAND_BUTTON}
                                                 >
                                                     <Icon

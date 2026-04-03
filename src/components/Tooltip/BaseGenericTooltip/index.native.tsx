@@ -129,6 +129,7 @@ function BaseGenericTooltip({
                 onPress={isEducationTooltip ? onTooltipPress : undefined}
                 role={isEducationTooltip ? CONST.ROLE.TOOLTIP : undefined}
                 accessibilityLabel={isEducationTooltip ? CONST.ROLE.TOOLTIP : undefined}
+                accessibilityHint={isEducationTooltip ? CONST.ROLE.TOOLTIP : undefined}
                 onLayout={(e) => {
                     const {height, width} = e.nativeEvent.layout;
                     if (height === wrapperMeasuredHeightAnimated.get()) {

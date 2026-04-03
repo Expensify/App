@@ -103,6 +103,7 @@ function ReportFieldsAddListValuePage({
                         InputComponent={TextInput}
                         label={translate('common.value')}
                         accessibilityLabel={translate('common.value')}
+                        accessibilityHint={translate('common.value')}
                         inputID={INPUT_IDS.VALUE_NAME}
                         role={CONST.ROLE.PRESENTATION}
                         ref={inputCallbackRef}

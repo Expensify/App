@@ -507,6 +507,9 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                             accessibilityLabel={
                                 emojiCode ? `${translate('statusPage.status')}: ${emojiCode}` : `${translate('statusPage.status')}, ${translate('emojiPicker.emojiNotSelected')}`
                             }
+                            accessibilityHint={
+                                emojiCode ? `${translate('statusPage.status')}: ${emojiCode}` : `${translate('statusPage.status')}, ${translate('emojiPicker.emojiNotSelected')}`
+                            }
                             accessibilityRole="button"
                             accessible
                             sentryLabel={CONST.SENTRY_LABEL.ACCOUNT.STATUS_PICKER}

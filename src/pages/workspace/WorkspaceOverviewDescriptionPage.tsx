@@ -95,6 +95,7 @@ function WorkspaceOverviewDescriptionPage({policy}: Props) {
                             inputID="description"
                             label={translate('workspace.editor.descriptionInputLabel')}
                             accessibilityLabel={translate('workspace.editor.descriptionInputLabel')}
+                            accessibilityHint={translate('workspace.editor.descriptionInputLabel')}
                             maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                             value={description}
                             spellCheck={false}

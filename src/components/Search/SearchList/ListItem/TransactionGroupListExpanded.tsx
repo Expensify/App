@@ -252,6 +252,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                                 onLongPress={() => onLongPress?.(transaction)}
                                 accessibilityRole={CONST.ROLE.BUTTON}
                                 accessibilityLabel={transaction.text ?? ''}
+                                accessibilityHint={transaction.text ?? ''}
                                 isNested
                                 onMouseDown={(e) => e.preventDefault()}
                                 hoverStyle={[!transaction.isDisabled && styles.hoveredComponentBG]}

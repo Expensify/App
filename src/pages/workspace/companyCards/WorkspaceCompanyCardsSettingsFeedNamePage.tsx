@@ -116,6 +116,7 @@ function WorkspaceCompanyCardsSettingsFeedNamePage({
                             inputID={INPUT_IDS.NAME}
                             label={translate('workspace.editor.nameInputLabel')}
                             accessibilityLabel={translate('workspace.editor.nameInputLabel')}
+                            accessibilityHint={translate('workspace.editor.nameInputLabel')}
                             defaultValue={feedName}
                             multiline={false}
                             ref={inputCallbackRef}

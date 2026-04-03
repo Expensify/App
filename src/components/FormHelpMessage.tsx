@@ -116,6 +116,7 @@ function FormHelpMessage({
                     accessible
                     role={CONST.ROLE.IMG}
                     accessibilityLabel={errorIconLabel}
+                    accessibilityHint={errorIconLabel}
                 >
                     <Icon
                         src={icons.DotIndicator}
@@ -160,6 +161,7 @@ function FormHelpMessage({
                         key={`reannounce-${errorAnnouncementKey}`}
                         style={styles.hiddenElementOutsideOfWindow}
                         role={CONST.ROLE.ALERT}
+                        accessibilityLiveRegion="assertive"
                     >
                         {errorAnnouncementText}
                     </Text>

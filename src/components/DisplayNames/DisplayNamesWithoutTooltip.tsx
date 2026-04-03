@@ -16,12 +16,28 @@ type DisplayNamesWithoutTooltipProps = ForwardedFSClassProps & {
 
     /** Additional Text component to render after the displayNames */
     renderAdditionalText?: () => React.ReactNode;
+
+    /** Overrides the text read by screen readers. */
+    accessibilityLabel?: string;
+
+    /** Describes the result of interacting with the element for screen readers. */
+    accessibilityHint?: string;
 };
 
-function DisplayNamesWithoutTooltip({textStyles = [], numberOfLines = 1, fullTitle = '', renderAdditionalText, forwardedFSClass}: DisplayNamesWithoutTooltipProps) {
+function DisplayNamesWithoutTooltip({
+    textStyles = [],
+    numberOfLines = 1,
+    fullTitle = '',
+    renderAdditionalText,
+    forwardedFSClass,
+    accessibilityLabel,
+    accessibilityHint,
+}: DisplayNamesWithoutTooltipProps) {
     const styles = useThemeStyles();
     return (
         <Text
+            accessibilityLabel={accessibilityLabel}
+            accessibilityHint={accessibilityHint}
             style={[textStyles, numberOfLines === 1 ? styles.pre : styles.preWrap]}
             numberOfLines={numberOfLines}
             fsClass={forwardedFSClass}

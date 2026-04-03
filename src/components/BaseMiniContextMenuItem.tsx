@@ -87,6 +87,7 @@ function BaseMiniContextMenuItem({
                     }
                 }}
                 accessibilityLabel={tooltipText}
+                accessibilityHint={tooltipText}
                 role={CONST.ROLE.BUTTON}
                 sentryLabel={sentryLabel}
                 style={({hovered, pressed}) => [

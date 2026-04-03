@@ -80,6 +80,7 @@ function QRShare({
                 logoRatio={logoRatio}
                 logoMarginRatio={logoMarginRatio}
                 accessibilityLabel={translate('qrCodes.qrCode')}
+                accessibilityHint={translate('qrCodes.qrCode')}
             />
 
             {!!title && (

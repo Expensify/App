@@ -166,6 +166,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                                     <Switch
                                         isOn={currentPolicyTag.enabled}
                                         accessibilityLabel={translate('workspace.tags.enableTag')}
+                                        accessibilityHint={translate('workspace.tags.enableTag')}
                                         onToggle={updateWorkspaceTagEnabled}
                                         showLockIcon={shouldPreventDisableOrDelete}
                                     />

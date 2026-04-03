@@ -44,6 +44,7 @@ function TransactionMergeReceipts({transactions, selectedReceiptID, onSelect}: T
                             style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.mergeTransactionReceiptThumbnail]}
                             accessibilityRole={CONST.ROLE.RADIO}
                             accessibilityLabel={`${translate('transactionMerge.receiptPage.pageTitle')} ${transaction.transactionID}`}
+                            accessibilityHint={`${translate('transactionMerge.receiptPage.pageTitle')} ${transaction.transactionID}`}
                         >
                             <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.w100, styles.mb5]}>
                                 <Text style={[styles.headerText]}>
@@ -53,6 +54,7 @@ function TransactionMergeReceipts({transactions, selectedReceiptID, onSelect}: T
                                     isChecked={isSelected}
                                     onPress={() => onSelect(transaction.receipt)}
                                     accessibilityLabel={`${translate('transactionMerge.receiptPage.pageTitle')} ${transaction.transactionID}`}
+                                    accessibilityHint={`${translate('transactionMerge.receiptPage.pageTitle')} ${transaction.transactionID}`}
                                     shouldUseNewStyle
                                 />
                             </View>

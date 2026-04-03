@@ -120,6 +120,7 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
                         inputID={INPUT_IDS.TASK_TITLE}
                         label={translate('task.title')}
                         accessibilityLabel={translate('task.title')}
+                        accessibilityHint={translate('task.title')}
                         defaultValue={titleDefaultValue}
                         value={taskTitle}
                         onValueChange={setLocalTitle}
@@ -137,6 +138,7 @@ function NewTaskDetailsPage({route}: NewTaskDetailsPageProps) {
                         inputID={INPUT_IDS.TASK_DESCRIPTION}
                         label={translate('newTaskPage.descriptionOptional')}
                         accessibilityLabel={translate('newTaskPage.descriptionOptional')}
+                        accessibilityHint={translate('newTaskPage.descriptionOptional')}
                         autoGrowHeight
                         maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                         shouldSubmitForm

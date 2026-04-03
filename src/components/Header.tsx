@@ -80,6 +80,7 @@ function Header({title = '', subtitle = '', textStyles = [], style, containerSty
                               style={[styles.headerText, styles.textLarge, styles.lineHeightXLarge, textStyles]}
                               accessibilityRole={CONST.ROLE.HEADER}
                               accessibilityLabel={title}
+                              accessibilityHint={title}
                           >
                               {title}
                           </Text>

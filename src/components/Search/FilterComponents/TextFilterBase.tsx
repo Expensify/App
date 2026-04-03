@@ -62,6 +62,7 @@ function TextFilterBase({filterKey, title, onSubmit, characterLimit = CONST.MERC
                     defaultValue={currentValue}
                     label={title}
                     accessibilityLabel={title}
+                    accessibilityHint={title}
                     role={CONST.ROLE.PRESENTATION}
                     ref={inputCallbackRef}
                 />

@@ -161,6 +161,7 @@ function InviteMemberListItem<TItem extends ListItem>({
                                 disabled={isDisabled}
                                 role={CONST.ROLE.BUTTON}
                                 accessibilityLabel={item.text ?? ''}
+                                accessibilityHint={item.text ?? ''}
                                 style={[styles.ml2, styles.optionSelectCircle]}
                                 sentryLabel={CONST.SENTRY_LABEL.LIST_ITEM.INVITE_MEMBER_CHECKBOX}
                             >

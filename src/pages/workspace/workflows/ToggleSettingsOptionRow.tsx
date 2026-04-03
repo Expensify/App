@@ -217,6 +217,9 @@ function ToggleSettingOptionRow({
             accessibilityLabel={
                 typeof subtitle === 'string' && subtitle && !areSubtitleAndSwitchAccessibilityLabelEqual ? `${switchAccessibilityLabel}, ${subtitle}` : switchAccessibilityLabel
             }
+            accessibilityHint={
+                typeof subtitle === 'string' && subtitle && !areSubtitleAndSwitchAccessibilityLabelEqual ? `${switchAccessibilityLabel}, ${subtitle}` : switchAccessibilityLabel
+            }
             onToggle={(isOn) => {
                 shouldAnimateAccordionSection.set(true);
                 onToggle(isOn);
@@ -241,6 +244,7 @@ function ToggleSettingOptionRow({
                         style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
                         onPress={shouldMakeContentPressable ? onPress : undefined}
                         accessibilityLabel={title}
+                        accessibilityHint={title}
                         role={shouldMakeContentPressable ? CONST.ROLE.BUTTON : CONST.ROLE.PRESENTATION}
                         accessible={false}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TOGGLE_SETTINGS_ROW}

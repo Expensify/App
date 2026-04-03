@@ -28,6 +28,7 @@ function IconButton({src, fill = 'white', onPress, style, hoverStyle, tooltipTex
         >
             <PressableWithFeedback
                 accessibilityLabel={tooltipText}
+                accessibilityHint={tooltipText}
                 onPress={onPress}
                 style={[styles.videoIconButton, style]}
                 hoverStyle={[styles.videoIconButtonHovered, hoverStyle]}

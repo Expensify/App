@@ -64,6 +64,7 @@ function BaseLocationErrorMessage({onClose, onAllowLocationLinkPress, locationEr
                         style={[styles.touchableButtonImage]}
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('common.close')}
+                        accessibilityHint={translate('common.close')}
                         sentryLabel={CONST.SENTRY_LABEL.LOCATION_ERROR.CLOSE_BUTTON}
                     >
                         <Icon

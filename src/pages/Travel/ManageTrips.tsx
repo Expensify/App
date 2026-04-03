@@ -80,6 +80,7 @@ function ManageTrips({policyID}: ManageTripsProps) {
                                     text={translate('travel.bookDemo')}
                                     onPress={navigateToBookTravelDemo}
                                     accessibilityLabel={translate('travel.bookDemo')}
+                                    accessibilityHint={translate('travel.bookDemo')}
                                     style={[styles.w100, styles.mb3]}
                                     large
                                 />

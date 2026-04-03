@@ -37,6 +37,7 @@ function Backdrop({
             <PressableWithoutFeedback
                 accessible
                 accessibilityLabel={translate('modal.backdropLabel')}
+                accessibilityHint={translate('modal.backdropLabel')}
                 onPressIn={onBackdropPress}
                 sentryLabel={CONST.SENTRY_LABEL.REANIMATED_MODAL.BACKDROP}
             >

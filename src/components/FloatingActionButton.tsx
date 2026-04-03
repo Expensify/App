@@ -33,6 +33,9 @@ type FloatingActionButtonProps = WithSentryLabel & {
     /* An accessibility label for the button */
     accessibilityLabel: string;
 
+    /* An accessibility hint for the button */
+    accessibilityHint?: string;
+
     /* An accessibility role for the button */
     role: Role;
 
@@ -40,7 +43,7 @@ type FloatingActionButtonProps = WithSentryLabel & {
     ref?: ForwardedRef<HTMLDivElement | ViewType | TextType>;
 };
 
-function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabel, role, ref, sentryLabel}: FloatingActionButtonProps) {
+function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabel, accessibilityHint, role, ref, sentryLabel}: FloatingActionButtonProps) {
     const {buttonDefaultBG, buttonHoveredBG, icon} = useTheme();
     const styles = useThemeStyles();
     const borderRadius = styles.floatingActionButton.borderRadius;
@@ -106,6 +109,7 @@ function FloatingActionButton({onPress, onLongPress, isActive, accessibilityLabe
                     styles.flex1,
                 ]}
                 accessibilityLabel={accessibilityLabel}
+                accessibilityHint={accessibilityHint ?? accessibilityLabel}
                 onPress={toggleFabAction}
                 onLongPress={longPressFabAction}
                 role={role}

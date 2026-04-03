@@ -140,6 +140,7 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                                             tooltipText=""
                                             tooltipTextChecked=""
                                             accessibilityLabel={`${translate('twoFactorAuth.copy')}, ${translate('twoFactorAuth.stepCodes')}`}
+                                            accessibilityHint={`${translate('twoFactorAuth.copy')}, ${translate('twoFactorAuth.stepCodes')}`}
                                             accessibilityLabelChecked={translate('common.copied')}
                                             sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.COPY_CODES}
                                         />
@@ -158,6 +159,7 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                                             tooltipText=""
                                             tooltipTextChecked=""
                                             accessibilityLabel={`${translate('common.download')}, ${translate('twoFactorAuth.stepCodes')}`}
+                                            accessibilityHint={`${translate('common.download')}, ${translate('twoFactorAuth.stepCodes')}`}
                                             sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.DOWNLOAD_CODES}
                                         />
                                     </View>
@@ -171,6 +173,7 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                         <Text
                             key={statusAnnouncement.id}
                             role={CONST.ROLE.ALERT}
+                            accessibilityLiveRegion="assertive"
                             style={styles.hiddenElementOutsideOfWindow}
                         >
                             {statusAnnouncement.text}

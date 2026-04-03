@@ -57,6 +57,7 @@ function WorkspacesListPageHeaderButton({shouldShowNewWorkspaceButton, shouldSho
         return (
             <Button
                 accessibilityLabel={translate('workspace.new.newWorkspace')}
+                accessibilityHint={translate('workspace.new.newWorkspace')}
                 text={translate('workspace.new.newWorkspace')}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.NEW_WORKSPACE_BUTTON}
                 onPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.WORKSPACES_LIST.route)))}
@@ -70,6 +71,7 @@ function WorkspacesListPageHeaderButton({shouldShowNewWorkspaceButton, shouldSho
         return (
             <Button
                 accessibilityLabel={translate('domain.addDomain.newDomain')}
+                accessibilityHint={translate('domain.addDomain.newDomain')}
                 text={translate('domain.addDomain.newDomain')}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.NEW_DOMAIN_BUTTON}
                 onPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACES_ADD_DOMAIN))}

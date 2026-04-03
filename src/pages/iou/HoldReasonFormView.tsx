@@ -66,6 +66,7 @@ function HoldReasonFormView({backTo, validate, onSubmit, expenseCount = 1, isSub
                         defaultValue={undefined}
                         label={translate('iou.reason')}
                         accessibilityLabel={translate('iou.reason')}
+                        accessibilityHint={translate('iou.reason')}
                         ref={inputCallbackRef}
                     />
                 </View>

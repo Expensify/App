@@ -149,6 +149,7 @@ function BaseListItemHeader<TItem extends ListItem>({
                             isIndeterminate={isIndeterminate}
                             disabled={!!isDisabled || item.isDisabledCheckbox}
                             accessibilityLabel={translate('common.select')}
+                            accessibilityHint={translate('common.select')}
                             style={isLargeScreenWidth && styles.mr1}
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH.GROUP_SELECT_ALL_CHECKBOX}
                         />

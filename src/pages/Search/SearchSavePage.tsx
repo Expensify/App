@@ -113,6 +113,7 @@ function SearchSavePage() {
                     onChangeText={setName}
                     placeholder={translate('common.name')}
                     accessibilityLabel={translate('common.name')}
+                    accessibilityHint={translate('common.name')}
                     role={CONST.ROLE.PRESENTATION}
                 />
                 <Text style={[styles.textLabelSupporting, styles.mb2, styles.mt5]}>{translate('search.appliedFilters')}:</Text>

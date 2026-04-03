@@ -63,6 +63,7 @@ function RejectReasonFormView({backTo, validate, onSubmit}: RejectReasonFormView
                         defaultValue={undefined}
                         label={translate('iou.reject.rejectReason')}
                         accessibilityLabel={translate('iou.reject.rejectReason')}
+                        accessibilityHint={translate('iou.reject.rejectReason')}
                         ref={inputCallbackRef}
                     />
                 </View>

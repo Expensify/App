@@ -545,6 +545,7 @@ function MoneyRequestReportPreviewContent({
                         role={getButtonRole(true)}
                         isNested
                         accessibilityLabel={translate('iou.viewDetails')}
+                        accessibilityHint={translate('iou.viewDetails')}
                         sentryLabel={CONST.SENTRY_LABEL.REPORT_PREVIEW.CARD}
                     >
                         <View
@@ -595,6 +596,7 @@ function MoneyRequestReportPreviewContent({
                                                         accessibilityRole="button"
                                                         accessible
                                                         accessibilityLabel={translate('common.previous')}
+                                                        accessibilityHint={translate('common.previous')}
                                                         style={[styles.reportPreviewArrowButton, {backgroundColor: theme.buttonDefaultBG}]}
                                                         onPress={() => handleChange(currentIndex - 1)}
                                                         disabled={optimisticIndex !== undefined ? optimisticIndex === 0 : currentIndex === 0 && currentVisibleItems.at(0) === 0}
@@ -612,6 +614,7 @@ function MoneyRequestReportPreviewContent({
                                                         accessibilityRole="button"
                                                         accessible
                                                         accessibilityLabel={translate('common.next')}
+                                                        accessibilityHint={translate('common.next')}
                                                         style={[styles.reportPreviewArrowButton, {backgroundColor: theme.buttonDefaultBG}]}
                                                         onPress={() => handleChange(currentIndex + 1)}
                                                         disabled={

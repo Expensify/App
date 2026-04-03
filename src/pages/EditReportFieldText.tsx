@@ -79,6 +79,7 @@ function EditReportFieldTextPage({fieldName, onSubmit, fieldValue, isRequired, f
                     defaultValue={fieldValue}
                     label={reportFieldName}
                     accessibilityLabel={reportFieldName}
+                    accessibilityHint={reportFieldName}
                     role={CONST.ROLE.PRESENTATION}
                     ref={inputCallbackRef}
                     disabled={disabled}

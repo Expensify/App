@@ -1117,6 +1117,7 @@ function MoneyRequestView({
                         </View>
                         <Switch
                             accessibilityLabel={Str.UCFirst(translate('iou.reimbursable'))}
+                            accessibilityHint={Str.UCFirst(translate('iou.reimbursable'))}
                             isOn={updatedTransaction?.reimbursable ?? !!transactionReimbursable}
                             onToggle={saveReimbursable}
                             disabled={!canEditReimbursable}
@@ -1152,6 +1153,7 @@ function MoneyRequestView({
                         </View>
                         <Switch
                             accessibilityLabel={translate('common.billable')}
+                            accessibilityHint={translate('common.billable')}
                             isOn={updatedTransaction?.billable ?? !!transactionBillable}
                             onToggle={saveBillable}
                             disabled={!canEdit}

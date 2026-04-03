@@ -49,6 +49,7 @@ function Backdrop({
             <PressableWithoutFeedback
                 accessible
                 accessibilityLabel={translate('modal.backdropLabel')}
+                accessibilityHint={translate('modal.backdropLabel')}
                 onPress={onBackdropPress}
                 style={[styles.userSelectNone, styles.cursorAuto]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}

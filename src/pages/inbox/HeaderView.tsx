@@ -305,6 +305,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                     style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
                                     disabled={shouldDisableDetailPage}
                                     accessibilityLabel={title}
+                                    accessibilityHint={title}
                                     role={CONST.ROLE.BUTTON}
                                     sentryLabel={CONST.SENTRY_LABEL.HEADER_VIEW.DETAILS_BUTTON}
                                 >
@@ -394,6 +395,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                             style={[styles.touchableButtonImage]}
                                             role={CONST.ROLE.BUTTON}
                                             accessibilityLabel={translate('common.close')}
+                                            accessibilityHint={translate('common.close')}
                                             sentryLabel={CONST.SENTRY_LABEL.HEADER_VIEW.BACK_BUTTON}
                                         >
                                             <Icon

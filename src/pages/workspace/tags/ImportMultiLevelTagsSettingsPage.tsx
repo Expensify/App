@@ -105,6 +105,7 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
                         <Switch
                             isOn={spreadsheet?.containsHeader ?? true}
                             accessibilityLabel={translate('workspace.tags.importMultiLevelTags.firstRowTitle')}
+                            accessibilityHint={translate('workspace.tags.importMultiLevelTags.firstRowTitle')}
                             onToggle={(value) => {
                                 setImportedSpreadsheetIsFirstLineHeader(value);
                             }}
@@ -122,6 +123,7 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
                         <Switch
                             isOn={spreadsheet?.isImportingIndependentMultiLevelTags ?? true}
                             accessibilityLabel={translate('workspace.tags.importMultiLevelTags.independentTags')}
+                            accessibilityHint={translate('workspace.tags.importMultiLevelTags.independentTags')}
                             onToggle={(value) => {
                                 setImportedSpreadsheetIsImportingIndependentMultiLevelTags(value);
                             }}
@@ -139,6 +141,7 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
                         <Switch
                             isOn={spreadsheet?.isGLAdjacent ?? false}
                             accessibilityLabel={translate('workspace.tags.importMultiLevelTags.glAdjacentColumn')}
+                            accessibilityHint={translate('workspace.tags.importMultiLevelTags.glAdjacentColumn')}
                             onToggle={(value) => {
                                 setImportedSpreadsheetIsGLAdjacent(value);
                             }}

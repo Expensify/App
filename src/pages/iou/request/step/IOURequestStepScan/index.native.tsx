@@ -498,6 +498,7 @@ function IOURequestStepScan({
                                 success
                                 text={translate('common.continue')}
                                 accessibilityLabel={translate('common.continue')}
+                                accessibilityHint={translate('common.continue')}
                                 style={[styles.p9, styles.pt5]}
                                 onPress={capturePhoto}
                                 sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.SCAN_SUBMIT_BUTTON}
@@ -542,6 +543,7 @@ function IOURequestStepScan({
                                     <PressableWithFeedback
                                         role={CONST.ROLE.BUTTON}
                                         accessibilityLabel={translate('receipt.flash')}
+                                        accessibilityHint={translate('receipt.flash')}
                                         sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.FLASH}
                                         disabled={cameraPermissionStatus !== RESULTS.GRANTED || !hasFlash}
                                         onPress={() => setFlash((prevFlash) => !prevFlash)}
@@ -587,6 +589,7 @@ function IOURequestStepScan({
                             <PressableWithFeedback
                                 role={CONST.ROLE.BUTTON}
                                 accessibilityLabel={translate('receipt.gallery')}
+                                accessibilityHint={translate('receipt.gallery')}
                                 sentryLabel={shouldAcceptMultipleFiles ? CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.CHOOSE_FILES : CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.CHOOSE_FILE}
                                 style={[styles.alignItemsStart, isMultiScanEnabled && styles.opacity0]}
                                 onPress={() => {
@@ -613,6 +616,7 @@ function IOURequestStepScan({
                     <PressableWithFeedback
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('receipt.shutter')}
+                        accessibilityHint={translate('receipt.shutter')}
                         sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.SHUTTER}
                         style={[styles.alignItemsCenter]}
                         onPress={capturePhoto}
@@ -629,6 +633,7 @@ function IOURequestStepScan({
                             accessibilityRole="button"
                             role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('receipt.multiScan')}
+                            accessibilityHint={translate('receipt.multiScan')}
                             sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.MULTI_SCAN}
                             style={styles.alignItemsEnd}
                             onPress={toggleMultiScan}
@@ -644,6 +649,7 @@ function IOURequestStepScan({
                         <PressableWithFeedback
                             role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('receipt.flash')}
+                            accessibilityHint={translate('receipt.flash')}
                             sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.FLASH}
                             style={[styles.alignItemsEnd, !hasFlash && styles.opacity0]}
                             disabled={cameraPermissionStatus !== RESULTS.GRANTED || !hasFlash}

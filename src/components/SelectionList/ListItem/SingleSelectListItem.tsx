@@ -33,6 +33,7 @@ function SingleSelectListItem<TItem extends ListItem>({
                 shouldSelectOnPressEnter
                 containerBorderRadius={999}
                 accessibilityLabel="SingleSelectListItem"
+                accessibilityHint="SingleSelectListItem"
                 isChecked={item.isSelected}
                 onPress={() => onSelectRow(item)}
             />

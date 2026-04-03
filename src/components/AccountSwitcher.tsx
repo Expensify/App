@@ -231,6 +231,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                 <PressableWithFeedback
                     accessible
                     accessibilityLabel={`${translate('common.profile')}, ${displayName}, ${Str.removeSMSDomain(currentUserPersonalDetails?.login ?? '')}`}
+                    accessibilityHint={`${translate('common.profile')}, ${displayName}, ${Str.removeSMSDomain(currentUserPersonalDetails?.login ?? '')}`}
                     onPress={onPressSwitcher}
                     ref={buttonRef}
                     interactive={canSwitchAccounts}

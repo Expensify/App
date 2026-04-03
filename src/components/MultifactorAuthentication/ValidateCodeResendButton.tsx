@@ -67,6 +67,7 @@ function MultifactorAuthenticationValidateCodeResendButton({
                     pressDimmingValue={0.2}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate(resendButtonText)}
+                    accessibilityHint={translate(resendButtonText)}
                 >
                     <Text style={[StyleUtils.getDisabledLinkStyles(shouldDisableResendCode)]}>
                         {hasError ? translate('validateCodeForm.requestNewCodeAfterErrorOccurred') : translate(resendButtonText)}

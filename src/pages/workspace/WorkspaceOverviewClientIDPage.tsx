@@ -70,6 +70,7 @@ function WorkspaceOverviewClientIDPage({policy}: Props) {
                         inputID={INPUT_IDS.CLIENT_ID}
                         label={translate('workspace.common.clientID')}
                         accessibilityLabel={translate('workspace.common.clientID')}
+                        accessibilityHint={translate('workspace.common.clientID')}
                         defaultValue={policy?.clientID}
                         spellCheck={false}
                         containerStyles={styles.mb4}

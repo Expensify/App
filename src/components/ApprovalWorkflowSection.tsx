@@ -53,6 +53,10 @@ function ApprovalWorkflowSection({approvalWorkflow, onPress, currency = CONST.CU
                 members,
                 approvers: approvalWorkflow?.approvers.map((approver) => Str.removeSMSDomain(approver?.displayName ?? '')).join(', '),
             })}
+            accessibilityHint={translate('workflowsPage.accessibilityLabel', {
+                members,
+                approvers: approvalWorkflow?.approvers.map((approver) => Str.removeSMSDomain(approver?.displayName ?? '')).join(', '),
+            })}
         >
             <View style={[styles.flex1]}>
                 {approvalWorkflow.isDefault && (

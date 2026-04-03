@@ -182,6 +182,7 @@ function ConciergeThinkingMessageContent({
                     disabled={!hasReasoningHistory}
                     accessibilityRole={hasReasoningHistory ? CONST.ROLE.BUTTON : undefined}
                     accessibilityLabel={getAccessibilityLabel()}
+                    accessibilityHint={getAccessibilityLabel()}
                     sentryLabel="ConciergeThinkingMessage-ToggleReasoning"
                     accessible
                 >

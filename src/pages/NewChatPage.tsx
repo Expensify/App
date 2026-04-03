@@ -413,6 +413,7 @@ function NewChatPage({ref}: NewChatPageProps) {
                     disabled={item.isDisabled}
                     role={CONST.ROLE.CHECKBOX}
                     accessibilityLabel={item.text ? translate('selectionList.userSelected', item.text) : ''}
+                    accessibilityHint={item.text ? translate('selectionList.userSelected', item.text) : ''}
                     style={[styles.flexRow, styles.alignItemsCenter, styles.ml5, styles.optionSelectCircle]}
                 >
                     <SelectCircle
@@ -429,6 +430,7 @@ function NewChatPage({ref}: NewChatPageProps) {
                 style={[styles.pl2]}
                 text={translate('newChatPage.addToGroup')}
                 accessibilityLabel={item.text ? translate('newChatPage.addUserToGroup', item.text) : ''}
+                accessibilityHint={item.text ? translate('newChatPage.addUserToGroup', item.text) : ''}
                 innerStyles={buttonInnerStyles}
                 small
             />

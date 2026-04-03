@@ -34,6 +34,7 @@ function RoomNameInput({disabled = false, autoFocus = false, isFocused, value, o
             disabled={disabled}
             label={translate('newRoomPage.roomName')}
             accessibilityLabel={translate('newRoomPage.roomName')}
+            accessibilityHint={translate('newRoomPage.roomName')}
             role={CONST.ROLE.PRESENTATION}
             prefixCharacter={CONST.POLICY.ROOM_PREFIX}
             placeholder={translate('newRoomPage.social')}

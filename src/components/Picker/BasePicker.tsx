@@ -30,6 +30,7 @@ function BasePicker<TPickerValue>({
     icon,
     label = '',
     accessibilityLabel,
+    accessibilityHint,
     isDisabled = false,
     errorText = '',
     hintText = '',
@@ -227,6 +228,20 @@ function BasePicker<TPickerValue>({
                     onClose={disableHighlight}
                     textInputProps={{
                         allowFontScaling: false,
+                        accessibilityRole: CONST.ROLE.COMBOBOX,
+                        accessibilityLabel: actualAccessibilityLabel,
+                        accessibilityHint,
+                        importantForAccessibility: 'no-hide-descendants',
+                    }}
+                    touchableDoneProps={{
+                        accessibilityRole: CONST.ROLE.BUTTON,
+                        accessibilityLabel: translate('common.dismiss'),
+                    }}
+                    touchableWrapperProps={{
+                        accessible: true,
+                        accessibilityRole: CONST.ROLE.COMBOBOX,
+                        accessibilityLabel: actualAccessibilityLabel,
+                        accessibilityHint,
                     }}
                     doneText={translate('common.done')}
                     pickerProps={{
@@ -238,6 +253,7 @@ function BasePicker<TPickerValue>({
                             onBlur();
                         },
                         accessibilityLabel: actualAccessibilityLabel,
+                        accessibilityHint,
                         accessibilityRole: CONST.ROLE.COMBOBOX,
                         ...additionalPickerEvents(enableHighlight, (inputValue, index) => {
                             onValueChange(inputValue, index);

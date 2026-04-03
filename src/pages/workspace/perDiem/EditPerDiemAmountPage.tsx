@@ -96,6 +96,7 @@ function EditPerDiemAmountPage({route}: EditPerDiemAmountPageProps) {
                         defaultValue={defaultAmount}
                         label={translate('workspace.perDiem.amount')}
                         accessibilityLabel={translate('workspace.perDiem.amount')}
+                        accessibilityHint={translate('workspace.perDiem.amount')}
                         inputID={INPUT_IDS.AMOUNT}
                         role={CONST.ROLE.PRESENTATION}
                         shouldAllowNegative

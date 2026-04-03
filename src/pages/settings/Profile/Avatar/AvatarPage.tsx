@@ -243,6 +243,7 @@ function ProfileAvatar() {
                                     icon={icons.Upload}
                                     text={translate('avatarPage.uploadPhoto')}
                                     accessibilityLabel={translate('avatarPage.uploadPhoto')}
+                                    accessibilityHint={translate('avatarPage.uploadPhoto')}
                                     isDisabled={isAvatarCropModalOpen}
                                     onPress={() => {
                                         openPicker({

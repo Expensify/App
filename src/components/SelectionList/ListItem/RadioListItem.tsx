@@ -47,6 +47,7 @@ function RadioListItem<TItem extends ListItem>({
                 shouldSelectOnPressEnter
                 containerBorderRadius={CIRCULAR_BORDER_RADIUS}
                 accessibilityLabel={item.text ?? ''}
+                accessibilityHint={item.text ?? ''}
                 isChecked={!!item.isSelected}
                 disabled={!!isDisabled && !item.isSelected}
                 onPress={handleCheckboxPress}

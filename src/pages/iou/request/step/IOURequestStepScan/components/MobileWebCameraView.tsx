@@ -396,6 +396,7 @@ function MobileWebCameraView({
                                     success
                                     text={translate('common.continue')}
                                     accessibilityLabel={translate('common.continue')}
+                                    accessibilityHint={translate('common.continue')}
                                     style={[styles.p9, styles.pt5]}
                                     onPress={capturePhoto}
                                     sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.SCAN_SUBMIT_BUTTON}
@@ -429,6 +430,7 @@ function MobileWebCameraView({
                                         <PressableWithFeedback
                                             role={CONST.ROLE.BUTTON}
                                             accessibilityLabel={translate('receipt.flash')}
+                                            accessibilityHint={translate('receipt.flash')}
                                             disabled={!isTorchAvailable}
                                             onPress={toggleFlashlight}
                                             sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.FLASH}
@@ -458,6 +460,7 @@ function MobileWebCameraView({
                             {({openPicker}) => (
                                 <PressableWithFeedback
                                     accessibilityLabel={translate(shouldAcceptMultipleFiles ? 'common.chooseFiles' : 'common.chooseFile')}
+                                    accessibilityHint={translate(shouldAcceptMultipleFiles ? 'common.chooseFiles' : 'common.chooseFile')}
                                     role={CONST.ROLE.BUTTON}
                                     style={isMultiScanEnabled && styles.opacity0}
                                     onPress={() => {
@@ -479,6 +482,7 @@ function MobileWebCameraView({
                         <PressableWithFeedback
                             role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('receipt.shutter')}
+                            accessibilityHint={translate('receipt.shutter')}
                             style={[styles.alignItemsCenter]}
                             onPress={capturePhoto}
                             sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.SHUTTER}
@@ -494,6 +498,7 @@ function MobileWebCameraView({
                                 accessibilityRole="button"
                                 role={CONST.ROLE.BUTTON}
                                 accessibilityLabel={translate('receipt.multiScan')}
+                                accessibilityHint={translate('receipt.multiScan')}
                                 style={styles.alignItemsEnd}
                                 onPress={toggleMultiScan}
                                 sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.MULTI_SCAN}
@@ -509,6 +514,7 @@ function MobileWebCameraView({
                             <PressableWithFeedback
                                 role={CONST.ROLE.BUTTON}
                                 accessibilityLabel={translate('receipt.flash')}
+                                accessibilityHint={translate('receipt.flash')}
                                 style={[styles.alignItemsEnd, !isTorchAvailable && styles.opacity0]}
                                 onPress={toggleFlashlight}
                                 disabled={!isTorchAvailable}

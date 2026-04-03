@@ -115,6 +115,7 @@ function PDFPasswordForm({isFocused, isPasswordInvalid = false, shouldShowLoadin
                 ref={textInputRef}
                 label={translate('common.password')}
                 accessibilityLabel={translate('common.password')}
+                accessibilityHint={translate('common.password')}
                 role={CONST.ROLE.PRESENTATION}
                 /**
                  * This is a workaround to bypass Safari's autofill odd behaviour.

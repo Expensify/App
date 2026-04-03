@@ -20,11 +20,14 @@ type FloatingReceiptButtonProps = WithSentryLabel & {
     /* An accessibility label for the button */
     accessibilityLabel: string;
 
+    /* An accessibility hint for the button */
+    accessibilityHint?: string;
+
     /* An accessibility role for the button */
     role: Role;
 };
 
-function FloatingReceiptButton({onPress, accessibilityLabel, role, sentryLabel}: FloatingReceiptButtonProps) {
+function FloatingReceiptButton({onPress, accessibilityLabel, accessibilityHint, role, sentryLabel}: FloatingReceiptButtonProps) {
     const {successHover, textLight} = useTheme();
     const styles = useThemeStyles();
     const borderRadius = styles.floatingActionButton.borderRadius;
@@ -51,6 +54,7 @@ function FloatingReceiptButton({onPress, accessibilityLabel, role, sentryLabel}:
                     canUseTouchScreen() && styles.userSelectNone,
                 ]}
                 accessibilityLabel={accessibilityLabel}
+                accessibilityHint={accessibilityHint ?? accessibilityLabel}
                 onPress={toggleFabAction}
                 role={role}
                 shouldUseHapticsOnLongPress

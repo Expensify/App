@@ -22,6 +22,7 @@ function FooterRow({href, onPress, translationPath, text, style}: FooterRowProps
             accessible
             accessibilityRole={CONST.ROLE.LINK}
             accessibilityLabel={text}
+            accessibilityHint={text}
             sentryLabel={translationPath}
             onPress={() => {
                 if (onPress) {

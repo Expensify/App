@@ -63,8 +63,10 @@ function AttachmentPreview({source, aspectRatio = 1, onPress, onLoadError}: Atta
                 onPress={onPress}
                 accessible
                 accessibilityLabel="Attachment Thumbnail"
+                accessibilityHint="Attachment Thumbnail"
             >
                 {!!thumbnail && (
+                    /* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop. */
                     <Image
                         source={thumbnail}
                         style={[fillStyle, {aspectRatio}]}
@@ -93,8 +95,10 @@ function AttachmentPreview({source, aspectRatio = 1, onPress, onLoadError}: Atta
                 onPress={onPress}
                 accessible
                 accessibilityLabel="Image Thumbnail"
+                accessibilityHint="Image Thumbnail"
             >
                 <View style={[fillStyle, styles.br4, styles.overflowHidden, {aspectRatio}]}>
+                    {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop. */}
                     <Image
                         source={{uri: source}}
                         style={[[styles.w100, styles.h100], styles.overflowHidden]}
@@ -112,6 +116,7 @@ function AttachmentPreview({source, aspectRatio = 1, onPress, onLoadError}: Atta
                 onPress={onPress}
                 accessible
                 accessibilityLabel="PDF Thumbnail"
+                accessibilityHint="PDF Thumbnail"
             >
                 <PDFThumbnail
                     fitPolicy={1}

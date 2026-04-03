@@ -104,6 +104,7 @@ function HeaderWithBackButton({
     const middleContent = useMemo(() => {
         if (progressBarPercentage) {
             const progressBarLabel = stepCounter ? `${translate('common.progressBarLabel')}, ${translate('stepCounter', stepCounter)}` : undefined;
+            const progressBarHint = stepCounter ? translate('stepCounter', stepCounter) : progressBarLabel;
             return (
                 <>
                     {/* Reserves as much space for the middleContent as possible */}
@@ -115,6 +116,7 @@ function HeaderWithBackButton({
                             style={styles.headerProgressBar}
                             accessible={!!progressBarLabel}
                             accessibilityLabel={progressBarLabel}
+                            accessibilityHint={progressBarHint}
                             role={CONST.ROLE.PROGRESSBAR}
                             aria-valuetext={progressBarLabel}
                         >
@@ -179,6 +181,7 @@ function HeaderWithBackButton({
                         style={[styles.touchableButtonImage]}
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={threeDotsMenuItems.at(0)?.text ?? ''}
+                        accessibilityHint={threeDotsMenuItems.at(0)?.text ?? ''}
                         sentryLabel={threeDotsMenuItems.at(0)?.sentryLabel}
                     >
                         <Icon
@@ -250,6 +253,7 @@ function HeaderWithBackButton({
                             style={[styles.touchableButtonImage]}
                             role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('common.back')}
+                            accessibilityHint={translate('common.back')}
                             id={CONST.BACK_BUTTON_NATIVE_ID}
                             sentryLabel={CONST.SENTRY_LABEL.HEADER.BACK_BUTTON}
                         >
@@ -301,6 +305,7 @@ function HeaderWithBackButton({
                                         style={[styles.touchableButtonImage]}
                                         role="button"
                                         accessibilityLabel={translate('common.download')}
+                                        accessibilityHint={translate('common.download')}
                                         sentryLabel={CONST.SENTRY_LABEL.HEADER.DOWNLOAD_BUTTON}
                                     >
                                         <Icon
@@ -323,6 +328,7 @@ function HeaderWithBackButton({
                                         style={[styles.touchableButtonImage]}
                                         role="button"
                                         accessibilityLabel={translate('common.rotate')}
+                                        accessibilityHint={translate('common.rotate')}
                                         sentryLabel={CONST.SENTRY_LABEL.HEADER.ROTATE_BUTTON}
                                     >
                                         <Icon
@@ -347,6 +353,7 @@ function HeaderWithBackButton({
                                 style={[styles.touchableButtonImage]}
                                 role={CONST.ROLE.BUTTON}
                                 accessibilityLabel={translate('common.close')}
+                                accessibilityHint={translate('common.close')}
                                 sentryLabel={CONST.SENTRY_LABEL.HEADER.CLOSE_BUTTON}
                             >
                                 <Icon

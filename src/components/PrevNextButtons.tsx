@@ -34,6 +34,7 @@ function PrevNextButtons({isPrevButtonDisabled, isNextButtonDisabled, onNext, on
                 accessible
                 accessibilityRole={CONST.ROLE.BUTTON}
                 accessibilityLabel={CONST.ROLE.BUTTON}
+                accessibilityHint={CONST.ROLE.BUTTON}
                 disabled={isPrevButtonDisabled}
                 style={[styles.h7, styles.mr1, styles.alignItemsCenter, styles.justifyContentCenter]}
                 onPress={onPrevious}
@@ -52,6 +53,7 @@ function PrevNextButtons({isPrevButtonDisabled, isNextButtonDisabled, onNext, on
                 accessible
                 accessibilityRole={CONST.ROLE.BUTTON}
                 accessibilityLabel={CONST.ROLE.BUTTON}
+                accessibilityHint={CONST.ROLE.BUTTON}
                 disabled={isNextButtonDisabled}
                 style={[styles.h7, styles.alignItemsCenter, styles.justifyContentCenter]}
                 onPress={onNext}

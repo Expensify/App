@@ -137,6 +137,8 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, sty
             accessibilityRole={CONST.ROLE.BUTTON}
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             accessibilityLabel={fileName || translate('attachmentView.unknownFilename')}
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            accessibilityHint={fileName || translate('attachmentView.unknownFilename')}
             sentryLabel={CONST.SENTRY_LABEL.PDF_VIEW.DOCUMENT}
         >
             {renderPDFView()}

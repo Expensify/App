@@ -67,6 +67,7 @@ function SavedSearchRenamePage({route}: {route: {params: {q: string; name: strin
                     inputID={INPUT_IDS.NAME}
                     label={translate('search.searchName')}
                     accessibilityLabel={translate('search.searchName')}
+                    accessibilityHint={translate('search.searchName')}
                     role={CONST.ROLE.PRESENTATION}
                     onChangeText={(renamedName) => setNewName(renamedName)}
                     ref={inputCallbackRef}

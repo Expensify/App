@@ -137,6 +137,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                         isDisableInteractive && styles.cursorDefault,
                                     ]}
                                     accessibilityLabel={taskTitle || translate('task.task')}
+                                    accessibilityHint={taskTitle || translate('task.task')}
                                     disabled={isDisableInteractive}
                                     sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_TITLE}
                                 >
@@ -162,6 +163,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                                     containerBorderRadius={8}
                                                     caretSize={16}
                                                     accessibilityLabel={taskTitle || translate('task.task')}
+                                                    accessibilityHint={taskTitle || translate('task.task')}
                                                     disabled={!isTaskActionable}
                                                     sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_CHECKBOX}
                                                 />

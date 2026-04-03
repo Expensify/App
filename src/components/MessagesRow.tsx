@@ -63,6 +63,7 @@ function MessagesRow({messages = {}, type, onDismiss, containerStyles, dismissEr
                         onPress={onDismiss}
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={dismissText}
+                        accessibilityHint={dismissText}
                     >
                         <Icon
                             fill={theme.icon}

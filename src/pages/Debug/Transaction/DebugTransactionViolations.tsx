@@ -23,6 +23,7 @@ function DebugTransactionViolations({transactionID}: DebugTransactionViolationsP
     const renderItem = (item: TransactionViolation, index: number) => (
         <PressableWithFeedback
             accessibilityLabel={translate('common.details')}
+            accessibilityHint={translate('common.details')}
             onPress={() => Navigation.navigate(ROUTES.DEBUG_TRANSACTION_VIOLATION.getRoute(transactionID, String(index)))}
             style={({pressed}) => [styles.flexRow, styles.justifyContentBetween, pressed && styles.hoveredComponentBG, styles.p4]}
             hoverStyle={styles.hoveredComponentBG}

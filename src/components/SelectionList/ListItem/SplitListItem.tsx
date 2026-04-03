@@ -130,6 +130,7 @@ function SplitListItem<TItem extends ListItem>({
                     style={[styles.flex1]}
                     accessible={splitItem.isEditable}
                     accessibilityLabel={textContentAccessibilityLabel}
+                    accessibilityHint={textContentAccessibilityLabel}
                     aria-label={splitItem.isEditable ? textContentAccessibilityLabel : undefined}
                     tabIndex={splitItem.isEditable ? 0 : undefined}
                     role={splitItem.isEditable ? CONST.ROLE.SUMMARY : undefined}
@@ -224,6 +225,7 @@ function SplitListItem<TItem extends ListItem>({
                             <PressableWithFeedback
                                 onPress={() => onSelectRow(item)}
                                 accessibilityLabel={translate('common.edit')}
+                                accessibilityHint={translate('common.edit')}
                                 role="button"
                                 style={styles.pointerEventsAuto}
                                 sentryLabel={CONST.SENTRY_LABEL.SELECTION_LIST.SPLIT_LIST_ITEM_EDIT_BUTTON}

@@ -176,6 +176,7 @@ function WorkspaceTaxesPage({
                         isOn={!value.isDisabled}
                         disabled={!canEditTaxRate || value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
                         accessibilityLabel={translate('workspace.taxes.actions.enable')}
+                        accessibilityHint={translate('workspace.taxes.actions.enable')}
                         onToggle={(newValue: boolean) => updateWorkspaceTaxEnabled(newValue, key)}
                     />
                 ),

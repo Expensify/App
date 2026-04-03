@@ -73,12 +73,14 @@ function TermsStep({onNext}: SubStepProps) {
             <View style={styles.flex1}>
                 <CheckboxWithLabel
                     accessibilityLabel={translate('termsStep.haveReadAndAgreePlain')}
+                    accessibilityHint={translate('termsStep.haveReadAndAgreePlain')}
                     style={[styles.mb4, styles.mt4]}
                     onInputChange={toggleDisclosure}
                     LabelComponent={HaveReadAndAgreeLabel}
                 />
                 <CheckboxWithLabel
                     accessibilityLabel={translate('termsStep.agreeToThePlain')}
+                    accessibilityHint={translate('termsStep.agreeToThePlain')}
                     onInputChange={togglePrivacyPolicy}
                     LabelComponent={AgreeToTheLabel}
                 />

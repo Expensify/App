@@ -28,6 +28,7 @@ function PinButton({report}: PinButtonProps) {
                 onPress={callFunctionIfActionIsAllowed(() => togglePinnedState(report.reportID, report.isPinned ?? false))}
                 style={styles.touchableButtonImage}
                 accessibilityLabel={report.isPinned ? translate('common.unPin') : translate('common.pin')}
+                accessibilityHint={report.isPinned ? translate('common.unPin') : translate('common.pin')}
                 role={CONST.ROLE.BUTTON}
                 sentryLabel={CONST.SENTRY_LABEL.PIN_BUTTON.TOGGLE}
             >

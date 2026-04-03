@@ -202,6 +202,7 @@ function ImportSpreadsheet({backTo, goTo, isImportingMultiLevelTags}: ImportSpre
                         success
                         text={translate('common.chooseFile')}
                         accessibilityLabel={translate('common.chooseFile')}
+                        accessibilityHint={translate('common.chooseFile')}
                         style={[styles.pt9]}
                         isLoading={isReadingFile}
                         onPress={() => {

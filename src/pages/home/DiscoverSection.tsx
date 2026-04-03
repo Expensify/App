@@ -65,11 +65,13 @@ function DiscoverSection() {
                 onPress={handlePress}
                 accessibilityRole={CONST.ROLE.BUTTON}
                 accessibilityLabel={translate('homePage.discoverSection.title')}
+                accessibilityHint={translate('homePage.discoverSection.title')}
                 style={[shouldUseNarrowLayout ? styles.mh5 : styles.mh8, styles.mb5]}
                 sentryLabel={CONST.SENTRY_LABEL.DISCOVER_SECTION.TEST_DRIVE}
             >
                 <View style={[styles.br2, styles.overflowHidden]}>
                     <Image
+                        accessibilityIgnoresInvertColors
                         source={HomeTestDriveImage}
                         style={styles.discoverSectionImage}
                     />

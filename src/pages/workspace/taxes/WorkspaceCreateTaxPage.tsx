@@ -108,6 +108,7 @@ function WorkspaceCreateTaxPage({
                                     description={translate('common.name')}
                                     rightLabel={translate('common.required')}
                                     accessibilityLabel={translate('workspace.editor.nameInputLabel')}
+                                    accessibilityHint={translate('workspace.editor.nameInputLabel')}
                                     maxLength={CONST.TAX_RATES.NAME_MAX_LENGTH}
                                     multiline={false}
                                     role={CONST.ROLE.PRESENTATION}

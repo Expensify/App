@@ -297,6 +297,7 @@ function WorkspaceInviteMessageComponent({
                             inputID={INPUT_IDS.WELCOME_MESSAGE}
                             label={translate('workspace.inviteMessage.personalMessagePrompt')}
                             accessibilityLabel={translate('workspace.inviteMessage.personalMessagePrompt')}
+                            accessibilityHint={translate('workspace.inviteMessage.personalMessagePrompt')}
                             autoCompleteType="off"
                             type="markdown"
                             autoCorrect={false}
@@ -322,6 +323,7 @@ function WorkspaceInviteMessageComponent({
                             onPress={openPrivacyURL}
                             role={CONST.ROLE.LINK}
                             accessibilityLabel={translate('common.privacy')}
+                            accessibilityHint={translate('common.privacy')}
                             href={CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}
                             style={[styles.mt6, styles.alignSelfStart]}
                         >

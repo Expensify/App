@@ -314,6 +314,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                     {isUsingRecoveryCode ? (
                         <TextInput
                             accessibilityLabel={translate('recoveryCodeForm.recoveryCode')}
+                            accessibilityHint={translate('recoveryCodeForm.recoveryCode')}
                             value={recoveryCode}
                             onChangeText={(text) => onTextInput(text, 'recoveryCode')}
                             maxLength={CONST.FORM_CHARACTER_LIMIT}
@@ -352,6 +353,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                         disabled={isValidateCodeFormSubmitting}
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={isUsingRecoveryCode ? translate('recoveryCodeForm.use2fa') : translate('recoveryCodeForm.useRecoveryCode')}
+                        accessibilityHint={isUsingRecoveryCode ? translate('recoveryCodeForm.use2fa') : translate('recoveryCodeForm.useRecoveryCode')}
                         sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.SWITCH_BETWEEN_METHODS}
                     >
                         <Text style={[styles.link]}>{isUsingRecoveryCode ? translate('recoveryCodeForm.use2fa') : translate('recoveryCodeForm.useRecoveryCode')}</Text>
@@ -395,6 +397,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                                 pressDimmingValue={0.2}
                                 role={CONST.ROLE.BUTTON}
                                 accessibilityLabel={translate('validateCodeForm.magicCodeNotReceived')}
+                                accessibilityHint={translate('validateCodeForm.magicCodeNotReceived')}
                                 sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.RESEND_CODE}
                             >
                                 <Text style={[StyleUtils.getDisabledLinkStyles(shouldDisableResendValidateCode)]}>

@@ -57,6 +57,7 @@ function TwoFactorAuthSecretDisplay({contactMethod, secretKey, description}: Two
                     tooltipText=""
                     tooltipTextChecked=""
                     accessibilityLabel={translate('twoFactorAuth.copy')}
+                    accessibilityHint={translate('twoFactorAuth.copy')}
                     icon={icons.Copy}
                     inline={false}
                     onPress={() => Clipboard.setString(secretKey)}

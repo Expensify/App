@@ -97,6 +97,7 @@ function GroupChatNameEditPage({report}: GroupChatNameEditPageProps) {
                     defaultValue={currentChatName}
                     label={translate('common.name')}
                     accessibilityLabel={translate('common.name')}
+                    accessibilityHint={translate('common.name')}
                     inputID={INPUT_IDS.NEW_CHAT_NAME}
                     role={CONST.ROLE.PRESENTATION}
                     ref={inputCallbackRef}

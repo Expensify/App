@@ -143,6 +143,7 @@ function TravelTerms({route}: TravelTermsPageProps) {
                         <CheckboxWithLabel
                             style={styles.mt6}
                             accessibilityLabel={translate('travel.termsAndConditions.label')}
+                            accessibilityHint={translate('travel.termsAndConditions.label')}
                             onInputChange={() => setHasAcceptedTravelTerms((prev) => !prev)}
                             label={translate('travel.termsAndConditions.label')}
                         />

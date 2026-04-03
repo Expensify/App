@@ -105,6 +105,7 @@ function TagGLCodePage({route}: EditTagGLCodePageProps) {
                         defaultValue={glCode}
                         label={translate('workspace.tags.glCode')}
                         accessibilityLabel={translate('workspace.tags.glCode')}
+                        accessibilityHint={translate('workspace.tags.glCode')}
                         inputID={INPUT_IDS.TAG_GL_CODE}
                         role={CONST.ROLE.PRESENTATION}
                     />

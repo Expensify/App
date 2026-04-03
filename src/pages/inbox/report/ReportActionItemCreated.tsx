@@ -53,6 +53,7 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
                 <AnimatedEmptyStateBackground />
                 <View
                     accessibilityLabel={translate('accessibilityHints.chatWelcomeMessage')}
+                    accessibilityHint={translate('accessibilityHints.chatWelcomeMessage')}
                     style={[styles.p5]}
                 >
                     <OfflineWithFeedback pendingAction={report?.pendingFields?.avatar}>
@@ -60,6 +61,7 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
                             onPress={() => navigateToDetailsPage(report, Navigation.getReportRHPActiveRoute(), true)}
                             style={[styles.mh5, styles.mb3, styles.alignSelfStart, shouldDisableDetailPage && styles.cursorDefault]}
                             accessibilityLabel={translate('common.details')}
+                            accessibilityHint={translate('common.details')}
                             role={CONST.ROLE.BUTTON}
                             disabled={shouldDisableDetailPage}
                             sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM_CREATED}

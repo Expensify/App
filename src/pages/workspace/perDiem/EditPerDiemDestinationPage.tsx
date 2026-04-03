@@ -104,6 +104,7 @@ function EditPerDiemDestinationPage({route}: EditPerDiemDestinationPageProps) {
                         defaultValue={selectedRate?.name}
                         label={translate('common.destination')}
                         accessibilityLabel={translate('common.destination')}
+                        accessibilityHint={translate('common.destination')}
                         inputID={INPUT_IDS.DESTINATION}
                         role={CONST.ROLE.PRESENTATION}
                     />

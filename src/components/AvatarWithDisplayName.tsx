@@ -287,12 +287,13 @@ function AvatarWithDisplayName({
         <View style={[styles.appContentHeaderTitle, styles.flex1]}>
             {!!report && !!title && (
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                    <View accessibilityLabel={title}>
+                    <View accessibilityHint={title}>
                         {shouldEnableAvatarNavigation ? (
                             <PressableWithoutFeedback
                                 sentryLabel={CONST.SENTRY_LABEL.AVATAR_WITH_DISPLAY_NAME.SHOW_ACTOR_DETAILS}
                                 onPress={showActorDetails}
                                 accessibilityLabel={title}
+                                accessibilityHint={title}
                                 role={getButtonRole(true)}
                             >
                                 {multipleAvatars}
@@ -309,6 +310,7 @@ function AvatarWithDisplayName({
                                 onPress={navigateToEditReportTitle}
                                 style={[styles.flexRow, styles.alignItemsCenter, styles.alignSelfStart, styles.mw100]}
                                 accessibilityLabel={title}
+                                accessibilityHint={title}
                                 role={CONST.ROLE.BUTTON}
                             >
                                 <View style={[styles.flexShrink1]}>{displayNameContent}</View>
@@ -362,6 +364,7 @@ function AvatarWithDisplayName({
             onPress={goToDetailsPage}
             style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
             accessibilityLabel={title}
+            accessibilityHint={title}
             role={CONST.ROLE.BUTTON}
         >
             {headerView}

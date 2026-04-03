@@ -88,6 +88,7 @@ function EmojiReactionBubble({
             }}
             role={CONST.ROLE.BUTTON}
             accessibilityLabel={emojiCodes.join('')}
+            accessibilityHint={emojiCodes.join('')}
             accessible
             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             sentryLabel={CONST.SENTRY_LABEL.EMOJI_REACTIONS.REACTION_BUBBLE}

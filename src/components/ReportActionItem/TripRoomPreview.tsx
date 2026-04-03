@@ -194,6 +194,7 @@ function TripRoomPreview({
                     style={[styles.flexRow, styles.justifyContentBetween, styles.reportPreviewBox]}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('iou.viewDetails')}
+                    accessibilityHint={translate('iou.viewDetails')}
                 >
                     <View style={[styles.moneyRequestPreviewBox, styles.p4, styles.gap4, isHovered ? styles.reportPreviewBoxHoverBorder : undefined]}>
                         <View>

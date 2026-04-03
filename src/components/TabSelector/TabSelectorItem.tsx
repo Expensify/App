@@ -54,6 +54,7 @@ function TabSelectorItem({
     const children = (
         <AnimatedPressableWithFeedback
             accessibilityLabel={title}
+            accessibilityHint={title}
             accessibilityState={accessibilityState}
             accessibilityRole={CONST.ROLE.TAB}
             style={[

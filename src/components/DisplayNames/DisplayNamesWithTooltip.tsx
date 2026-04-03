@@ -20,6 +20,8 @@ function DisplayNamesWithToolTip({
     numberOfLines = 1,
     renderAdditionalText,
     forwardedFSClass,
+    accessibilityLabel,
+    accessibilityHint,
 }: DisplayNamesProps) {
     const styles = useThemeStyles();
     const containerRef = useRef<HTMLElementWithText>(null);
@@ -59,6 +61,8 @@ function DisplayNamesWithToolTip({
     return (
         // Tokenization of string only support prop numberOfLines on Web
         <Text
+            accessibilityLabel={accessibilityLabel}
+            accessibilityHint={accessibilityHint}
             style={[textStyles, styles.pRelative]}
             numberOfLines={numberOfLines || undefined}
             ref={containerRef}

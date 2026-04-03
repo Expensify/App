@@ -91,6 +91,7 @@ function TextBase<TFormID extends OnyxFormKey>({
                     defaultValue={typeof currentValue === 'string' ? currentValue : undefined}
                     label={label}
                     accessibilityLabel={title}
+                    accessibilityHint={title}
                     role={CONST.ROLE.PRESENTATION}
                     ref={inputCallbackRef}
                     type={isMarkdownEnabled ? 'markdown' : undefined}

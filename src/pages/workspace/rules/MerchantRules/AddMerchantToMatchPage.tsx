@@ -105,6 +105,7 @@ function AddMerchantToMatchPage({route}: AddMerchantToMatchPageProps) {
                         defaultValue={currentValue}
                         label={translate('common.merchant')}
                         accessibilityLabel={translate('common.merchant')}
+                        accessibilityHint={translate('common.merchant')}
                         role={CONST.ROLE.PRESENTATION}
                         ref={inputCallbackRef}
                         containerStyles={[styles.ph5]}

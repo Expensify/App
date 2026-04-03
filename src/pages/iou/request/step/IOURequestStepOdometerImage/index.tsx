@@ -314,6 +314,7 @@ function IOURequestStepOdometerImage({
                             success
                             text={translate('common.continue')}
                             accessibilityLabel={translate('common.continue')}
+                            accessibilityHint={translate('common.continue')}
                             style={[styles.p9, styles.pt5]}
                             onPress={capturePhoto}
                             sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.ODOMETER_IMAGE.CONTINUE_BUTTON}
@@ -346,6 +347,7 @@ function IOURequestStepOdometerImage({
                             <PressableWithFeedback
                                 role={CONST.ROLE.BUTTON}
                                 accessibilityLabel={translate('receipt.flash')}
+                                accessibilityHint={translate('receipt.flash')}
                                 disabled={!isTorchAvailable}
                                 onPress={toggleFlashlight}
                                 sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.ODOMETER_IMAGE.FLASH}
@@ -379,6 +381,7 @@ function IOURequestStepOdometerImage({
                         <PressableWithFeedback
                             role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('common.chooseFile')}
+                            accessibilityHint={translate('common.chooseFile')}
                             sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.ODOMETER_IMAGE.CHOOSE_FILE}
                             onPress={() => {
                                 openPicker({
@@ -398,6 +401,7 @@ function IOURequestStepOdometerImage({
                 <PressableWithFeedback
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('receipt.shutter')}
+                    accessibilityHint={translate('receipt.shutter')}
                     sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.ODOMETER_IMAGE.SHUTTER}
                     style={[styles.alignItemsCenter]}
                     onPress={capturePhoto}
@@ -479,6 +483,7 @@ function IOURequestStepOdometerImage({
                         success
                         text={translate('common.chooseFile')}
                         accessibilityLabel={translate('common.chooseFile')}
+                        accessibilityHint={translate('common.chooseFile')}
                         style={[styles.p5, styles.mt4]}
                         onPress={() => {
                             openPicker({

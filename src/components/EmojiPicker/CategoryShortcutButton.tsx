@@ -45,6 +45,7 @@ function CategoryShortcutButton({code, icon, onPress, isSelected = false}: Categ
                 onHoverOut={() => setIsHighlighted(false)}
                 style={({pressed}) => [StyleUtils.getButtonBackgroundColorStyle(getButtonState(false, pressed)), styles.categoryShortcutButton, isHighlighted && styles.emojiItemHighlighted]}
                 accessibilityLabel={translate(`emojiPicker.headers.${code}` as TranslationPaths)}
+                accessibilityHint={translate(`emojiPicker.headers.${code}` as TranslationPaths)}
                 accessibilityState={isSelected ? {selected: true} : undefined}
                 role={CONST.ROLE.BUTTON}
                 sentryLabel={CONST.SENTRY_LABEL.EMOJI_PICKER.CATEGORY_SHORTCUT}

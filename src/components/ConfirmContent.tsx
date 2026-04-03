@@ -169,6 +169,7 @@ function ConfirmContent({
                                 onPress={onCancel}
                                 role={CONST.ROLE.BUTTON}
                                 accessibilityLabel={translate('common.close')}
+                                accessibilityHint={translate('common.close')}
                                 sentryLabel={CONST.SENTRY_LABEL.CONFIRM_CONTENT.DISMISS_BUTTON}
                             >
                                 <Icon
@@ -220,6 +221,7 @@ function ConfirmContent({
                             large
                             text={confirmText || translate('common.yes')}
                             accessibilityLabel={confirmText || translate('common.yes')}
+                            accessibilityHint={confirmText || translate('common.yes')}
                             isDisabled={isOffline && shouldDisableConfirmButtonWhenOffline}
                             isLoading={isConfirmLoading}
                         />

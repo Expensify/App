@@ -171,6 +171,7 @@ function CardListItem<TItem extends ListItem>({
                         shouldSelectOnPressEnter
                         isChecked={item.isSelected ?? false}
                         accessibilityLabel={item.text ?? ''}
+                        accessibilityHint={item.text ?? ''}
                         onPress={handleCheckboxPress}
                         disabled={!!isDisabled}
                         style={styles.ml3}

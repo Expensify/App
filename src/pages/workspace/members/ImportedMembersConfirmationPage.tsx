@@ -206,6 +206,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
                     onPress={openPrivacyURL}
                     role={CONST.ROLE.LINK}
                     accessibilityLabel={translate('common.privacy')}
+                    accessibilityHint={translate('common.privacy')}
                     href={CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}
                     style={[styles.mv2, styles.alignSelfStart]}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.IMPORTED_MEMBERS_CONFIRMATION_PRIVACY_LINK}

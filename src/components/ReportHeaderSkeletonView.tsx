@@ -42,6 +42,7 @@ function ReportHeaderSkeletonView({shouldAnimate = true, onBackButtonPress = () 
                         style={[styles.touchableButtonImage]}
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('common.back')}
+                        accessibilityHint={translate('common.back')}
                         sentryLabel={CONST.SENTRY_LABEL.REPORT_HEADER_SKELETON.GO_BACK}
                     >
                         <Icon

@@ -395,6 +395,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
                 <TextInput
                     label={translate('common.search')}
                     accessibilityLabel={translate('common.search')}
+                    accessibilityHint={translate('common.search')}
                     role={CONST.ROLE.PRESENTATION}
                     onChangeText={(text: string) => {
                         setSearchText(text);

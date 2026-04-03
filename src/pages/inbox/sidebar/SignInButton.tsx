@@ -14,6 +14,7 @@ function SignInButton() {
     return (
         <PressableWithoutFeedback
             accessibilityLabel={translate('sidebarScreen.buttonMySettings')}
+            accessibilityHint={translate('sidebarScreen.buttonMySettings')}
             role={CONST.ROLE.BUTTON}
             onPress={() => signOutAndRedirectToSignIn()}
             sentryLabel={CONST.SENTRY_LABEL.SIDEBAR.SIGN_IN_BUTTON}

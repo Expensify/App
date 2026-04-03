@@ -229,12 +229,14 @@ function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFor
         <>
             <View
                 accessibilityLabel={translate('loginForm.loginForm')}
+                accessibilityHint={translate('loginForm.loginForm')}
                 style={[styles.mt3]}
             >
                 <TextInput
                     ref={input}
                     label={translate('loginForm.phoneOrEmail')}
                     accessibilityLabel={translate('loginForm.phoneOrEmail')}
+                    accessibilityHint={translate('loginForm.phoneOrEmail')}
                     value={login}
                     returnKeyType="go"
                     autoCompleteType="username"

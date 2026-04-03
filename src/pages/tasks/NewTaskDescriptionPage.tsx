@@ -84,6 +84,7 @@ function NewTaskDescriptionPage({route}: NewTaskDescriptionPageProps) {
                             inputID={INPUT_IDS.TASK_DESCRIPTION}
                             label={translate('newTaskPage.descriptionOptional')}
                             accessibilityLabel={translate('newTaskPage.descriptionOptional')}
+                            accessibilityHint={translate('newTaskPage.descriptionOptional')}
                             role={CONST.ROLE.PRESENTATION}
                             ref={(el) => {
                                 if (!inputRef.current) {

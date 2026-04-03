@@ -185,6 +185,7 @@ function BaseOnboardingWorkspaceConfirmation({shouldUseNativeStyles}: BaseOnboar
                         inputID={INPUT_IDS.NAME}
                         label={translate('workspace.common.workspaceName')}
                         accessibilityLabel={translate('workspace.common.workspaceName')}
+                        accessibilityHint={translate('workspace.common.workspaceName')}
                         role={CONST.ROLE.PRESENTATION}
                         defaultValue={defaultWorkspaceName}
                         shouldSaveDraft

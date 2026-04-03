@@ -17,6 +17,7 @@ function SentrySendToggle({isEnabled}: {isEnabled: boolean}) {
         <TestToolRow title={translate('initialSettingsPage.troubleshoot.sentrySendDescription')}>
             <Switch
                 accessibilityLabel={translate('initialSettingsPage.troubleshoot.sentrySendDescription')}
+                accessibilityHint={isEnabled ? translate('common.deselect') : translate('common.select')}
                 isOn={isEnabled}
                 onToggle={() => setIsSentrySendEnabled(!isEnabled)}
             />
@@ -31,6 +32,7 @@ function SentryDebugToggle({isEnabled}: {isEnabled: boolean}) {
         <TestToolRow title={translate('initialSettingsPage.troubleshoot.sentryDebugDescription')}>
             <Switch
                 accessibilityLabel={translate('initialSettingsPage.troubleshoot.sentryDebugDescription')}
+                accessibilityHint={isEnabled ? translate('common.deselect') : translate('common.select')}
                 isOn={isEnabled}
                 onToggle={() => setIsSentryDebugEnabled(!isEnabled)}
             />
@@ -59,6 +61,7 @@ function HighlightedSpanOpsInput() {
             <TextInput
                 autoCapitalize="none"
                 accessibilityLabel={translate('initialSettingsPage.troubleshoot.sentryHighlightedSpanOps')}
+                accessibilityHint={translate('initialSettingsPage.troubleshoot.sentryHighlightedSpanOpsPlaceholder')}
                 value={inputValue}
                 onChangeText={handleChange}
                 placeholder={translate('initialSettingsPage.troubleshoot.sentryHighlightedSpanOpsPlaceholder')}

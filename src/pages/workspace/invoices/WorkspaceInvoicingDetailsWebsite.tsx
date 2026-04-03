@@ -89,6 +89,7 @@ function WorkspaceInvoicingDetailsWebsite({route}: WorkspaceInvoicingDetailsWebs
                         inputID={INPUT_IDS.COMPANY_WEBSITE}
                         label={translate('workspace.invoices.companyWebsite')}
                         accessibilityLabel={translate('workspace.invoices.companyWebsite')}
+                        accessibilityHint={translate('workspace.invoices.companyWebsite')}
                         role={CONST.ROLE.PRESENTATION}
                         defaultValue={policy?.invoice?.companyWebsite}
                         ref={inputCallbackRef}

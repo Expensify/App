@@ -50,6 +50,7 @@ function SendButton({isDisabled: isDisabledProp, handleSendMessage}: SendButtonP
                     accessible
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('common.send')}
+                    accessibilityHint={translate('common.send')}
                     collapsable={false}
                 >
                     <Tooltip text={translate('common.send')}>

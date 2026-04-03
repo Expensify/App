@@ -115,6 +115,7 @@ function UploadFile({
                         medium
                         text={buttonText}
                         accessibilityLabel={buttonText}
+                        accessibilityHint={buttonText}
                         onPress={() => {
                             openPicker({
                                 onPicked: handleFileUpload,
@@ -142,6 +143,7 @@ function UploadFile({
                         onPress={() => onRemove(file?.name ?? '')}
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('common.remove')}
+                        accessibilityHint={translate('common.remove')}
                         sentryLabel={CONST.SENTRY_LABEL.UPLOAD_FILE.REMOVE_BUTTON}
                     >
                         <Icon

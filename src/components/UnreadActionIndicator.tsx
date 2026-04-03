@@ -22,6 +22,7 @@ function UnreadActionIndicator({reportActionID, shouldHideThreadDividerLine}: Un
     return (
         <View
             accessibilityLabel={translate('accessibilityHints.newMessageLineIndicator')}
+            accessibilityHint={translate('accessibilityHints.newMessageLineIndicator')}
             data-action-id={reportActionID}
             style={[containerStyle, styles.userSelectNone, styles.pointerEventsNone]}
             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}

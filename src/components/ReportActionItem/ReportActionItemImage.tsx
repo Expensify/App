@@ -197,6 +197,7 @@ function ReportActionItemImage({
                     )
                 }
                 accessibilityLabel={translate('accessibilityHints.viewAttachment')}
+                accessibilityHint={translate('accessibilityHints.viewAttachment')}
                 accessibilityRole={CONST.ROLE.BUTTON}
                 sentryLabel={CONST.SENTRY_LABEL.RECEIPT.IMAGE}
             >

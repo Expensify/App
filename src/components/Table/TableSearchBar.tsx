@@ -45,6 +45,7 @@ function TableSearchBar() {
             <TextInput
                 label={translate('workspace.companyCards.findCard')}
                 accessibilityLabel={translate('workspace.companyCards.findCard')}
+                accessibilityHint={translate('workspace.companyCards.findCard')}
                 value={activeSearchString}
                 onChangeText={(text) => updateSearchString(text)}
                 icon={activeSearchString.length === 0 ? expensifyIcons.MagnifyingGlass : undefined}
