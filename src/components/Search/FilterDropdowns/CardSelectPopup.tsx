@@ -24,11 +24,12 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import BasePopup from './BasePopup';
 
 type CardSelectPopupProps = {
+    isExpanded: boolean;
     closeOverlay: () => void;
     updateFilterForm: (values: Partial<SearchAdvancedFiltersForm>) => void;
 };
 
-function CardSelectPopup({updateFilterForm, closeOverlay}: CardSelectPopupProps) {
+function CardSelectPopup({isExpanded, updateFilterForm, closeOverlay}: CardSelectPopupProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -49,11 +50,11 @@ function CardSelectPopup({updateFilterForm, closeOverlay}: CardSelectPopupProps)
     const [selectedCards, setSelectedCards] = useState<string[]>([]);
 
     useEffect(() => {
-        if (isOffline) {
+        if (isOffline || !isExpanded) {
             return;
         }
         openSearchCardFiltersPage();
-    }, [isOffline]);
+    }, [isOffline, isExpanded]);
 
     useEffect(() => {
         const generatedCards = generateSelectedCards(userCardList, workspaceCardFeeds, searchAdvancedFiltersForm?.feed, searchAdvancedFiltersForm?.cardID);
