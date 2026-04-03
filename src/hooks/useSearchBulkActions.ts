@@ -41,7 +41,6 @@ import {
     canEditMultipleTransactions,
     getIntegrationIcon,
     getReportOrDraftReport,
-    hasOnlyNonReimbursableTransactions,
     isBusinessInvoiceRoom,
     isCurrentUserSubmitter,
     isExpenseReport as isExpenseReportUtil,
@@ -139,7 +138,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
-    const [isNonReimbursablePaymentErrorModalVisible, setIsNonReimbursablePaymentErrorModalVisible] = useState(false);
     const {showConfirmModal} = useConfirmModal();
     const [isHoldEducationalModalVisible, setIsHoldEducationalModalVisible] = useState(false);
     const [rejectModalAction, setRejectModalAction] = useState<ValueOf<
@@ -592,20 +590,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     return;
                 }
 
-                const reportTransactions = Object.values(allTransactions ?? {}).filter(
-                    (transaction): transaction is NonNullable<typeof transaction> => !!transaction && transaction.reportID === itemReportID,
-                );
-
-                if (
-                    isExpenseReport &&
-                    !isInvoiceReport(itemReportID) &&
-                    hasOnlyNonReimbursableTransactions(itemReportID, reportTransactions.length > 0 ? reportTransactions : undefined) &&
-                    lastPolicyPaymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE
-                ) {
-                    setIsNonReimbursablePaymentErrorModalVisible(true);
-                    return;
-                }
-
                 const hasPolicyVBBA = itemPolicyID ? policyIDsWithVBBA.includes(itemPolicyID) : false;
                 // Allow bulk pay when user selected a business bank account, even if that account is not linked to the report's policy
                 const hasSelectedBusinessBankAccount = expenseReportBankAccountID != null;
@@ -631,6 +615,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         );
                         return;
                     }
+                    const reportTransactions = Object.values(allTransactions ?? {}).filter(
+                        (transaction): transaction is NonNullable<typeof transaction> => !!transaction && transaction.reportID === itemReportID,
+                    );
                     const invite = moveIOUReportToPolicyAndInviteSubmitter(itemReport, adminPolicy, formatPhoneNumber, reportTransactions);
                     if (!invite?.policyExpenseChatReportID) {
                         moveIOUReportToPolicy(itemReport, adminPolicy, false, reportTransactions);
@@ -1270,7 +1257,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         showDelegateNoAccessModal,
         bulkPayButtonOptions,
         businessBankAccountOptions?.length,
-        shouldShowBusinessBankAccountOptions,
         onBulkPaySelected,
         areAllTransactionsFromSubmitter,
         dismissedHoldUseExplanation,
@@ -1300,10 +1286,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const handleDownloadErrorModalClose = useCallback(() => {
         setIsDownloadErrorModalVisible(false);
     }, [setIsDownloadErrorModalVisible]);
-
-    const handleNonReimbursablePaymentErrorModalClose = useCallback(() => {
-        setIsNonReimbursablePaymentErrorModalVisible(false);
-    }, [setIsNonReimbursablePaymentErrorModalVisible]);
 
     const dismissModalAndUpdateUseHold = useCallback(() => {
         setIsHoldEducationalModalVisible(false);
@@ -1335,13 +1317,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         confirmPayment: stableOnBulkPaySelected,
         isOfflineModalVisible,
         isDownloadErrorModalVisible,
-        isNonReimbursablePaymentErrorModalVisible,
         isHoldEducationalModalVisible,
         rejectModalAction,
         emptyReportsCount,
         handleOfflineModalClose,
         handleDownloadErrorModalClose,
-        handleNonReimbursablePaymentErrorModalClose,
         dismissModalAndUpdateUseHold,
         dismissRejectModalBasedOnAction,
     };

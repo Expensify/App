@@ -880,18 +880,7 @@ function getSecondaryReportActions({
     const didExportFail = !isExported && hasExportError;
 
     if (
-        isPrimaryPayAction({
-            report,
-            reportTransactions,
-            currentUserAccountID,
-            currentUserLogin,
-            bankAccountList,
-            policy,
-            reportNameValuePairs,
-            isChatReportArchived,
-            reportActions,
-            isSecondaryAction: true,
-        }) &&
+        isPrimaryPayAction(report, currentUserAccountID, currentUserLogin, bankAccountList, policy, reportNameValuePairs, isChatReportArchived, undefined, reportActions, true) &&
         (hasOnlyHeldExpenses(report?.reportID) || didExportFail)
     ) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.PAY);

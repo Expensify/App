@@ -2621,8 +2621,8 @@ function isMoneyRequestReport(reportOrID: OnyxInputOrEntry<Report> | string, rep
 /**
  * Checks if a report contains only Non-Reimbursable transactions
  */
-function hasOnlyNonReimbursableTransactions(iouReportID: string | undefined, transactionsParam?: Transaction[]): boolean {
-    const transactions = transactionsParam ?? getReportTransactions(iouReportID);
+function hasOnlyNonReimbursableTransactions(iouReportID: string | undefined): boolean {
+    const transactions = getReportTransactions(iouReportID);
     if (!transactions || transactions.length === 0) {
         return false;
     }

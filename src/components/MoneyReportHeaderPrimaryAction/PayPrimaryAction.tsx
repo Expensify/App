@@ -6,7 +6,6 @@ import AnimatedSettlementButton from '@components/SettlementButton/AnimatedSettl
 import type {PaymentActionParams} from '@components/SettlementButton/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
-import useNonReimbursablePaymentModal from '@hooks/useNonReimbursablePaymentModal';
 import useOnyx from '@hooks/useOnyx';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import usePolicy from '@hooks/usePolicy';
@@ -15,13 +14,7 @@ import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViol
 import {search} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
-import {
-    hasHeldExpenses as hasHeldExpensesReportUtils,
-    hasOnlyNonReimbursableTransactions,
-    hasUpdatedTotal,
-    isAllowedToApproveExpenseReport,
-    isInvoiceReport as isInvoiceReportUtil,
-} from '@libs/ReportUtils';
+import {hasHeldExpenses as hasHeldExpensesReportUtils, hasUpdatedTotal, isAllowedToApproveExpenseReport, isInvoiceReport as isInvoiceReportUtil} from '@libs/ReportUtils';
 import {isExpensifyCardTransaction, isPending} from '@libs/TransactionUtils';
 import {canApproveIOU, canIOUBePaid as canIOUBePaidAction, payInvoice, payMoneyRequest} from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -83,12 +76,9 @@ function PayPrimaryAction({
     const hasOnlyPendingTransactions = transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
 
     const canIOUBePaid = canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, transaction ? [transaction] : undefined, false, undefined, invoiceReceiverPolicy);
-    const reportHasOnlyNonReimbursableTransactions = hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID, transactions);
-    const {showNonReimbursablePaymentErrorModal, shouldBlockDirectPayment, nonReimbursablePaymentErrorDecisionModal} = useNonReimbursablePaymentModal(moneyRequestReport, transactions);
-    const onlyShowPayElsewhere = reportHasOnlyNonReimbursableTransactions
-        ? false
-        : !canIOUBePaid && canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, transaction ? [transaction] : undefined, true, undefined, invoiceReceiverPolicy);
-    const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere || reportHasOnlyNonReimbursableTransactions;
+    const onlyShowPayElsewhere =
+        !canIOUBePaid && canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, transaction ? [transaction] : undefined, true, undefined, invoiceReceiverPolicy);
+    const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
     const shouldShowApproveButton = (canApproveIOU(moneyRequestReport, policy, reportMetadata, transactions) && !hasOnlyPendingTransactions) || isApprovedAnimationRunning;
     const shouldDisableApproveButton = shouldShowApproveButton && !isAllowedToApproveExpenseReport(moneyRequestReport);
     const canAllowSettlement = hasUpdatedTotal(moneyRequestReport, policy);
@@ -102,10 +92,6 @@ function PayPrimaryAction({
 
     const confirmPayment = ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
         if (!type || !chatReport) {
-            return;
-        }
-        if (shouldBlockDirectPayment(type)) {
-            showNonReimbursablePaymentErrorModal();
             return;
         }
         if (isDelegateAccessRestricted) {
@@ -184,7 +170,6 @@ function PayPrimaryAction({
                 isDisabled={isOffline && !canAllowSettlement}
                 isLoading={!isOffline && !canAllowSettlement}
             />
-            {nonReimbursablePaymentErrorDecisionModal}
         </>
     );
 }

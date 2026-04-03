@@ -37,7 +37,6 @@ type ReportPreviewActionButtonProps = {
     startSubmittingAnimation: () => void;
     onPaymentOptionsShow?: () => void;
     onPaymentOptionsHide?: () => void;
-    onNonReimbursablePaymentError?: () => void;
     openReportFromPreview: () => void;
     onHoldMenuOpen: (requestType: string, paymentType?: PaymentMethodType, canPay?: boolean) => void;
     transactionPreviewCarouselWidth: number;
@@ -55,7 +54,6 @@ function ReportPreviewActionButton({
     startSubmittingAnimation,
     onPaymentOptionsShow,
     onPaymentOptionsHide,
-    onNonReimbursablePaymentError,
     openReportFromPreview,
     onHoldMenuOpen,
     transactionPreviewCarouselWidth,
@@ -151,7 +149,6 @@ function ReportPreviewActionButton({
                     onPaymentOptionsShow={onPaymentOptionsShow}
                     onPaymentOptionsHide={onPaymentOptionsHide}
                     onHoldMenuOpen={onHoldMenuOpen}
-                    onNonReimbursablePaymentError={onNonReimbursablePaymentError}
                     buttonMaxWidth={buttonMaxWidth}
                     reportPreviewAction={reportPreviewAction}
                 />

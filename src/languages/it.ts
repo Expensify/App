@@ -1451,11 +1451,6 @@ const translations: TranslationDeepObject<typeof en> = {
             manySplitsProvided: `Il numero massimo di suddivisioni consentite è ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `L’intervallo di date non può superare ${CONST.IOU.SPLITS_LIMIT} giorni.`,
             stitchOdometerImagesFailed: 'Impossibile combinare le immagini del contachilometri. Riprova più tardi.',
-            nonReimbursablePayment: 'Impossibile pagare tramite Expensify',
-            nonReimbursablePaymentDescription: (isMultiple?: boolean) =>
-                isMultiple
-                    ? 'Uno o più report selezionati non contengono spese rimborsabili. Ricontrolla le spese oppure contrassegnali manualmente come pagati.'
-                    : 'Il report non contiene spese rimborsabili. Ricontrolla le spese oppure contrassegnalo manualmente come pagato.',
         },
         dismissReceiptError: 'Ignora errore',
         dismissReceiptErrorConfirmation: 'Attenzione! Chiudere questo errore rimuoverà completamente la ricevuta che hai caricato. Sei sicuro?',

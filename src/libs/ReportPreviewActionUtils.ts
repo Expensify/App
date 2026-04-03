@@ -9,7 +9,6 @@ import {
     getMoneyRequestSpendBreakdown,
     getParentReport,
     getReportTransactions,
-    hasOnlyNonReimbursableTransactions,
     isClosedReport,
     isCurrentUserSubmitter,
     isExpenseReport,
@@ -103,7 +102,6 @@ function canPay(
     currentUserAccountID: number,
     currentUserLogin: string,
     bankAccountList: OnyxEntry<BankAccountList>,
-    transactions: Transaction[],
     policy?: Policy,
     invoiceReceiverPolicy?: Policy,
 ) {
@@ -127,7 +125,7 @@ function canPay(
     const hasExportError = report?.hasExportError ?? false;
     const didExportFail = !isExported && hasExportError;
 
-    if (isExpense && isReportPayer && isPaymentsEnabled && isReportFinished && (reimbursableSpend !== 0 || hasOnlyNonReimbursableTransactions(report?.reportID, transactions))) {
+    if (isExpense && isReportPayer && isPaymentsEnabled && isReportFinished && reimbursableSpend !== 0) {
         return !didExportFail;
     }
 
@@ -243,7 +241,7 @@ function getReportPreviewAction({
     if (canApprove(report, currentUserAccountID, reportMetadata, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE;
     }
-    if (canPay(report, isReportArchived, currentUserAccountID, currentUserLogin, bankAccountList, transactions, policy, invoiceReceiverPolicy)) {
+    if (canPay(report, isReportArchived, currentUserAccountID, currentUserLogin, bankAccountList, policy, invoiceReceiverPolicy)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
     }
     if (canExport(report, currentUserLogin, policy)) {

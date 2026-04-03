@@ -1447,11 +1447,6 @@ const translations: TranslationDeepObject<typeof en> = {
             manySplitsProvided: `Maksymalna dozwolona liczba podziałów to ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `Zakres dat nie może przekraczać ${CONST.IOU.SPLITS_LIMIT} dni.`,
             stitchOdometerImagesFailed: 'Nie udało się połączyć zdjęć licznika kilometrów. Spróbuj ponownie później.',
-            nonReimbursablePayment: 'Nie można zapłacić przez Expensify',
-            nonReimbursablePaymentDescription: (isMultiple?: boolean) =>
-                isMultiple
-                    ? 'Co najmniej jeden z wybranych raportów nie zawiera wydatków podlegających zwrotowi. Sprawdź wydatki ponownie lub oznacz je ręcznie jako opłacone.'
-                    : 'Raport nie zawiera wydatków podlegających zwrotowi. Sprawdź wydatki ponownie lub oznacz go ręcznie jako opłacony.',
         },
         dismissReceiptError: 'Odrzuć błąd',
         dismissReceiptErrorConfirmation: 'Uwaga! Zamknięcie tego błędu spowoduje całkowite usunięcie przesłanego paragonu. Czy na pewno chcesz kontynuować?',
