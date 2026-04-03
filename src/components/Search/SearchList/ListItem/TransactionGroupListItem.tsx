@@ -77,6 +77,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     newTransactionID,
     lastPaymentMethod,
     personalPolicyID,
+    onUndelete,
 }: TransactionGroupListItemProps<TItem>) {
     const groupItem = item as unknown as TransactionGroupListItemType;
 
@@ -497,6 +498,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                 searchTransactions={searchTransactions}
                                 isInSingleTransactionReport={groupItem.transactions.length === 1}
                                 onLongPress={onExpandedRowLongPress}
+                                onUndelete={onUndelete}
                             />
                         </AnimatedCollapsible>
                     </View>

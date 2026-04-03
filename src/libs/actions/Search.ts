@@ -111,6 +111,7 @@ type HandleActionButtonPressParams = {
     onDelegateAccessRestricted?: () => void;
     personalPolicyID: string | undefined;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
+    onUndelete?: () => void;
 };
 
 type BulkDeleteReportsParams = {
@@ -142,13 +143,14 @@ function handleActionButtonPress({
     onDelegateAccessRestricted,
     personalPolicyID,
     ownerBillingGracePeriodEnd,
+    onUndelete,
 }: HandleActionButtonPressParams) {
     // The transactionIDList is needed to handle actions taken on `status:""` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
     const allReportTransactions = (isTransactionGroupListItemType(item) ? item.transactions : [item]) as Transaction[];
     const hasHeldExpense = hasHeldExpenses('', allReportTransactions);
 
-    if (hasHeldExpense && item.action !== CONST.SEARCH.ACTION_TYPES.SUBMIT) {
+    if (hasHeldExpense && item.action !== CONST.SEARCH.ACTION_TYPES.SUBMIT && item.action !== CONST.SEARCH.ACTION_TYPES.UNDELETE) {
         goToItem();
         return;
     }
@@ -203,6 +205,9 @@ function handleActionButtonPress({
             exportToIntegrationOnSearch(hash, [item.reportID], connectedIntegration, currentSearchKey);
             return;
         }
+        case CONST.SEARCH.ACTION_TYPES.UNDELETE:
+            onUndelete?.();
+            return;
         default:
             goToItem();
     }
