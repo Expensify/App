@@ -15943,14 +15943,14 @@ describe('ReportUtils', () => {
         });
 
         it('should return moved action message with policy name', async () => {
-            const policy = createRandomPolicy(0);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            const testPolicy = createRandomPolicy(0);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${testPolicy.id}`, testPolicy);
 
             const action = {
                 ...LHNTestUtils.getFakeReportAction(),
                 actionName: CONST.REPORT.ACTIONS.TYPE.MOVED,
                 originalMessage: {
-                    toPolicyID: policy.id,
+                    toPolicyID: testPolicy.id,
                     newParentReportID: '11111',
                     movedReportID: '22222',
                 },
