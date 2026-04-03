@@ -16,7 +16,6 @@ import useRootNavigationState from '@hooks/useRootNavigationState';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlatform from '@libs/getPlatform';
-import Log from '@libs/Log';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -195,18 +194,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             flashListRef.current.scrollToOffset({offset});
         });
     }, [getScrollOffset, route]);
-
-    // eslint-disable-next-line rulesdir/prefer-early-return
-    useEffect(() => {
-        if (data.length === 0) {
-            Log.info('Woohoo! All caught up. Was rendered', false, {
-                reportsCount: Object.keys(reports ?? {}).length,
-                policyCount: Object.keys(policy ?? {}).length,
-                personalDetailsCount: Object.keys(personalDetails ?? {}).length,
-                reportsIDsFromUseReportsCount: data.length,
-            });
-        }
-    }, [data.length, reports, policy, personalDetails]);
 
     return (
         <View style={style ?? styles.flex1}>
