@@ -229,6 +229,13 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
         canEvict: false,
     });
 
+    /**
+     * Updates the Highlight state of the composer
+     */
+    const [isFocused, setIsFocused] = useState(() => {
+        return shouldFocusInputOnScreenFocus && !initialModalState?.isVisible && !initialModalState?.willAlertModalBecomeVisible;
+    });
+
     const {editingState, editingReportID, editingReportActionID, editingReportAction, editingMessage} = useReportActionActiveEdit();
 
     const [didResetComposerHeight, setDidResetComposerHeight] = useState(false);
@@ -243,22 +250,31 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
         setDidResetComposerHeight(false);
     }, [didResetComposerHeight, editingState]);
 
+    // Track whether the user was editing a message before
+    const wasEditingBefore = useRef(false);
+    useEffect(() => {
+        if (editingState === 'off') {
+            return;
+        }
+        wasEditingBefore.current = true;
+    }, [editingState]);
+
+    // Reset composer focus when editing is turned off, but not on the initial chat open.
+    useEffect(() => {
+        if (editingState !== 'off' || !wasEditingBefore.current) {
+            return;
+        }
+
+        setIsFocused(false);
+    }, [editingState]);
+
     const reportActionKeys = useMemo(() => (rawReportActions ? Object.keys(rawReportActions) : []), [rawReportActions]);
     const isEditingLastReportAction = useMemo(() => editingReportActionID === reportActionKeys.at(-1), [editingReportActionID, reportActionKeys]);
-
-    const shouldFocusComposerOnScreenFocus = shouldFocusInputOnScreenFocus || !!draftComment;
 
     const [targetReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${effectiveTransactionThreadReportID ?? reportID}`);
     const reportAncestors = useAncestors(report);
     const targetReportAncestors = useAncestors(targetReport);
     const {scrollOffsetRef} = useContext(ActionListContext);
-
-    /**
-     * Updates the Highlight state of the composer
-     */
-    const [isFocused, setIsFocused] = useState(() => {
-        return shouldFocusComposerOnScreenFocus && !initialModalState?.isVisible && !initialModalState?.willAlertModalBecomeVisible;
-    });
 
     const [isFullComposerAvailable, setIsFullComposerAvailable] = useState(isComposerFullSize);
 
@@ -784,7 +800,7 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
                                 onAddActionPressed={onAddActionPressed}
                                 onItemSelected={onItemSelected}
                                 onCanceledAttachmentPicker={() => {
-                                    if (!shouldFocusComposerOnScreenFocus) {
+                                    if (!shouldFocusInputOnScreenFocus) {
                                         return;
                                     }
                                     focus();
