@@ -1,26 +1,21 @@
-import React, {useRef, useState} from 'react';
+import React, {useState} from 'react';
 import type {ReactNode} from 'react';
-import {InteractionManager} from 'react-native';
+import useHoldMenuModal from '@hooks/useHoldMenuModal';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import getPlatform from '@libs/getPlatform';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getNonHeldAndFullAmount, hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils} from '@libs/ReportUtils';
 import {canIOUBePaid as canIOUBePaidAction} from '@userActions/IOU';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import MoneyReportHeaderEducationalModals from './MoneyReportHeaderEducationalModals';
 import type {RejectModalAction} from './MoneyReportHeaderEducationalModals';
 import MoneyReportHeaderModalsContext from './MoneyReportHeaderModalsContext';
 import type {HoldMenuParams} from './MoneyReportHeaderModalsContext';
-import type {ActionHandledType} from './ProcessMoneyReportHoldMenu';
-import ProcessMoneyReportHoldMenu from './ProcessMoneyReportHoldMenu';
 import ReportPDFDownloadModal from './ReportPDFDownloadModal';
 
 type MoneyReportHeaderModalsProps = {
@@ -29,13 +24,6 @@ type MoneyReportHeaderModalsProps = {
 };
 
 function MoneyReportHeaderModals({reportID, children}: MoneyReportHeaderModalsProps) {
-    // Hold menu state
-    const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
-    const [paymentType, setPaymentType] = useState<PaymentMethodType>();
-    const [requestType, setRequestType] = useState<ActionHandledType>();
-    const [selectedVBBA, setSelectedVBBA] = useState<number>();
-    const holdMenuOnConfirmRef = useRef<((full: boolean) => void) | undefined>();
-
     // Educational modals state
     const [isHoldEducationalModalVisible, setIsHoldEducationalModalVisible] = useState(false);
     const [rejectModalAction, setRejectModalAction] = useState<RejectModalAction | null>(null);
@@ -58,8 +46,7 @@ function MoneyReportHeaderModals({reportID, children}: MoneyReportHeaderModalsPr
 
     // Derive data for hold menu
     const canIOUBePaid = canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList);
-    const shouldShowPayButton = canIOUBePaid;
-    const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(moneyRequestReport, shouldShowPayButton);
+    const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(moneyRequestReport, canIOUBePaid);
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(moneyRequestReport?.reportID);
     const transactionIDs = transactions.map((t) => t.transactionID);
 
@@ -80,30 +67,26 @@ function MoneyReportHeaderModals({reportID, children}: MoneyReportHeaderModalsPr
     const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
 
-    // Context API
-    const openHoldMenu = ({requestType: type, paymentType: pType, methodID, onConfirm}: HoldMenuParams) => {
-        setRequestType(type);
-        setPaymentType(pType);
-        setSelectedVBBA(pType === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined);
-        holdMenuOnConfirmRef.current = onConfirm;
-        if (getPlatform() === CONST.PLATFORM.IOS) {
-            // InteractionManager delays modal until current interaction completes, preventing visual glitches on iOS
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            InteractionManager.runAfterInteractions(() => setIsHoldMenuVisible(true));
-        } else {
-            setIsHoldMenuVisible(true);
-        }
-    };
+    // Imperative hold menu
+    const {showHoldMenu} = useHoldMenuModal();
 
-    const closeHoldMenu = () => {
-        setSelectedVBBA(undefined);
-        setIsHoldMenuVisible(false);
-        holdMenuOnConfirmRef.current = undefined;
+    const openHoldMenu = ({requestType, paymentType, methodID, onConfirm}: HoldMenuParams) => {
+        showHoldMenu({
+            reportID: moneyRequestReport?.reportID,
+            chatReportID: chatReport?.reportID,
+            requestType,
+            paymentType,
+            methodID,
+            nonHeldAmount: !hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined,
+            fullAmount,
+            hasNonHeldExpenses: !hasOnlyHeldExpenses,
+            transactionCount: transactionIDs.length,
+            onConfirm,
+        });
     };
 
     const contextValue = {
         openHoldMenu,
-        closeHoldMenu,
         openPDFDownload: () => setIsPDFModalVisible(true),
         openHoldEducational: () => setIsHoldEducationalModalVisible(true),
         openRejectModal: (action: RejectModalAction) => setRejectModalAction(action),
@@ -112,24 +95,6 @@ function MoneyReportHeaderModals({reportID, children}: MoneyReportHeaderModalsPr
     return (
         <MoneyReportHeaderModalsContext.Provider value={contextValue}>
             {children}
-
-            {isHoldMenuVisible && requestType !== undefined && (
-                <ProcessMoneyReportHoldMenu
-                    nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
-                    requestType={requestType}
-                    fullAmount={fullAmount}
-                    onClose={closeHoldMenu}
-                    isVisible={isHoldMenuVisible}
-                    paymentType={paymentType}
-                    methodID={paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? selectedVBBA : undefined}
-                    chatReport={chatReport}
-                    moneyRequestReport={moneyRequestReport}
-                    hasNonHeldExpenses={!hasOnlyHeldExpenses}
-                    onConfirm={(full) => holdMenuOnConfirmRef.current?.(full)}
-                    transactionCount={transactionIDs.length}
-                    transactions={transactions}
-                />
-            )}
 
             <MoneyReportHeaderEducationalModals
                 requestParentReportAction={requestParentReportAction}
