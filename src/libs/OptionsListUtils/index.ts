@@ -589,6 +589,7 @@ function getCanonicalMoneyRequestPreviewText(
     visibleReportActionsData?: VisibleReportActionsDerivedValue,
 ): string {
     const canUserPerformWrite = canUserPerformWriteAction(report, isReportArchived);
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const latestMoneyRequestAction = getLatestVisibleMoneyRequestAction(reportID, canUserPerformWrite, deprecatedAllSortedReportActions[reportID], visibleReportActionsData);
     const originalMessage = latestMoneyRequestAction ? getOriginalMessage(latestMoneyRequestAction) : undefined;
     const amount = originalMessage?.amount;
