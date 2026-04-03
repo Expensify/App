@@ -1437,6 +1437,8 @@ const translations: TranslationDeepObject<typeof en> = {
             receiptFailureMessage:
                 '<rbr>Une erreur s’est produite lors du téléchargement de votre reçu. Veuillez <a href="download">enregistrer le reçu</a> et <a href="retry">réessayer</a> plus tard.</rbr>',
             receiptFailureMessageShort: 'Une erreur s’est produite lors du téléchargement de votre reçu.',
+            downloadReceipt: 'Télécharger le reçu',
+            tryAgain: 'Réessayer',
             genericDeleteFailureMessage: 'Erreur inattendue lors de la suppression de cette dépense. Veuillez réessayer plus tard.',
             genericEditFailureMessage: 'Erreur inattendue lors de la modification de cette dépense. Veuillez réessayer plus tard.',
             genericSmartscanFailureMessage: 'Des champs manquent à la transaction',
