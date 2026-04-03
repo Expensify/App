@@ -33,8 +33,6 @@ type ComposerSendState = {
     exceededMaxLength: number | null;
     hasExceededMaxTaskTitleLength: boolean;
     isBlockedFromConcierge: boolean;
-    validateAttachments: (args: {dragEvent?: DragEvent; files?: FileObject | FileObject[]}) => void;
-    onReceiptDropped: (event: DragEvent) => void;
 };
 
 // Frozen — stable references, never changes after mount
@@ -44,15 +42,13 @@ type ComposerActions = {
     setMenuVisibility: (v: boolean) => void;
     setIsFullComposerAvailable: (v: boolean) => void;
     setComposerRef: (ref: ComposerRef | null) => void;
-    setIsAttachmentPreviewActive: (isActive: boolean) => void;
     focus: () => void;
     onBlur: (event: BlurEvent) => void;
     onFocus: () => void;
     onAddActionPressed: () => void;
     onItemSelected: () => void;
     onTriggerAttachmentPicker: () => void;
-    addAttachment: (file: FileObject | FileObject[]) => void;
-    onAttachmentPreviewClose: () => void;
+    clearComposer: () => void;
 };
 
 // Infrequent — changes only when send logic changes
@@ -94,8 +90,6 @@ const defaultSendState: ComposerSendState = {
     exceededMaxLength: null,
     hasExceededMaxTaskTitleLength: false,
     isBlockedFromConcierge: false,
-    validateAttachments: noop,
-    onReceiptDropped: noop,
 };
 const ComposerSendStateContext = createContext<ComposerSendState>(defaultSendState);
 
@@ -105,15 +99,13 @@ const defaultActions: ComposerActions = {
     setMenuVisibility: noop,
     setIsFullComposerAvailable: noop,
     setComposerRef: noop,
-    setIsAttachmentPreviewActive: noop,
     focus: noop,
     onBlur: noop,
     onFocus: noop,
     onAddActionPressed: noop,
     onItemSelected: noop,
     onTriggerAttachmentPicker: noop,
-    addAttachment: noop,
-    onAttachmentPreviewClose: noop,
+    clearComposer: noop,
 };
 const ComposerActionsContext = createContext<ComposerActions>(defaultActions);
 
