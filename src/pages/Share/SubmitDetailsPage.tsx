@@ -301,9 +301,6 @@ function SubmitDetailsPage({
                         receiptFilename={getFileName(fileName)}
                         reportID={reportOrAccountID}
                         shouldShowSmartScanFields={false}
-                        isDistanceRequest={false}
-                        isManualDistanceRequest={false}
-                        isGPSDistanceRequest={false}
                         onPDFLoadError={() => {
                             if (errorTitle) {
                                 return;

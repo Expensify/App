@@ -24,15 +24,7 @@ import {getParticipantsOption, getPolicyExpenseReportOption} from '@libs/Options
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {isPolicyExpenseChat} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import {
-    areRequiredFieldsEmpty,
-    hasReceipt,
-    isDistanceRequest as isDistanceRequestUtil,
-    isGPSDistanceRequest as isGPSDistanceRequestUtil,
-    isManualDistanceRequest as isManualDistanceRequestUtil,
-    isMapDistanceRequest as isMapDistanceRequestUtil,
-    isScanning,
-} from '@libs/TransactionUtils';
+import {areRequiredFieldsEmpty, hasReceipt, isDistanceRequest as isDistanceRequestUtil, isMapDistanceRequest as isMapDistanceRequestUtil, isScanning} from '@libs/TransactionUtils';
 import withReportAndReportActionOrNotFound from '@pages/inbox/report/withReportAndReportActionOrNotFound';
 import type {WithReportAndReportActionOrNotFoundProps} from '@pages/inbox/report/withReportAndReportActionOrNotFound';
 import variables from '@styles/variables';
@@ -85,8 +77,6 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
     const isDistanceRequest = isDistanceRequestUtil(transaction);
     const isEditingSplitBill =
         session?.accountID === actorAccountID && (areRequiredFieldsEmpty(transaction, transactionReport) || (transaction?.amount === 0 && !hasReceipt(transaction))) && !isDistanceRequest;
-    const isManualDistanceRequest = isManualDistanceRequestUtil(transaction);
-    const isGPSDistanceRequest = isGPSDistanceRequestUtil(transaction);
     const isMapDistanceRequest = isMapDistanceRequestUtil(transaction);
     const [isConfirmed, setIsConfirmed] = useState(false);
 
@@ -143,9 +133,6 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
                                 shouldShowSmartScanFields
                                 receiptPath={transaction?.receipt?.source}
                                 receiptFilename={transaction?.receipt?.filename}
-                                isDistanceRequest={isDistanceRequest}
-                                isManualDistanceRequest={isManualDistanceRequest}
-                                isGPSDistanceRequest={isGPSDistanceRequest}
                                 isEditingSplitBill={isEditingSplitBill}
                                 hasSmartScanFailed={hasSmartScanFailed}
                                 reportID={reportID}

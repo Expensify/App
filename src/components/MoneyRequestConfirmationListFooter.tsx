@@ -1,7 +1,6 @@
 import {emailSelector} from '@selectors/Session';
 import {format} from 'date-fns';
 import {Str} from 'expensify-common';
-import {deepEqual} from 'fast-equals';
 import React, {memo, useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {LayoutChangeEvent} from 'react-native';
@@ -1454,52 +1453,4 @@ function MoneyRequestConfirmationListFooter({
     );
 }
 
-export default memo(
-    MoneyRequestConfirmationListFooter,
-    (prevProps, nextProps) =>
-        prevProps.action === nextProps.action &&
-        prevProps.distanceRateCurrency === nextProps.distanceRateCurrency &&
-        prevProps.didConfirm === nextProps.didConfirm &&
-        prevProps.distance === nextProps.distance &&
-        prevProps.formattedAmount === nextProps.formattedAmount &&
-        prevProps.formError === nextProps.formError &&
-        prevProps.hasRoute === nextProps.hasRoute &&
-        prevProps.iouCategory === nextProps.iouCategory &&
-        prevProps.iouComment === nextProps.iouComment &&
-        prevProps.iouCreated === nextProps.iouCreated &&
-        prevProps.iouCurrencyCode === nextProps.iouCurrencyCode &&
-        prevProps.iouIsBillable === nextProps.iouIsBillable &&
-        prevProps.iouMerchant === nextProps.iouMerchant &&
-        prevProps.iouType === nextProps.iouType &&
-        prevProps.isCategoryRequired === nextProps.isCategoryRequired &&
-        prevProps.isDistanceRequest === nextProps.isDistanceRequest &&
-        prevProps.isMerchantEmpty === nextProps.isMerchantEmpty &&
-        prevProps.isMerchantRequired === nextProps.isMerchantRequired &&
-        prevProps.isPolicyExpenseChat === nextProps.isPolicyExpenseChat &&
-        prevProps.isReadOnly === nextProps.isReadOnly &&
-        prevProps.isTypeInvoice === nextProps.isTypeInvoice &&
-        prevProps.onToggleBillable === nextProps.onToggleBillable &&
-        prevProps.policy === nextProps.policy &&
-        prevProps.policyTagLists === nextProps.policyTagLists &&
-        prevProps.rate === nextProps.rate &&
-        prevProps.receiptFilename === nextProps.receiptFilename &&
-        prevProps.receiptPath === nextProps.receiptPath &&
-        prevProps.reportActionID === nextProps.reportActionID &&
-        prevProps.reportID === nextProps.reportID &&
-        // eslint-disable-next-line rulesdir/no-deep-equal-in-memo -- selectedParticipants is derived with .map() which creates new array references
-        deepEqual(prevProps.selectedParticipants, nextProps.selectedParticipants) &&
-        prevProps.shouldDisplayFieldError === nextProps.shouldDisplayFieldError &&
-        prevProps.shouldDisplayReceipt === nextProps.shouldDisplayReceipt &&
-        prevProps.shouldShowCategories === nextProps.shouldShowCategories &&
-        prevProps.shouldShowMerchant === nextProps.shouldShowMerchant &&
-        prevProps.shouldShowSmartScanFields === nextProps.shouldShowSmartScanFields &&
-        prevProps.shouldShowTax === nextProps.shouldShowTax &&
-        prevProps.transaction === nextProps.transaction &&
-        prevProps.transactionID === nextProps.transactionID &&
-        prevProps.unit === nextProps.unit &&
-        prevProps.showMoreFields === nextProps.showMoreFields &&
-        prevProps.isTimeRequest === nextProps.isTimeRequest &&
-        prevProps.iouTimeCount === nextProps.iouTimeCount &&
-        prevProps.iouTimeRate === nextProps.iouTimeRate &&
-        prevProps.isLoadingReceipt === nextProps.isLoadingReceipt,
-);
+export default memo(MoneyRequestConfirmationListFooter);
