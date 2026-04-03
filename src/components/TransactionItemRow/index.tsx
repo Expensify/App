@@ -705,6 +705,7 @@ function TransactionItemRow({
                                 accessibilityLabel={CONST.ROLE.CHECKBOX}
                                 isChecked={isSelected}
                                 style={styles.mr3}
+                                containerStyle={styles.m0}
                                 wrapperStyle={styles.justifyContentCenter}
                                 sentryLabel={checkboxSentryLabel}
                             />
@@ -836,6 +837,7 @@ function TransactionItemRow({
                             }}
                             accessibilityLabel={CONST.ROLE.CHECKBOX}
                             isChecked={isSelected}
+                            containerStyle={styles.m0}
                             wrapperStyle={styles.justifyContentCenter}
                             sentryLabel={checkboxSentryLabel}
                         />
