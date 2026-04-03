@@ -570,7 +570,7 @@ function TransactionItemRow({
                 return (
                     <View
                         key={column}
-                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE, undefined, isAmountColumnWide)]}
+                        style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE, {isAmountColumnWide})]}
                     >
                         {shouldShowAttendees && (
                             <AmountCell
