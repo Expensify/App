@@ -5,6 +5,7 @@ import useOnyx from '@hooks/useOnyx';
 import {closeReactNativeApp} from '@libs/actions/HybridApp';
 import {setIsOpenConfirmNavigateExpensifyClassicModalOpen} from '@libs/actions/isOpenConfirmNavigateExpensifyClassicModal';
 import {openOldDotLink} from '@libs/actions/Link';
+import {isLockedToNewApp} from '@libs/TryNewDotUtils';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -12,6 +13,7 @@ import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 
 function BaseConfirmNavigateExpensifyClassicModal() {
     const [isOpenAppConfirmNavigateExpensifyClassicModalOpen = false] = useOnyx(ONYXKEYS.IS_OPEN_CONFIRM_NAVIGATE_EXPENSIFY_CLASSIC_MODAL_OPEN);
+    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {selector: isTrackingSelector});
     const {translate} = useLocalize();
 
@@ -31,7 +33,7 @@ function BaseConfirmNavigateExpensifyClassicModal() {
     return (
         <ConfirmModal
             prompt={translate('sidebarScreen.redirectToExpensifyClassicModal.description')}
-            isVisible={isOpenAppConfirmNavigateExpensifyClassicModalOpen}
+            isVisible={isOpenAppConfirmNavigateExpensifyClassicModalOpen && !(CONFIG.IS_HYBRID_APP && isLockedToNewApp(tryNewDot))}
             onConfirm={handleConfirm}
             onCancel={handleCancel}
             title={translate('sidebarScreen.redirectToExpensifyClassicModal.title')}

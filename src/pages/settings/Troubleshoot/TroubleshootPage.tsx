@@ -32,6 +32,7 @@ import {openTroubleshootSettingsPage} from '@libs/actions/User';
 import ExportOnyxState from '@libs/ExportOnyxState';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import {isOldAppRedirectBlocked} from '@libs/TryNewDotUtils';
 import colors from '@styles/theme/colors';
 import {clearOnyxAndResetApp} from '@userActions/App';
 import CONFIG from '@src/CONFIG';
@@ -116,7 +117,7 @@ function TroubleshootPage() {
     const surveyCompletedWithinLastMonth = getSurveyCompletedWithinLastMonth();
 
     const getClassicRedirectMenuItem = (): BaseMenuItem | null => {
-        if (tryNewDot?.classicRedirect?.isLockedToNewDot) {
+        if (isOldAppRedirectBlocked(tryNewDot, CONFIG.IS_HYBRID_APP)) {
             return null;
         }
 
