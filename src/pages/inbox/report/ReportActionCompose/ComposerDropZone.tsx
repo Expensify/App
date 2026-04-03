@@ -15,7 +15,8 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getParentReport, isChatRoom, isGroupChat, isInvoiceReport, isReportApproved, isSettled, temporary_getMoneyRequestOptions} from '@libs/ReportUtils';
 import {hasReceipt as hasReceiptTransactionUtils} from '@libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {useComposerSendState} from './ComposerContext';
+import useAttachmentPicker from './useAttachmentPicker';
+import useReceiptDrop from './useReceiptDrop';
 import useShouldAddOrReplaceReceipt from './useShouldAddOrReplaceReceipt';
 
 type ComposerDropZoneProps = {
@@ -128,26 +129,50 @@ function ComposerDropZone({reportID, children}: ComposerDropZoneProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const {isOffline} = useNetwork();
     const {shouldAddOrReplaceReceipt, transactionID} = useShouldAddOrReplaceReceipt(reportID, isOffline);
-    const {validateAttachments, onReceiptDropped} = useComposerSendState();
+    const {pickAttachments, PDFValidationComponent: AttachmentPDFValidation, ErrorModal: AttachmentErrorModal} = useAttachmentPicker(reportID);
+    const {
+        onReceiptDropped,
+        PDFValidationComponent: ReceiptPDFValidation,
+        ErrorModal: ReceiptErrorModal,
+    } = useReceiptDrop({
+        reportID,
+        report,
+        shouldAddOrReplaceReceipt,
+        transactionID,
+    });
 
-    const onAttachmentDrop = (dragEvent: DragEvent) => validateAttachments({dragEvent});
+    const onAttachmentDrop = (dragEvent: DragEvent) => pickAttachments({dragEvent});
 
     // Cheap gate: rooms, groups, and invoices never show the dual drop zone.
     // ~60% of chats hit this path with zero extra subscriptions.
     if (isChatRoom(report) || isGroupChat(report) || isInvoiceReport(report)) {
-        return <SimpleDropZone onAttachmentDrop={onAttachmentDrop}>{children}</SimpleDropZone>;
+        return (
+            <>
+                <SimpleDropZone onAttachmentDrop={onAttachmentDrop}>{children}</SimpleDropZone>
+                {AttachmentPDFValidation}
+                {AttachmentErrorModal}
+                {ReceiptPDFValidation}
+                {ReceiptErrorModal}
+            </>
+        );
     }
 
     return (
-        <RichDropZone
-            reportID={reportID}
-            shouldAddOrReplaceReceipt={shouldAddOrReplaceReceipt}
-            transactionID={transactionID}
-            onAttachmentDrop={onAttachmentDrop}
-            onReceiptDrop={onReceiptDropped}
-        >
-            {children}
-        </RichDropZone>
+        <>
+            <RichDropZone
+                reportID={reportID}
+                shouldAddOrReplaceReceipt={shouldAddOrReplaceReceipt}
+                transactionID={transactionID}
+                onAttachmentDrop={onAttachmentDrop}
+                onReceiptDrop={onReceiptDropped}
+            >
+                {children}
+            </RichDropZone>
+            {AttachmentPDFValidation}
+            {AttachmentErrorModal}
+            {ReceiptPDFValidation}
+            {ReceiptErrorModal}
+        </>
     );
 }
 

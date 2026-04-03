@@ -11,6 +11,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {useComposerActions, useComposerMeta, useComposerSendActions, useComposerSendState, useComposerState} from './ComposerContext';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
+import useAttachmentPicker from './useAttachmentPicker';
 import useComposerSubmit from './useComposerSubmit';
 
 type ComposerInputWrapperProps = {
@@ -20,7 +21,8 @@ type ComposerInputWrapperProps = {
 function ComposerInputWrapper({reportID}: ComposerInputWrapperProps) {
     const {translate} = useLocalize();
     const {isMenuVisible} = useComposerState();
-    const {isBlockedFromConcierge, validateAttachments} = useComposerSendState();
+    const {isBlockedFromConcierge} = useComposerSendState();
+    const {pickAttachments, PDFValidationComponent, ErrorModal} = useAttachmentPicker(reportID);
     const {setIsFullComposerAvailable, onBlur, onFocus, setComposerRef} = useComposerActions();
     const {handleSendMessage, onValueChange} = useComposerSendActions();
     const {containerRef, suggestionsRef, isNextModalWillOpenRef, attachmentFileRef} = useComposerMeta();
@@ -45,31 +47,35 @@ function ComposerInputWrapper({reportID}: ComposerInputWrapperProps) {
     const fsClass = report ? FS.getChatFSClass(report) : undefined;
 
     return (
-        <ComposerWithSuggestions
-            ref={setComposerRef}
-            suggestionsRef={suggestionsRef}
-            isNextModalWillOpenRef={isNextModalWillOpenRef}
-            isScrollLikelyLayoutTriggered={isScrollLayoutTriggered}
-            raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLayoutTriggered}
-            reportID={reportID}
-            policyID={report?.policyID}
-            includeChronos={chatIncludesChronos(report)}
-            isGroupPolicyReport={isGroupPolicyReport}
-            isMenuVisible={isMenuVisible}
-            inputPlaceholder={inputPlaceholder}
-            isComposerFullSize={isComposerFullSize}
-            setIsFullComposerAvailable={setIsFullComposerAvailable}
-            onPasteFile={(files) => validateAttachments({files})}
-            onClear={submitForm}
-            disabled={isBlockedFromConcierge || isEmojiPickerVisible()}
-            onEnterKeyPress={handleSendMessage}
-            shouldShowComposeInput={shouldShowComposeInput}
-            onFocus={onFocus}
-            onBlur={onBlur}
-            measureParentContainer={measureContainer}
-            onValueChange={onValueChange}
-            forwardedFSClass={fsClass}
-        />
+        <>
+            <ComposerWithSuggestions
+                ref={setComposerRef}
+                suggestionsRef={suggestionsRef}
+                isNextModalWillOpenRef={isNextModalWillOpenRef}
+                isScrollLikelyLayoutTriggered={isScrollLayoutTriggered}
+                raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLayoutTriggered}
+                reportID={reportID}
+                policyID={report?.policyID}
+                includeChronos={chatIncludesChronos(report)}
+                isGroupPolicyReport={isGroupPolicyReport}
+                isMenuVisible={isMenuVisible}
+                inputPlaceholder={inputPlaceholder}
+                isComposerFullSize={isComposerFullSize}
+                setIsFullComposerAvailable={setIsFullComposerAvailable}
+                onPasteFile={(files) => pickAttachments({files})}
+                onClear={submitForm}
+                disabled={isBlockedFromConcierge || isEmojiPickerVisible()}
+                onEnterKeyPress={handleSendMessage}
+                shouldShowComposeInput={shouldShowComposeInput}
+                onFocus={onFocus}
+                onBlur={onBlur}
+                measureParentContainer={measureContainer}
+                onValueChange={onValueChange}
+                forwardedFSClass={fsClass}
+            />
+            {PDFValidationComponent}
+            {ErrorModal}
+        </>
     );
 }
 

@@ -3,9 +3,12 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useIsScrollLikelyLayoutTriggered from '@hooks/useIsScrollLikelyLayoutTriggered';
 import useOnyx from '@hooks/useOnyx';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
+import {chatIncludesConcierge} from '@libs/ReportUtils';
+import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
 import ONYXKEYS from '@src/ONYXKEYS';
 import AttachmentPickerWithMenuItems from './AttachmentPickerWithMenuItems';
 import {useComposerActions, useComposerMeta, useComposerSendState, useComposerState} from './ComposerContext';
+import useAttachmentPicker from './useAttachmentPicker';
 
 type ComposerActionMenuProps = {
     reportID: string;
@@ -14,7 +17,7 @@ type ComposerActionMenuProps = {
 function ComposerActionMenu({reportID}: ComposerActionMenuProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isMenuVisible, isFullComposerAvailable} = useComposerState();
-    const {isBlockedFromConcierge, exceededMaxLength, validateAttachments} = useComposerSendState();
+    const {exceededMaxLength} = useComposerSendState();
     const {setMenuVisibility, focus, onAddActionPressed, onItemSelected, onTriggerAttachmentPicker} = useComposerActions();
     const {actionButtonRef} = useComposerMeta();
 
@@ -24,6 +27,9 @@ function ComposerActionMenu({reportID}: ComposerActionMenuProps) {
     const {raiseIsScrollLayoutTriggered} = useIsScrollLikelyLayoutTriggered();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
+    const isBlockedFromConcierge = chatIncludesConcierge({participants: report?.participants}) && isBlockedFromConciergeUserAction(blockedFromConcierge);
+    const {pickAttachments, PDFValidationComponent, ErrorModal} = useAttachmentPicker(reportID);
 
     const reportParticipantIDs = Object.keys(report?.participants ?? {})
         .map(Number)
@@ -32,30 +38,34 @@ function ComposerActionMenu({reportID}: ComposerActionMenuProps) {
     const shouldFocusComposerOnScreenFocus = canFocusInputOnScreenFocus() || !!draftComment;
 
     return (
-        <AttachmentPickerWithMenuItems
-            onAttachmentPicked={(files) => validateAttachments({files})}
-            reportID={reportID}
-            report={report}
-            currentUserPersonalDetails={currentUserPersonalDetails}
-            reportParticipantIDs={reportParticipantIDs}
-            isFullComposerAvailable={isFullComposerAvailable}
-            isComposerFullSize={isComposerFullSize}
-            disabled={isBlockedFromConcierge}
-            setMenuVisibility={setMenuVisibility}
-            isMenuVisible={isMenuVisible}
-            onTriggerAttachmentPicker={onTriggerAttachmentPicker}
-            raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLayoutTriggered}
-            onAddActionPressed={onAddActionPressed}
-            onItemSelected={onItemSelected}
-            onCanceledAttachmentPicker={() => {
-                if (!shouldFocusComposerOnScreenFocus) {
-                    return;
-                }
-                focus();
-            }}
-            actionButtonRef={actionButtonRef}
-            shouldDisableAttachmentItem={!!exceededMaxLength}
-        />
+        <>
+            <AttachmentPickerWithMenuItems
+                onAttachmentPicked={(files) => pickAttachments({files})}
+                reportID={reportID}
+                report={report}
+                currentUserPersonalDetails={currentUserPersonalDetails}
+                reportParticipantIDs={reportParticipantIDs}
+                isFullComposerAvailable={isFullComposerAvailable}
+                isComposerFullSize={isComposerFullSize}
+                disabled={isBlockedFromConcierge}
+                setMenuVisibility={setMenuVisibility}
+                isMenuVisible={isMenuVisible}
+                onTriggerAttachmentPicker={onTriggerAttachmentPicker}
+                raiseIsScrollLikelyLayoutTriggered={raiseIsScrollLayoutTriggered}
+                onAddActionPressed={onAddActionPressed}
+                onItemSelected={onItemSelected}
+                onCanceledAttachmentPicker={() => {
+                    if (!shouldFocusComposerOnScreenFocus) {
+                        return;
+                    }
+                    focus();
+                }}
+                actionButtonRef={actionButtonRef}
+                shouldDisableAttachmentItem={!!exceededMaxLength}
+            />
+            {PDFValidationComponent}
+            {ErrorModal}
+        </>
     );
 }
 
