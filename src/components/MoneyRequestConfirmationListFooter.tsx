@@ -508,7 +508,7 @@ function MoneyRequestConfirmationListFooter({
 
     const mentionReportContextValue = useMemo(() => ({currentReportID: reportID, exactlyMatch: true}), [reportID]);
 
-    const isRateInteractive = !!rate && !isReadOnly && (!isUnreported || isTrackExpense) && iouType !== CONST.IOU.TYPE.SPLIT;
+    const isRateInteractive = !!rate && !isReadOnly && iouType !== CONST.IOU.TYPE.SPLIT;
 
     const getCategoryRightLabelIcon = useCallback(() => (willFieldBeAutomaticallyFilled(transaction, 'category') ? icons.Sparkles : undefined), [transaction, icons.Sparkles]);
     const getCategoryRightLabel = useCallback(() => {
@@ -738,7 +738,7 @@ function MoneyRequestConfirmationListFooter({
                             return;
                         }
 
-                        if (!isPolicyExpenseChat) {
+                        if ((!isPolicyExpenseChat && !isTrackExpense) || (shouldNavigateToUpgradePath && isTrackExpense)) {
                             Navigation.navigate(
                                 ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
                                     action,
@@ -747,12 +747,18 @@ function MoneyRequestConfirmationListFooter({
                                     reportID,
                                     upgradePath: CONST.UPGRADE_PATHS.DISTANCE_RATES,
                                     backTo: Navigation.getActiveRoute(),
-                                    shouldSubmitExpense: true,
+                                    shouldSubmitExpense: !isTrackExpense,
                                 }),
                             );
-                            return;
+                        } else if (!policy && shouldSelectPolicy && isTrackExpense) {
+                            Navigation.navigate(
+                                ROUTES.SET_DEFAULT_WORKSPACE.getRoute(
+                                    ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID),
+                                ),
+                            );
+                        } else {
+                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
                         }
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
                     }}
                     brickRoadIndicator={shouldDisplayDistanceRateError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     disabled={didConfirm}

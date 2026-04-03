@@ -309,6 +309,7 @@ type InitMoneyRequestParams = {
     currentDate: string | undefined;
     lastSelectedDistanceRates?: OnyxEntry<OnyxTypes.LastSelectedDistanceRates>;
     currentUserPersonalDetails: CurrentUserPersonalDetails;
+    isTrackDistanceExpense?: boolean;
     hasOnlyPersonalPolicies: boolean;
     draftTransactionIDs?: string[];
 };
@@ -1287,6 +1288,7 @@ function initMoneyRequest({
     policy,
     personalPolicy,
     isFromGlobalCreate,
+    isTrackDistanceExpense = false,
     isFromFloatingActionButton,
     currentIouRequestType,
     newIouRequestType,
@@ -1337,7 +1339,7 @@ function initMoneyRequest({
     ) {
         if (!isFromGlobalCreate) {
             const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(report) || isPolicyExpenseChatReportUtil(parentReport);
-            const customUnitRateID = DistanceRequestUtils.getCustomUnitRateID({reportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates});
+            const customUnitRateID = DistanceRequestUtils.getCustomUnitRateID({reportID, isPolicyExpenseChat, isTrackDistanceExpense, policy, lastSelectedDistanceRates});
             comment.customUnit = {customUnitRateID, name: CONST.CUSTOM_UNITS.NAME_DISTANCE};
         } else if (hasOnlyPersonalPolicies) {
             comment.customUnit = {customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID, name: CONST.CUSTOM_UNITS.NAME_DISTANCE};
@@ -1617,7 +1619,7 @@ function setCustomUnitRateID(transactionID: string, customUnitRateID: string | u
 
     if (customUnitRateID && transaction) {
         const distanceRate = isFakeP2PRate
-            ? DistanceRequestUtils.getRate({transaction, useTransactionDistanceUnit: false, policy})
+            ? DistanceRequestUtils.getRate({transaction: undefined, policy: undefined, useTransactionDistanceUnit: false, isFakeP2PRate: true})
             : DistanceRequestUtils.getRateByCustomUnitRateID({policy, customUnitRateID});
 
         const transactionDistanceUnit = transaction.comment?.customUnit?.distanceUnit;
@@ -1639,7 +1641,6 @@ function setCustomUnitRateID(transactionID: string, customUnitRateID: string | u
             }
         }
     }
-
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
         comment: {
             customUnit: {
@@ -4751,7 +4752,7 @@ function getUpdateTrackExpenseParams(
 
     const hasPendingWaypoints = 'waypoints' in transactionChanges;
     const hasModifiedDistanceRate = 'customUnitRateID' in transactionChanges;
-    if (transaction && updatedTransaction && (hasPendingWaypoints || hasModifiedDistanceRate)) {
+    if (transaction && updatedTransaction && hasPendingWaypoints) {
         // Delete the draft transaction when editing waypoints when the server responds successfully and there are no errors
         successData.push({
             onyxMethod: Onyx.METHOD.SET,
@@ -5526,6 +5527,7 @@ function updateMoneyRequestDistanceRate({
     isASAPSubmitBetaEnabled,
     updatedTaxAmount,
     updatedTaxCode,
+    updatedTaxValue,
     parentReportNextStep,
 }: {
     transaction: OnyxEntry<OnyxTypes.Transaction>;
@@ -5540,12 +5542,14 @@ function updateMoneyRequestDistanceRate({
     isASAPSubmitBetaEnabled: boolean;
     updatedTaxAmount?: number;
     updatedTaxCode?: string;
+    updatedTaxValue?: string;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
 }) {
     const transactionChanges: TransactionChanges = {
         customUnitRateID: rateID,
         ...(typeof updatedTaxAmount === 'number' ? {taxAmount: updatedTaxAmount} : {}),
         ...(updatedTaxCode ? {taxCode: updatedTaxCode} : {}),
+        ...(updatedTaxValue ? {taxValue: updatedTaxValue} : {}),
     };
 
     if (transaction?.transactionID) {
@@ -6990,6 +6994,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 createdReportActionIDForThread,
                 waypoints: sanitizedWaypoints,
                 customUnitRateID,
+                ...(policy && customUnitRateID && customUnitRateID !== CONST.CUSTOM_UNITS.FAKE_P2P_ID && {policyID: policy?.id}),
                 description: parsedComment,
                 gpsCoordinates,
                 isDistance:
@@ -11842,6 +11847,10 @@ function setMoneyRequestTaxRate(transactionID: string, taxCode: string | null, i
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {taxCode});
 }
 
+function setMoneyRequestTaxValue(transactionID: string, taxValue: string | null, isDraft = true) {
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {taxValue});
+}
+
 function setMoneyRequestTaxAmount(transactionID: string, taxAmount: number | null, isDraft = true) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {taxAmount});
 }
@@ -14025,6 +14034,7 @@ export {
     setMoneyRequestTag,
     setMoneyRequestTaxAmount,
     setMoneyRequestTaxRate,
+    setMoneyRequestTaxValue,
     setMoneyRequestTaxRateValues,
     startMoneyRequest,
     submitReport,
