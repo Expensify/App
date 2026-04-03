@@ -384,6 +384,7 @@ describe('MoneyRequest', () => {
                 taxRates: {
                     defaultExternalID: 'TAX_DEFAULT_123',
                     foreignTaxDefault: 'TAX_FOREIGN_456',
+                    defaultValue: '',
                     name: 'Tax',
                     taxes: {},
                 },
@@ -419,6 +420,7 @@ describe('MoneyRequest', () => {
                 taxRates: {
                     defaultExternalID: 'TAX_DEFAULT_789',
                     foreignTaxDefault: 'TAX_FOREIGN_012',
+                    defaultValue: '',
                     name: 'Tax',
                     taxes: {},
                 },
@@ -454,6 +456,7 @@ describe('MoneyRequest', () => {
                 taxRates: {
                     defaultExternalID: 'TAX_DEFAULT_SHOULD_NOT_USE',
                     foreignTaxDefault: 'TAX_FOREIGN_SHOULD_NOT_USE',
+                    defaultValue: '',
                     name: 'Tax',
                     taxes: {},
                 },
