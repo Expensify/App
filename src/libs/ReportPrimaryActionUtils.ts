@@ -162,7 +162,7 @@ function isSubmitAction(
 
     const submitToAccountID = getSubmitToAccountID(policy, report);
 
-    if (policy?.preventSelfApproval && submitToAccountID === report.ownerAccountID && !isReportSubmitter) {
+    if (policy?.preventSelfApproval && submitToAccountID === report.ownerAccountID) {
         return false;
     }
 

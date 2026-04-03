@@ -1,5 +1,6 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {isApproveAction, isExportAction, isPrimaryPayAction, isSubmitAction} from '@libs/ReportPrimaryActionUtils';
+import {hasHeldExpenses} from '@libs/ReportUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -76,7 +77,8 @@ const createTodosReportsAndTransactions = ({
                 bankAccountList,
                 policy,
                 reportNameValuePairs: chatReportNameValuePair,
-            })
+            }) &&
+            !hasHeldExpenses(report.reportID, reportTransactions)
         ) {
             reportsToPay.push(report);
         }
