@@ -1816,7 +1816,7 @@ const translations = {
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Waiting for <strong>your</strong> expenses to automatically submit${formattedETA}.`;
+                        return `Waiting for your expenses to automatically submit${formattedETA}.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `Waiting for <strong>${actor}'s</strong> expenses to automatically submit${formattedETA}.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
