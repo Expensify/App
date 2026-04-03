@@ -35,9 +35,7 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
 
     const shouldFocusComposerOnScreenFocus = shouldFocusInputOnScreenFocus || !!draftComment;
 
-    const [isFocused, setIsFocused] = useState(() => {
-        return shouldFocusComposerOnScreenFocus && shouldShowComposeInput && !initialModalState?.isVisible && !initialModalState?.willAlertModalBecomeVisible;
-    });
+    const initialFocused = shouldFocusComposerOnScreenFocus && shouldShowComposeInput && !initialModalState?.isVisible && !initialModalState?.willAlertModalBecomeVisible;
 
     const [isFullComposerAvailable, setIsFullComposerAvailable] = useState(isComposerFullSize);
     const [isMenuVisible, setMenuVisibility] = useState(false);
@@ -85,11 +83,11 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
 
     const composerRefShared = useSharedValue<Partial<ComposerRef>>({});
 
-    const {onBlur, onFocus, focus, onAddActionPressed, onItemSelected, onTriggerAttachmentPicker, isNextModalWillOpenRef} = useComposerFocus({
+    const {isFocused, onBlur, onFocus, focus, onAddActionPressed, onItemSelected, onTriggerAttachmentPicker, isNextModalWillOpenRef} = useComposerFocus({
         composerRef,
         suggestionsRef,
         actionButtonRef,
-        setIsFocused,
+        initialFocused,
     });
 
     const clearComposer = () => {
