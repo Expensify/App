@@ -11564,7 +11564,7 @@ function detachReceipt(
     transactionID: string | undefined,
     transactionPolicy: OnyxEntry<OnyxTypes.Policy>,
     transactionPolicyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
-    transactionPolicyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
+    transactionPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
     if (!transactionID) {
         return;
