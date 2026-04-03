@@ -824,6 +824,9 @@ const translations: TranslationDeepObject<typeof en> = {
         emoji: 'Émoji',
         collapse: 'Réduire',
         expand: 'Agrandir',
+        askConciergeToUpdate: 'Essayez « Mettre à jour une dépense »…',
+        askConciergeToCorrect: 'Essayez « Corriger une dépense »...',
+        askConciergeForHelp: "Demander de l'aide à Concierge IA…",
     },
     reportActionContextMenu: {
         copyMessage: 'Copier le message',
@@ -2311,6 +2314,7 @@ const translations: TranslationDeepObject<typeof en> = {
         enableWallet: 'Activer le portefeuille',
         addBankAccountToSendAndReceive: 'Ajoutez un compte bancaire pour effectuer ou recevoir des paiements.',
         addDebitOrCreditCard: 'Ajouter une carte de débit ou de crédit',
+        cardInactive: 'Inactif',
         assignedCards: 'Cartes assignées',
         assignedCardsDescription: 'Les transactions de ces cartes se synchronisent automatiquement.',
         expensifyCard: 'Carte Expensify',
@@ -3868,6 +3872,8 @@ ${amount} pour ${merchant} - ${date}`,
             `est en train de connecter un compte bancaire professionnel en ${currency} se terminant par ${bankAccountLastFour} à Expensify pour payer des employés en ${currency}. L’étape suivante nécessite les informations de signature d’un directeur.`,
         error: {
             emailsMustBeDifferent: 'Les e-mails doivent être différents',
+            connectToWorkspace: (workspaceRoute: string) =>
+                `Veuillez connecter ce compte bancaire à un <a href="${workspaceRoute}">espace de travail</a> pour inviter un directeur à signer.`,
         },
     },
     agreementsStep: {
@@ -6749,6 +6755,24 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             customRules: {
                 title: 'Politique de dépenses',
                 cardSubtitle: 'C’est ici que se trouve la politique de dépenses de votre équipe, pour que tout le monde soit d’accord sur ce qui est couvert.',
+            },
+            spendRules: {
+                title: 'Dépenser',
+                subtitle: 'Approuvez ou refusez les transactions Carte Expensify en temps réel.',
+                defaultRuleDescription: 'Toutes les cartes',
+                block: 'Bloquer',
+                defaultRuleTitle: 'Catégories : services pour adultes, DAB, jeux d’argent, transferts d’argent',
+                builtInProtectionModal: {
+                    title: 'Les Cartes Expensify offrent une protection intégrée – en permanence',
+                    description: `Expensify refuse toujours ces dépenses :
+
+  • Services pour adultes
+  • DAB
+  • Jeux d’argent
+  • Transferts d’argent
+
+Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’entreprise.`,
+                },
             },
         },
         planTypePage: {
