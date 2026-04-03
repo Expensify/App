@@ -579,7 +579,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         return !canIOUBePaid && getCanIOUBePaid(true);
     }, [canIOUBePaid, getCanIOUBePaid, reportHasOnlyNonReimbursableTransactions]);
 
-    const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere || reportHasOnlyNonReimbursableTransactions;
+    const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere || (reportHasOnlyNonReimbursableTransactions && (moneyRequestReport?.total ?? 0) !== 0);
 
     const shouldShowApproveButton = useMemo(
         () => (canApproveIOU(moneyRequestReport, policy, reportMetadata, transactions) && !hasOnlyPendingTransactions) || isApprovedAnimationRunning,
