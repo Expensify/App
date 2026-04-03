@@ -1,7 +1,7 @@
 import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
-import type {OpenReportParams, UpdateCommentParams} from '@libs/API/parameters';
+import type {DetachReceiptParams, OpenReportParams, UpdateCommentParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import type {ApiRequestCommandParameters} from '@libs/API/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -227,6 +227,38 @@ function resolveEnableFeatureConflicts<TKey extends OnyxKey>(
     };
 }
 
+function resolveDetachReceiptConflicts<TKey extends OnyxKey>(persistedRequests: Array<OnyxRequest<TKey>>, parameters: DetachReceiptParams): ConflictActionData {
+    const indicesToDelete: number[] = [];
+    for (const [index, request] of persistedRequests.entries()) {
+        if (request.command !== WRITE_COMMANDS.REPLACE_RECEIPT || request.data?.transactionID !== parameters.transactionID) {
+            continue;
+        }
+        indicesToDelete.push(index);
+    }
+
+    // In the case the transaction doesn't have the receipt, remove all the replace receipt requests will make the detach receipt request invalid
+    // So we should keep the last replace receipt request to ensure the detach receipt request is always valid
+    if (indicesToDelete.length >= 1) {
+        indicesToDelete.pop();
+    }
+
+    if (indicesToDelete.length === 0) {
+        return {
+            conflictAction: {
+                type: 'push',
+            },
+        };
+    }
+
+    return {
+        conflictAction: {
+            type: 'delete',
+            indices: indicesToDelete,
+            pushNewRequest: true,
+        },
+    };
+}
+
 export {
     resolveDuplicationConflictAction,
     resolveOpenReportDuplicationConflictAction,
@@ -235,6 +267,7 @@ export {
     createUpdateCommentMatcher,
     resolveEnableFeatureConflicts,
     enablePolicyFeatureCommand,
+    resolveDetachReceiptConflicts,
 };
 
 export type {EnablePolicyFeatureCommand, AnyRequestMatcher};

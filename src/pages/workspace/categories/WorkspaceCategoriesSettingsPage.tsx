@@ -6,8 +6,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
 import SpendCategorySelectorListItem from '@components/SelectionList/ListItem/SpendCategorySelectorListItem';
-import type {ListItem} from '@components/SelectionList/ListItem/types';
-import type {ListItem as SelectionListWithSectionsListItem} from '@components/SelectionListWithSections/types';
+import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import usePolicyData from '@hooks/usePolicyData';
@@ -72,12 +71,12 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
     const hasEnabledCategories = hasEnabledOptions(policyData.categories);
     const isToggleDisabled = !policy?.areCategoriesEnabled || !hasEnabledCategories || isConnectedToAccounting;
 
-    const setNewCategory = (selectedCategory: SelectionListWithSectionsListItem, currentGroupID: string) => {
+    const setNewCategory = (selectedCategory: ListItem, currentGroupID: string) => {
         if (!selectedCategory.keyForList) {
             return;
         }
         if (categoryID !== selectedCategory.keyForList) {
-            setWorkspaceDefaultSpendCategory(policyID, currentGroupID, selectedCategory.keyForList);
+            setWorkspaceDefaultSpendCategory(policyID, currentGroupID, selectedCategory.keyForList, policy?.mccGroup);
         }
 
         Keyboard.dismiss();

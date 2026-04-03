@@ -1,15 +1,11 @@
 import React from 'react';
-import {View} from 'react-native';
-import Icon from '@components/Icon';
-import {PressableWithoutFeedback} from '@components/Pressable';
+import Button from '@components/Button';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID} from '@libs/ReportUtils';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -18,8 +14,7 @@ function FloatingGpsButton() {
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
     const {translate} = useLocalize();
 
-    const icons = useMemoizedLazyExpensifyIcons(['Location'] as const);
-    const {textMutedReversed} = useTheme();
+    const icons = useMemoizedLazyExpensifyIcons(['Crosshair']);
     const styles = useThemeStyles();
 
     if (!gpsDraftDetails?.isTracking) {
@@ -32,26 +27,17 @@ function FloatingGpsButton() {
     };
 
     return (
-        <PressableWithoutFeedback
-            style={[styles.navigationTabBarFABItem, styles.ph0, styles.userSelectNone, styles.floatingGpsButton]}
-            accessibilityLabel={translate('gps.fabGpsTripExplained')}
+        <Button
+            text={translate('gps.gpsFloatingPillText')}
+            icon={icons.Crosshair}
             onPress={navigateToGpsScreen}
-            role={CONST.ROLE.BUTTON}
+            success
+            small
+            style={[styles.floatingGpsButton]}
             testID="floating-gps-button"
+            accessibilityLabel={translate('gps.gpsFloatingPillText')}
             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.FLOATING_GPS_BUTTON}
-        >
-            <View
-                style={styles.floatingSecondaryActionButton}
-                testID="floating-gps-button-container"
-            >
-                <Icon
-                    fill={textMutedReversed}
-                    src={icons.Location}
-                    width={variables.iconSizeNormal}
-                    height={variables.iconSizeNormal}
-                />
-            </View>
-        </PressableWithoutFeedback>
+        />
     );
 }
 
