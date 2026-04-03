@@ -85,7 +85,7 @@ type SendInvoiceOptions = {
     policyRecentlyUsedCategories?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
     policyRecentlyUsedTags?: OnyxEntry<OnyxTypes.RecentlyUsedTags>;
     isFromGlobalCreate?: boolean;
-    senderPolicyTags?: OnyxTypes.PolicyTagLists;
+    senderPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
 };
 
 type BuildOnyxDataForInvoiceParams = {
@@ -767,7 +767,7 @@ function sendInvoice({
         companyWebsite,
         policyRecentlyUsedCategories,
         policyRecentlyUsedTags,
-        senderPolicyTags,
+        senderPolicyTags: senderPolicyTags ?? {},
     });
 
     const parameters: SendInvoiceParams = {

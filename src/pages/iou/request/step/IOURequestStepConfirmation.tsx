@@ -1447,6 +1447,7 @@ function IOURequestStepConfirmation({
             existingInvoiceReport,
             policy,
             policyTags,
+            senderWorkspacePolicyTags,
             policyCategories,
             trackExpense,
             userLocation,
