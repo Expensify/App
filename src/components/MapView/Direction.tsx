@@ -22,7 +22,7 @@ function Direction({coordinates}: DirectionProps) {
         >
             <Mapbox.LineLayer
                 id="routeFill"
-                style={styles.mapDirection}
+                style={{...styles.mapDirection, lineOpacity: 0.8}}
             />
         </Mapbox.ShapeSource>
     );
