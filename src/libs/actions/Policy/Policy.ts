@@ -2317,11 +2317,11 @@ function buildOptimisticDistanceRateCustomUnits(reportCurrency?: string): Optimi
  */
 function createDraftInitialWorkspace(
     introSelected: OnyxEntry<IntroSelected>,
+    currency: string,
     policyOwnerEmail = '',
     policyName = '',
     policyID = generatePolicyID(),
     makeMeAdmin = false,
-    currency = '',
     file?: File,
     type: typeof CONST.POLICY.TYPE.TEAM | typeof CONST.POLICY.TYPE.CORPORATE = CONST.POLICY.TYPE.TEAM,
 ) {
