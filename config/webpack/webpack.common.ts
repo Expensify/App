@@ -246,6 +246,8 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 {
                     test: /\.(js|ts)x?$/,
                     loader: 'babel-loader',
+                    // Skip for imports that use `?raw` so their contents remain identical to the original file on disk
+                    resourceQuery: {not: [/raw/]},
 
                     /**
                      * Exclude node_modules except any packages we need to convert for rendering HTML because they import
@@ -256,12 +258,6 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                      * use JSX/JS that needs to be transformed by babel.
                      */
                     exclude: [new RegExp(`node_modules/(?!(${includeModules})/).*|\\.native\\.(js|jsx|ts|tsx)$`)],
-                },
-                // We are importing this worker as a string by using asset/source otherwise it will default to loading via an HTTPS request later.
-                // This causes issues if we have gone offline before the pdfjs web worker is set up as we won't be able to load it from the server.
-                {
-                    test: new RegExp('node_modules/pdfjs-dist/legacy/build/pdf.worker.min.mjs'),
-                    type: 'asset/source',
                 },
 
                 // Rule for react-native-web-webview
@@ -330,8 +326,6 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 'victory-native': path.resolve(dirname, '../../node_modules/victory-native/src/index.ts'),
                 // Required for @shopify/react-native-skia web support
                 'react-native/Libraries/Image/AssetRegistry': false,
-                // Use legacy build of pdfjs-dist to support older browsers
-                'pdfjs-dist$': path.resolve(dirname, '../../node_modules/pdfjs-dist/legacy/build/pdf.mjs'),
                 // Module alias for web
                 // https://webpack.js.org/configuration/resolve/#resolvealias
                 '@assets': path.resolve(dirname, '../../assets'),

@@ -1,14 +1,19 @@
 // eslint-disable-next-line import/extensions
-import pdfWorkerSource from 'pdfjs-dist/legacy/build/pdf.worker.min.mjs';
+import pdfWorkerSource from 'pdfjs-dist/build/pdf.worker.min.mjs?raw';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {Document, pdfjs, Thumbnail} from 'react-pdf';
 import LoadingIndicator from '@components/LoadingIndicator';
 import useThemeStyles from '@hooks/useThemeStyles';
+import '@src/polyfills/Map';
+import mapPolyfillsSource from '@src/polyfills/Map?raw';
+import '@src/polyfills/ReadableStream';
 import PDFThumbnailError from './PDFThumbnailError';
 import type PDFThumbnailProps from './types';
 
-pdfjs.GlobalWorkerOptions.workerSrc = URL.createObjectURL(new Blob([pdfWorkerSource], {type: 'text/javascript'}));
+// The worker is imported as a string using ?raw + Blob otherwise it will default to loading via an HTTPS request.
+// This causes issues if we have gone offline before the pdfjs web worker is set up, as we won't be able to load it from the server.
+pdfjs.GlobalWorkerOptions.workerSrc = URL.createObjectURL(new Blob([`${mapPolyfillsSource}\n${pdfWorkerSource}`], {type: 'text/javascript'}));
 
 function PDFThumbnail({previewSourceURL, style, enabled = true, onPassword, onLoadError, onLoadSuccess}: PDFThumbnailProps) {
     const styles = useThemeStyles();
