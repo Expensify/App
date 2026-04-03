@@ -1000,8 +1000,6 @@ describe('Transaction', () => {
                 reportNextStep: undefined,
                 policyCategories: undefined,
                 allTransactions,
-                translate: TestHelper.translateLocal,
-                toLocaleDigit: TestHelper.toLocaleDigit,
             });
 
             await waitForBatchedUpdates();

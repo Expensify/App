@@ -10,7 +10,7 @@ import {replaceAllDigits} from './MoneyRequestUtils';
 // This will be fixed as part of https://github.com/Expensify/App/issues/66397
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, getPersonalPolicy, getUnitRateValue} from './PolicyUtils';
-import {getCurrency, getRateID, isCustomUnitRateIDForP2P, isExpenseUnreported} from './TransactionUtils';
+import {getCurrency, getRateID, isCustomUnitRateIDForP2P} from './TransactionUtils';
 
 type MileageRate = {
     customUnitRateID?: string;
