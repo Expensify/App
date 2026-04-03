@@ -108,6 +108,6 @@ describe('findMatchingDynamicSuffix', () => {
     });
 
     it('should match keyboard-shortcuts dynamic suffix', () => {
-        expect(findMatchingDynamicSuffix('settings/about/keyboard-shortcuts')).toBe('keyboard-shortcuts');
+        expect(findMatchingDynamicSuffix('settings/about/keyboard-shortcuts')?.actualSuffix).toEqual('keyboard-shortcuts');
     });
 });
