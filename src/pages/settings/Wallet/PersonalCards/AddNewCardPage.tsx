@@ -6,6 +6,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {setAddNewPersonalCardStepAndData} from '@libs/actions/PersonalCards';
 import {navigateToConciergeChat} from '@libs/actions/Report';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {clearAddNewPersonalCardFlow} from '@userActions/PersonalCards';
@@ -68,6 +69,17 @@ function AddPersonalNewCardPage() {
             break;
     }
 
+    const onActionPress = (isConfirm?: boolean) => {
+        setIsModalVisible(false);
+        const isUSCountry = addNewPersonalCardFeed?.data?.selectedCountry === CONST.COUNTRY.US;
+        setAddNewPersonalCardStepAndData({
+            step: isUSCountry ? CONST.PERSONAL_CARDS.STEP.SELECT_BANK : CONST.PERSONAL_CARDS.STEP.SELECT_COUNTRY,
+        });
+        if (!isConfirm) {
+            navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, false, betas);
+        }
+    };
+
     return (
         <>
             <View style={styles.flex1}>{CurrentStep}</View>
@@ -78,11 +90,8 @@ function AddPersonalNewCardPage() {
                 confirmText={translate('workspace.companyCards.addNewCard.exitModal.confirmText')}
                 cancelText={translate('workspace.companyCards.addNewCard.exitModal.cancelText')}
                 prompt={translate('workspace.companyCards.addNewCard.exitModal.prompt')}
-                onCancel={() => setIsModalVisible(false)}
-                onConfirm={() => {
-                    setIsModalVisible(false);
-                    navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, false, betas);
-                }}
+                onCancel={onActionPress}
+                onConfirm={() => onActionPress(true)}
             />
         </>
     );

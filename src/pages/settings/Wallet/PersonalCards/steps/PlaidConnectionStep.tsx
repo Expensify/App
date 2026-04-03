@@ -1,4 +1,4 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {LinkSuccessMetadata} from 'react-native-plaid-link-sdk';
 import type {PlaidLinkOnSuccessMetadata} from 'react-plaid-link/src/types';
@@ -80,6 +80,7 @@ function PlaidConnectionStep({feed, onExit}: {feed?: CompanyCardFeedWithDomainID
     const plaidErrors = plaidData?.errors;
     const subscribedKeyboardShortcuts = useRef<Array<() => void>>([]);
     const previousNetworkState = useRef<boolean | undefined>(undefined);
+    const [hasExitedPlaidAwaitingConfirmation, setHasExitedPlaidAwaitingConfirmation] = useState(false);
     const plaidDataErrorMessage = !isEmptyObject(plaidErrors) && Object.values(plaidErrors) ? (Object.values(plaidErrors).at(0) ?? '') : '';
     const {isOffline} = useNetwork();
     const isAuthenticatedWithPlaid = !!plaidData?.bankAccounts?.length || !isEmptyObject(plaidData?.errors);
@@ -125,16 +126,17 @@ function PlaidConnectionStep({feed, onExit}: {feed?: CompanyCardFeedWithDomainID
         }
 
         // disabling this rule, as we want this to run only on the first render
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
         // If we are coming back from offline and we haven't authenticated with Plaid yet, we need to re-run our call to kick off Plaid
         // previousNetworkState.current also makes sure that this doesn't run on the first render.
-        if (previousNetworkState.current && !isOffline && !isAuthenticatedWithPlaid && addNewPersonalCard?.data?.selectedCountry) {
+        if (previousNetworkState.current && !isOffline && !isAuthenticatedWithPlaid && addNewPersonalCard?.data?.selectedCountry && !hasExitedPlaidAwaitingConfirmation) {
             openPlaidCompanyCardLogin(addNewPersonalCard.data.selectedCountry, '', feed, true);
         }
         previousNetworkState.current = isOffline;
-    }, [addNewPersonalCard?.data?.selectedCountry, feed, isAuthenticatedWithPlaid, isOffline]);
+    }, [addNewPersonalCard?.data?.selectedCountry, feed, hasExitedPlaidAwaitingConfirmation, isAuthenticatedWithPlaid, isOffline]);
 
     const handleBackButtonPress = () => {
         if (feed) {
@@ -174,8 +176,8 @@ function PlaidConnectionStep({feed, onExit}: {feed?: CompanyCardFeedWithDomainID
     };
 
     const handlePlaidLinkExit = () => {
+        setHasExitedPlaidAwaitingConfirmation(true);
         onExit?.();
-        handleBackButtonPress();
     };
 
     return (
@@ -194,7 +196,7 @@ function PlaidConnectionStep({feed, onExit}: {feed?: CompanyCardFeedWithDomainID
             ) : (
                 <FullPageOfflineBlockingView>
                     <PlaidLinkContent
-                        plaidLinkToken={plaidLinkToken}
+                        plaidLinkToken={hasExitedPlaidAwaitingConfirmation ? undefined : plaidLinkToken}
                         plaidDataErrorMessage={plaidDataErrorMessage}
                         plaidData={plaidData}
                         onSuccess={handlePlaidLinkSuccess}
