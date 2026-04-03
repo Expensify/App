@@ -8,7 +8,7 @@ import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViol
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {getNonHeldAndFullAmount, hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils} from '@libs/ReportUtils';
+import {getNonHeldAndFullAmount, hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils, hasOnlyNonReimbursableTransactions} from '@libs/ReportUtils';
 import {canIOUBePaid as canIOUBePaidAction} from '@userActions/IOU';
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -47,7 +47,10 @@ function MoneyReportHeaderModals({reportID, children}: MoneyReportHeaderModalsPr
 
     // Derive data for hold menu
     const canIOUBePaid = canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList);
-    const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(moneyRequestReport, canIOUBePaid);
+    const onlyShowPayElsewhere = !canIOUBePaid && canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, undefined, true);
+    const reportHasOnlyNonReimbursableTransactions = hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID, transactions);
+    const shouldShowPayButton = canIOUBePaid || onlyShowPayElsewhere || reportHasOnlyNonReimbursableTransactions;
+    const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(moneyRequestReport, shouldShowPayButton);
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(moneyRequestReport?.reportID);
     const transactionIDs = transactions.map((t) => t.transactionID);
 
@@ -71,8 +74,8 @@ function MoneyReportHeaderModals({reportID, children}: MoneyReportHeaderModalsPr
     // Imperative hold menu
     const {showHoldMenu} = useHoldMenuModal();
 
-    const openHoldMenu = ({requestType, paymentType, methodID, onConfirm}: HoldMenuParams) => {
-        showHoldMenu({
+    const openHoldMenu = async ({requestType, paymentType, methodID, onConfirm}: HoldMenuParams) => {
+        await showHoldMenu({
             reportID: moneyRequestReport?.reportID,
             chatReportID: chatReport?.reportID,
             requestType,

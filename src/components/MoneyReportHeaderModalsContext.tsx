@@ -11,14 +11,14 @@ type HoldMenuParams = {
 };
 
 type MoneyReportHeaderModalsContextValue = {
-    openHoldMenu: (params: HoldMenuParams) => void;
+    openHoldMenu: (params: HoldMenuParams) => Promise<void>;
     openPDFDownload: () => void;
     openHoldEducational: () => void;
     openRejectModal: (action: RejectModalAction) => void;
 };
 
 const defaultValue: MoneyReportHeaderModalsContextValue = {
-    openHoldMenu: () => {},
+    openHoldMenu: () => Promise.resolve(),
     openPDFDownload: () => {},
     openHoldEducational: () => {},
     openRejectModal: () => {},

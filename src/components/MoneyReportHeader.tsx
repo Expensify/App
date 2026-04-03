@@ -657,6 +657,8 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                         }
                         startAnimation();
                     },
+                }).then(() => {
+                    isSelectionModePaymentRef.current = false;
                 });
             } else if (isInvoiceReport) {
                 if (!isFromSelectionMode) {
