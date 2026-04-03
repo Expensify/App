@@ -475,14 +475,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                         title={translate('cardPage.changePin')}
                                         icon={expensifyIcons.Key}
                                         shouldShowRightIcon
-                                        onPress={() => {
-                                            const physicalCardID = String(currentPhysicalCard?.cardID);
-                                            if (currentPhysicalCard?.isOfflinePINMarket) {
-                                                Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN_ATM.getRoute(physicalCardID));
-                                            } else {
-                                                Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN.getRoute(physicalCardID));
-                                            }
-                                        }}
+                                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN.getRoute(String(currentPhysicalCard?.cardID)))}
                                     />
                                 )}
                                 <MenuItem

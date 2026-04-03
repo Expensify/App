@@ -65,7 +65,9 @@ const getChatFSClass: GetChatFSClass = (report) => {
 };
 
 const shouldInitializeFullstory: ShouldInitialize = (userMetadata, envName) => {
-    const isTestEmail = userMetadata.email !== undefined && userMetadata.email.startsWith('fullstory') && userMetadata.email.endsWith(CONST.EMAIL.QA_DOMAIN);
+    const isTestEmail =
+        (userMetadata.email !== undefined && userMetadata.email.startsWith('fullstory') && userMetadata.email.endsWith(CONST.EMAIL.QA_DOMAIN)) ||
+        Str.extractEmailDomain(userMetadata.email ?? '') === 'cardtest.expensify.com';
     if ((CONST.ENVIRONMENT.PRODUCTION !== envName && !isTestEmail) || Str.extractEmailDomain(userMetadata.email ?? '') === CONST.EXPENSIFY_PARTNER_NAME) {
         return false;
     }

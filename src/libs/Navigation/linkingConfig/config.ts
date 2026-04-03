@@ -323,10 +323,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN.route,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.WALLET.CARD_CHANGE_PIN_ATM]: {
-                            path: ROUTES.SETTINGS_WALLET_CARD_CHANGE_PIN_ATM.route,
-                            exact: true,
-                        },
                         [SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: {
                             path: ROUTES.SETTINGS_WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS.route,
                             exact: true,
