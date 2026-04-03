@@ -98,6 +98,7 @@ function MoveUsersBetweenGroupsPage({route}: MoveUsersBetweenGroupsPageProps) {
                 <FixedFooter>
                     <Button
                         success
+                        large
                         pressOnEnter
                         text={translate('common.save')}
                         onPress={handleSave}
