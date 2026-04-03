@@ -1663,7 +1663,9 @@ const translations = {
             },
             addApprover: {
                 subtitle: 'Choose an additional approver for this report before we route through the rest of the approval workflow.',
+                bulkSubtitle: 'Choose an additional approver for these reports before we route through the rest of the approval workflow.',
             },
+            bulkSubtitle: 'Choose an option to change the approver for these reports.',
         },
         chooseWorkspace: 'Choose a workspace',
         routedDueToDEW: (to: string, reason?: string) => `report routed to ${to}${reason ? ` because ${reason}` : ''}`,
@@ -2553,6 +2555,7 @@ const translations = {
             title: 'No members to display',
             expensesFromSubtitle: 'All workspace members already belong to an existing approval workflow.',
             approverSubtitle: 'All approvers belong to an existing workflow.',
+            bulkApproverSubtitle: 'No approvers match the criteria for selected reports.',
         },
     },
     workflowsDelayedSubmissionPage: {

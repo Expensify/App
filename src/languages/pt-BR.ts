@@ -1607,7 +1607,9 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             addApprover: {
                 subtitle: 'Escolha um aprovador adicional para este relatório antes de seguirmos pelo restante do fluxo de aprovação.',
+                bulkSubtitle: 'Escolha um aprovador adicional para estes relatórios antes de seguirmos pelo restante do fluxo de aprovação.',
             },
+            bulkSubtitle: 'Escolha uma opção para alterar o aprovador destes relatórios.',
         },
         chooseWorkspace: 'Escolha um workspace',
         routedDueToDEW: (to: string, reason?: string) => `relatório encaminhado para ${to}${reason ? ` porque ${reason}` : ''}`,
@@ -2485,6 +2487,7 @@ ${amount} para ${merchant} - ${date}`,
             title: 'Nenhum membro para exibir',
             expensesFromSubtitle: 'Todos os membros do espaço de trabalho já pertencem a um fluxo de aprovação existente.',
             approverSubtitle: 'Todas as pessoas aprovadoras pertencem a um fluxo de trabalho existente.',
+            bulkApproverSubtitle: 'Nenhum aprovador corresponde aos critérios para os relatórios selecionados.',
         },
     },
     workflowsDelayedSubmissionPage: {

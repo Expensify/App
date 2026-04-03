@@ -1559,7 +1559,9 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             addApprover: {
                 subtitle: '在将此报表提交到其余审批流程之前，请选择一位额外的审批人。',
+                bulkSubtitle: '在我们将这些报表提交给其余审批流程之前，请为其选择一位额外审批人。',
             },
+            bulkSubtitle: '选择一个选项来更改这些报表的审批人。',
         },
         chooseWorkspace: '选择工作区',
         routedDueToDEW: (to: string, reason?: string) => `报销单已转交给 ${to}${reason ? ` 因为 ${reason}` : ''}`,
@@ -2416,6 +2418,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             title: '没有可显示的成员',
             expensesFromSubtitle: '所有工作区成员已经属于现有的审批流程。',
             approverSubtitle: '所有审批人都属于一个现有的工作流。',
+            bulkApproverSubtitle: '所选报表中没有符合条件的审批人。',
         },
     },
     workflowsDelayedSubmissionPage: {

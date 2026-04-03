@@ -1616,7 +1616,9 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             addApprover: {
                 subtitle: 'Choisissez un approbateur supplémentaire pour cette note de frais avant que nous la fassions passer par le reste du flux d’approbation.',
+                bulkSubtitle: 'Choisissez un approbateur supplémentaire pour ces rapports avant que nous ne les transmettions pour le reste du flux de validation.',
             },
+            bulkSubtitle: 'Choisissez une option pour changer l’approbateur de ces rapports.',
         },
         chooseWorkspace: 'Choisir un espace de travail',
         routedDueToDEW: (to: string, reason?: string) => `note de frais acheminée vers ${to}${reason ? ` parce que ${reason}` : ''}`,
@@ -2502,6 +2504,7 @@ ${amount} pour ${merchant} - ${date}`,
             title: 'Aucun membre à afficher',
             expensesFromSubtitle: 'Tous les membres de l’espace de travail appartiennent déjà à un circuit d’approbation existant.',
             approverSubtitle: 'Tous les approbateurs appartiennent à un workflow existant.',
+            bulkApproverSubtitle: 'Aucun approbateur ne correspond aux critères pour les rapports sélectionnés.',
         },
     },
     workflowsDelayedSubmissionPage: {

@@ -172,6 +172,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         'QBDSquare',
         'CertiniaSquare',
         'Pencil',
+        'Workflows',
     ]);
 
     const {getCurrencyDecimals} = useCurrencyListActions();
@@ -983,6 +984,23 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             });
         }
 
+        const shouldShowChangeApproverOption =
+            queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT &&
+            !isAnyTransactionOnHold &&
+            areSelectedTransactionsIncludedInReports &&
+            selectedReports.length &&
+            selectedReports.every((report) => report.allActions.includes(CONST.SEARCH.ACTION_TYPES.CHANGE_APPROVER));
+
+        if (shouldShowChangeApproverOption) {
+            options.push({
+                icon: expensifyIcons.Workflows,
+                text: translate('iou.changeApprover.title'),
+                value: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_APPROVER,
+                shouldCloseModalOnSelect: true,
+                onSelected: () => Navigation.navigate(ROUTES.CHANGE_APPROVER_SEARCH_RHP),
+            });
+        }
+
         const shouldShowSubmitOption =
             !isOffline &&
             areSelectedTransactionsIncludedInReports &&
@@ -1231,6 +1249,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         expensifyIcons.Pencil,
         expensifyIcons.Trashcan,
         expensifyIcons.Exclamation,
+        expensifyIcons.Workflows,
         translate,
         areAllMatchingItemsSelected,
         isOffline,
