@@ -1,20 +1,14 @@
-import React, {useState} from 'react';
+import React, {useRef, useState} from 'react';
 import type {ReactNode} from 'react';
 import useHoldMenuModal from '@hooks/useHoldMenuModal';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
-import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getNonHeldAndFullAmount, hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils, hasOnlyNonReimbursableTransactions} from '@libs/ReportUtils';
 import {canIOUBePaid as canIOUBePaidAction} from '@userActions/IOU';
-import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type * as OnyxTypes from '@src/types/onyx';
 import MoneyReportHeaderEducationalModals from './MoneyReportHeaderEducationalModals';
-import type {RejectModalAction} from './MoneyReportHeaderEducationalModals';
+import type {MoneyReportHeaderEducationalModalsHandle, RejectModalAction} from './MoneyReportHeaderEducationalModals';
 import MoneyReportHeaderModalsContext from './MoneyReportHeaderModalsContext';
 import type {HoldMenuParams} from './MoneyReportHeaderModalsContext';
 import ReportPDFDownloadModal from './ReportPDFDownloadModal';
@@ -25,22 +19,17 @@ type MoneyReportHeaderModalsProps = {
 };
 
 function MoneyReportHeaderModals({reportID, children}: MoneyReportHeaderModalsProps) {
-    // Educational modals state
-    const [isHoldEducationalModalVisible, setIsHoldEducationalModalVisible] = useState(false);
-    const [rejectModalAction, setRejectModalAction] = useState<RejectModalAction | null>(null);
-
     // PDF modal state
     const [isPDFModalVisible, setIsPDFModalVisible] = useState(false);
+
+    // Educational modals ref
+    const educationalModalsRef = useRef<MoneyReportHeaderEducationalModalsHandle>(null);
 
     // Fetch data from IDs
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID}`);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const {isOffline} = useNetwork();
-
-    const {reportActions: unfilteredReportActions} = usePaginatedReportActions(moneyRequestReport?.reportID);
-    const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
 
     const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
     const transactions = Object.values(reportTransactions);
@@ -53,23 +42,6 @@ function MoneyReportHeaderModals({reportID, children}: MoneyReportHeaderModalsPr
     const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(moneyRequestReport, shouldShowPayButton);
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(moneyRequestReport?.reportID);
     const transactionIDs = transactions.map((t) => t.transactionID);
-
-    // Derive data for educational modals
-    const nonDeletedTransactions = getAllNonDeletedTransactions(reportTransactions, reportActions, isOffline, true);
-    const visibleTransactionsForThreadID = nonDeletedTransactions?.filter((t) => isOffline || t.pendingAction !== 'delete');
-    const reportTransactionIDs = visibleTransactionsForThreadID?.map((t) => t.transactionID);
-    const transactionThreadReportID = getOneTransactionThreadReportID(moneyRequestReport, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
-    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
-
-    const requestParentReportAction = (() => {
-        if (!reportActions || !transactionThreadReport?.parentReportActionID) {
-            return null;
-        }
-        return reportActions.find((action): action is OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => action.reportActionID === transactionThreadReport.parentReportActionID);
-    })();
-
-    const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
 
     // Imperative hold menu
     const {showHoldMenu} = useHoldMenuModal();
@@ -92,8 +64,8 @@ function MoneyReportHeaderModals({reportID, children}: MoneyReportHeaderModalsPr
     const contextValue = {
         openHoldMenu,
         openPDFDownload: () => setIsPDFModalVisible(true),
-        openHoldEducational: () => setIsHoldEducationalModalVisible(true),
-        openRejectModal: (action: RejectModalAction) => setRejectModalAction(action),
+        openHoldEducational: () => educationalModalsRef.current?.openHoldEducational(),
+        openRejectModal: (action: RejectModalAction) => educationalModalsRef.current?.openRejectModal(action),
     };
 
     return (
@@ -101,13 +73,8 @@ function MoneyReportHeaderModals({reportID, children}: MoneyReportHeaderModalsPr
             {children}
 
             <MoneyReportHeaderEducationalModals
-                requestParentReportAction={requestParentReportAction}
-                transaction={transaction}
+                ref={educationalModalsRef}
                 reportID={moneyRequestReport?.reportID}
-                isHoldEducationalVisible={isHoldEducationalModalVisible}
-                rejectModalAction={rejectModalAction}
-                onHoldEducationalDismissed={() => setIsHoldEducationalModalVisible(false)}
-                onRejectModalDismissed={() => setRejectModalAction(null)}
             />
 
             <ReportPDFDownloadModal
