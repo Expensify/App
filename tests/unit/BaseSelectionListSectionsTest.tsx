@@ -301,6 +301,7 @@ describe('BaseSelectionList', () => {
         // All items should still be rendered
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}0`)).toBeTruthy();
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}99`)).toBeTruthy();
+        // Item 3 should now be selected
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}3`)).toBeSelected();
     });
 
