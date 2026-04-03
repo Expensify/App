@@ -6601,6 +6601,7 @@ ${reportName}
                 duplicateRulePrompt: (merchantName: string) => `「${merchantName}」に対する既存のルールが、このルールよりも優先されます。保存しますか？`,
                 saveAnyway: 'とにかく保存',
                 applyToExistingUnsubmittedExpenses: '既存の未提出経費に適用',
+                findRule: '加盟店ルールを検索',
             },
             categoryRules: {
                 title: 'カテゴリルール',

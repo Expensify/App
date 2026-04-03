@@ -6672,6 +6672,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 duplicateRulePrompt: (merchantName: string) => `La regola esistente per "${merchantName}" avrà la priorità su questa. Salvare comunque?`,
                 saveAnyway: 'Salva comunque',
                 applyToExistingUnsubmittedExpenses: 'Applica alle spese esistenti non inviate',
+                findRule: 'Trova regola esercente',
             },
             categoryRules: {
                 title: 'Regole di categoria',

@@ -6651,6 +6651,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 duplicateRulePrompt: (merchantName: string) => `Sua regra existente para "${merchantName}" terá prioridade sobre esta. Salvar mesmo assim?`,
                 saveAnyway: 'Salvar mesmo assim',
                 applyToExistingUnsubmittedExpenses: 'Aplicar às despesas existentes não enviadas',
+                findRule: 'Encontrar regra de comerciante',
             },
             categoryRules: {
                 title: 'Regras de categoria',
