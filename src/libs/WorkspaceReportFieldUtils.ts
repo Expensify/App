@@ -1,3 +1,4 @@
+import type {ValueOf} from 'type-fest';
 import type {FormInputErrors} from '@components/Form/types';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
@@ -109,6 +110,25 @@ function isReportFieldNameExisting(fieldList: Record<string, PolicyReportField> 
     return Object.values(fieldList ?? {}).some((reportField) => reportField.name.toLowerCase() === fieldName.toLowerCase());
 }
 
+/**
+ * Determines whether a report field matches the expected target.
+ */
+function isReportFieldTargetValid(reportField: PolicyReportField | null, expectedTarget?: ValueOf<typeof CONST.REPORT_FIELD_TARGETS>): boolean {
+    if (!reportField) {
+        return false;
+    }
+
+    if (expectedTarget === CONST.REPORT_FIELD_TARGETS.INVOICE) {
+        return reportField.target === CONST.REPORT_FIELD_TARGETS.INVOICE;
+    }
+
+    if (expectedTarget === CONST.REPORT_FIELD_TARGETS.EXPENSE) {
+        return !reportField.target || reportField.target === CONST.REPORT_FIELD_TARGETS.EXPENSE;
+    }
+
+    return true;
+}
+
 export {
     getReportFieldTypeTranslationKey,
     getReportFieldAlternativeTextTranslationKey,
@@ -117,4 +137,5 @@ export {
     getReportFieldInitialValue,
     hasFormulaPartsInInitialValue,
     isReportFieldNameExisting,
+    isReportFieldTargetValid,
 };

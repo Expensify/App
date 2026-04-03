@@ -33,7 +33,7 @@ import {
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {Policy, ReportAttributesDerivedValue} from '@src/types/onyx';
+import type {Policy, PolicyReportField, ReportAttributesDerivedValue} from '@src/types/onyx';
 import EditReportFieldDate from './EditReportFieldDate';
 import EditReportFieldDropdown from './EditReportFieldDropdown';
 import EditReportFieldText from './EditReportFieldText';
@@ -44,6 +44,7 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
     const {backTo, reportID, policyID} = route.params;
     const fieldKey = getReportFieldKey(route.params.fieldID);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const reportAttributesSelector = useCallback((attributes: OnyxEntry<ReportAttributesDerivedValue>) => reportByIDsSelector([reportID])(attributes), [reportID]);
     const [reportAttributesByReportID] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
@@ -52,8 +53,11 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
     const [recentlyUsedReportFields] = useOnyx(ONYXKEYS.RECENTLY_USED_REPORT_FIELDS);
 
     const isTitleField = route.params.fieldID === CONST.REPORT_FIELD_TITLE_FIELD_ID;
-    let reportField = report?.fieldList?.[fieldKey] ?? policy?.fieldList?.[fieldKey];
-    let policyField = policy?.fieldList?.[fieldKey] ?? reportField;
+    const reportNameValuePairsRecord = reportNameValuePairs as Record<string, PolicyReportField> | undefined;
+    const reportFieldFromNVP = reportNameValuePairsRecord?.[fieldKey] ?? reportNameValuePairsRecord?.[route.params.fieldID];
+    let reportField =
+        reportFieldFromNVP ?? report?.fieldList?.[fieldKey] ?? report?.fieldList?.[route.params.fieldID] ?? policy?.fieldList?.[fieldKey] ?? policy?.fieldList?.[route.params.fieldID];
+    let policyField = policy?.fieldList?.[fieldKey] ?? policy?.fieldList?.[route.params.fieldID] ?? reportField;
 
     // If the title field is missing, use fallback so that it can still be edited and matches the OldDot behavior.
     if (isTitleField && !reportField && !policyField) {
@@ -72,7 +76,8 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
     const {showConfirmModal} = useConfirmModal();
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
     const isReportFieldTitle = isReportFieldOfTypeTitle(reportField);
-    const reportFieldsEnabled = ((isPaidGroupPolicyExpenseReport(report) || isInvoiceReport(report)) && !!policy?.areReportFieldsEnabled) || isReportFieldTitle;
+    const isReportFieldsFeatureEnabled = report?.type === CONST.REPORT.TYPE.INVOICE ? policy?.areInvoiceFieldsEnabled : policy?.areReportFieldsEnabled;
+    const reportFieldsEnabled = ((isPaidGroupPolicyExpenseReport(report) || isInvoiceReport(report)) && !!isReportFieldsFeatureEnabled) || isReportFieldTitle;
     const hasOtherViolations =
         report?.fieldList && Object.entries(report.fieldList).some(([key, field]) => key !== fieldKey && field.value === '' && !isReportFieldDisabled(report, reportField, policy));
 
