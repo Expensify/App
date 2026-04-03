@@ -553,7 +553,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 {isPDF && (
                     <Button
                         icon={expensifyIcons.Rotate}
-                        onPress={() => setPdfRotation((prev) => ((prev + 90) % 360) as RotationDegrees)}
+                        onPress={() => setPdfRotation((prev) => ((prev + 270) % 360) as RotationDegrees)}
                         text={translate('common.rotate')}
                         style={styles.transactionReceiptButton}
                     />
