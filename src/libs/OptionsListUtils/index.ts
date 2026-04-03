@@ -110,7 +110,6 @@ import {
     isTaskAction,
     isThreadParentMessage,
     isUnapprovedAction,
-    shouldReportActionBeVisible,
     withDEWRoutedActionsArray,
 } from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
@@ -568,32 +567,40 @@ function hasHiddenDisplayNames(accountIDs: number[]) {
     return getPersonalDetailsByIDs({accountIDs, currentUserAccountID: 0}).some((personalDetail) => !getDisplayNameOrDefault(personalDetail, undefined, false));
 }
 
+function getLatestVisibleMoneyRequestAction(
+    reportID: string,
+    canUserPerformWrite: boolean | undefined,
+    sortedReportActions: ReportAction[] = [],
+    visibleReportActionsData?: VisibleReportActionsDerivedValue,
+): OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> {
+    return sortedReportActions.find(
+        (reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
+            isMoneyRequestAction(reportAction) &&
+            reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+            isReportActionVisible(reportAction, reportID, canUserPerformWrite, visibleReportActionsData),
+    );
+}
+
 function getCanonicalMoneyRequestPreviewText(
-    translate: LocalizedTranslate,
     report: OnyxEntry<Report>,
     reportID: string,
     lastReportAction: OnyxEntry<ReportAction>,
     isReportArchived: boolean,
+    visibleReportActionsData?: VisibleReportActionsDerivedValue,
 ): string {
     const canUserPerformWrite = canUserPerformWriteAction(report, isReportArchived);
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const latestMoneyRequestAction = deprecatedAllSortedReportActions[reportID]?.find(
-        (reportAction, key): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
-            shouldReportActionBeVisible(reportAction, key, canUserPerformWrite) &&
-            reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
-            isMoneyRequestAction(reportAction),
-    );
-    const latestMoneyRequestOriginalMessage = latestMoneyRequestAction ? getOriginalMessage(latestMoneyRequestAction) : undefined;
-    const latestMoneyRequestAmount = latestMoneyRequestOriginalMessage?.amount;
-    const latestMoneyRequestCurrency = latestMoneyRequestOriginalMessage?.currency ?? report?.currency;
-    const latestMoneyRequestComment = Parser.htmlToText(latestMoneyRequestOriginalMessage?.comment ?? '').trim();
+    const latestMoneyRequestAction = getLatestVisibleMoneyRequestAction(reportID, canUserPerformWrite, deprecatedAllSortedReportActions[reportID], visibleReportActionsData);
+    const originalMessage = latestMoneyRequestAction ? getOriginalMessage(latestMoneyRequestAction) : undefined;
+    const amount = originalMessage?.amount;
+    const currency = originalMessage?.currency ?? report?.currency;
+    const comment = Parser.htmlToText(originalMessage?.comment ?? '').trim();
 
-    if (isExpenseReport(report) && typeof latestMoneyRequestAmount === 'number' && latestMoneyRequestCurrency) {
-        const formattedAmount = convertToDisplayString(Math.abs(latestMoneyRequestAmount), latestMoneyRequestCurrency);
-        return formatReportLastMessageText(translate('iou.lhnExpenseAmount', formattedAmount, latestMoneyRequestComment || undefined));
+    if (isExpenseReport(report) && typeof amount === 'number' && currency) {
+        const formattedAmount = convertToDisplayString(Math.abs(amount), currency);
+        return formatReportLastMessageText(`${formattedAmount} expense${comment ? ` for ${comment}` : ''}`);
     }
 
-    return formatReportLastMessageText(Parser.htmlToText(getReportPreviewMessage(report, latestMoneyRequestAction ?? lastReportAction, true, false, null, true)));
+    return formatReportLastMessageText(Parser.htmlToText(getReportPreviewMessage(report, undefined, latestMoneyRequestAction ?? lastReportAction, true, false, null, true)));
 }
 
 function getLastActorDisplayNameFromLastVisibleActions(
@@ -984,7 +991,8 @@ function getLastMessageTextForReport({
         if (scanningTransactions.length > 0) {
             lastMessageTextFromReport = translate('iou.receiptScanning', {count: scanningTransactions.length});
         } else if (report?.transactionCount && report?.transactionCount > 0 && report?.currency) {
-            lastMessageTextFromReport = getCanonicalMoneyRequestPreviewText(translate, report, reportID, lastReportAction, isReportArchived) || lastVisibleMessage?.lastMessageText;
+            lastMessageTextFromReport =
+                getCanonicalMoneyRequestPreviewText(report, reportID, lastReportAction, isReportArchived, visibleReportActionsDataParam) || lastVisibleMessage?.lastMessageText;
         } else if (report?.transactionCount === 0) {
             lastMessageTextFromReport = translate('report.noActivityYet');
         }
