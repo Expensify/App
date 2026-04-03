@@ -231,32 +231,6 @@ function useSearchHighlightAndScroll({
         }
     }, [searchResults?.data, previousSearchResults, isChat, transactionIDsToHighlight]);
 
-    // Reset transactionIDsToHighlight after they have been highlighted
-    useEffect(() => {
-        if (isEmptyObject(transactionIDsToHighlight) || newSearchResultKeys === null) {
-            return;
-        }
-
-        const highlightedTransactionIDs = Object.keys(transactionIDsToHighlight).filter(
-            (id) => transactionIDsToHighlight[id] && newSearchResultKeys?.has(`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`),
-        );
-
-        // We need to use requestAnimationFrame here to ensure that setTimeout actually starts
-        // only after the user has navigated to the "Reports > Expenses" page.
-        // Otherwise, there is still a chance we might miss the timing because setTimeout runs too early,
-        // causing the highlight not to appear.
-        let timer: NodeJS.Timeout;
-        const animation = requestAnimationFrame(() => {
-            timer = setTimeout(() => {
-                mergeTransactionIdsHighlightOnSearchRoute(queryJSON.type, Object.fromEntries(highlightedTransactionIDs.map((id) => [id, false])));
-            }, CONST.ANIMATED_HIGHLIGHT_START_DURATION);
-        });
-        return () => {
-            clearTimeout(timer);
-            cancelAnimationFrame(animation);
-        };
-    }, [transactionIDsToHighlight, queryJSON.type, newSearchResultKeys]);
-
     // Remove transactionIDsToHighlight when the user leaves the current search type
     useEffect(
         () => () => {
@@ -265,32 +239,25 @@ function useSearchHighlightAndScroll({
         [queryJSON.type],
     );
 
-    // Reset newSearchResultKey after it's been used
-    useEffect(() => {
-        if (newSearchResultKeys === null) {
-            return;
-        }
-
-        const timer = setTimeout(() => {
-            setNewSearchResultKeys(null);
-        }, CONST.ANIMATED_HIGHLIGHT_START_DURATION);
-
-        return () => clearTimeout(timer);
-    }, [newSearchResultKeys]);
-
     /**
      * Callback to handle scrolling to the new search result.
+     * State is only cleared once the target item is confirmed present in the rendered list.
+     * If the item is not yet in the list, state is preserved for a retry on the next call.
      */
     const handleSelectionListScroll = (data: SearchListItem[], ref: SelectionListHandle<SearchListItem> | null) => {
-        // Early return if there's no ref, new transaction wasn't brought in by this hook
-        // or there's no new search result key
         const newSearchResultKey = newSearchResultKeys?.values().next().value;
-        if (!ref || !triggeredByHookRef.current || !newSearchResultKey) {
+        if (!ref || !newSearchResultKey) {
             return;
         }
 
         // Extract the transaction/report action ID from the newSearchResultKey
         const newID = newSearchResultKey.replace(isChat ? ONYXKEYS.COLLECTION.REPORT_ACTIONS : ONYXKEYS.COLLECTION.TRANSACTION, '');
+
+        // Allow scroll for auto-highlighted items (triggered by the hook) or manually highlighted ones (from transactionIDsToHighlight via global create)
+        const isManualHighlight = !isChat && !!transactionIDsToHighlight?.[newID];
+        if (!triggeredByHookRef.current && !isManualHighlight) {
+            return;
+        }
 
         // Find the index of the new transaction/report action in the data array
         const indexOfNewItem = data.findIndex((item) => {
@@ -313,15 +280,28 @@ function useSearchHighlightAndScroll({
             return false;
         });
 
-        // Early return if the new item is not found in the data array
-        if (indexOfNewItem <= 0) {
+        // Item not yet in the rendered list — preserve state so the next layout/data-ready call can retry
+        if (indexOfNewItem === -1) {
             return;
         }
 
-        // Perform the scrolling action
-        ref.scrollToIndex(indexOfNewItem);
-        // Reset the trigger flag to prevent unintended future scrolls and highlights
+        // Item is confirmed present — clear state now that highlight animation has been triggered.
+        // The Reanimated animation runs independently via shared values and is not interrupted by this.
+        setNewSearchResultKeys(null);
+        if (!isEmptyObject(transactionIDsToHighlight)) {
+            const highlightedTransactionIDs = Object.keys(transactionIDsToHighlight).filter(
+                (id) => transactionIDsToHighlight[id] && newSearchResultKeys?.has(`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`),
+            );
+            if (highlightedTransactionIDs.length > 0) {
+                mergeTransactionIdsHighlightOnSearchRoute(queryJSON.type, Object.fromEntries(highlightedTransactionIDs.map((id) => [id, false])));
+            }
+        }
         triggeredByHookRef.current = false;
+
+        // Scroll only when the item is not already at the top of the list
+        if (indexOfNewItem > 0) {
+            ref.scrollToIndex(indexOfNewItem);
+        }
     };
 
     return {newSearchResultKeys, handleSelectionListScroll, newTransactions};
