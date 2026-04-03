@@ -4091,7 +4091,7 @@ function shouldShowReportActionNotification(reportID: string, currentUserAccount
         return false;
     }
 
-    if (!ReportActionsUtils.isActionable(action, currentUserAccountID)) {
+    if (action && !ReportActionsUtils.isActionable(action, currentUserAccountID)) {
         Log.info(`${tag} No notification because report action is not actionable`);
         return false;
     }
