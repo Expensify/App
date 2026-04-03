@@ -3,6 +3,7 @@ import type {SignatureResult} from '@sbaiahmed1/react-native-biometrics';
 import addMFABreadcrumb from '@components/MultifactorAuthentication/observability/breadcrumbs';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import {getErrorMessage} from '@libs/ErrorUtils';
 import {buildSigningData, getKeyAlias, mapAuthTypeNumber, mapLibraryErrorToReason, mapSignErrorCodeToReason} from '@libs/MultifactorAuthentication/NativeBiometricsHSM/helpers';
 import type NativeBiometricsHSMKeyInfo from '@libs/MultifactorAuthentication/NativeBiometricsHSM/types';
 import VALUES from '@libs/MultifactorAuthentication/VALUES';
@@ -56,7 +57,7 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
             if (reason === undefined) {
                 reason = VALUES.REASON.HSM.GENERIC;
             }
-            const errorMessage = error instanceof Error ? error.message : String(error);
+            const errorMessage = getErrorMessage(error);
             addMFABreadcrumb('Failed to get local credential ID', {reason, message: errorMessage}, 'error');
             return undefined;
         }
@@ -76,7 +77,7 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
             if (reason === undefined) {
                 reason = VALUES.REASON.HSM.GENERIC;
             }
-            const errorMessage = error instanceof Error ? error.message : String(error);
+            const errorMessage = getErrorMessage(error);
             addMFABreadcrumb('Failed to delete local keys', {reason, message: errorMessage}, 'error');
         }
     };
@@ -123,7 +124,7 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
             onResult({
                 success: false,
                 reason,
-                message: error instanceof Error ? error.message : String(error),
+                message: getErrorMessage(error),
             });
         }
     };
@@ -194,7 +195,7 @@ function useNativeBiometricsHSM(): UseBiometricsReturn {
             onResult({
                 success: false,
                 reason,
-                message: error instanceof Error ? error.message : String(error),
+                message: getErrorMessage(error),
             });
         }
     };

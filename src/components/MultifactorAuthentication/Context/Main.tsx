@@ -12,6 +12,7 @@ import trackMFAFlowStart from '@components/MultifactorAuthentication/observabili
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useNetwork from '@hooks/useNetwork';
 import {requestValidateCodeAction} from '@libs/actions/User';
+import {getErrorMessage} from '@libs/ErrorUtils';
 import getPlatform from '@libs/getPlatform';
 import type {ChallengeType, MultifactorAuthenticationCallbackInput} from '@libs/MultifactorAuthentication/shared/types';
 import Navigation from '@navigation/Navigation';
@@ -476,12 +477,12 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         }
 
         process().catch((error: unknown) => {
-            addMFABreadcrumb('Unhandled error', {message: error instanceof Error ? error.message : String(error)}, 'error');
+            addMFABreadcrumb('Unhandled error', {message: getErrorMessage(error)}, 'error');
             dispatch({
                 type: 'SET_ERROR',
                 payload: {
                     reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.UNHANDLED_ERROR,
-                    message: error instanceof Error ? error.message : String(error),
+                    message: getErrorMessage(error),
                 },
             });
         });

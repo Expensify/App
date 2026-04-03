@@ -1,4 +1,5 @@
 import type {ValueOf} from 'type-fest';
+import {getErrorMessage} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import type {AuthenticationChallenge, RegistrationChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
 import MARQETA_VALUES from '@libs/MultifactorAuthentication/shared/MarqetaValues';
@@ -138,12 +139,12 @@ type DecodedWebAuthnError = {
 
 /** Decodes WebAuthn DOMException errors and maps them to authentication error reasons. */
 function decodeWebAuthnError(error: unknown): DecodedWebAuthnError {
-    Log.info('[Passkey] WebAuthn error', false, {error: error instanceof Error ? error.message : String(error)});
+    Log.info('[Passkey] WebAuthn error', false, {error: getErrorMessage(error)});
     if (error instanceof DOMException && isWebAuthnReason(error.name)) {
         return {reason: error.name};
     }
 
-    return {reason: VALUES.REASON.WEBAUTHN.GENERIC, message: error instanceof Error ? error.message : String(error)};
+    return {reason: VALUES.REASON.WEBAUTHN.GENERIC, message: getErrorMessage(error)};
 }
 
 export {
