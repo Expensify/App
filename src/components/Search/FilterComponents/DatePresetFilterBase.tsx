@@ -149,14 +149,10 @@ function DatePresetFilterBase({
     const getRangeEphemeralValuesFromDateValues = useCallback((dateValues: SearchDateValues) => {
         const rangeBoundaries = getRangeBoundariesFromFormValue(dateValues[CONST.SEARCH.DATE_MODIFIERS.RANGE]);
 
-        if (rangeBoundaries.from && rangeBoundaries.to) {
-            return {
-                from: rangeBoundaries.from,
-                to: rangeBoundaries.to,
-            };
-        }
-
-        return {};
+        return {
+            from: rangeBoundaries.from,
+            to: rangeBoundaries.to,
+        };
     }, []);
 
     const notifyDateValuesChange = useCallback(
