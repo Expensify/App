@@ -7,7 +7,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import {hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+import {hasOnlyNonReimbursableTransactions, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {approveMoneyRequest, payMoneyRequest} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -55,6 +55,12 @@ type ProcessMoneyReportHoldMenuProps = {
 
     /** Whether the report has non held expenses */
     hasNonHeldExpenses?: boolean;
+
+    /** Callback when user attempts to pay via ACH but report has only non-reimbursable expenses */
+    onNonReimbursablePaymentError?: () => void;
+
+    /** Transactions associated with report */
+    transactions?: OnyxTypes.Transaction[];
 };
 
 function ProcessMoneyReportHoldMenu({
@@ -70,6 +76,8 @@ function ProcessMoneyReportHoldMenu({
     transactionCount,
     startAnimation,
     hasNonHeldExpenses,
+    onNonReimbursablePaymentError,
+    transactions,
 }: ProcessMoneyReportHoldMenuProps) {
     const {translate} = useLocalize();
     const isApprove = requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE;
@@ -100,6 +108,11 @@ function ProcessMoneyReportHoldMenu({
             return;
         }
 
+        if (!isApprove && chatReport && hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID, transactions) && paymentType && paymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+            onClose();
+            onNonReimbursablePaymentError?.();
+            return;
+        }
         if (isApprove) {
             approveMoneyRequest({
                 expenseReport: moneyRequestReport,

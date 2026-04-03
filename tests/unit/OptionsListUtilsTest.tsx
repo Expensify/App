@@ -4114,7 +4114,7 @@ describe('OptionsListUtils', () => {
                     [iouAction.reportActionID]: iouAction,
                 });
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
-                const reportPreviewMessage = getReportPreviewMessage(iouReport, iouAction, true, false, null, true, reportPreviewAction);
+                const reportPreviewMessage = getReportPreviewMessage(iouReport, undefined, iouAction, true, false, null, true, reportPreviewAction);
                 const formattedMessage = formatReportLastMessageText(Parser.htmlToText(reportPreviewMessage));
                 expect(formattedMessage).toBe('$1.00 for A A A');
             });
