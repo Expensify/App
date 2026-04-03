@@ -1,9 +1,9 @@
 import React, {useEffect, useMemo, useRef, useState} from 'react';
+import {StyleSheet, View} from 'react-native';
 import type {WebViewNavigation} from 'react-native-webview';
 import {WebView} from 'react-native-webview';
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCardFeeds from '@hooks/useCardFeeds';
@@ -75,9 +75,6 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
     const isNewFeedHasError = !!(newFeed && cardFeeds?.[newFeed]?.errors);
     const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
 
-    const fullscreenReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'BankConnection',
-    };
     const activityReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'BankConnection',
         isAllFeedsResultLoading,
@@ -85,7 +82,17 @@ function BankConnection({policyID: policyIDFromProps, feed, route, title}: BankC
         isConnectionCompleted,
         isPlaid,
     };
-    const renderLoading = () => <FullScreenLoadingIndicator reasonAttributes={fullscreenReasonAttributes} />;
+    const renderLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'BankConnection',
+    };
+    const renderLoading = () => (
+        <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
+            <ActivityIndicator
+                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                reasonAttributes={renderLoadingReasonAttributes}
+            />
+        </View>
+    );
 
     useEffect(() => {
         if (!policyID || !isBlockedToAddNewFeeds || feed) {
