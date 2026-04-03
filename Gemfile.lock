@@ -15,13 +15,11 @@ GEM
       minitest (>= 5.1)
       securerandom (>= 0.3)
       tzinfo (~> 2.0, >= 2.0.5)
-    addressable (2.8.8)
+    addressable (2.8.9)
       public_suffix (>= 2.0.2, < 8.0)
     algoliasearch (1.27.5)
       httpclient (~> 2.8, >= 2.8.3)
       json (>= 1.5.1)
-    apktools (0.7.5)
-      rubyzip (~> 2.0)
     artifactory (3.0.17)
     atomos (0.1.3)
     aws-eventstream (1.4.0)
@@ -103,7 +101,7 @@ GEM
     ethon (0.15.0)
       ffi (>= 1.15.0)
     excon (0.112.0)
-    faraday (1.10.4)
+    faraday (1.10.5)
       faraday-em_http (~> 1.0)
       faraday-em_synchrony (~> 1.0)
       faraday-excon (~> 1.1)
@@ -122,7 +120,7 @@ GEM
     faraday-em_synchrony (1.0.1)
     faraday-excon (1.1.0)
     faraday-httpclient (1.0.1)
-    faraday-multipart (1.1.1)
+    faraday-multipart (1.2.0)
       multipart-post (~> 2.0)
     faraday-net_http (1.0.2)
     faraday-net_http_persistent (1.2.0)
@@ -177,13 +175,6 @@ GEM
       xcodeproj (>= 1.13.0, < 2.0.0)
       xcpretty (~> 0.4.1)
       xcpretty-travis-formatter (>= 0.0.3, < 2.0.0)
-    fastlane-plugin-aws_s3 (2.1.0)
-      apktools (~> 0.7)
-      aws-sdk-s3 (~> 1)
-      mime-types (~> 3.3)
-    fastlane-plugin-firebase_app_distribution (0.10.1)
-      google-apis-firebaseappdistribution_v1 (~> 0.3.0)
-      google-apis-firebaseappdistribution_v1alpha (~> 0.2.0)
     fastlane-sirp (1.0.0)
       sysrandom (~> 1.0)
     ffi (1.17.2)
@@ -203,10 +194,6 @@ GEM
       representable (~> 3.0)
       retriable (>= 2.0, < 4.a)
       rexml
-    google-apis-firebaseappdistribution_v1 (0.3.0)
-      google-apis-core (>= 0.11.0, < 2.a)
-    google-apis-firebaseappdistribution_v1alpha (0.2.0)
-      google-apis-core (>= 0.11.0, < 2.a)
     google-apis-iamcredentials_v1 (0.17.0)
       google-apis-core (>= 0.11.0, < 2.a)
     google-apis-playcustomapp_v1 (0.13.0)
@@ -245,15 +232,11 @@ GEM
     jwt (2.10.2)
       base64
     logger (1.7.0)
-    mime-types (3.7.0)
-      logger
-      mime-types-data (~> 3.2025, >= 3.2025.0507)
-    mime-types-data (3.2025.0924)
     mini_magick (4.13.2)
     mini_mime (1.1.5)
     minitest (5.26.1)
     molinillo (0.8.0)
-    multi_json (1.18.0)
+    multi_json (1.19.1)
     multipart-post (2.4.1)
     mutex_m (0.3.0)
     nanaimo (0.4.0)
@@ -270,7 +253,7 @@ GEM
       declarative (< 0.1.0)
       trailblazer-option (>= 0.1.1, < 0.2.0)
       uber (< 0.2.0)
-    retriable (3.1.2)
+    retriable (3.3.0)
     rexml (3.4.4)
     rouge (3.28.0)
     ruby-macho (2.5.1)
@@ -327,8 +310,6 @@ DEPENDENCIES
   bigdecimal
   cocoapods (= 1.16.2)
   fastlane (~> 2, >= 2.229.0)
-  fastlane-plugin-aws_s3
-  fastlane-plugin-firebase_app_distribution
   logger
   mutex_m
   openssl (>= 3.3.1)
@@ -339,4 +320,4 @@ RUBY VERSION
    ruby 3.3.4p94
 
 BUNDLED WITH
-   2.6.9
+   2.5.22
