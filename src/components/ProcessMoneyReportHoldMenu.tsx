@@ -1,14 +1,13 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {useMemo} from 'react';
+import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import {hasOnlyNonReimbursableTransactions, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
-import {approveMoneyRequest, payMoneyRequest} from '@userActions/IOU';
+import {hasOnlyNonReimbursableTransactions} from '@libs/ReportUtils';
+import {payMoneyRequest} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -44,9 +43,6 @@ type ProcessMoneyReportHoldMenuProps = {
     /** Selected VBBA ID for payment */
     methodID?: number;
 
-    /** Type of action handled */
-    requestType?: ActionHandledType;
-
     /** Number of transaction of a money request */
     transactionCount: number;
 
@@ -64,7 +60,6 @@ type ProcessMoneyReportHoldMenuProps = {
 };
 
 function ProcessMoneyReportHoldMenu({
-    requestType,
     nonHeldAmount = '0',
     fullAmount,
     onClose,
@@ -80,7 +75,6 @@ function ProcessMoneyReportHoldMenu({
     transactions,
 }: ProcessMoneyReportHoldMenuProps) {
     const {translate} = useLocalize();
-    const isApprove = requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE;
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -94,11 +88,7 @@ function ProcessMoneyReportHoldMenu({
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [moneyRequestReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`);
-    const {isBetaEnabled} = usePermissions();
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const currentUserDetails = useCurrentUserPersonalDetails();
-    const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.email ?? '');
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
@@ -108,28 +98,13 @@ function ProcessMoneyReportHoldMenu({
             return;
         }
 
-        if (!isApprove && chatReport && hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID, transactions) && paymentType && paymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
+        if (chatReport && hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID, transactions) && paymentType && paymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
             onClose();
             onNonReimbursablePaymentError?.();
             return;
         }
-        if (isApprove) {
-            approveMoneyRequest({
-                expenseReport: moneyRequestReport,
-                policy: activePolicy,
-                currentUserAccountIDParam: currentUserDetails.accountID,
-                currentUserEmailParam: currentUserDetails.email ?? '',
-                hasViolations,
-                isASAPSubmitBetaEnabled,
-                expenseReportCurrentNextStepDeprecated: moneyRequestReportNextStep,
-                betas,
-                userBillingGracePeriodEnds,
-                amountOwed,
-                ownerBillingGracePeriodEnd,
-                full,
-                onApproved: startAnimation,
-            });
-        } else if (chatReport && paymentType) {
+
+        if (chatReport && paymentType) {
             payMoneyRequest({
                 paymentType,
                 chatReport,
@@ -152,21 +127,16 @@ function ProcessMoneyReportHoldMenu({
         onClose();
     };
 
-    const promptText = useMemo(() => {
-        if (hasNonHeldExpenses) {
-            return translate(isApprove ? 'iou.confirmApprovalAmount' : 'iou.confirmPayAmount');
-        }
-        return translate(isApprove ? 'iou.confirmApprovalAllHoldAmount' : 'iou.confirmPayAllHoldAmount', {count: transactionCount});
-    }, [hasNonHeldExpenses, transactionCount, translate, isApprove]);
+    const promptText = hasNonHeldExpenses ? translate('iou.confirmPayAmount') : translate('iou.confirmPayAllHoldAmount', {count: transactionCount});
 
     return (
         <DecisionModal
-            title={translate(isApprove ? 'iou.confirmApprove' : 'iou.confirmPay')}
+            title={translate('iou.confirmPay')}
             onClose={onClose}
             isVisible={isVisible}
             prompt={promptText}
-            firstOptionText={hasNonHeldExpenses ? `${translate(isApprove ? 'iou.approveOnly' : 'iou.payOnly')} ${nonHeldAmount}` : undefined}
-            secondOptionText={`${translate(isApprove ? 'iou.approve' : 'iou.pay')} ${fullAmount}`}
+            firstOptionText={hasNonHeldExpenses ? `${translate('iou.payOnly')} ${nonHeldAmount}` : undefined}
+            secondOptionText={`${translate('iou.pay')} ${fullAmount}`}
             onFirstOptionSubmit={() => onSubmit(false)}
             onSecondOptionSubmit={() => onSubmit(true)}
             isSmallScreenWidth={isSmallScreenWidth}

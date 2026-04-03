@@ -21,6 +21,10 @@ type MoneyReportHeaderKYCDropdownProps = Omit<KYCWallProps, 'children' | 'enable
 
     onPaymentSelect: (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => void;
 
+    headerText?: string;
+
+    shouldPutHeaderTextAfterBackButton?: boolean;
+
     customText?: string;
 
     shouldShowSuccessStyle?: boolean;
@@ -44,6 +48,8 @@ function MoneyReportHeaderKYCDropdown({
     dropdownMenuRef,
     onOptionsMenuHide,
     ref,
+    headerText = '',
+    shouldPutHeaderTextAfterBackButton = false,
     ...props
 }: MoneyReportHeaderKYCDropdownProps) {
     const styles = useThemeStyles();
@@ -90,6 +96,8 @@ function MoneyReportHeaderKYCDropdown({
                     shouldUseModalPaddingStyle
                     onOptionsMenuHide={onOptionsMenuHide}
                     sentryLabel={CONST.SENTRY_LABEL.MORE_MENU.MORE_BUTTON}
+                    menuHeaderText={headerText}
+                    shouldPutHeaderTextAfterBackButton={shouldPutHeaderTextAfterBackButton}
                 />
             )}
         </KYCWall>

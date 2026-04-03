@@ -1451,12 +1451,8 @@ const translations: TranslationDeepObject<typeof en> = {
         keepAll: '全部保留',
         noDuplicatesTitle: '全部完成！',
         noDuplicatesDescription: '这里没有需要审核的重复交易。',
-        confirmApprove: '确认批准金额',
-        confirmApprovalAmount: '仅批准合规报销，或批准整份报销报告。',
-        confirmApprovalAllHoldAmount: () => ({
-            one: '此报销已被搁置。仍要批准吗？',
-            other: '这些报销当前被搁置。你仍然想要批准吗？',
-        }),
+        confirmApprovalWithHeldAmount: '报告包含暂停的费用。仅批准合规的费用，还是批准整个报告？',
+        confirmApprovalAllHoldAmount: '所有费用都已被暂停。仍要批准吗？',
         confirmPay: '确认付款金额',
         confirmPayAmount: '支付未冻结的部分，或支付整份报告。',
         confirmPayAllHoldAmount: () => ({

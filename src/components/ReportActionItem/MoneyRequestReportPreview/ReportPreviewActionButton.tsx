@@ -132,8 +132,8 @@ function ReportPreviewActionButton({
                 <ApproveActionButton
                     iouReportID={iouReportID}
                     startApprovedAnimation={startApprovedAnimation}
-                    onHoldMenuOpen={onHoldMenuOpen}
                     shouldShowPayButton={shouldShowPayButton}
+                    onHoldMenuOpen={onHoldMenuOpen}
                 />
             );
         }

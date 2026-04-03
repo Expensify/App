@@ -70,6 +70,7 @@ import CreditCardLock from '@assets/images/credit-card-lock.svg';
 import CreditCard from '@assets/images/creditcard.svg';
 import Crop from '@assets/images/crop.svg';
 import Crosshair from '@assets/images/crosshair.svg';
+import DocumentCheck from '@assets/images/document-check.svg';
 import DocumentMerge from '@assets/images/document-merge.svg';
 import DocumentPlus from '@assets/images/document-plus.svg';
 import Document from '@assets/images/document.svg';
@@ -512,6 +513,7 @@ const Expensicons = {
     XeroExport,
     ArrowCircleClockwise,
     LuggageWithLines,
+    DocumentCheck,
     LuggageWithLinesPlus,
     TreasureChestGreenWithSparkle,
     UserShield,

@@ -154,6 +154,7 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
 import type {ButtonWithDropdownMenuRef, DropdownOption} from './ButtonWithDropdownMenu/types';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from './DelegateNoAccessModalProvider';
+import {getApprovalDropdownOptions} from './ExpenseHeaderApprovalButton';
 import HeaderLoadingBar from './HeaderLoadingBar';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import {KYCWallContext} from './KYCWall/KYCWallContext';
@@ -169,7 +170,6 @@ import MoneyReportHeaderStatusBarSkeleton from './MoneyReportHeaderStatusBarSkel
 import MoneyRequestReportNavigation from './MoneyRequestReportView/MoneyRequestReportNavigation';
 import {usePersonalDetails} from './OnyxListItemProvider';
 import type {PopoverMenuItem} from './PopoverMenu';
-import type {ActionHandledType} from './ProcessMoneyReportHoldMenu';
 import ProcessMoneyReportHoldMenu from './ProcessMoneyReportHoldMenu';
 import ReportPDFDownloadModal from './ReportPDFDownloadModal';
 import {useSearchActionsContext, useSearchStateContext} from './Search/SearchContext';
@@ -266,6 +266,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         'Feed',
         'Location',
         'ReceiptPlus',
+        'DocumentCheck',
         'ExpenseCopy',
         'Checkmark',
         'ReportCopy',
@@ -424,7 +425,6 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
 
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
-    const [requestType, setRequestType] = useState<ActionHandledType>();
     const [selectedVBBAToPayFromHoldMenu, setSelectedVBBAToPayFromHoldMenu] = useState<number | undefined>(undefined);
     const canAllowSettlement = hasUpdatedTotal(moneyRequestReport, policy);
     const policyType = policy?.type;
@@ -658,7 +658,6 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                 return;
             }
             setPaymentType(type);
-            setRequestType(CONST.IOU.REPORT_ACTION_TYPE.PAY);
             const isFromSelectionMode = isSelectionModePaymentRef.current;
             if (isDelegateAccessRestricted) {
                 showDelegateNoAccessModal();
@@ -775,12 +774,9 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
 
     const confirmApproval = useCallback(
         (skipAnimation = false) => {
-            setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
             if (isDelegateAccessRestricted) {
                 showDelegateNoAccessModal();
-            } else if (isAnyTransactionOnHold) {
-                setIsHoldMenuVisible(true);
-            } else {
+            } else if (!isAnyTransactionOnHold) {
                 if (!skipAnimation) {
                     startApprovedAnimation();
                 }
@@ -810,12 +806,12 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
             }
         },
         [
-            policy,
             isDelegateAccessRestricted,
             showDelegateNoAccessModal,
             isAnyTransactionOnHold,
             startApprovedAnimation,
             moneyRequestReport,
+            policy,
             accountID,
             email,
             hasViolations,
@@ -1188,6 +1184,37 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         showDecisionModal,
     ]);
 
+    const onApprove = (isFullApproval: boolean) => {
+        if (isDelegateAccessRestricted) {
+            showDelegateNoAccessModal();
+            return;
+        }
+        startApprovedAnimation();
+        approveMoneyRequest({
+            expenseReport: moneyRequestReport,
+            policy,
+            currentUserAccountIDParam: accountID,
+            currentUserEmailParam: email ?? '',
+            hasViolations,
+            isASAPSubmitBetaEnabled,
+            expenseReportCurrentNextStepDeprecated: nextStep,
+            betas,
+            userBillingGracePeriodEnds,
+            ownerBillingGracePeriodEnd,
+            amountOwed,
+            full: isFullApproval,
+        });
+        if (currentSearchQueryJSON) {
+            search({
+                searchKey: currentSearchKey,
+                shouldCalculateTotals: true,
+                offset: 0,
+                queryJSON: currentSearchQueryJSON,
+                isLoading: !!currentSearchResults?.search?.isLoading,
+            });
+        }
+    };
+
     const primaryActionComponent = (
         <MoneyReportHeaderPrimaryAction
             reportID={reportIDProp}
@@ -1200,8 +1227,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
             startAnimation={startAnimation}
             startApprovedAnimation={startApprovedAnimation}
             startSubmittingAnimation={startSubmittingAnimation}
-            onHoldMenuOpen={(type, payType, methodID) => {
-                setRequestType(type as ActionHandledType);
+            onHoldMenuOpen={(payType, methodID) => {
                 setPaymentType(payType);
                 setSelectedVBBAToPayFromHoldMenu(payType === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined);
                 if (getPlatform() === CONST.PLATFORM.IOS) {
@@ -1261,6 +1287,20 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         }
         return getSecondaryExportReportActions(accountID, email ?? '', moneyRequestReport, bankAccountList, policy, exportTemplates);
     }, [moneyRequestReport, accountID, email, policy, exportTemplates, bankAccountList]);
+
+    const shouldShowApprovalSecondaryActions = isAnyTransactionOnHold && !isDelegateAccessRestricted;
+    const secondaryApprovalActions = shouldShowApprovalSecondaryActions
+        ? getApprovalDropdownOptions({
+              nonHeldAmount: !hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined,
+              fullAmount,
+              hasValidNonHeldAmount,
+              hasOnlyHeldExpenses,
+              onPartialApprove: () => onApprove(false),
+              onFullApprove: () => onApprove(true),
+              translate,
+              illustrations: expensifyIcons,
+          })
+        : undefined;
 
     const hasSubmitAction = primaryAction === CONST.REPORT.PRIMARY_ACTIONS.SUBMIT || secondaryActions.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT);
     const hasApproveAction = primaryAction === CONST.REPORT.PRIMARY_ACTIONS.APPROVE || secondaryActions.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE);
@@ -1355,6 +1395,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
               connectionName: connectedIntegration,
           })
         : '';
+
     const unapproveWarningText = useMemo(
         () => (
             <Text>
@@ -1375,9 +1416,11 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         </Text>
     );
 
+    const approvalText = hasOnlyHeldExpenses ? translate('iou.confirmApprovalAllHoldAmount') : translate('iou.confirmApprovalWithHeldAmount');
+
     const secondaryActionsImplementation: Record<
         ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>,
-        DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon'>
+        DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon' | 'shouldCallOnSelectedForSubMenuItem' | 'subMenuHeaderText'>
     > = {
         [CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS,
@@ -1451,9 +1494,20 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         [CONST.REPORT.SECONDARY_ACTIONS.APPROVE]: {
             text: approveButtonText,
             icon: expensifyIcons.ThumbsUp,
+            rightIcon: shouldShowApprovalSecondaryActions ? expensifyIcons.ArrowRight : undefined,
+            backButtonText: shouldShowApprovalSecondaryActions ? translate('iou.approve') : undefined,
             value: CONST.REPORT.SECONDARY_ACTIONS.APPROVE,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.APPROVE,
-            onSelected: confirmApproval,
+            subMenuItems: secondaryApprovalActions,
+            shouldUpdateSelectedIndex: true,
+            subMenuHeaderText: shouldShowApprovalSecondaryActions ? approvalText : undefined,
+            onSelected: () => {
+                if (shouldShowApprovalSecondaryActions) {
+                    return;
+                }
+                confirmApproval();
+            },
+            shouldCallOnSelectedForSubMenuItem: true,
         },
         [CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE]: {
             text: translate('iou.unapprove'),
@@ -1987,11 +2041,11 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         return mappedOptions;
     }, [
         originalSelectedTransactionsOptions,
-        showDeleteModal,
-        dismissedRejectUseExplanation,
         allExpensesSelected,
         selectionModeReportLevelActions,
+        showDeleteModal,
         isDelegateAccessRestricted,
+        dismissedRejectUseExplanation,
         showDelegateNoAccessModal,
     ]);
 
@@ -2159,6 +2213,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                                 dropdownMenuRef={dropdownMenuRef}
                                 onOptionsMenuHide={handleOptionsMenuHide}
                                 ref={kycWallRef}
+                                shouldPutHeaderTextAfterBackButton
                             />
                         )}
                         {shouldShowSelectedTransactionsButton && <View>{renderSelectionModeDropdown()}</View>}
@@ -2182,6 +2237,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                                 dropdownMenuRef={dropdownMenuRef}
                                 onOptionsMenuHide={handleOptionsMenuHide}
                                 ref={kycWallRef}
+                                shouldPutHeaderTextAfterBackButton
                             />
                         )}
                     </View>
@@ -2208,10 +2264,9 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
             )}
 
             <HeaderLoadingBar />
-            {isHoldMenuVisible && requestType !== undefined && (
+            {isHoldMenuVisible && (
                 <ProcessMoneyReportHoldMenu
                     nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
-                    requestType={requestType}
                     fullAmount={fullAmount}
                     onClose={() => {
                         setSelectedVBBAToPayFromHoldMenu(undefined);
@@ -2229,11 +2284,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                             clearSelectedTransactions(true);
                             return;
                         }
-                        if (requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
-                            startApprovedAnimation();
-                        } else {
-                            startAnimation();
-                        }
+                        startAnimation();
                     }}
                     transactionCount={transactionIDs?.length ?? 0}
                     transactions={transactions}

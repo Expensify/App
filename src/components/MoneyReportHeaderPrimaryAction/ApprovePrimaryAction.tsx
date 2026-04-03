@@ -13,7 +13,7 @@ import useConfirmApproval from './useConfirmApproval';
 type ApprovePrimaryActionProps = {
     reportID: string | undefined;
     startApprovedAnimation: () => void;
-    onHoldMenuOpen: (requestType: string, paymentType?: PaymentMethodType) => void;
+    onHoldMenuOpen: (paymentType?: PaymentMethodType) => void;
 };
 
 function ApprovePrimaryAction({reportID, startApprovedAnimation, onHoldMenuOpen}: ApprovePrimaryActionProps) {

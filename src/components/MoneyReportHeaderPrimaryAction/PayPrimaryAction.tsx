@@ -39,7 +39,7 @@ type PayPrimaryActionProps = {
     stopAnimation: () => void;
     startAnimation: () => void;
     startApprovedAnimation: () => void;
-    onHoldMenuOpen: (requestType: string, paymentType?: PaymentMethodType, methodID?: number) => void;
+    onHoldMenuOpen: (paymentType?: PaymentMethodType, methodID?: number) => void;
 };
 
 function PayPrimaryAction({
@@ -111,7 +111,7 @@ function PayPrimaryAction({
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
         } else if (isAnyTransactionOnHold) {
-            onHoldMenuOpen(CONST.IOU.REPORT_ACTION_TYPE.PAY, type, methodID);
+            onHoldMenuOpen(type, methodID);
         } else if (isInvoiceReport) {
             startAnimation();
             payInvoice({

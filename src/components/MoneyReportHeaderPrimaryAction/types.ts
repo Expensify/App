@@ -13,7 +13,7 @@ type MoneyReportHeaderPrimaryActionProps = {
     startAnimation: () => void;
     startApprovedAnimation: () => void;
     startSubmittingAnimation: () => void;
-    onHoldMenuOpen: (requestType: string, paymentType?: PaymentMethodType, methodID?: number) => void;
+    onHoldMenuOpen: (paymentType?: PaymentMethodType, methodID?: number) => void;
     onExportModalOpen: () => void;
 };
 

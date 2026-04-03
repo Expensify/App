@@ -9,7 +9,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
-function useConfirmApproval(reportID: string | undefined, startApprovedAnimation: () => void, onHoldMenuOpen: (requestType: string, paymentType?: PaymentMethodType) => void) {
+function useConfirmApproval(reportID: string | undefined, startApprovedAnimation: () => void, onHoldMenuOpen: (paymentType?: PaymentMethodType) => void) {
     const {accountID, email} = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();

@@ -1500,12 +1500,8 @@ const translations: TranslationDeepObject<typeof en> = {
         keepAll: 'Alles behouden',
         noDuplicatesTitle: 'Alles in orde!',
         noDuplicatesDescription: 'Er zijn hier geen dubbele transacties om te beoordelen.',
-        confirmApprove: 'Bevestig goedkeuringsbedrag',
-        confirmApprovalAmount: 'Keur alleen conforme uitgaven goed, of keur het hele rapport goed.',
-        confirmApprovalAllHoldAmount: () => ({
-            one: 'Deze uitgave is in de wacht gezet. Wil je toch goedkeuren?',
-            other: 'Deze declaraties staan in de wacht. Wil je ze toch goedkeuren?',
-        }),
+        confirmApprovalWithHeldAmount: 'Het rapport bevat uitgaven in de wacht. Alleen conforme uitgaven goedkeuren, of het hele rapport goedkeuren?',
+        confirmApprovalAllHoldAmount: 'すべての経費が保留中です。それでも承認しますか？',
         confirmPay: 'Bevestig betalingsbedrag',
         confirmPayAmount: 'Betaal wat niet in de wacht staat, of betaal het volledige rapport.',
         confirmPayAllHoldAmount: () => ({
