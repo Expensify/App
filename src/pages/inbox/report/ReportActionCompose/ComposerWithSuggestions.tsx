@@ -292,12 +292,24 @@ function ComposerWithSuggestions({
 
     const commentRef = useRef(value);
 
-    const updateSelectionImperatively = useCallback((start: number, end: number) => {
+    const updateValueImperatively = useCallback((nextValue: string) => {
         if (!isIOSNative) {
             return;
         }
 
-        // ensure that selection is set imperatively after all state changes are effective
+        // Ensure that native text value is set imperatively after all state changes are effective
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        InteractionManager.runAfterInteractions(() => {
+            composerRef.current?.setNativeProps({text: nextValue});
+        });
+    }, []);
+
+    const updateNativeSelectionValue = useCallback((start: number, end: number) => {
+        if (!isIOSNative) {
+            return;
+        }
+
+        // Ensure that native selection value is set imperatively after all state changes are effective
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             // note: this implementation is only available on non-web RN, thus the wrapping
@@ -325,14 +337,18 @@ function ComposerWithSuggestions({
             emojisPresentBefore.current = extractEmojis(nextValue);
 
             setValue(nextValue);
+            // We need to manually update the native text prop,
+            // in order to force a re-calculation of the composer height and layout.
+            updateValueImperatively(nextValue);
+
             setSelection(selectionToApply);
-            updateSelectionImperatively(selectionToApply.start, selectionToApply.end ?? selectionToApply.start);
+            updateNativeSelectionValue(selectionToApply.start, selectionToApply.end ?? selectionToApply.start);
 
             if (options?.isEditingInComposer) {
                 composerRef.current?.focus();
             }
         },
-        [currentEditMessageSelection, updateSelectionImperatively],
+        [currentEditMessageSelection, updateNativeSelectionValue, updateValueImperatively],
     );
 
     const wasEditing = useRef(isEditing);
@@ -392,7 +408,7 @@ function ComposerWithSuggestions({
         if (shouldUseNarrowLayout) {
             applyComposerValue(editingMessage ?? '', {isEditingInComposer: true});
         }
-    }, [applyComposerValue, draftComment, editingMessage, editingState, selection, shouldUseNarrowLayout, updateSelectionImperatively]);
+    }, [applyComposerValue, draftComment, editingMessage, editingState, selection, shouldUseNarrowLayout, updateNativeSelectionValue]);
 
     const {superWideRHPRouteKeys} = useWideRHPState();
     // When SearchReport is stacked above another RHP, delay autofocus until after the transition completes to avoid animation jank
@@ -778,9 +794,9 @@ function ComposerWithSuggestions({
 
             const positionSnapshot = syncSelectionWithOnChangeTextRef.current.position;
             syncSelectionWithOnChangeTextRef.current = null;
-            updateSelectionImperatively(positionSnapshot, positionSnapshot);
+            updateNativeSelectionValue(positionSnapshot, positionSnapshot);
         },
-        [clearComposerHeight, updateComment, updateSelectionImperatively],
+        [clearComposerHeight, updateComment, updateNativeSelectionValue],
     );
 
     const onSelectionChange = useCallback(
