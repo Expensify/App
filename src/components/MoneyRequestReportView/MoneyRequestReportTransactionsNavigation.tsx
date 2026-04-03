@@ -2,10 +2,12 @@ import {findFocusedRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {useSession} from '@components/OnyxListItemProvider';
 import PrevNextButtons from '@components/PrevNextButtons';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
+import usePreloadReceiptImages from '@hooks/usePreloadReceiptImages';
 import {createTransactionThreadReport, setOptimisticTransactionThread} from '@libs/actions/Report';
 import {clearActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
@@ -38,6 +40,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
     const [transactionIDsList = getEmptyArray<string>()] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const session = useSession();
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {markReportIDAsExpense} = useWideRHPActions();
 
@@ -96,6 +99,10 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentTransaction?.reportID}`);
     const [prevThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${prevParentReportAction?.childReportID}`);
     const [nextThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${nextParentReportAction?.childReportID}`);
+    const transactions = [currentTransaction, prevTransaction, nextTransaction];
+
+    /** Preload prev/next receipt images on web to avoid loading flash during navigation */
+    usePreloadReceiptImages(transactions, session?.encryptedAuthToken);
 
     /**
      * We clear the sibling transactionThreadIDs when unmounting this component
