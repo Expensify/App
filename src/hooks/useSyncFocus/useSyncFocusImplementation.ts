@@ -2,12 +2,32 @@ import {useContext, useLayoutEffect} from 'react';
 import type {RefObject} from 'react';
 import type {View} from 'react-native';
 import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
+import CONST from '@src/CONST';
 
 // This mutable ref holds the currently focused item's ref.
 // It enables external actions like calling .focus() from outside this hook,
 // as demonstrated in this PR: https://github.com/Expensify/App/pull/59206
 // eslint-disable-next-line import/no-mutable-exports
 let focusedItemRef: View | HTMLElement | null;
+
+function isHTMLElement(element: unknown): element is HTMLElement {
+    return typeof HTMLElement !== 'undefined' && element instanceof HTMLElement;
+}
+
+function shouldAllowSameListboxOptionTransfer(activeElement: Element | null, targetElement: View | HTMLElement | null) {
+    if (!isHTMLElement(activeElement) || !isHTMLElement(targetElement) || activeElement === targetElement) {
+        return false;
+    }
+
+    if (activeElement.getAttribute('role') !== CONST.ROLE.OPTION || targetElement.getAttribute('role') !== CONST.ROLE.OPTION) {
+        return false;
+    }
+
+    const activeListbox = activeElement.closest(`[role="${CONST.ROLE.LISTBOX}"]`);
+    const targetListbox = targetElement.closest(`[role="${CONST.ROLE.LISTBOX}"]`);
+
+    return !!activeListbox && activeListbox === targetListbox;
+}
 
 /**
  * Custom React hook created to handle sync of focus on an element when the user navigates through the app with keyboard.
@@ -27,6 +47,14 @@ const useSyncFocusImplementation = (ref: RefObject<View | HTMLElement | null>, i
         }
 
         if (!isFocused || !shouldSyncFocus || !didScreenTransitionEnd) {
+            return;
+        }
+
+        // Don't steal focus from already-focused interactive elements
+        // This preserves focus restoration from NavigationFocusManager
+        const activeElement = document.activeElement;
+        const isSameListboxOptionTransfer = shouldAllowSameListboxOptionTransfer(activeElement, ref.current);
+        if (activeElement && activeElement !== document.body && activeElement !== document.documentElement && activeElement !== ref.current && !isSameListboxOptionTransfer) {
             return;
         }
 
