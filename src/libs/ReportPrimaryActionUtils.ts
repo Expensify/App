@@ -13,6 +13,7 @@ import {
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPolicyApprover,
     isPreferredExporter,
+    isSubmitAndClose,
 } from './PolicyUtils';
 import {
     getAllReportActions,
@@ -25,10 +26,12 @@ import {
 } from './ReportActionsUtils';
 import {
     canAddTransaction as canAddTransactionUtil,
+    canBeAutoReimbursed,
     canHoldUnholdReportAction,
     getMoneyRequestSpendBreakdown,
     getParentReport,
     hasExportError as hasExportErrorUtil,
+    hasHeldExpenses,
     hasOnlyHeldExpenses,
     hasOnlyNonReimbursableTransactions,
     isArchivedReport,
@@ -39,7 +42,9 @@ import {
     isHoldCreator,
     isInvoiceReport as isInvoiceReportUtils,
     isIOUReport as isIOUReportUtils,
+    isOpenInvoiceReport as isOpenInvoiceReportUtils,
     isOpenReport as isOpenReportUtils,
+    isPayAtEndExpenseReport as isPayAtEndExpenseReportUtils,
     isPayer,
     isProcessingReport as isProcessingReportUtils,
     isReportApproved as isReportApprovedUtils,
@@ -49,6 +54,7 @@ import {
 import {
     allHavePendingRTERViolation,
     getTransactionViolations,
+    hasAnyTransactionWithoutRTERViolation,
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
     hasSmartScanFailedWithMissingFields,
     hasSubmissionBlockingViolations,
@@ -148,18 +154,45 @@ function isSubmitAction(
         if (reportTransactions.some((transaction) => hasSubmissionBlockingViolations(transaction, violations, currentUserEmail, currentUserAccountID, report, policy))) {
             return false;
         }
+
+        if (allHavePendingRTERViolation(reportTransactions, violations, currentUserEmail, currentUserAccountID, report, policy)) {
+            return false;
+        }
+
+        if (!hasAnyTransactionWithoutRTERViolation(reportTransactions, violations, currentUserEmail, currentUserAccountID, report, policy)) {
+            return false;
+        }
     }
 
     const submitToAccountID = getSubmitToAccountID(policy, report);
 
-    if (submitToAccountID === report.ownerAccountID && policy?.preventSelfApproval && !isReportSubmitter) {
+    if (policy?.preventSelfApproval && submitToAccountID === report.ownerAccountID) {
         return false;
     }
 
     return isExpenseReport && isReportSubmitter && isOpenReport && reportTransactions.length !== 0;
 }
 
-function isApproveAction(report: Report, reportTransactions: Transaction[], currentUserAccountID: number, reportMetadata: OnyxEntry<ReportMetadata>, policy?: Policy) {
+function isApproveAction(
+    report: Report,
+    reportTransactions: Transaction[],
+    currentUserAccountID: number,
+    reportMetadata: OnyxEntry<ReportMetadata>,
+    policy?: Policy,
+    reportNameValuePairs?: ReportNameValuePairs,
+) {
+    if (!(policy && isPaidGroupPolicy(policy))) {
+        return false;
+    }
+
+    if (isSubmitAndClose(policy)) {
+        return false;
+    }
+
+    if (isArchivedReport(reportNameValuePairs)) {
+        return false;
+    }
+
     const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isScanning(transaction));
 
     if (isAnyReceiptBeingScanned) {
@@ -187,6 +220,23 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], curr
         return false;
     }
 
+    if (isPayAtEndExpenseReportUtils(report, reportTransactions)) {
+        return false;
+    }
+
+    if (isClosedReportUtils(report)) {
+        return false;
+    }
+
+    if (hasHeldExpenses(report.reportID, reportTransactions)) {
+        return false;
+    }
+
+    const submitToAccountID = getSubmitToAccountID(policy, report);
+    if (policy?.preventSelfApproval && submitToAccountID === report.ownerAccountID) {
+        return false;
+    }
+
     return isProcessingReportUtils(report);
 }
 
@@ -206,8 +256,16 @@ function isPrimaryPayAction({
     if (isArchivedReport(reportNameValuePairs) || isChatReportArchived) {
         return false;
     }
+
+    const isPayElsewhere = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+    if (isPayElsewhere && report?.statusNum !== CONST.REPORT.STATUS_NUM.SUBMITTED) {
+        return false;
+    }
+
+    const isReportSettled = isSettled(report);
+
     const isExpenseReport = isExpenseReportUtils(report);
-    const isReportPayer = isPayer(currentUserAccountID, currentUserLogin, report, bankAccountList, policy, false);
+    const isReportPayer = isPayer(currentUserAccountID, currentUserLogin, report, bankAccountList, policy, isPayElsewhere);
     const arePaymentsEnabled = arePaymentsEnabledUtils(policy);
     const isReportApproved = isReportApprovedUtils({report});
     const isReportClosed = isClosedReportUtils(report);
@@ -219,10 +277,21 @@ function isPrimaryPayAction({
     const isApprovalEnabled = policy ? policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
     const isSubmittedWithoutApprovalsEnabled = !isApprovalEnabled && isProcessingReport;
 
-    const isReportFinished = (isReportApproved && !report.isWaitingOnBankAccount) || isSubmittedWithoutApprovalsEnabled || isReportClosed;
+    const isReportFinished = (isReportApproved || isSubmittedWithoutApprovalsEnabled || isReportClosed) && !report.isWaitingOnBankAccount;
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
+    const isAutoReimbursable = canBeAutoReimbursed(report, policy);
+    const isPayAtEnd = isPayAtEndExpenseReportUtils(report, reportTransactions);
 
-    if (isReportPayer && isExpenseReport && arePaymentsEnabled && isReportFinished && (reimbursableSpend !== 0 || hasOnlyNonReimbursableTransactions(report?.reportID, reportTransactions))) {
+    if (
+        isReportPayer &&
+        isExpenseReport &&
+        arePaymentsEnabled &&
+        isReportFinished &&
+        !isReportSettled &&
+        (reimbursableSpend > 0 || (isPayElsewhere && (reimbursableSpend < 0 || hasOnlyNonReimbursableTransactions(report?.reportID, reportTransactions)))) &&
+        !isAutoReimbursable &&
+        !isPayAtEnd
+    ) {
         return isSecondaryAction ?? !didExportFail;
     }
 
@@ -232,13 +301,17 @@ function isPrimaryPayAction({
 
     const isIOUReport = isIOUReportUtils(report);
 
-    if (isIOUReport && isReportPayer && reimbursableSpend > 0) {
+    if (isIOUReport && isReportPayer && !isReportSettled && reimbursableSpend > 0) {
         return true;
     }
 
     const isInvoiceReport = isInvoiceReportUtils(report);
 
     if (!isInvoiceReport) {
+        return false;
+    }
+
+    if (isReportSettled || isOpenInvoiceReportUtils(report)) {
         return false;
     }
 
@@ -494,7 +567,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         return CONST.REPORT.PRIMARY_ACTIONS.REVIEW_DUPLICATES;
     }
 
-    if (isApproveAction(report, reportTransactions, currentUserAccountID, reportMetadata, policy)) {
+    if (isApproveAction(report, reportTransactions, currentUserAccountID, reportMetadata, policy, reportNameValuePairs)) {
         return CONST.REPORT.PRIMARY_ACTIONS.APPROVE;
     }
 

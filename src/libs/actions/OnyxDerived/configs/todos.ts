@@ -1,9 +1,10 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {isApproveAction, isExportAction, isPrimaryPayAction, isSubmitAction} from '@libs/ReportPrimaryActionUtils';
+import {hasHeldExpenses} from '@libs/ReportUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BankAccountList, Policy, Report, ReportActions, ReportMetadata, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+import type {BankAccountList, Policy, Report, ReportActions, ReportMetadata, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 
 type CreateTodosReportsAndTransactionsParams = {
     allReports: OnyxCollection<Report>;
@@ -12,6 +13,7 @@ type CreateTodosReportsAndTransactionsParams = {
     allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
     allReportActions: OnyxCollection<ReportActions>;
     allReportMetadata: OnyxCollection<ReportMetadata>;
+    allTransactionViolations: OnyxCollection<TransactionViolation[]>;
     bankAccountList: OnyxEntry<BankAccountList>;
     currentUserAccountID: number;
     login: string;
@@ -24,6 +26,7 @@ const createTodosReportsAndTransactions = ({
     allReportNameValuePairs,
     allReportActions,
     allReportMetadata,
+    allTransactionViolations,
     bankAccountList,
     currentUserAccountID,
     login,
@@ -53,15 +56,16 @@ const createTodosReportsAndTransactions = ({
             continue;
         }
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-        const reportNameValuePair = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`];
+        const chatReportNameValuePair = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`];
+        const expenseReportNameValuePair = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
         const reportActions = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? []);
         const reportTransactions = transactionsByReportID[report.reportID] ?? [];
         const reportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`];
 
-        if (isSubmitAction(report, reportTransactions, reportMetadata, policy, reportNameValuePair, undefined, login, currentUserAccountID)) {
+        if (isSubmitAction(report, reportTransactions, reportMetadata, policy, chatReportNameValuePair, allTransactionViolations, login, currentUserAccountID)) {
             reportsToSubmit.push(report);
         }
-        if (isApproveAction(report, reportTransactions, currentUserAccountID, reportMetadata, policy)) {
+        if (isApproveAction(report, reportTransactions, currentUserAccountID, reportMetadata, policy, expenseReportNameValuePair)) {
             reportsToApprove.push(report);
         }
         if (
@@ -72,8 +76,9 @@ const createTodosReportsAndTransactions = ({
                 currentUserLogin: login,
                 bankAccountList,
                 policy,
-                reportNameValuePairs: reportNameValuePair,
-            })
+                reportNameValuePairs: chatReportNameValuePair,
+            }) &&
+            !hasHeldExpenses(report.reportID, reportTransactions)
         ) {
             reportsToPay.push(report);
         }
@@ -94,11 +99,23 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.COLLECTION.TRANSACTION,
         ONYXKEYS.COLLECTION.REPORT_ACTIONS,
         ONYXKEYS.COLLECTION.REPORT_METADATA,
+        ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
         ONYXKEYS.BANK_ACCOUNT_LIST,
         ONYXKEYS.SESSION,
         ONYXKEYS.PERSONAL_DETAILS_LIST,
     ],
-    compute: ([allReports, allPolicies, allReportNameValuePairs, allTransactions, allReportActions, allReportMetadata, bankAccountList, session, personalDetailsList]) => {
+    compute: ([
+        allReports,
+        allPolicies,
+        allReportNameValuePairs,
+        allTransactions,
+        allReportActions,
+        allReportMetadata,
+        allTransactionViolations,
+        bankAccountList,
+        session,
+        personalDetailsList,
+    ]) => {
         const userAccountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
         const login = personalDetailsList?.[userAccountID]?.login ?? session?.email ?? '';
 
@@ -109,6 +126,7 @@ export default createOnyxDerivedValueConfig({
             allReportNameValuePairs,
             allReportActions,
             allReportMetadata,
+            allTransactionViolations,
             bankAccountList,
             currentUserAccountID: userAccountID,
             login,

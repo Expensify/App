@@ -213,6 +213,7 @@ jest.mock('@src/libs/SearchQueryUtils', () => {
 jest.mock('@libs/PolicyUtils', () => ({
     ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
     isPaidGroupPolicy: jest.fn().mockReturnValue(true),
+    isPolicyAdmin: jest.fn().mockImplementation((policy?: OnyxEntry<Policy>) => policy?.role === 'admin'),
     isPolicyOwner: jest.fn().mockImplementation((policy?: OnyxEntry<Policy>, currentUserAccountID?: number) => !!currentUserAccountID && policy?.ownerAccountID === currentUserAccountID),
 }));
 
