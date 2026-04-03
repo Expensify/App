@@ -1,7 +1,7 @@
 import {isUserValidatedSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import truncate from 'lodash/truncate';
-import {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import {useContext, useEffect, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -125,23 +125,24 @@ function useSelectionModeReportActions({
     const currentUserEmail = session?.email;
     const hasViolations = hasViolationsReportUtils(report?.reportID, allTransactionViolations, currentUserAccountID, currentUserEmail ?? '');
 
-    const hasAnyPendingRTERViolation = useMemo(
-        () => hasAnyPendingRTERViolationTransactionUtils(transactions, allTransactionViolations, currentUserEmail ?? '', currentUserAccountID, report, policy),
-        [transactions, allTransactionViolations, currentUserEmail, currentUserAccountID, report, policy],
-    );
+    const hasAnyPendingRTERViolation = hasAnyPendingRTERViolationTransactionUtils(transactions, allTransactionViolations, currentUserEmail ?? '', currentUserAccountID, report, policy);
 
-    const handleMarkPendingRTERTransactionsAsCash = useCallback(() => {
+    const handleMarkPendingRTERTransactionsAsCash = () => {
         markPendingRTERTransactionsAsCash(transactions, allTransactionViolations, reportActions);
-    }, [transactions, allTransactionViolations, reportActions]);
+    };
 
     const confirmPendingRTERAndProceed = useConfirmPendingRTERAndProceed(hasAnyPendingRTERViolation, handleMarkPendingRTERTransactionsAsCash);
 
     const nextApproverAccountID = getNextApproverAccountID(report);
     const isSubmitterSameAsNextApprover = isReportOwner(report) && (nextApproverAccountID === report?.ownerAccountID || report?.managerID === report?.ownerAccountID);
     const isBlockSubmitDueToPreventSelfApproval = isSubmitterSameAsNextApprover && policy?.preventSelfApproval;
-    const isBlockSubmitDueToStrictPolicyRules = useMemo(
-        () => shouldBlockSubmitDueToStrictPolicyRules(report?.reportID, allTransactionViolations, areStrictPolicyRulesEnabled, currentUserAccountID, currentUserEmail ?? '', transactions),
-        [report?.reportID, allTransactionViolations, areStrictPolicyRulesEnabled, currentUserAccountID, currentUserEmail, transactions],
+    const isBlockSubmitDueToStrictPolicyRules = shouldBlockSubmitDueToStrictPolicyRules(
+        report?.reportID,
+        allTransactionViolations,
+        areStrictPolicyRulesEnabled,
+        currentUserAccountID,
+        currentUserEmail ?? '',
+        transactions,
     );
     const shouldBlockSubmit = isBlockSubmitDueToStrictPolicyRules || isBlockSubmitDueToPreventSelfApproval;
 
@@ -149,30 +150,23 @@ function useSelectionModeReportActions({
     const isAnyTransactionOnHold = hasHeldExpensesReportUtils(report?.reportID);
     const isInvoiceReport = isInvoiceReportUtil(report);
 
-    const hasOnlyPendingTransactions = useMemo(() => {
-        return !!transactions && transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
-    }, [transactions]);
+    const hasOnlyPendingTransactions = !!transactions && transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
 
-    const getCanIOUBePaid = useCallback(
-        (onlyShowPayElsewhere = false) => canIOUBePaidAction(report, chatReport, policy, bankAccountList, transactions, onlyShowPayElsewhere, undefined, invoiceReceiverPolicy),
-        [report, chatReport, policy, bankAccountList, transactions, invoiceReceiverPolicy],
-    );
+    const getCanIOUBePaid = (onlyShowPayElsewhere = false) =>
+        canIOUBePaidAction(report, chatReport, policy, bankAccountList, transactions, onlyShowPayElsewhere, undefined, invoiceReceiverPolicy);
 
-    const canIOUBePaid = useMemo(() => getCanIOUBePaid(), [getCanIOUBePaid]);
-    const onlyShowPayElsewhere = useMemo(() => !canIOUBePaid && getCanIOUBePaid(true), [canIOUBePaid, getCanIOUBePaid]);
+    const canIOUBePaid = getCanIOUBePaid();
+    const onlyShowPayElsewhere = !canIOUBePaid && getCanIOUBePaid(true);
 
     const shouldShowPayButton = canIOUBePaid || onlyShowPayElsewhere;
 
     const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(report, shouldShowPayButton);
 
-    const shouldShowApproveButton = useMemo(
-        () => canApproveIOU(report, policy, reportMetadata, transactions) && !hasOnlyPendingTransactions,
-        [report, policy, reportMetadata, transactions, hasOnlyPendingTransactions],
-    );
+    const shouldShowApproveButton = canApproveIOU(report, policy, reportMetadata, transactions) && !hasOnlyPendingTransactions;
 
     const shouldDisableApproveButton = shouldShowApproveButton && !isAllowedToApproveExpenseReport(report);
 
-    const totalAmount = useMemo(() => getTotalAmountForIOUReportPreviewButton(report, policy, CONST.REPORT.PRIMARY_ACTIONS.PAY), [report, policy]);
+    const totalAmount = getTotalAmountForIOUReportPreviewButton(report, policy, CONST.REPORT.PRIMARY_ACTIONS.PAY);
 
     // confirmPayment is declared below but used by usePaymentOptions; we use a ref to avoid a circular dependency.
     const confirmPaymentRef = useRef<(params: PaymentActionParams) => void>(() => {});
@@ -183,14 +177,14 @@ function useSelectionModeReportActions({
         chatReportID: chatReport?.reportID,
         formattedAmount: totalAmount,
         policyID: report?.policyID,
-        onPress: useCallback((params: PaymentActionParams) => confirmPaymentRef.current(params), []),
+        onPress: (params: PaymentActionParams) => confirmPaymentRef.current(params),
         shouldHidePaymentOptions: !shouldShowPayButton,
         shouldShowApproveButton,
         shouldDisableApproveButton,
         onlyShowPayElsewhere,
     });
 
-    const workspacePolicyOptions = useMemo(() => {
+    const workspacePolicyOptions = (() => {
         if (!isIOUReportUtil(report)) {
             return [];
         }
@@ -206,68 +200,25 @@ function useSelectionModeReportActions({
         }
 
         return sortPoliciesByName(activeAdminPolicies, localeCompare);
-    }, [report, paymentButtonOptions, activeAdminPolicies, currentUserAccountID, localeCompare]);
+    })();
 
-    const buildPaymentSubMenuItems = useCallback(
-        (onWorkspaceSelected: (workspacePolicy: OnyxTypes.Policy) => void): PopoverMenuItem[] => {
-            if (!workspacePolicyOptions.length) {
-                return Object.values(paymentButtonOptions);
-            }
+    const primaryAction = getReportPrimaryAction({
+        currentUserLogin: currentUserEmail ?? '',
+        currentUserAccountID,
+        report,
+        chatReport,
+        reportTransactions: transactions,
+        violations: allTransactionViolations,
+        bankAccountList,
+        policy,
+        reportNameValuePairs,
+        reportActions,
+        reportMetadata,
+        isChatReportArchived,
+        invoiceReceiverPolicy,
+    });
 
-            const result: PopoverMenuItem[] = [];
-            for (const opt of Object.values(paymentButtonOptions)) {
-                result.push(opt);
-                if (opt.value === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-                    for (const wp of workspacePolicyOptions) {
-                        result.push({
-                            text: translate('iou.payWithPolicy', truncate(wp.name, {length: CONST.ADDITIONAL_ALLOWED_CHARACTERS}), ''),
-                            icon: expensifyIcons.Building,
-                            onSelected: () => onWorkspaceSelected(wp),
-                        });
-                    }
-                }
-            }
-
-            return result;
-        },
-        [workspacePolicyOptions, paymentButtonOptions, translate, expensifyIcons.Building],
-    );
-
-    const primaryAction = useMemo(
-        () =>
-            getReportPrimaryAction({
-                currentUserLogin: currentUserEmail ?? '',
-                currentUserAccountID,
-                report,
-                chatReport,
-                reportTransactions: transactions,
-                violations: allTransactionViolations,
-                bankAccountList,
-                policy,
-                reportNameValuePairs,
-                reportActions,
-                reportMetadata,
-                isChatReportArchived,
-                invoiceReceiverPolicy,
-            }),
-        [
-            report,
-            chatReport,
-            transactions,
-            allTransactionViolations,
-            bankAccountList,
-            policy,
-            reportNameValuePairs,
-            reportActions,
-            reportMetadata,
-            isChatReportArchived,
-            currentUserEmail,
-            currentUserAccountID,
-            invoiceReceiverPolicy,
-        ],
-    );
-
-    const secondaryActions = useMemo(() => {
+    const secondaryActions = (() => {
         if (!report) {
             return [];
         }
@@ -288,22 +239,7 @@ function useSelectionModeReportActions({
             outstandingReportsByPolicyID,
             isChatReportArchived,
         });
-    }, [
-        report,
-        currentUserEmail,
-        currentUserAccountID,
-        chatReport,
-        transactions,
-        allTransactionViolations,
-        bankAccountList,
-        policy,
-        reportNameValuePairs,
-        reportActions,
-        reportMetadata,
-        policies,
-        isChatReportArchived,
-        outstandingReportsByPolicyID,
-    ]);
+    })();
 
     const hasSubmitAction = primaryAction === CONST.REPORT.PRIMARY_ACTIONS.SUBMIT || secondaryActions.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT);
     const hasApproveAction = primaryAction === CONST.REPORT.PRIMARY_ACTIONS.APPROVE || secondaryActions.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE);
@@ -317,7 +253,7 @@ function useSelectionModeReportActions({
     const [requestType, setRequestType] = useState<ActionHandledType>();
     const [selectedVBBAToPayFromHoldMenu, setSelectedVBBAToPayFromHoldMenu] = useState<number | undefined>(undefined);
 
-    const checkForNecessaryAction = useCallback(() => {
+    const checkForNecessaryAction = () => {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
             return true;
@@ -331,9 +267,9 @@ function useSelectionModeReportActions({
             return true;
         }
         return false;
-    }, [isDelegateAccessRestricted, showDelegateNoAccessModal, isAccountLocked, showLockedAccountModal, isUserValidated, report]);
+    };
 
-    const handleSubmitReport = useCallback(() => {
+    const handleSubmitReport = () => {
         if (!report || shouldBlockSubmit) {
             return;
         }
@@ -364,28 +300,9 @@ function useSelectionModeReportActions({
             turnOffMobileSelectionMode();
         };
         confirmPendingRTERAndProceed(doSubmit);
-    }, [
-        report,
-        shouldBlockSubmit,
-        policy,
-        currentUserAccountID,
-        currentUserEmail,
-        hasViolations,
-        isASAPSubmitBetaEnabled,
-        nextStep,
-        userBillingGracePeriodEnds,
-        amountOwed,
-        ownerBillingGracePeriodEnd,
-        currentSearchQueryJSON,
-        isOffline,
-        currentSearchKey,
-        shouldCalculateTotals,
-        currentSearchResults?.search?.isLoading,
-        clearSelectedTransactions,
-        confirmPendingRTERAndProceed,
-    ]);
+    };
 
-    const confirmApproval = useCallback(() => {
+    const confirmApproval = () => {
         setRequestType(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
@@ -409,228 +326,178 @@ function useSelectionModeReportActions({
             clearSelectedTransactions(true);
             turnOffMobileSelectionMode();
         }
-    }, [
-        policy,
-        isDelegateAccessRestricted,
-        showDelegateNoAccessModal,
-        isAnyTransactionOnHold,
-        report,
-        betas,
-        currentUserAccountID,
-        currentUserEmail,
-        hasViolations,
-        isASAPSubmitBetaEnabled,
-        nextStep,
-        userBillingGracePeriodEnds,
-        amountOwed,
-        ownerBillingGracePeriodEnd,
-        clearSelectedTransactions,
-    ]);
+    };
 
-    const confirmPayment = useCallback(
-        ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
-            if (!type || !chatReport) {
-                return;
-            }
-            setPaymentType(type);
-            setRequestType(CONST.IOU.REPORT_ACTION_TYPE.PAY);
-            if (isDelegateAccessRestricted) {
-                showDelegateNoAccessModal();
-            } else if (isAnyTransactionOnHold) {
-                setSelectedVBBAToPayFromHoldMenu(type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined);
-                if (getPlatform() === CONST.PLATFORM.IOS) {
-                    // On iOS, opening the hold menu immediately can conflict with the popover dismiss animation, so we defer it.
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    InteractionManager.runAfterInteractions(() => setIsHoldMenuVisible(true));
-                } else {
-                    setIsHoldMenuVisible(true);
-                }
-            } else if (isInvoiceReport) {
-                payInvoice({
-                    paymentMethodType: type,
-                    chatReport,
-                    invoiceReport: report,
-                    invoiceReportCurrentNextStepDeprecated: nextStep,
-                    introSelected,
-                    currentUserAccountIDParam: currentUserAccountID,
-                    currentUserEmailParam: currentUserEmail ?? '',
-                    payAsBusiness,
-                    existingB2BInvoiceReport,
-                    methodID,
-                    paymentMethod,
-                    activePolicy,
-                    betas,
-                    isSelfTourViewed,
-                });
-                clearSelectedTransactions(true);
-                turnOffMobileSelectionMode();
+    const confirmPayment = ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
+        if (!type || !chatReport) {
+            return;
+        }
+        setPaymentType(type);
+        setRequestType(CONST.IOU.REPORT_ACTION_TYPE.PAY);
+        if (isDelegateAccessRestricted) {
+            showDelegateNoAccessModal();
+        } else if (isAnyTransactionOnHold) {
+            setSelectedVBBAToPayFromHoldMenu(type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined);
+            if (getPlatform() === CONST.PLATFORM.IOS) {
+                // On iOS, opening the hold menu immediately can conflict with the popover dismiss animation, so we defer it.
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                InteractionManager.runAfterInteractions(() => setIsHoldMenuVisible(true));
             } else {
-                payMoneyRequest({
-                    paymentType: type,
-                    chatReport,
-                    iouReport: report,
-                    introSelected,
-                    iouReportCurrentNextStepDeprecated: nextStep,
-                    currentUserAccountID,
-                    activePolicy,
-                    policy,
-                    betas,
-                    isSelfTourViewed,
-                    userBillingGracePeriodEnds,
-                    amountOwed,
-                    ownerBillingGracePeriodEnd,
-                    methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
-                });
-                if (currentSearchQueryJSON && !isOffline) {
-                    search({
-                        searchKey: currentSearchKey,
-                        shouldCalculateTotals,
-                        offset: 0,
-                        queryJSON: currentSearchQueryJSON,
-                        isOffline,
-                        isLoading: !!currentSearchResults?.search?.isLoading,
-                    });
-                }
-                clearSelectedTransactions(true);
-                turnOffMobileSelectionMode();
+                setIsHoldMenuVisible(true);
             }
-        },
-        [
-            chatReport,
-            isDelegateAccessRestricted,
-            isAnyTransactionOnHold,
-            isInvoiceReport,
-            showDelegateNoAccessModal,
-            report,
-            nextStep,
-            currentUserAccountID,
-            currentUserEmail,
-            activePolicy,
-            existingB2BInvoiceReport,
-            policy,
-            currentSearchQueryJSON,
-            isOffline,
-            currentSearchKey,
-            shouldCalculateTotals,
-            currentSearchResults?.search?.isLoading,
-            betas,
-            introSelected,
-            isSelfTourViewed,
-            userBillingGracePeriodEnds,
-            clearSelectedTransactions,
-            amountOwed,
-            ownerBillingGracePeriodEnd,
-        ],
-    );
+        } else if (isInvoiceReport) {
+            payInvoice({
+                paymentMethodType: type,
+                chatReport,
+                invoiceReport: report,
+                invoiceReportCurrentNextStepDeprecated: nextStep,
+                introSelected,
+                currentUserAccountIDParam: currentUserAccountID,
+                currentUserEmailParam: currentUserEmail ?? '',
+                payAsBusiness,
+                existingB2BInvoiceReport,
+                methodID,
+                paymentMethod,
+                activePolicy,
+                betas,
+                isSelfTourViewed,
+            });
+            clearSelectedTransactions(true);
+            turnOffMobileSelectionMode();
+        } else {
+            payMoneyRequest({
+                paymentType: type,
+                chatReport,
+                iouReport: report,
+                introSelected,
+                iouReportCurrentNextStepDeprecated: nextStep,
+                currentUserAccountID,
+                activePolicy,
+                policy,
+                betas,
+                isSelfTourViewed,
+                userBillingGracePeriodEnds,
+                amountOwed,
+                ownerBillingGracePeriodEnd,
+                methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
+            });
+            if (currentSearchQueryJSON && !isOffline) {
+                search({
+                    searchKey: currentSearchKey,
+                    shouldCalculateTotals,
+                    offset: 0,
+                    queryJSON: currentSearchQueryJSON,
+                    isOffline,
+                    isLoading: !!currentSearchResults?.search?.isLoading,
+                });
+            }
+            clearSelectedTransactions(true);
+            turnOffMobileSelectionMode();
+        }
+    };
 
     // Keep confirmPaymentRef in sync so usePaymentOptions always calls the latest version.
     useEffect(() => {
         confirmPaymentRef.current = confirmPayment;
-    }, [confirmPayment]);
+    });
 
-    const handleApproveSelected = useCallback(() => {
+    const handleApproveSelected = () => {
         confirmApproval();
-    }, [confirmApproval]);
+    };
 
-    const handlePaySelected = useCallback(() => {}, []);
+    const handlePaySelected = () => {};
 
-    const onSelectionModePaymentSelect = useCallback(
-        (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
-            if (checkForNecessaryAction()) {
-                return;
-            }
-            // This callback fires via onSubItemSelected before the popover closes. Defer heavy payment
-            // work so the dropdown dismiss animation completes first, avoiding perceived UI lag.
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            InteractionManager.runAfterInteractions(() => {
-                selectPaymentType({
-                    event,
-                    iouPaymentType,
-                    triggerKYCFlow,
-                    policy,
-                    onPress: confirmPayment,
-                    currentAccountID: currentUserAccountID,
-                    currentEmail: currentUserEmail ?? '',
-                    hasViolations,
-                    isASAPSubmitBetaEnabled,
-                    isUserValidated,
-                    confirmApproval: () => confirmApproval(),
-                    iouReport: report,
-                    iouReportNextStep: nextStep,
-                    betas,
-                    userBillingGracePeriodEnds,
-                    amountOwed,
-                    ownerBillingGracePeriodEnd,
-                });
+    const onSelectionModePaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
+        if (checkForNecessaryAction()) {
+            return;
+        }
+        // This callback fires via onSubItemSelected before the popover closes. Defer heavy payment
+        // work so the dropdown dismiss animation completes first, avoiding perceived UI lag.
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        InteractionManager.runAfterInteractions(() => {
+            selectPaymentType({
+                event,
+                iouPaymentType,
+                triggerKYCFlow,
+                policy,
+                onPress: confirmPayment,
+                currentAccountID: currentUserAccountID,
+                currentEmail: currentUserEmail ?? '',
+                hasViolations,
+                isASAPSubmitBetaEnabled,
+                isUserValidated,
+                confirmApproval: () => confirmApproval(),
+                iouReport: report,
+                iouReportNextStep: nextStep,
+                betas,
+                userBillingGracePeriodEnds,
+                amountOwed,
+                ownerBillingGracePeriodEnd,
             });
-        },
-        [
-            checkForNecessaryAction,
-            policy,
-            confirmPayment,
-            currentUserAccountID,
-            currentUserEmail,
-            hasViolations,
-            isASAPSubmitBetaEnabled,
-            isUserValidated,
-            confirmApproval,
-            report,
-            nextStep,
-            betas,
-            userBillingGracePeriodEnds,
-            amountOwed,
-            ownerBillingGracePeriodEnd,
-        ],
-    );
+        });
+    };
 
-    const selectionModeKYCSuccess = useCallback(
-        (type?: PaymentMethodType) => {
-            confirmPayment({paymentType: type});
-        },
-        [confirmPayment],
-    );
+    const selectionModeKYCSuccess = (type?: PaymentMethodType) => {
+        confirmPayment({paymentType: type});
+    };
 
     const hasActualPaymentOptions = paymentButtonOptions.some((opt) => Object.values(CONST.IOU.PAYMENT_TYPE).some((type) => type === opt.value));
     const hasPayInSelectionMode = allExpensesSelected && hasPayAction && hasActualPaymentOptions && isSelectionModeReportActionsEnabled;
 
-    const handleWorkspaceSelectedRef = useRef<(wp: OnyxTypes.Policy) => void>(() => {});
-    useEffect(() => {
-        handleWorkspaceSelectedRef.current = (wp: OnyxTypes.Policy) => {
-            if (checkForNecessaryAction()) {
-                return;
+    const handleWorkspaceSelected = (wp: OnyxTypes.Policy) => {
+        if (checkForNecessaryAction()) {
+            return;
+        }
+        kycWallRef.current?.continueAction?.({policy: wp});
+    };
+
+    const paymentSubMenuItems = ((): PopoverMenuItem[] => {
+        if (!workspacePolicyOptions.length) {
+            return Object.values(paymentButtonOptions);
+        }
+
+        const result: PopoverMenuItem[] = [];
+        let idx = 0;
+        for (const opt of Object.values(paymentButtonOptions)) {
+            result[idx++] = opt;
+            if (opt.value === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+                for (const wp of workspacePolicyOptions) {
+                    result[idx++] = {
+                        text: translate('iou.payWithPolicy', truncate(wp.name, {length: CONST.ADDITIONAL_ALLOWED_CHARACTERS}), ''),
+                        icon: expensifyIcons.Building,
+                        onSelected: () => handleWorkspaceSelected(wp),
+                    };
+                }
             }
-            kycWallRef.current?.continueAction?.({policy: wp});
-        };
-    }, [checkForNecessaryAction, kycWallRef]);
+        }
 
-    const stableHandleWorkspaceSelected = useCallback((wp: OnyxTypes.Policy) => handleWorkspaceSelectedRef.current(wp), []);
+        return result;
+    })();
 
-    // eslint-disable-next-line react-hooks/refs -- stableHandleWorkspaceSelected reads a ref only when invoked at event time, not during render
-    const paymentSubMenuItems = useMemo(() => buildPaymentSubMenuItems(stableHandleWorkspaceSelected), [buildPaymentSubMenuItems, stableHandleWorkspaceSelected]);
-
-    const selectionModeReportLevelActions = useMemo(() => {
+    const selectionModeReportLevelActions = (() => {
         if (!isSelectionModeReportActionsEnabled) {
             return [];
         }
         const actions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon' | 'subMenuItems'>> = [];
+        let idx = 0;
         if (hasSubmitAction && !shouldBlockSubmit) {
-            actions.push({
+            actions[idx++] = {
                 text: translate('common.submit'),
                 icon: expensifyIcons.Send,
                 value: CONST.REPORT.PRIMARY_ACTIONS.SUBMIT,
                 onSelected: handleSubmitReport,
-            });
+            };
         }
         if (hasApproveAction && !isBlockSubmitDueToPreventSelfApproval) {
-            actions.push({
+            actions[idx++] = {
                 text: translate('iou.approve'),
                 icon: expensifyIcons.ThumbsUp,
                 value: CONST.REPORT.PRIMARY_ACTIONS.APPROVE,
                 onSelected: handleApproveSelected,
-            });
+            };
         }
         if (hasPayAction && !(isOffline && !canAllowSettlement)) {
-            actions.push({
+            actions[idx++] = {
                 text: translate('iou.settlePayment', totalAmount),
                 icon: expensifyIcons.Cash,
                 value: CONST.REPORT.PRIMARY_ACTIONS.PAY,
@@ -638,39 +505,20 @@ function useSelectionModeReportActions({
                 backButtonText: translate('iou.settlePayment', totalAmount),
                 subMenuItems: paymentSubMenuItems,
                 onSelected: handlePaySelected,
-            });
+            };
         }
         return actions;
-    }, [
-        isSelectionModeReportActionsEnabled,
-        hasSubmitAction,
-        shouldBlockSubmit,
-        hasApproveAction,
-        isBlockSubmitDueToPreventSelfApproval,
-        hasPayAction,
-        isOffline,
-        canAllowSettlement,
-        translate,
-        handleSubmitReport,
-        handleApproveSelected,
-        handlePaySelected,
-        totalAmount,
-        paymentSubMenuItems,
-        expensifyIcons.ArrowRight,
-        expensifyIcons.Cash,
-        expensifyIcons.Send,
-        expensifyIcons.ThumbsUp,
-    ]);
+    })();
 
-    const handleHoldMenuClose = useCallback(() => {
+    const handleHoldMenuClose = () => {
         setSelectedVBBAToPayFromHoldMenu(undefined);
         setIsHoldMenuVisible(false);
-    }, []);
+    };
 
-    const handleHoldMenuConfirm = useCallback(() => {
+    const handleHoldMenuConfirm = () => {
         clearSelectedTransactions(true);
         turnOffMobileSelectionMode();
-    }, [clearSelectedTransactions]);
+    };
 
     return {
         selectionModeReportLevelActions,
