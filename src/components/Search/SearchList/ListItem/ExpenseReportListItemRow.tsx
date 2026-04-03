@@ -357,8 +357,8 @@ function ExpenseReportListItemRow({
             <View style={styles.ml2}>
                 <Icon
                     src={expensifyIcons.ArrowRight}
-                    width={variables.iconSizeSmall}
-                    height={variables.iconSizeSmall}
+                    width={variables.iconSizeNormal}
+                    height={variables.iconSizeNormal}
                     fill={theme.icon}
                     additionalStyles={!isHovered && styles.opacitySemiTransparent}
                 />

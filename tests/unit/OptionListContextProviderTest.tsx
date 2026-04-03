@@ -46,11 +46,13 @@ describe('OptionListContextProvider', () => {
         onyxState = {
             [ONYXKEYS.DERIVED.REPORT_ATTRIBUTES]: {locale: 'en'},
             [ONYXKEYS.COLLECTION.REPORT]: {},
+            [ONYXKEYS.COLLECTION.POLICY]: {},
         };
 
         onyxSourceValues = {
             [ONYXKEYS.DERIVED.REPORT_ATTRIBUTES]: onyxState[ONYXKEYS.DERIVED.REPORT_ATTRIBUTES],
             [ONYXKEYS.COLLECTION.REPORT]: {},
+            [ONYXKEYS.COLLECTION.POLICY]: {},
             [ONYXKEYS.COLLECTION.REPORT_ACTIONS]: {},
         };
 
@@ -64,6 +66,10 @@ describe('OptionListContextProvider', () => {
             }
 
             if (key === ONYXKEYS.COLLECTION.REPORT) {
+                return [onyxState[key], {sourceValue: onyxSourceValues[key]}];
+            }
+
+            if (key === ONYXKEYS.COLLECTION.POLICY) {
                 return [onyxState[key], {sourceValue: onyxSourceValues[key]}];
             }
 
@@ -176,6 +182,71 @@ describe('OptionListContextProvider', () => {
         expect(mockProcessReport).toHaveBeenCalled();
     });
 
+    it('updates local options when a policy rename only changes report alternate text and subtitle', () => {
+        const reportID = '3';
+        const policyID = '7';
+        const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
+        const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+        const report = {reportID, policyID, reportName: '#announce'};
+        const oldReportOption = {
+            reportID,
+            item: report,
+            text: '#announce',
+            alternateText: 'Old Workspace',
+            subtitle: 'Old Workspace',
+            keyForList: reportID,
+        } as unknown as SearchOption<Report>;
+        const updatedReportOption = {
+            ...oldReportOption,
+            alternateText: 'New Workspace',
+            subtitle: 'New Workspace',
+        } as unknown as SearchOption<Report>;
+
+        onyxState = {
+            ...onyxState,
+            [ONYXKEYS.COLLECTION.REPORT]: {[reportKey]: report},
+            [ONYXKEYS.COLLECTION.POLICY]: {[policyKey]: {name: 'Old Workspace'}},
+        };
+        onyxSourceValues = {
+            ...onyxSourceValues,
+            [ONYXKEYS.COLLECTION.REPORT]: {[reportKey]: report},
+            [ONYXKEYS.COLLECTION.POLICY]: {},
+        };
+
+        mockCreateOptionList.mockReturnValue({
+            reports: [oldReportOption],
+            personalDetails: [],
+        } as OptionList);
+        mockProcessReport.mockReturnValue({reportOption: updatedReportOption});
+
+        const {result, rerender} = renderHook(({shouldInitialize}) => useOptionsList({shouldInitialize}), {
+            initialProps: {shouldInitialize: false},
+            wrapper,
+        });
+
+        act(() => {
+            result.current.initializeOptions();
+        });
+
+        expect(result.current.options.reports.at(0)?.alternateText).toBe('Old Workspace');
+
+        onyxState = {
+            ...onyxState,
+            [ONYXKEYS.COLLECTION.POLICY]: {[policyKey]: {name: 'New Workspace'}},
+        };
+        onyxSourceValues = {
+            ...onyxSourceValues,
+            [ONYXKEYS.COLLECTION.POLICY]: {[policyKey]: {name: 'New Workspace'}},
+        };
+
+        rerender({shouldInitialize: false});
+
+        expect(mockProcessReport).toHaveBeenCalled();
+        expect(result.current.options.reports.at(0)?.text).toBe('#announce');
+        expect(result.current.options.reports.at(0)?.alternateText).toBe('New Workspace');
+        expect(result.current.options.reports.at(0)?.subtitle).toBe('New Workspace');
+    });
+
     it('passes privateIsArchived to createOptionFromReport when personal details change', () => {
         const reportID = '1';
         const accountID = '12345';
@@ -186,7 +257,7 @@ describe('OptionListContextProvider', () => {
         };
 
         const archivedKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`;
-        mockUsePrivateIsArchivedMap.mockReturnValue({[archivedKey]: 'true'});
+        mockUsePrivateIsArchivedMap.mockReturnValue({[archivedKey]: true});
 
         const initialPersonalDetails = {[accountID]: {accountID: Number(accountID), firstName: 'John', lastName: 'Doe', login: 'john@test.com', displayName: 'John Doe'}};
         mockUsePersonalDetails.mockReturnValue(initialPersonalDetails);
@@ -223,6 +294,40 @@ describe('OptionListContextProvider', () => {
         mockUsePersonalDetails.mockReturnValue(updatedPersonalDetails);
         rerender({shouldInitialize: false});
 
-        expect(mockCreateOptionFromReport).toHaveBeenCalledWith(report, updatedPersonalDetails, expect.any(Number), 'true', undefined, undefined, {showPersonalDetails: true});
+        expect(mockCreateOptionFromReport).toHaveBeenCalledWith(report, updatedPersonalDetails, true, undefined, undefined, {showPersonalDetails: true});
+    });
+
+    it('does not reset options when called before initialization', () => {
+        const {result} = renderHook(({shouldInitialize}) => useOptionsList({shouldInitialize}), {
+            initialProps: {shouldInitialize: false},
+            wrapper,
+        });
+
+        act(() => {
+            result.current.resetOptions();
+        });
+
+        expect(result.current.areOptionsInitialized).toBe(false);
+        expect(result.current.options).toEqual({reports: [], personalDetails: []});
+    });
+
+    it('resets options to empty state when called after initialization', () => {
+        const {result} = renderHook(({shouldInitialize}) => useOptionsList({shouldInitialize}), {
+            initialProps: {shouldInitialize: false},
+            wrapper,
+        });
+
+        act(() => {
+            result.current.initializeOptions();
+        });
+
+        expect(result.current.areOptionsInitialized).toBe(true);
+
+        act(() => {
+            result.current.resetOptions();
+        });
+
+        expect(result.current.areOptionsInitialized).toBe(false);
+        expect(result.current.options).toEqual({reports: [], personalDetails: []});
     });
 });

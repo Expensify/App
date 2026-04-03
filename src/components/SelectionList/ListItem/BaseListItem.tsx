@@ -97,7 +97,7 @@ function BaseListItem<TItem extends ListItem>({
     const {hovered, bind} = useHover();
     const {isMouseDownOnInput} = useMouseState();
     const {setMouseUp} = useMouseActions();
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Checkmark', 'DotIndicator'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Checkmark', 'DotIndicator']);
 
     const pressableRef = useRef<View>(null);
 
@@ -237,8 +237,8 @@ function BaseListItem<TItem extends ListItem>({
                                 src={icons.ArrowRight}
                                 fill={theme.icon}
                                 additionalStyles={[styles.alignSelfCenter, !hovered && styles.opacitySemiTransparent]}
-                                isButtonIcon
-                                medium
+                                width={variables.iconSizeNormal}
+                                height={variables.iconSizeNormal}
                             />
                         </View>
                     )}

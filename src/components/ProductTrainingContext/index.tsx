@@ -49,7 +49,7 @@ const ProductTrainingContext = createContext<ProductTrainingContextType>({
 });
 
 function ProductTrainingContextProvider({children}: ChildrenProps) {
-    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [isLoadingApp = true] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_APP);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const hasBeenAddedToNudgeMigration = !!tryNewDot?.nudgeMigration?.timestamp;
     const [isOnboardingCompleted = true, isOnboardingCompletedMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
@@ -231,7 +231,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
     const theme = useTheme();
     const {shouldHideToolTip} = useSidePanelState();
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Close', 'Lightbulb'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Close', 'Lightbulb']);
 
     if (!context) {
         throw new Error('useProductTourContext must be used within a ProductTourProvider');

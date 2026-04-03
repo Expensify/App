@@ -68,7 +68,7 @@ function TransactionPreviewContent({
     isReviewDuplicateTransactionPage = false,
     shouldHighlight = false,
 }: TransactionPreviewContentProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Folder', 'Tag'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Folder', 'Tag']);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -123,7 +123,7 @@ function TransactionPreviewContent({
     const filteredViolations = filterReceiptViolations(violations);
     const firstViolation = filteredViolations.at(0);
     const isIOUActionType = isMoneyRequestAction(action);
-    const canEdit = isIOUActionType && canEditMoneyRequest(action, isChatReportArchived, report, policy, transaction);
+    const canEdit = isIOUActionType && canEditMoneyRequest(action, transaction, isChatReportArchived, report, policy);
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
     const {personalCardsWithBrokenConnection} = useCardFeedErrors();
     const connectionLink = getBrokenConnectionUrlToFixPersonalCard(personalCardsWithBrokenConnection, environmentURL);
