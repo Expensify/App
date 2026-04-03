@@ -44,6 +44,8 @@ type CardFeedForDisplay = {
     feed: CardFeedWithNumber;
     fundID: string;
     name: string;
+    country?: string;
+    linkedPolicyIDs?: string[];
 };
 type CardFeedsForDisplay = Record<string, CardFeedForDisplay>;
 
@@ -86,6 +88,16 @@ function getWorkspaceCardFeedKey(cardFeedKey: string) {
         return `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${cardFeedKey}`;
     }
     return cardFeedKey;
+}
+
+/**
+ * Resolves the display name of a linked policy when preferredPolicy differs from the current policyID.
+ */
+function getLinkedPolicyName(allPolicies: OnyxCollection<Policy>, preferredPolicy: string | undefined, currentPolicyID: string, fallbackName: string | undefined): string | undefined {
+    if (preferredPolicy && preferredPolicy !== currentPolicyID) {
+        return allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${preferredPolicy}`]?.name ?? fallbackName;
+    }
+    return fallbackName;
 }
 
 function createCardFilterItem(
@@ -535,19 +547,43 @@ function getCardFeedsForDisplayPerPolicy(
 
         for (const [key, feedData] of Object.entries(getOriginalCompanyFeeds(cardFeeds, feedKeysWithCards, Number(fundID)))) {
             const preferredPolicy = feedData && 'preferredPolicy' in feedData ? (feedData.preferredPolicy ?? '') : '';
+            const country = feedData && 'country' in feedData ? (feedData.country ?? '') : '';
+            const linkedPolicyIDs = feedData && 'linkedPolicyIDs' in feedData ? feedData.linkedPolicyIDs : undefined;
             const feed = key as CardFeedWithNumber;
             const id = `${fundID}_${feed}`;
 
             (cardFeedsForDisplayPerPolicy[preferredPolicy] ||= []).push({
                 id,
                 feed,
+                country,
                 fundID,
+                linkedPolicyIDs,
                 name: getCustomOrFormattedFeedName(translate, feed, cardFeeds?.settings?.companyCardNicknames?.[feed], false) ?? feed,
             });
         }
     }
 
     return cardFeedsForDisplayPerPolicy;
+}
+
+/**
+ * Finds a feed by id in the card feeds grouped by policy.
+ *
+ * @param feedId - The feed id (e.g. `${fundID}_${feed}`) to look up
+ * @param cardFeedsByPolicy - Card feeds per policy from getCardFeedsForDisplayPerPolicy
+ * @returns The matching CardFeedForDisplay or undefined
+ */
+function getFeedInfo(feedId: string, cardFeedsByPolicy?: Record<string, CardFeedForDisplay[]>): CardFeedForDisplay | undefined {
+    if (!feedId || !cardFeedsByPolicy) {
+        return undefined;
+    }
+    for (const cardFeeds of Object.values(cardFeedsByPolicy)) {
+        const found = cardFeeds.find((item) => item.id === feedId);
+        if (found) {
+            return found;
+        }
+    }
+    return undefined;
 }
 
 function getCardFeedStatus(feed: CardFeeds | undefined): CardFeedsStatus {
@@ -635,6 +671,8 @@ export {
     createCardFeedKey,
     getCardFeedKey,
     getWorkspaceCardFeedKey,
+    getFeedInfo,
+    getLinkedPolicyName,
     generateDomainFeedData,
     getDomainFeedData,
     getCardFeedsForDisplay,

@@ -93,6 +93,7 @@ function MoneyRequestAction({
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${requestReportID}`);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {canEvict: false});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -128,7 +129,7 @@ function MoneyRequestAction({
         const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : CONST.DEFAULT_NUMBER_ID;
 
         if (!action?.childReportID && transactionID && action.reportActionID) {
-            const transactionThreadReport = createTransactionThreadReport(introSelected, currentUserEmail ?? '', currentUserAccountID, iouReport, action);
+            const transactionThreadReport = createTransactionThreadReport(introSelected, currentUserEmail ?? '', currentUserAccountID, betas, iouReport, action);
             if (shouldOpenReportInRHP) {
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: transactionThreadReport?.reportID, backTo: Navigation.getActiveRoute()}));
                 return;

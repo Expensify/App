@@ -30,6 +30,7 @@ import {
     getParentReport,
     hasExportError as hasExportErrorUtil,
     hasOnlyHeldExpenses,
+    hasOnlyNonReimbursableTransactions,
     isArchivedReport,
     isClosedReport as isClosedReportUtils,
     isCurrentUserSubmitter,
@@ -78,6 +79,20 @@ type GetReportPrimaryActionParams = {
     isSubmittingAnimationRunning?: boolean;
 };
 
+type IsPrimaryPayActionParams = {
+    report: Report;
+    reportTransactions: Transaction[];
+    currentUserAccountID: number;
+    currentUserLogin: string;
+    bankAccountList: OnyxEntry<BankAccountList>;
+    policy?: Policy;
+    reportNameValuePairs?: ReportNameValuePairs;
+    isChatReportArchived?: boolean;
+    invoiceReceiverPolicy?: Policy;
+    reportActions?: ReportAction[];
+    isSecondaryAction?: boolean;
+};
+
 function isAddExpenseAction(report: Report, reportTransactions: Transaction[], isChatReportArchived: boolean) {
     if (isChatReportArchived) {
         return false;
@@ -108,6 +123,10 @@ function isSubmitAction(
     const isOpenReport = isOpenReportUtils(report);
 
     if (hasPendingDEWSubmit(reportMetadata, hasDynamicExternalWorkflow(policy))) {
+        return false;
+    }
+
+    if (!isPaidGroupPolicy(policy)) {
         return false;
     }
 
@@ -171,18 +190,19 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], curr
     return isProcessingReportUtils(report);
 }
 
-function isPrimaryPayAction(
-    report: Report,
-    currentUserAccountID: number,
-    currentUserLogin: string,
-    bankAccountList: OnyxEntry<BankAccountList>,
-    policy?: Policy,
-    reportNameValuePairs?: ReportNameValuePairs,
-    isChatReportArchived?: boolean,
-    invoiceReceiverPolicy?: Policy,
-    reportActions?: ReportAction[],
-    isSecondaryAction?: boolean,
-) {
+function isPrimaryPayAction({
+    report,
+    reportTransactions,
+    currentUserAccountID,
+    currentUserLogin,
+    bankAccountList,
+    policy,
+    reportNameValuePairs,
+    isChatReportArchived,
+    invoiceReceiverPolicy,
+    reportActions,
+    isSecondaryAction,
+}: IsPrimaryPayActionParams) {
     if (isArchivedReport(reportNameValuePairs) || isChatReportArchived) {
         return false;
     }
@@ -202,7 +222,7 @@ function isPrimaryPayAction(
     const isReportFinished = (isReportApproved && !report.isWaitingOnBankAccount) || isSubmittedWithoutApprovalsEnabled || isReportClosed;
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
 
-    if (isReportPayer && isExpenseReport && arePaymentsEnabled && isReportFinished && reimbursableSpend !== 0) {
+    if (isReportPayer && isExpenseReport && arePaymentsEnabled && isReportFinished && (reimbursableSpend !== 0 || hasOnlyNonReimbursableTransactions(report?.reportID, reportTransactions))) {
         return isSecondaryAction ?? !didExportFail;
     }
 
@@ -452,8 +472,18 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
     }
 
     const isPayActionWithAllExpensesHeld =
-        isPrimaryPayAction(report, currentUserAccountID, currentUserLogin, bankAccountList, policy, reportNameValuePairs, isChatReportArchived, invoiceReceiverPolicy, reportActions) &&
-        hasOnlyHeldExpenses(report?.reportID);
+        isPrimaryPayAction({
+            report,
+            reportTransactions,
+            currentUserAccountID,
+            currentUserLogin,
+            bankAccountList,
+            policy,
+            reportNameValuePairs,
+            isChatReportArchived,
+            invoiceReceiverPolicy,
+            reportActions,
+        }) && hasOnlyHeldExpenses(report?.reportID);
     const expensesToHold = getAllExpensesToHoldIfApplicable(report, reportActions, reportTransactions, policy);
 
     if (isMarkAsCashAction(currentUserLogin, currentUserAccountID, report, reportTransactions, violations, policy)) {
@@ -480,7 +510,20 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         return CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
     }
 
-    if (isPrimaryPayAction(report, currentUserAccountID, currentUserLogin, bankAccountList, policy, reportNameValuePairs, isChatReportArchived, invoiceReceiverPolicy, reportActions)) {
+    if (
+        isPrimaryPayAction({
+            report,
+            reportTransactions,
+            currentUserAccountID,
+            currentUserLogin,
+            bankAccountList,
+            policy,
+            reportNameValuePairs,
+            isChatReportArchived,
+            invoiceReceiverPolicy,
+            reportActions,
+        })
+    ) {
         return CONST.REPORT.PRIMARY_ACTIONS.PAY;
     }
 

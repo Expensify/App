@@ -8,7 +8,7 @@ import useNetwork from './useNetwork';
 
 type UseLoadReportActionsArguments = {
     /** The id of the current report */
-    reportID: string;
+    reportID: string | undefined;
 
     /** The list of reportActions linked to the current report  */
     reportActions: ReportAction[];
@@ -24,13 +24,24 @@ type UseLoadReportActionsArguments = {
 
     /** If the report has older actions to load */
     hasOlderActions: boolean;
+
+    /** Newest action ID from the last pagination response, used as cursor to avoid Pusher-delivered actions skipping gaps */
+    newestFetchedReportActionID?: string;
 };
 
 /**
  * Provides reusable logic to get the functions for loading older/newer reportActions.
  * Used in the report displaying components
  */
-function useLoadReportActions({reportID, reportActions, allReportActionIDs, transactionThreadReport, hasOlderActions, hasNewerActions}: UseLoadReportActionsArguments) {
+function useLoadReportActions({
+    reportID,
+    reportActions,
+    allReportActionIDs,
+    transactionThreadReport,
+    hasOlderActions,
+    hasNewerActions,
+    newestFetchedReportActionID,
+}: UseLoadReportActionsArguments) {
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
     const newestReportAction = reportActions?.at(0);
@@ -101,6 +112,13 @@ function useLoadReportActions({reportID, reportActions, allReportActionIDs, tran
                 // more in case we have cached messages.
                 newestReportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
         ) {
+            return;
+        }
+
+        // Use the Pusher-safe cursor when available instead of newestReportAction
+        // (which may include Pusher-delivered actions like Concierge replies that skip gaps)
+        if (newestFetchedReportActionID) {
+            getNewerActions(reportID, newestFetchedReportActionID);
             return;
         }
 

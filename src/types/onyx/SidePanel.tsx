@@ -12,7 +12,7 @@ type SidePanel = {
  * Describes the context of what the user was viewing when they sent a message from the Side Panel.
  * Sent to the backend so Concierge can tailor its response to the user's current context.
  */
-type SidePanelContext = {type: typeof CONST.SIDE_PANEL_CONTEXT_TYPE.REPORT; reportID: string};
+type SidePanelContext = {reportID: string; selectedTransactionIDs?: string; selectedReportIDs?: string} | {selectedTransactionIDs: string} | {selectedReportIDs: string};
 
 export default SidePanel;
 export type {SidePanelContext};
