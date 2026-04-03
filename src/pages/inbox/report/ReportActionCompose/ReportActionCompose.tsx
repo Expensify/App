@@ -228,7 +228,7 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
     const [targetReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${effectiveTransactionThreadReportID ?? reportID}`);
     const reportAncestors = useAncestors(report);
     const targetReportAncestors = useAncestors(targetReport);
-    const {scrollOffsetRef} = useContext(ActionListContext);
+    const {scrollOffsetRef, archivedReportsIDSet} = useContext(ActionListContext);
 
     /**
      * Updates the Highlight state of the composer
@@ -300,7 +300,7 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
     const canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(report, isReportArchived);
     const canEditReceipt =
         canUserPerformWriteAction &&
-        canEditFieldOfMoneyRequest({reportAction: effectiveParentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, transaction}) &&
+        canEditFieldOfMoneyRequest({reportAction: effectiveParentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, transaction, archivedReportsIDSet}) &&
         !transaction?.receipt?.isTestDriveReceipt;
     const shouldAddOrReplaceReceipt = (isTransactionThreadView || isSingleTransactionView) && canEditReceipt;
 

@@ -19,6 +19,7 @@ import ScrollView from '@components/ScrollView';
 import useShowWideRHPVersion from '@components/WideRHPContextProvider/useShowWideRHPVersion';
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
 import useActionListContextValue from '@hooks/useActionListContextValue';
+import useArchivedReportsIDSet from '@hooks/useArchivedReportsIDSet';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
@@ -429,7 +430,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         });
     }, [reportWasDeleted, isFocused, deletedReportParentID, conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas]);
 
-    const actionListValue = useActionListContextValue();
+    const archivedReportsIDSet = useArchivedReportsIDSet();
+    const actionListValue = useActionListContextValue(archivedReportsIDSet);
 
     // wrapping into useMemo to stabilize children re-renders as reportMetadata is changed frequently
     const showReportActionsLoadingState = useMemo(

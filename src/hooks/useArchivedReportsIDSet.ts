@@ -15,6 +15,7 @@ const archivedReportIdsSelector = (reportNameValuePairs: OnyxCollection<ReportNa
     if (!reportNameValuePairs) {
         return [];
     }
+
     const ids: string[] = [];
     for (const [key, value] of Object.entries(reportNameValuePairs)) {
         if (isArchivedReport(value)) {
