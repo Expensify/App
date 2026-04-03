@@ -5553,12 +5553,12 @@ function markAsManuallyExported(reportIDs: string[], connectionName: ConnectionN
 }
 
 function exportReportToCSV({reportID, transactionIDList}: ExportReportCSVParams, onDownloadFailed: () => void, translate: LocalizedTranslate) {
-    let reportIDParam = reportID;
-    const allReportTransactions = getReportTransactions(reportID).filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-    const allTransactionIDs = allReportTransactions.map((transaction) => transaction.transactionID);
-    if (allTransactionIDs.length !== transactionIDList.length) {
-        reportIDParam = '-1';
-    }
+    // When transactionIDList is empty, the backend exports all transactions for the given reportID.
+    // When transactionIDList is non-empty, set reportID to '-1' so the backend exports only the specified transactions.
+    // Previously this compared two client-side transaction sources that both came from the same incomplete
+    // Onyx store (due to report action pagination), so the mismatch was never detected and the export
+    // would silently omit transactions not yet loaded on the client.
+    const reportIDParam = transactionIDList.length > 0 ? '-1' : reportID;
     const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_REPORT_TO_CSV, {
         reportID: reportIDParam,
         transactionIDList,

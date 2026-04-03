@@ -1102,7 +1102,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                     exportReportToCSV(
                         {
                             reportID: moneyRequestReport.reportID,
-                            transactionIDList: transactionIDs,
+                            transactionIDList: [],
                         },
                         () => {
                             showDecisionModal({
