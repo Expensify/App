@@ -22,6 +22,7 @@ import {
     completePaymentOnboarding,
     createDistanceRequest,
     deleteMoneyRequest,
+    detachReceipt,
     getIOUReportActionWithBadge,
     getReportOriginalCreationTimestamp,
     getReportPreviewAction,
@@ -32,11 +33,13 @@ import {
     payMoneyRequest,
     rejectExpenseReport,
     rejectMoneyRequest,
+    removeMoneyRequestOdometerImage,
     replaceReceipt,
     resetDraftTransactionsCustomUnit,
     retractReport,
     setMoneyRequestCategory,
     setMoneyRequestDistanceRate,
+    setMoneyRequestOdometerImage,
     shouldOptimisticallyUpdateSearch,
     submitReport,
     updateBulkEditDraftTransaction,
@@ -123,6 +126,7 @@ import * as InvoiceData from '../data/Invoice';
 import currencyList from '../unit/currencyList.json';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../utils/collections/policies';
+import createRandomPolicyTags from '../utils/collections/policyTags';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
@@ -152,6 +156,7 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     getActiveRoute: jest.fn(),
     navigationRef: {
         getRootState: jest.fn(),
+        isReady: jest.fn(() => true),
     },
 }));
 
@@ -6602,6 +6607,7 @@ describe('actions/IOU', () => {
                     isChatIOUReportArchived: true,
                     allTransactionViolationsParam: {},
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    currentUserEmail: TEST_USER_LOGIN,
                 });
             }
             await waitForBatchedUpdates();
@@ -6691,6 +6697,7 @@ describe('actions/IOU', () => {
                     isChatIOUReportArchived: true,
                     allTransactionViolationsParam: {},
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    currentUserEmail: TEST_USER_LOGIN,
                 });
             }
             await waitForBatchedUpdates();
@@ -6773,6 +6780,7 @@ describe('actions/IOU', () => {
                     chatReport,
                     allTransactionViolationsParam: {},
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    currentUserEmail: TEST_USER_LOGIN,
                 });
             }
             await waitForBatchedUpdates();
@@ -6884,6 +6892,7 @@ describe('actions/IOU', () => {
                     chatReport,
                     allTransactionViolationsParam: {},
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    currentUserEmail: TEST_USER_LOGIN,
                 });
             }
             await waitForBatchedUpdates();
@@ -7032,6 +7041,7 @@ describe('actions/IOU', () => {
                     chatReport,
                     allTransactionViolationsParam: {},
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    currentUserEmail: TEST_USER_LOGIN,
                 });
             }
             await waitForBatchedUpdates();
@@ -7145,6 +7155,7 @@ describe('actions/IOU', () => {
                     chatReport,
                     allTransactionViolationsParam: {},
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    currentUserEmail: TEST_USER_LOGIN,
                 });
             }
             await waitForBatchedUpdates();
@@ -7331,6 +7342,7 @@ describe('actions/IOU', () => {
                     isChatIOUReportArchived: undefined,
                     allTransactionViolationsParam: {},
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    currentUserEmail: TEST_USER_LOGIN,
                 });
             }
             await waitForBatchedUpdates();
@@ -7444,6 +7456,7 @@ describe('actions/IOU', () => {
                     isChatIOUReportArchived: undefined,
                     allTransactionViolationsParam: {},
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    currentUserEmail: TEST_USER_LOGIN,
                 });
             }
             await waitForBatchedUpdates();
@@ -7548,6 +7561,7 @@ describe('actions/IOU', () => {
                     isSingleTransactionView: true,
                     allTransactionViolationsParam: {},
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    currentUserEmail: TEST_USER_LOGIN,
                 });
             }
 
@@ -7605,6 +7619,7 @@ describe('actions/IOU', () => {
                     chatReport,
                     allTransactionViolationsParam: {},
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    currentUserEmail: TEST_USER_LOGIN,
                 });
             }
             // Then we expect to navigate to the chat report
@@ -7769,6 +7784,7 @@ describe('actions/IOU', () => {
                     chatReport,
                     allTransactionViolationsParam: {},
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    currentUserEmail: TEST_USER_LOGIN,
                 });
             }
 
@@ -7795,6 +7811,7 @@ describe('actions/IOU', () => {
 
     describe('bulk deleteMoneyRequest', () => {
         const TEST_USER_ACCOUNT_ID = 1;
+        const TEST_USER_LOGIN = 'test@email.com';
 
         it('update IOU report total properly for bulk deletion of expenses', async () => {
             const expenseReport: Report = {
@@ -7859,6 +7876,7 @@ describe('actions/IOU', () => {
                 selectedTransactionIDs,
                 allTransactionViolationsParam: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                currentUserEmail: TEST_USER_LOGIN,
             });
             deleteMoneyRequest({
                 transactionID: transaction2.transactionID,
@@ -7871,6 +7889,7 @@ describe('actions/IOU', () => {
                 selectedTransactionIDs,
                 allTransactionViolationsParam: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                currentUserEmail: TEST_USER_LOGIN,
             });
             await waitForBatchedUpdates();
 
@@ -7892,6 +7911,7 @@ describe('actions/IOU', () => {
 
     describe('deleteMoneyRequest with allTransactionViolationsParam', () => {
         const TEST_USER_ACCOUNT_ID = 1;
+        const TEST_USER_LOGIN = 'test@email.com';
         it('should pass transaction violations to hasOutstandingChildRequest correctly', async () => {
             // Given an expense report with a transaction
             const expenseReport: Report = {
@@ -7946,6 +7966,7 @@ describe('actions/IOU', () => {
                 chatReport: expenseReport,
                 allTransactionViolationsParam: transactionViolations,
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                currentUserEmail: TEST_USER_LOGIN,
             });
 
             await waitForBatchedUpdates();
@@ -8009,6 +8030,7 @@ describe('actions/IOU', () => {
                 chatReport: expenseReport,
                 allTransactionViolationsParam: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                currentUserEmail: TEST_USER_LOGIN,
             });
 
             await waitForBatchedUpdates();
@@ -8053,7 +8075,7 @@ describe('actions/IOU', () => {
 
                     const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
                     // Change the approval mode for the policy since default is Submit and Close
-                    setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
+                    setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL);
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -8200,7 +8222,7 @@ describe('actions/IOU', () => {
                     });
 
                     const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-                    setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, {});
+                    setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, {});
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -8503,6 +8525,7 @@ describe('actions/IOU', () => {
                                 lastUsedPaymentMethods: undefined,
                                 localeCompare,
                                 currentUserAccountID: CARLOS_ACCOUNT_ID,
+                                accountIDToLogin: {},
                             });
                         }
                         return waitForBatchedUpdates();
@@ -8773,7 +8796,7 @@ describe('actions/IOU', () => {
             return waitForBatchedUpdates()
                 .then(async () => {
                     policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-                    setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, {});
+                    setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, RORY_ACCOUNT_ID, RORY_EMAIL, {});
                     return waitForBatchedUpdates();
                 })
                 .then(
@@ -9000,7 +9023,7 @@ describe('actions/IOU', () => {
                 hasActiveAdminPolicies: false,
             });
 
-            setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, {});
+            setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, {});
             await waitForBatchedUpdates();
 
             let chatReport: OnyxEntry<Report>;
@@ -12515,7 +12538,7 @@ describe('actions/IOU', () => {
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
                 // Change the approval mode for the policy since default is Submit and Close
-                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, {});
+                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, {});
                 await waitForBatchedUpdates();
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.REPORT,
@@ -12691,7 +12714,7 @@ describe('actions/IOU', () => {
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
                 // Change the approval mode for the policy since default is Submit and Close
-                setWorkspaceApprovalMode(policy, RORY_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, {});
+                setWorkspaceApprovalMode(policy, RORY_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, {});
                 await waitForBatchedUpdates();
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.REPORT,
@@ -12870,7 +12893,7 @@ describe('actions/IOU', () => {
                 });
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, {});
+                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, {});
                 await waitForBatchedUpdates();
 
                 await getOnyxData({
@@ -13060,7 +13083,7 @@ describe('actions/IOU', () => {
 
                 const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
                 // Change the approval mode for the policy since default is Submit and Close
-                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, {});
+                setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, {});
                 await waitForBatchedUpdates();
 
                 await getOnyxData({
@@ -15623,6 +15646,200 @@ describe('actions/IOU', () => {
             const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
             expect(updatedTransaction?.comment?.customUnit?.name).toBe(CONST.CUSTOM_UNITS.NAME_DISTANCE);
             expect(updatedTransaction?.comment?.customUnit?.quantity).toBe(100);
+        });
+    });
+
+    describe('setMoneyRequestOdometerImage and removeMoneyRequestOdometerImage', () => {
+        beforeEach(() => {
+            jest.mock('@libs/OdometerImageUtils', () => ({
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                __esModule: true,
+                default: jest.fn(),
+            }));
+        });
+
+        afterEach(() => {
+            jest.unmock('@libs/OdometerImageUtils');
+        });
+        it('should set odometer start image on a draft transaction', async () => {
+            const transaction = createRandomTransaction(1);
+            const transactionID = transaction.transactionID;
+            const file = {uri: 'image.uri', name: 'image.jpg', type: 'image/jpeg', size: 1234};
+            const imageType = CONST.IOU.ODOMETER_IMAGE_TYPE.START;
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, transaction);
+
+            setMoneyRequestOdometerImage(transaction, imageType, file, true, false);
+            await waitForBatchedUpdates();
+
+            const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+            expect(draftTransaction?.comment?.odometerStartImage).toEqual(file);
+        });
+
+        it('should set odometer end image on a non-draft transaction', async () => {
+            const transaction = createRandomTransaction(1);
+            const transactionID = transaction.transactionID;
+            const file = {uri: 'image.uri', name: 'image.jpg', type: 'image/jpeg', size: 1234};
+            const imageType = CONST.IOU.ODOMETER_IMAGE_TYPE.END;
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+
+            setMoneyRequestOdometerImage(transaction, imageType, file, false, false);
+            await waitForBatchedUpdates();
+
+            const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(updatedTransaction?.comment?.odometerEndImage).toEqual(file);
+        });
+
+        it('should remove odometer start image from a draft transaction', async () => {
+            const transaction = {
+                ...createRandomTransaction(1),
+                comment: {
+                    odometerStartImage: {uri: 'image.uri'},
+                },
+            } as Transaction;
+            const transactionID = transaction.transactionID;
+            const imageType = CONST.IOU.ODOMETER_IMAGE_TYPE.START;
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, transaction);
+
+            removeMoneyRequestOdometerImage(transaction, imageType, true, false);
+            await waitForBatchedUpdates();
+
+            const draftTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+            expect(draftTransaction?.comment?.odometerStartImage).toBeUndefined();
+        });
+
+        it('should remove odometer end image from a non-draft transaction', async () => {
+            const transaction = {
+                ...createRandomTransaction(1),
+                comment: {
+                    odometerEndImage: {uri: 'image.uri'},
+                },
+            } as Transaction;
+            const transactionID = transaction.transactionID;
+            const imageType = CONST.IOU.ODOMETER_IMAGE_TYPE.END;
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+
+            removeMoneyRequestOdometerImage(transaction, imageType, false, false);
+            await waitForBatchedUpdates();
+
+            const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(updatedTransaction?.comment?.odometerEndImage).toBeUndefined();
+        });
+    });
+
+    describe('detachReceipt', () => {
+        const transactionID = '1';
+        const reportID = '2';
+        const policyID = '3';
+        const tagListName = 'Department';
+
+        const policy = {
+            ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+            id: policyID,
+        };
+
+        const policyTagList = createRandomPolicyTags(tagListName, 3);
+
+        const transaction = {
+            ...createRandomTransaction(1),
+            transactionID,
+            reportID,
+            receipt: {source: 'receipt-url.jpg'},
+            merchant: 'Test Merchant',
+        };
+
+        const report = {
+            ...createRandomReport(1, undefined),
+            reportID,
+            policyID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            lastVisibleActionCreated: '2024-01-01 00:00:00',
+            lastReadTime: '2024-01-01 00:00:00',
+        };
+
+        const seedOnyx = async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, policyTagList);
+            await waitForBatchedUpdates();
+        };
+
+        it('should do nothing when transactionID is undefined', async () => {
+            const transactionsBefore = await getOnyxValue(ONYXKEYS.COLLECTION.TRANSACTION);
+
+            detachReceipt(undefined, undefined, undefined, undefined);
+            await waitForBatchedUpdates();
+
+            const transactionsAfter = await getOnyxValue(ONYXKEYS.COLLECTION.TRANSACTION);
+            expect(transactionsAfter).toEqual(transactionsBefore);
+        });
+
+        it('should optimistically null the receipt and set pending field', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            await seedOnyx();
+
+            try {
+                detachReceipt(transactionID, undefined, undefined, undefined);
+                await waitForBatchedUpdates();
+
+                const onyxData = writeSpy.mock.calls.at(0)?.at(2) as {optimisticData?: Array<{key: string; value: unknown}>};
+                const transactionOptimistic = onyxData?.optimisticData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+                expect(transactionOptimistic?.value).toEqual(
+                    expect.objectContaining({
+                        receipt: null,
+                        pendingFields: {receipt: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                    }),
+                );
+            } finally {
+                writeSpy.mockRestore();
+            }
+        });
+
+        it('should create an optimistic report action and update report timestamps', async () => {
+            await seedOnyx();
+
+            detachReceipt(transactionID, undefined, undefined, undefined);
+            await waitForBatchedUpdates();
+
+            // Then a new report action should be created on the report
+            const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+            const actions = Object.values(reportActions ?? {});
+            expect(actions.length).toBeGreaterThan(0);
+
+            // And the report timestamps should be updated
+            const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+            expect(updatedReport?.lastVisibleActionCreated).not.toBe('2024-01-01 00:00:00');
+        });
+
+        it('should call API.write with DETACH_RECEIPT command and correct params', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            await seedOnyx();
+
+            try {
+                detachReceipt(transactionID, undefined, undefined, undefined);
+                await waitForBatchedUpdates();
+
+                expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.DETACH_RECEIPT, expect.objectContaining({transactionID}), expect.anything(), expect.anything());
+            } finally {
+                writeSpy.mockRestore();
+            }
+        });
+
+        it('should compute violations when policy is paid group', async () => {
+            await seedOnyx();
+
+            detachReceipt(transactionID, policy, policyTagList, undefined);
+            await waitForBatchedUpdates();
+
+            const violations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
+            expect(violations).toBeDefined();
+            expect(Array.isArray(violations)).toBe(true);
         });
     });
 });
