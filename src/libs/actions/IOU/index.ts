@@ -922,6 +922,7 @@ type SubmitReportFunctionParams = {
     amountOwed: OnyxEntry<number>;
     onSubmitted?: () => void;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
+    delegateEmail: string | undefined;
 };
 
 let allTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
@@ -10539,12 +10540,13 @@ function retractReport(
     hasViolations: boolean,
     isASAPSubmitBetaEnabled: boolean,
     expenseReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
+    delegateEmail: string | undefined,
 ) {
     if (!expenseReport) {
         return;
     }
 
-    const optimisticRetractReportAction = buildOptimisticRetractedReportAction();
+    const optimisticRetractReportAction = buildOptimisticRetractedReportAction(delegateEmail);
     const predictedNextState = CONST.REPORT.STATE_NUM.OPEN;
     const predictedNextStatus = CONST.REPORT.STATUS_NUM.OPEN;
 
@@ -10712,12 +10714,13 @@ function unapproveExpenseReport(
     hasViolations: boolean,
     isASAPSubmitBetaEnabled: boolean,
     expenseReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
+    delegateEmail: string | undefined,
 ) {
     if (isEmptyObject(expenseReport)) {
         return;
     }
 
-    const optimisticUnapprovedReportAction = buildOptimisticUnapprovedReportAction(expenseReport.total ?? 0, expenseReport.currency ?? '', expenseReport.reportID);
+    const optimisticUnapprovedReportAction = buildOptimisticUnapprovedReportAction(expenseReport.total ?? 0, expenseReport.currency ?? '', expenseReport.reportID, delegateEmail);
 
     // buildOptimisticNextStep is used in parallel
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -10879,6 +10882,7 @@ function submitReport({
     amountOwed,
     onSubmitted,
     ownerBillingGracePeriodEnd,
+    delegateEmail,
 }: SubmitReportFunctionParams) {
     if (!expenseReport) {
         return;
@@ -10898,6 +10902,7 @@ function submitReport({
         expenseReport.reportID,
         adminAccountID,
         policy?.approvalMode,
+        delegateEmail,
     );
     const isDEWPolicy = hasDynamicExternalWorkflow(policy);
     // For DEW policies, only add optimistic submit action when offline
