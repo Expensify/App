@@ -2,6 +2,7 @@
  * Helper utilities for native biometrics HSM (react-native-biometrics).
  */
 import {sha256} from '@sbaiahmed1/react-native-biometrics';
+import type {AuthType} from '@sbaiahmed1/react-native-biometrics/types';
 import {Buffer} from 'buffer';
 import type {ValueOf} from 'type-fest';
 import type {AuthTypeInfo, MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/shared/types';
@@ -14,7 +15,7 @@ type NativeBiometricsHSMTypeEntry = ValueOf<typeof NATIVE_BIOMETRICS_HSM_VALUES.
 /**
  * Builds the key alias for a given account.
  */
-function getKeyAlias(accountID: number): string {
+function getKeyAlias(accountID: AuthType): string {
     return `${accountID}_${CONST.MULTIFACTOR_AUTHENTICATION.HSM_KEY_SUFFIX}`;
 }
 
@@ -22,7 +23,7 @@ function getKeyAlias(accountID: number): string {
  * Maps authType number from signWithOptions (with returnAuthType: true) to AuthTypeInfo.
  * Native layer returns: -1=Unknown, 0=None, 1=DeviceCredentials, 2=Biometrics, 3=FaceID, 4=TouchID, 5=OpticID
  */
-const AUTH_TYPE_NUMBER_MAP = new Map<number, NativeBiometricsHSMTypeEntry>([
+const AUTH_TYPE_NUMBER_MAP = new Map<AuthType, NativeBiometricsHSMTypeEntry>([
     [-1, NATIVE_BIOMETRICS_HSM_VALUES.AUTH_TYPE.UNKNOWN],
     [0, NATIVE_BIOMETRICS_HSM_VALUES.AUTH_TYPE.NONE],
     [1, NATIVE_BIOMETRICS_HSM_VALUES.AUTH_TYPE.CREDENTIALS],
@@ -32,7 +33,7 @@ const AUTH_TYPE_NUMBER_MAP = new Map<number, NativeBiometricsHSMTypeEntry>([
     [5, NATIVE_BIOMETRICS_HSM_VALUES.AUTH_TYPE.OPTIC_ID],
 ]);
 
-function mapAuthTypeNumber(authType?: number): AuthTypeInfo | undefined {
+function mapAuthTypeNumber(authType?: AuthType): AuthTypeInfo | undefined {
     if (authType === undefined) {
         return undefined;
     }

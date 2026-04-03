@@ -1,3 +1,4 @@
+import {AuthType} from '@sbaiahmed1/react-native-biometrics';
 import {act, renderHook} from '@testing-library/react-native';
 import useNativeBiometricsHSM from '@components/MultifactorAuthentication/biometrics/useNativeBiometricsHSM';
 import type {AuthenticationChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
@@ -326,7 +327,7 @@ describe('useNativeBiometricsHSM hook', () => {
             const keyAlias = '12345_HSM_KEY';
             mockGetAllKeys.mockResolvedValue({keys: [{alias: keyAlias, publicKey: 'abc+def/ghi='}]});
             mockSha256.mockResolvedValue({hash: Buffer.alloc(32).toString('base64')});
-            mockSignWithOptions.mockResolvedValue({success: true, signature: 'c2lnbmF0dXJl', authType: 3});
+            mockSignWithOptions.mockResolvedValue({success: true, signature: 'c2lnbmF0dXJl', authType: AuthType.FaceID});
         });
 
         it('should sign challenge and return success', async () => {

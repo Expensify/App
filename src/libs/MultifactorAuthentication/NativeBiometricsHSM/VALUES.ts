@@ -1,7 +1,7 @@
 /**
  * Constants specific to native biometrics (HSM / react-native-biometrics).
  */
-// import {AuthType} from '@sbaiahmed1/react-native-biometrics/types';
+import {AuthType} from '@sbaiahmed1/react-native-biometrics/types';
 import MARQETA_VALUES from '@libs/MultifactorAuthentication/shared/MarqetaValues';
 
 const NATIVE_BIOMETRICS_HSM_VALUES = {
@@ -19,36 +19,33 @@ const NATIVE_BIOMETRICS_HSM_VALUES = {
      * Authentication types mapped to Marqeta values
      */
     AUTH_TYPE: {
-        /**
-         * TODO: replace codes with the exported AuthType enum values once the new export '@sbaiahmed1/react-native-biometrics/types' is added
-         */
         UNKNOWN: {
-            CODE: -1,
+            CODE: AuthType.Unknown,
             NAME: 'Unknown',
             MARQETA_VALUE: MARQETA_VALUES.AUTHENTICATION_METHOD.KNOWLEDGE_BASED,
         },
         NONE: {
-            CODE: 0,
+            CODE: AuthType.None,
             NAME: 'None',
             MARQETA_VALUE: MARQETA_VALUES.AUTHENTICATION_METHOD.NONE,
         },
         CREDENTIALS: {
-            CODE: 1,
+            CODE: AuthType.DeviceCredentials,
             NAME: 'Credentials',
             MARQETA_VALUE: MARQETA_VALUES.AUTHENTICATION_METHOD.KNOWLEDGE_BASED,
         },
         BIOMETRICS: {
-            CODE: 2,
+            CODE: AuthType.Biometrics,
             NAME: 'Biometrics',
             MARQETA_VALUE: MARQETA_VALUES.AUTHENTICATION_METHOD.BIOMETRIC_FINGERPRINT,
         },
         FACE_ID: {
-            CODE: 3,
+            CODE: AuthType.FaceID,
             NAME: 'Face ID',
             MARQETA_VALUE: MARQETA_VALUES.AUTHENTICATION_METHOD.BIOMETRIC_FACE,
         },
         TOUCH_ID: {
-            CODE: 4,
+            CODE: AuthType.TouchID,
             NAME: 'Touch ID',
             MARQETA_VALUE: MARQETA_VALUES.AUTHENTICATION_METHOD.BIOMETRIC_FINGERPRINT,
         },
@@ -57,7 +54,7 @@ const NATIVE_BIOMETRICS_HSM_VALUES = {
          * It is declared here for completeness but is not currently supported.
          */
         OPTIC_ID: {
-            CODE: 5,
+            CODE: AuthType.OpticID,
             NAME: 'Optic ID',
             MARQETA_VALUE: MARQETA_VALUES.AUTHENTICATION_METHOD.BIOMETRIC_FACE,
         },

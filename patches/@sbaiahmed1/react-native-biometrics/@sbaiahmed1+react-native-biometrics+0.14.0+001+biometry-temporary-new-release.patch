@@ -409,3 +409,51 @@ index cbfd187..7e9a545 100644
    None = 0,
    DeviceCredentials = 1,
    Biometrics = 2,
+diff --git a/node_modules/@sbaiahmed1/react-native-biometrics/lib/commonjs/types.js b/node_modules/@sbaiahmed1/react-native-biometrics/lib/commonjs/types.js
+index 3d0dfae..c4cee42 100644
+--- a/node_modules/@sbaiahmed1/react-native-biometrics/lib/commonjs/types.js
++++ b/node_modules/@sbaiahmed1/react-native-biometrics/lib/commonjs/types.js
+@@ -16,6 +16,7 @@ let BiometricStrength = exports.BiometricStrength = /*#__PURE__*/function (Biome
+  * available on the device, due to platform limitations.
+  */
+ let AuthType = exports.AuthType = /*#__PURE__*/function (AuthType) {
++  AuthType[AuthType["Unknown"] = -1] = "Unknown";
+   AuthType[AuthType["None"] = 0] = "None";
+   AuthType[AuthType["DeviceCredentials"] = 1] = "DeviceCredentials";
+   AuthType[AuthType["Biometrics"] = 2] = "Biometrics";
+diff --git a/node_modules/@sbaiahmed1/react-native-biometrics/lib/module/types.js b/node_modules/@sbaiahmed1/react-native-biometrics/lib/module/types.js
+index 4d45270..d01ff06 100644
+--- a/node_modules/@sbaiahmed1/react-native-biometrics/lib/module/types.js
++++ b/node_modules/@sbaiahmed1/react-native-biometrics/lib/module/types.js
+@@ -13,6 +13,7 @@ export let BiometricStrength = /*#__PURE__*/function (BiometricStrength) {
+  * available on the device, due to platform limitations.
+  */
+ export let AuthType = /*#__PURE__*/function (AuthType) {
++  AuthType[AuthType["Unknown"] = -1] = "Unknown";
+   AuthType[AuthType["None"] = 0] = "None";
+   AuthType[AuthType["DeviceCredentials"] = 1] = "DeviceCredentials";
+   AuthType[AuthType["Biometrics"] = 2] = "Biometrics";
+diff --git a/node_modules/@sbaiahmed1/react-native-biometrics/lib/typescript/commonjs/src/types.d.ts b/node_modules/@sbaiahmed1/react-native-biometrics/lib/typescript/commonjs/src/types.d.ts
+index cd3d3c4..a9a0e8c 100644
+--- a/node_modules/@sbaiahmed1/react-native-biometrics/lib/typescript/commonjs/src/types.d.ts
++++ b/node_modules/@sbaiahmed1/react-native-biometrics/lib/typescript/commonjs/src/types.d.ts
+@@ -9,6 +9,7 @@ export declare enum BiometricStrength {
+  * available on the device, due to platform limitations.
+  */
+ export declare enum AuthType {
++    Unknown = -1,
+     None = 0,
+     DeviceCredentials = 1,
+     Biometrics = 2,
+diff --git a/node_modules/@sbaiahmed1/react-native-biometrics/lib/typescript/module/src/types.d.ts b/node_modules/@sbaiahmed1/react-native-biometrics/lib/typescript/module/src/types.d.ts
+index cd3d3c4..a9a0e8c 100644
+--- a/node_modules/@sbaiahmed1/react-native-biometrics/lib/typescript/module/src/types.d.ts
++++ b/node_modules/@sbaiahmed1/react-native-biometrics/lib/typescript/module/src/types.d.ts
+@@ -9,6 +9,7 @@ export declare enum BiometricStrength {
+  * available on the device, due to platform limitations.
+  */
+ export declare enum AuthType {
++    Unknown = -1,
+     None = 0,
+     DeviceCredentials = 1,
+     Biometrics = 2,
