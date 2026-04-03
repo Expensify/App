@@ -1540,11 +1540,25 @@ function getCardHintText(validFrom: string | undefined, validThru: string | unde
  * The search API pre-resolves cardName and isCardFeedDeleted, but local Onyx transactions have raw values.
  * This ensures the report layout matches the search page.
  */
-function resolveTransactionCardFields<T extends {cardID?: number; cardName?: string; bank?: string}>(
+function resolveTransactionCardFields<
+    T extends {
+        cardID?: number;
+        cardName?: string;
+        bank?: string;
+        amount?: number;
+        convertedAmount?: number;
+        currency?: string;
+        originalAmount?: number;
+        originalCurrency?: string;
+        modifiedAmount?: number | string;
+        modifiedCurrency?: string;
+    },
+>(
     transactions: T[],
     cardList: CardList | undefined,
     cardFeeds: OnyxCollection<CardFeeds> | undefined,
     translate: LocalizedTranslate,
+    reportCurrency?: string,
 ): Array<T & {isCardFeedDeleted?: boolean}> {
     return transactions.map((transaction) => {
         let updates: Partial<T & {isCardFeedDeleted?: boolean}> = {};
@@ -1563,6 +1577,22 @@ function resolveTransactionCardFields<T extends {cardID?: number; cardName?: str
         // Resolve isCardFeedDeleted
         if (cardFeeds !== undefined) {
             updates = {...updates, isCardFeedDeleted: !!transaction.bank && !doesCardFeedExist(transaction.bank as CompanyCardFeed, cardFeeds)};
+        }
+
+        // For report view: use convertedAmount as amount (in report currency),
+        // and the original amount/currency as originalAmount/originalCurrency.
+        // Override modifiedAmount/modifiedCurrency too since display functions read those first.
+        const currentDisplayCurrency = (transaction.modifiedCurrency ? String(transaction.modifiedCurrency) : transaction.currency) ?? '';
+        if (reportCurrency && transaction.convertedAmount && currentDisplayCurrency !== reportCurrency) {
+            updates = {
+                ...updates,
+                originalAmount: transaction.amount,
+                originalCurrency: transaction.currency,
+                amount: transaction.convertedAmount,
+                currency: reportCurrency,
+                modifiedAmount: transaction.convertedAmount,
+                modifiedCurrency: reportCurrency,
+            } as Partial<T & {isCardFeedDeleted?: boolean}>;
         }
 
         if (Object.keys(updates).length === 0) {

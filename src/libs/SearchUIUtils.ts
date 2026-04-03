@@ -1786,8 +1786,27 @@ function getTransactionsSections({
             const actions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ?? [];
             const reportMetadata = allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`] ?? {};
             const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, reportMetadata, actions);
+            // Show amount in report currency, original amount in transaction currency.
+            // Search API provides groupAmount/groupCurrency for the report-currency value.
+            // Override modifiedAmount/modifiedCurrency too since display functions read those first.
+            const reportCurrencyValue = report?.currency ?? transactionItem.groupCurrency ?? '';
+            const currentDisplayCurrency = (transactionItem.modifiedCurrency ? transactionItem.modifiedCurrency : transactionItem.currency) ?? '';
+            const groupAmount = transactionItem.groupAmount ?? 0;
+            const shouldSwapAmounts = groupAmount !== 0 && currentDisplayCurrency !== reportCurrencyValue;
+            const resolvedAmountFields = shouldSwapAmounts
+                ? {
+                      originalAmount: transactionItem.amount,
+                      originalCurrency: transactionItem.currency,
+                      amount: groupAmount,
+                      currency: reportCurrencyValue,
+                      modifiedAmount: groupAmount,
+                      modifiedCurrency: reportCurrencyValue,
+                  }
+                : {};
+
             const transactionSection: TransactionListItemType = {
                 ...transactionItem,
+                ...resolvedAmountFields,
                 keyForList: transactionItem.transactionID,
                 action: allActions.at(0) ?? CONST.SEARCH.ACTION_TYPES.VIEW,
                 allActions,
@@ -4582,6 +4601,7 @@ function getColumnsToShow({
     isExpenseReportViewFromIOUReport = false,
     shouldShowBillableColumn = false,
     shouldShowReimbursableColumn = false,
+    shouldShowCommentsColumn = false,
     reportCurrency,
     shouldUseStrictDefaultExpenseColumns = false,
     policy,
@@ -4595,9 +4615,10 @@ function getColumnsToShow({
     isExpenseReportViewFromIOUReport?: boolean;
     shouldShowBillableColumn?: boolean;
     shouldShowReimbursableColumn?: boolean;
+    shouldShowCommentsColumn?: boolean;
+    reportCurrency?: string;
     shouldUseStrictDefaultExpenseColumns?: boolean;
     policy?: OnyxTypes.Policy;
-    reportCurrency?: string;
 }): SearchColumnType[] {
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
         const defaultReportColumns: SearchColumnType[] = [
@@ -4716,8 +4737,8 @@ function getColumnsToShow({
               [CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE]: shouldShowReimbursableColumn,
               [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: shouldShowBillableColumn,
-              [CONST.SEARCH.TABLE_COLUMNS.COMMENTS]: true,
               [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: true,
+              [CONST.SEARCH.TABLE_COLUMNS.COMMENTS]: shouldShowCommentsColumn,
           }
         : {
               [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
@@ -4780,7 +4801,7 @@ function getColumnsToShow({
                 }
             }
 
-            if (!addedColumns.has(CONST.SEARCH.TABLE_COLUMNS.COMMENTS)) {
+            if (shouldShowCommentsColumn && !addedColumns.has(CONST.SEARCH.TABLE_COLUMNS.COMMENTS)) {
                 result.push(CONST.SEARCH.TABLE_COLUMNS.COMMENTS);
             }
 
@@ -4847,12 +4868,14 @@ function getColumnsToShow({
                 columns[CONST.SEARCH.TABLE_COLUMNS.TAX_RATE] = true;
             }
 
-            if (transaction.taxAmount) {
+            if (transaction.taxAmount != null) {
                 columns[CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT] = true;
             }
 
             const hasExchangeRate = getExchangeRate(transaction, reportCurrency) !== '';
-            if (hasExchangeRate || transaction.originalAmount) {
+            // Zero original amount is valid if the expense was created as 0 and modified (modifiedAmount is set).
+            const hasOriginalAmount = transaction.originalAmount != null || (transaction.amount === 0 && transaction.modifiedAmount != null && transaction.modifiedAmount !== '');
+            if (hasExchangeRate || hasOriginalAmount) {
                 columns[CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT] = true;
                 columns[CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE] = true;
             }
@@ -4948,8 +4971,8 @@ function getColumnsToShow({
             CONST.SEARCH.TABLE_COLUMNS.TYPE,
             CONST.SEARCH.TABLE_COLUMNS.DATE,
             CONST.SEARCH.TABLE_COLUMNS.STATUS,
-            CONST.SEARCH.TABLE_COLUMNS.COMMENTS,
             CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
+            CONST.SEARCH.TABLE_COLUMNS.COMMENTS,
             CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE,
             CONST.SEARCH.TABLE_COLUMNS.BILLABLE,
             CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID,
