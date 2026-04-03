@@ -376,6 +376,135 @@ describe('MoneyRequest', () => {
                 }),
             );
         });
+
+        it('should pass default tax code from policy when transaction has no taxCode (trackExpense)', () => {
+            const policyWithTax = {
+                ...createRandomPolicy(10, CONST.POLICY.TYPE.TEAM),
+                outputCurrency: CONST.CURRENCY.USD,
+                taxRates: {
+                    defaultExternalID: 'TAX_DEFAULT_123',
+                    foreignTaxDefault: 'TAX_FOREIGN_456',
+                    name: 'Tax',
+                    taxes: {},
+                },
+            };
+            const transactionWithoutTax = {
+                ...fakeTransaction,
+                taxCode: undefined,
+                taxAmount: undefined,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            createTransaction({
+                ...baseParams,
+                iouType: CONST.IOU.TYPE.TRACK,
+                transactions: [transactionWithoutTax],
+                policyParams: {policy: policyWithTax},
+            });
+
+            expect(IOU.trackExpense).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    transactionParams: expect.objectContaining({
+                        taxCode: 'TAX_DEFAULT_123',
+                        taxAmount: 0,
+                    }),
+                }),
+            );
+        });
+
+        it('should pass default tax code from policy when transaction has no taxCode (requestMoney)', () => {
+            const policyWithTax = {
+                ...createRandomPolicy(11, CONST.POLICY.TYPE.TEAM),
+                outputCurrency: CONST.CURRENCY.USD,
+                taxRates: {
+                    defaultExternalID: 'TAX_DEFAULT_789',
+                    foreignTaxDefault: 'TAX_FOREIGN_012',
+                    name: 'Tax',
+                    taxes: {},
+                },
+            };
+            const transactionWithoutTax = {
+                ...fakeTransaction,
+                taxCode: undefined,
+                taxAmount: undefined,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            createTransaction({
+                ...baseParams,
+                iouType: CONST.IOU.TYPE.REQUEST,
+                transactions: [transactionWithoutTax],
+                policyParams: {policy: policyWithTax},
+            });
+
+            expect(IOU.requestMoney).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    transactionParams: expect.objectContaining({
+                        taxCode: 'TAX_DEFAULT_789',
+                        taxAmount: 0,
+                    }),
+                }),
+            );
+        });
+
+        it('should use transaction taxCode when it exists instead of default', () => {
+            const policyWithTax = {
+                ...createRandomPolicy(12, CONST.POLICY.TYPE.TEAM),
+                outputCurrency: CONST.CURRENCY.USD,
+                taxRates: {
+                    defaultExternalID: 'TAX_DEFAULT_SHOULD_NOT_USE',
+                    foreignTaxDefault: 'TAX_FOREIGN_SHOULD_NOT_USE',
+                    name: 'Tax',
+                    taxes: {},
+                },
+            };
+            const transactionWithTax = {
+                ...fakeTransaction,
+                taxCode: 'TAX_CUSTOM_999',
+                taxAmount: 500,
+                currency: CONST.CURRENCY.USD,
+            };
+
+            createTransaction({
+                ...baseParams,
+                iouType: CONST.IOU.TYPE.TRACK,
+                transactions: [transactionWithTax],
+                policyParams: {policy: policyWithTax},
+            });
+
+            expect(IOU.trackExpense).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    transactionParams: expect.objectContaining({
+                        taxCode: 'TAX_CUSTOM_999',
+                        taxAmount: 500,
+                    }),
+                }),
+            );
+        });
+
+        it('should pass empty taxCode and zero taxAmount when no policy and no transaction tax', () => {
+            const transactionWithoutTax = {
+                ...fakeTransaction,
+                taxCode: undefined,
+                taxAmount: undefined,
+            };
+
+            createTransaction({
+                ...baseParams,
+                iouType: CONST.IOU.TYPE.REQUEST,
+                transactions: [transactionWithoutTax],
+                policyParams: undefined,
+            });
+
+            expect(IOU.requestMoney).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    transactionParams: expect.objectContaining({
+                        taxCode: '',
+                        taxAmount: 0,
+                    }),
+                }),
+            );
+        });
     });
 
     describe('handleMoneyRequestStepScanParticipants', () => {
@@ -1054,6 +1183,9 @@ describe('MoneyRequest', () => {
                     gpsCoordinates: undefined,
                     odometerEnd: undefined,
                     odometerStart: undefined,
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                    taxCode: expect.any(String),
+                    taxAmount: 0,
                 },
                 isASAPSubmitBetaEnabled: baseParams.isASAPSubmitBetaEnabled,
                 currentUserAccountIDParam: baseParams.currentUserAccountID,
