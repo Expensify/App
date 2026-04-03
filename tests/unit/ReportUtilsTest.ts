@@ -89,6 +89,7 @@ import {
     getMostRecentlyVisitedReport,
     getOriginalReportID,
     getOutstandingChildRequest,
+    getOutstandingReportsForUser,
     getParentNavigationSubtitle,
     getParticipantsList,
     getPolicyExpenseChat,
@@ -96,6 +97,7 @@ import {
     getPolicyName,
     getReasonAndReportActionThatRequiresAttention,
     getReportIDFromLink,
+    getReportMetadata,
     getReportName as getReportNameDeprecated,
     getReportNotificationPreference,
     getReportOrDraftReport,
@@ -8010,6 +8012,40 @@ describe('ReportUtils', () => {
     });
 
     describe('isReportOutstanding', () => {
+        const fallbackPolicyID = 'is-outstanding-fallback-policy';
+        const fallbackSubmitterAccountID = 94001;
+        const fallbackApproverAccountID = 94002;
+        const fallbackManagerAccountID = 94003;
+        const fallbackSubmitterEmail = 'is.outstanding.submitter@expensify.test';
+        const fallbackApproverEmail = 'is.outstanding.approver@expensify.test';
+
+        const fallbackPolicy: Policy = {
+            id: fallbackPolicyID,
+            name: 'Outstanding Policy',
+            role: CONST.POLICY.ROLE.USER,
+            type: CONST.POLICY.TYPE.CORPORATE,
+            owner: fallbackApproverEmail,
+            approver: fallbackApproverEmail,
+            outputCurrency: 'USD',
+            approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            isPolicyExpenseChatEnabled: false,
+        };
+
+        beforeAll(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [fallbackSubmitterAccountID]: {
+                    accountID: fallbackSubmitterAccountID,
+                    login: fallbackSubmitterEmail,
+                },
+                [fallbackApproverAccountID]: {
+                    accountID: fallbackApproverAccountID,
+                    login: fallbackApproverEmail,
+                },
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fallbackPolicyID}`, fallbackPolicy);
+            await waitForBatchedUpdates();
+        });
+
         it('should return true for submitted reports', () => {
             const report: Report = {
                 ...createRandomReport(1, undefined),
@@ -8059,6 +8095,297 @@ describe('ReportUtils', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {private_isArchived: DateUtils.getDBTime()});
             expect(isReportOutstanding(report, policy.id)).toBe(false);
+        });
+
+        it('should return false when report has forwarded action', async () => {
+            const report: Report = {
+                ...createRandomReport(94010, undefined),
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+            const forwardedAction: ReportAction = {
+                ...createRandomReportAction(94010),
+                reportID: report.reportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {[forwardedAction.reportActionID]: forwardedAction});
+            await waitForBatchedUpdates();
+
+            expect(isReportOutstanding(report, policy.id)).toBe(false);
+        });
+
+        it('should not use manager mismatch fallback in shared outstanding classification when forwarded action is missing', async () => {
+            const report: Report = {
+                ...createRandomReport(94011, undefined),
+                reportID: '94011',
+                policyID: fallbackPolicyID,
+                ownerAccountID: fallbackSubmitterAccountID,
+                managerID: fallbackManagerAccountID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`, {});
+            await waitForBatchedUpdates();
+
+            expect(isReportOutstanding(report, fallbackPolicyID)).toBe(true);
+        });
+
+        it('should keep shared outstanding classification stable when approver personal details are missing (R3 partial details)', async () => {
+            // Setup: a separate policy + accounts where we control personal details hydration
+            const r3PolicyID = 'r3-partial-details-policy';
+            const r3SubmitterAccountID = 95001;
+            const r3ApproverAccountID = 95002;
+            const r3SubmitterEmail = 'r3.submitter@expensify.test';
+            const r3ApproverEmail = 'r3.approver@expensify.test';
+
+            const r3Policy: Policy = {
+                id: r3PolicyID,
+                name: 'R3 Test Policy',
+                role: CONST.POLICY.ROLE.USER,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                owner: r3ApproverEmail,
+                approver: r3ApproverEmail,
+                outputCurrency: 'USD',
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                isPolicyExpenseChatEnabled: false,
+            };
+
+            // First: set up with COMPLETE personal details — managerID matches approver (NOT forwarded)
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [r3SubmitterAccountID]: {
+                    accountID: r3SubmitterAccountID,
+                    login: r3SubmitterEmail,
+                },
+                [r3ApproverAccountID]: {
+                    accountID: r3ApproverAccountID,
+                    login: r3ApproverEmail,
+                },
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${r3PolicyID}`, r3Policy);
+
+            const report: Report = {
+                ...createRandomReport(95010, undefined),
+                reportID: '95010',
+                policyID: r3PolicyID,
+                ownerAccountID: r3SubmitterAccountID,
+                managerID: r3ApproverAccountID, // Manager IS the approver → NOT forwarded
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`, {});
+            await waitForBatchedUpdates();
+
+            const resultWithDetails = isReportOutstanding(report, r3PolicyID);
+            expect(resultWithDetails).toBe(true);
+
+            // Now remove the approver's personal details to simulate partial hydration
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [r3ApproverAccountID]: null,
+            });
+            await waitForBatchedUpdates();
+
+            const resultWithoutDetails = isReportOutstanding(report, r3PolicyID);
+            expect(resultWithoutDetails).toBe(true);
+        });
+
+        it('should return true for open draft reports when manager does not match submitsTo', async () => {
+            const report: Report = {
+                ...createRandomReport(94012, undefined),
+                reportID: '94012',
+                policyID: fallbackPolicyID,
+                ownerAccountID: fallbackSubmitterAccountID,
+                managerID: fallbackManagerAccountID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`, {});
+            await waitForBatchedUpdates();
+
+            expect(isReportOutstanding(report, fallbackPolicyID, undefined, false)).toBe(true);
+        });
+    });
+
+    describe('shared outstanding classification stability', () => {
+        // Shared fixtures for shared outstanding regression tests
+        const empPolicyID = 'emp-pre-implementation-policy';
+        const empSubmitterAccountID = 96001;
+        const empApproverAccountID = 96002;
+        const empSubmitterEmail = 'emp.submitter@expensify.test';
+        const empApproverEmail = 'emp.approver@expensify.test';
+
+        const empPolicy: Policy = {
+            id: empPolicyID,
+            name: 'Empirical Pre-Implementation Policy',
+            role: CONST.POLICY.ROLE.USER,
+            type: CONST.POLICY.TYPE.CORPORATE,
+            owner: empApproverEmail,
+            approver: empApproverEmail,
+            outputCurrency: 'USD',
+            approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            isPolicyExpenseChatEnabled: false,
+        };
+
+        beforeAll(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [empSubmitterAccountID]: {
+                    accountID: empSubmitterAccountID,
+                    login: empSubmitterEmail,
+                },
+                [empApproverAccountID]: {
+                    accountID: empApproverAccountID,
+                    login: empApproverEmail,
+                },
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${empPolicyID}`, empPolicy);
+            await waitForBatchedUpdates();
+        });
+
+        it('should not change isReportOutstanding for a non-forwarded processing report when REPORT_METADATA is toggled', async () => {
+            // Non-forwarded report: managerID matches the approver (submitsTo)
+            const report: Report = {
+                ...createRandomReport(96010, undefined),
+                reportID: '96010',
+                policyID: empPolicyID,
+                ownerAccountID: empSubmitterAccountID,
+                managerID: empApproverAccountID, // matches approver → NOT forwarded
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+
+            // Step 1: Without REPORT_METADATA
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {});
+            await waitForBatchedUpdates();
+            const resultWithoutMetadata = isReportOutstanding(report, empPolicyID);
+
+            // Step 2: With REPORT_METADATA (should NOT change classification for non-forwarded report)
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`, {});
+            await waitForBatchedUpdates();
+            const resultWithMetadata = isReportOutstanding(report, empPolicyID);
+
+            expect(resultWithoutMetadata).toBe(true);
+            expect(resultWithMetadata).toBe(true);
+        });
+
+        it('should not change isReportOutstanding for a non-forwarded processing report after policy approver mutation', async () => {
+            const report: Report = {
+                ...createRandomReport(96011, undefined),
+                reportID: '96011',
+                policyID: empPolicyID,
+                ownerAccountID: empSubmitterAccountID,
+                managerID: empApproverAccountID, // matches approver
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`, {});
+            await waitForBatchedUpdates();
+
+            const resultBeforeMutation = isReportOutstanding(report, empPolicyID);
+
+            // Mutate the policy approver to a different email (simulating approver change)
+            const newApproverEmail = 'emp.newapprover@expensify.test';
+            const newApproverAccountID = 96099;
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [newApproverAccountID]: {
+                    accountID: newApproverAccountID,
+                    login: newApproverEmail,
+                },
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${empPolicyID}`, {approver: newApproverEmail});
+            await waitForBatchedUpdates();
+
+            const resultAfterMutation = isReportOutstanding(report, empPolicyID);
+
+            expect(resultBeforeMutation).toBe(true);
+            expect(resultAfterMutation).toBe(true);
+
+            // Restore original policy approver for subsequent tests
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${empPolicyID}`, {approver: empApproverEmail});
+            await waitForBatchedUpdates();
+        });
+
+        it('should keep getOutstandingReportsForUser membership stable across REPORT_METADATA toggles', async () => {
+            const report: Report = {
+                ...createRandomReport(96012, undefined),
+                reportID: '96012',
+                policyID: empPolicyID,
+                ownerAccountID: empSubmitterAccountID,
+                managerID: empApproverAccountID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+
+            const reportsCollection = {
+                [`${ONYXKEYS.COLLECTION.REPORT}96012`]: report,
+            } as OnyxCollection<Report>;
+
+            // Without REPORT_METADATA
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {});
+            await waitForBatchedUpdates();
+            const listWithout = getOutstandingReportsForUser(empPolicyID, empSubmitterAccountID, reportsCollection);
+
+            // With REPORT_METADATA
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`, {});
+            await waitForBatchedUpdates();
+            const listWith = getOutstandingReportsForUser(empPolicyID, empSubmitterAccountID, reportsCollection);
+
+            expect(listWithout.map((item) => item?.reportID)).toEqual(['96012']);
+            expect(listWith.map((item) => item?.reportID)).toEqual(['96012']);
+        });
+    });
+
+    describe('getReportMetadata cache synchronization', () => {
+        it('should remove only the deleted metadata entry while keeping other report metadata', async () => {
+            const firstReportID = '96111';
+            const secondReportID = '96112';
+            const firstMetadataKey = `${ONYXKEYS.COLLECTION.REPORT_METADATA}${firstReportID}` as OnyxKey;
+            const secondMetadataKey = `${ONYXKEYS.COLLECTION.REPORT_METADATA}${secondReportID}` as OnyxKey;
+
+            await Onyx.merge(firstMetadataKey, {pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.APPROVE});
+            await Onyx.merge(secondMetadataKey, {pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.SUBMIT});
+            await waitForBatchedUpdates();
+
+            expect(getReportMetadata(firstReportID)?.pendingExpenseAction).toBe(CONST.EXPENSE_PENDING_ACTION.APPROVE);
+            expect(getReportMetadata(secondReportID)?.pendingExpenseAction).toBe(CONST.EXPENSE_PENDING_ACTION.SUBMIT);
+
+            await Onyx.set(firstMetadataKey, null);
+            await waitForBatchedUpdates();
+
+            expect(getReportMetadata(firstReportID)).toBeUndefined();
+            expect(getReportMetadata(secondReportID)?.pendingExpenseAction).toBe(CONST.EXPENSE_PENDING_ACTION.SUBMIT);
+        });
+
+        it('should update only the changed report metadata entry', async () => {
+            const firstReportID = '96121';
+            const secondReportID = '96122';
+            const firstMetadataKey = `${ONYXKEYS.COLLECTION.REPORT_METADATA}${firstReportID}` as OnyxKey;
+            const secondMetadataKey = `${ONYXKEYS.COLLECTION.REPORT_METADATA}${secondReportID}` as OnyxKey;
+
+            await Onyx.merge(firstMetadataKey, {pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.APPROVE});
+            await Onyx.merge(secondMetadataKey, {pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.APPROVE});
+            await waitForBatchedUpdates();
+
+            await Onyx.merge(firstMetadataKey, {pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.SUBMIT});
+            await waitForBatchedUpdates();
+
+            expect(getReportMetadata(firstReportID)?.pendingExpenseAction).toBe(CONST.EXPENSE_PENDING_ACTION.SUBMIT);
+            expect(getReportMetadata(secondReportID)?.pendingExpenseAction).toBe(CONST.EXPENSE_PENDING_ACTION.APPROVE);
         });
     });
 

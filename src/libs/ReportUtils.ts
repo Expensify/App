@@ -1204,19 +1204,35 @@ const allReportMetadataKeyValue: Record<string, ReportMetadata> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_METADATA,
     waitForCollectionCallback: true,
-    callback: (value) => {
-        if (!value) {
-            return;
-        }
+    callback: (value, _collectionKey, sourceValue) => {
         allReportMetadata = value;
+        const metadataUpdates = sourceValue ?? value;
 
-        for (const [reportID, reportMetadata] of Object.entries(value)) {
+        // If sourceValue is not provided this callback is receiving a full collection snapshot.
+        // Rebuild the cache from scratch to keep it in sync with the current collection state.
+        if (!sourceValue) {
+            for (const reportID of Object.keys(allReportMetadataKeyValue)) {
+                delete allReportMetadataKeyValue[reportID];
+            }
+        }
+
+        for (const [reportMetadataKey, reportMetadata] of Object.entries(metadataUpdates ?? {})) {
             if (!reportMetadata) {
+                const reportID = reportMetadataKey.replace(ONYXKEYS.COLLECTION.REPORT_METADATA, '');
+                if (!reportID) {
+                    continue;
+                }
+
+                delete allReportMetadataKeyValue[reportID];
                 continue;
             }
 
-            const [, id] = reportID.split('_');
-            allReportMetadataKeyValue[id] = reportMetadata;
+            const reportID = reportMetadataKey.replace(ONYXKEYS.COLLECTION.REPORT_METADATA, '');
+            if (!reportID) {
+                continue;
+            }
+
+            allReportMetadataKeyValue[reportID] = reportMetadata;
         }
     },
 });
@@ -5027,6 +5043,10 @@ function canEditFieldOfMoneyRequest({
                 }
             }
             return true;
+        }
+
+        if (shouldTreatAsForwardedForMoveExpense(moneyRequestReport)) {
+            return false;
         }
 
         if (!isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID)) {
@@ -11605,12 +11625,72 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     return createDraftWorkspaceAndNavigateToConfirmationScreen(introSelected, transactionID, actionName);
 }
 
-/**
- * Check if a report has any forwarded actions
- */
 function hasForwardedAction(reportID: string): boolean {
     const reportActions = getAllReportActions(reportID);
     return Object.values(reportActions).some((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED);
+}
+
+const MOVE_FORWARDING_WORKFLOW_ACTIONS: ReadonlySet<ReportAction['actionName']> = new Set([
+    CONST.REPORT.ACTIONS.TYPE.APPROVED,
+    CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+    CONST.REPORT.ACTIONS.TYPE.REROUTE,
+    CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
+]);
+
+const MOVE_FORWARDING_RESET_ACTIONS: ReadonlySet<ReportAction['actionName']> = new Set([
+    CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+    CONST.REPORT.ACTIONS.TYPE.UNAPPROVED,
+    CONST.REPORT.ACTIONS.TYPE.RETRACTED,
+    CONST.REPORT.ACTIONS.TYPE.REOPENED,
+    CONST.REPORT.ACTIONS.TYPE.REJECTED,
+    CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER,
+]);
+
+/**
+ * Returns true when the latest workflow action for the current processing cycle indicates the report
+ * has already been advanced away from the original submit-to approver.
+ */
+function hasCurrentForwardingWorkflowAction(reportID: string): boolean {
+    const reportActions = getSortedReportActions(
+        Object.values(getAllReportActions(reportID)).filter((action): action is ReportAction => !!action && !isDeletedAction(action) && !isPendingRemove(action)),
+        true,
+    );
+    const latestWorkflowAction = reportActions.find((action) => MOVE_FORWARDING_WORKFLOW_ACTIONS.has(action.actionName) || MOVE_FORWARDING_RESET_ACTIONS.has(action.actionName));
+
+    if (!latestWorkflowAction) {
+        return false;
+    }
+
+    return MOVE_FORWARDING_WORKFLOW_ACTIONS.has(latestWorkflowAction.actionName);
+}
+
+/**
+ * Fallback for when forwarded actions are unavailable in local Onyx.
+ * A processing report is only considered forwarded when the current submit-to no longer matches
+ * managerID and the report's workflow history shows it has already advanced past submission.
+ */
+function hasForwardedByManagerChange(iouReport: OnyxInputOrEntry<Report>): boolean {
+    const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`];
+
+    if (!iouReport || !policy || !iouReport.reportID || !isProcessingReport(iouReport) || !isNumber(iouReport.managerID)) {
+        return false;
+    }
+
+    const submitToAccountID = getSubmitToAccountID(policy, iouReport);
+
+    if (submitToAccountID === iouReport.managerID) {
+        return false;
+    }
+
+    return hasCurrentForwardingWorkflowAction(iouReport.reportID);
+}
+
+function shouldTreatAsForwardedForMoveExpense(iouReport: OnyxInputOrEntry<Report>): boolean {
+    if (!iouReport || !isExpenseReport(iouReport) || !iouReport.reportID) {
+        return false;
+    }
+
+    return hasForwardedAction(iouReport.reportID) || hasForwardedByManagerChange(iouReport);
 }
 
 function isReportOutstanding(
