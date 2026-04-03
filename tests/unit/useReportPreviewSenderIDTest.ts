@@ -166,6 +166,34 @@ describe('useReportPreviewSenderID', () => {
         expect(result.current).toBeUndefined();
     });
 
+    it('returns single avatar when manual and scan-in-progress expenses are from the same user', async () => {
+        await act(async () => {
+            // Manual expense with positive amount
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionR14932.transactionID}`, {
+                ...transactionR14932,
+                amount: 100,
+                receipt: {},
+            });
+            // Scan expense with amount=0 and receipt source (scan in progress)
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionR14932.transactionID}2`, {
+                ...transactionR14932,
+                amount: 0,
+                receipt: {source: 'scan-receipt.png', state: CONST.IOU.RECEIPT_STATE.SCAN_READY},
+            });
+        });
+        const {result} = renderHook(
+            () =>
+                useReportPreviewSenderID({
+                    action: validAction,
+                    iouReport: iouReportR14932,
+                    chatReport: mockedDMChatRoom,
+                }),
+            {wrapper: OnyxListItemProvider},
+        );
+        await waitForBatchedUpdatesWithAct();
+        expect(result.current).toBe(iouReportR14932.ownerAccountID);
+    });
+
     it('returns childOwnerAccountID as reportPreviewSenderID and a single avatar when all conditions are met', async () => {
         const {result} = renderHook(
             () =>
