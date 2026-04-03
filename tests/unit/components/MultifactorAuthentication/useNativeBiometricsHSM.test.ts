@@ -52,6 +52,7 @@ jest.mock('@sbaiahmed1/react-native-biometrics', () => ({
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     isSensorAvailable: (...args: unknown[]) => mockIsSensorAvailable(...args),
     InputEncoding: {Base64: 'base64'},
+    AuthType: {Unknown: -1, None: 0, DeviceCredentials: 1, Biometrics: 2, FaceID: 3, TouchID: 4, OpticID: 5},
 }));
 
 jest.mock('@components/MultifactorAuthentication/config', () => ({
@@ -128,7 +129,7 @@ describe('useNativeBiometricsHSM hook', () => {
             // Given a device with no biometric sensor and no secure lock screen configured
             // When checking device support for biometric authentication
             // Then it should return false because there is no way to verify the user's identity on this device
-            mockIsSensorAvailable.mockResolvedValue({available: false});
+            mockIsSensorAvailable.mockResolvedValue({available: false, isDeviceSecure: false});
 
             const {result} = renderHook(() => useNativeBiometricsHSM());
 
