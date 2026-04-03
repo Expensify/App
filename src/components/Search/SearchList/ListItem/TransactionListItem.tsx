@@ -1,3 +1,7 @@
+// NOTE: The narrow-layout rendering of this component has a static twin in
+// SearchStaticList (src/components/Search/SearchStaticList.tsx) used for fast
+// perceived performance. If you change the narrow-layout UI here, verify the
+// static version still looks visually identical.
 import React, {useEffect, useRef, useState} from 'react';
 import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';

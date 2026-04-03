@@ -88,6 +88,14 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
         canEdit: true,
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.ATTENDEES,
+        translationKey: 'iou.attendees',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE,
+        translationKey: 'iou.totalPerAttendee',
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TAG,
         translationKey: 'common.tag',
         canEdit: true,
