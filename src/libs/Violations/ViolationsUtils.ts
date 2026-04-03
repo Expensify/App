@@ -13,7 +13,14 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {isReceiptError} from '@libs/ErrorUtils';
 import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
 import Parser from '@libs/Parser';
-import {getDistanceRateCustomUnitRate, getPerDiemRateCustomUnitRate, getSortedTagKeys, isDefaultTagName, isTaxTrackingEnabled} from '@libs/PolicyUtils';
+import {
+    getDistanceRateCustomUnitRate,
+    getPerDiemRateCustomUnitRate,
+    getSortedTagKeys,
+    isAttendeeTrackingEnabled as isAttendeeTrackingEnabledForPolicy,
+    isDefaultTagName,
+    isTaxTrackingEnabled,
+} from '@libs/PolicyUtils';
 import {isCurrentUserSubmitter} from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import {hasValidModifiedAmount, isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
@@ -498,7 +505,7 @@ const ViolationsUtils = {
             !isInvoiceTransaction && policyCategories?.[categoryName ?? '']?.areCommentsRequired && !updatedTransaction.comment?.comment && isControlPolicy && policy?.areRulesEnabled;
         const rawAttendees = updatedTransaction.modifiedAttendees ?? updatedTransaction.comment?.attendees;
         const attendees = Array.isArray(rawAttendees) ? rawAttendees : [];
-        const isAttendeeTrackingEnabled = policy.isAttendeeTrackingEnabled ?? false;
+        const isAttendeeTrackingEnabled = isAttendeeTrackingEnabledForPolicy(policy);
         // Filter out the owner/creator when checking attendance count - expense is valid if at least one non-owner attendee is present
         const ownerAccountID = iouReport?.ownerAccountID;
         // Calculate attendees minus owner. When ownerAccountID is known, filter by accountID.
