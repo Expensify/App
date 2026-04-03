@@ -148,7 +148,9 @@ const translations: TranslationDeepObject<typeof en> = {
         selectMultiple: 'Wielokrotny wybór',
         saveChanges: 'Zapisz zmiany',
         submit: 'Wyślij',
+        markAsDone: 'Oznacz jako wykonane',
         submitted: 'Przesłano',
+        markedAsDoneStatus: 'Oznaczone jako ukończone',
         rotate: 'Obróć',
         zoom: 'Powiększenie',
         password: 'Hasło',
@@ -488,7 +490,8 @@ const translations: TranslationDeepObject<typeof en> = {
         status: 'Status',
         on: 'Włączone',
         before: 'Przed',
-        after: 'PoPo',
+        after: 'Po',
+        range: 'Zakres',
         reschedule: 'Przełóż',
         general: 'Ogólne',
         workspacesTabTitle: 'Przestrzenie robocze',
@@ -876,6 +879,7 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistory: (users: string) => `Ten czat jest z ${users}.`,
         beginningOfChatHistoryPolicyExpenseChat: (workspaceName: string, submitterDisplayName: string) =>
             `Tutaj <strong>${submitterDisplayName}</strong> będzie przesyłać wydatki do <strong>${workspaceName}</strong>. Po prostu użyj przycisku +.`,
+        beginningOfChatHistoryPolicyExpenseChatTrack: 'Tutaj będziesz śledzić wydatki',
         beginningOfChatHistorySelfDM: 'To Twoja osobista przestrzeń. Używaj jej na notatki, zadania, szkice i przypomnienia.',
         beginningOfChatHistorySystemDM: 'Witamy! Zacznijmy konfigurację.',
         chatWithAccountManager: 'Porozmawiaj tutaj z opiekunem konta',
@@ -1161,7 +1165,6 @@ const translations: TranslationDeepObject<typeof en> = {
         flash: 'błysk',
         multiScan: 'wielokrotne skanowanie',
         shutter: 'migawka',
-        flipCamera: 'przełącz kamerę',
         gallery: 'galeria',
         deleteReceipt: 'Usuń paragon',
         deleteConfirmation: 'Czy na pewno chcesz usunąć ten paragon?',
@@ -1348,6 +1351,7 @@ const translations: TranslationDeepObject<typeof en> = {
         sendInvoice: (amount: string) => `Wyślij fakturę na ${amount}`,
         expenseAmount: (formattedAmount: string, comment?: string) => `${formattedAmount}${comment ? `za ${comment}` : ''}`,
         submitted: (memo?: string) => `przesłano${memo ? `, wpisując ${memo}` : ''}`,
+        markedAsDone: (memo) => `oznaczono jako zakończone${memo ? `, z adnotacją: ${memo}` : ''}`,
         automaticallySubmitted: `przesłano przez <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">opóźnianie wysyłania</a>`,
         queuedToSubmitViaDEW: 'w kolejce do przesłania przez niestandardowy proces zatwierdzania',
         queuedToApproveViaDEW: 'oczekuje na zatwierdzenie w niestandardowym procesie akceptacji',
@@ -1533,6 +1537,7 @@ const translations: TranslationDeepObject<typeof en> = {
         bookingArchived: 'Ta rezerwacja jest zarchiwizowana',
         bookingArchivedDescription: 'Ta rezerwacja została zarchiwizowana, ponieważ data podróży już minęła. W razie potrzeby dodaj wydatek na ostateczną kwotę.',
         attendees: 'Uczestnicy',
+        totalPerAttendee: 'Na uczestnika',
         whoIsYourAccountant: 'Kim jest twój księgowy?',
         paymentComplete: 'Płatność zakończona',
         time: 'Czas',
@@ -1637,7 +1642,6 @@ const translations: TranslationDeepObject<typeof en> = {
             `nie udało się zatwierdzić przez <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">zasady w przestrzeni roboczej</a>. ${reason}`,
         failedToApproveViaDEW: (reason: string) => `nie udało się zaakceptować. ${reason}`,
         cannotDuplicateDistanceExpense: 'Nie możesz duplikować wydatków za przejazdy między przestrzeniami roboczymi, ponieważ stawki mogą się różnić między poszczególnymi przestrzeniami.',
-        deleted: 'Usunięto',
     },
     transactionMerge: {
         listPage: {
@@ -2009,7 +2013,13 @@ const translations: TranslationDeepObject<typeof en> = {
         accountSettings: 'Ustawienia konta',
         account: 'Konto',
         general: 'Ogólne',
-        helpPage: {title: 'Pomoc i wsparcie', description: 'Jesteśmy tu, żeby pomagać ci 24/7', helpSite: 'Centrum pomocy'},
+        helpPage: {
+            title: 'Pomoc i wsparcie',
+            description: 'Jesteśmy tu, żeby pomagać ci 24/7',
+            helpSite: 'Centrum pomocy',
+            conciergeChat: 'Concierge',
+            conciergeChatDescription: 'Twój osobisty agent AI',
+        },
     },
     closeAccountPage: {
         closeAccount: 'Zamknij konto',
@@ -2292,6 +2302,7 @@ const translations: TranslationDeepObject<typeof en> = {
         enableWallet: 'Włącz portfel',
         addBankAccountToSendAndReceive: 'Dodaj konto bankowe, aby wysyłać lub odbierać płatności.',
         addDebitOrCreditCard: 'Dodaj kartę debetową lub kredytową',
+        cardInactive: 'Nieaktywne',
         assignedCards: 'Przypisane karty',
         assignedCardsDescription: 'Transakcje z tych kart synchronizują się automatycznie.',
         expensifyCard: 'Karta Expensify',
@@ -3828,6 +3839,7 @@ ${amount} dla ${merchant} - ${date}`,
             `łączy firmowe konto bankowe w ${currency} z numerem kończącym się na ${bankAccountLastFour} z Expensify, aby wypłacać wynagrodzenia pracownikom w ${currency}. Następnym krokiem jest podanie danych sygnatariusza będącego dyrektorem.`,
         error: {
             emailsMustBeDifferent: 'Adresy e-mail muszą być różne',
+            connectToWorkspace: (workspaceRoute: string) => `Proszę połączyć to konto bankowe z <a href="${workspaceRoute}">przestrzenią roboczą</a> aby zaprosić dyrektora do podpisania.`,
         },
     },
     agreementsStep: {
@@ -6679,6 +6691,24 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 title: 'Polityka wydatków',
                 cardSubtitle: 'To tutaj znajduje się polityka wydatków Twojego zespołu, aby wszyscy mieli jasność co do tego, co jest objęte.',
             },
+            spendRules: {
+                title: 'Wydatki',
+                subtitle: 'Zatwierdzaj lub odrzucaj transakcje Karty Expensify w czasie rzeczywistym.',
+                defaultRuleDescription: 'Wszystkie karty',
+                block: 'Zablokuj',
+                defaultRuleTitle: 'Kategorie: Usługi dla dorosłych, bankomaty, hazard, przelewy pieniężne',
+                builtInProtectionModal: {
+                    title: 'Karty Expensify zapewniają wbudowaną ochronę – zawsze',
+                    description: `Expensify zawsze odrzuca te obciążenia:
+
+  • Usługi dla dorosłych
+  • Bankomaty
+  • Hazard
+  • Przelewy pieniężne
+
+Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
+                },
+            },
         },
         planTypePage: {
             planTypes: {
@@ -7369,7 +7399,6 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             unhold: 'Usuń blokadę',
             reject: 'Odrzuć',
             noOptionsAvailable: 'Brak opcji dostępnych dla wybranej grupy wydatków.',
-            undelete: 'Cofnij usunięcie',
         },
         filtersHeader: 'Filtry',
         filters: {
@@ -7377,6 +7406,8 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 before: (date?: string) => `Przed ${date ?? ''}`,
                 after: (date?: string) => `Po ${date ?? ''}`,
                 on: (date?: string) => `Na ${date ?? ''}`,
+                customDate: 'Niestandardowa data',
+                customRange: 'Niestandardowy zakres',
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Nigdy',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'W zeszłym miesiącu',
@@ -7504,6 +7535,9 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         exportAll: {
             selectAllMatchingItems: 'Zaznacz wszystkie pasujące elementy',
             allMatchingItemsSelected: 'Zaznaczono wszystkie pasujące elementy',
+        },
+        errors: {
+            pleaseSelectDatesForBothFromAndTo: 'Wybierz daty dla Od i Do',
         },
         spendOverTime: 'Wydatki w czasie',
     },

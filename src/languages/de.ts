@@ -148,7 +148,9 @@ const translations: TranslationDeepObject<typeof en> = {
         selectMultiple: 'Mehrfachauswahl',
         saveChanges: 'Änderungen speichern',
         submit: 'Senden',
+        markAsDone: 'Als erledigt markieren',
         submitted: 'Übermittelt',
+        markedAsDoneStatus: 'Als erledigt markiert',
         rotate: 'Drehen',
         zoom: 'Zoom',
         password: 'Passwort',
@@ -490,6 +492,7 @@ const translations: TranslationDeepObject<typeof en> = {
         on: 'Ein',
         before: 'Vor',
         after: 'Nach',
+        range: 'Bereich',
         reschedule: 'Verschieben',
         general: 'Allgemein',
         workspacesTabTitle: 'Workspaces',
@@ -876,6 +879,7 @@ const translations: TranslationDeepObject<typeof en> = {
         beginningOfChatHistory: (users: string) => `Dieser Chat ist mit ${users}.`,
         beginningOfChatHistoryPolicyExpenseChat: (workspaceName: string, submitterDisplayName: string) =>
             `Hier reicht <strong>${submitterDisplayName}</strong> Auslagen bei <strong>${workspaceName}</strong> ein. Nutze einfach die +-Taste.`,
+        beginningOfChatHistoryPolicyExpenseChatTrack: 'Hier können Sie Ausgaben nachverfolgen',
         beginningOfChatHistorySelfDM: 'Dies ist dein persönlicher Bereich. Nutze ihn für Notizen, Aufgaben, Entwürfe und Erinnerungen.',
         beginningOfChatHistorySystemDM: 'Willkommen! Lassen Sie uns Ihre Einrichtung vornehmen.',
         chatWithAccountManager: 'Chatte hier mit deiner/deinem Account Manager',
@@ -1161,7 +1165,6 @@ const translations: TranslationDeepObject<typeof en> = {
         flash: 'Blitz',
         multiScan: 'Mehrfachscan',
         shutter: 'Verschluss',
-        flipCamera: 'Kamera wechseln',
         gallery: 'Galerie',
         deleteReceipt: 'Beleg löschen',
         deleteConfirmation: 'Sind Sie sicher, dass Sie diesen Beleg löschen möchten?',
@@ -1348,6 +1351,7 @@ const translations: TranslationDeepObject<typeof en> = {
         sendInvoice: (amount: string) => `${amount}-Rechnung senden`,
         expenseAmount: (formattedAmount: string, comment?: string) => `${formattedAmount}${comment ? `für ${comment}` : ''}`,
         submitted: (memo?: string) => `eingereicht${memo ? `, mit dem Vermerk ${memo}` : ''}`,
+        markedAsDone: (memo) => `als erledigt markiert${memo ? `, mit dem Vermerk ${memo}` : ''}`,
         automaticallySubmitted: `eingereicht über <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">Einreichungen verzögern</a>`,
         queuedToSubmitViaDEW: 'zur Einreichung über benutzerdefinierten Genehmigungsworkflow eingereiht',
         queuedToApproveViaDEW: 'Zur Genehmigung über benutzerdefinierten Genehmigungsworkflow eingereiht',
@@ -1536,6 +1540,7 @@ const translations: TranslationDeepObject<typeof en> = {
         bookingArchived: 'Diese Buchung ist archiviert',
         bookingArchivedDescription: 'Diese Buchung ist archiviert, weil das Reisedatum verstrichen ist. Füge bei Bedarf eine Ausgabe für den endgültigen Betrag hinzu.',
         attendees: 'Teilnehmende',
+        totalPerAttendee: 'Pro Teilnehmendem',
         whoIsYourAccountant: 'Wer ist Ihre Steuerberaterin bzw. Ihr Steuerberater?',
         paymentComplete: 'Zahlung abgeschlossen',
         time: 'Zeit',
@@ -1640,7 +1645,6 @@ const translations: TranslationDeepObject<typeof en> = {
         failedToApproveViaDEW: (reason: string) => `Genehmigung fehlgeschlagen. ${reason}`,
         cannotDuplicateDistanceExpense:
             'Sie können Entfernungsausgaben nicht über mehrere Arbeitsbereiche hinweg duplizieren, da sich die Sätze zwischen den Arbeitsbereichen unterscheiden können.',
-        deleted: 'Gelöscht',
     },
     transactionMerge: {
         listPage: {
@@ -2013,7 +2017,13 @@ const translations: TranslationDeepObject<typeof en> = {
         accountSettings: 'Kontoeinstellungen',
         account: 'Konto',
         general: 'Allgemein',
-        helpPage: {title: 'Hilfe und Support', description: 'Wir sind rund um die Uhr für Sie da', helpSite: 'Hilfeseite'},
+        helpPage: {
+            title: 'Hilfe und Support',
+            description: 'Wir sind rund um die Uhr für Sie da',
+            helpSite: 'Hilfeseite',
+            conciergeChat: 'Concierge',
+            conciergeChatDescription: 'Ihr persönlicher KI-Agent',
+        },
     },
     closeAccountPage: {
         closeAccount: 'Konto schließen',
@@ -2295,6 +2305,7 @@ const translations: TranslationDeepObject<typeof en> = {
         enableWallet: 'Wallet aktivieren',
         addBankAccountToSendAndReceive: 'Füge ein Bankkonto hinzu, um Zahlungen zu senden oder zu empfangen.',
         addDebitOrCreditCard: 'Debit- oder Kreditkarte hinzufügen',
+        cardInactive: 'Inaktiv',
         assignedCards: 'Zugewiesene Karten',
         assignedCardsDescription: 'Transaktionen von diesen Karten werden automatisch synchronisiert.',
         expensifyCard: 'Expensify Karte',
@@ -3847,6 +3858,8 @@ ${amount} für ${merchant} – ${date}`,
             `verknüpft ein ${currency}-Geschäftskonto mit der Endung ${bankAccountLastFour} mit Expensify, um Mitarbeitende in ${currency} zu bezahlen. Der nächste Schritt erfordert Unterzeichnungsinformationen von einer Führungsperson.`,
         error: {
             emailsMustBeDifferent: 'E-Mail-Adressen müssen unterschiedlich sein',
+            connectToWorkspace: (workspaceRoute: string) =>
+                `Bitte verbinden Sie dieses Bankkonto mit einem <a href="${workspaceRoute}">Arbeitsbereich</a> um eine Führungsperson zum Unterzeichnen einzuladen.`,
         },
     },
     agreementsStep: {
@@ -6717,6 +6730,24 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 title: 'Spesenrichtlinie',
                 cardSubtitle: 'Hier ist die Spesenrichtlinie deines Teams hinterlegt, damit alle denselben Stand haben, was abgedeckt ist.',
             },
+            spendRules: {
+                title: 'Ausgaben',
+                subtitle: 'Genehmigen oder lehnen Sie Expensify Karte-Transaktionen in Echtzeit ab.',
+                defaultRuleDescription: 'Alle Karten',
+                block: 'Blockieren',
+                defaultRuleTitle: 'Kategorien: Erotikdienstleistungen, Geldautomaten, Glücksspiele, Geldüberweisungen',
+                builtInProtectionModal: {
+                    title: 'Expensify Karten bieten integrierten Schutz – jederzeit',
+                    description: `Expensify lehnt diese Belastungen immer ab:
+
+  • Erwachsenenservices
+  • Geldautomaten
+  • Glücksspiel
+  • Geldüberweisungen
+
+Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu schützen.`,
+                },
+            },
         },
         planTypePage: {
             planTypes: {
@@ -7413,7 +7444,6 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
             unhold: 'Zurückhalten aufheben',
             reject: 'Ablehnen',
             noOptionsAvailable: 'Für die ausgewählte Ausgabengruppe sind keine Optionen verfügbar.',
-            undelete: 'Wiederherstellen',
         },
         filtersHeader: 'Filter',
         filters: {
@@ -7421,6 +7451,8 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 before: (date?: string) => `Vor ${date ?? ''}`,
                 after: (date?: string) => `Nach ${date ?? ''}`,
                 on: (date?: string) => `Am ${date ?? ''}`,
+                customDate: 'Benutzerdefiniertes Datum',
+                customRange: 'Benutzerdefinierter Bereich',
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Nie',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Letzter Monat',
@@ -7548,6 +7580,9 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
         exportAll: {
             selectAllMatchingItems: 'Alle passenden Einträge auswählen',
             allMatchingItemsSelected: 'Alle passenden Elemente ausgewählt',
+        },
+        errors: {
+            pleaseSelectDatesForBothFromAndTo: 'Bitte wähle Daten für Von und Bis',
         },
         spendOverTime: 'Ausgaben im Zeitverlauf',
     },
