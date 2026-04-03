@@ -336,19 +336,18 @@ function SecuritySettingsPage() {
             text: translate('delegate.changeAccessLevel'),
             icon: icons.Pencil,
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.DELEGATE_CHANGE_ACCESS,
-            onPress: () => {
+            shouldCallAfterModalHide: true,
+            onSelected: () => {
                 if (isActingAsDelegate) {
-                    modalClose(() => showDelegateNoAccessModal());
+                    showDelegateNoAccessModal();
                     return;
                 }
                 if (isAccountLocked) {
-                    modalClose(() => showLockedAccountModal());
+                    showLockedAccountModal();
                     return;
                 }
                 Navigation.navigate(ROUTES.SETTINGS_UPDATE_DELEGATE_ROLE.getRoute(selectedDelegate?.email ?? '', selectedDelegate?.role ?? ''));
-                setShouldShowDelegatePopoverMenu(false);
                 setSelectedDelegate(undefined);
-                setSelectedEmail(undefined);
             },
         },
         {
