@@ -58,18 +58,49 @@ import {submitPerDiemExpense} from './PerDiem';
 
 function getIOUActionForTransactions(transactionIDList: Array<string | undefined>, iouReportID: string | undefined): Array<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> {
     const allReportActions = getAllReportActionsFromIOU();
-    return Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`] ?? {})?.filter(
-        (reportAction): reportAction is OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => {
+    const allTransactionsData = getAllTransactions();
+    const primaryReportActions = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`] ?? {});
+
+    const result: Array<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = [];
+    for (const transactionID of transactionIDList) {
+        if (!transactionID) {
+            continue;
+        }
+
+        // First try the provided iouReportID
+        const actionInPrimaryReport = primaryReportActions.find((reportAction) => {
             if (!isMoneyRequestAction(reportAction)) {
                 return false;
             }
             const message = getOriginalMessage(reportAction);
-            if (!message?.IOUTransactionID) {
-                return false;
+            return message?.IOUTransactionID === transactionID;
+        });
+
+        if (actionInPrimaryReport && isMoneyRequestAction(actionInPrimaryReport)) {
+            result.push(actionInPrimaryReport);
+            continue;
+        }
+
+        // If not found, look up the transaction's own reportID (handles cross-report duplicates)
+        const transaction = allTransactionsData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+        const transactionReportID = transaction?.reportID;
+        if (transactionReportID && transactionReportID !== iouReportID) {
+            const crossReportActions = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionReportID}`] ?? {});
+            const actionInCrossReport = crossReportActions.find((reportAction) => {
+                if (!isMoneyRequestAction(reportAction)) {
+                    return false;
+                }
+                const message = getOriginalMessage(reportAction);
+                return message?.IOUTransactionID === transactionID;
+            });
+
+            if (actionInCrossReport && isMoneyRequestAction(actionInCrossReport)) {
+                result.push(actionInCrossReport);
             }
-            return transactionIDList.includes(message.IOUTransactionID);
-        },
-    );
+        }
+    }
+
+    return result;
 }
 
 /** Merge several transactions into one by updating the fields of the one we want to keep and deleting the rest */
