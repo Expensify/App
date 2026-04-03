@@ -28,6 +28,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useOriginalReportID from '@hooks/useOriginalReportID';
+import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -180,6 +181,15 @@ function MoneyRequestReceiptView({
             hoverBind.onMouseEnter();
         }
     }, [isLoading, hoverBind]);
+
+    const prevSource = usePrevious(transaction?.receipt?.source);
+
+    useEffect(() => {
+        if (!transaction?.receipt?.source || prevSource === transaction?.receipt?.source) {
+            return;
+        }
+        setIsLoading(true);
+    }, [transaction?.receipt?.source, prevSource]);
 
     // Flags for allowing or disallowing editing an expense
     // Used for non-restricted fields such as: description, category, tag, billable, etc...
