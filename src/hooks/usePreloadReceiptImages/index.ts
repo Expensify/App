@@ -1,5 +1,5 @@
 import {useEffect} from 'react';
-import {getPreloadedBlobURLs, preloadAuthImages, revokeCachedAuthImage} from '@hooks/useCachedImageSource';
+import {getPreloadedBlobURLs, preloadAuthImages, revokeCachedAuthImage} from '@libs/AuthImagesPreloader';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import CONST from '@src/CONST';

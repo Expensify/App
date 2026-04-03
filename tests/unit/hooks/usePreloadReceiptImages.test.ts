@@ -1,14 +1,14 @@
 import {renderHook} from '@testing-library/react-native';
-import {getPreloadedBlobURLs, preloadAuthImages, revokeCachedAuthImage} from '@hooks/useCachedImageSource';
 // @ts-expect-error bypass jest-expo haste resolver picking .native.ts
 // eslint-disable-next-line import/extensions -- .ts extension needed to bypass jest-expo haste resolver picking .native.ts (no-op)
 import usePreloadReceiptImages from '@hooks/usePreloadReceiptImages/index.ts';
+import {getPreloadedBlobURLs, preloadAuthImages, revokeCachedAuthImage} from '@libs/AuthImagesPreloader';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import CONST from '@src/CONST';
 import type Transaction from '@src/types/onyx/Transaction';
 
-jest.mock('@hooks/useCachedImageSource', () => ({
+jest.mock('@libs/AuthImagesPreloader', () => ({
     getPreloadedBlobURLs: jest.fn(),
     preloadAuthImages: jest.fn(),
     revokeCachedAuthImage: jest.fn(),

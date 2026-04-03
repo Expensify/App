@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import {clearPreloadedBlobURLs} from '@hooks/useCachedImageSource';
+import {clearPreloadedBlobURLs} from '@libs/AuthImagesPreloader';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 /**
