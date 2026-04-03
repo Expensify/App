@@ -25,7 +25,7 @@ There are no special permissions required. Concierge is available across web, mo
 
 ---
 
-## How to understand what you can ask Concierge to do
+## How to ask Concierge for help in Expensify
 
 You can talk to Concierge like you would a coworker. You don’t need special commands—just describe what you want. Be as specific as possible for the best results.
 
@@ -49,7 +49,7 @@ Examples:
 
 Concierge will answer instantly or connect you with a human if needed.
 
-Learn more about [Concierge as a support agent](/articles/new-expensify/concierge-ai/Support-Agent). 
+[Learn about Concierge Support Agent](/articles/new-expensify/concierge-ai/Support-Agent). 
 
 ---
 
@@ -79,7 +79,7 @@ Examples:
 
 You can also upload or forward receipts, and Concierge will create the expense for you.
 
-Learn about [Concierge Expense Assistant](/articles/new-expensify/concierge-ai/Expense-Assistant).
+[Learn about Concierge Expense Assistant](/articles/new-expensify/concierge-ai/Expense-Assistant).
 
 ---
 
@@ -107,11 +107,11 @@ Examples:
 
 Concierge uses your Workspace rules and past behavior to explain decisions.
 
-Learn more about [Concierge intelligence](/articles/new-expensify/concierge-ai/Concierge-Intelligence).
+[Learn about Concierge Intelligence](/articles/new-expensify/concierge-ai/Concierge-Intelligence).
 
 ---
 
-## How Concierge can help you improve your workflow
+## How Concierge can help you improve your Expensify workflow
 
 You can describe a goal, and Concierge will help you figure out how to do it.
 
