@@ -6,8 +6,8 @@ import CONST from '@src/CONST';
 /** In-memory map of image URI → preloaded blob URL, managed externally via preloadAuthImage/revokeCachedAuthImage */
 const preloadedBlobURLs = new Map<string, string>();
 
-/** Tracks the latest preloadAuthImages promise so cleanup can wait for in-flight fetches to finish */
-let activePreloadPromise: Promise<void[]> = Promise.resolve([]);
+/** Tracks all in-flight preloadAuthImages promises so cleanup can wait for every batch to finish */
+const activePreloadPromises = new Set<Promise<void[]>>();
 
 /** Returns the shared preloaded blob URL map so callers can check which URIs are already cached or iterate for cleanup. */
 const getPreloadedBlobURLs = () => {
@@ -41,7 +41,7 @@ function preloadAuthImages(uris: string[], headers: Record<string, string>) {
         return;
     }
 
-    activePreloadPromise = Promise.all(
+    const preloadPromise = Promise.all(
         uris.map(async (uri): Promise<void> => {
             if (preloadedBlobURLs.has(uri)) {
                 return;
@@ -69,6 +69,8 @@ function preloadAuthImages(uris: string[], headers: Record<string, string>) {
             }
         }),
     );
+    activePreloadPromises.add(preloadPromise);
+    preloadPromise.finally(() => activePreloadPromises.delete(preloadPromise));
 }
 
 /**
@@ -76,7 +78,7 @@ function preloadAuthImages(uris: string[], headers: Record<string, string>) {
  * Call when leaving the transaction view to avoid leaking object URLs from late-completing fetches.
  */
 async function clearPreloadedBlobURLs() {
-    await activePreloadPromise;
+    await Promise.all(activePreloadPromises);
     for (const blobURL of preloadedBlobURLs.values()) {
         URL.revokeObjectURL(blobURL);
     }
