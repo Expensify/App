@@ -1,10 +1,9 @@
 ---
-title: "How to use search operators in Expensify"
-description: "Learn how to use advanced search filters, comparisons, and groupings to find exactly what you need across expenses, chats, reports, and more."
-keywords: "search operators, filters, search rules, expense search, report search, chat filters, advanced search, group-by, view, chart, search syntax"
+title: How to use search operators in Expensify
+description: Learn how to use advanced search filters, comparisons, and groupings to find exactly what you need across expenses, chats, reports, and more.
+keywords: [New Expensify, search operators, filters, search rules, expense search, report search, chat filters, advanced search, group-by, view, chart, search syntax]
+internalScope: Audience is all Expensify users. Covers search operator syntax for filtering, grouping, and chart views. Does not cover saved search management or Search page UI navigation.
 ---
-
-<div id="new-expensify" markdown="1">
 
 The search operator framework lets you quickly filter, sort, and group items like expenses, chats, reports, and tasks using powerful text-based rules. This guide walks you through the supported syntax, available filters, and usage tips.
 
@@ -152,4 +151,3 @@ If the search operator isn’t recognized, the system will ignore it and return 
 
 Only use quotes for values that include spaces or exact phrases, like `description:"client lunch"` or `in:"#general"`.
 
-</div>
