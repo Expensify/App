@@ -6,8 +6,8 @@ import CONST from '@src/CONST';
 /** In-memory map of image URI → preloaded blob URL, managed externally via preloadAuthImage/revokeCachedAuthImage */
 const preloadedBlobURLs = new Map<string, string>();
 
-/** Tracks all in-flight preloadAuthImages promises so cleanup can wait for every batch to finish */
-const activePreloadPromises = new Set<Promise<void[]>>();
+/** Incremented on each preload batch and on cleanup; stale batches check this before writing to the map */
+let preloadRunID = 0;
 
 /** Returns the shared preloaded blob URL map so callers can check which URIs are already cached or iterate for cleanup. */
 const getPreloadedBlobURLs = () => {
@@ -41,7 +41,9 @@ function preloadAuthImages(uris: string[], headers: Record<string, string>) {
         return;
     }
 
-    const preloadPromise = Promise.all(
+    const runID = ++preloadRunID;
+
+    Promise.all(
         uris.map(async (uri): Promise<void> => {
             if (preloadedBlobURLs.has(uri)) {
                 return;
@@ -59,6 +61,10 @@ function preloadAuthImages(uris: string[], headers: Record<string, string>) {
                     await cache.put(uri, response.clone());
                 }
 
+                if (runID !== preloadRunID) {
+                    return;
+                }
+
                 const blob = await response.blob();
                 const objectURL = URL.createObjectURL(blob);
                 preloadedBlobURLs.set(uri, objectURL);
@@ -69,16 +75,15 @@ function preloadAuthImages(uris: string[], headers: Record<string, string>) {
             }
         }),
     );
-    activePreloadPromises.add(preloadPromise);
-    preloadPromise.finally(() => activePreloadPromises.delete(preloadPromise));
 }
 
 /**
- * Waits for any in-flight preloads to finish, then revokes all blob URLs.
- * Call when leaving the transaction view to avoid leaking object URLs from late-completing fetches.
+ * Invalidates all in-flight preloads and revokes every blob URL in the map.
+ * Stale batches see a mismatched preloadRunID after their next await and bail out,
+ * so no late-completing fetch can repopulate the map after this call.
  */
-async function clearPreloadedBlobURLs() {
-    await Promise.all(activePreloadPromises);
+function clearPreloadedBlobURLs() {
+    preloadRunID++;
     for (const blobURL of preloadedBlobURLs.values()) {
         URL.revokeObjectURL(blobURL);
     }
