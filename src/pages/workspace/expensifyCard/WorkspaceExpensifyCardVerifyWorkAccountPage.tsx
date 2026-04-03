@@ -27,8 +27,9 @@ function WorkspaceExpensifyCardVerifyWorkAccountPage({route}: WorkspaceExpensify
     const {translate} = useLocalize();
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const workEmail = usePrimaryContactMethod();
+    const workEmailLoginKey = workEmail ? Object.keys(loginList ?? {}).find((login) => login.toLowerCase() === workEmail.toLowerCase()) : undefined;
     const [getAccessiblePoliciesAction] = useOnyx(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES);
-    const isWorkEmailValidated = workEmail ? !!loginList?.[workEmail]?.validatedDate : false;
+    const isWorkEmailValidated = workEmailLoginKey ? !!loginList?.[workEmailLoginKey]?.validatedDate : false;
     const [feedWithError, setFeedWithError] = useState<{error?: Errors} | undefined>(undefined);
 
     const sendValidateCode = () => {

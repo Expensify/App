@@ -16,7 +16,7 @@ import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setIssueNewCardStepAndData, updateSelectedExpensifyCardFeed} from '@libs/actions/Card';
 import {setContactMethodAsDefault} from '@libs/actions/User';
-import {addErrorMessage} from '@libs/ErrorUtils';
+import {addErrorMessage, getMicroSecondOnyxErrorWithMessage} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isValidEmail} from '@libs/ValidationUtils';
@@ -24,6 +24,7 @@ import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {linkCardFeedToPolicy} from '@userActions/CompanyCards';
+import {setErrorFields} from '@userActions/FormActions';
 import {AddWorkEmail} from '@userActions/Session';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -78,7 +79,9 @@ function WorkspaceExpensifyCardAddWorkEmailPage({route}: WorkspaceExpensifyCardA
                     Navigation.closeRHPFlow();
                 })
                 .catch((error: TranslationPaths) => {
-                    addErrorMessage({}, INPUT_IDS.EMAIL, translate(error));
+                    setErrorFields(ONYXKEYS.FORMS.ADD_WORK_EMAIL_FORM, {
+                        [INPUT_IDS.EMAIL]: getMicroSecondOnyxErrorWithMessage(translate(error)),
+                    });
                 })
                 .finally(() => {
                     setLoading(false);
