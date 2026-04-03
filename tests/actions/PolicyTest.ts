@@ -1788,7 +1788,7 @@ describe('actions/Policy', () => {
 
             const policyID = Policy.generatePolicyID();
 
-            Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE}, ESH_EMAIL, WORKSPACE_NAME, policyID, false, CONST.CURRENCY.EUR);
+            Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE}, CONST.CURRENCY.EUR, ESH_EMAIL, WORKSPACE_NAME, policyID, false);
             await waitForBatchedUpdates();
 
             const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
@@ -1806,7 +1806,7 @@ describe('actions/Policy', () => {
             const policyID = Policy.generatePolicyID();
             const expectedName = Policy.newGenerateDefaultWorkspaceName(ESH_EMAIL, undefined, TestHelper.translateLocal);
 
-            Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM}, ESH_EMAIL, '', policyID, false);
+            Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM}, CONST.CURRENCY.EUR, ESH_EMAIL, '', policyID, false);
             await waitForBatchedUpdates();
 
             const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
@@ -5567,6 +5567,192 @@ describe('actions/Policy', () => {
             const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
             expect(updatedPolicy?.customRules).toBe(initialRules);
             expect(updatedPolicy?.errorFields?.customRules).toBeDefined();
+        });
+    });
+
+    describe('buildOptimisticDistanceRateCustomUnits', () => {
+        it('returns custom units with the provided currency', () => {
+            const result = Policy.buildOptimisticDistanceRateCustomUnits('EUR');
+
+            expect(result.outputCurrency).toBe('EUR');
+            expect(result.customUnitID).toBeDefined();
+            expect(result.customUnitRateID).toBeDefined();
+
+            const unit = result.customUnits[result.customUnitID];
+            expect(unit).toBeDefined();
+            expect(unit.name).toBe(CONST.CUSTOM_UNITS.NAME_DISTANCE);
+            expect(unit.attributes).toEqual({unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES});
+
+            const rate = unit.rates[result.customUnitRateID];
+            expect(rate).toBeDefined();
+            expect(rate.name).toBe(CONST.CUSTOM_UNITS.DEFAULT_RATE);
+            expect(rate.rate).toBe(CONST.CUSTOM_UNITS.MILEAGE_IRS_RATE * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET);
+            expect(rate.enabled).toBe(true);
+            expect(rate.currency).toBe('EUR');
+        });
+
+        it('falls back to USD when no currency is provided and no personal details exist', () => {
+            const result = Policy.buildOptimisticDistanceRateCustomUnits();
+
+            expect(result.outputCurrency).toBe(CONST.CURRENCY.USD);
+            const rate = result.customUnits[result.customUnitID].rates[result.customUnitRateID];
+            expect(rate.currency).toBe(CONST.CURRENCY.USD);
+        });
+
+        it('generates unique IDs for customUnitID and customUnitRateID', () => {
+            const result1 = Policy.buildOptimisticDistanceRateCustomUnits('USD');
+            const result2 = Policy.buildOptimisticDistanceRateCustomUnits('USD');
+
+            expect(result1.customUnitID).not.toBe(result2.customUnitID);
+            expect(result1.customUnitRateID).not.toBe(result2.customUnitRateID);
+        });
+
+        it('uses empty string currency and falls back properly', () => {
+            const result = Policy.buildOptimisticDistanceRateCustomUnits('');
+
+            // Empty string is falsy, so it should fall back
+            expect(result.outputCurrency).toBe(CONST.CURRENCY.USD);
+        });
+    });
+
+    describe('createDraftInitialWorkspace', () => {
+        it('creates a draft workspace with correct default values', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+            Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM}, 'USD', ESH_EMAIL, WORKSPACE_NAME, policyID);
+            await waitForBatchedUpdates();
+
+            const policyDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
+
+            expect(policyDraft).toBeDefined();
+            expect(policyDraft?.id).toBe(policyID);
+            expect(policyDraft?.name).toBe(WORKSPACE_NAME);
+            expect(policyDraft?.type).toBe(CONST.POLICY.TYPE.TEAM);
+            expect(policyDraft?.role).toBe(CONST.POLICY.ROLE.ADMIN);
+            expect(policyDraft?.outputCurrency).toBe('USD');
+            expect(policyDraft?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+            expect(policyDraft?.isPolicyExpenseChatEnabled).toBe(true);
+            expect(policyDraft?.areCategoriesEnabled).toBe(true);
+            expect(policyDraft?.areCompanyCardsEnabled).toBe(true);
+            expect(policyDraft?.areExpensifyCardsEnabled).toBe(false);
+            expect(policyDraft?.makeMeAdmin).toBe(false);
+            expect(policyDraft?.defaultBillable).toBe(false);
+            expect(policyDraft?.defaultReimbursable).toBe(true);
+            expect(policyDraft?.requiresCategory).toBe(true);
+        });
+
+        it('enables workflows by default for MANAGE_TEAM choice', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+            Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM}, 'USD', ESH_EMAIL, WORKSPACE_NAME, policyID);
+            await waitForBatchedUpdates();
+
+            const policyDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
+
+            expect(policyDraft?.areWorkflowsEnabled).toBe(true);
+            expect(policyDraft?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE);
+            expect(policyDraft?.harvesting?.enabled).toBe(false);
+        });
+
+        it('disables workflows for non-MANAGE_TEAM choices', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+            Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.PERSONAL_SPEND}, 'USD', ESH_EMAIL, WORKSPACE_NAME, policyID);
+            await waitForBatchedUpdates();
+
+            const policyDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
+
+            expect(policyDraft?.areWorkflowsEnabled).toBe(false);
+            expect(policyDraft?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT);
+            expect(policyDraft?.harvesting?.enabled).toBe(true);
+        });
+
+        it('uses makeMeAdmin when specified', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+            Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM}, 'USD', ESH_EMAIL, WORKSPACE_NAME, policyID, true);
+            await waitForBatchedUpdates();
+
+            const policyDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
+
+            expect(policyDraft?.makeMeAdmin).toBe(true);
+        });
+
+        it('creates a CORPORATE type workspace when specified', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+            Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM}, 'USD', ESH_EMAIL, WORKSPACE_NAME, policyID, false, undefined, CONST.POLICY.TYPE.CORPORATE);
+            await waitForBatchedUpdates();
+
+            const policyDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
+
+            expect(policyDraft?.type).toBe(CONST.POLICY.TYPE.CORPORATE);
+        });
+
+        it('sets custom units with the provided currency', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+            Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM}, 'GBP', ESH_EMAIL, WORKSPACE_NAME, policyID);
+            await waitForBatchedUpdates();
+
+            const policyDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
+
+            expect(policyDraft?.outputCurrency).toBe('GBP');
+            expect(policyDraft?.customUnits).toBeDefined();
+
+            const customUnitKeys = Object.keys(policyDraft?.customUnits ?? {});
+            expect(customUnitKeys).toHaveLength(1);
+
+            const unit = policyDraft?.customUnits?.[customUnitKeys.at(0) ?? ''];
+            expect(unit?.name).toBe(CONST.CUSTOM_UNITS.NAME_DISTANCE);
+
+            const rateKeys = Object.keys(unit?.rates ?? {});
+            expect(rateKeys).toHaveLength(1);
+
+            const rate = unit?.rates?.[rateKeys.at(0) ?? ''];
+            expect(rate?.currency).toBe('GBP');
+            expect(rate?.enabled).toBe(true);
+        });
+
+        it('enables workflows for LOOKING_AROUND choice', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+            Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND}, 'USD', ESH_EMAIL, WORKSPACE_NAME, policyID);
+            await waitForBatchedUpdates();
+
+            const policyDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
+
+            expect(policyDraft?.areWorkflowsEnabled).toBe(true);
+            expect(policyDraft?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE);
+        });
+
+        it('sets avatar URL when file is provided', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+            const fakeFile = {uri: 'file://test-avatar.png', name: 'test-avatar.png'} as File;
+            Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM}, 'USD', ESH_EMAIL, WORKSPACE_NAME, policyID, false, fakeFile);
+            await waitForBatchedUpdates();
+
+            const policyDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
+
+            expect(policyDraft?.avatarURL).toBe('file://test-avatar.png');
+            expect(policyDraft?.originalFileName).toBe('test-avatar.png');
         });
     });
 });

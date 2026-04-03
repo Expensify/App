@@ -12,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import {createWorkspaceWithPolicyDraft} from '@userActions/App';
 import {generatePolicyID} from '@userActions/Policy/Policy';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {LastPaymentMethodType} from '@src/types/onyx';
@@ -37,6 +38,7 @@ function PersonalCardUpgradePage() {
     const onUpgrade = () => {
         createWorkspaceWithPolicyDraft({
             introSelected,
+            currency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
             policyOwnerEmail: '',
             transitionFromOldDot: false,
             makeMeAdmin: false,

@@ -70,6 +70,7 @@ function KYCWall({
     const {formatPhoneNumber} = useLocalize();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserDetails.email ?? '';
+    const localCurrency = currentUserDetails.localCurrencyCode ?? CONST.CURRENCY.USD;
     const reportPreviewAction = useParentReportAction(iouReport);
     const personalDetails = usePersonalDetails();
     const employeeEmail = personalDetails?.[iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.login ?? '';
@@ -166,7 +167,7 @@ function KYCWall({
                     }
 
                     const {policyID, workspaceChatReportID, reportPreviewReportActionID, adminsChatReportID} =
-                        createWorkspaceFromIOUPayment(iouReport, reportPreviewAction, currentUserEmail, employeeEmail, conciergeReportID) ?? {};
+                        createWorkspaceFromIOUPayment(iouReport, reportPreviewAction, currentUserEmail, employeeEmail, conciergeReportID, localCurrency) ?? {};
                     if (policyID && iouReport?.policyID) {
                         savePreferredPaymentMethod(iouReport.policyID, policyID, CONST.LAST_PAYMENT_METHOD.IOU, lastPaymentMethod?.[iouReport?.policyID]);
                     }
@@ -218,6 +219,7 @@ function KYCWall({
             isSelfTourViewed,
             betas,
             conciergeReportID,
+            localCurrency,
         ],
     );
 
