@@ -54,7 +54,7 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, setUSDBank
             reimbursementAccount?.achData?.ACHRequestReportActionID,
         );
 
-    const icons = useMemoizedLazyExpensifyIcons(['ChatBubble', 'Pencil', 'RotateLeft'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ChatBubble', 'Pencil', 'RotateLeft']);
     const illustrations = useMemoizedLazyIllustrations(['ConciergeBubble']);
 
     return (

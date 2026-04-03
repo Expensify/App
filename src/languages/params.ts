@@ -124,7 +124,7 @@ type UpdatedPolicyCustomUnitSubRateParams = {customUnitName: string; customUnitR
 
 type RemovedPolicyCustomUnitSubRateParams = {customUnitName: string; customUnitRateName: string; removedSubRateName: string};
 
-type AddedOrDeletedPolicyReportFieldParams = {fieldType: string; fieldName?: string};
+type AddedOrDeletedPolicyReportFieldParams = {fieldType: string; fieldName?: string; defaultValue?: string};
 
 type UpdatedPolicyReportFieldDefaultValueParams = {fieldName?: string; defaultValue?: string};
 

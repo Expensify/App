@@ -218,6 +218,9 @@ type Receipt = {
     /** Path of the receipt file */
     source?: ReceiptSource;
 
+    /** Local file URI preserved on the creating device so the remote source from the server does not cause a reload */
+    localSource?: string;
+
     /** Name of receipt file */
     filename?: string;
 
@@ -453,6 +456,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The transaction converted amount in report's currency */
         convertedAmount?: number;
 
+        /** The currency conversion rate from the transaction currency to the report currency */
+        currencyConversionRate?: string;
+
         /** The transaction tax amount */
         taxAmount?: number;
 
@@ -548,6 +554,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The transaction id */
         transactionID: string;
+
+        /** Selected transaction IDs for bulk edit operations (only used in draft transactions) */
+        selectedTransactionIDs?: string[];
 
         /** The transaction tag */
         tag?: string;

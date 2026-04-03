@@ -1,6 +1,7 @@
 export type {default as GetTransactionsForMergingParams} from './GetTransactionsForMergingParams';
 export type {default as ImportCSVTransactionsParams} from './ImportCSVTransactionsParams';
 export type {default as ImportMultiLevelTagsParams} from './ImportMultiLevelTagsParams';
+export type {default as ImportCSVCompanyCardsParams} from './ImportCSVCompanyCardsParams';
 export type {default as CleanPolicyTagsParams} from './CleanPolicyTagsParams';
 export type {default as ActivatePhysicalExpensifyCardParams} from './ActivatePhysicalExpensifyCardParams';
 export type {default as AddNewContactMethodParams} from './AddNewContactMethodParams';
@@ -64,6 +65,7 @@ export type {default as OpenPlaidCompanyCardLoginParams} from './OpenPlaidCompan
 export type {default as OpenSidePanelParams} from './OpenSidePanelParams';
 export type {default as OpenPolicyReceiptPartnersPageParams} from './OpenPolicyReceiptPartnersPageParams';
 export type {default as PaymentCardParams} from './PaymentCardParams';
+export type {default as AddPersonalPlaidCardParams} from './AddPersonalPlaidCardParams';
 export type {default as PusherPingParams} from './PusherPingParams';
 export type {default as ReconnectAppParams} from './ReconnectAppParams';
 export type {default as ReferTeachersUniteVolunteerParams} from './ReferTeachersUniteVolunteerParams';
@@ -106,6 +108,7 @@ export type {default as UpdatePreferredLocaleParams} from './UpdatePreferredLoca
 export type {default as UpdatePronounsParams} from './UpdatePronounsParams';
 export type {default as UpdateSelectedTimezoneParams} from './UpdateSelectedTimezoneParams';
 export type {default as UpdateStatusParams} from './UpdateStatusParams';
+export type {default as LinkCardToPolicyParams} from './LinkCardToPolicyParams';
 export type {default as UpdateThemeParams} from './UpdateThemeParams';
 export type {default as UpdateUserAvatarParams} from './UpdateUserAvatarParams';
 export type {default as UpdateGroupChatAvatarParams} from './UpdateGroupChatAvatarParams';
@@ -376,7 +379,7 @@ export type {default as RemovePolicyCategoryItemizedReceiptsRequiredParams} from
 export type {default as UpdateQuickbooksOnlineAutoCreateVendorParams} from './UpdateQuickbooksOnlineAutoCreateVendorParams';
 export type {default as ImportCategoriesSpreadsheetParams} from './ImportCategoriesSpreadsheet';
 export type {default as ImportMembersSpreadsheetParams} from './ImportMembersSpreadsheet';
-export type {default as ExportMembersSpreadsheetParams} from './ExportCategoriesSpreadsheet';
+export type {default as ExportMembersSpreadsheetParams} from './ExportMembersSpreadsheetParams';
 export type {default as ImportTagsSpreadsheetParams} from './ImportTagsSpreadsheet';
 export type {default as ExportCategoriesSpreadsheetParams} from './ExportCategoriesSpreadsheet';
 export type {default as ExportTagsSpreadsheetParams} from './ExportTagsSpreadsheet';
@@ -453,6 +456,7 @@ export type {default as RetractReportParams} from './RetractReportParams';
 export type {default as CompleteConciergeCallParams} from './CompleteConciergeCallParams';
 export type {default as FinishCorpayBankAccountOnboardingParams} from './FinishCorpayBankAccountOnboardingParams';
 export type {default as RejectMoneyRequestParams} from './RejectMoneyRequestParams';
+export type {default as RejectExpenseReportParams} from './RejectExpenseReportParams';
 export type {default as MarkTransactionViolationAsResolvedParams} from './MarkTransactionViolationAsResolvedParams';
 export type {default as LockAccountParams} from './LockAccountParams';
 export type {default as RespondToProactiveAppReviewParams} from './RespondToProactiveAppReviewParams';
