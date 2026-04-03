@@ -1057,6 +1057,14 @@ function getUserAccountID(): number {
     return userAccountID;
 }
 
+function getAllTransactionDrafts(): NonNullable<OnyxCollection<OnyxTypes.Transaction>> {
+    return allTransactionDrafts;
+}
+
+function getAllReportNameValuePairs(): OnyxCollection<OnyxTypes.ReportNameValuePairs> {
+    return allReportNameValuePairs;
+}
+
 /**
  * This function uses Onyx.connect and should be replaced with useOnyx for reactive data access.
  * TODO: remove `getPolicyTagsData` from this file (https://github.com/Expensify/App/issues/72721)
@@ -13485,6 +13493,8 @@ export {
     getAllTransactionViolations,
     getAllReports,
     getAllReportActionsFromIOU,
+    getAllTransactionDrafts,
+    getAllReportNameValuePairs,
     getCurrentUserEmail,
     getUserAccountID,
     getReceiptError,
