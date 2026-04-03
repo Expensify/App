@@ -1,7 +1,7 @@
 ---
 title: Approve Expenses
-description: Approve, hold, and unapprove submitted expenses
-keywords: [New Expensify, approve expenses, hold expenses, unapprove report, workspace approval workflow, expense approval, reimburse expenses, pending expense, Expensify Card, expense status, expense settings]
+description: Approve, hold, reject, and unapprove submitted expenses
+keywords: [New Expensify, approve expenses, hold expenses, unapprove report, reject report, reject expense, workspace approval workflow, expense approval, reimburse expenses, pending expense, Expensify Card, expense status, expense settings]
 ---
 
 Expenses can be created through manual entry, tracking distance, or scanning a receipt. They can be submitted to an individual or to a workspace. For steps on creating and submitting expenses, check out [Create an Expense](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Create-an-expense).
@@ -22,10 +22,13 @@ When an expense is submitted on a workspace with an approval workflow configured
 
 - **Approve**: Confirm the expense is valid and ready to pay.
 - **Unapprove**: Return the report to its previous state for additional edits.
+- **Reject**: Return the entire report to the submitter or a previous approver with a required reason. This keeps the report's expense grouping intact.
 
 **For each expense on a report, you can:**
 - **Hold**: Temporarily delay approval of the individual expense if more information is needed.
-- **Reject**: Remove the expense from the report and send back to the submitter with a reason. The rejected expense can be marked as resolved and resubmitted by the submitter. 
+- **Reject**: Remove the expense from the report and send back to the submitter with a reason. The rejected expense can be marked as resolved and resubmitted by the submitter.
+
+**Note:** On single-expense reports, only report-level Reject is shown in the More menu (the expense-level Reject option is suppressed).
 
 **To set up an approval workflow:**
 
@@ -98,6 +101,30 @@ When an expense is submitted on a workspace with an approval workflow configured
 Unapproving a report returns it to the Processing state. The last approver will be notified and can then revise or reject expenses on the report.
 
 **Note:** Paid reports cannot be unapproved. If the expense was already exported to accounting software, unapproving it may cause reconciliation issues. Be sure to remove the exported data before approving the expense again.
+
+---
+
+# Reject a report
+
+As the assigned approver, you can reject an entire expense report to return it to the submitter or a previous approver while keeping the report's expense grouping intact.
+
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), head to **Reports > Reports**.
+2. Locate the report using the search bar or filters.
+3. Click **View**.
+4. Open the **More** dropdown at the top of the report.
+5. Select **Reject**.
+6. Enter a rejection reason (required).
+7. If the report passed through previous approvers, select who the report should be returned to (the submitter or a previous approver).
+8. Click **Reject report** to confirm.
+
+**What happens after rejecting a report:**
+
+- **Rejected to the submitter**: The report moves back to **Draft**. The submitter must fix any issues and manually resubmit — rejected reports are skipped during scheduled submit.
+- **Rejected to a previous approver**: The report stays **Outstanding** and prior approvals are preserved, so it won't restart the entire approval workflow.
+
+A system message and the rejection reason are added to the report thread.
+
+**Note:** Report-level Reject is only available to the assigned approver on Outstanding reports.
 
 ---
 
