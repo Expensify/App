@@ -20,6 +20,9 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const REPORTS_COUNT = 5000;
 const PERSONAL_DETAILS_LIST_COUNT = 1000;
+// Larger dataset used specifically to measure the isSearchStringMatch RegExp optimization
+const LARGE_REPORTS_COUNT = 40000;
+const LARGE_PERSONAL_DETAILS_COUNT = 5000;
 const SEARCH_VALUE = 'Report';
 const COUNTRY_CODE = 1;
 
@@ -287,6 +290,30 @@ describe('OptionsListUtils', () => {
                 searchTerm: SEARCH_VALUE,
             }),
         );
+    });
+
+    // This test directly measures the isSearchStringMatch hot path.
+    // A multi-word query forces one RegExp creation per word per item on main;
+    // on the PR branch RegExps are compiled once per call, so duration drops significantly.
+    test('[OptionsListUtils] filterAndOrderOptions with multi-word search on large dataset', async () => {
+        const largePersonalDetails = getMockedPersonalDetails(LARGE_PERSONAL_DETAILS_COUNT);
+        const largeReports = getMockedReports(LARGE_REPORTS_COUNT);
+        const largeOptionList = createOptionList(largePersonalDetails, EMPTY_PRIVATE_IS_ARCHIVED_MAP, largeReports, undefined);
+
+        const formattedOptions = getValidOptions(
+            {reports: largeOptionList.reports, personalDetails: largeOptionList.personalDetails},
+            allPolicies,
+            {},
+            nvpDismissedProductTraining,
+            loginList,
+            MOCK_CURRENT_USER_ACCOUNT_ID,
+            MOCK_CURRENT_USER_EMAIL,
+            ValidOptionsConfig,
+        );
+
+        await measureFunction(() => {
+            filterAndOrderOptions(formattedOptions, 'Email Report Five', COUNTRY_CODE, loginList, MOCK_CURRENT_USER_EMAIL, MOCK_CURRENT_USER_ACCOUNT_ID, largePersonalDetails);
+        });
     });
 
     test('[OptionsListUtils] getSearchOptions with searchTerm', async () => {
