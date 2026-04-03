@@ -14,6 +14,8 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getBrowser} from '@libs/Browser';
+import getOperatingSystem from '@libs/getOperatingSystem';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {BaseListItemProps, ListItem} from './types';
@@ -35,18 +37,7 @@ function getAccessibilityProps<TItem extends ListItem>({
 }: AccessibilityProps & Pick<BaseListItemProps<TItem>, 'item' | 'isFocused' | 'canSelectMultiple'> & {selectedLabel: string}) {
     const isSelectableOption = !canSelectMultiple && role !== CONST.ROLE.CHECKBOX && role !== CONST.ROLE.RADIO;
 
-    // Chrome+VoiceOver doesn't announce aria-selected on role="option", so for single-select option items
-    // we bake the state into the label and omit aria-selected to avoid double announcements on screen readers that do support it.
-    const getAccessibilityState = () => {
-        if (role === CONST.ROLE.CHECKBOX || role === CONST.ROLE.RADIO) {
-            return {checked: !!item.isSelected, selected: !!isFocused};
-        }
-        if (isSelectableOption && item.isSelected) {
-            return {};
-        }
-        return {selected: !!item.isSelected};
-    };
-    const accessibilityState = getAccessibilityState();
+    const accessibilityState = role === CONST.ROLE.CHECKBOX || role === CONST.ROLE.RADIO ? {checked: !!item.isSelected, selected: !!isFocused} : {selected: !!item.isSelected};
 
     if (accessible === false) {
         return {
@@ -58,8 +49,11 @@ function getAccessibilityProps<TItem extends ListItem>({
     }
 
     const effectiveRole = isSelectableOption ? CONST.ROLE.OPTION : role;
+
+    // Chrome on macOS doesn't expose aria-selected to VoiceOver, so we bake "selected"
+    // into the label as a workaround. Other browser/OS combos handle aria-selected natively.
     let accessibilityLabel = getAccessibilityLabel(item);
-    if (isSelectableOption && item.isSelected) {
+    if (isSelectableOption && item.isSelected && getBrowser() === 'chrome' && getOperatingSystem() === CONST.OS.MAC_OS) {
         accessibilityLabel = `${accessibilityLabel}, ${selectedLabel}`;
     }
 
