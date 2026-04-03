@@ -9,14 +9,19 @@ internalScope: Applies to Workspace Admins. Covers how to manage third-party fee
 
 Workspace Admins can manage company card settings, export logic, and eReceipt functionality at the workspace level. This guide outlines how to configure your company card connection, route expenses to accounting systems, and automate receipt handling.
 
+To set up a direct company credit card feed on a Workspace, see [Direct Feeds](/articles/new-expensify/connect-credit-cards/Direct-feeds)). 
+
+To set up a commercial card file feed on a Workspace, see [Commercial Feeds](https://help.expensify.com/articles/new-expensify/connect-credit-cards/Commercial-feeds). 
+
 ---
 
-## Manage Company Card Settings for Commercial and Direct Feeds
+## Manage company card settings for company card feeds 
 
 To update your Company Card feed settings:
 
-1. Go to **Settings > Workspaces > [Workspace Name] > Company Cards**.
-2. Click **Settings** in the top right corner.
+1. In the navigation tabs (on the left on web, on the bottom on mobile) navigate to **Workspaces > [Workspace Name]**.
+2. Within the Workspace, select **Company Cards** and chose the relevant company cardfeed. 
+3. Click **Settings** in the top right corner.
 
 You can manage the following options:
 
@@ -24,29 +29,31 @@ You can manage the following options:
   Update the name of the card feed to help identify it.
 
 - **Allow deleting transactions**  
-  Enable this setting to allow cardholders to delete card transactions.  
+  Enable this setting to allow cardholders to delete card transactions.
+   
   **Note:** This setting only applies to transactions imported after the setting is enabled.
 
 - **Remove card feed**  
-  Remove the card feed from the workspace and unassign all cards. If the feed is not connected to another workspace, it is permanently deleted.  
+  Remove the card feed from the workspace and unassign all cards. If the feed is not connected to another workspace, it is permanently deleted.
+  
   **Note:** Removing the feed or unassigning a card deletes all imported expenses in the **Unreported** and **Draft** states.
 
 ![Tap settings to open the card feed settings page]({{site.url}}/assets/images/Direct Feed HelpDot Images/directfeeds_12.png){:width="100%"}
 
 ---
 
-## How to Export Transactions to Your Accounting System
+## How to export transactions to your accounting system
 
 If you’ve connected accounting software (like **QuickBooks**, **NetSuite**, or **Xero**), you can export company card expenses either to a **central account** or **individual accounts**.
 
-## How to Export to a Central Account
+## How to export to a central account
 
 To apply this setting to all card expenses in the workspace:
 
 1. Go to **Workspaces > [Workspace Name] > Accounting > Connections > Export**.
 2. Under **Export company card expenses as**, choose **Central account**.
 
-## How to Export to Individual Accounts
+## How to export to individual iccounts
 
 To override the central export account per card:
 
@@ -58,7 +65,7 @@ To override the central export account per card:
 
 ---
 
-## How to Use eReceipts with Third-Party Card Feeds
+## How to use eReceipts with third-party card Feeds
 
 **eReceipts** are digital receipts that replace paper ones for many USD transactions of $75 or less on commercial and direct card feeds.
 
