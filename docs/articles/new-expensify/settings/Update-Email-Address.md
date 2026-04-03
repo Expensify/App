@@ -11,7 +11,7 @@ Keep your Expensify account secure and accessible by adding or updating contact 
 
 If your company uses SAML SSO, you can only log in with your company email address.
 
-If you're having trouble logging into your account, see the [login troubleshooting guide](https://help.expensify.com/articles/new-expensify/settings/Login-Troubleshooting).
+If you're having trouble logging into your account, see the [login troubleshooting guide](/articles/new-expensify/settings/Login-Troubleshooting).
 
 ---
 
