@@ -1561,7 +1561,12 @@ function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: s
                 return;
             }
 
-            updateAuthTokenAndOpenApp(response.authToken, response.encryptedAuthToken);
+            // Update auth tokens without calling openApp() to avoid a race condition.
+            // If openApp() is called here, it queues an OPEN_APP command that returns stale NVP_ONBOARDING
+            // (with hasCompletedGuidedSetupFlow: false), overwriting the optimistic value set by completeOnboarding().
+            // The app will call openApp()/reconnectApp() naturally when the user finishes onboarding and lands on the main screen.
+            updateSessionAuthTokens(response.authToken, response.encryptedAuthToken);
+            NetworkStore.setAuthToken(response.authToken);
         });
     });
 }
