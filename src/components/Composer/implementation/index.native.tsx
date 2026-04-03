@@ -90,26 +90,25 @@ function Composer({
 
     const pasteFile = useCallback(
         (e: NativeSyntheticEvent<TextInputPasteEventData>) => {
-            const processPaste = async () => {
-                const filePromises: Array<Promise<FileObject | undefined>> = e.nativeEvent.items.map(async (clipboardFile) => {
-                    const mimeType = clipboardFile?.type ?? '';
-                    const fileURI = clipboardFile?.data;
-                    const baseFileName = fileURI?.split('/').pop() ?? 'file';
-                    const {fileName: stem, fileExtension: originalFileExtension} = splitExtensionFromFileName(baseFileName);
-                    const fileExtension = originalFileExtension || (mimeDb[mimeType].extensions?.[0] ?? 'bin');
-                    const fileName = `${stem}.${fileExtension}`;
-                    const file: FileObject = {uri: fileURI, name: fileName, type: mimeType, size: 0};
+            const filePromises: Array<Promise<FileObject | undefined>> = e.nativeEvent.items.map(async (clipboardFile) => {
+                const mimeType = clipboardFile?.type ?? '';
+                const fileURI = clipboardFile?.data;
+                const baseFileName = fileURI?.split('/').pop() ?? 'file';
+                const {fileName: stem, fileExtension: originalFileExtension} = splitExtensionFromFileName(baseFileName);
+                const fileExtension = originalFileExtension || (mimeDb[mimeType].extensions?.[0] ?? 'bin');
+                const fileName = `${stem}.${fileExtension}`;
+                const file: FileObject = {uri: fileURI, name: fileName, type: mimeType, size: 0};
 
-                    try {
-                        const size = await getFileSize(file.uri ?? '');
-                        return {...file, size};
-                    } catch {
-                        return file;
-                    }
-                });
+                try {
+                    const size = await getFileSize(file.uri ?? '');
+                    return {...file, size};
+                } catch {
+                    return file;
+                }
+            });
 
-                // Use Promise.allSettled so one bad URI/type doesn't drop valid files from mixed clipboard payloads
-                const results = await Promise.allSettled(filePromises);
+            // Use Promise.allSettled so one bad URI/type doesn't drop valid files from mixed clipboard payloads
+            Promise.allSettled(filePromises).then((results) => {
                 const files: FileObject[] = [];
                 for (const [index, result] of results.entries()) {
                     if (result.status === 'fulfilled' && result.value !== undefined) {
@@ -119,10 +118,6 @@ function Composer({
                     }
                 }
                 onPasteFile(files);
-            };
-
-            processPaste().catch((error) => {
-                Log.warn('Composer paste failed', {error});
             });
         },
         [onPasteFile],
