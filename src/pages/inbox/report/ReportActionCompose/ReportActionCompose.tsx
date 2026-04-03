@@ -240,7 +240,6 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
 
     const [didResetComposerHeight, setDidResetComposerHeight] = useState(false);
     const isEditingInComposer = shouldUseNarrowLayout && editingState !== 'off' && !didResetComposerHeight;
-    const composerEditingToggleKey = editingReportActionID;
 
     useEffect(() => {
         if (editingState !== 'off' || !didResetComposerHeight) {
@@ -250,23 +249,23 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
         setDidResetComposerHeight(false);
     }, [didResetComposerHeight, editingState]);
 
-    // Track whether the user was editing a message before
-    const wasEditingBefore = useRef(false);
-    useEffect(() => {
-        if (editingState === 'off') {
-            return;
-        }
-        wasEditingBefore.current = true;
-    }, [editingState]);
+    // // Track whether the user was editing a message before
+    // const wasEditingBefore = useRef(false);
+    // useEffect(() => {
+    //     if (editingState === 'off') {
+    //         return;
+    //     }
+    //     wasEditingBefore.current = true;
+    // }, [editingState]);
 
-    // Reset composer focus when editing is turned off, but not on the initial chat open.
-    useEffect(() => {
-        if (editingState !== 'off' || !!draftComment || !wasEditingBefore.current) {
-            return;
-        }
+    // // Reset composer focus when editing is turned off, but not on the initial chat open.
+    // useEffect(() => {
+    //     if (editingState !== 'off' || !!draftComment || !wasEditingBefore.current) {
+    //         return;
+    //     }
 
-        setIsFocused(false);
-    }, [editingState]);
+    //     setIsFocused(false);
+    // }, [draftComment, editingState]);
 
     const reportActionKeys = useMemo(() => (rawReportActions ? Object.keys(rawReportActions) : []), [rawReportActions]);
     const isEditingLastReportAction = useMemo(() => editingReportActionID === reportActionKeys.at(-1), [editingReportActionID, reportActionKeys]);
@@ -810,7 +809,6 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
                             />
                         )}
                         <ComposerWithSuggestions
-                            key={composerEditingToggleKey}
                             ref={(ref) => {
                                 composerRef.current = ref;
                                 composerRefShared.set({
