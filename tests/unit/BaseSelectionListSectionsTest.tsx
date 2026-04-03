@@ -179,9 +179,9 @@ describe('BaseSelectionList', () => {
             isSelected: section.keyForList === '2',
         }));
         const {rerender} = render(<BaseListItemRenderer sections={[{data: mockSections, sectionIndex: 0}]} />);
-        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}1`)).toBeSelected();
+        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}1`)).toBeChecked();
         rerender(<BaseListItemRenderer sections={[{data: updatedMockSections, sectionIndex: 0}]} />);
-        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}2`)).toBeSelected();
+        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}2`)).toBeChecked();
     });
 
     it('should scroll to top when selecting a multi option list', () => {
@@ -261,7 +261,7 @@ describe('BaseSelectionList', () => {
 
         // Initially should show item 70 as selected and visible
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}70`)).toBeTruthy();
-        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}70`)).toBeSelected();
+        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}70`)).toBeChecked();
 
         // Search for "Item 0"
         fireEvent.changeText(screen.getByTestId('selection-list-text-input'), 'Item 0');
@@ -276,7 +276,7 @@ describe('BaseSelectionList', () => {
 
         // Should show the preselected item 70
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}70`)).toBeTruthy();
-        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}70`)).toBeSelected();
+        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}70`)).toBeChecked();
     });
 
     it('does not lose items when only selectedOptions changes', () => {
@@ -301,8 +301,7 @@ describe('BaseSelectionList', () => {
         // All items should still be rendered
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}0`)).toBeTruthy();
         expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}99`)).toBeTruthy();
-        // Item 3 should now be selected
-        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}3`)).toBeSelected();
+        expect(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}3`)).toBeChecked();
     });
 
     it('should still render items when text input changes', () => {
