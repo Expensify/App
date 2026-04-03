@@ -23,6 +23,7 @@ import {
     convertBulkTrackedExpensesToIOU,
     createDistanceRequest,
     deleteMoneyRequest,
+    detachReceipt,
     getDeleteTrackExpenseInformation,
     getIOUReportActionWithBadge,
     getReportOriginalCreationTimestamp,
@@ -130,6 +131,7 @@ import currencyList from '../unit/currencyList.json';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../utils/collections/policies';
 import createRandomPolicyCategories from '../utils/collections/policyCategory';
+import createRandomPolicyTags from '../utils/collections/policyTags';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
@@ -17616,6 +17618,119 @@ describe('actions/IOU', () => {
 
             const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
             expect(updatedTransaction?.comment?.odometerEndImage).toBeUndefined();
+        });
+    });
+
+    describe('detachReceipt', () => {
+        const transactionID = '1';
+        const reportID = '2';
+        const policyID = '3';
+        const tagListName = 'Department';
+
+        const policy = {
+            ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+            id: policyID,
+        };
+
+        const policyTagList = createRandomPolicyTags(tagListName, 3);
+
+        const transaction = {
+            ...createRandomTransaction(1),
+            transactionID,
+            reportID,
+            receipt: {source: 'receipt-url.jpg'},
+            merchant: 'Test Merchant',
+        };
+
+        const report = {
+            ...createRandomReport(1, undefined),
+            reportID,
+            policyID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            lastVisibleActionCreated: '2024-01-01 00:00:00',
+            lastReadTime: '2024-01-01 00:00:00',
+        };
+
+        const seedOnyx = async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, policyTagList);
+            await waitForBatchedUpdates();
+        };
+
+        it('should do nothing when transactionID is undefined', async () => {
+            const transactionsBefore = await getOnyxValue(ONYXKEYS.COLLECTION.TRANSACTION);
+
+            detachReceipt(undefined, undefined, undefined, undefined);
+            await waitForBatchedUpdates();
+
+            const transactionsAfter = await getOnyxValue(ONYXKEYS.COLLECTION.TRANSACTION);
+            expect(transactionsAfter).toEqual(transactionsBefore);
+        });
+
+        it('should optimistically null the receipt and set pending field', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            await seedOnyx();
+
+            try {
+                detachReceipt(transactionID, undefined, undefined, undefined);
+                await waitForBatchedUpdates();
+
+                const onyxData = writeSpy.mock.calls.at(0)?.at(2) as {optimisticData?: Array<{key: string; value: unknown}>};
+                const transactionOptimistic = onyxData?.optimisticData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+                expect(transactionOptimistic?.value).toEqual(
+                    expect.objectContaining({
+                        receipt: null,
+                        pendingFields: {receipt: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                    }),
+                );
+            } finally {
+                writeSpy.mockRestore();
+            }
+        });
+
+        it('should create an optimistic report action and update report timestamps', async () => {
+            await seedOnyx();
+
+            detachReceipt(transactionID, undefined, undefined, undefined);
+            await waitForBatchedUpdates();
+
+            // Then a new report action should be created on the report
+            const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+            const actions = Object.values(reportActions ?? {});
+            expect(actions.length).toBeGreaterThan(0);
+
+            // And the report timestamps should be updated
+            const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+            expect(updatedReport?.lastVisibleActionCreated).not.toBe('2024-01-01 00:00:00');
+        });
+
+        it('should call API.write with DETACH_RECEIPT command and correct params', async () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+            await seedOnyx();
+
+            try {
+                detachReceipt(transactionID, undefined, undefined, undefined);
+                await waitForBatchedUpdates();
+
+                expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.DETACH_RECEIPT, expect.objectContaining({transactionID}), expect.anything(), expect.anything());
+            } finally {
+                writeSpy.mockRestore();
+            }
+        });
+
+        it('should compute violations when policy is paid group', async () => {
+            await seedOnyx();
+
+            detachReceipt(transactionID, policy, policyTagList, undefined);
+            await waitForBatchedUpdates();
+
+            const violations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
+            expect(violations).toBeDefined();
+            expect(Array.isArray(violations)).toBe(true);
         });
     });
 });
