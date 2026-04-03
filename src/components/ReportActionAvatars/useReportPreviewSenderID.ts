@@ -6,8 +6,9 @@ import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViol
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getOriginalMessage, isMoneyRequestAction, isSentMoneyReportAction} from '@libs/ReportActionsUtils';
+import {getIOUActionForTransactionID, getOriginalMessage, isMoneyRequestAction, isSentMoneyReportAction} from '@libs/ReportActionsUtils';
 import {isDM, isIOUReport} from '@libs/ReportUtils';
+import {isScanRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
@@ -38,6 +39,22 @@ const getSplitsSelector = (actions: OnyxEntry<ReportActions>): Array<ReportActio
         .filter((act) => getOriginalMessage(act)?.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT);
 };
 
+function getTransactionDirectionSign(transaction: Transaction): number | undefined {
+    if (transaction.amount !== 0) {
+        return Math.sign(transaction.amount);
+    }
+
+    if (isScanRequest(transaction)) {
+        const modifiedAmount = Number(transaction.modifiedAmount);
+
+        if (Number.isFinite(modifiedAmount) && modifiedAmount !== 0) {
+            return Math.sign(modifiedAmount);
+        }
+    }
+
+    return undefined;
+}
+
 type GetReportPreviewSenderIDParams = {
     iouReport: OnyxEntry<Report>;
     action: OnyxEntry<ReportAction>;
@@ -56,14 +73,30 @@ function getReportPreviewSenderID({iouReport, action, chatReport, iouActions, tr
         return currentUserAccountID;
     }
 
-    // 1. If all amounts have the same sign - either all amounts are positive or all amounts are negative.
-    // We have to do it this way because there can be a case when actions are not available
-    // See: https://github.com/Expensify/App/pull/64802#issuecomment-3008944401
+    const transactionActorAccountIDs = transactions?.map((transaction) => getIOUActionForTransactionID(iouActions ?? [], transaction.transactionID)?.actorAccountID);
+    const hasActorAccountIDForEachTransaction =
+        !!iouActions?.length && !!transactionActorAccountIDs && transactionActorAccountIDs.length > 0 && transactionActorAccountIDs.every((accountID) => accountID !== undefined);
 
-    const areAmountsSignsTheSame = new Set(transactions?.map((tr) => Math.sign(tr.amount))).size < 2;
+    // 1. Use actorAccountID when it is available for every transaction. Otherwise, fall back to known transaction direction only.
+    if (hasActorAccountIDForEachTransaction) {
+        const areAllTransactionsCreatedByOneActor = new Set(transactionActorAccountIDs).size < 2;
 
-    if (!areAmountsSignsTheSame) {
-        return undefined;
+        if (!areAllTransactionsCreatedByOneActor) {
+            return undefined;
+        }
+    } else {
+        const transactionSigns = transactions?.map((transaction) => getTransactionDirectionSign(transaction)) ?? [];
+        const hasUnknownDirection = transactionSigns.some((sign) => sign === undefined);
+
+        if (hasUnknownDirection) {
+            return undefined;
+        }
+
+        const areAmountsSignsTheSame = new Set(transactionSigns).size < 2;
+
+        if (!areAmountsSignsTheSame) {
+            return undefined;
+        }
     }
 
     // 2. If there is only one attendee - we check that by counting unique emails converted to account IDs in the attendees list.
