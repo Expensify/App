@@ -15,6 +15,7 @@ import {
     createTaskAndNavigate,
     deleteTask,
     editTask,
+    editTaskAssignee,
     getFinishOnboardingTaskOnyxData,
     getNavigationUrlOnTaskDelete,
 } from '@libs/actions/Task';
@@ -45,7 +46,6 @@ jest.mock('@libs/Sound');
 jest.mock('@libs/ErrorUtils');
 jest.mock('@libs/actions/Welcome');
 // Keep OnyxDerived real initialization below
-jest.mock('@components/Icon/Expensicons');
 jest.mock('@components/LocaleContextProvider');
 
 // ReportUtils spies used in createTaskAndNavigate tests
@@ -309,13 +309,18 @@ describe('actions/Task', () => {
             global.fetch = getGlobalFetchMock();
 
             // Setup ReportUtils mocks
-            mockBuildOptimisticTaskReport.mockReturnValue({
-                reportID: 'task_report_123',
-                reportName: mockTitle,
-                description: mockDescription,
-                managerID: mockAssigneeAccountID,
-                type: CONST.REPORT.TYPE.TASK,
-                parentReportID: mockParentReportID,
+            mockBuildOptimisticTaskReport.mockImplementation((...args: unknown[]) => {
+                const parentChatType = args.at(7);
+
+                return {
+                    reportID: 'task_report_123',
+                    reportName: mockTitle,
+                    description: mockDescription,
+                    managerID: mockAssigneeAccountID,
+                    type: CONST.REPORT.TYPE.TASK,
+                    parentReportID: mockParentReportID,
+                    ...(parentChatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS && {chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS}),
+                };
             });
 
             mockBuildOptimisticCreatedReportAction.mockReturnValue({
@@ -424,6 +429,60 @@ describe('actions/Task', () => {
                     failureData: expect.any(Array),
                 }),
             );
+        });
+
+        it('should set optimistic task chatType to policyAdmins for tasks created in admins rooms', async () => {
+            // Given a task created in a parent report with policyAdmins chatType
+            createTaskAndNavigate({
+                parentReport: {
+                    reportID: mockParentReportID,
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+                },
+                title: mockTitle,
+                description: mockDescription,
+                assigneeEmail: mockAssigneeEmail,
+                currentUserAccountID: mockCurrentUserAccountID,
+                currentUserEmail: mockCurrentUserEmail,
+                assigneeAccountID: mockAssigneeAccountID,
+                policyID: mockPolicyID,
+                isCreatedUsingMarkdown: false,
+                quickAction: {},
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the optimistic task report should include policyAdmins chatType
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const [, , onyx] = (API.write as jest.Mock).mock.calls.at(0) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT>];
+            const optimisticTaskReportUpdate = onyx.optimisticData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}task_report_123`);
+            expect((optimisticTaskReportUpdate?.value as Report | undefined)?.chatType).toBe(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS);
+        });
+
+        it('should not set optimistic task chatType for tasks created in policy expense chats', async () => {
+            // Given a task created in a parent report with policyExpenseChat chatType
+            createTaskAndNavigate({
+                parentReport: {
+                    reportID: mockParentReportID,
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                },
+                title: mockTitle,
+                description: mockDescription,
+                assigneeEmail: mockAssigneeEmail,
+                currentUserAccountID: mockCurrentUserAccountID,
+                currentUserEmail: mockCurrentUserEmail,
+                assigneeAccountID: mockAssigneeAccountID,
+                policyID: mockPolicyID,
+                isCreatedUsingMarkdown: false,
+                quickAction: {},
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the optimistic task report should keep chatType unset
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const [, , onyx] = (API.write as jest.Mock).mock.calls.at(0) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT>];
+            const optimisticTaskReportUpdate = onyx.optimisticData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}task_report_123`);
+            expect((optimisticTaskReportUpdate?.value as Report | undefined)?.chatType).toBeUndefined();
         });
 
         it('should handle task creation without assignee chat report', async () => {
@@ -974,7 +1033,7 @@ describe('actions/Task', () => {
             expect(reportAction?.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
         });
 
-        it('should set delegateAccountID to undefined when delegateEmail is empty', () => {
+        it('should set delegateAccountID to undefined when delegateEmail is undefined', () => {
             const reportID = 'task_report_edit_2';
             const taskReport = {
                 reportID,
@@ -982,7 +1041,86 @@ describe('actions/Task', () => {
                 reportName: 'Original Task Title',
             };
 
-            editTask(taskReport, {title: 'Updated Title'}, '');
+            editTask(taskReport, {title: 'Updated Title'}, undefined);
+
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
+            const calls = (API.write as jest.Mock).mock.calls;
+            const [, , onyxData] = calls.at(0) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>];
+            const optimisticData = onyxData.optimisticData ?? [];
+
+            const reportActionsUpdate = optimisticData.find((update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+            expect(reportActionsUpdate).toBeDefined();
+
+            const reportAction = Object.values(reportActionsUpdate?.value as Record<string, ReportAction>).at(0);
+            expect(reportAction?.delegateAccountID).toBeUndefined();
+        });
+    });
+
+    describe('editTaskAssignee', () => {
+        const DELEGATE_EMAIL = 'delegate@example.com';
+        const DELEGATE_ACCOUNT_ID = 999;
+        const CURRENT_USER_ACCOUNT_ID = 123;
+        const ASSIGNEE_ACCOUNT_ID = 456;
+
+        beforeEach(async () => {
+            jest.clearAllMocks();
+            writeSpy.mockClear();
+
+            global.fetch = getGlobalFetchMock();
+
+            await act(async () => {
+                await Onyx.clear();
+                await Onyx.set(ONYXKEYS.SESSION, {
+                    email: 'user@example.com',
+                    accountID: CURRENT_USER_ACCOUNT_ID,
+                });
+                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [DELEGATE_ACCOUNT_ID]: {
+                        accountID: DELEGATE_ACCOUNT_ID,
+                        login: DELEGATE_EMAIL,
+                        displayName: 'Delegate User',
+                    },
+                    [ASSIGNEE_ACCOUNT_ID]: {
+                        accountID: ASSIGNEE_ACCOUNT_ID,
+                        login: 'assignee@example.com',
+                        displayName: 'Assignee User',
+                    },
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should include delegateAccountID in optimistic report action when delegateEmail is provided', () => {
+            const reportID = 'task_report_assignee_1';
+            const taskReport = {
+                reportID,
+                type: CONST.REPORT.TYPE.TASK,
+                reportName: 'Task with assignee',
+            };
+
+            editTaskAssignee(taskReport, undefined, CURRENT_USER_ACCOUNT_ID, 'assignee@example.com', 'user@example.com', CURRENT_USER_ACCOUNT_ID, false, DELEGATE_EMAIL, ASSIGNEE_ACCOUNT_ID);
+
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
+            const calls = (API.write as jest.Mock).mock.calls;
+            const [, , onyxData] = calls.at(0) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>];
+            const optimisticData = onyxData.optimisticData ?? [];
+
+            const reportActionsUpdate = optimisticData.find((update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+            expect(reportActionsUpdate).toBeDefined();
+
+            const reportAction = Object.values(reportActionsUpdate?.value as Record<string, ReportAction>).at(0);
+            expect(reportAction?.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+        });
+
+        it('should set delegateAccountID to undefined when delegateEmail is undefined', () => {
+            const reportID = 'task_report_assignee_2';
+            const taskReport = {
+                reportID,
+                type: CONST.REPORT.TYPE.TASK,
+                reportName: 'Task with assignee',
+            };
+
+            editTaskAssignee(taskReport, undefined, CURRENT_USER_ACCOUNT_ID, 'assignee@example.com', 'user@example.com', CURRENT_USER_ACCOUNT_ID, false, undefined, ASSIGNEE_ACCOUNT_ID);
 
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
             const calls = (API.write as jest.Mock).mock.calls;
