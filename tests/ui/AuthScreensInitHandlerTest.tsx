@@ -221,7 +221,7 @@ describe('AuthScreensInitHandler', () => {
 
     it('calls handleNetworkReconnect with openApp when isLoadingApp is true', async () => {
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID, email: 'test@test.com'});
-        await Onyx.merge(ONYXKEYS.IS_LOADING_APP, true);
+        await Onyx.merge(ONYXKEYS.RAM_ONLY_IS_LOADING_APP, true);
         await waitForBatchedUpdates();
 
         renderAuthScreensInitHandler();
@@ -238,7 +238,7 @@ describe('AuthScreensInitHandler', () => {
 
     it('calls handleNetworkReconnect with reconnectApp when isLoadingApp is false', async () => {
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID, email: 'test@test.com'});
-        await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
+        await Onyx.merge(ONYXKEYS.RAM_ONLY_IS_LOADING_APP, false);
         await waitForBatchedUpdates();
 
         renderAuthScreensInitHandler();

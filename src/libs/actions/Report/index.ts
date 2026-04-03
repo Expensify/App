@@ -127,7 +127,6 @@ import {
     getChildReportNotificationPreference,
     getDefaultNotificationPreferenceForReport,
     getLastVisibleMessage,
-    getLatestReportActionFromOtherUsers,
     getNextApproverAccountID,
     getOptimisticDataForAncestors,
     getOriginalReportID,
@@ -322,8 +321,9 @@ type OpenReportActionParams = {
     /** Whether the user has seen the self tour */
     // TODO: This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
     isSelfTourViewed?: boolean;
-    /** Beta features list. TODO: Remove optional (?) once buildPolicyData is updated (https://github.com/Expensify/App/issues/66417) */
-    betas?: OnyxEntry<Beta[]>;
+
+    /** Beta features list */
+    betas: OnyxEntry<Beta[]>;
 };
 
 type PregeneratedResponseParams = {
@@ -1661,9 +1661,8 @@ function createGroupChat(
     currentUserLogin: string,
     introSelected: OnyxEntry<IntroSelected>,
     isSelfTourViewed: boolean | undefined,
+    betas: OnyxEntry<Beta[]>,
     avatar?: File | CustomRNImageManipulatorResult,
-    // TODO: Remove optional (?) once buildPolicyData is updated (https://github.com/Expensify/App/issues/66417)
-    betas?: OnyxEntry<Beta[]>,
 ) {
     const optimisticReport = {
         reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
@@ -2003,16 +2002,15 @@ function navigateToAndCreateGroupChat(
     optimisticReportID: string,
     introSelected: OnyxEntry<IntroSelected>,
     isSelfTourViewed: boolean | undefined,
+    betas: OnyxEntry<Beta[]>,
     avatarUri?: string,
     avatarFile?: File | CustomRNImageManipulatorResult | undefined,
-    // TODO: Remove optional (?) once buildPolicyData is updated (https://github.com/Expensify/App/issues/66417)
-    betas?: OnyxEntry<Beta[]>,
 ) {
     const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
 
     // If we are creating a group chat then participantAccountIDs is expected to contain currentUserAccountID
     const newChat = buildOptimisticGroupChatReport(participantAccountIDs, reportName, avatarUri ?? '', optimisticReportID, CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
-    createGroupChat(newChat.reportID, userLogins, newChat, currentUserLogin, introSelected, isSelfTourViewed, avatarFile, betas);
+    createGroupChat(newChat.reportID, userLogins, newChat, currentUserLogin, introSelected, isSelfTourViewed, betas, avatarFile);
 
     navigateToReport(newChat.reportID);
 }
@@ -2338,7 +2336,18 @@ function markCommentAsUnread(reportID: string | undefined, reportActions: OnyxEn
     }
 
     // Find the latest report actions from other users
-    const latestReportActionFromOtherUsers = getLatestReportActionFromOtherUsers(reportActions, currentUserAccountID);
+    const latestReportActionFromOtherUsers = Object.values(reportActions ?? {}).reduce((latest: ReportAction | null, current: ReportAction) => {
+        if (
+            !ReportActionsUtils.isDeletedAction(current) &&
+            current.actorAccountID !== currentUserAccountID &&
+            (!latest || current.created > latest.created) &&
+            // Whisper action doesn't affect lastVisibleActionCreated, so skip whisper action except actionable mention whisper
+            (!ReportActionsUtils.isWhisperAction(current) || current.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER)
+        ) {
+            return current;
+        }
+        return latest;
+    }, null);
 
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
@@ -2354,29 +2363,12 @@ function markCommentAsUnread(reportID: string | undefined, reportActions: OnyxEn
     // Since the report action with ID 100 will be the first with a timestamp above '2014-04-01 16:07:02.998', it's the first one that will be shown as unread
     const lastReadTime = DateUtils.subtractMillisecondsFromDateTime(actionCreationTime, 1);
 
-    const lastActorAccountID =
-        reportAction?.actorAccountID && reportAction.actorAccountID !== currentUserAccountID
-            ? reportAction.actorAccountID
-            : (latestReportActionFromOtherUsers?.actorAccountID ?? report?.lastActorAccountID);
-
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 lastReadTime,
-                ...(lastActorAccountID !== undefined && {lastActorAccountID}),
-            },
-        },
-    ];
-
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {
-                lastReadTime: report?.lastReadTime,
-                lastActorAccountID: report?.lastActorAccountID,
             },
         },
     ];
@@ -2387,7 +2379,7 @@ function markCommentAsUnread(reportID: string | undefined, reportActions: OnyxEn
         reportActionID: reportAction?.reportActionID,
     };
 
-    API.write(WRITE_COMMANDS.MARK_AS_UNREAD, parameters, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.MARK_AS_UNREAD, parameters, {optimisticData});
     DeviceEventEmitter.emit(`unreadAction_${reportID}`, lastReadTime);
 }
 
@@ -3484,7 +3476,8 @@ function buildNewReportOptimisticData(
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
     };
 
-    const message = getReportPreviewMessage(optimisticReportData);
+    // TODO: We'll pass the conciergeReportID in the next PR. Ref: https://github.com/Expensify/App/issues/66411
+    const message = getReportPreviewMessage(optimisticReportData, undefined);
     const createReportActionMessage = [
         {
             html: message,

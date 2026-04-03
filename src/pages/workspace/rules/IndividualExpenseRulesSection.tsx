@@ -76,9 +76,9 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
 
     const handleAttendeeTrackingToggle = useCallback(
         (newValue: boolean) => {
-            setPolicyAttendeeTrackingEnabled(policyID, newValue);
+            setPolicyAttendeeTrackingEnabled(policyID, newValue, policy?.isAttendeeTrackingEnabled);
         },
-        [policyID],
+        [policyID, policy?.isAttendeeTrackingEnabled],
     );
 
     const maxExpenseAmountNoReceiptText = useMemo(() => {
@@ -257,7 +257,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
                     subtitleStyle={styles.pt1}
                     isActive={areEReceiptsEnabled}
                     disabled={policyCurrency !== CONST.CURRENCY.USD}
-                    onToggle={() => setWorkspaceEReceiptsEnabled(policyID, !areEReceiptsEnabled)}
+                    onToggle={() => setWorkspaceEReceiptsEnabled(policyID, !areEReceiptsEnabled, policy?.eReceipts)}
                     pendingAction={policy?.pendingFields?.eReceipts}
                 />
                 <ToggleSettingOptionRow
