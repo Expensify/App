@@ -1,14 +1,14 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useRef} from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import RoomNameInput from '@components/RoomNameInput';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -31,7 +31,7 @@ type RoomNamePageProps = {
 
 function RoomNamePage({report, navigateBackTo}: RoomNamePageProps) {
     const styles = useThemeStyles();
-    const roomNameInputRef = useRef<AnimatedTextInputRef>(null);
+    const {inputCallbackRef} = useAutoFocusInput();
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
@@ -81,7 +81,6 @@ function RoomNamePage({report, navigateBackTo}: RoomNamePageProps) {
 
     return (
         <ScreenWrapper
-            onEntryTransitionEnd={() => roomNameInputRef.current?.focus()}
             includeSafeAreaPaddingBottom
             testID="RoomNamePage"
         >
@@ -102,7 +101,7 @@ function RoomNamePage({report, navigateBackTo}: RoomNamePageProps) {
                     <View style={styles.mb4}>
                         <InputWrapper
                             InputComponent={RoomNameInput}
-                            ref={roomNameInputRef}
+                            ref={inputCallbackRef}
                             inputID={INPUT_IDS.ROOM_NAME}
                             defaultValue={report?.reportName}
                             isFocused={isFocused}
