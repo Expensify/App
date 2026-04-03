@@ -197,7 +197,6 @@ function WorkspaceConfirmationOwnerSelectorPage() {
                     isLoadingNewOptions={!!isSearchingForReports}
                     onEndReached={onListEndReached}
                     shouldSingleExecuteRowSelect
-                    shouldShowRadioButton
                 />
             </View>
         </ScreenWrapper>

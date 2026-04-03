@@ -237,7 +237,6 @@ function TaskAssigneeSelectorModal() {
                         isLoadingNewOptions={!!isSearchingForReports}
                         shouldUpdateFocusedIndex
                         shouldShowTextInput
-                        shouldShowRadioButton
                     />
                 </View>
             </FullPageNotFoundView>

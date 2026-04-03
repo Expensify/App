@@ -114,7 +114,6 @@ function AddDelegatePage() {
                         isLoadingNewOptions={!!isSearchingForReports}
                         onEndReached={onListEndReached}
                         shouldShowTextInput
-                        shouldShowRadioButton
                     />
                 </View>
             </DelegateNoAccessWrapper>

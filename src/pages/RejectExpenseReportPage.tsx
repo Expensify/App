@@ -199,7 +199,6 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
                                     setSelectedTargetAccountID(item.keyForList ?? '');
                                     setSelectionError('');
                                 }}
-                                shouldShowRadioButton
                             />
                         </View>
                     </View>

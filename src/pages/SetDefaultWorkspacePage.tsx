@@ -104,7 +104,6 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
                             onSelectRow={(option) => selectPolicy(option.policyID)}
                             shouldShowLoadingPlaceholder={fetchStatus.status === 'loading' || !didScreenTransitionEnd}
                             disableMaintainingScrollPosition
-                            shouldShowRadioButton
                         />
                     )}
                 </>

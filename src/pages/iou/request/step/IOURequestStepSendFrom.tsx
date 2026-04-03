@@ -94,7 +94,6 @@ function IOURequestStepSendFrom({route, transaction}: IOURequestStepSendFromProp
                 onSelectRow={selectWorkspace}
                 shouldSingleExecuteRowSelect
                 ListItem={UserListItem}
-                shouldShowRadioButton
             />
         </StepScreenWrapper>
     );

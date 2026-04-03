@@ -89,7 +89,6 @@ function CategoryDefaultTaxRatePage({
                     addBottomSafeAreaPadding
                     initiallyFocusedItemKey={selectedTaxRate}
                     style={{containerStyle: styles.pt3}}
-                    shouldShowRadioButton
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

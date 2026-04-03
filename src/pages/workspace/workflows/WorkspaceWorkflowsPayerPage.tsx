@@ -294,7 +294,6 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                             }}
                             shouldSingleExecuteRowSelect
                             addBottomSafeAreaPadding
-                            shouldShowRadioButton
                             footerContent={
                                 <FormAlertWithSubmitButton
                                     isLoading={isLoading}

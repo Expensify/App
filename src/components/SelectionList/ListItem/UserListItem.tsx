@@ -42,7 +42,7 @@ function UserListItem<TItem extends ListItem>({
     shouldUseDefaultRightHandSideCheckmark,
     forwardedFSClass,
     shouldDisableHoverStyle,
-    shouldShowRadioButton,
+    shouldShowRadioButton = true,
 }: UserListItemProps<TItem>) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Checkmark']);
     const styles = useThemeStyles();
@@ -165,7 +165,7 @@ function UserListItem<TItem extends ListItem>({
                                 />
                             </View>
                         )}
-                        {((!!shouldUseDefaultRightHandSideCheckmark && !!canSelectMultiple) || !!shouldShowRadioButton) && (
+                        {((!!shouldUseDefaultRightHandSideCheckmark && !!canSelectMultiple) || (!!shouldShowRadioButton && !canSelectMultiple)) && (
                             <SelectionCheckbox
                                 item={item}
                                 onSelectRow={onCheckboxPress ?? onSelectRow}

@@ -203,7 +203,6 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
                             textInputOptions={textInputOptions}
                             shouldShowLoadingPlaceholder={fetchStatus.status === 'loading' || !didScreenTransitionEnd}
                             disableMaintainingScrollPosition
-                            shouldShowRadioButton
                         />
                     )}
                 </>
