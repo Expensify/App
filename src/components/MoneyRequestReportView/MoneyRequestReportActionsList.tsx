@@ -249,6 +249,8 @@ function MoneyRequestReportActionsList({
         nonHeldAmount,
         fullAmount,
         hasValidNonHeldAmount,
+        nonReimbursablePaymentErrorDecisionModal,
+        showNonReimbursablePaymentErrorModal,
     } = useSelectionModeReportActions({
         report,
         chatReport,
@@ -1042,20 +1044,25 @@ function MoneyRequestReportActionsList({
                     onConfirm={dismissRejectModalBasedOnAction}
                 />
             )}
-            <ProcessMoneyReportHoldMenu
-                nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
-                requestType={requestType}
-                fullAmount={fullAmount}
-                onClose={handleHoldMenuClose}
-                isVisible={isHoldMenuVisible}
-                paymentType={paymentType}
-                methodID={paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? selectedVBBAToPayFromHoldMenu : undefined}
-                chatReport={chatReport}
-                moneyRequestReport={report}
-                hasNonHeldExpenses={!hasOnlyHeldExpenses}
-                startAnimation={handleHoldMenuConfirm}
-                transactionCount={transactions.length}
-            />
+            {isHoldMenuVisible && requestType !== undefined && (
+                <ProcessMoneyReportHoldMenu
+                    nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
+                    requestType={requestType}
+                    fullAmount={fullAmount}
+                    onClose={handleHoldMenuClose}
+                    isVisible={isHoldMenuVisible}
+                    paymentType={paymentType}
+                    methodID={paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? selectedVBBAToPayFromHoldMenu : undefined}
+                    chatReport={chatReport}
+                    moneyRequestReport={report}
+                    hasNonHeldExpenses={!hasOnlyHeldExpenses}
+                    startAnimation={handleHoldMenuConfirm}
+                    transactionCount={transactions.length}
+                    transactions={transactionsWithoutPendingDelete}
+                    onNonReimbursablePaymentError={showNonReimbursablePaymentErrorModal}
+                />
+            )}
+            {nonReimbursablePaymentErrorDecisionModal}
         </View>
     );
 }
