@@ -76,21 +76,18 @@ function useNativeCamera({context, onFocusStart, onFocusCleanup}: UseNativeCamer
         transform: [{translateX: focusIndicatorPosition.get().x}, {translateY: focusIndicatorPosition.get().y}, {scale: focusIndicatorScale.get()}],
     }));
 
-    const focusCamera = useCallback(
-        (point: Point) => {
-            if (!camera.current) {
+    const focusCamera = useCallback((point: Point) => {
+        if (!camera.current) {
+            return;
+        }
+
+        camera.current.focus(point).catch((error: Record<string, unknown>) => {
+            if (error.message === '[unknown/unknown] Cancelled by another startFocusAndMetering()') {
                 return;
             }
-
-            camera.current.focus(point).catch((error: Record<string, unknown>) => {
-                if (error.message === '[unknown/unknown] Cancelled by another startFocusAndMetering()') {
-                    return;
-                }
-                Log.warn('Error focusing camera', error);
-            });
-        },
-        [camera],
-    );
+            Log.warn('Error focusing camera', error);
+        });
+    }, []);
 
     const tapGesture = Gesture.Tap()
         .enabled(device?.supportsFocus ?? false)

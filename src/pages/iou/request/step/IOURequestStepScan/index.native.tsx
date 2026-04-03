@@ -70,14 +70,14 @@ function IOURequestStepScan({
     // Ref for double-tap protection (doesn't trigger re-render)
     const isCapturingPhoto = useRef(false);
 
-    const onFocusStart = useCallback(() => {
+    const onFocusStart = () => {
         isCapturingPhoto.current = false;
-    }, []);
+    };
 
-    const onFocusCleanup = useCallback(() => {
+    const onFocusCleanup = () => {
         cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
         cancelSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION);
-    }, []);
+    };
 
     const {
         camera,
@@ -113,9 +113,9 @@ function IOURequestStepScan({
     const cameraAspectRatio = format ? format.photoHeight / format.photoWidth : undefined;
     const fps = useMemo(() => (format ? Math.min(Math.max(30, format.minFps), format.maxFps) : 30), [format]);
 
-    const navigateBack = useCallback(() => {
+    const navigateBack = () => {
         Navigation.goBack(backTo);
-    }, [backTo]);
+    };
     const lazyIllustrations = useMemoizedLazyIllustrations(['MultiScan', 'Hand', 'Shutter']);
     const lazyIcons = useMemoizedLazyExpensifyIcons(['Bolt', 'Gallery', 'ReceiptMultiple', 'boltSlash']);
     const policy = usePolicy(report?.policyID);

@@ -125,20 +125,34 @@ function useWebCamera({onUnmount}: UseWebCameraOptions = {}) {
         if (!isTabActive) {
             return;
         }
+        let ignore = false;
         queryCameraPermission()
             .then((state) => {
-                setCameraPermissionState(state);
+                if (ignore) {
+                    return;
+                }
                 if (state === 'granted') {
                     requestCameraPermission();
+                } else {
+                    setCameraPermissionState(state);
                 }
             })
             .catch(() => {
+                if (ignore) {
+                    return;
+                }
                 setCameraPermissionState('denied');
             })
             .finally(() => {
+                if (ignore) {
+                    return;
+                }
                 setIsQueriedPermissionState(true);
             });
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        return () => {
+            ignore = true;
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- requestCameraPermission is defined inline so including it would cause an infinite loop
     }, [isTabActive]);
 
     useEffect(
