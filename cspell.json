@@ -902,7 +902,9 @@
         "Synovus",
         "Wallester",
         "Wintrust",
-        "Zürcher"
+        "Zürcher",
+        "CARDFROZEN",
+        "CARDUNFROZEN"
     ],
     "ignorePaths": [
         "src/languages/de.ts",
