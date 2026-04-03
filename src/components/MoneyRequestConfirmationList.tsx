@@ -35,10 +35,18 @@ import {isValidTimeExpenseAmount} from '@libs/TimeTrackingUtils';
 import {
     areRequiredFieldsEmpty,
     calculateTaxAmount,
+    getAmount,
     getAttendees,
+    getBillable,
+    getCategory,
+    getCreated,
+    getCurrency,
     getDefaultTaxCode,
+    getDescription,
     getDistanceInMeters,
+    getMerchant,
     getRateID,
+    getReimbursable,
     getTag,
     getTaxValue,
     hasMissingSmartscanFields,
@@ -288,15 +296,14 @@ function MoneyRequestConfirmationList({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
 
-    // Derive iou values from transaction instead of receiving as props (CLEAN-REACT-PATTERNS-2)
-    const iouAmount = transaction?.amount ?? 0;
-    const iouComment = transaction?.comment?.comment ?? '';
-    const iouCurrencyCode = transaction?.currency;
-    const iouMerchant = transaction?.merchant;
-    const iouCreated = transaction?.created;
-    const iouCategory = transaction?.category ?? '';
-    const iouIsBillable = transaction?.billable ?? false;
-    const iouIsReimbursable = transaction?.reimbursable ?? true;
+    const iouAmount = getAmount(transaction);
+    const iouComment = getDescription(transaction);
+    const iouCurrencyCode = getCurrency(transaction);
+    const iouMerchant = getMerchant(transaction);
+    const iouCreated = getCreated(transaction);
+    const iouCategory = getCategory(transaction);
+    const iouIsBillable = getBillable(transaction);
+    const iouIsReimbursable = getReimbursable(transaction);
     const iouTimeCount = transaction?.comment?.units?.count;
     const iouTimeRate = transaction?.comment?.units?.rate;
     const iouAttendees = useMemo(() => getAttendees(transaction, currentUserPersonalDetails), [transaction, currentUserPersonalDetails]);
