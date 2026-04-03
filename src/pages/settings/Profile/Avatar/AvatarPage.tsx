@@ -51,7 +51,7 @@ function ProfileAvatar() {
 
     const [selected, setSelected] = useState<string | undefined>();
     const avatarCaptureRef = useRef<AvatarCaptureHandle>(null);
-    const isSavingRef = useRef(false);
+    const [isSaving, setIsSaving] = useState(false);
 
     const icons = useMemoizedLazyExpensifyIcons(['Upload']);
     const styles = useThemeStyles();
@@ -62,7 +62,7 @@ function ProfileAvatar() {
     const isDirty = imageData.uri !== '' || !!selected;
 
     useDiscardChangesConfirmation({
-        getHasUnsavedChanges: () => !isSavingRef.current && isDirty,
+        getHasUnsavedChanges: () => !isSaving && isDirty,
     });
 
     const avatarStyle = [styles.avatarXLarge, styles.alignSelfStart, styles.alignSelfCenter];
@@ -153,7 +153,7 @@ function ProfileAvatar() {
     });
 
     const onPress = useCallback(() => {
-        isSavingRef.current = true;
+        setIsSaving(true);
 
         if (imageData.file) {
             updateAvatar(imageData.file, {
@@ -184,7 +184,7 @@ function ProfileAvatar() {
             return;
         }
         if (!selected || !avatarCaptureRef.current) {
-            isSavingRef.current = false;
+            setIsSaving(false);
             return;
         }
         // User selected a letter avatar
@@ -201,7 +201,7 @@ function ProfileAvatar() {
                 Navigation.dismissModal();
             })
             .catch(() => {
-                isSavingRef.current = false;
+                setIsSaving(false);
             });
     }, [currentUserPersonalDetails?.accountID, currentUserPersonalDetails?.avatar, currentUserPersonalDetails?.avatarThumbnail, imageData.file, selected]);
 
@@ -299,7 +299,8 @@ function ProfileAvatar() {
                     large
                     success
                     text={translate('common.save')}
-                    isDisabled={!isDirty}
+                    isDisabled={!isDirty || isSaving}
+                    isLoading={isSaving}
                     onPress={onPress}
                     pressOnEnter
                 />
