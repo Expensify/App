@@ -106,7 +106,16 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
         return;
     }
 
-    const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(currentUserAccountID, parentReportID, assigneeAccountID, title, description, policyID);
+    const optimisticTaskReport = ReportUtils.buildOptimisticTaskReport(
+        currentUserAccountID,
+        parentReportID,
+        assigneeAccountID,
+        title,
+        description,
+        policyID,
+        CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+        parentReport?.chatType,
+    );
 
     const assigneeChatReportID = assigneeChatReport?.reportID;
     const taskReportID = optimisticTaskReport.reportID;
@@ -717,6 +726,7 @@ function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task
     API.write(WRITE_COMMANDS.EDIT_TASK, parameters, {optimisticData, successData, failureData});
 }
 
+// eslint-disable-next-line @typescript-eslint/max-params -- Will be refactored in next PR; full restructure tracked in https://github.com/Expensify/App/issues/66417
 function editTaskAssignee(
     report: OnyxTypes.Report,
     parentReport: OnyxEntry<OnyxTypes.Report>,
@@ -725,12 +735,13 @@ function editTaskAssignee(
     currentUserEmail: string,
     currentUserAccountID: number,
     hasOutstandingChildTask: boolean,
+    delegateEmail: string | undefined,
     assigneeAccountID: number | null = 0,
     assigneeChatReport?: OnyxEntry<OnyxTypes.Report>,
     isOptimisticReport?: boolean,
 ) {
     // Create the EditedReportAction on the task
-    const editTaskReportAction = ReportUtils.buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID, currentUserAccountID);
+    const editTaskReportAction = ReportUtils.buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID, currentUserAccountID, delegateEmail);
     const reportName = report.reportName?.trim();
 
     let assigneeChatReportOnyxData;

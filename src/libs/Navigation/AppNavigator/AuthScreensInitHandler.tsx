@@ -42,7 +42,7 @@ function initializePusher(currentUserAccountID?: number, getReportAttributes?: (
  * Extracted from AuthScreens to isolate useOnyx subscriptions:
  * - SESSION, NVP_INTRO_SELECTED, NVP_ACTIVE_POLICY_ID,
  *   NVP_ONBOARDING (tour selector), ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT (x2),
- *   IS_LOADING_APP
+ *   RAM_ONLY_IS_LOADING_APP
  */
 function AuthScreensInitHandler() {
     const currentUrl = getCurrentUrl();
@@ -117,7 +117,7 @@ function AuthScreensInitHandler() {
             App.reconnectApp(initialLastUpdateIDAppliedToClient);
         }
 
-        App.setUpPoliciesAndNavigate(session, introSelected, activePolicyID, isSelfTourViewed, hasActiveAdminPolicies);
+        App.setUpPoliciesAndNavigate(session, introSelected, activePolicyID, isSelfTourViewed, betas, hasActiveAdminPolicies);
 
         Download.clearDownloads();
 

@@ -87,7 +87,7 @@ xdescribe('Sidebar', () => {
                     // When Onyx is updated to contain that report
                     .then(() =>
                         Onyx.multiSet({
-                            [ONYXKEYS.IS_LOADING_APP]: false,
+                            [ONYXKEYS.RAM_ONLY_IS_LOADING_APP]: false,
                             ...reportCollectionDataSet,
                         }),
                     )
@@ -119,7 +119,7 @@ xdescribe('Sidebar', () => {
                     .then(() =>
                         Onyx.multiSet({
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_APP]: false,
+                            [ONYXKEYS.RAM_ONLY_IS_LOADING_APP]: false,
                             [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`]: 'This is a draft message',
                             ...reportCollectionDataSet,
                         }),
@@ -155,7 +155,7 @@ xdescribe('Sidebar', () => {
                         Onyx.multiSet({
                             [ONYXKEYS.BETAS]: [],
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_APP]: false,
+                            [ONYXKEYS.RAM_ONLY_IS_LOADING_APP]: false,
                             ...reportCollectionDataSet,
                         }),
                     )
@@ -199,7 +199,7 @@ xdescribe('Sidebar', () => {
                         Onyx.multiSet({
                             [ONYXKEYS.BETAS]: [],
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_APP]: false,
+                            [ONYXKEYS.RAM_ONLY_IS_LOADING_APP]: false,
                             ...reportCollectionDataSet,
                         }),
                     )
@@ -251,7 +251,7 @@ xdescribe('Sidebar', () => {
                         Onyx.multiSet({
                             [ONYXKEYS.BETAS]: [],
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_APP]: false,
+                            [ONYXKEYS.RAM_ONLY_IS_LOADING_APP]: false,
                             [`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`]: policy,
                             ...reportCollectionDataSet,
                         }),
@@ -375,7 +375,7 @@ xdescribe('Sidebar', () => {
                                     [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                                     [ONYXKEYS.BETAS]: betas,
                                     [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                                    [ONYXKEYS.IS_LOADING_APP]: false,
+                                    [ONYXKEYS.RAM_ONLY_IS_LOADING_APP]: false,
                                     [`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`]: policy,
                                     ...reportCollectionDataSet,
                                 }),
@@ -423,7 +423,7 @@ xdescribe('Sidebar', () => {
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_APP]: false,
+                            [ONYXKEYS.RAM_ONLY_IS_LOADING_APP]: false,
                             ...reportCollectionDataSet,
                         }),
                     )
@@ -494,7 +494,7 @@ xdescribe('Sidebar', () => {
                         Onyx.multiSet({
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_APP]: false,
+                            [ONYXKEYS.RAM_ONLY_IS_LOADING_APP]: false,
                             [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${draftReport.reportID}`]: 'draft report message',
                             ...reportCollectionDataSet,
                         }),
@@ -549,7 +549,7 @@ xdescribe('Sidebar', () => {
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                             [ONYXKEYS.BETAS]: betas,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_APP]: false,
+                            [ONYXKEYS.RAM_ONLY_IS_LOADING_APP]: false,
                             ...reportCollectionDataSet,
                         }),
                     )
@@ -615,7 +615,7 @@ xdescribe('Sidebar', () => {
                             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                             [ONYXKEYS.BETAS]: betas,
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_APP]: false,
+                            [ONYXKEYS.RAM_ONLY_IS_LOADING_APP]: false,
                             ...reportCollectionDataSet,
                         }),
                     )
@@ -717,7 +717,7 @@ xdescribe('Sidebar', () => {
                                 [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                                 [ONYXKEYS.BETAS]: betas,
                                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                                [ONYXKEYS.IS_LOADING_APP]: false,
+                                [ONYXKEYS.RAM_ONLY_IS_LOADING_APP]: false,
                                 [`${ONYXKEYS.COLLECTION.POLICY}${policy.policyID}`]: policy,
                                 [`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report2.reportID}`]: hasDraft ? 'report2 draft' : null,
                                 ...reportCollectionDataSet,
@@ -772,7 +772,7 @@ xdescribe('Sidebar', () => {
                                 [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
                                 [ONYXKEYS.BETAS]: betas,
                                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                                [ONYXKEYS.IS_LOADING_APP]: false,
+                                [ONYXKEYS.RAM_ONLY_IS_LOADING_APP]: false,
                                 ...reportCollectionDataSet,
                             }),
                         )
@@ -825,7 +825,7 @@ xdescribe('Sidebar', () => {
                                 [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                                 [ONYXKEYS.BETAS]: betas,
                                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                                [ONYXKEYS.IS_LOADING_APP]: false,
+                                [ONYXKEYS.RAM_ONLY_IS_LOADING_APP]: false,
                                 ...reportCollectionDataSet,
                             }),
                         )
@@ -876,7 +876,7 @@ xdescribe('Sidebar', () => {
                                 [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                                 [ONYXKEYS.BETAS]: betas,
                                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                                [ONYXKEYS.IS_LOADING_APP]: false,
+                                [ONYXKEYS.RAM_ONLY_IS_LOADING_APP]: false,
                                 ...reportCollectionDataSet,
                             }),
                         )
@@ -923,7 +923,7 @@ xdescribe('Sidebar', () => {
                                 [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                                 [ONYXKEYS.BETAS]: betas,
                                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                                [ONYXKEYS.IS_LOADING_APP]: false,
+                                [ONYXKEYS.RAM_ONLY_IS_LOADING_APP]: false,
                                 ...reportCollectionDataSet,
                             }),
                         )
@@ -958,7 +958,7 @@ xdescribe('Sidebar', () => {
                             Onyx.multiSet({
                                 [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
-                                [ONYXKEYS.IS_LOADING_APP]: false,
+                                [ONYXKEYS.RAM_ONLY_IS_LOADING_APP]: false,
                                 ...reportCollectionDataSet,
                             }),
                         )
