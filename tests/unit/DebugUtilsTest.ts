@@ -1172,6 +1172,10 @@ describe('DebugUtils', () => {
         });
     });
     describe('getReasonAndReportActionForRBRInLHNRow', () => {
+        const sharedTransaction = createRandomTransaction(77777);
+        const sharedAllTransactions: OnyxCollection<Transaction> = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${sharedTransaction.transactionID}`]: sharedTransaction,
+        };
         beforeAll(() => {
             Onyx.init({
                 keys: ONYXKEYS,
@@ -1189,7 +1193,7 @@ describe('DebugUtils', () => {
                         },
                         chatReportR14932,
                         undefined,
-                        {},
+                        sharedAllTransactions,
                         undefined,
                         false,
                         {},
@@ -1239,13 +1243,20 @@ describe('DebugUtils', () => {
                         modifiedCreated: '',
                     },
                 });
+                const transactionForTest: OnyxCollection<Transaction> = {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}1`]: {
+                        amount: 100,
+                        created: '',
+                        modifiedCreated: '',
+                    } as Transaction,
+                };
                 const {reportAction} =
                     DebugUtils.getReasonAndReportActionForRBRInLHNRow(
                         // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
                         MOCK_REPORTS[`${ONYXKEYS.COLLECTION.REPORT}1`] as Report,
                         chatReportR14932,
                         undefined,
-                        {},
+                        transactionForTest,
                         undefined,
                         false,
                         {},
@@ -1389,7 +1400,7 @@ describe('DebugUtils', () => {
                     };
                     const reportErrors = getAllReportErrors(MOCK_CHAT_REPORT, MOCK_REPORT_ACTIONS, mockTransactions);
                     const {reportAction} =
-                        DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_CHAT_REPORT, chatReportR14932, MOCK_REPORT_ACTIONS, {}, undefined, false, reportErrors) ?? {};
+                        DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_CHAT_REPORT, chatReportR14932, MOCK_REPORT_ACTIONS, mockTransactions, undefined, false, reportErrors) ?? {};
                     expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['3']);
                 });
             });
@@ -1435,7 +1446,7 @@ describe('DebugUtils', () => {
                         ],
                     },
                 };
-                const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS, {});
+                const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS, sharedAllTransactions);
                 const {reportAction} =
                     DebugUtils.getReasonAndReportActionForRBRInLHNRow(
                         {
@@ -1443,7 +1454,7 @@ describe('DebugUtils', () => {
                         },
                         chatReportR14932,
                         MOCK_REPORT_ACTIONS,
-                        {},
+                        sharedAllTransactions,
                         undefined,
                         false,
                         reportErrors,
@@ -1473,8 +1484,9 @@ describe('DebugUtils', () => {
                     },
                 };
 
-                const reportErrors = getAllReportErrors(mockedReport, mockedReportActions, {});
-                const {reason} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(mockedReport, chatReportR14932, mockedReportActions, {}, undefined, false, reportErrors) ?? {};
+                const reportErrors = getAllReportErrors(mockedReport, mockedReportActions, sharedAllTransactions);
+                const {reason} =
+                    DebugUtils.getReasonAndReportActionForRBRInLHNRow(mockedReport, chatReportR14932, mockedReportActions, sharedAllTransactions, undefined, false, reportErrors) ?? {};
                 expect(reason).toBe('debug.reasonRBR.hasErrors');
             });
             it('returns correct reason when there are violations', () => {
@@ -1485,7 +1497,7 @@ describe('DebugUtils', () => {
                         },
                         chatReportR14932,
                         undefined,
-                        {},
+                        sharedAllTransactions,
                         undefined,
                         true,
                         {},
@@ -1500,7 +1512,7 @@ describe('DebugUtils', () => {
                         },
                         chatReportR14932,
                         undefined,
-                        {},
+                        sharedAllTransactions,
                         undefined,
                         true,
                         {},
@@ -1552,7 +1564,15 @@ describe('DebugUtils', () => {
                         },
                     ],
                 });
-                const {reason} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, chatReportR14932, {}, {}, transactionViolations, false, {}) ?? {};
+                const violationTransactions: OnyxCollection<Transaction> = {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}1`]: {
+                        transactionID: '1',
+                        amount: 10,
+                        modifiedAmount: 10,
+                        reportID: '1',
+                    } as Transaction,
+                };
+                const {reason} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, chatReportR14932, {}, violationTransactions, transactionViolations, false, {}) ?? {};
                 expect(reason).toBe('debug.reasonRBR.hasTransactionThreadViolations');
             });
         });
