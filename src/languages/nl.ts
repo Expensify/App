@@ -6661,6 +6661,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 duplicateRulePrompt: (merchantName: string) => `Je bestaande regel voor ‘${merchantName}’ krijgt voorrang op deze regel. Toch opslaan?`,
                 saveAnyway: 'Toch opslaan',
                 applyToExistingUnsubmittedExpenses: 'Toepassen op bestaande niet-ingediende uitgaven',
+                findRule: 'Zoek handelsregel',
             },
             categoryRules: {
                 title: 'Categorisatieregels',
