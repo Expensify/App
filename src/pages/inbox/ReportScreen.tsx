@@ -23,6 +23,7 @@ import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
+import useIsOwnWorkspaceChatRef from '@hooks/useIsOwnWorkspaceChatRef';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import useNetwork from '@hooks/useNetwork';
 import useNewTransactions from '@hooks/useNewTransactions';
@@ -308,6 +309,9 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const isReportArchived = useReportIsArchived(report?.reportID);
     const {isEditingDisabled} = useIsReportReadyToDisplay(report, reportIDFromRoute, isReportArchived);
 
+    // Track whether the current route is an own workspace chat. See issue #84248.
+    const isCurrentRouteOwnWorkspaceChatRef = useIsOwnWorkspaceChatRef(report, reportIDFromRoute);
+
     useEffect(() => {
         // We don't want this effect to run on the first render.
         if (firstRender) {
@@ -322,7 +326,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             isEmpty(report) &&
             (isMoneyRequest(prevReport) ||
                 isMoneyRequestReport(prevReport) ||
-                isPolicyExpenseChat(prevReport) ||
+                // Own policy expense chats (workspace chats) are excluded: a vacation delegate
+                // splitting an expense sends a temporary server SET that wipes the report, but
+                // the chat was never intentionally removed. See issue #84248.
+                (isPolicyExpenseChat(prevReport) && !prevReport?.isOwnPolicyExpenseChat) ||
                 isGroupChat(prevReport) ||
                 isAdminRoom(prevReport) ||
                 isAnnounceRoom(prevReport));
@@ -415,6 +422,47 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
 
+        // For own workspace chats, a vacation delegate split sends a temporary Onyx SET that
+        // wipes the report — triggering this effect — but the re-fetch in ReportFetchHandler
+        // restores the data shortly after. We delay navigation to allow the re-fetch to settle.
+        // If the wipe is temporary, reportWasDeleted resets to false before the timer fires and
+        // the delayed navigation never executes.
+        // If the workspace was genuinely removed (e.g. policy access revoked), the report stays
+        // gone after the delay and we navigate away correctly. See issue #84248.
+        if (isCurrentRouteOwnWorkspaceChatRef.current) {
+            const timer = setTimeout(() => {
+                // Re-check after delay: if report came back (re-fetch succeeded), skip navigation.
+                if (!reportWasDeleted) {
+                    return;
+                }
+                Navigation.dismissModal();
+                if (Navigation.getTopmostReportId() === reportIDFromRoute) {
+                    Navigation.isNavigationReady().then(() => {
+                        Navigation.popToSidebar();
+                    });
+                }
+                if (deletedReportParentID && !isMoneyRequestReportPendingDeletion(deletedReportParentID)) {
+                    Navigation.isNavigationReady().then(() => {
+                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(deletedReportParentID));
+                    });
+                    return;
+                }
+                Navigation.isNavigationReady().then(() => {
+                    navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas);
+                });
+            }, 500);
+            return () => clearTimeout(timer);
+        }
+
+        // Clean up the navigation stack before redirecting to prevent an infinite loop where
+        // pressing back returns to the wiped report URL and re-triggers this effect.
+        Navigation.dismissModal();
+        if (Navigation.getTopmostReportId() === reportIDFromRoute) {
+            Navigation.isNavigationReady().then(() => {
+                Navigation.popToSidebar();
+            });
+        }
+
         // Try to navigate to parent report if available
         if (deletedReportParentID && !isMoneyRequestReportPendingDeletion(deletedReportParentID)) {
             Navigation.isNavigationReady().then(() => {
@@ -427,7 +475,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         Navigation.isNavigationReady().then(() => {
             navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas);
         });
-    }, [reportWasDeleted, isFocused, deletedReportParentID, conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas]);
+    }, [reportWasDeleted, isFocused, deletedReportParentID, conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, reportIDFromRoute]);
 
     const actionListValue = useActionListContextValue();
 
