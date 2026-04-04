@@ -1083,6 +1083,91 @@ describe('getViolationsOnyxData', () => {
         });
     });
 
+    describe('taxOutOfPolicy violation', () => {
+        const taxOutOfPolicyViolation = {
+            name: CONST.VIOLATIONS.TAX_OUT_OF_POLICY,
+            type: CONST.VIOLATION_TYPES.VIOLATION,
+            showInReview: true,
+        };
+
+        describe('when tax tracking is enabled', () => {
+            beforeEach(() => {
+                policy.tax = {trackingEnabled: true};
+            });
+
+            it('should add taxOutOfPolicy violation when taxCode is not in policy tax rates', () => {
+                transaction.taxCode = 'UNKNOWN_TAX';
+                policy.taxRates = {name: 'Taxes', defaultExternalID: 'TAX_10', defaultValue: '10%', foreignTaxDefault: 'TAX_10', taxes: {TAX_10: {name: '10%', value: '10%'}}};
+                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+                expect(result.value).toContainEqual(taxOutOfPolicyViolation);
+            });
+
+            it('should not add taxOutOfPolicy violation when taxCode is in policy tax rates', () => {
+                transaction.taxCode = 'TAX_10';
+                policy.taxRates = {name: 'Taxes', defaultExternalID: 'TAX_10', defaultValue: '10%', foreignTaxDefault: 'TAX_10', taxes: {TAX_10: {name: '10%', value: '10%'}}};
+                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+                expect(result.value).not.toContainEqual(taxOutOfPolicyViolation);
+            });
+
+            it('should remove taxOutOfPolicy violation when taxCode becomes valid', () => {
+                transaction.taxCode = 'TAX_10';
+                policy.taxRates = {name: 'Taxes', defaultExternalID: 'TAX_10', defaultValue: '10%', foreignTaxDefault: 'TAX_10', taxes: {TAX_10: {name: '10%', value: '10%'}}};
+                transactionViolations = [taxOutOfPolicyViolation];
+                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+                expect(result.value).not.toContainEqual(taxOutOfPolicyViolation);
+            });
+        });
+
+        describe('when tax tracking is disabled', () => {
+            beforeEach(() => {
+                policy.tax = {trackingEnabled: false};
+            });
+
+            it('should add taxOutOfPolicy violation when transaction has taxCode', () => {
+                transaction.taxCode = 'SOME_TAX';
+                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+                expect(result.value).toContainEqual(taxOutOfPolicyViolation);
+            });
+
+            it('should add taxOutOfPolicy violation when transaction has taxAmount', () => {
+                transaction.taxAmount = 500;
+                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+                expect(result.value).toContainEqual(taxOutOfPolicyViolation);
+            });
+
+            it('should add taxOutOfPolicy violation when transaction has taxValue', () => {
+                transaction.taxValue = '10%';
+                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+                expect(result.value).toContainEqual(taxOutOfPolicyViolation);
+            });
+
+            it('should not add taxOutOfPolicy violation when transaction has no tax data', () => {
+                transaction.taxCode = undefined;
+                transaction.taxAmount = undefined;
+                transaction.taxValue = undefined;
+                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+                expect(result.value).not.toContainEqual(taxOutOfPolicyViolation);
+            });
+
+            it('should not add taxOutOfPolicy violation when tax fields are falsy (empty string, 0)', () => {
+                transaction.taxCode = '';
+                transaction.taxAmount = 0;
+                transaction.taxValue = '';
+                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+                expect(result.value).not.toContainEqual(taxOutOfPolicyViolation);
+            });
+
+            it('should remove taxOutOfPolicy violation when tax data is cleared', () => {
+                transaction.taxCode = undefined;
+                transaction.taxAmount = undefined;
+                transaction.taxValue = undefined;
+                transactionViolations = [taxOutOfPolicyViolation];
+                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
+                expect(result.value).not.toContainEqual(taxOutOfPolicyViolation);
+            });
+        });
+    });
+
     describe('overTripLimit violation', () => {
         it('should add overTripLimit violation if the modified transaction amount is over the original transaction amount', () => {
             policy.outputCurrency = CONST.CURRENCY.USD;
