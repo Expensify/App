@@ -2155,7 +2155,7 @@ function clearDuplicateWorkspace() {
     Onyx.set(ONYXKEYS.DUPLICATE_WORKSPACE, {});
 }
 
-function getDisplayNameForWorkspace(email: string) {
+function getDisplayNameForWorkspace(email: string, displayNameOverride?: string) {
     const emailParts = email.split('@');
     const domain = emailParts.at(1) ?? '';
     const isSMSDomain = `@${domain}` === CONST.SMS.DOMAIN;
@@ -2183,7 +2183,7 @@ function getDisplayNameForWorkspace(email: string) {
  * @param [email] the email to base the workspace name on. If not passed, will use the logged-in user's email instead
  * @param [lastWorkspaceNumber] the last workspace number
  */
-function newGenerateDefaultWorkspaceName(email: string, lastWorkspaceNumber: number | undefined, localeTranslate: LocalizedTranslate): string {
+function newGenerateDefaultWorkspaceName(email: string, lastWorkspaceNumber: number | undefined, localeTranslate: LocalizedTranslate, displayNameOverride?: string): string {
     const emailParts = email.split('@');
     if (!emailParts || emailParts.length !== 2) {
         return '';
