@@ -292,6 +292,16 @@ function subscribeToNetInfo(accountID: number | undefined): () => void {
             Log.info('[NetworkConnection] Not setting offline status because shouldForceOffline = true');
             return;
         }
+        // On web, navigator.onLine is a cheap browser-level signal that the
+        // network adapter is connected. When NetInfo's Ping-based reachability
+        // check fails (e.g. due to contention with a large upload) but the
+        // browser still reports online, it's likely a false positive — skip
+        // setting offline. This particularly helps Safari which lacks the
+        // Network Information API and can't self-correct via connection events.
+        if (state.isInternetReachable === false && typeof navigator !== 'undefined' && navigator.onLine) {
+            Log.info('[NetworkConnection] NetInfo says unreachable but navigator.onLine is true — skipping offline to avoid false positive');
+            return;
+        }
         setOfflineStatus(state.isInternetReachable === false || !isServerUp, 'NetInfo received a state change event');
         Log.info(`[NetworkStatus] NetInfo.addEventListener event coming, setting "offlineStatus" to ${!!state.isInternetReachable} with network state: ${JSON.stringify(state)}`);
         let networkStatus;
