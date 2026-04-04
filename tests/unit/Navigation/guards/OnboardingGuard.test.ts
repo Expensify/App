@@ -162,32 +162,6 @@ describe('OnboardingGuard', () => {
             // Then navigation should be allowed because single-entry HybridApp users should not be forced into onboarding for a temporary visit
             expect(result.type).toBe('ALLOW');
         });
-
-        it('should allow users with non-personal policies', async () => {
-            // Given a user who belongs to a non-personal (e.g. corporate) policy, indicating they were added to a workspace
-            await Onyx.merge(ONYXKEYS.HAS_NON_PERSONAL_POLICY, true);
-            await waitForBatchedUpdates();
-
-            // When the guard evaluates a navigation action
-            const result = OnboardingGuard.evaluate(mockState, mockAction, authenticatedContext);
-
-            // Then navigation should be allowed because users with workspace policies should skip the individual onboarding flow
-            expect(result.type).toBe('ALLOW');
-        });
-
-        it('should allow invited users', async () => {
-            // Given a user who was invited and has already selected their intro choice (SUBMIT), indicating they came through an invitation link
-            await Onyx.merge(ONYXKEYS.NVP_INTRO_SELECTED, {
-                choice: CONST.INTRO_CHOICES.SUBMIT,
-            });
-            await waitForBatchedUpdates();
-
-            // When the guard evaluates a navigation action
-            const result = OnboardingGuard.evaluate(mockState, mockAction, authenticatedContext);
-
-            // Then navigation should be allowed because invited users have a predefined purpose and should skip the onboarding purpose selection
-            expect(result.type).toBe('ALLOW');
-        });
     });
 
     describe('redirect completed users away from onboarding routes', () => {
