@@ -2337,17 +2337,14 @@ function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = fa
 /**
  * Whether the provided report has expenses
  */
-function hasExpenses(reportID?: string, transactions?: Array<OnyxEntry<Transaction>>): boolean {
-    if (transactions) {
-        return !!transactions?.find((transaction) => transaction?.reportID === reportID);
-    }
-    return !!Object.values(deprecatedAllTransactions ?? {}).find((transaction) => transaction?.reportID === reportID);
+function hasExpenses(reportID: string | undefined, transactions: Array<OnyxEntry<Transaction>>): boolean {
+    return !!transactions.find((transaction) => transaction?.reportID === reportID);
 }
 
 /**
  * Whether the provided report is a closed expense report with no expenses
  */
-function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>, transactions?: Array<OnyxEntry<Transaction>>): boolean {
+function isClosedExpenseReportWithNoExpenses(report: OnyxEntry<Report>, transactions: Array<OnyxEntry<Transaction>>): boolean {
     if (!report?.statusNum || report.statusNum !== CONST.REPORT.STATUS_NUM.CLOSED || !isExpenseReport(report)) {
         return false;
     }
@@ -5990,7 +5987,7 @@ function getReportName(reportNameInformation: GetReportNameParams): string {
         return reportActionMessage;
     }
 
-    if (isClosedExpenseReportWithNoExpenses(report, transactions)) {
+    if (isClosedExpenseReportWithNoExpenses(report, transactions ?? [])) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('parentReportAction.deletedReport');
     }

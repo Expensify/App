@@ -893,7 +893,7 @@ function computeReportName({
         return chatThreadReportName;
     }
 
-    const transactionsArray = transactions ? (Object.values(transactions).filter(Boolean) as Array<OnyxEntry<Transaction>>) : undefined;
+    const transactionsArray = transactions ? (Object.values(transactions).filter(Boolean) as Array<OnyxEntry<Transaction>>) : [];
     if (isClosedExpenseReportWithNoExpenses(report, transactionsArray)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('parentReportAction.deletedReport');

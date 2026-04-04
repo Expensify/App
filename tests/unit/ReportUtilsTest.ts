@@ -2527,7 +2527,7 @@ describe('ReportUtils', () => {
                     };
 
                     // Then it should not be considered closed without expenses, because it has a total
-                    expect(isClosedExpenseReportWithNoExpenses(expenseReport)).toBe(false);
+                    expect(isClosedExpenseReportWithNoExpenses(expenseReport, [])).toBe(false);
                 });
 
                 test('closed expense report with zero total but non-reimbursable total exists', () => {
@@ -2541,7 +2541,7 @@ describe('ReportUtils', () => {
                     };
 
                     // Then it should not be considered closed without expenses, because nonReimbursableTotal indicates expenses exist
-                    expect(isClosedExpenseReportWithNoExpenses(expenseReport)).toBe(false);
+                    expect(isClosedExpenseReportWithNoExpenses(expenseReport, [])).toBe(false);
                 });
 
                 test('should handle paid elsewhere money request', () => {
