@@ -43,6 +43,7 @@ type MobileWebCameraViewProps = {
     iouType: IOUType;
     currentUserPersonalDetails: CurrentUserPersonalDetails;
     reportID: string;
+    isMultiScanEnabled: boolean;
     isStartingScan: boolean;
     updateScanAndNavigate: (file: FileObject, source: string) => void;
     setIsMultiScanEnabled: (value: boolean) => void;
@@ -57,7 +58,6 @@ type MobileWebCameraViewProps = {
     setStartLocationPermissionFlow: (value: boolean) => void;
     onBackButtonPress: () => void;
     shouldShowWrapper: boolean;
-    isMultiScanEnabled: boolean;
     onLayout?: () => void;
 };
 
@@ -103,6 +103,7 @@ function MobileWebCameraView({
     iouType,
     currentUserPersonalDetails,
     reportID,
+    isMultiScanEnabled,
     isStartingScan,
     updateScanAndNavigate,
     setIsMultiScanEnabled,
@@ -117,7 +118,6 @@ function MobileWebCameraView({
     setStartLocationPermissionFlow,
     onBackButtonPress,
     shouldShowWrapper,
-    isMultiScanEnabled,
     onLayout,
 }: MobileWebCameraViewProps) {
     const {blinkStyle, canUseMultiScan, shouldShowMultiScanEducationalPopup, showBlink, toggleMultiScan, dismissMultiScanEducationalPopup, submitReceipts, submitMultiScanReceipts} =
