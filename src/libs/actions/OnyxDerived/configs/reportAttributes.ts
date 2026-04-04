@@ -265,6 +265,7 @@ export default createOnyxDerivedValueConfig({
                 reportActions,
                 transactionViolations,
                 isReportArchived,
+                allTransactions: transactions,
             });
 
             const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];

@@ -1,4 +1,5 @@
 import {renderHook} from '@testing-library/react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import DateUtils from '@libs/DateUtils';
@@ -1306,7 +1307,14 @@ describe('DebugUtils', () => {
                             accountID: 12345,
                         },
                     });
-                    const reportErrors = getAllReportErrors(MOCK_CHAT_REPORT, MOCK_CHAT_REPORT_ACTIONS);
+                    const mockTransactions: OnyxCollection<Transaction> = {
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}1`]: {
+                            amount: 100,
+                            created: '',
+                            modifiedCreated: '',
+                        } as Transaction,
+                    };
+                    const reportErrors = getAllReportErrors(MOCK_CHAT_REPORT, MOCK_CHAT_REPORT_ACTIONS, mockTransactions);
                     const {reportAction} =
                         DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_CHAT_REPORT, chatReportR14932, MOCK_CHAT_REPORT_ACTIONS, {}, undefined, false, reportErrors) ?? {};
                     expect(reportAction).toMatchObject(MOCK_CHAT_REPORT_ACTIONS['1']);
@@ -1371,7 +1379,14 @@ describe('DebugUtils', () => {
                             accountID: 12345,
                         },
                     });
-                    const reportErrors = getAllReportErrors(MOCK_CHAT_REPORT, MOCK_REPORT_ACTIONS);
+                    const mockTransactions: OnyxCollection<Transaction> = {
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}1`]: {
+                            amount: 100,
+                            created: '',
+                            modifiedCreated: '',
+                        } as Transaction,
+                    };
+                    const reportErrors = getAllReportErrors(MOCK_CHAT_REPORT, MOCK_REPORT_ACTIONS, mockTransactions);
                     const {reportAction} =
                         DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_CHAT_REPORT, chatReportR14932, MOCK_REPORT_ACTIONS, {}, undefined, false, reportErrors) ?? {};
                     expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['3']);
@@ -1419,7 +1434,7 @@ describe('DebugUtils', () => {
                         ],
                     },
                 };
-                const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS);
+                const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS, {});
                 const {reportAction} =
                     DebugUtils.getReasonAndReportActionForRBRInLHNRow(
                         {
@@ -1457,7 +1472,7 @@ describe('DebugUtils', () => {
                     },
                 };
 
-                const reportErrors = getAllReportErrors(mockedReport, mockedReportActions);
+                const reportErrors = getAllReportErrors(mockedReport, mockedReportActions, {});
                 const {reason} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(mockedReport, chatReportR14932, mockedReportActions, {}, undefined, false, reportErrors) ?? {};
                 expect(reason).toBe('debug.reasonRBR.hasErrors');
             });
