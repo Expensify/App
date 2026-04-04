@@ -1222,69 +1222,6 @@ describe('actions/Task', () => {
             );
         });
 
-        it('should return navigation URL when task report has no visible actions and has parentReportID', async () => {
-            const taskReportID = 'task_report_delete_2';
-            const parentReportID = 'parent_report_delete_2';
-
-            const taskReport = {
-                reportID: taskReportID,
-                type: CONST.REPORT.TYPE.TASK,
-                reportName: 'Test Task To Delete',
-                parentReportID,
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-                ownerAccountID: mockCurrentUserAccountID,
-            };
-
-            const parentReport = {
-                reportID: parentReportID,
-                type: CONST.REPORT.TYPE.CHAT,
-            };
-
-            await act(async () => {
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`, taskReport);
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, parentReport);
-            });
-            await waitForBatchedUpdatesWithAct();
-
-            // No visible actions means the task report should be deleted
-            doesReportHaveVisibleActionsSpy.mockReturnValue(false);
-
-            const result = deleteTask(taskReport, parentReport, false, mockCurrentUserAccountID, false, undefined, 'concierge_123');
-
-            expect(result).toBe(`r/${parentReportID}`);
-            expect(Navigation.goBack).toHaveBeenCalled();
-        });
-
-        it('should return conciergeReportID-based URL when no parentReportID and no recent report', async () => {
-            const taskReportID = 'task_report_delete_3';
-            const conciergeReportID = 'concierge_456';
-
-            const taskReport = {
-                reportID: taskReportID,
-                type: CONST.REPORT.TYPE.TASK,
-                reportName: 'Orphan Task',
-                parentReportID: undefined,
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-                ownerAccountID: mockCurrentUserAccountID,
-            };
-
-            await act(async () => {
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`, taskReport);
-            });
-            await waitForBatchedUpdatesWithAct();
-
-            doesReportHaveVisibleActionsSpy.mockReturnValue(false);
-            getMostRecentReportIDSpy.mockReturnValue(conciergeReportID);
-
-            const result = deleteTask(taskReport, undefined, false, mockCurrentUserAccountID, false, undefined, conciergeReportID);
-
-            expect(result).toBe(`r/${conciergeReportID}`);
-            expect(getMostRecentReportIDSpy).toHaveBeenCalledWith(taskReport, conciergeReportID);
-            expect(Navigation.goBack).toHaveBeenCalled();
-        });
-
         it('should not return navigation URL when task report has visible actions', async () => {
             const taskReportID = 'task_report_delete_4';
             const parentReportID = 'parent_report_delete_4';

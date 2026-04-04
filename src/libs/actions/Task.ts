@@ -1283,12 +1283,6 @@ function deleteTask(
 
     API.write(WRITE_COMMANDS.CANCEL_TASK, parameters, {optimisticData, successData, failureData});
     notifyNewAction(report.reportID, undefined, true);
-
-    const urlToNavigateBack = getNavigationUrlOnTaskDelete(report, conciergeReportID);
-    if (urlToNavigateBack) {
-        Navigation.goBack();
-        return urlToNavigateBack;
-    }
 }
 
 /**
