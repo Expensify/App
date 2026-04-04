@@ -5258,13 +5258,14 @@ function getLinkedTransaction(reportAction: OnyxEntry<ReportAction | OptimisticI
 /**
  * Get report action which is missing smartscan fields
  */
-function getReportActionWithMissingSmartscanFields(report: OnyxEntry<Report>, iouReportID: string | undefined): ReportAction | undefined {
+function getReportActionWithMissingSmartscanFields(report: OnyxEntry<Report>, iouReportID: string | undefined, allTransactions: OnyxCollection<Transaction>): ReportAction | undefined {
     const reportActions = Object.values(getAllReportActions(iouReportID));
     return reportActions.find((action) => {
         if (!isMoneyRequestAction(action)) {
             return false;
         }
-        const transaction = getLinkedTransaction(action);
+        const transactionID = getOriginalMessage(action)?.IOUTransactionID;
+        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         if (isEmptyObject(transaction)) {
             return false;
         }
@@ -5278,8 +5279,8 @@ function getReportActionWithMissingSmartscanFields(report: OnyxEntry<Report>, io
 /**
  * Check if iouReportID has required missing fields
  */
-function shouldShowRBRForMissingSmartscanFields(report: OnyxEntry<Report>, iouReportID: string | undefined): boolean {
-    return !!getReportActionWithMissingSmartscanFields(report, iouReportID);
+function shouldShowRBRForMissingSmartscanFields(report: OnyxEntry<Report>, iouReportID: string | undefined, allTransactions: OnyxCollection<Transaction>): boolean {
+    return !!getReportActionWithMissingSmartscanFields(report, iouReportID, allTransactions);
 }
 
 /**
@@ -9442,6 +9443,7 @@ type ReportErrorsAndReportActionThatRequiresAttention = {
 function getAllReportActionsErrorsAndReportActionThatRequiresAttention(
     report: OnyxEntry<Report>,
     reportActions: OnyxEntry<ReportActions>,
+    allTransactions: OnyxCollection<Transaction>,
     isReportArchived = false,
 ): ReportErrorsAndReportActionThatRequiresAttention {
     const reportActionsArray = Object.values(reportActions ?? {}).filter((action) => !isDeletedAction(action));
@@ -9458,9 +9460,9 @@ function getAllReportActionsErrorsAndReportActionThatRequiresAttention(
         }
     }
 
-    if (!isReportArchived && hasSmartscanError(reportActionsArray, report)) {
+    if (!isReportArchived && hasSmartscanError(reportActionsArray, report, allTransactions)) {
         reportActionErrors.smartscan = getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericSmartscanFailureMessage');
-        reportAction = getReportActionWithSmartscanError(reportActionsArray, report);
+        reportAction = getReportActionWithSmartscanError(reportActionsArray, report, allTransactions);
     }
 
     if (!isReportArchived && isReportOwner(report) && report?.statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
@@ -9480,9 +9482,9 @@ function getAllReportActionsErrorsAndReportActionThatRequiresAttention(
 /**
  * Get an object of error messages keyed by microtime by combining all error objects related to the report.
  */
-function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>, isReportArchived = false): Errors {
+function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>, allTransactions: OnyxCollection<Transaction>, isReportArchived = false): Errors {
     const reportErrorFields = report?.errorFields ?? {};
-    const {errors: reportActionErrors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, isReportArchived);
+    const {errors: reportActionErrors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, allTransactions, isReportArchived);
 
     // All error objects related to the report. Each object in the sources contains error messages keyed by microtime
     const errorSources = {
@@ -10839,7 +10841,7 @@ function canEditReportDescription(report: OnyxEntry<Report>, policy: OnyxEntry<P
     );
 }
 
-function getReportActionWithSmartscanError(reportActions: ReportAction[], report: OnyxEntry<Report>): ReportAction | undefined {
+function getReportActionWithSmartscanError(reportActions: ReportAction[], report: OnyxEntry<Report>, allTransactions: OnyxCollection<Transaction>): ReportAction | undefined {
     return reportActions.find((action) => {
         const isReportPreview = isReportPreviewAction(action);
         const isSplitOrTrackAction = isSplitBillReportAction(action) || isTrackExpenseAction(action);
@@ -10847,13 +10849,13 @@ function getReportActionWithSmartscanError(reportActions: ReportAction[], report
             return false;
         }
         const IOUReportID = getIOUReportIDFromReportActionPreview(action);
-        const isReportPreviewError = isReportPreview && shouldShowRBRForMissingSmartscanFields(report, IOUReportID) && !isSettled(IOUReportID);
+        const isReportPreviewError = isReportPreview && shouldShowRBRForMissingSmartscanFields(report, IOUReportID, allTransactions) && !isSettled(IOUReportID);
         if (isReportPreviewError) {
             return true;
         }
 
         const transactionID = isSplitOrTrackAction ? getOriginalMessage(action)?.IOUTransactionID : undefined;
-        const transaction = deprecatedAllTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? {};
+        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? {};
         const isTransactionThreadError = isSplitOrTrackAction && hasMissingSmartscanFieldsTransactionUtils(transaction as Transaction, report);
 
         return isTransactionThreadError;
@@ -10863,8 +10865,8 @@ function getReportActionWithSmartscanError(reportActions: ReportAction[], report
 /**
  * Checks if report action has error when smart scanning
  */
-function hasSmartscanError(reportActions: ReportAction[], report: OnyxEntry<Report>): boolean {
-    return !!getReportActionWithSmartscanError(reportActions, report);
+function hasSmartscanError(reportActions: ReportAction[], report: OnyxEntry<Report>, allTransactions: OnyxCollection<Transaction>): boolean {
+    return !!getReportActionWithSmartscanError(reportActions, report, allTransactions);
 }
 
 function shouldAutoFocusOnKeyPress(event: KeyboardEvent): boolean {
@@ -12933,12 +12935,14 @@ function generateReportAttributes({
     reportActions,
     transactionViolations,
     isReportArchived = false,
+    allTransactions,
 }: {
     report: OnyxEntry<Report>;
     chatReport: OnyxEntry<Report>;
     reportActions?: OnyxCollection<ReportActions>;
     transactionViolations: OnyxCollection<TransactionViolation[]>;
     isReportArchived: boolean;
+    allTransactions: OnyxCollection<Transaction>;
     actionBadge?: ValueOf<typeof CONST.REPORT.ACTION_BADGE>;
     actionTargetReportActionID?: string;
 }) {
@@ -12946,7 +12950,7 @@ function generateReportAttributes({
     const parentReportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`];
     const hasViolationsToDisplayInLHN = !!getViolatingReportIDForRBRInLHN(report, transactionViolations);
     const hasAnyTypeOfViolations = hasViolationsToDisplayInLHN;
-    const reportErrors = getAllReportErrors(report, reportActionsList, isReportArchived);
+    const reportErrors = getAllReportErrors(report, reportActionsList, allTransactions, isReportArchived);
     const hasErrors = Object.entries(reportErrors ?? {}).length > 0;
     const oneTransactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActionsList);
     const parentReportAction = report?.parentReportActionID ? parentReportActionsList?.[report.parentReportActionID] : undefined;

@@ -10134,7 +10134,7 @@ describe('ReportUtils', () => {
             return waitForBatchedUpdates();
         });
         it("should return nothing when there's no actions required", () => {
-            expect(getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, false)).toEqual({
+            expect(getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, {})).toEqual({
                 errors: {},
                 reportAction: undefined,
             });
@@ -10156,7 +10156,7 @@ describe('ReportUtils', () => {
                 [reportActionWithError.reportActionID]: reportActionWithError,
             });
             await waitForBatchedUpdates();
-            expect(getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActionsWithError, false)).toEqual({
+            expect(getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActionsWithError, {})).toEqual({
                 errors: {
                     reportID: 'Error message',
                     accountID: 'Error in accountID',
@@ -10184,7 +10184,9 @@ describe('ReportUtils', () => {
             };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await waitForBatchedUpdates();
-            const {errors, reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(parentReport, reportActions, false);
+            const {errors, reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(parentReport, reportActions, {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+            });
             expect(Object.keys(errors)).toHaveLength(1);
             expect(Object.keys(errors).at(0)).toBe('smartscan');
             expect(Object.keys(errors.smartscan ?? {})).toHaveLength(1);
@@ -10210,7 +10212,12 @@ describe('ReportUtils', () => {
             };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await waitForBatchedUpdates();
-            const {errors, reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, true);
+            const {errors, reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(
+                report,
+                reportActions,
+                {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction},
+                true,
+            );
             expect(Object.keys(errors)).toHaveLength(0);
             expect(reportAction).toBeUndefined();
         });
@@ -13516,7 +13523,7 @@ describe('ReportUtils', () => {
                 [dewSubmitFailedAction.reportActionID]: dewSubmitFailedAction,
             };
 
-            const {errors, reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
+            const {errors, reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, {});
 
             expect(errors?.dewSubmitFailed).toBeDefined();
             expect(reportAction).toEqual(dewSubmitFailedAction);
@@ -13545,7 +13552,7 @@ describe('ReportUtils', () => {
                 [dewSubmitFailedAction.reportActionID]: dewSubmitFailedAction,
             };
 
-            const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
+            const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, {});
 
             expect(errors?.dewSubmitFailed).toBeUndefined();
         });
@@ -13580,7 +13587,7 @@ describe('ReportUtils', () => {
                 [submittedAction.reportActionID]: submittedAction,
             };
 
-            const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
+            const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, {});
 
             expect(errors?.dewSubmitFailed).toBeUndefined();
         });
@@ -13633,7 +13640,7 @@ describe('ReportUtils', () => {
                 [dewSubmitFailedAction.reportActionID]: dewSubmitFailedAction,
             };
 
-            const {errors, reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
+            const {errors, reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, {});
 
             expect(errors?.dewSubmitFailed).toBeDefined();
             expect(reportAction).toEqual(dewSubmitFailedAction);
@@ -13660,7 +13667,7 @@ describe('ReportUtils', () => {
                 [dewSubmitFailedAction.reportActionID]: dewSubmitFailedAction,
             };
 
-            const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
+            const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, {});
 
             expect(errors?.dewSubmitFailed).toBeUndefined();
         });
@@ -13686,7 +13693,7 @@ describe('ReportUtils', () => {
                 [dewSubmitFailedAction.reportActionID]: dewSubmitFailedAction,
             };
 
-            const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, true);
+            const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, {}, true);
 
             expect(errors?.dewSubmitFailed).toBeUndefined();
         });
@@ -13757,7 +13764,7 @@ describe('ReportUtils', () => {
                 [secondSubmittedAction.reportActionID]: secondSubmittedAction,
             };
 
-            const {errors, reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
+            const {errors, reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, {});
 
             expect(errors?.dewSubmitFailed).toBeUndefined();
             expect(reportAction).not.toEqual(dewSubmitFailedAction);
