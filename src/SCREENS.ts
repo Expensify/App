@@ -279,6 +279,7 @@ const SCREENS = {
     },
     SAVE_THE_WORLD: {
         ROOT: 'SaveTheWorld_Root',
+        ADD_PAYMENT_CARD: 'SaveTheWorld_Add_Payment_Card',
     },
     RIGHT_MODAL: {
         SETTINGS: 'Settings',

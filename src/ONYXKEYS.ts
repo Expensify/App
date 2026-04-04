@@ -224,6 +224,9 @@ const ONYXKEYS = {
     /** Store the state of the subscription */
     NVP_PRIVATE_SUBSCRIPTION: 'nvp_private_subscription',
 
+    /** Store the state of Personal Karma donations */
+    NVP_PERSONAL_OFFSETS: 'nvp_expensify_enablePersonalOffsets',
+
     /** Store the applied Expensify promo code */
     NVP_PRIVATE_PROMO_CODE: 'nvp_private_promoCode',
 
@@ -1371,6 +1374,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS]: OnyxTypes.DismissedReferralBanners;
     [ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING]: boolean;
     [ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION]: OnyxTypes.PrivateSubscription;
+    [ONYXKEYS.NVP_PERSONAL_OFFSETS]: boolean;
     [ONYXKEYS.NVP_PRIVATE_PROMO_CODE]: string | null;
     [ONYXKEYS.NVP_PRIVATE_PROMO_DISCOUNT]: OnyxTypes.PrivatePromoDiscount | null;
     [ONYXKEYS.NVP_PRIVATE_PROMO_CODE_VALID_BILLING_CYCLES]: number | null;
