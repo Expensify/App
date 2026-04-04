@@ -97,7 +97,6 @@ function IOURequestStartPage({
     });
 
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
-    const [isMultiScanEnabled, setIsMultiScanEnabled] = useState(false);
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE);
     const {isOffline} = useNetwork();
     const [hasUserSubmittedExpenseOrScannedReceipt] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {selector: isTestReceiptTooltipDismissedSelector});
@@ -186,7 +185,6 @@ function IOURequestStartPage({
             if (transaction?.iouRequestType === newIOUType) {
                 return;
             }
-            setIsMultiScanEnabled(false);
             initMoneyRequest({
                 reportID,
                 policy,
@@ -340,14 +338,12 @@ function IOURequestStartPage({
                                     {() => (
                                         <TabScreenWithFocusTrapWrapper>
                                             <IOURequestStepScan
+                                                key={transactionRequestType}
                                                 route={route}
                                                 navigation={navigation}
                                                 onLayout={(setTestReceiptAndNavigate) => {
                                                     setTestReceiptAndNavigateRef.current = setTestReceiptAndNavigate;
                                                 }}
-                                                isMultiScanEnabled={isMultiScanEnabled}
-                                                setIsMultiScanEnabled={setIsMultiScanEnabled}
-                                                isStartingScan
                                             />
                                         </TabScreenWithFocusTrapWrapper>
                                     )}
