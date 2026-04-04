@@ -69,7 +69,7 @@ describe('IOUUtils', () => {
             // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             return Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, MergeQueries).then(() => {
                 // We submitted an expense offline in a different currency, we don't know the total of the iouReport until we're back online
-                expect(IOUUtils.isIOUReportPendingCurrencyConversion(iouReport)).toBe(true);
+                expect(IOUUtils.isIOUReportPendingCurrencyConversion(iouReport, [usdPendingTransaction, aedPendingTransaction])).toBe(true);
             });
         });
 
@@ -90,20 +90,23 @@ describe('IOUUtils', () => {
                 },
             });
 
-            const MergeQueries: TransactionCollectionDataSet = {};
-            MergeQueries[`${ONYXKEYS.COLLECTION.TRANSACTION}${usdPendingTransaction.transactionID}`] = {
+            const onlineUsdTransaction = {
                 ...usdPendingTransaction,
                 pendingAction: null,
             };
-            MergeQueries[`${ONYXKEYS.COLLECTION.TRANSACTION}${aedPendingTransaction.transactionID}`] = {
+            const onlineAedTransaction = {
                 ...aedPendingTransaction,
                 pendingAction: null,
             };
 
+            const MergeQueries: TransactionCollectionDataSet = {};
+            MergeQueries[`${ONYXKEYS.COLLECTION.TRANSACTION}${usdPendingTransaction.transactionID}`] = onlineUsdTransaction;
+            MergeQueries[`${ONYXKEYS.COLLECTION.TRANSACTION}${aedPendingTransaction.transactionID}`] = onlineAedTransaction;
+
             // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             return Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, MergeQueries).then(() => {
                 // We submitted an expense online in a different currency, we know the iouReport total and there's no need to show the pending conversion message
-                expect(IOUUtils.isIOUReportPendingCurrencyConversion(iouReport)).toBe(false);
+                expect(IOUUtils.isIOUReportPendingCurrencyConversion(iouReport, [onlineUsdTransaction, onlineAedTransaction])).toBe(false);
             });
         });
     });

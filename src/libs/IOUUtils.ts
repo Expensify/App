@@ -3,7 +3,7 @@ import type {ValueOf} from 'type-fest';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {OnyxInputOrEntry, PersonalDetails, Policy, Report, ReportAction} from '@src/types/onyx';
+import type {OnyxInputOrEntry, PersonalDetails, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import SafeString from '@src/utils/SafeString';
 import type {IOURequestType} from './actions/IOU';
@@ -11,7 +11,7 @@ import {getCurrencyUnit} from './CurrencyUtils';
 import Navigation from './Navigation/Navigation';
 import {isPaidGroupPolicy} from './PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from './ReportActionsUtils';
-import {getReportTransactions, isSelfDM} from './ReportUtils';
+import {isSelfDM} from './ReportUtils';
 import {endSpan, getSpan, startSpan} from './telemetry/activeSpans';
 import {getCurrency, getTagArrayFromName} from './TransactionUtils';
 
@@ -255,9 +255,8 @@ function updateIOUOwnerAndTotal<TReport extends OnyxInputOrEntry<Report>>(
  * Returns whether or not an IOU report contains expenses in a different currency
  * that are either created or cancelled offline, and thus haven't been converted to the report's currency yet
  */
-function isIOUReportPendingCurrencyConversion(iouReport: Report): boolean {
-    const reportTransactions = getReportTransactions(iouReport.reportID);
-    const pendingRequestsInDifferentCurrency = reportTransactions.filter((transaction) => transaction.pendingAction && getCurrency(transaction) !== iouReport.currency);
+function isIOUReportPendingCurrencyConversion(iouReport: Report, transactions: Transaction[]): boolean {
+    const pendingRequestsInDifferentCurrency = transactions.filter((transaction) => transaction.pendingAction && getCurrency(transaction) !== iouReport.currency);
     return pendingRequestsInDifferentCurrency.length > 0;
 }
 
