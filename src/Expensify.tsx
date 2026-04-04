@@ -292,7 +292,12 @@ function Expensify() {
                     initialUrl={initialUrl}
                 />
             )}
-            {shouldHideSplash && <SplashScreenHider onHide={onSplashHide} />}
+            {(isSplashVisible || isSplashReadyToBeHidden) && (
+                <SplashScreenHider
+                    shouldHideSplash={shouldHideSplash}
+                    onHide={onSplashHide}
+                />
+            )}
         </>
     );
 }
