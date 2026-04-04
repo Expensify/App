@@ -91,46 +91,145 @@ describe('Split Expense Auto-Adjustment', () => {
         });
 
         it('should preserve edited splits when adding a new split', async () => {
-            // Setup: 2 splits - one edited at $3, one unedited at $7
-            const initialSplits = [
-                createSplitExpense('split1', 300, true), // Edited/locked
-                createSplitExpense('split2', 700, false), // Unedited
-            ];
+                // Setup: 2 splits - one edited at $3, one unedited at $7
+                const initialSplits = [
+                    createSplitExpense('split1', 300, true), // Edited/locked
+                    createSplitExpense('split2', 700, false), // Unedited
+                ];
 
-            const mockTransaction = createMockDraftTransaction(initialSplits);
+                const mockTransaction = createMockDraftTransaction(initialSplits);
 
-            await Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${ORIGINAL_TRANSACTION_ID}`, mockTransaction);
-            await waitForBatchedUpdates();
+                await Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${ORIGINAL_TRANSACTION_ID}`, mockTransaction);
+                await waitForBatchedUpdates();
 
-            // Action: Add a new split
-            addSplitExpenseField(mockTransaction, mockTransaction, undefined);
-            await waitForBatchedUpdates();
+                // Action: Add a new split when manual edits exist
+                addSplitExpenseField(mockTransaction, mockTransaction, undefined);
+                await waitForBatchedUpdates();
 
-            // Verify: 3 splits
-            // Split 1: locked at 300
-            // New split + Split 2: share remaining 700 -> 350 each
-            const draftTransaction = await new Promise<OnyxEntry<Transaction>>((resolve) => {
-                const connection = Onyx.connect({
+                // Verify: New split starts at 0 when manual edits exist (no redistribution)
+                const draftTransaction = await new Promise<OnyxEntry<Transaction>>((resolve) => {
+                    const connection = Onyx.connect({
+                        key: `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${ORIGINAL_TRANSACTION_ID}`,
+                        callback: (value) => {
+                            Onyx.disconnect(connection);
+                            resolve(value);
+                        },
+                    });
+                });
+
+                const splitExpenses = draftTransaction?.comment?.splitExpenses ?? [];
+                expect(splitExpenses.length).toBe(3);
+
+                // Verify split 1 is still 300 and marked as edited
+                const split1 = splitExpenses.find((s) => s.transactionID === 'split1');
+                expect(split1?.amount).toBe(300);
+                expect(split1?.isManuallyEdited).toBe(true);
+
+                // New split should start at 0 (not auto-redistributed when manual edits exist)
+                const newSplit = splitExpenses.find((s) => s.transactionID !== 'split1' && s.transactionID !== 'split2');
+                expect(newSplit?.amount).toBe(0);
+                expect(newSplit?.isManuallyEdited).toBe(false);
+
+                // Split2 should remain unchanged at 700
+                const split2 = splitExpenses.find((s) => s.transactionID === 'split2');
+                expect(split2?.amount).toBe(700);
+
+                // Total will not match original (user needs to manually adjust)
+                const totalAmount = splitExpenses.reduce((sum, split) => sum + split.amount, 0);
+                expect(totalAmount).toBe(1000); // 300 + 700 + 0
+            });
+
+            it('should handle negative amounts when adding split with manual edits', async () => {
+                // Setup: Original expense is -$10.00
+                const negativeTotal = -1000;
+                const initialSplits = [
+                    createSplitExpense('split1', -2000, true), // Edited to -$20
+                    createSplitExpense('split2', 1000, false), // Unedited (remaining)
+                ];
+
+                const mockTransaction = createMockDraftTransaction(initialSplits, negativeTotal);
+
+                await Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${ORIGINAL_TRANSACTION_ID}`, mockTransaction);
+                await waitForBatchedUpdates();
+
+                // Action: Add a new split when manual edits exist
+                addSplitExpenseField(mockTransaction, mockTransaction, undefined);
+                await waitForBatchedUpdates();
+
+                // Verify: New split should start at 0, not incorrectly redistributed
+                const draftTransaction = await new Promise<OnyxEntry<Transaction>>((resolve) => {
+                    const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${ORIGINAL_TRANSACTION_ID}`,
                     callback: (value) => {
                         Onyx.disconnect(connection);
                         resolve(value);
                     },
+                    });
                 });
+
+                const splitExpenses = draftTransaction?.comment?.splitExpenses ?? [];
+                expect(splitExpenses.length).toBe(3);
+
+                // Verify split 1 is still -2000 and marked as edited
+                const split1 = splitExpenses.find((s) => s.transactionID === 'split1');
+                expect(split1?.amount).toBe(-2000);
+                expect(split1?.isManuallyEdited).toBe(true);
+
+                // New split should start at 0 (not auto-redistributed)
+                const newSplit = splitExpenses.find((s) => s.transactionID !== 'split1' && s.transactionID !== 'split2');
+                expect(newSplit?.amount).toBe(0);
+                expect(newSplit?.isManuallyEdited).toBe(false);
+
+                // Split2 should remain unchanged at 1000
+                const split2 = splitExpenses.find((s) => s.transactionID === 'split2');
+                expect(split2?.amount).toBe(1000);
+
+                // Total will not match original (user needs to manually adjust)
+                const totalAmount = splitExpenses.reduce((sum, split) => sum + split.amount, 0);
+                expect(totalAmount).toBe(-1000); // -2000 + 1000 + 0
             });
 
-            const splitExpenses = draftTransaction?.comment?.splitExpenses ?? [];
-            expect(splitExpenses.length).toBe(3);
+            it('should auto-redistribute when adding a split with no manual edits', async () => {
+                // Setup: 2 unedited splits at $5/$5
+                const initialSplits = [
+                    createSplitExpense('split1', 500, false),
+                    createSplitExpense('split2', 500, false),
+                ];
 
-            // Verify split 1 is still 300 and marked as edited
-            const split1 = splitExpenses.find((s) => s.transactionID === 'split1');
-            expect(split1?.amount).toBe(300);
-            expect(split1?.isManuallyEdited).toBe(true);
+                const mockTransaction = createMockDraftTransaction(initialSplits);
 
-            // Verify total matches
-            const totalAmount = splitExpenses.reduce((sum, split) => sum + split.amount, 0);
-            expect(totalAmount).toBe(TOTAL_AMOUNT);
-        });
+                await Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${ORIGINAL_TRANSACTION_ID}`, mockTransaction);
+                await waitForBatchedUpdates();
+
+                // Action: Add a new split (no manual edits exist)
+                addSplitExpenseField(mockTransaction, mockTransaction, undefined);
+                await waitForBatchedUpdates();
+
+                // Verify: Should redistribute evenly to ~$3.33 each
+                const draftTransaction = await new Promise<OnyxEntry<Transaction>>((resolve) => {
+                    const connection = Onyx.connect({
+                        key: `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${ORIGINAL_TRANSACTION_ID}`,
+                        callback: (value) => {
+                            Onyx.disconnect(connection);
+                            resolve(value);
+                        },
+                    });
+                });
+
+                const splitExpenses = draftTransaction?.comment?.splitExpenses ?? [];
+                expect(splitExpenses.length).toBe(3);
+
+                // All splits should be redistributed evenly to ~$3.33 each
+                const amounts = splitExpenses.map((s) => s.amount).sort((a, b) => a - b);
+                expect(amounts).toEqual([333, 333, 334]);
+
+                // All splits should be unedited
+                expect(splitExpenses.every((split) => !split.isManuallyEdited)).toBe(true);
+
+                // Total should equal original amount
+                const totalAmount = splitExpenses.reduce((sum, split) => sum + split.amount, 0);
+                expect(totalAmount).toBe(TOTAL_AMOUNT);
+            });
     });
 
     describe('removeSplitExpenseField', () => {
