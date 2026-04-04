@@ -4373,14 +4373,6 @@ function requiresAttentionFromCurrentUser(optionOrReport: OnyxEntry<Report> | Op
     return !!getReasonAndReportActionThatRequiresAttention(optionOrReport, parentReportAction, isReportArchived);
 }
 
-/**
- * Checks if the report contains at least one Non-Reimbursable transaction
- */
-function hasNonReimbursableTransactions(iouReportID: string | undefined, reportsTransactionsParam: Record<string, Transaction[]> = deprecatedReportsTransactions): boolean {
-    const transactions = getReportTransactions(iouReportID, reportsTransactionsParam);
-    return transactions.filter((transaction) => transaction.reimbursable === false).length > 0;
-}
-
 function getMoneyRequestSpendBreakdown(report: OnyxInputOrEntry<Report>, searchReports?: Report[]): SpendBreakdown {
     const reports = searchReports ?? allReports;
     let moneyRequestReport: OnyxEntry<Report>;
@@ -5443,7 +5435,7 @@ function getReportPreviewMessage(
         }
     }
 
-    const containsNonReimbursable = hasNonReimbursableTransactions(report.reportID);
+    const containsNonReimbursable = getReportTransactions(report.reportID).some((transaction) => !getReimbursable(transaction));
     const {totalDisplaySpend: totalAmount} = getMoneyRequestSpendBreakdown(report);
 
     const parentReport = getParentReport(report);
@@ -6011,11 +6003,11 @@ function getReportName(reportNameInformation: GetReportNameParams): string {
     }
 
     if (isMoneyRequestReport(report)) {
-        formattedName = getMoneyRequestReportName({report, policy});
+        formattedName = getMoneyRequestReportName({report, policy, transactions});
     }
 
     if (isInvoiceReport(report)) {
-        formattedName = getInvoiceReportName(report, policy, invoiceReceiverPolicy);
+        formattedName = getInvoiceReportName(report, policy, invoiceReceiverPolicy, transactions);
     }
 
     if (isInvoiceRoom(report)) {
@@ -13628,7 +13620,6 @@ export {
     hasExpensifyGuidesEmails,
     hasHeldExpenses,
     hasIOUWaitingOnCurrentUserBankAccount,
-    hasNonReimbursableTransactions,
     hasOnlyHeldExpenses,
     hasOnlyTransactionsWithPendingRoutes,
     hasReceiptError,
