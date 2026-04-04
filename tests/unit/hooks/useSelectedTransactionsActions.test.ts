@@ -111,10 +111,7 @@ const createDeletedResult = (deletedTransactionThreadReportIDs: string[]) => ({
     action: 'deleted' as const,
     deletedTransactionThreadReportIDs,
 });
-const createRedirectedResult = () => ({
-    action: 'redirected' as const,
-});
-type MockDeleteTransactionsResult = ReturnType<typeof createDeletedResult> | ReturnType<typeof createRedirectedResult>;
+type MockDeleteTransactionsResult = ReturnType<typeof createDeletedResult> | {action: 'redirected'};
 const mockDeleteTransactions = jest.fn<MockDeleteTransactionsResult, []>(() => createDeletedResult([]));
 const mockShouldOpenSplitExpenseEditFlowOnDelete = jest.fn(() => false);
 
