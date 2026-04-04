@@ -1,5 +1,6 @@
 import checkFileExists from '@libs/fileDownload/checkFileExists';
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
+import Log from '@libs/Log';
 import validateFormDataParameter from '@libs/validateFormDataParameter';
 import type PrepareRequestPayload from './types';
 
@@ -24,6 +25,7 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
                 if (source) {
                     return checkFileExists(source).then((exists) => {
                         if (!exists) {
+                            Log.alert('[prepareRequestPayload] Receipt file missing at upload time', {command, source, fileName: name});
                             return;
                         }
                         const receiptFormData = {
