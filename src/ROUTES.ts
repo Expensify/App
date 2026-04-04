@@ -124,6 +124,10 @@ const DYNAMIC_ROUTES = {
         getRoute: (country = '') => `country?country=${country}`,
         queryParams: ['country'],
     },
+    SETTINGS_CATEGORY_EDIT: {
+        path: 'edit',
+        entryScreens: [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS],
+    },
     WORKSPACE_OVERVIEW_PLAN: {
         path: 'plan',
         entryScreens: [SCREENS.WORKSPACE.PROFILE],
@@ -166,6 +170,10 @@ const DYNAMIC_ROUTES = {
                 policyID,
             }),
         queryParams: ['fieldName', 'fieldValue', 'policyID'],
+    },
+    WORKSPACE_TAG_CREATE: {
+        path: 'workspace-tag-create',
+        entryScreens: [SCREENS.WORKSPACE.TAGS, SCREENS.WORKSPACE.TAG_SETTINGS],
     },
 } as const satisfies DynamicRoutes;
 
@@ -1352,12 +1360,6 @@ const ROUTES = {
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (policyID: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/categories/new`, backTo),
     },
-    SETTINGS_CATEGORY_EDIT: {
-        route: 'settings/:policyID/category/:categoryName/edit',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, categoryName: string, backTo = '') => getUrlWithBackToParam(`settings/${policyID}/category/${encodeURIComponent(categoryName)}/edit`, backTo),
-    },
     SETTINGS_CATEGORIES_IMPORT: {
         route: 'settings/:policyID/categories/import',
 
@@ -2300,10 +2302,6 @@ const ROUTES = {
             }
             return `workspaces/${policyID}/tags` as const;
         },
-    },
-    WORKSPACE_TAG_CREATE: {
-        route: 'workspaces/:policyID/tags/new',
-        getRoute: (policyID: string) => `workspaces/${policyID}/tags/new` as const,
     },
     WORKSPACE_TAGS_SETTINGS: {
         route: 'workspaces/:policyID/tags/settings',
