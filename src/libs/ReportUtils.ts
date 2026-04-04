@@ -3311,7 +3311,7 @@ function getIconsForParticipants(participants: number[], personalDetails: OnyxIn
     const avatars: Icon[] = [];
 
     for (const accountID of participantsList) {
-        const avatarSource = personalDetails?.[accountID]?.avatar ?? FallbackAvatar;
+        const avatarSource = personalDetails?.[accountID]?.avatar ?? getDefaultAvatarURL({accountID});
         const displayNameLogin = personalDetails?.[accountID]?.displayName ? personalDetails?.[accountID]?.displayName : personalDetails?.[accountID]?.login;
         const userIcon = {
             id: accountID,
@@ -3593,7 +3593,7 @@ function getParticipantIcon(accountID: number | undefined, personalDetails: Onyx
 
     return {
         id: accountID,
-        source: details?.avatar ?? FallbackAvatar,
+        source: details?.avatar ?? getDefaultAvatarURL({accountID}),
         type: CONST.ICON_TYPE_AVATAR,
         name: displayName,
         fallbackIcon: details?.fallbackIcon,
@@ -3651,7 +3651,7 @@ function getIconsForExpenseRequest(report: OnyxInputOrEntry<Report>, personalDet
     const workspaceIcon = getWorkspaceIcon(report, policy);
     const actorDetails = parentReportAction?.actorAccountID ? personalDetails?.[parentReportAction.actorAccountID] : undefined;
     const memberIcon = {
-        source: actorDetails?.avatar ?? FallbackAvatar,
+        source: actorDetails?.avatar ?? getDefaultAvatarURL({accountID: parentReportAction?.actorAccountID}),
         id: parentReportAction?.actorAccountID,
         type: CONST.ICON_TYPE_AVATAR,
         name: actorDetails?.displayName ?? '',
@@ -3678,7 +3678,7 @@ function getIconsForChatThread(
     const actorDisplayName = getDisplayNameOrDefault(actorDetails, '', false);
     const actorIcon = {
         id: actorAccountID,
-        source: actorDetails?.avatar ?? FallbackAvatar,
+        source: actorDetails?.avatar ?? getDefaultAvatarURL({accountID: actorAccountID}),
         name: formatPhoneNumber(actorDisplayName),
         type: CONST.ICON_TYPE_AVATAR,
         fallbackIcon: actorDetails?.fallbackIcon,
@@ -3772,7 +3772,7 @@ function getIconsForIOUReport(report: OnyxInputOrEntry<Report>, personalDetails:
     const managerDetails = report?.managerID ? personalDetails?.[report.managerID] : undefined;
     const ownerDetails = report?.ownerAccountID ? personalDetails?.[report.ownerAccountID] : undefined;
     const managerIcon = {
-        source: managerDetails?.avatar ?? FallbackAvatar,
+        source: managerDetails?.avatar ?? getDefaultAvatarURL({accountID: report?.managerID}),
         id: report?.managerID,
         type: CONST.ICON_TYPE_AVATAR,
         name: managerDetails?.displayName ?? '',
@@ -3780,7 +3780,7 @@ function getIconsForIOUReport(report: OnyxInputOrEntry<Report>, personalDetails:
     };
     const ownerIcon = {
         id: report?.ownerAccountID,
-        source: ownerDetails?.avatar ?? FallbackAvatar,
+        source: ownerDetails?.avatar ?? getDefaultAvatarURL({accountID: report?.ownerAccountID}),
         type: CONST.ICON_TYPE_AVATAR,
         name: ownerDetails?.displayName ?? '',
         fallbackIcon: ownerDetails?.fallbackIcon,
