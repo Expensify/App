@@ -4187,6 +4187,10 @@ ${amount} voor ${merchant} - ${date}`,
             budgetTypeForNotificationMessage: {tag: 'tag', category: 'categorie'},
             deepDiveExpensifyCard: `<muted-text-label>Transacties met de Expensify Kaart worden automatisch geëxporteerd naar een "Expensify Kaart Passivarekening" dat wordt aangemaakt via <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">onze integratie</a>.</muted-text-label>`,
         },
+        createdForClient: {
+            title: 'Je hebt een werkruimte voor je klant aangemaakt!',
+            description: 'Geweldig nieuws 🎉. Neem contact met ons op als ze hulp nodig hebben bij de configuratie.',
+        },
         receiptPartners: {
             uber: {
                 subtitle: (organizationName: string) => (organizationName ? `Verbonden met ${organizationName}` : 'Automatiseer reis- en maaltijdbezorgingskosten in uw hele organisatie.'),

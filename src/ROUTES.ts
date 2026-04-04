@@ -3222,6 +3222,7 @@ const ROUTES = {
         getRoute: (backTo?: string) => getUrlWithBackToParam(`workspace/confirmation`, backTo),
     },
     WORKSPACE_CONFIRMATION_OWNER_SELECTOR: 'workspace/confirmation/owner-selector',
+    WORKSPACE_CONFIRMATION_SUCCESS: 'workspace/confirmation/success',
     MIGRATED_USER_WELCOME_MODAL: {
         route: 'onboarding/migrated-user-welcome',
 

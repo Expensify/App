@@ -2178,6 +2178,7 @@ type WorkspaceConfirmationNavigatorParamList = {
         backTo?: Routes;
     };
     [SCREENS.WORKSPACE_CONFIRMATION.OWNER_SELECTOR]: undefined;
+    [SCREENS.WORKSPACE_CONFIRMATION.SUCCESS]: undefined;
     [SCREENS.CURRENCY.SELECTION]: {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
