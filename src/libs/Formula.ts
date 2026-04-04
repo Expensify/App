@@ -431,6 +431,10 @@ function formatStatus(statusNum: number | undefined): string {
 }
 
 /**
+ * Format report status into export-style display labels.
+ */
+
+/**
  * Check if a formula string contains field references ({field:X})
  * Uses quick string check before expensive parsing for performance
  */
