@@ -386,63 +386,6 @@ function removeMembers(policy: OnyxEntry<Policy>, selectedMemberEmails: string[]
         };
     }
 
-    for (const employeeEmail of Object.keys(policy?.employeeList ?? {})) {
-        const employee = policy?.employeeList?.[employeeEmail];
-        optimisticMembersState[employeeEmail] = optimisticMembersState[employeeEmail] ?? {};
-        failureMembersState[employeeEmail] = failureMembersState[employeeEmail] ?? {};
-        if (employee?.email && selectedMemberEmails.includes(employee.email)) {
-            continue;
-        }
-        if (employee?.submitsTo && selectedMemberEmails.includes(employee?.submitsTo)) {
-            optimisticMembersState[employeeEmail] = {
-                ...optimisticMembersState[employeeEmail],
-                submitsTo: policy?.owner,
-            };
-            successMembersState[employeeEmail] = successMembersState[employeeEmail] ?? {};
-            successMembersState[employeeEmail] = {
-                ...successMembersState[employeeEmail],
-                submitsTo: policy?.owner,
-            };
-            failureMembersState[employeeEmail] = {
-                ...failureMembersState[employeeEmail],
-                submitsTo: employee?.submitsTo,
-            };
-        }
-        if (employee?.forwardsTo && selectedMemberEmails.includes(employee?.forwardsTo)) {
-            optimisticMembersState[employeeEmail] = {
-                ...optimisticMembersState[employeeEmail],
-                forwardsTo: policy?.owner,
-            };
-            successMembersState[employeeEmail] = successMembersState[employeeEmail] ?? {};
-            successMembersState[employeeEmail] = {
-                ...successMembersState[employeeEmail],
-                forwardsTo: policy?.owner,
-            };
-            failureMembersState[employeeEmail] = {
-                ...failureMembersState[employeeEmail],
-                forwardsTo: employee?.forwardsTo,
-            };
-        }
-        if (employee?.overLimitForwardsTo && selectedMemberEmails.includes(employee?.overLimitForwardsTo)) {
-            optimisticMembersState[employeeEmail] = {
-                ...optimisticMembersState[employeeEmail],
-                overLimitForwardsTo: '',
-                approvalLimit: null,
-            };
-            successMembersState[employeeEmail] = successMembersState[employeeEmail] ?? {};
-            successMembersState[employeeEmail] = {
-                ...successMembersState[employeeEmail],
-                overLimitForwardsTo: '',
-                approvalLimit: null,
-            };
-            failureMembersState[employeeEmail] = {
-                ...failureMembersState[employeeEmail],
-                overLimitForwardsTo: employee?.overLimitForwardsTo,
-                approvalLimit: employee?.approvalLimit,
-            };
-        }
-    }
-
     const approvalRules: ApprovalRule[] = policy?.rules?.approvalRules ?? [];
     const optimisticApprovalRules = approvalRules.filter((rule) => !selectedMemberEmails.includes(rule?.approver ?? ''));
 
