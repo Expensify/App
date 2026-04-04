@@ -10,6 +10,7 @@ import type {ValueOf} from 'type-fest';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useLocalReceiptThumbnail from '@hooks/useLocalReceiptThumbnail';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useOutstandingReports from '@hooks/useOutstandingReports';
@@ -468,6 +469,19 @@ function MoneyRequestConfirmationListFooter({
     } = receiptPath && receiptFilename ? getThumbnailAndImageURIs(transaction, receiptPath, receiptFilename) : ({} as ThumbnailAndImageURI);
     const resolvedThumbnail = isLocalFile ? receiptThumbnail : tryResolveUrlFromApiRoot(receiptThumbnail ?? '');
     const resolvedReceiptImage = isLocalFile ? receiptImage : tryResolveUrlFromApiRoot(receiptImage ?? '');
+
+    const {thumbnailUri} = useLocalReceiptThumbnail(resolvedReceiptImage as string, !!isLocalFile);
+
+    // For local files: use the pre-generated thumbnail if it was ready by first render.
+    // If the thumbnail arrives late we keep showing the full-res image to avoid a
+    // visible source swap (flash).  For remote files: existing behavior unchanged.
+    const initialLocalSourceRef = useRef<string | undefined>(undefined);
+    if (isLocalFile && initialLocalSourceRef.current === undefined) {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        initialLocalSourceRef.current = thumbnailUri || String(resolvedReceiptImage ?? '') || '';
+    }
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const effectiveReceiptSource = isLocalFile ? initialLocalSourceRef.current || '' : resolvedThumbnail || resolvedReceiptImage || '';
 
     const shouldNavigateToUpgradePath = !policyForMovingExpensesID && !shouldSelectPolicy;
     // Time requests appear as regular expenses after they're created, with editable amount and merchant, not hours and rate
@@ -1269,7 +1283,7 @@ function MoneyRequestConfirmationListFooter({
                             <ReceiptImage
                                 isThumbnail={isThumbnail}
                                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                                source={resolvedThumbnail || resolvedReceiptImage || ''}
+                                source={effectiveReceiptSource}
                                 // AuthToken is required when retrieving the image from the server
                                 // but we don't need it to load the blob:// or file:// image when starting an expense/split
                                 // So if we have a thumbnail, it means we're retrieving the image from the server
@@ -1305,7 +1319,7 @@ function MoneyRequestConfirmationListFooter({
         onPDFLoadError,
         onPDFPassword,
         isThumbnail,
-        resolvedThumbnail,
+        effectiveReceiptSource,
         receiptThumbnail,
         fileExtension,
         isDistanceRequest,

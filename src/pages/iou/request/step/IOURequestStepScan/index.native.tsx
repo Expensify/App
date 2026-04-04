@@ -21,6 +21,7 @@ import Text from '@components/Text';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import {pregenerateThumbnail} from '@hooks/useLocalReceiptThumbnail';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -395,6 +396,7 @@ function IOURequestStepScan({
                 const transactionID = transaction?.transactionID ?? initialTransactionID;
                 const source = getPhotoSource(photo.path);
                 const filename = photo.path;
+
                 endSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
 
                 const cameraFile = {
@@ -419,6 +421,12 @@ function IOURequestStepScan({
                     isCapturingPhoto.current = false;
                     return;
                 }
+
+                // Pre-generate the thumbnail and cache it so the confirm screen
+                // can use it synchronously on first render (no source swap / flash).
+                // We don't block on it — if it finishes before navigation, great;
+                // if not, the hook's fallback path will handle it.
+                pregenerateThumbnail(source);
 
                 // Defer navigation by one frame so React renders the frozen camera
                 // state (didCapturePhoto=true) before the screen transitions away.
