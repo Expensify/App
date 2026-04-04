@@ -68,6 +68,14 @@ function ReportFieldDate({field, close}: ReportFieldDateProps) {
             isSearchAdvancedFiltersFormLoading={isSearchAdvancedFiltersFormLoading}
             onBackButtonPress={close}
             onSubmit={updateFilter}
+            onReset={(values) => {
+                updateAdvancedFilters({
+                    [dateOnKey]: values[CONST.SEARCH.DATE_MODIFIERS.ON] ?? null,
+                    [dateBeforeKey]: values[CONST.SEARCH.DATE_MODIFIERS.BEFORE] ?? null,
+                    [dateAfterKey]: values[CONST.SEARCH.DATE_MODIFIERS.AFTER] ?? null,
+                    [dateRangeKey]: values[CONST.SEARCH.DATE_MODIFIERS.RANGE] ?? null,
+                });
+            }}
         />
     );
 }

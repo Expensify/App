@@ -34,6 +34,8 @@ type DateFilterBaseProps = {
     onBackButtonPress?: () => void;
     /** Callback when the filter is submitted with the selected date values */
     onSubmit: (values: SearchDateValues) => void;
+    /** Callback when the filter is reset, used to persist cleared values without triggering navigation */
+    onReset?: (values: SearchDateValues) => void;
     /** Callback when a date value changes (e.g. preset click or calendar save) */
     onDateValuesChange?: (values: SearchDateValues) => void;
     /** Controlled selected date modifier */
@@ -58,6 +60,7 @@ function DateFilterBase({
     isSearchAdvancedFiltersFormLoading,
     onBackButtonPress,
     onSubmit,
+    onReset,
     onDateValuesChange,
     onDateModifierChange,
     shouldShowButtonsOnlyWithDateModifier = false,
@@ -156,15 +159,19 @@ function DateFilterBase({
 
         if (selectedDateModifier) {
             searchDatePresetFilterBaseRef.current.clearDateValueOfSelectedDateModifier();
+            const dateValues = searchDatePresetFilterBaseRef.current.getDateValues();
             setSelectedDateModifier(null);
             setShouldShowRangeError(false);
             onDateModifierChange?.(false);
+            onReset?.(dateValues);
             return;
         }
 
         searchDatePresetFilterBaseRef.current.clearDateValues();
+        const dateValues = searchDatePresetFilterBaseRef.current.getDateValues();
         setShouldShowRangeError(false);
-    }, [onDateModifierChange, selectedDateModifier, setSelectedDateModifier]);
+        onReset?.(dateValues);
+    }, [onDateModifierChange, onReset, selectedDateModifier, setSelectedDateModifier]);
 
     const save = useCallback(() => {
         if (!searchDatePresetFilterBaseRef.current) {
