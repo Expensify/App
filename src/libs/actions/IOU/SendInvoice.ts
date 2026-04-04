@@ -43,7 +43,7 @@ import {
     mergePolicyRecentlyUsedCategories,
     mergePolicyRecentlyUsedCurrencies,
 } from '.';
-import type {BasePolicyParams} from '.';
+import type BasePolicyParams from './types/BasePolicyParams';
 
 type SendInvoiceInformation = {
     senderWorkspaceID: string | undefined;
@@ -598,7 +598,8 @@ function getSendInvoiceInformation({
     companyWebsite,
     policyRecentlyUsedCategories,
     policyRecentlyUsedTags,
-}: SendInvoiceOptions): SendInvoiceInformation {
+    senderPolicyTags,
+}: SendInvoiceOptions & {senderPolicyTags: OnyxTypes.PolicyTagLists}): SendInvoiceInformation {
     const {amount = 0, currency = '', created = '', merchant = '', category = '', tag = '', taxCode = '', taxAmount = 0, taxValue, billable, comment, participants} = transaction ?? {};
     const trimmedComment = (comment?.comment ?? '').trim();
     const senderWorkspaceID = participants?.find((participant) => participant?.isSender)?.policyID;
@@ -654,9 +655,7 @@ function getSendInvoiceInformation({
 
     const optimisticPolicyRecentlyUsedCategories = mergePolicyRecentlyUsedCategories(category, policyRecentlyUsedCategories);
     const optimisticPolicyRecentlyUsedTags = buildOptimisticPolicyRecentlyUsedTags({
-        // TODO: remove `allPolicyTags` from this file https://github.com/Expensify/App/issues/80048
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        policyTags: getPolicyTagsData(optimisticInvoiceReport.policyID),
+        policyTags: senderPolicyTags,
         policyRecentlyUsedTags,
         transactionTags: tag,
     });
@@ -745,6 +744,10 @@ function sendInvoice({
     policyRecentlyUsedTags,
     isFromGlobalCreate,
 }: SendInvoiceOptions) {
+    // TODO: remove `allPolicyTags` from this file https://github.com/Expensify/App/issues/80048
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const senderPolicyTags = getPolicyTagsData(transaction?.participants?.find((p) => p?.isSender)?.policyID) ?? {};
+
     const parsedComment = getParsedComment(transaction?.comment?.comment?.trim() ?? '');
     if (transaction?.comment) {
         // eslint-disable-next-line no-param-reassign
@@ -777,6 +780,7 @@ function sendInvoice({
         companyWebsite,
         policyRecentlyUsedCategories,
         policyRecentlyUsedTags,
+        senderPolicyTags,
     });
 
     const parameters: SendInvoiceParams = {
