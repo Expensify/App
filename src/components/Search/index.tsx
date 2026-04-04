@@ -467,7 +467,9 @@ function Search({
 
             // Re-applying the defer only on the submit-return path keeps the optimization scoped to
             // the transition we care about instead of slowing every search refocus.
-            return deferHeavySearchWork(true);
+            // Single frame is sufficient here because revealRouteBeforeDismissingModal already
+            // provides 2 RAF frames for the navigation transition to paint before Search focuses.
+            return deferHeavySearchWork();
         }, [deferHeavySearchWork]),
     );
 
@@ -710,6 +712,12 @@ function Search({
         if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
             return;
         }
+
+        // No selections to rebuild on initial data load — skip the expensive iteration
+        if (isEmptyObject(selectedTransactions) && !areAllMatchingItemsSelected) {
+            return;
+        }
+
         const newTransactionList: SelectedTransactions = {};
         if (validGroupBy || isExpenseReportType) {
             for (const transactionGroup of filteredData) {

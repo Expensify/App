@@ -540,8 +540,9 @@ function handleMoneyRequestStepScanParticipants({
             return;
         }
 
+        const reportData = {reportID: transactionReportID};
         const setParticipantsPromises = files.map((receiptFile) => {
-            setTransactionReport(receiptFile.transactionID, {reportID: transactionReportID}, true);
+            setTransactionReport(receiptFile.transactionID, reportData, true);
             return setMoneyRequestParticipantsFromReport(receiptFile.transactionID, targetReport, currentUserAccountID);
         });
         Promise.all(setParticipantsPromises).then(() =>

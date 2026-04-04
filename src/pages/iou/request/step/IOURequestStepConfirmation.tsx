@@ -398,14 +398,6 @@ function IOURequestStepConfirmation({
         // eslint-disable-next-line react-hooks/exhaustive-deps -- we only want this to run on mount/unmount
     }, []);
 
-    useEffect(() => {
-        if (!isCreatingTrackExpense || policyID === undefined) {
-            return;
-        }
-
-        openDraftWorkspaceRequest(policyID);
-    }, [isCreatingTrackExpense, policy?.pendingAction, policyID]);
-
     const policyExpenseChatPolicyID = useMemo(() => {
         return participants?.find((participant) => participant.isPolicyExpenseChat)?.policyID;
     }, [participants]);
@@ -415,14 +407,14 @@ function IOURequestStepConfirmation({
     }, [participants]);
 
     useEffect(() => {
-        if (policyExpenseChatPolicyID && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-            openDraftWorkspaceRequest(policyExpenseChatPolicyID);
+        if (policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
             return;
         }
-        if (senderPolicyID && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-            openDraftWorkspaceRequest(senderPolicyID);
+        const targetPolicyID = (isCreatingTrackExpense ? policyID : undefined) ?? policyExpenseChatPolicyID ?? senderPolicyID;
+        if (targetPolicyID) {
+            openDraftWorkspaceRequest(targetPolicyID);
         }
-    }, [isOffline, policy?.pendingAction, policyExpenseChatPolicyID, senderPolicyID]);
+    }, [isOffline, isCreatingTrackExpense, policyID, policy?.pendingAction, policyExpenseChatPolicyID, senderPolicyID]);
 
     useEffect(() => {
         if (!isOdometerDistanceRequest || !isFocused) {
@@ -504,20 +496,12 @@ function IOURequestStepConfirmation({
         if (isMovingTransactionFromTrackExpense) {
             return;
         }
-        for (const transactionID of transactionIDs) {
-            setMoneyRequestBillable(transactionID, defaultBillable);
-        }
-    }, [transactionIDs, defaultBillable, isMovingTransactionFromTrackExpense]);
-
-    useEffect(() => {
-        if (isMovingTransactionFromTrackExpense) {
-            return;
-        }
         const defaultReimbursable = (isPolicyExpenseChat && isPaidGroupPolicy(policy)) || isCreatingTrackExpense ? (policy?.defaultReimbursable ?? true) : true;
         for (const transactionID of transactionIDs) {
+            setMoneyRequestBillable(transactionID, defaultBillable);
             setMoneyRequestReimbursable(transactionID, defaultReimbursable);
         }
-    }, [transactionIDs, policy, isPolicyExpenseChat, isMovingTransactionFromTrackExpense, isCreatingTrackExpense]);
+    }, [transactionIDs, defaultBillable, policy, isPolicyExpenseChat, isMovingTransactionFromTrackExpense, isCreatingTrackExpense]);
 
     useEffect(() => {
         // Exit early if the transaction is still loading

@@ -59,6 +59,7 @@ type MobileWebCameraViewProps = {
     onLayout?: () => void;
     onBackButtonPress: () => void;
     shouldShowWrapper: boolean;
+    draftTransactionIDs: string[];
 };
 
 /**
@@ -119,6 +120,7 @@ function MobileWebCameraView({
     onLayout,
     onBackButtonPress,
     shouldShowWrapper,
+    draftTransactionIDs,
 }: MobileWebCameraViewProps) {
     const {blinkStyle, canUseMultiScan, shouldShowMultiScanEducationalPopup, showBlink, toggleMultiScan, dismissMultiScanEducationalPopup, submitReceipts, submitMultiScanReceipts} =
         useMobileReceiptScan({
@@ -131,6 +133,7 @@ function MobileWebCameraView({
             shouldSkipConfirmation,
             setStartLocationPermissionFlow,
             setIsMultiScanEnabled,
+            draftTransactionIDs,
         });
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -207,19 +210,32 @@ function MobileWebCameraView({
         if (!isTabActive) {
             return;
         }
+        let ignore = false;
         queryCameraPermission()
             .then((state) => {
+                if (ignore) {
+                    return;
+                }
                 setCameraPermissionState(state);
                 if (state === 'granted') {
                     requestCameraPermission();
                 }
             })
             .catch(() => {
+                if (ignore) {
+                    return;
+                }
                 setCameraPermissionState('denied');
             })
             .finally(() => {
+                if (ignore) {
+                    return;
+                }
                 setIsQueriedPermissionState(true);
             });
+        return () => {
+            ignore = true;
+        };
         // Refresh permission state whenever this tab regains focus.
     }, [isTabActive, requestCameraPermission]);
 
@@ -331,10 +347,16 @@ function MobileWebCameraView({
         const videoHeight = cameraRef.current.video?.getBoundingClientRect?.()?.height ?? NaN;
         const viewFinderHeight = viewfinderLayout.current?.height ?? NaN;
         const shouldAlignTop = videoHeight > viewFinderHeight;
-        cropImageToAspectRatio(imageObject, viewfinderLayout.current?.width, viewfinderLayout.current?.height, shouldAlignTop).then(({file, filename, source}) => {
-            endSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
-            onCapture(file, filename, source);
-        });
+        cropImageToAspectRatio(imageObject, viewfinderLayout.current?.width, viewfinderLayout.current?.height, shouldAlignTop)
+            .then(({file, filename, source}) => {
+                endSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
+                onCapture(file, filename, source);
+            })
+            .catch(() => {
+                // Fall back to the uncropped image if cropping fails
+                endSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
+                onCapture(imageObject.file, imageObject.filename, imageObject.source);
+            });
     };
 
     const capturePhoto = () => {
