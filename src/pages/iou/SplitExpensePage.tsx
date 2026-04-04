@@ -140,6 +140,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         return sameSign && Math.abs(split.amount) > Math.abs(transactionDetailsAmount);
     });
     const difference = sumOfSplitExpenses - transactionDetailsAmount;
+    const hasMixedSignSplits = splitExpenses.some((split) => (split.amount ?? 0) < 0 !== transactionDetailsAmount < 0);
     const currencySymbol = getCurrencySymbol(transactionDetails.currency ?? '') ?? transactionDetails.currency ?? CONST.CURRENCY.USD;
 
     useEffect(() => {
@@ -267,7 +268,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         }
 
         if (invalidSplit && sumOfSplitExpenses !== transactionDetailsAmount && !isDistance) {
-            if (difference > 0) {
+            if (hasMixedSignSplits ? difference > 0 : Math.abs(sumOfSplitExpenses) > Math.abs(transactionDetailsAmount)) {
                 setErrorMessage(translate('iou.totalAmountGreaterThanOriginal', convertToDisplayString(Math.abs(difference), transactionDetails?.currency)));
             } else {
                 setErrorMessage(translate('iou.totalAmountLessThanOriginal', convertToDisplayString(Math.abs(difference), transactionDetails?.currency)));
@@ -275,14 +276,16 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             return;
         }
 
-        if (sumOfSplitExpenses > transactionDetailsAmount && !isDistance) {
+        const sumExceedsTotal = hasMixedSignSplits ? sumOfSplitExpenses > transactionDetailsAmount : Math.abs(sumOfSplitExpenses) > Math.abs(transactionDetailsAmount);
+        const sumBelowTotal = hasMixedSignSplits ? sumOfSplitExpenses < transactionDetailsAmount : Math.abs(sumOfSplitExpenses) < Math.abs(transactionDetailsAmount);
+        if (sumExceedsTotal && !isDistance) {
             const greaterThanDifference = sumOfSplitExpenses - transactionDetailsAmount;
-            setErrorMessage(translate('iou.totalAmountGreaterThanOriginal', convertToDisplayString(greaterThanDifference, transactionDetails?.currency)));
+            setErrorMessage(translate('iou.totalAmountGreaterThanOriginal', convertToDisplayString(Math.abs(greaterThanDifference), transactionDetails?.currency)));
             return;
         }
-        if (sumOfSplitExpenses < transactionDetailsAmount && (isPerDiem || isCard) && !isDistance) {
+        if (sumBelowTotal && (isPerDiem || isCard) && !isDistance) {
             const lessThanDifference = transactionDetailsAmount - sumOfSplitExpenses;
-            setErrorMessage(translate('iou.totalAmountLessThanOriginal', convertToDisplayString(lessThanDifference, transactionDetails?.currency)));
+            setErrorMessage(translate('iou.totalAmountLessThanOriginal', convertToDisplayString(Math.abs(lessThanDifference), transactionDetails?.currency)));
             return;
         }
 
@@ -416,14 +419,14 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     let warningMessage = '';
 
     if (invalidSplit && sumOfSplitExpenses !== transactionDetailsAmount) {
-        if (difference > 0) {
+        if (hasMixedSignSplits ? difference > 0 : Math.abs(sumOfSplitExpenses) > Math.abs(transactionDetailsAmount)) {
             warningMessage = translate('iou.totalAmountGreaterThanOriginal', convertToDisplayString(Math.abs(difference), transactionDetails?.currency));
         } else {
             warningMessage = translate('iou.totalAmountLessThanOriginal', convertToDisplayString(Math.abs(difference), transactionDetails?.currency));
         }
-    } else if (difference < 0) {
+    } else if (hasMixedSignSplits ? difference < 0 : Math.abs(sumOfSplitExpenses) < Math.abs(transactionDetailsAmount)) {
         warningMessage = translate('iou.totalAmountLessThanOriginal', convertToDisplayString(Math.abs(difference), transactionDetails.currency));
-    } else if (difference > 0) {
+    } else if (hasMixedSignSplits ? difference > 0 : Math.abs(sumOfSplitExpenses) > Math.abs(transactionDetailsAmount)) {
         warningMessage = translate('iou.totalAmountGreaterThanOriginal', convertToDisplayString(Math.abs(difference), transactionDetails?.currency));
     }
 
