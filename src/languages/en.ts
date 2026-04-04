@@ -508,6 +508,7 @@ const translations = {
         on: 'On',
         before: 'Before',
         after: 'After',
+        range: 'Range',
         reschedule: 'Reschedule',
         general: 'General',
         workspacesTabTitle: 'Workspaces',
@@ -843,6 +844,9 @@ const translations = {
         addAttachment: 'Add attachment',
         writeSomething: 'Write something...',
         blockedFromConcierge: 'Communication is barred',
+        askConciergeToUpdate: 'Try "Update an expense"...',
+        askConciergeToCorrect: 'Try "Correct an expense"...',
+        askConciergeForHelp: 'Ask Concierge AI for help...',
         fileUploadFailed: 'Upload failed. File is not supported.',
         localTime: (user: string, time: string) => `It's ${time} for ${user}`,
         edited: '(edited)',
@@ -988,16 +992,7 @@ const translations = {
         forYou: 'For you',
         timeSensitiveSection: {
             title: 'Time sensitive',
-            cta: 'Claim',
             ctaFix: 'Fix',
-            offer50off: {
-                title: 'Get 50% off your first year!',
-                subtitle: ({formattedTime}: {formattedTime: string}) => `${formattedTime} remaining`,
-            },
-            offer25off: {
-                title: 'Get 25% off your first year!',
-                subtitle: ({days}: {days: number}) => `${days} ${days === 1 ? 'day' : 'days'} remaining`,
-            },
             fixCompanyCardConnection: {
                 title: ({feedName}: {feedName: string}) => (feedName ? `Fix ${feedName} company card connection` : 'Fix company card connection'),
                 defaultSubtitle: 'Workspace',
@@ -1042,6 +1037,19 @@ const translations = {
                 title: "We couldn't bill your card on file",
                 subtitle: 'Subscription',
             },
+        },
+        freeTrialSection: {
+            title: ({days}: {days: number}) => `Free trial: ${days} ${days === 1 ? 'day' : 'days'} left!`,
+            offer50Body: 'Get 50% off your first year!',
+            offer25Body: 'Get 25% off your first year!',
+            addCardBody: "Don't wait! Add your payment card now.",
+            ctaClaim: 'Claim',
+            ctaAdd: 'Add card',
+            timeRemaining: ({formattedTime}: {formattedTime: string}) => `Time remaining: ${formattedTime}`,
+            timeRemainingDays: () => ({
+                one: 'Time remaining: 1 day',
+                other: (pluralCount: number) => `Time remaining: ${pluralCount} days`,
+            }),
         },
         assignedCards: 'Your Expensify Cards',
         assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} remaining`,
@@ -1134,7 +1142,23 @@ const translations = {
         singleFieldMultipleColumns: (fieldName: string) => `Oops! You've mapped a single field ("${fieldName}") to multiple columns. Please review and try again.`,
         emptyMappedField: (fieldName: string) => `Oops! The field ("${fieldName}") contains one or more empty values. Please review and try again.`,
         importSuccessfulTitle: 'Import successful',
-        importCategoriesSuccessfulDescription: ({categories}: {categories: number}) => (categories > 1 ? `${categories} categories have been added.` : '1 category has been added.'),
+        importCategoriesSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
+            if (!added && !updated) {
+                return 'No categories have been added or updated.';
+            }
+
+            if (added && updated) {
+                return `${added} ${added === 1 ? 'category' : 'categories'} added, ${updated} ${updated === 1 ? 'category' : 'categories'} updated.`;
+            }
+
+            if (added) {
+                return added === 1 ? '1 category has been added.' : `${added} categories have been added.`;
+            }
+
+            return updated === 1 ? '1 category has been updated.' : `${updated} categories have been updated.`;
+        },
+        importCompanyCardTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
+            transactions > 1 ? `${transactions} transactions have been added.` : '1 transaction has been added.',
         importMembersSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
             if (!added && !updated) {
                 return 'No members have been added or updated.';
@@ -1356,7 +1380,6 @@ const translations = {
         }),
         settledExpensify: 'Paid',
         done: 'Done',
-        deleted: 'Deleted',
         settledElsewhere: 'Paid elsewhere',
         individual: 'Individual',
         business: 'Business',
@@ -1475,6 +1498,11 @@ const translations = {
             endDateSameAsStartDate: "The end date can't be the same as the start date",
             manySplitsProvided: `The maximum splits allowed is ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `The date range can't exceed ${CONST.IOU.SPLITS_LIMIT} days.`,
+            nonReimbursablePayment: 'Cannot pay via Expensify',
+            nonReimbursablePaymentDescription: (isMultiple?: boolean) =>
+                isMultiple
+                    ? "One or more selected reports don't have reimbursable expenses. Double check the expenses, or manually mark as paid."
+                    : "The report doesn't have reimbursable expenses. Double check the expenses, or manually mark as paid.",
         },
         dismissReceiptError: 'Dismiss error',
         dismissReceiptErrorConfirmation: 'Heads up! Dismissing this error will remove your uploaded receipt entirely. Are you sure?',
@@ -1563,6 +1591,7 @@ const translations = {
         bookingArchived: 'This booking is archived',
         bookingArchivedDescription: 'This booking is archived because the trip date has passed. Add an expense for the final amount if needed.',
         attendees: 'Attendees',
+        totalPerAttendee: 'Per attendee',
         whoIsYourAccountant: 'Who is your accountant?',
         paymentComplete: 'Payment complete',
         time: 'Time',
@@ -1607,6 +1636,18 @@ const translations = {
                 markedAsResolved: 'marked the rejection reason as resolved',
             },
         },
+        rejectReport: {
+            title: 'Reject report',
+            description: 'Explain why you will not approve this report:',
+            rejectReason: 'Rejection reason',
+            selectTarget: 'Choose the member to reject this report back to for review:',
+            lastApprover: 'Last approver',
+            submitter: 'Submitter',
+            rejectedReportMessage: 'This report was rejected.',
+            rejectedNextStep: 'This report was rejected. Waiting on you to fix the issues and manually resubmit.',
+            selectMemberError: 'Select a member to reject this report back to.',
+            couldNotReject: 'The report could not be rejected. Please try again.',
+        },
         moveExpenses: 'Move to report',
         moveExpensesError: "You can't move per diem expenses to reports on other workspaces, because the per diem rates may differ between workspaces.",
         changeApprover: {
@@ -1622,7 +1663,9 @@ const translations = {
             },
             addApprover: {
                 subtitle: 'Choose an additional approver for this report before we route through the rest of the approval workflow.',
+                bulkSubtitle: 'Choose an additional approver for these reports before we route through the rest of the approval workflow.',
             },
+            bulkSubtitle: 'Choose an option to change the approver for these reports.',
         },
         chooseWorkspace: 'Choose a workspace',
         routedDueToDEW: (to: string, reason?: string) => `report routed to ${to}${reason ? ` because ${reason}` : ''}`,
@@ -1770,7 +1813,7 @@ const translations = {
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Waiting for <strong>your</strong> expenses to automatically submit${formattedETA}.`;
+                        return `Waiting for your expenses to automatically submit${formattedETA}.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `Waiting for <strong>${actor}'s</strong> expenses to automatically submit${formattedETA}.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
@@ -1848,6 +1891,18 @@ const translations = {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (_: NextStepParams) =>
                 `Oops! Looks like you're submitting to <strong>yourself</strong>. Approving your own reports is <strong>forbidden</strong> by your workspace. Please submit this report to someone else or contact your admin to change the person you submit to.`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: ({actor, actorType}: NextStepParams) => {
+                // All ACTOR_TYPE enum values are explicitly handled
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `This report was rejected. Waiting on <strong>you</strong> to fix the issues and manually resubmit.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `This report was rejected. Waiting on <strong>${actor}</strong> to fix the issues and manually resubmit.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `This report was rejected. Waiting on an admin to fix the issues and manually resubmit.`;
+                }
+            },
         },
         eta: {
             [CONST.NEXT_STEP.ETA_KEY.SHORTLY]: 'shortly',
@@ -2035,6 +2090,8 @@ const translations = {
             title: 'Help and support',
             description: 'We are here to help you 24/7',
             helpSite: 'Help site',
+            conciergeChat: 'Concierge',
+            conciergeChatDescription: 'Your personal AI agent',
         },
         whatIsNew: "What's new",
         accountSettings: 'Account settings',
@@ -2321,6 +2378,7 @@ const translations = {
         enableWallet: 'Enable wallet',
         addBankAccountToSendAndReceive: 'Add a bank account to make or receive payments.',
         addDebitOrCreditCard: 'Add debit or credit card',
+        cardInactive: 'Inactive',
         assignedCards: 'Assigned cards',
         assignedCardsDescription: 'Transactions from these cards sync automatically.',
         expensifyCard: 'Expensify Card',
@@ -2497,6 +2555,7 @@ const translations = {
             title: 'No members to display',
             expensesFromSubtitle: 'All workspace members already belong to an existing approval workflow.',
             approverSubtitle: 'All approvers belong to an existing workflow.',
+            bulkApproverSubtitle: 'No approvers match the criteria for selected reports.',
         },
     },
     workflowsDelayedSubmissionPage: {
@@ -2971,13 +3030,8 @@ const translations = {
                         4. Find ${integrationName}.
                         5. Click *Connect*.
 
-                        ${
-                            integrationName && CONST.connectionsVideoPaths[integrationName]
-                                ? `[Take me to accounting](${workspaceAccountingLink}).
-
-                        ![Connect to ${integrationName}](${CONST.CLOUDFRONT_URL}/${CONST.connectionsVideoPaths[integrationName]})`
-                                : `[Take me to accounting](${workspaceAccountingLink}).`
-                        }`),
+                        [Take me to accounting](${workspaceAccountingLink}).
+                    `),
             },
             connectCorporateCardTask: {
                 title: ({corporateCardLink}) => `Connect [your corporate cards](${corporateCardLink})`,
@@ -3817,6 +3871,10 @@ const translations = {
         youCanChange: 'You can change your workspace currency in your',
         findCountry: 'Find country',
         selectCountry: 'Select country',
+        error: {
+            connectToWorkspace: (workspaceRoute: string) =>
+                `Please connect this bank account to a <a href="${workspaceRoute}">workspace</a> so you can invite a director to sign in a later step.`,
+        },
     },
     bankInfoStep: {
         whatAreYour: 'What are your business bank account details?',
@@ -3864,6 +3922,7 @@ const translations = {
             `is connecting a ${currency} business bank account ending in ${bankAccountLastFour} to Expensify to pay employees in ${currency}. The next step requires signer info from a director.`,
         error: {
             emailsMustBeDifferent: 'Emails must be different',
+            connectToWorkspace: (workspaceRoute: string) => `Please connect this bank account to a <a href="${workspaceRoute}">workspace</a> to invite a director to sign.`,
         },
     },
     agreementsStep: {
@@ -4114,6 +4173,7 @@ const translations = {
             defaultNote: `Receipts sent to ${CONST.EMAIL.RECEIPTS} will appear in this workspace.`,
             deleteConfirmation: 'Are you sure you want to delete this workspace?',
             deleteWithCardsConfirmation: 'Are you sure you want to delete this workspace? This will remove all card feeds and assigned cards.',
+            deleteOpenExpensifyCardsError: 'Your company still has open Expensify Cards.',
             outstandingBalanceWarning:
                 'You have an outstanding balance that must be settled before deleting your last workspace. Please go to your subscription settings to resolve the payment.',
             settleBalance: 'Go to subscription',
@@ -5021,6 +5081,9 @@ const translations = {
         companyCards: {
             addCards: 'Add cards',
             selectCards: 'Select cards',
+            fromOtherWorkspaces: 'From other workspaces',
+            addWorkEmail: 'Add your work email',
+            addWorkEmailDescription: 'Please add your work email in order to use existing feeds from other workspaces.',
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: "Couldn't load card feeds",
                 workspaceFeedsCouldNotBeLoadedMessage: 'An error occurred while loading workspace card feeds. Please try again or contact your administrator.',
@@ -5030,6 +5093,11 @@ const translations = {
             },
             addNewCard: {
                 other: 'Other',
+                fileImport: 'Import transactions from file',
+                createFileFeedHelpText: `<muted-text>Please follow this <a href="${CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}">help guide</a> to get your company card expenses imported!</muted-text>`,
+                companyCardLayoutName: 'Company card layout name',
+                cardLayoutNameRequired: 'The Company card layout name is required',
+                useAdvancedFields: 'Use advanced fields (not recommended)',
                 cardProviders: {
                     gl1025: 'American Express Corporate Cards',
                     cdf: 'Mastercard Commercial Cards',
@@ -5090,6 +5158,24 @@ const translations = {
                     prompt: "We noticed you didn't finish adding your cards. If you found an issue, let us know so we can help get things back on track.",
                     confirmText: 'Report issue',
                     cancelText: 'Skip',
+                },
+                csvColumns: {
+                    cardNumber: 'Card number',
+                    postedDate: 'Date',
+                    merchant: 'Merchant',
+                    amount: 'Amount',
+                    currency: 'Currency',
+                    ignore: 'Ignore',
+                    originalTransactionDate: 'Original transaction date',
+                    originalAmount: 'Original amount',
+                    originalCurrency: 'Original currency',
+                    comment: 'Comment',
+                    category: 'Category',
+                    tag: 'Tag',
+                },
+                csvErrors: {
+                    requiredColumns: (missingColumns: string) => `Please assign a column to each of the attributes: ${missingColumns}.`,
+                    duplicateColumns: (duplicateColumn: string) => `Oops! You've mapped a single field ("${duplicateColumn}") to multiple columns. Please review and try again.`,
                 },
             },
             statementCloseDate: {
@@ -6632,6 +6718,17 @@ const translations = {
                 title: 'Expense policy',
                 cardSubtitle: "Here's where your team's expense policy lives, so everyone's on the same page about what's covered.",
             },
+            spendRules: {
+                title: 'Spend',
+                subtitle: 'Approve or decline Expensify Card transactions in realtime.',
+                defaultRuleDescription: 'All cards',
+                block: 'Block',
+                defaultRuleTitle: 'Categories: Adult services, ATMs, gambling, money transfers',
+                builtInProtectionModal: {
+                    title: 'Expensify Cards offer built-in protection - always',
+                    description: `Expensify always declines these charges:\n\n  • Adult services\n  • ATMs\n  • Gambling\n  • Money transfers\n\nAdd more spend rules to protect company cash flow.`,
+                },
+            },
         },
         planTypePage: {
             planTypes: {
@@ -6872,6 +6969,14 @@ const translations = {
             return `${allEnabled ? 'enabled' : 'disabled'} the option "${optionName}" for the report field "${fieldName}", making all options ${allEnabled ? 'enabled' : 'disabled'}`;
         },
         deleteReportField: ({fieldType, fieldName}: {fieldType: string; fieldName?: string}) => `removed ${fieldType} Report Field "${fieldName}"`,
+        addedCardFeed: (feedName: string) => `added card feed "${feedName}"`,
+        removedCardFeed: (feedName: string) => `removed card feed "${feedName}"`,
+        renamedCardFeed: (newName: string, oldName: string) => `renamed card feed to "${newName}" (previously "${oldName}")`,
+        assignedCompanyCard: (email: string, feedName: string, cardLastFour: string) => `assigned ${email} ${feedName ? `"${feedName}" ` : ''}company card ending in ${cardLastFour}`,
+        unassignedCompanyCard: (email: string, feedName: string, cardLastFour: string) => `unassigned ${email} ${feedName ? `"${feedName}" ` : ''}company card ending in ${cardLastFour}`,
+        updatedCardFeedLiability: (feedName: string, enabled: boolean) => `${enabled ? 'enabled' : 'disabled'} cardholders to delete card transactions for card feed "${feedName}"`,
+        updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
+            `changed card feed "${feedName}" statement period end day${newValue ? ` to "${newValue}"` : ''}${previousValue ? ` (previously "${previousValue}")` : ''}`,
         preventSelfApproval: ({oldValue, newValue}: UpdatedPolicyPreventSelfApprovalParams) =>
             `updated "Prevent self-approval" to "${newValue === 'true' ? 'Enabled' : 'Disabled'}" (previously "${oldValue === 'true' ? 'Enabled' : 'Disabled'}")`,
         updateMonthlyOffset: (oldValue: string, newValue: string) => {
@@ -7318,13 +7423,16 @@ const translations = {
         spendOverTime: 'Spend over time',
         groupedExpenses: 'grouped expenses',
         bulkActions: {
+            editMultiple: 'Edit multiple',
+            editMultipleTitle: 'Edit multiple expenses',
+            // cspell:disable
+            editMultipleDescription: "Changes will be set for all selected expenses and will override any previously set values. Just sayin'.",
             approve: 'Approve',
             pay: 'Pay',
             delete: 'Delete',
             hold: 'Hold',
             unhold: 'Remove hold',
             reject: 'Reject',
-            undelete: 'Undelete',
             noOptionsAvailable: 'No options available for the selected group of expenses.',
         },
         filtersHeader: 'Filters',
@@ -7333,6 +7441,8 @@ const translations = {
                 before: (date?: string) => `Before ${date ?? ''}`,
                 after: (date?: string) => `After ${date ?? ''}`,
                 on: (date?: string) => `On ${date ?? ''}`,
+                customDate: 'Custom date',
+                customRange: 'Custom range',
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Never',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Last month',
@@ -7453,6 +7563,9 @@ const translations = {
         exportAll: {
             selectAllMatchingItems: 'Select all matching items',
             allMatchingItemsSelected: 'All matching items selected',
+        },
+        errors: {
+            pleaseSelectDatesForBothFromAndTo: 'Please select dates for both From and To',
         },
     },
     genericErrorPage: {

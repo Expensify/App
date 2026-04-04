@@ -5,23 +5,49 @@ import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSidePanelActions from '@hooks/useSidePanelActions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openExternalLink} from '@libs/actions/Link';
+import {navigateToConciergeChat} from '@libs/actions/Report';
+import getPlatform from '@libs/getPlatform';
 import Navigation from '@libs/Navigation/Navigation';
 import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {hasSeenTourSelector} from '@src/selectors/Onboarding';
+
+const isWeb = getPlatform() === CONST.PLATFORM.WEB;
 
 function HelpPage() {
-    const icons = useMemoizedLazyExpensifyIcons(['NewWindow', 'Monitor']);
+    const icons = useMemoizedLazyExpensifyIcons(['ConciergeAvatar', 'NewWindow', 'Monitor']);
     const illustrations = useMemoizedLazyIllustrations(['LifeRing', 'TopiaryDollarSign']);
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const {openSidePanel} = useSidePanelActions();
 
     const menuItems = [
+        {
+            key: 'initialSettingsPage.helpPage.conciergeChat',
+            title: translate('initialSettingsPage.helpPage.conciergeChat'),
+            description: translate('initialSettingsPage.helpPage.conciergeChatDescription'),
+            icon: icons.ConciergeAvatar,
+            iconType: CONST.ICON_TYPE_AVATAR,
+            onPress: () => (isWeb ? openSidePanel() : navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas)),
+            shouldShowRightIcon: true,
+            wrapperStyle: [styles.sectionMenuItemTopDescription],
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.CONCIERGE_CHAT,
+        },
         {
             key: 'initialSettingsPage.helpPage.helpSite',
             title: translate('initialSettingsPage.helpPage.helpSite'),
@@ -30,6 +56,7 @@ function HelpPage() {
             onPress: () => openExternalLink(CONST.NEWHELP_URL),
             shouldShowRightIcon: true,
             wrapperStyle: [styles.sectionMenuItemTopDescription],
+            link: CONST.NEWHELP_URL,
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.HELP_DOCS,
         },
     ];
