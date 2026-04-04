@@ -1093,7 +1093,13 @@ function updateSplitTransactions({
     const originalChildTransactions = allChildTransactions.filter((tx) => tx?.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID);
     const processedChildTransactionIDs: string[] = [];
 
-    const splitExpensesTotal = transactionData?.splitExpensesTotal ?? 0;
+    const providedSplitExpensesTotal = transactionData?.splitExpensesTotal;
+    const splitExpensesTotalFromExistingChildren = originalChildTransactions.reduce((total, childTransaction) => total + (getTransactionDetails(childTransaction)?.amount ?? 0), 0);
+    const splitExpensesTotalFromCurrentSplits = splitExpenses.reduce((total, splitExpense) => total + splitExpense.amount, 0);
+    const splitExpensesTotal =
+        typeof providedSplitExpensesTotal === 'number' && providedSplitExpensesTotal !== 0
+            ? providedSplitExpensesTotal
+            : splitExpensesTotalFromExistingChildren || splitExpensesTotalFromCurrentSplits;
 
     const isCreationOfSplits = originalChildTransactions.length === 0;
     const hasEditableSplitExpensesLeft = splitExpenses.some((expense) => (expense.statusNum ?? 0) < CONST.REPORT.STATUS_NUM.SUBMITTED);
@@ -2806,7 +2812,11 @@ function removeSplitExpenseField(draftTransaction: OnyxEntry<OnyxTypes.Transacti
 
     // Auto-redistribute amounts for all splits if this is not a distance request
     if (!isDistanceRequest) {
-        redistributedSplitExpenses = redistributeSplitExpenseAmounts(splitExpenses, total, currency);
+        const hasAnyUneditedSplit = splitExpenses.some((item) => !item.isManuallyEdited);
+        // If every remaining split is locked, temporarily unlock them so removing one split
+        // still redistributes to a valid, saveable total in the split edit flow.
+        const splitExpensesToRedistribute = hasAnyUneditedSplit ? splitExpenses : splitExpenses.map((item) => ({...item, isManuallyEdited: false}));
+        redistributedSplitExpenses = redistributeSplitExpenseAmounts(splitExpensesToRedistribute, total, currency);
     }
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, {

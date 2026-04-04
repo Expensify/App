@@ -108,7 +108,7 @@ function useSelectedTransactionsActions({
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(selectedTransactionIDs);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const {isBetaEnabled} = usePermissions();
-    const {deleteTransactions} = useDeleteTransactions({report, reportActions, policy});
+    const {deleteTransactions, shouldOpenSplitExpenseEditFlowOnDelete} = useDeleteTransactions({report, reportActions, policy});
     const {login, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const selectedTransactionsList = selectedTransactionIDs.reduce((acc, transactionID) => {
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
@@ -165,13 +165,24 @@ function useSelectedTransactionsActions({
     }
 
     const handleDeleteTransactions = () => {
-        const deletedThreadReportIDs = deleteTransactions(selectedTransactionIDs, duplicateTransactions, duplicateTransactionViolations, isOnSearch ? currentSearchHash : undefined, false);
+        const deleteResult = deleteTransactions(selectedTransactionIDs, duplicateTransactions, duplicateTransactionViolations, isOnSearch ? currentSearchHash : undefined, false);
         clearSelectedTransactions(true);
         setIsDeleteModalVisible(false);
-        Navigation.removeReportScreen(new Set(deletedThreadReportIDs));
+
+        if (deleteResult.action === 'redirected') {
+            return deleteResult;
+        }
+
+        Navigation.removeReportScreen(new Set(deleteResult.deletedTransactionThreadReportIDs));
+        return deleteResult;
     };
 
     const handleDeleteTransactionsWithNavigation = (backToRoute?: Route) => {
+        if (shouldOpenSplitExpenseEditFlowOnDelete(selectedTransactionIDs)) {
+            handleDeleteTransactions();
+            return;
+        }
+
         Navigation.goBack(backToRoute);
 
         if (!backToRoute && !navigationRef.canGoBack()) {
@@ -434,12 +445,20 @@ function useSelectedTransactionsActions({
 
         const canRemoveReportTransaction = canDeleteTransaction(report, isReportArchived);
 
+        const shouldShowEditSplitOnDeleteAction = shouldOpenSplitExpenseEditFlowOnDelete(selectedTransactionIDs);
+
         if (canRemoveReportTransaction && canAllSelectedTransactionsBeRemoved) {
             options.push({
-                text: translate('common.delete'),
-                icon: expensifyIcons.Trashcan,
+                text: shouldShowEditSplitOnDeleteAction ? translate('iou.editSplits') : translate('common.delete'),
+                icon: shouldShowEditSplitOnDeleteAction ? expensifyIcons.ArrowSplit : expensifyIcons.Trashcan,
                 value: CONST.REPORT.SECONDARY_ACTIONS.DELETE,
+                shouldSkipDeleteModal: shouldShowEditSplitOnDeleteAction,
                 onSelected: () => {
+                    if (shouldShowEditSplitOnDeleteAction) {
+                        handleDeleteTransactions();
+                        return;
+                    }
+
                     if (onDeleteSelected) {
                         onDeleteSelected(handleDeleteTransactions, handleDeleteTransactionsWithNavigation);
                     } else {

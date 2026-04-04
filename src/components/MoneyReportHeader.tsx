@@ -335,7 +335,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
     );
 
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactions.map((t) => t.transactionID));
-    const {deleteTransactions} = useDeleteTransactions({
+    const {deleteTransactions, shouldOpenSplitExpenseEditFlowOnDelete} = useDeleteTransactions({
         report: chatReport,
         reportActions,
         policy,
@@ -1737,6 +1737,13 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                         if (!requestParentReportAction || !transaction?.transactionID) {
                             throw new Error('Missing data!');
                         }
+                        const shouldOpenSplitExpenseEditFlow = shouldOpenSplitExpenseEditFlowOnDelete([transaction.transactionID]);
+
+                        if (shouldOpenSplitExpenseEditFlow) {
+                            deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash, false);
+                            return;
+                        }
+
                         const goBackRoute = getNavigationUrlOnMoneyRequestDelete(
                             transaction.transactionID,
                             requestParentReportAction,
@@ -1754,7 +1761,18 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                         // Money request should be deleted when interactions are done, to not show the not found page before navigating to goBackRoute
                         // eslint-disable-next-line @typescript-eslint/no-deprecated
                         InteractionManager.runAfterInteractions(() => {
-                            deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, isReportInSearch ? currentSearchHash : undefined, false);
+                            const deleteResult = deleteTransactions(
+                                [transaction.transactionID],
+                                duplicateTransactions,
+                                duplicateTransactionViolations,
+                                isReportInSearch ? currentSearchHash : undefined,
+                                false,
+                            );
+
+                            if (deleteResult.action === 'redirected') {
+                                return;
+                            }
+
                             removeTransaction(transaction.transactionID);
                         });
                     }
@@ -1951,6 +1969,9 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
     const selectedTransactionsOptions = useMemo(() => {
         const mappedOptions = originalSelectedTransactionsOptions.map((option) => {
             if (option.value === CONST.REPORT.SECONDARY_ACTIONS.DELETE) {
+                if (option.shouldSkipDeleteModal) {
+                    return option;
+                }
                 return {
                     ...option,
                     onSelected: showDeleteModal,

@@ -311,7 +311,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
     const [iouTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(iouTransactionID ? [iouTransactionID] : []);
-    const {deleteTransactions} = useDeleteTransactions({
+    const {deleteTransactions, shouldOpenSplitExpenseEditFlowOnDelete} = useDeleteTransactions({
         report: parentReport,
         reportActions: requestParentReportAction ? [requestParentReportAction] : [],
         policy,
@@ -917,7 +917,10 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 currentUserAccountID: currentUserPersonalDetails.accountID,
             });
         } else if (iouTransactionID) {
-            deleteTransactions([iouTransactionID], duplicateTransactions, duplicateTransactionViolations, undefined, isSingleTransactionView);
+            const deleteResult = deleteTransactions([iouTransactionID], duplicateTransactions, duplicateTransactionViolations, undefined, isSingleTransactionView);
+            if (deleteResult.action === 'redirected') {
+                return;
+            }
             removeTransaction(iouTransactionID);
         }
     }, [
@@ -1025,7 +1028,13 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         if (action !== ModalActions.CONFIRM) {
             return;
         }
+        const shouldOpenSplitExpenseEditFlow = iouTransactionID ? shouldOpenSplitExpenseEditFlowOnDelete([iouTransactionID]) : false;
         Navigation.setNavigationActionToMicrotaskQueue(() => {
+            if (shouldOpenSplitExpenseEditFlow) {
+                deleteTransaction();
+                return;
+            }
+
             navigateToTargetUrl();
             // Delay deletion until the RHP close animation finishes to prevent a brief
             // "Not Found" flash inside the animating-out panel on slower devices.
@@ -1034,7 +1043,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 deleteTransaction();
             });
         });
-    }, [showConfirmModal, translate, caseID, navigateToTargetUrl, deleteTransaction]);
+    }, [showConfirmModal, translate, caseID, iouTransactionID, shouldOpenSplitExpenseEditFlowOnDelete, navigateToTargetUrl, deleteTransaction]);
 
     const mentionReportContextValue = useMemo(() => ({currentReportID: report.reportID, exactlyMatch: true}), [report.reportID]);
 
