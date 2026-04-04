@@ -560,24 +560,7 @@ function isHoldActionForTransaction(report: Report, reportTransaction: Transacti
         return false;
     }
 
-    const isOpenReport = isOpenReportUtils(report);
-    const isSubmitter = isCurrentUserSubmitter(report);
-    const isReportManager = isReportManagerUtils(report);
-
-    if (isIOUReport) {
-        return (isSubmitter || isReportManager) && !isSettled(report);
-    }
-
-    if (isOpenReport && (isSubmitter || isReportManager)) {
-        return true;
-    }
-
-    if (isSubmitter) {
-        return isAwaitingFirstLevelApproval(report);
-    }
-
-    const isProcessingReport = isProcessingReportUtils(report);
-    return isProcessingReport;
+    return true;
 }
 
 function isChangeWorkspaceAction(report: Report, policies: OnyxCollection<Policy>, currentUserLogin: string, reportActions?: ReportAction[]): boolean {
