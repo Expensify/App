@@ -1,9 +1,9 @@
-import {useEffect} from 'react';
-import useConfirmModal from '@hooks/useConfirmModal';
+import React from 'react';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import type {TranslationParameters} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ConfirmModal from './ConfirmModal';
 
 type ImportSpreadsheetConfirmModalProps = {
     /** Modal visibility */
@@ -21,31 +21,27 @@ type ImportSpreadsheetConfirmModalProps = {
 
 function ImportSpreadsheetConfirmModal({isVisible, closeImportPageAndModal, onModalHide, shouldHandleNavigationBack = true}: ImportSpreadsheetConfirmModalProps) {
     const {translate} = useLocalize();
-    const {showConfirmModal} = useConfirmModal();
     const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
 
     const titleText = spreadsheet?.importFinalModal?.titleKey ? translate(spreadsheet.importFinalModal.titleKey) : '';
     const promptText = spreadsheet?.importFinalModal?.promptKey
         ? translate(spreadsheet.importFinalModal.promptKey, spreadsheet.importFinalModal.promptKeyParams as TranslationParameters<typeof spreadsheet.importFinalModal.promptKey>[0])
         : '';
+    const shouldShowModal = isVisible && !!titleText && !!promptText && !!spreadsheet?.importFinalModal;
 
-    useEffect(() => {
-        if (!isVisible || !titleText || !promptText || !spreadsheet?.importFinalModal) {
-            return;
-        }
-        showConfirmModal({
-            title: titleText,
-            prompt: promptText,
-            confirmText: translate('common.buttonConfirm'),
-            shouldShowCancelButton: false,
-            shouldHandleNavigationBack,
-            onModalHide,
-        }).then(() => {
-            closeImportPageAndModal();
-        });
-    }, [isVisible, titleText, promptText, closeImportPageAndModal, onModalHide, shouldHandleNavigationBack, showConfirmModal, translate, spreadsheet?.importFinalModal]);
-
-    return null;
+    return (
+        <ConfirmModal
+            isVisible={shouldShowModal}
+            title={titleText}
+            prompt={promptText}
+            onConfirm={closeImportPageAndModal}
+            onCancel={closeImportPageAndModal}
+            confirmText={translate('common.buttonConfirm')}
+            shouldShowCancelButton={false}
+            shouldHandleNavigationBack={shouldHandleNavigationBack}
+            onModalHide={onModalHide}
+        />
+    );
 }
 
 export default ImportSpreadsheetConfirmModal;
