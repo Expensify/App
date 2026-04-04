@@ -53,6 +53,22 @@ function getSearchScreenNameForRoute(route: NavigationPartialRoute): string {
     return route.name;
 }
 
+function extractModalStackAndLeaf(state: PartialState<NavigationState>): {modalStackName: string; leafRoute: NavigationPartialRoute} | undefined {
+    const rhpNav = state.routes.find((r) => r.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR);
+    if (!rhpNav?.state?.routes?.length) {
+        return undefined;
+    }
+    const modalStack = rhpNav.state.routes.at(-1);
+    if (!modalStack?.state?.routes?.length) {
+        return undefined;
+    }
+    const leaf = modalStack.state.routes.at(-1) as NavigationPartialRoute | undefined;
+    if (!leaf) {
+        return undefined;
+    }
+    return {modalStackName: modalStack.name, leafRoute: leaf};
+}
+
 function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
     // Check for backTo param. One screen with different backTo value may need different screens visible under the overlay.
     if (isRouteWithBackToParam(route)) {
@@ -185,15 +201,18 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
 
     // Handle dynamic routes: find the appropriate full screen route
     if (route.path) {
-        const dynamicRouteSuffix = findMatchingDynamicSuffix(route.path);
-        if (dynamicRouteSuffix) {
-            const pathWithoutDynamicSuffix = getPathWithoutDynamicSuffix(route.path, dynamicRouteSuffix);
+        const suffixMatch = findMatchingDynamicSuffix(route.path);
+        if (suffixMatch) {
+            // Strip the suffix from the URL. For parametric routes we pass both the actual URL
+            // suffix and the registered pattern so query params can be resolved correctly.
+            const pathWithoutDynamicSuffix = getPathWithoutDynamicSuffix(route.path, suffixMatch.actualSuffix as string, suffixMatch.pattern as string);
 
             if (!pathWithoutDynamicSuffix) {
                 return undefined;
             }
 
-            // Get navigation state for the base path without dynamic suffix
+            // Parse the base path (without dynamic suffix) into a navigation state
+            // to determine which full-screen route should be visible underneath the overlay.
             const stateUnderDynamicRoute = getStateFromPath(pathWithoutDynamicSuffix);
             const lastRoute = stateUnderDynamicRoute?.routes.at(-1);
 
@@ -219,6 +238,118 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
     }
 
     return undefined;
+}
+
+/**
+ * When the URL contains a chain of dynamic suffixes (e.g. /base/invite/invite-message/role),
+ * getStateFromPath only returns the top-most dynamic screen. This function reconstructs
+ * the full chain so that all intermediate screens are present in the modal stack,
+ * enabling proper back-navigation after a page refresh.
+ *
+ * Returns the complete adapted state (fullscreen + RHP with full chain) or undefined
+ * if the focused route has no dynamic suffix chain.
+ */
+function buildDynamicChainState(originalState: PartialState<NavigationState<RootNavigatorParamList>>, focusedRoute: NavigationPartialRoute): GetAdaptedStateReturnType | undefined {
+    if (!focusedRoute.path) {
+        return undefined;
+    }
+
+    const suffixMatch = findMatchingDynamicSuffix(focusedRoute.path);
+    if (!suffixMatch) {
+        return undefined;
+    }
+
+    type ModalStackEntry = {modalStackName: string; leafRoute: NavigationPartialRoute};
+    const chainEntries: ModalStackEntry[] = [];
+    let currentPath = focusedRoute.path;
+    let staticBaseState: PartialState<NavigationState> | undefined;
+
+    while (currentPath) {
+        const match = findMatchingDynamicSuffix(currentPath);
+        if (!match) {
+            break;
+        }
+
+        const basePath = getPathWithoutDynamicSuffix(currentPath, match.actualSuffix as string, match.pattern as string);
+        if (!basePath) {
+            break;
+        }
+
+        const baseState = getStateFromPath(basePath as RoutePath);
+        if (!baseState) {
+            break;
+        }
+
+        const entry = extractModalStackAndLeaf(baseState);
+        if (entry) {
+            chainEntries.unshift(entry);
+            currentPath = basePath;
+            continue;
+        }
+
+        // Base path doesn't produce an RHP state — it's the static base (fullscreen or other).
+        staticBaseState = baseState;
+        break;
+    }
+
+    if (chainEntries.length === 0) {
+        return undefined;
+    }
+
+    // Extract the top screen from the original state and add it at the end of the chain
+    const topEntry = extractModalStackAndLeaf(originalState);
+    if (!topEntry) {
+        return undefined;
+    }
+
+    // Group all leaf routes by their modal stack name (preserving order)
+    const grouped = new Map<string, NavigationPartialRoute[]>();
+    for (const {modalStackName, leafRoute} of chainEntries) {
+        const list = grouped.get(modalStackName) ?? [];
+        list.push(leafRoute);
+        grouped.set(modalStackName, list);
+    }
+
+    // Add the top screen into its modal stack group
+    const topList = grouped.get(topEntry.modalStackName) ?? [];
+    topList.push(topEntry.leafRoute);
+    grouped.set(topEntry.modalStackName, topList);
+
+    // Build the RHP navigator with all modal stacks
+    const modalStackRoutes: NavigationPartialRoute[] = Array.from(grouped.entries()).map(([stackName, leaves]) => ({
+        name: stackName,
+        state: getRoutesWithIndex(leaves),
+    }));
+
+    const rhpNavigator: NavigationPartialRoute = {
+        name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR,
+        state: getRoutesWithIndex(modalStackRoutes),
+    };
+
+    // Determine fullscreen route from the bottom-most entry in the chain
+    const bottomLeaf = chainEntries.at(0)?.leafRoute;
+    if (!bottomLeaf) {
+        return undefined;
+    }
+    let fullScreenRoute = getMatchingFullScreenRoute(bottomLeaf);
+
+    if (!fullScreenRoute && staticBaseState) {
+        const lastStaticRoute = staticBaseState.routes.at(-1);
+        if (lastStaticRoute && isFullScreenName(lastStaticRoute.name)) {
+            fullScreenRoute = lastStaticRoute;
+        } else {
+            const staticFocused = findFocusedRouteWithOnyxTabGuard(staticBaseState);
+            if (staticFocused) {
+                fullScreenRoute = getMatchingFullScreenRoute(staticFocused);
+            }
+        }
+    }
+
+    if (!fullScreenRoute) {
+        fullScreenRoute = getDefaultFullScreenRoute(bottomLeaf);
+    }
+
+    return getRoutesWithIndex([fullScreenRoute, rhpNavigator]);
 }
 
 // If there is no particular matching route defined, we want to get the default route.
@@ -286,6 +417,13 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
         const focusedRoute = findFocusedRouteWithOnyxTabGuard(state);
 
         if (focusedRoute) {
+            // When the path contains a chain of dynamic suffixes, reconstruct the full
+            // stack of intermediate RHP screens so back-navigation works after refresh.
+            const chainState = buildDynamicChainState(state, focusedRoute);
+            if (chainState) {
+                return chainState;
+            }
+
             const matchingRootRoute = getMatchingFullScreenRoute(focusedRoute);
 
             // If there is a matching root route, add it to the state.
