@@ -1387,7 +1387,7 @@ function deleteWorkspaceCategories(
         ],
     };
 
-    const autoSelections = pushTransactionViolationsOnyxData(onyxData, policyData, optimisticPolicyData, optimisticPolicyCategoriesData);
+    pushTransactionViolationsOnyxData(onyxData, policyData, optimisticPolicyData, optimisticPolicyCategoriesData);
     appendSetupCategoriesOnboardingData(
         onyxData,
         setupCategoryTaskReport,
@@ -1401,7 +1401,6 @@ function deleteWorkspaceCategories(
     const parameters = {
         policyID,
         categories: JSON.stringify(categoryNamesToDelete),
-        ...(autoSelections.length > 0 && {transactionAutoSelections: JSON.stringify(autoSelections)}),
     };
 
     API.write(WRITE_COMMANDS.DELETE_WORKSPACE_CATEGORIES, parameters, onyxData);

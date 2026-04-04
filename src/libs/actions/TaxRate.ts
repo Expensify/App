@@ -406,12 +406,11 @@ function deletePolicyTaxes(policyData: PolicyData, taxesToDelete: string[], loca
         },
     } as Partial<Policy>;
 
-    const autoSelections = pushTransactionViolationsOnyxData(onyxData, policyData, policyTaxUpdate);
+    pushTransactionViolationsOnyxData(onyxData, policyData, policyTaxUpdate);
 
     const parameters = {
         policyID: policy?.id,
         taxNames: JSON.stringify(taxesToDelete.map((taxID) => policyTaxRates[taxID].name)),
-        ...(autoSelections.length > 0 && {transactionAutoSelections: JSON.stringify(autoSelections)}),
     } satisfies DeletePolicyTaxesParams;
 
     API.write(WRITE_COMMANDS.DELETE_POLICY_TAXES, parameters, onyxData);

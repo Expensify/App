@@ -519,12 +519,11 @@ function deletePolicyTags(policyData: PolicyData, tagsToDelete: string[]) {
         ],
     };
 
-    const autoSelections = pushTransactionViolationsOnyxData(onyxData, policyData, {}, {}, policyTagsOptimisticData);
+    pushTransactionViolationsOnyxData(onyxData, policyData, {}, {}, policyTagsOptimisticData);
 
     const parameters = {
         policyID,
         tags: JSON.stringify(tagsToDelete),
-        ...(autoSelections.length > 0 && {transactionAutoSelections: JSON.stringify(autoSelections)}),
     };
 
     API.write(WRITE_COMMANDS.DELETE_POLICY_TAGS, parameters, onyxData);

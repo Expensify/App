@@ -449,7 +449,6 @@ function deletePolicyDistanceRates(
 
     const optimisticTransactionsViolations: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = [];
     const failureTransactionsViolations: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = [];
-    const distanceRateAutoSelections: Array<{transactionID: string; customUnitRateID: string}> = [];
 
     for (const {transactionID, customUnitRateID} of transactionsAffected) {
         const currentTransactionViolations = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
@@ -469,7 +468,6 @@ function deletePolicyDistanceRates(
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                 value: {comment: {customUnit: {customUnitRateID}}},
             });
-            distanceRateAutoSelections.push({transactionID, customUnitRateID: singleRemainingRateID});
             continue;
         }
 
@@ -500,7 +498,6 @@ function deletePolicyDistanceRates(
         policyID,
         customUnitID: customUnit.customUnitID,
         customUnitRateID: rateIDsToDelete,
-        ...(distanceRateAutoSelections.length > 0 && {transactionAutoSelections: JSON.stringify(distanceRateAutoSelections)}),
     };
 
     API.write(WRITE_COMMANDS.DELETE_POLICY_DISTANCE_RATES, params, {optimisticData, failureData});
