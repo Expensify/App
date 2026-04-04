@@ -5209,6 +5209,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             euUkDisclaimer:
                 'Os cartões fornecidos a residentes do EEE são emitidos pela Transact Payments Malta Limited e os cartões fornecidos a residentes do Reino Unido são emitidos pela Transact Payments Limited, de acordo com licença da Visa Europe Limited. A Transact Payments Malta Limited é devidamente autorizada e regulada pela Malta Financial Services Authority como uma Instituição Financeira sob o Financial Institution Act de 1994. Número de registro C 91879. A Transact Payments Limited é autorizada e regulada pela Gibraltar Financial Service Commission.',
             issueCard: 'Emitir cartão',
+            otherWorkspaces: 'Outros workspaces',
             findCard: 'Encontrar cartão',
             newCard: 'Novo cartão',
             name: 'Nome',

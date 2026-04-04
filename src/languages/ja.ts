@@ -5177,6 +5177,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             euUkDisclaimer:
                 'EEA在住者に提供されるカードはTransact Payments Malta Limitedによって発行され、英国在住者に提供されるカードはVisa Europe Limitedのライセンスに基づきTransact Payments Limitedによって発行されます。Transact Payments Malta Limitedは、Financial Institution Act 1994に基づく金融機関としてマルタ金融サービス庁に正式に認可・監督されています。登録番号C 91879。Transact Payments Limitedは、ジブラルタル金融サービス委員会の認可および監督を受けています。',
             issueCard: 'カードを発行',
+            otherWorkspaces: '他のワークスペース',
             findCard: 'カードを探す',
             newCard: '新しいカード',
             name: '名前',

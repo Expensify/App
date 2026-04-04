@@ -8,6 +8,7 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import Text from '@components/Text';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
+import useHasAnyAdminExpensifyCardFeed from '@hooks/useHasAnyAdminExpensifyCardFeed';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -15,6 +16,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {clearIssueNewCardFormData} from '@libs/actions/Card';
 import {getEligibleBankAccountsForCard, getEligibleBankAccountsForUkEuCard} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -61,6 +63,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
 
     const isSetupUnfinished = hasInProgressUSDVBBA(reimbursementAccount?.achData);
     const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policy?.id);
+    const hasAnyAdminExpensifyCardFeed = useHasAnyAdminExpensifyCardFeed();
 
     const eligibleBankAccounts = isUkEuCurrencySupported ? getEligibleBankAccountsForUkEuCard(bankAccountList, policy?.outputCurrency) : getEligibleBankAccountsForCard(bankAccountList);
 
@@ -73,6 +76,9 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
                     backTo: ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policy?.id),
                 }),
             );
+        } else if (hasAnyAdminExpensifyCardFeed && policy?.id) {
+            clearIssueNewCardFormData();
+            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SELECT_FEED.getRoute(policy.id, undefined, true));
         } else {
             Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT.getRoute(policy?.id));
         }

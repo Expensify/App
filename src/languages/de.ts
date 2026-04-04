@@ -5242,6 +5242,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             euUkDisclaimer:
                 'Von Transact Payments Malta Limited ausgestellte Karten werden an Einwohner des EWR ausgegeben und von Transact Payments Limited ausgestellte Karten an Einwohner des Vereinigten Königreichs, jeweils gemäß einer Lizenz von Visa Europe Limited. Transact Payments Malta Limited ist ordnungsgemäß von der Malta Financial Services Authority als Finanzinstitut nach dem Financial Institution Act 1994 zugelassen und beaufsichtigt. Registrierungsnummer C 91879. Transact Payments Limited ist von der Gibraltar Financial Service Commission zugelassen und beaufsichtigt.',
             issueCard: 'Karte ausstellen',
+            otherWorkspaces: 'Andere Arbeitsbereiche',
             findCard: 'Karte finden',
             newCard: 'Neue Karte',
             name: 'Name',

@@ -1181,6 +1181,84 @@ function getCardSettings(cardSettings: OnyxEntry<ExpensifyCardSettings>, program
     );
 }
 
+/** Backend may nest fields like linkedPolicyIds / linkedPolicyIDs under each program block (not only on the settings root). */
+const NESTED_EXPENSIFY_CARD_PROGRAM_KEYS: readonly CardProgramKey[] = [CONST.COUNTRY.US, CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT, CONST.COUNTRY.GB, CONST.TRAVEL.PROGRAM_TRAVEL_US];
+
+function getNestedExpensifyCardProgramSettings(settings: ExpensifyCardSettings, key: CardProgramKey): ExpensifyCardSettingsBase | undefined {
+    const nested = settings[key];
+    if (nested && typeof nested === 'object' && !Array.isArray(nested)) {
+        return nested;
+    }
+    return undefined;
+}
+
+function collectLinkedPolicyIdsFromBase(base: ExpensifyCardSettingsBase | undefined): string[] {
+    if (!base) {
+        return [];
+    }
+    const raw: string[] = [];
+    if (base.linkedPolicyIds?.length) {
+        raw.push(...base.linkedPolicyIds);
+    }
+    if (base.linkedPolicyIDs?.length) {
+        raw.push(...base.linkedPolicyIDs);
+    }
+    return raw;
+}
+
+function dedupePolicyIDsCaseInsensitive(ids: string[]): string[] {
+    const seen = new Set<string>();
+    const result: string[] = [];
+    for (const id of ids) {
+        const key = id.toUpperCase();
+        if (!seen.has(key)) {
+            seen.add(key);
+            result.push(id);
+        }
+    }
+    return result;
+}
+
+/**
+ * Linked workspace IDs from the settings root and US / CURRENT / GB / TRAVEL_US nests.
+ * Merges `linkedPolicyIds` and `linkedPolicyIDs` (API spelling). Deduplicates case-insensitively; keeps API casing for Onyx lookups.
+ */
+function getLinkedPolicyIdsFromExpensifyCardSettings(settings: ExpensifyCardSettings | OnyxEntry<ExpensifyCardSettings>): string[] | undefined {
+    if (!settings) {
+        return undefined;
+    }
+    const ids: string[] = [...collectLinkedPolicyIdsFromBase(settings as ExpensifyCardSettingsBase)];
+    for (const key of NESTED_EXPENSIFY_CARD_PROGRAM_KEYS) {
+        ids.push(...collectLinkedPolicyIdsFromBase(getNestedExpensifyCardProgramSettings(settings, key)));
+    }
+    if (ids.length === 0) {
+        return undefined;
+    }
+    return dedupePolicyIDsCaseInsensitive(ids);
+}
+
+/** True if `policyID` is in the linked list (case-insensitive). */
+function isPolicyIDInLinkedExpensifyCardPolicyList(linkedPolicyIds: string[] | undefined, policyID: string): boolean {
+    return !!linkedPolicyIds?.some((id) => id.toUpperCase() === policyID.toUpperCase());
+}
+
+/** Resolves preferredPolicy from the settings root or the first nested program block that defines it. */
+function getPreferredPolicyFromExpensifyCardSettings(settings: ExpensifyCardSettings | OnyxEntry<ExpensifyCardSettings>): string | undefined {
+    if (!settings) {
+        return undefined;
+    }
+    if (settings.preferredPolicy) {
+        return settings.preferredPolicy;
+    }
+    for (const key of NESTED_EXPENSIFY_CARD_PROGRAM_KEYS) {
+        const preferred = getNestedExpensifyCardProgramSettings(settings, key)?.preferredPolicy;
+        if (preferred) {
+            return preferred;
+        }
+    }
+    return undefined;
+}
+
 function isCardPendingIssue(card?: Card) {
     return card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED;
 }
@@ -1632,6 +1710,9 @@ export {
     isExpensifyCardFullySetUp,
     getCardSettings,
     getCardProgramKey,
+    getLinkedPolicyIdsFromExpensifyCardSettings,
+    getPreferredPolicyFromExpensifyCardSettings,
+    isPolicyIDInLinkedExpensifyCardPolicyList,
     filterAllInactiveCards,
     filterInactiveCards,
     getPersonalBankCardDetailsImage,

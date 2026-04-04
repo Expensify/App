@@ -5207,6 +5207,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             euUkDisclaimer:
                 'Karty wydawane mieszkańcom EOG są emitowane przez Transact Payments Malta Limited, a karty wydawane mieszkańcom Zjednoczonego Królestwa są emitowane przez Transact Payments Limited na podstawie licencji udzielonej przez Visa Europe Limited. Transact Payments Malta Limited jest należycie upoważniona i nadzorowana przez Malta Financial Services Authority jako instytucja finansowa na mocy Financial Institution Act 1994. Numer rejestracyjny C 91879. Transact Payments Limited jest upoważniona i nadzorowana przez Gibraltar Financial Service Commission.',
             issueCard: 'Wydaj kartę',
+            otherWorkspaces: 'Inne przestrzenie robocze',
             findCard: 'Znajdź kartę',
             newCard: 'Nowa karta',
             name: 'Nazwa',

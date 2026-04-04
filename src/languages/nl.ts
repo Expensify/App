@@ -5218,6 +5218,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             euUkDisclaimer:
                 'Kaarten uitgegeven aan ingezetenen van de EER worden uitgegeven door Transact Payments Malta Limited en kaarten uitgegeven aan ingezetenen van het VK worden uitgegeven door Transact Payments Limited krachtens een licentie van Visa Europe Limited. Transact Payments Malta Limited is naar behoren gemachtigd en gereguleerd door de Malta Financial Services Authority als een financiële instelling onder de Financial Institution Act 1994. Registratienummer C 91879. Transact Payments Limited is gemachtigd en gereguleerd door de Gibraltar Financial Service Commission.',
             issueCard: 'Kaart uitgeven',
+            otherWorkspaces: 'Andere werkruimten',
             findCard: 'Kaart zoeken',
             newCard: 'Nieuwe kaart',
             name: 'Naam',

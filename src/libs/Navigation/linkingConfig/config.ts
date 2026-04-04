@@ -852,6 +852,21 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.EXPENSIFY_CARD_SELECT_FEED]: {
                             path: ROUTES.WORKSPACE_EXPENSIFY_CARD_SELECT_FEED.route,
+                            parse: {
+                                exitToIssueNew: (value?: string) => value,
+                            },
+                        },
+                        [SCREENS.WORKSPACE.EXPENSIFY_CARD_ADD_WORK_EMAIL]: {
+                            path: ROUTES.WORKSPACE_EXPENSIFY_CARD_ADD_WORK_EMAIL.route,
+                            parse: {
+                                exitToIssueNew: (value?: string) => value,
+                            },
+                        },
+                        [SCREENS.WORKSPACE.EXPENSIFY_CARD_VERIFY_WORK_EMAIL]: {
+                            path: ROUTES.WORKSPACE_EXPENSIFY_CARD_VERIFY_WORK_EMAIL.route,
+                            parse: {
+                                exitToIssueNew: (value?: string) => value,
+                            },
                         },
                         [SCREENS.WORKSPACE.TRAVEL_SETTINGS_ACCOUNT]: {
                             path: ROUTES.WORKSPACE_TRAVEL_SETTINGS_ACCOUNT.route,
