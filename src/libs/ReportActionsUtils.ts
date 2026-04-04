@@ -391,10 +391,6 @@ function isPolicyChangeLogAction(reportAction: OnyxInputOrEntry<ReportAction>): 
     return reportAction?.actionName ? POLICY_CHANGE_LOG_ARRAY.has(reportAction.actionName) : false;
 }
 
-function isChronosOOOListAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CHRONOS_OOO_LIST> {
-    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CHRONOS_OOO_LIST);
-}
-
 function isAddCommentAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
 }
@@ -984,64 +980,6 @@ function canActionsBeGrouped(currentAction?: ReportAction, adjacentAction?: Repo
     }
 
     return currentActionActorAccountID === adjacentActionActorAccountID;
-}
-
-// The entire trimmed message must be a timer command (not a word embedded in normal chat). Case-insensitive.
-// "at ..." is only allowed after past-tense "started"/"stopped" so phrases like "stop at the corner" do not match.
-const CHRONOS_TIMER_COMMAND_STOP_REGEX = /^(?:stop(?:ping)?(?:\s+now)?|stopped(?:\s+now)?(?:\s+at\b.*)?)$/i;
-const CHRONOS_TIMER_COMMAND_START_REGEX = /^(?:start(?:ing)?(?:\s+now)?|started(?:\s+now)?(?:\s+at\b.*)?)$/i;
-
-type ChronosTimerCommandValue = ValueOf<typeof CONST.CHRONOS.TIMER_COMMAND>;
-
-/**
- * Returns `CONST.CHRONOS.TIMER_COMMAND.START`, `CONST.CHRONOS.TIMER_COMMAND.STOP`, or `null` when the trimmed text is only a Chronos timer command (e.g. "start", "stop now", "started at …", "stopped at …"), not when "start"/"stop" appear inside a sentence.
- */
-function isChronosStartOrStopMessage(text: string): ChronosTimerCommandValue | null {
-    const trimmedText = text.trim();
-    if (CHRONOS_TIMER_COMMAND_STOP_REGEX.test(trimmedText)) {
-        return CONST.CHRONOS.TIMER_COMMAND.STOP;
-    }
-    if (CHRONOS_TIMER_COMMAND_START_REGEX.test(trimmedText)) {
-        return CONST.CHRONOS.TIMER_COMMAND.START;
-    }
-    return null;
-}
-
-function isChronosAutomaticTimerAction(reportAction: OnyxInputOrEntry<ReportAction>, isChronosReport: boolean): boolean {
-    return isChronosReport && isChronosStartOrStopMessage(getReportActionText(reportAction)) !== null;
-}
-
-/**
- * From visible report actions sorted newest-first, returns the latest ADD_COMMENT from the current user that looks like a Chronos timer command.
- */
-function getLatestUserChronosTimerCommand(sortedVisibleReportActionsDesc: ReportAction[], currentUserAccountID: number): ChronosTimerCommandValue | null {
-    for (const action of sortedVisibleReportActionsDesc) {
-        if (action.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) {
-            continue;
-        }
-        if (action.actorAccountID !== currentUserAccountID) {
-            continue;
-        }
-        const kind = isChronosStartOrStopMessage(getReportActionText(action));
-        if (kind !== null) {
-            return kind;
-        }
-    }
-    return null;
-}
-
-function isChronosTimerRunningFromVisibleActions(sortedVisibleReportActionsDesc: ReportAction[], currentUserAccountID: number): boolean {
-    return getLatestUserChronosTimerCommand(sortedVisibleReportActionsDesc, currentUserAccountID) === CONST.CHRONOS.TIMER_COMMAND.START;
-}
-
-/**
- * If the user sends consecutive actions to Chronos to automatically start/stop the timer,
- * then detect that and show each individually so that the user can easily see when they were sent.
- */
-function isConsecutiveChronosAutomaticTimerAction(reportActions: ReportAction[], actionIndex: number, isChronosReport: boolean, isOffline: boolean): boolean {
-    const previousAction = findPreviousAction(reportActions, actionIndex, isOffline);
-    const currentAction = reportActions?.at(actionIndex);
-    return isChronosAutomaticTimerAction(currentAction, isChronosReport) && isChronosAutomaticTimerAction(previousAction, isChronosReport);
 }
 
 /**
@@ -4601,7 +4539,6 @@ export {
     getLastVisibleActionIncludingTransactionThread,
     getLastVisibleMessage,
     getLatestReportActionFromOnyxData,
-    getLatestUserChronosTimerCommand,
     getLinkedTransactionID,
     getMarkedReimbursedMessage,
     getMemberChangeMessageFragment,
@@ -4651,12 +4588,8 @@ export {
     isApprovedOrSubmittedReportAction,
     isIOURequestReportAction,
     isNewerReportAction,
-    isChronosOOOListAction,
-    isChronosStartOrStopMessage,
-    isChronosTimerRunningFromVisibleActions,
     isClosedAction,
     isConsecutiveActionMadeByPreviousActor,
-    isConsecutiveChronosAutomaticTimerAction,
     isExportedToIntegrationAction,
     hasNextActionMadeBySameActor,
     isCreatedAction,

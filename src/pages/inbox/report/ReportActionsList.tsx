@@ -25,6 +25,7 @@ import useScrollToEndOnNewMessageReceived from '@hooks/useScrollToEndOnNewMessag
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
+import {isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import DateUtils from '@libs/DateUtils';
 import FS from '@libs/Fullstory';
 import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlightItem';
@@ -35,7 +36,6 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import {
     getFirstVisibleReportActionID,
     isConsecutiveActionMadeByPreviousActor,
-    isConsecutiveChronosAutomaticTimerAction,
     isCurrentActionUnread,
     isDeletedParentAction,
     isReportPreviewAction,

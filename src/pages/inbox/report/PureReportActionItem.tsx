@@ -60,6 +60,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {cleanUpMoneyRequest} from '@libs/actions/IOU';
 import {resolveSuggestedFollowup} from '@libs/actions/Report/SuggestedFollowup';
 import {isPersonalCardBrokenConnection} from '@libs/CardUtils';
+import {isChronosOOOListAction} from '@libs/ChronosUtils';
 import ControlSelection from '@libs/ControlSelection';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -181,7 +182,6 @@ import {
     isActionOfType,
     isCardBrokenConnectionAction,
     isCardIssuedAction,
-    isChronosOOOListAction,
     isConciergeCategoryOptions,
     isConciergeDescriptionOptions,
     isCreatedTaskReportAction,
