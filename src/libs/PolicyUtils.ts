@@ -1639,9 +1639,9 @@ function removePendingFieldsFromCustomUnit(customUnit: CustomUnit): CustomUnit {
     return cleanedCustomUnit;
 }
 
-function goBackWhenEnableFeature(policyID: string) {
+function goBackWhenEnableFeature() {
     setTimeout(() => {
-        Navigation.goBack(ROUTES.WORKSPACE_INITIAL.getRoute(policyID));
+        Navigation.goBack();
     }, CONST.WORKSPACE_ENABLE_FEATURE_REDIRECT_DELAY);
 }
 

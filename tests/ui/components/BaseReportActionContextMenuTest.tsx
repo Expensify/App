@@ -84,14 +84,22 @@ jest.mock('@hooks/usePaginatedReportActions', () => () => ({reportActions: []}))
 jest.mock('@hooks/useReportIsArchived', () => () => false);
 jest.mock('@hooks/useResponsiveLayout', () => () => ({shouldUseNarrowLayout: true, isSmallScreenWidth: false}));
 jest.mock('@hooks/useRestoreInputFocus', () => () => {});
-jest.mock('@hooks/useStyleUtils', () => () => ({
-    getReportActionContextMenuStyles: () => ({}),
-}));
+jest.mock(
+    '@hooks/useStyleUtils',
+    () => () =>
+        new Proxy(
+            {},
+            {
+                get: () => () => ({}),
+            },
+        ),
+);
 jest.mock('@hooks/useTransactionsAndViolationsForReport', () => () => ({transactions: {}}));
 
 jest.mock('@userActions/Session', () => ({
     isAnonymousUser: () => false,
     signOutAndRedirectToSignIn: jest.fn(),
+    callFunctionIfActionIsAllowed: (fn: () => void) => fn,
 }));
 
 jest.mock('@pages/inbox/report/ContextMenu/ReportActionContextMenu', () => ({
@@ -252,6 +260,88 @@ async function getContextMenuItemOnPress(sentryLabel: string): Promise<(event: u
 
     return contextMenuItem?.onPress ?? (() => undefined);
 }
+
+describe('BaseReportActionContextMenu edit action', () => {
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        mockContextMenuItemProps.length = 0;
+    });
+
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS, evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS]});
+    });
+
+    it('shows the edit action for an editable comment by current user', async () => {
+        await seedOnyxData({isOnHold: false});
+
+        // Override the report action to be a plain ADD_COMMENT (editable)
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`, {
+            [reportActionID]: {
+                reportActionID,
+                actorAccountID: currentUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'Hello world',
+                        text: 'Hello world',
+                    },
+                ],
+                created: '2025-03-05 16:34:27',
+            },
+        });
+        await waitForBatchedUpdates();
+
+        render(
+            <BaseReportActionContextMenu
+                reportID={originalReportID}
+                originalReportID={originalReportID}
+                reportActionID={reportActionID}
+                isVisible
+            />,
+        );
+
+        await waitFor(() => {
+            const editItem = mockContextMenuItemProps.find((item) => item.sentryLabel === CONST.SENTRY_LABEL.CONTEXT_MENU.EDIT_COMMENT);
+            expect(editItem).toBeDefined();
+        });
+    });
+
+    it('does not show the edit action for a comment by another user', async () => {
+        await seedOnyxData({isOnHold: false});
+
+        const otherUserAccountID = 999;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`, {
+            [reportActionID]: {
+                reportActionID,
+                actorAccountID: otherUserAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                message: [
+                    {
+                        type: 'COMMENT',
+                        html: 'Hello from another user',
+                        text: 'Hello from another user',
+                    },
+                ],
+                created: '2025-03-05 16:34:27',
+            },
+        });
+        await waitForBatchedUpdates();
+
+        render(
+            <BaseReportActionContextMenu
+                reportID={originalReportID}
+                originalReportID={originalReportID}
+                reportActionID={reportActionID}
+                isVisible
+            />,
+        );
+
+        await waitForBatchedUpdates();
+        const editItem = mockContextMenuItemProps.find((item) => item.sentryLabel === CONST.SENTRY_LABEL.CONTEXT_MENU.EDIT_COMMENT);
+        expect(editItem).toBeUndefined();
+    });
+});
 
 describe('BaseReportActionContextMenu hold/unhold action', () => {
     beforeEach(async () => {
