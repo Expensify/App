@@ -443,7 +443,18 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                         }
                         // eslint-disable-next-line @typescript-eslint/no-deprecated
                         InteractionManager.runAfterInteractions(() => {
-                            deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, isReportInSearch ? currentSearchHash : undefined, true);
+                            const deleteResult = deleteTransactions(
+                                [transaction.transactionID],
+                                duplicateTransactions,
+                                duplicateTransactionViolations,
+                                isReportInSearch ? currentSearchHash : undefined,
+                                true,
+                            );
+
+                            if (deleteResult.action === 'redirected') {
+                                return;
+                            }
+
                             removeTransaction(transaction.transactionID);
                         });
                     }

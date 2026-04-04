@@ -165,10 +165,16 @@ function useSelectedTransactionsActions({
     }
 
     const handleDeleteTransactions = () => {
-        const deletedThreadReportIDs = deleteTransactions(selectedTransactionIDs, duplicateTransactions, duplicateTransactionViolations, isOnSearch ? currentSearchHash : undefined, false);
+        const deleteResult = deleteTransactions(selectedTransactionIDs, duplicateTransactions, duplicateTransactionViolations, isOnSearch ? currentSearchHash : undefined, false);
         clearSelectedTransactions(true);
         setIsDeleteModalVisible(false);
-        Navigation.removeReportScreen(new Set(deletedThreadReportIDs));
+
+        if (deleteResult.action === 'redirected') {
+            return deleteResult;
+        }
+
+        Navigation.removeReportScreen(new Set(deleteResult.deletedTransactionThreadReportIDs));
+        return deleteResult;
     };
 
     const handleDeleteTransactionsWithNavigation = (backToRoute?: Route) => {
@@ -446,6 +452,7 @@ function useSelectedTransactionsActions({
                 text: shouldShowEditSplitOnDeleteAction ? translate('iou.editSplits') : translate('common.delete'),
                 icon: shouldShowEditSplitOnDeleteAction ? expensifyIcons.ArrowSplit : expensifyIcons.Trashcan,
                 value: CONST.REPORT.SECONDARY_ACTIONS.DELETE,
+                shouldSkipDeleteModal: shouldShowEditSplitOnDeleteAction,
                 onSelected: () => {
                     if (shouldShowEditSplitOnDeleteAction) {
                         handleDeleteTransactions();

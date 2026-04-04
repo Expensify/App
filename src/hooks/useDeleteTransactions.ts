@@ -27,6 +27,15 @@ type UseDeleteTransactionsParams = {
     policy?: Policy;
 };
 
+type DeleteTransactionsResult =
+    | {
+          action: 'redirected';
+      }
+    | {
+          action: 'deleted';
+          deletedTransactionThreadReportIDs: string[];
+      };
+
 /**
  * Pure hook for deleting transactions
  * All data must be provided through function parameters
@@ -85,9 +94,8 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
      * @param duplicateTransactions - Collection of duplicate transactions
      * @param duplicateTransactionViolations - Collection of duplicate transaction violations
      * @param currentSearchHash - Current search hash for updating split transactions
-     * @param onClearSelection - Optional callback to clear selection after deletion
      * @param isSingleTransactionView - Optional flag indicating if the deletion is from a single transaction view
-     * @returns Array of deleted transaction thread report IDs for navigation handling
+     * @returns Result describing whether the delete redirected or deleted transaction threads
      */
     const deleteTransactions = useCallback(
         (
@@ -96,16 +104,21 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             duplicateTransactionViolations: OnyxCollection<TransactionViolations>,
             currentSearchHash?: number,
             isSingleTransactionView?: boolean,
-        ): string[] => {
+        ): DeleteTransactionsResult => {
             if (!transactionIDs.length) {
-                return [];
+                return {
+                    action: 'deleted',
+                    deletedTransactionThreadReportIDs: [],
+                };
             }
 
             const splitExpenseEditTransaction = getSplitExpenseEditTransactionOnDelete(transactionIDs);
 
             if (splitExpenseEditTransaction) {
                 initSplitExpense(splitExpenseEditTransaction, policy, {navigateToEditSplitExpense: true});
-                return [];
+                return {
+                    action: 'redirected',
+                };
             }
 
             const iouActions = reportActions.filter((action) => isMoneyRequestAction(action));
@@ -245,7 +258,10 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                 }
             }
 
-            return Array.from(deletedTransactionThreadReportIDs);
+            return {
+                action: 'deleted',
+                deletedTransactionThreadReportIDs: Array.from(deletedTransactionThreadReportIDs),
+            };
         },
         [
             allPolicyRecentlyUsedCategories,

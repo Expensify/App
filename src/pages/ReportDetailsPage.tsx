@@ -917,9 +917,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 currentUserAccountID: currentUserPersonalDetails.accountID,
             });
         } else if (iouTransactionID) {
-            const shouldOpenSplitExpenseEditFlow = shouldOpenSplitExpenseEditFlowOnDelete([iouTransactionID]);
-            deleteTransactions([iouTransactionID], duplicateTransactions, duplicateTransactionViolations, undefined, isSingleTransactionView);
-            if (shouldOpenSplitExpenseEditFlow) {
+            const deleteResult = deleteTransactions([iouTransactionID], duplicateTransactions, duplicateTransactionViolations, undefined, isSingleTransactionView);
+            if (deleteResult.action === 'redirected') {
                 return;
             }
             removeTransaction(iouTransactionID);
@@ -947,7 +946,6 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         deleteTransactions,
         removeTransaction,
         conciergeReportID,
-        shouldOpenSplitExpenseEditFlowOnDelete,
     ]);
 
     // Where to navigate back to after deleting the transaction and its report.
