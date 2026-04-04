@@ -8863,6 +8863,9 @@ const translations = {
                     other: (count: number) => `${count} members`,
                 };
             },
+            error: {
+                settings: '<rbr>Couldn’t save this change. Please try again or <concierge-link>contact Concierge</concierge-link> for more support.</rbr>',
+            },
         },
     },
 };

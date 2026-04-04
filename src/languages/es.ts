@@ -9147,6 +9147,9 @@ ${amount} para ${merchant} - ${date}`,
                     other: (count: number) => `${count} miembros`,
                 };
             },
+            error: {
+                settings: '<rbr>No se pudo guardar este cambio. Inténtalo de nuevo o <concierge-link>contacta con Concierge</concierge-link> para obtener más ayuda.</rbr>',
+            },
         },
     },
     gps: {
