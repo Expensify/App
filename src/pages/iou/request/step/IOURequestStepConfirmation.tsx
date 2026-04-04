@@ -75,7 +75,6 @@ import getSubmitExpenseScenario from '@libs/telemetry/getSubmitExpenseScenario';
 import markSubmitExpenseEnd from '@libs/telemetry/markSubmitExpenseEnd';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {
-    getAttendees,
     getDefaultTaxCode,
     getRateID,
     getRequestType,
@@ -690,6 +689,7 @@ function IOURequestStepConfirmation({
             removeDraftTransactionsByIDs(draftTransactionIDs, true);
             navigateToStartMoneyRequestStep(requestType, iouType, initialTransactionID, reportID);
         });
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- draftTransactionIDs is intentionally excluded to avoid re-running on draft changes
     }, [requestType, iouType, initialTransactionID, reportID, action, report, transactions, participants]);
 
     const requestMoney = useCallback(
@@ -1699,13 +1699,7 @@ function IOURequestStepConfirmation({
                     <MoneyRequestConfirmationList
                         transaction={transaction}
                         selectedParticipants={participants}
-                        iouAmount={transaction?.amount ?? 0}
-                        iouAttendees={getAttendees(transaction, currentUserPersonalDetails)}
-                        iouComment={transaction?.comment?.comment ?? ''}
-                        iouCurrencyCode={transaction?.currency}
-                        iouIsBillable={transaction?.billable}
                         onToggleBillable={setBillable}
-                        iouCategory={transaction?.category}
                         onConfirm={onConfirm}
                         onSendMoney={sendMoney}
                         showRemoveExpenseConfirmModal={() => {
@@ -1718,8 +1712,6 @@ function IOURequestStepConfirmation({
                         shouldDisplayReceipt={!isMovingTransactionFromTrackExpense && (!isDistanceRequest || isManualDistanceRequest || isOdometerDistanceRequest) && !isPerDiemRequest}
                         isPolicyExpenseChat={isPolicyExpenseChat}
                         policyID={policyID}
-                        iouMerchant={transaction?.merchant}
-                        iouCreated={transaction?.created}
                         isDistanceRequest={isDistanceRequest}
                         isManualDistanceRequest={isManualDistanceRequest}
                         isOdometerDistanceRequest={isOdometerDistanceRequest}
@@ -1730,13 +1722,10 @@ function IOURequestStepConfirmation({
                         action={action}
                         isConfirmed={isConfirmed}
                         isConfirming={isConfirming}
-                        iouIsReimbursable={transaction?.reimbursable}
                         onToggleReimbursable={setReimbursable}
                         expensesNumber={transactions.length}
                         isReceiptEditable
                         isTimeRequest={isTimeRequest}
-                        iouTimeCount={transaction?.comment?.units?.count}
-                        iouTimeRate={transaction?.comment?.units?.rate}
                         shouldHideToSection={shouldHideToSection}
                     />
                 </View>
