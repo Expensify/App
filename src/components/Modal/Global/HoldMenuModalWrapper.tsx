@@ -1,6 +1,7 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {useMemo} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
+import React, {useState} from 'react';
+import DecisionModal from '@components/DecisionModal';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNonReimbursablePaymentModal from '@hooks/useNonReimbursablePaymentModal';
@@ -8,79 +9,52 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import {hasOnlyNonReimbursableTransactions, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {approveMoneyRequest, payMoneyRequest} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
-import DecisionModal from './DecisionModal';
-import {useDelegateNoAccessActions, useDelegateNoAccessState} from './DelegateNoAccessModalProvider';
+import type {ModalProps} from './ModalContext';
 
 type ActionHandledType = DeepValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE.PAY | typeof CONST.IOU.REPORT_ACTION_TYPE.APPROVE>;
 
-type ProcessMoneyReportHoldMenuProps = {
-    /** The chat report this report is linked to */
-    chatReport: OnyxEntry<OnyxTypes.Report>;
-
-    /** Full amount of expense report to pay */
-    fullAmount: string;
-
-    /** Whether modal is visible */
-    isVisible: boolean;
-
-    /** The report currently being looked at */
-    moneyRequestReport: OnyxEntry<OnyxTypes.Report>;
-
-    /** Not held amount of expense report */
-    nonHeldAmount?: string;
-
-    /** Callback for closing modal */
-    onClose: () => void;
-
-    /** Type of payment */
+type HoldMenuModalWrapperProps = ModalProps & {
+    reportID: string | undefined;
+    chatReportID: string | undefined;
+    requestType: ActionHandledType;
     paymentType?: PaymentMethodType;
-
-    /** Selected VBBA ID for payment */
     methodID?: number;
-
-    /** Type of action handled */
-    requestType?: ActionHandledType;
-
-    /** Number of transaction of a money request */
-    transactionCount: number;
-
-    /** Callback invoked after the user confirms pay/approve, receives whether the full amount was chosen */
-    onConfirm?: (full: boolean) => void;
-
-    /** Whether the report has non held expenses */
+    nonHeldAmount?: string;
+    fullAmount: string;
     hasNonHeldExpenses?: boolean;
-
-    /** Transactions associated with report */
-    transactions?: OnyxTypes.Transaction[];
+    transactionCount: number;
+    onConfirm?: (full: boolean) => void;
 };
 
-function ProcessMoneyReportHoldMenu({
+function HoldMenuModalWrapper({
+    closeModal,
+    reportID,
+    chatReportID,
     requestType,
-    nonHeldAmount = '0',
-    fullAmount,
-    onClose,
-    isVisible,
     paymentType,
     methodID,
-    chatReport,
-    moneyRequestReport,
+    nonHeldAmount = '0',
+    fullAmount,
+    hasNonHeldExpenses,
     transactionCount,
     onConfirm,
-    hasNonHeldExpenses,
-    transactions,
-}: ProcessMoneyReportHoldMenuProps) {
+}: HoldMenuModalWrapperProps) {
+    const [isVisible, setIsVisible] = useState(true);
     const {translate} = useLocalize();
     const isApprove = requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE;
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
+
+    const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
@@ -99,6 +73,9 @@ function ProcessMoneyReportHoldMenu({
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+
+    const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
+    const transactions = Object.values(reportTransactions);
     const {showNonReimbursablePaymentErrorModal} = useNonReimbursablePaymentModal(moneyRequestReport, transactions);
 
     const onSubmit = (full: boolean) => {
@@ -108,7 +85,7 @@ function ProcessMoneyReportHoldMenu({
         }
 
         if (!isApprove && chatReport && hasOnlyNonReimbursableTransactions(moneyRequestReport?.reportID, transactions) && paymentType && paymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-            onClose();
+            setIsVisible(false);
             showNonReimbursablePaymentErrorModal();
             return;
         }
@@ -151,20 +128,17 @@ function ProcessMoneyReportHoldMenu({
                 onPaid: animationCallback,
             });
         }
-        onClose();
+        setIsVisible(false);
     };
 
-    const promptText = useMemo(() => {
-        if (hasNonHeldExpenses) {
-            return translate(isApprove ? 'iou.confirmApprovalAmount' : 'iou.confirmPayAmount');
-        }
-        return translate(isApprove ? 'iou.confirmApprovalAllHoldAmount' : 'iou.confirmPayAllHoldAmount', {count: transactionCount});
-    }, [hasNonHeldExpenses, transactionCount, translate, isApprove]);
+    const promptText = hasNonHeldExpenses
+        ? translate(isApprove ? 'iou.confirmApprovalAmount' : 'iou.confirmPayAmount')
+        : translate(isApprove ? 'iou.confirmApprovalAllHoldAmount' : 'iou.confirmPayAllHoldAmount', {count: transactionCount});
 
     return (
         <DecisionModal
             title={translate(isApprove ? 'iou.confirmApprove' : 'iou.confirmPay')}
-            onClose={onClose}
+            onClose={() => setIsVisible(false)}
             isVisible={isVisible}
             prompt={promptText}
             firstOptionText={hasNonHeldExpenses ? `${translate(isApprove ? 'iou.approveOnly' : 'iou.payOnly')} ${nonHeldAmount}` : undefined}
@@ -172,9 +146,15 @@ function ProcessMoneyReportHoldMenu({
             onFirstOptionSubmit={() => onSubmit(false)}
             onSecondOptionSubmit={() => onSubmit(true)}
             isSmallScreenWidth={isSmallScreenWidth}
+            onModalHide={() => {
+                if (isVisible) {
+                    return;
+                }
+                closeModal({action: 'CLOSE'});
+            }}
         />
     );
 }
 
-export default ProcessMoneyReportHoldMenu;
-export type {ActionHandledType};
+export default HoldMenuModalWrapper;
+export type {ActionHandledType, HoldMenuModalWrapperProps};
