@@ -1,4 +1,4 @@
-import type {ReactElement, RefObject} from 'react';
+import type {ReactElement, Ref} from 'react';
 import type {GestureResponderEvent, InputModeOptions, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -264,7 +264,7 @@ type TextInputOptions = {
     };
 
     /** Reference to the text input component */
-    ref?: RefObject<BaseTextInputRef | null>;
+    ref?: Ref<BaseTextInputRef | null>;
 };
 
 type ConfirmButtonOptions<TItem extends ListItem> = {

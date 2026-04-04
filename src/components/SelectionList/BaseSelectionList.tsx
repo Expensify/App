@@ -257,7 +257,7 @@ function BaseSelectionList<TItem extends ListItem>({
     }, [data, focusedIndex, isItemSelected]);
 
     const selectFocusedOption = () => {
-        if (!focusedOption) {
+        if (!focusedOption || focusedOption.isInteractive === false) {
             return;
         }
         selectRow(focusedOption);
@@ -363,6 +363,7 @@ function BaseSelectionList<TItem extends ListItem>({
                 shouldSyncFocus={!isTextInputFocusedRef.current && hasKeyBeenPressed.current}
                 shouldDisableHoverStyle={shouldDisableHoverStyle}
                 shouldShowRightCaret={shouldShowRightCaret}
+                shouldPreventEnterKeySubmit={!disableKeyboardShortcuts}
             />
         );
     };
