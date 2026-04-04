@@ -9,12 +9,13 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useReportTransactions from '@hooks/useReportTransactions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getConnectedIntegration, hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
 import {hasPendingDEWSubmit} from '@libs/ReportActionsUtils';
 import getReportPreviewAction from '@libs/ReportPreviewActionUtils';
-import {getAddExpenseDropdownOptions, getReportTransactions} from '@libs/ReportUtils';
+import {getAddExpenseDropdownOptions} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import {canIOUBePaid as canIOUBePaidIOUActions} from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -72,7 +73,8 @@ function ReportPreviewActionButton({
     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`);
     const {isOffline} = useNetwork();
-    const transactions = getReportTransactions(iouReportID).filter((t) => isOffline || t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const reportTransactions = useReportTransactions(iouReportID);
+    const transactions = reportTransactions.filter((t) => isOffline || t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
     const isIouReportArchived = useReportIsArchived(iouReportID);
     const isChatReportArchived = useReportIsArchived(chatReportID);

@@ -8,22 +8,14 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import usePrevious from '@hooks/usePrevious';
+import useReportTransactions from '@hooks/useReportTransactions';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getFilteredReportActionsForReportView, getIOUActionForReportID, getOneTransactionThreadReportID, isCreatedAction} from '@libs/ReportActionsUtils';
-import {
-    getReportTransactions,
-    isChatThread,
-    isHiddenForCurrentUser,
-    isOneTransactionThread,
-    isPolicyExpenseChat,
-    isReportTransactionThread,
-    isTaskReport,
-    isValidReportIDFromPath,
-} from '@libs/ReportUtils';
+import {isChatThread, isHiddenForCurrentUser, isOneTransactionThread, isPolicyExpenseChat, isReportTransactionThread, isTaskReport, isValidReportIDFromPath} from '@libs/ReportUtils';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
 import {setShouldShowComposeInput} from '@userActions/Composer';
 import {createTransactionThreadReport, openReport, readNewestAction, subscribeToReportLeavingEvents, unsubscribeFromLeavingRoomReportChannel, updateLastVisitTime} from '@userActions/Report';
@@ -87,6 +79,7 @@ function ReportFetchHandler() {
 
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${linkedAction?.childReportID}`);
 
+    const oneTransactionThreadTransactions = useReportTransactions(reportID);
     const allReportTransactions = useReportTransactionsCollection(reportIDFromRoute);
     const reportTransactions = getAllNonDeletedTransactions(allReportTransactions, reportActions, isOffline, true);
     const visibleTransactions = isOffline ? reportTransactions : reportTransactions?.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
@@ -133,7 +126,7 @@ function ReportFetchHandler() {
     });
 
     const createOneTransactionThread = useEffectEvent(() => {
-        const currentReportTransaction = getReportTransactions(reportID).filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        const currentReportTransaction = oneTransactionThreadTransactions.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
         const oneTransactionID = currentReportTransaction.at(0)?.transactionID;
         const iouAction = getIOUActionForReportID(reportID, oneTransactionID);
         createTransactionThreadReport(introSelected, currentUserEmail ?? '', currentUserAccountID, betas, report, iouAction, currentReportTransaction.at(0));

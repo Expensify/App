@@ -7,6 +7,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useReportTransactions from '@hooks/useReportTransactions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -102,6 +103,7 @@ function MoneyRequestAction({
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
     const isReviewDuplicateTransactionPage = route.name === SCREENS.TRANSACTION_DUPLICATE.REVIEW;
+    const reportTransactions = useReportTransactions(requestReportID);
     const isSplitBillAction = isSplitBillActionReportActionsUtils(action);
     const isTrackExpenseAction = isTrackExpenseActionReportActionsUtils(action);
     const containerStyles = useMemo(
@@ -157,7 +159,7 @@ function MoneyRequestAction({
         action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD &&
         isOffline
     ) {
-        shouldShowPendingConversionMessage = isIOUReportPendingCurrencyConversion(iouReport);
+        shouldShowPendingConversionMessage = isIOUReportPendingCurrencyConversion(iouReport, reportTransactions);
     }
 
     if (isDeletedParentAction || isReversedTransaction) {
