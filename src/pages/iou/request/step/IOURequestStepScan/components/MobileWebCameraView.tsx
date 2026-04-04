@@ -57,7 +57,7 @@ type MobileWebCameraViewProps = {
     setStartLocationPermissionFlow: (value: boolean) => void;
     onBackButtonPress: () => void;
     shouldShowWrapper: boolean;
-    isMultiScanEnabled?: boolean;
+    isMultiScanEnabled: boolean;
     onLayout?: () => void;
 };
 
@@ -117,7 +117,7 @@ function MobileWebCameraView({
     setStartLocationPermissionFlow,
     onBackButtonPress,
     shouldShowWrapper,
-    isMultiScanEnabled = false,
+    isMultiScanEnabled,
     onLayout,
 }: MobileWebCameraViewProps) {
     const {blinkStyle, canUseMultiScan, shouldShowMultiScanEducationalPopup, showBlink, toggleMultiScan, dismissMultiScanEducationalPopup, submitReceipts, submitMultiScanReceipts} =
