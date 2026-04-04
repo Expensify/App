@@ -21,6 +21,7 @@ import OfflineIndicator from '@components/OfflineIndicator';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useAncestors from '@hooks/useAncestors';
+import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
 import useHandleExceedMaxTaskTitleLength from '@hooks/useHandleExceedMaxTaskTitleLength';
@@ -167,6 +168,7 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
     const {availableLoginsList} = useShortMentionsList();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
@@ -399,6 +401,8 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
         ComposerFocusManager.setReadyToFocus();
     }, [updateShouldShowSuggestionMenuToFalse]);
 
+    const {currentReportID, currentRHPReportID} = useCurrentReportIDState();
+
     /**
      * Add a new comment to this chat
      */
@@ -481,6 +485,9 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
                         },
                     });
                 }
+
+                const isConciergeSidePanel = conciergeReportID === reportID && isInSidePanel;
+                const contextReportID = isConciergeSidePanel ? (currentRHPReportID ?? currentReportID ?? undefined) : undefined;
                 addComment({
                     report: targetReport,
                     notifyReportID: reportID,
@@ -491,6 +498,7 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
                     shouldPlaySound: true,
                     isInSidePanel,
                     reportActionID: optimisticReportActionID,
+                    sidePanelContext: contextReportID ? {reportID: contextReportID} : undefined,
                 });
             }
         },
@@ -509,6 +517,9 @@ function ReportActionCompose({reportID}: ReportActionComposeProps) {
             personalDetails,
             quickAction,
             scrollOffsetRef,
+            currentReportID,
+            currentRHPReportID,
+            conciergeReportID,
         ],
     );
 

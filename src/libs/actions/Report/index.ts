@@ -210,6 +210,7 @@ import type {
     ReportAttributesDerivedValue,
     ReportNextStepDeprecated,
     ReportUserIsTyping,
+    SidePanelContext,
     Transaction,
     TransactionViolations,
     VisibleReportActionsDerivedValue,
@@ -340,6 +341,7 @@ type AddCommentParams = {
     currentUserAccountID: number;
     shouldPlaySound?: boolean;
     isInSidePanel?: boolean;
+    sidePanelContext?: SidePanelContext;
     pregeneratedResponseParams?: PregeneratedResponseParams;
     reportActionID?: string;
 };
@@ -353,6 +355,7 @@ type AddActionsParams = {
     text?: string;
     file?: FileObject;
     isInSidePanel?: boolean;
+    sidePanelContext?: SidePanelContext;
     pregeneratedResponseParams?: PregeneratedResponseParams;
     reportActionID?: string;
 };
@@ -664,6 +667,7 @@ function addActions({
     text = '',
     file,
     isInSidePanel = false,
+    sidePanelContext,
     pregeneratedResponseParams,
     reportActionID,
 }: AddActionsParams) {
@@ -778,7 +782,8 @@ function addActions({
         idempotencyKey: Str.guid(),
     };
 
-    if (reportIDDeeplinkedFromOldDot === reportID && isConciergeChatReport(report)) {
+    const isConciergeChat = isConciergeChatReport(report);
+    if (reportIDDeeplinkedFromOldDot === reportID && isConciergeChat) {
         parameters.isOldDotConciergeChat = true;
     }
 
@@ -786,11 +791,15 @@ function addActions({
         parameters.attachmentID = attachmentID;
     }
 
-    if (isInSidePanel && (isConciergeChatReport(report) || isAdminRoom(report))) {
+    if (isInSidePanel && (isConciergeChat || isAdminRoom(report))) {
         const pageHTML = capturePageHTML();
         if (pageHTML) {
             parameters.pageHTML = pageHTML;
         }
+    }
+
+    if (isInSidePanel && isConciergeChat && sidePanelContext) {
+        parameters.sidePanelContext = JSON.stringify(sidePanelContext);
     }
 
     // Add pregenerated params
@@ -959,13 +968,14 @@ function addComment({
     currentUserAccountID,
     shouldPlaySound,
     isInSidePanel,
+    sidePanelContext,
     pregeneratedResponseParams,
     reportActionID,
 }: AddCommentParams) {
     if (shouldPlaySound) {
         playSound(SOUNDS.DONE);
     }
-    addActions({report, notifyReportID, ancestors, timezoneParam, currentUserAccountID, text, isInSidePanel, pregeneratedResponseParams, reportActionID});
+    addActions({report, notifyReportID, ancestors, timezoneParam, currentUserAccountID, text, isInSidePanel, sidePanelContext, pregeneratedResponseParams, reportActionID});
 }
 
 function reportActionsExist(reportID: string): boolean {
