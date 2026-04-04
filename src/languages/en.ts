@@ -134,6 +134,10 @@ const translations = {
         searchWithThreeDots: 'Search...',
         next: 'Next',
         previous: 'Previous',
+        previousMonth: 'Previous month',
+        nextMonth: 'Next month',
+        previousYear: 'Previous year',
+        nextYear: 'Next year',
         // @context Navigation button that returns the user to the previous screen. Should be interpreted as a UI action label.
         goBack: 'Go back',
         create: 'Create',
@@ -3310,6 +3314,10 @@ const translations = {
     yearPickerPage: {
         year: 'Year',
         selectYear: 'Please select a year',
+    },
+    monthPickerPage: {
+        month: 'Month',
+        selectMonth: 'Please select a month',
     },
     focusModeUpdateModal: {
         title: 'Welcome to #focus mode!',

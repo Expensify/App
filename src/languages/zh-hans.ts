@@ -527,6 +527,10 @@ const translations: TranslationDeepObject<typeof en> = {
         approver: '审批人',
         enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `输入第 ${digitIndex} 位数字，共 ${totalDigits} 位`,
         copyOfReportName: (reportName: string) => `${reportName} 的副本`,
+        previousMonth: '上个月',
+        nextMonth: '下个月',
+        previousYear: '上一年',
+        nextYear: '明年',
     },
     socials: {
         podcast: '在播客上关注我们',
@@ -8592,5 +8596,6 @@ ${reportName}
         groups: {title: '群组', memberCount: () => ({one: '1 名成员', other: (count: number) => `${count} 名成员`})},
     },
     proactiveAppReview: {title: '喜欢全新的 Expensify 吗？', description: '请告诉我们，这样我们就能帮助您让报销体验变得更好。', positiveButton: '太棒了！', negativeButton: '不太是'},
+    monthPickerPage: {month: '月份', selectMonth: '请选择月份'},
 };
 export default translations;
