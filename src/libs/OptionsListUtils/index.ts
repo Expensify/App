@@ -85,6 +85,7 @@ import {
     isActionableAddPaymentCard,
     isActionableJoinRequest,
     isActionableMentionWhisper,
+    isActionableTrackExpense,
     isActionOfType,
     isAddCommentAction,
     isClosedAction,
@@ -854,6 +855,8 @@ function getLastMessageTextForReport({
         lastMessageTextFromReport = Parser.htmlToText(getUnreportedTransactionMessage(translate, lastReportAction, conciergeReportID));
     } else if (isActionableMentionWhisper(lastReportAction)) {
         lastMessageTextFromReport = Parser.htmlToText(getActionableMentionWhisperMessage(translate, lastReportAction));
+    } else if (isActionableTrackExpense(lastReportAction)) {
+        lastMessageTextFromReport = CONST.ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE;
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED)) {
         lastMessageTextFromReport = getDynamicExternalWorkflowRoutedMessage(lastReportAction, translate);
     }
