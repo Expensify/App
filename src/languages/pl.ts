@@ -8422,7 +8422,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         },
         requestEarlyCancellation: {
             title: 'Anuluj subskrypcję',
-            subtitle: 'Jaki jest główny powód, dla którego prosisz o wcześniejsze anulowanie?',
+            subtitle: 'Jaki jest główny powód, dla którego prosisz o anulowanie subskrypcji?',
             subscriptionCanceled: {
                 title: 'Subskrypcja anulowana',
                 subtitle: 'Twoja subskrypcja roczna została anulowana.',

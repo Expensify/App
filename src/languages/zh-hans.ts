@@ -8194,7 +8194,7 @@ ${reportName}
         },
         requestEarlyCancellation: {
             title: '取消订阅',
-            subtitle: '您申请提前取消的主要原因是什么？',
+            subtitle: '您取消订阅的主要原因是什么？',
             subscriptionCanceled: {
                 title: '订阅已取消',
                 subtitle: '您的年度订阅已被取消。',

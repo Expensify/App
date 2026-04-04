@@ -3,7 +3,6 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 import MenuItem from '@components/MenuItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
@@ -15,7 +14,6 @@ function CancelSubscriptionMenuItem() {
     const styles = useThemeStyles();
     const {isActingAsDelegate} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const {isOffline} = useNetwork();
 
     const handleCancelSubscriptionPress = () => {
         if (isActingAsDelegate) {
@@ -31,7 +29,6 @@ function CancelSubscriptionMenuItem() {
             shouldShowRightIcon
             wrapperStyle={styles.sectionMenuItemTopDescription}
             titleStyle={styles.textStrong}
-            disabled={isOffline}
             onPress={handleCancelSubscriptionPress}
             sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.REQUEST_EARLY_CANCELLATION}
         />

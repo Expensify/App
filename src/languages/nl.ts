@@ -8441,7 +8441,7 @@ Voeg meer bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         },
         requestEarlyCancellation: {
             title: 'Abonnement opzeggen',
-            subtitle: 'Wat is de belangrijkste reden dat je om vervroegde annulering vraagt?',
+            subtitle: 'Wat is de belangrijkste reden dat je je abonnement opzegt?',
             subscriptionCanceled: {
                 title: 'Abonnement geannuleerd',
                 subtitle: 'Je jaarlijkse abonnement is opgezegd.',

@@ -8726,7 +8726,7 @@ ${amount} para ${merchant} - ${date}`,
         },
         requestEarlyCancellation: {
             title: 'Cancelar suscripción',
-            subtitle: '¿Cuál es la razón principal por la que solicitas la cancelación anticipada?',
+            subtitle: '¿Cuál es la razón principal por la que solicitas cancelar tu suscripción?',
             subscriptionCanceled: {
                 title: 'Suscripción cancelada',
                 subtitle: 'Tu suscripción anual ha sido cancelada.',

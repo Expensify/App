@@ -8475,7 +8475,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         },
         requestEarlyCancellation: {
             title: 'Abonnement kündigen',
-            subtitle: 'Was ist der Hauptgrund, warum du eine vorzeitige Kündigung beantragst?',
+            subtitle: 'Was ist der Hauptgrund, warum du dein Abonnement kündigst?',
             subscriptionCanceled: {
                 title: 'Abonnement gekündigt',
                 subtitle: 'Dein Jahresabonnement wurde gekündigt.',

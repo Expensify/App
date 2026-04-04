@@ -22,9 +22,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getPaymentMethodDescription} from '@libs/PaymentUtils';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
 import {
-    doesUserHavePaymentCardAdded,
+    canCancelSubscription,
     hasCardAuthenticatedError,
-    hasUserFreeTrialEnded,
     isUserOnFreeTrial,
     shouldShowDiscountBanner,
     shouldShowPreTrialBillingBanner,
@@ -308,11 +307,9 @@ function CardSection() {
                 />
             )}
 
-            {!!(
-                privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL &&
-                !isUserOnFreeTrial(firstDayFreeTrial, lastDayFreeTrial) &&
-                !(hasUserFreeTrialEnded(lastDayFreeTrial) && !doesUserHavePaymentCardAdded(userBillingFundID))
-            ) && <CancelSubscriptionMenuItem />}
+            {!privateSubscription?.pendingFields?.type && canCancelSubscription(privateSubscription?.type, firstDayFreeTrial, lastDayFreeTrial, userBillingFundID, account?.hasPurchases) && (
+                <CancelSubscriptionMenuItem />
+            )}
         </Section>
     );
 }

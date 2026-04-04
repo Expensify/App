@@ -8357,7 +8357,7 @@ ${reportName}
         },
         requestEarlyCancellation: {
             title: 'サブスクリプションをキャンセル',
-            subtitle: '早期解約を申請する主な理由を教えてください。',
+            subtitle: 'サブスクリプションをキャンセルする主な理由を教えてください。',
             subscriptionCanceled: {
                 title: 'サブスクリプションを解約しました',
                 subtitle: '年間サブスクリプションは解約されました。',

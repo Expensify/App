@@ -8497,7 +8497,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         },
         requestEarlyCancellation: {
             title: "Annuler l'abonnement",
-            subtitle: 'Quelle est la principale raison pour laquelle vous demandez une résiliation anticipée ?',
+            subtitle: 'Quelle est la principale raison pour laquelle vous souhaitez résilier votre abonnement ?',
             subscriptionCanceled: {
                 title: 'Abonnement annulé',
                 subtitle: 'Votre abonnement annuel a été annulé.',
