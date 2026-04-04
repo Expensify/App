@@ -1,7 +1,7 @@
-import {useCallback, useMemo, useState} from 'react';
+import {useCallback, useMemo} from 'react';
 import {Gesture} from 'react-native-gesture-handler';
 import type {SharedValue} from 'react-native-reanimated';
-import {useAnimatedReaction, useDerivedValue, useSharedValue} from 'react-native-reanimated';
+import {useDerivedValue, useSharedValue} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 import {useChartInteractionState} from './useChartInteractionState';
 
@@ -109,16 +109,7 @@ function findClosestPoint(xValues: number[], targetX: number): number {
  */
 function useChartInteractions({handlePress, checkIsOver, isCursorOverLabel, resolveLabelTouchX, chartBottom, yZero}: UseChartInteractionsProps) {
     /** Interaction state compatible with Victory Native's internal logic */
-    const {state: chartInteractionState, isActive: isTooltipActiveState} = useChartInteractionState();
-
-    /** React state for the index of the point currently being interacted with */
-    const [activeDataIndex, setActiveDataIndex] = useState(-1);
-
-    /** React state indicating if the cursor is currently "hitting" a target based on checkIsOver */
-    const [isOverTarget, setIsOverTarget] = useState(false);
-
-    /** React state indicating if the cursor is over a clickable element (dot/bar, not label) */
-    const [isOverClickableTarget, setIsOverClickableTarget] = useState(false);
+    const {state: chartInteractionState} = useChartInteractionState();
 
     /**
      * Canvas-space x positions for each data point, set by the chart content via setPointPositions.
@@ -173,29 +164,11 @@ function useChartInteractions({handlePress, checkIsOver, isCursorOverLabel, reso
         return isCursorOverLabel?.({cursorX, cursorY, targetX, targetY, chartBottom: currentChartBottom}, chartInteractionState.matchedIndex.get()) ?? false;
     });
 
-    /** Syncs the matched data index from the UI thread to React state */
-    useAnimatedReaction(
-        () => chartInteractionState.matchedIndex.get(),
-        (currentIndex) => {
-            scheduleOnRN(setActiveDataIndex, currentIndex);
-        },
-    );
-
-    /** Syncs the hit-test result from the UI thread to React state */
-    useAnimatedReaction(
-        () => isCursorOverTarget.get(),
-        (isOver) => {
-            scheduleOnRN(setIsOverTarget, isOver);
-        },
-    );
-
-    /** Syncs the clickable hit-test result from the UI thread to React state */
-    useAnimatedReaction(
-        () => isCursorOverClickable.get(),
-        (isOver) => {
-            scheduleOnRN(setIsOverClickableTarget, isOver);
-        },
-    );
+    /**
+     * Derived value that combines hover active state with hit-test result.
+     * Drives tooltip visibility entirely on the UI thread — no React state needed.
+     */
+    const isTooltipActive = useDerivedValue(() => isCursorOverTarget.get() && chartInteractionState.isActive.get());
 
     /**
      * Hover gesture to be placed on the full-height outer container (chart + label area).
@@ -322,12 +295,12 @@ function useChartInteractions({handlePress, checkIsOver, isCursorOverLabel, reso
          * Derived from the d3 scale: ox[i] = xScale(i), oy[i] = yScale(data[i].total).
          */
         setPointPositions,
-        /** The currently active data index (React state) */
-        activeDataIndex,
-        /** Whether the tooltip should currently be rendered and visible */
-        isTooltipActive: isOverTarget && isTooltipActiveState,
-        /** Whether the cursor is over a clickable element (dot/bar, not label) */
-        isOverClickableTarget,
+        /** SharedValue for the currently matched data index — read on the UI thread or sync via useAnimatedReaction */
+        matchedIndex: chartInteractionState.matchedIndex,
+        /** DerivedValue that is true when the tooltip should be visible */
+        isTooltipActive,
+        /** DerivedValue that is true when the cursor is over a clickable element (dot/bar, not label) */
+        isCursorOverClickable,
         /** Raw tooltip positioning data */
         initialTooltipPosition,
     };
