@@ -78,7 +78,13 @@ describe('DistanceRate', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
             if (policy.customUnits) {
-                deletePolicyDistanceRates(policy.id, policy.customUnits[customUnitID], [customUnitRateID1], [transaction1.transactionID], undefined);
+                deletePolicyDistanceRates(
+                    policy.id,
+                    policy.customUnits[customUnitID],
+                    [customUnitRateID1],
+                    [{transactionID: transaction1.transactionID, customUnitRateID: customUnitRateID1}],
+                    undefined,
+                );
             }
             await waitForBatchedUpdates();
             const transactionViolations = await new Promise<Record<string, TransactionViolations | undefined>>((resolve) => {
