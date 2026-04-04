@@ -5412,6 +5412,11 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                             settlementFrequencyLabel: 'Frequenza di regolamento',
                             settlementFrequencyDescription:
                                 'Con quale frequenza Expensify preleverà dal tuo conto bancario aziendale per saldare le recenti transazioni di Expensify Travel.',
+                            monthlySpendLimitLabel: 'Limite di spesa mensile per membro',
+                            monthlySpendLimitDescription: "L'importo massimo che ciascun membro può spendere in viaggi al mese.",
+                            reduceLimitTitle: 'Ridurre il limite di spesa per i viaggi?',
+                            reduceLimitWarning:
+                                'Se riduci il limite, i membri che hanno già speso più di questo importo non potranno effettuare nuove prenotazioni di viaggio fino al mese prossimo.',
                         },
                     },
                     disableModal: {

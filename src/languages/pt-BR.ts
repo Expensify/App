@@ -5394,6 +5394,10 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                             settlementFrequencyLabel: 'Frequência de liquidação',
                             settlementFrequencyDescription:
                                 'Com que frequência o Expensify vai debitar da sua conta bancária empresarial para liquidar as transações recentes do Expensify Travel.',
+                            monthlySpendLimitLabel: 'Limite de gastos mensal por membro',
+                            monthlySpendLimitDescription: 'O valor máximo que cada membro pode gastar em viagens por mês.',
+                            reduceLimitTitle: 'Reduzir o limite de gastos com viagens?',
+                            reduceLimitWarning: 'Se você reduzir o limite, os membros que já gastaram mais do que esse valor não poderão fazer novas reservas de viagem até o próximo mês.',
                         },
                     },
                     disableModal: {
