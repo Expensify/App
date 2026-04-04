@@ -2184,7 +2184,7 @@ function getDisplayNameForWorkspace(email: string) {
  * @param [lastWorkspaceNumber] the last workspace number
  */
 function newGenerateDefaultWorkspaceName(email: string, lastWorkspaceNumber: number | undefined, localeTranslate: LocalizedTranslate): string {
-    const emailParts = email ? email.split('@') : deprecatedSessionEmail.split('@');
+    const emailParts = email.split('@');
     if (!emailParts || emailParts.length !== 2) {
         return '';
     }
@@ -2195,7 +2195,7 @@ function newGenerateDefaultWorkspaceName(email: string, lastWorkspaceNumber: num
         return localeTranslate('workspace.new.myGroupWorkspace', {workspaceNumber: lastWorkspaceNumber !== undefined ? lastWorkspaceNumber + 1 : undefined});
     }
 
-    const displayNameForWorkspace = getDisplayNameForWorkspace(email || deprecatedSessionEmail);
+    const displayNameForWorkspace = getDisplayNameForWorkspace(email);
 
     return localeTranslate('workspace.new.workspaceName', displayNameForWorkspace, lastWorkspaceNumber !== undefined ? lastWorkspaceNumber + 1 : undefined);
 }
