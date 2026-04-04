@@ -5,6 +5,7 @@ import React, {useCallback, useLayoutEffect, useMemo, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+import useBottomDockedDismissAccessibility from '@hooks/useBottomDockedDismissAccessibility';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -309,14 +310,25 @@ function BasePopoverMenu({
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply correct popover styles
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
+    const isWeb = getPlatform() === CONST.PLATFORM.WEB;
     const [currentMenuItems, setCurrentMenuItems] = useState(menuItems);
     const currentMenuItemsFocusedIndex = getSelectedItemIndex(currentMenuItems);
     const [enteredSubMenuIndexes, setEnteredSubMenuIndexes] = useState<readonly number[]>(CONST.EMPTY_ARRAY);
-    const platform = getPlatform();
-    const isWeb = platform === CONST.PLATFORM.WEB;
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: currentMenuItemsFocusedIndex, maxIndex: currentMenuItems.length - 1, isActive: isVisible});
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['BackArrow', 'ReceiptScan', 'MoneyCircle']);
     const prevMenuItems = usePrevious(menuItems);
+    const {
+        firstItemRef: firstMenuItemRef,
+        handleFirstItemFocus,
+        handleModalShow,
+        shouldEnableBottomDockedDismissAccessibility,
+    } = useBottomDockedDismissAccessibility({
+        isVisible,
+        shouldActivate: isSmallScreenWidth,
+        animationDelayMs: (animationInDelay ?? 0) + animationInTiming,
+        onModalShow,
+        shouldConfirmFirstItemFocus: true,
+    });
 
     const selectItem = (index: number, event?: GestureResponderEvent | KeyboardEvent) => {
         const selectedItem = currentMenuItems.at(index);
@@ -410,6 +422,7 @@ function BasePopoverMenu({
             >
                 <FocusableMenuItem
                     key={reactKey}
+                    ref={menuIndex === 0 ? firstMenuItemRef : undefined}
                     pressableTestID={menuItemTestID ?? `PopoverMenuItem-${item.text}`}
                     title={text}
                     onPress={(event) => selectItem(menuIndex, event)}
@@ -420,6 +433,9 @@ function BasePopoverMenu({
                     shouldShowRightIcon={!!item.rightIcon}
                     brickRoadIndicator={item.brickRoadIndicator}
                     onFocus={() => {
+                        if (menuIndex === 0) {
+                            handleFirstItemFocus();
+                        }
                         if (!shouldUpdateFocusedIndex) {
                             return;
                         }
@@ -599,7 +615,7 @@ function BasePopoverMenu({
             }}
             isVisible={isVisible}
             onModalHide={handleModalHide}
-            onModalShow={onModalShow}
+            onModalShow={handleModalShow}
             animationIn={animationIn}
             animationOut={animationOut}
             animationInDelay={animationInDelay}
@@ -611,6 +627,7 @@ function BasePopoverMenu({
             shouldSetModalVisibility={shouldSetModalVisibility}
             shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
             restoreFocusType={restoreFocusType}
+            shouldEnableBottomDockedDismissAccessibility={shouldEnableBottomDockedDismissAccessibility}
             innerContainerStyle={{...styles.pv0, ...innerContainerStyle}}
             shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
             shouldHandleNavigationBack={shouldHandleNavigationBack}

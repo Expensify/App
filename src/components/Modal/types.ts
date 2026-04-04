@@ -124,6 +124,13 @@ type BaseModalProps = Partial<ReanimatedModalProps> &
          * Whether the modal should display under the side panel.
          */
         shouldDisplayBelowModals?: boolean;
+
+        /**
+         * Internal accessibility handshake for bottom-docked popovers on native iOS.
+         * When `false`, the dismiss control stays hidden from accessibility until the first actionable item is focused.
+         * When `true` or `undefined`, the dismiss control is exposed to accessibility.
+         */
+        shouldEnableBottomDockedDismissAccessibility?: boolean;
     };
 
 export default BaseModalProps;
