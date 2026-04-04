@@ -470,13 +470,18 @@ function MoneyRequestConfirmationListFooter({
     const resolvedThumbnail = isLocalFile ? receiptThumbnail : tryResolveUrlFromApiRoot(receiptThumbnail ?? '');
     const resolvedReceiptImage = isLocalFile ? receiptImage : tryResolveUrlFromApiRoot(receiptImage ?? '');
 
-    const [receiptImageLoaded, setReceiptImageLoaded] = useState(false);
-    const {thumbnailUri} = useLocalReceiptThumbnail(resolvedReceiptImage as string, !!isLocalFile, receiptImageLoaded);
+    const {thumbnailUri} = useLocalReceiptThumbnail(resolvedReceiptImage as string, !!isLocalFile);
 
-    // For local files: use thumbnail when ready, fall back to full-resolution image while generating
-    // For remote files: use existing behavior unchanged
+    // For local files: use the pre-generated thumbnail if it was ready by first render.
+    // If the thumbnail arrives late we keep showing the full-res image to avoid a
+    // visible source swap (flash).  For remote files: existing behavior unchanged.
+    const initialLocalSourceRef = useRef<string | undefined>(undefined);
+    if (isLocalFile && initialLocalSourceRef.current === undefined) {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        initialLocalSourceRef.current = thumbnailUri || String(resolvedReceiptImage ?? '') || '';
+    }
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const effectiveReceiptSource = isLocalFile ? thumbnailUri || resolvedReceiptImage || '' : resolvedThumbnail || resolvedReceiptImage || '';
+    const effectiveReceiptSource = isLocalFile ? initialLocalSourceRef.current || '' : resolvedThumbnail || resolvedReceiptImage || '';
 
     const shouldNavigateToUpgradePath = !policyForMovingExpensesID && !shouldSelectPolicy;
     // Time requests appear as regular expenses after they're created, with editable amount and merchant, not hours and rate
@@ -1162,7 +1167,6 @@ function MoneyRequestConfirmationListFooter({
     const [compactReceiptContainerWidth, setCompactReceiptContainerWidth] = useState(0);
     const hasEndedReceiptLoadSpan = useRef(false);
     const handleReceiptLoad = useCallback((event?: {nativeEvent: {width: number; height: number}}) => {
-        setReceiptImageLoaded(true);
         if (!hasEndedReceiptLoadSpan.current) {
             hasEndedReceiptLoadSpan.current = true;
             endSpan(CONST.TELEMETRY.SPAN_CONFIRMATION_RECEIPT_LOAD);
