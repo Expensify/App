@@ -141,7 +141,7 @@ function RequestEarlyCancellationPage() {
     const screenContent = resolvedCancellationType ? contentMap[resolvedCancellationType] : surveyContent;
 
     if (isLoadingGuardData) {
-        return <FullscreenLoadingIndicator />;
+        return <FullscreenLoadingIndicator reasonAttributes={{context: 'RequestEarlyCancellationPage'}} />;
     }
 
     return (
