@@ -45,7 +45,7 @@ function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
     const ancestors = useAncestors(report);
     const isInSidePanel = useIsInSidePanel();
 
-    function onChronosTimerPress() {
+    function sendCommentToChronos() {
         addComment({
             report,
             notifyReportID: report.reportID,
@@ -67,7 +67,7 @@ function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
             <Button
                 success={!isTimerRunning}
                 text={translate(isTimerRunning ? 'chronos.stopTimer' : 'chronos.startTimer')}
-                onPress={callFunctionIfActionIsAllowed(onChronosTimerPress)}
+                onPress={callFunctionIfActionIsAllowed(sendCommentToChronos)}
                 style={styles.flex1}
                 sentryLabel={CONST.SENTRY_LABEL.HEADER_VIEW.CHRONOS_TIMER_BUTTON}
             />
