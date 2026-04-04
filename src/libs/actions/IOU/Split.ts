@@ -2638,7 +2638,9 @@ function addSplitExpenseField(
     let redistributedSplitExpenses = updatedSplitExpenses;
 
     // Auto-redistribute amounts for all splits if this is not a distance request
-    if (!isDistanceRequest) {
+    // Only auto-redistribute if there are no manually edited splits - otherwise respect user's edits
+    const hasManuallyEditedSplits = existingSplits.some((split) => split.isManuallyEdited);
+    if (!isDistanceRequest && !hasManuallyEditedSplits) {
         redistributedSplitExpenses = redistributeSplitExpenseAmounts(updatedSplitExpenses, total, currency);
     }
 
