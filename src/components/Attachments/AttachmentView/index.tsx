@@ -4,6 +4,7 @@ import type {GestureResponderEvent, ImageURISource, StyleProp, ViewStyle} from '
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useAttachmentCarouselPagerActions} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
+import {AttachmentIDContextProvider} from '@components/Attachments/AttachmentIDContext';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import Button from '@components/Button';
 import DistanceEReceipt from '@components/DistanceEReceipt';
@@ -329,7 +330,7 @@ function AttachmentView({
         }
 
         return (
-            <>
+            <AttachmentIDContextProvider attachmentID={attachmentID}>
                 <View style={styles.imageModalImageCenterContainer}>
                     <AttachmentViewImage
                         // Forces remount of high resolution images when transitioning from blob URL (uploading) to server URL (uploaded).
@@ -357,7 +358,7 @@ function AttachmentView({
                         <HighResolutionInfo isUploaded={isUploaded} />
                     </View>
                 )}
-            </>
+            </AttachmentIDContextProvider>
         );
     }
 

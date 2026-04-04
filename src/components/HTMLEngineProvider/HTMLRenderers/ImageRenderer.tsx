@@ -1,6 +1,7 @@
 import React, {memo} from 'react';
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
 import {AttachmentContext} from '@components/AttachmentContext';
+import {AttachmentIDContextProvider} from '@components/Attachments/AttachmentIDContext';
 import {getButtonRole} from '@components/Button/utils';
 import {isDeletedNode} from '@components/HTMLEngineProvider/htmlEngineUtils';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
@@ -76,18 +77,20 @@ function ImageRenderer({tnode}: CustomRendererProps<TBlock>) {
     }
 
     const thumbnailImageComponent = (
-        <ThumbnailImage
-            previewSourceURL={processedPreviewSource}
-            style={styles.webViewStyles.tagStyles.img}
-            isAuthTokenRequired={isAttachmentOrReceipt}
-            fallbackIcon={fallbackIcon}
-            imageWidth={imageWidth}
-            imageHeight={imageHeight}
-            isDeleted={isDeleted}
-            altText={alt}
-            fallbackIconBackground={theme.highlightBG}
-            fallbackIconColor={theme.border}
-        />
+        <AttachmentIDContextProvider attachmentID={attachmentID}>
+            <ThumbnailImage
+                previewSourceURL={processedPreviewSource}
+                style={styles.webViewStyles.tagStyles.img}
+                isAuthTokenRequired={isAttachmentOrReceipt}
+                fallbackIcon={fallbackIcon}
+                imageWidth={imageWidth}
+                imageHeight={imageHeight}
+                isDeleted={isDeleted}
+                altText={alt}
+                fallbackIconBackground={theme.highlightBG}
+                fallbackIconColor={theme.border}
+            />
+        </AttachmentIDContextProvider>
     );
 
     const {anchor, report, isReportArchived, action, isDisabled, shouldDisplayContextMenu, originalReportID} = useShowContextMenuState();
