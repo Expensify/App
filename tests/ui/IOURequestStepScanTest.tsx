@@ -213,7 +213,19 @@ describe('IOURequestStepScan', () => {
         fireEvent.press(screen.getByLabelText('multi-scan'));
 
         await act(async () => {
+        fireEvent.press(screen.getByLabelText('multi-scan'));
+
+        await waitForBatchedUpdates();  
+
+        const transaction1 = createRandomTransaction(1);
+        transaction1.reportID = REPORT_ID;
+        transaction1.transactionID = TRANSACTION_ID_1;
+        transaction1.receipt = {source: 'file://first-receipt.png', state: CONST.IOU.RECEIPT_STATE.OPEN};
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, createMinimalReport(REPORT_ID, POLICY_ID));
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID_1}`, transaction1);
+        });
         });
         await waitForBatchedUpdates();
 
