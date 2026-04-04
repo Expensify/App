@@ -12,6 +12,7 @@ import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import Tooltip from '@components/Tooltip';
+import useDialogLabelRegistration from '@hooks/useDialogLabelRegistration';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -78,6 +79,9 @@ function HeaderWithBackButton({
     shouldMinimizeMenuButton = false,
     openParentReportInCurrentTab = false,
 }: HeaderWithBackButtonProps) {
+    // Avatar-header routes skip Header, so register the dialog label here.
+    useDialogLabelRegistration(shouldShowReportAvatarWithDisplay ? (report?.reportName ?? '') : '');
+
     const icons = useMemoizedLazyExpensifyIcons(['Download', 'Rotate', 'BackArrow', 'Close']);
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -146,6 +150,7 @@ function HeaderWithBackButton({
                 textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, shouldUseHeadlineHeader && styles.textHeadlineH2]}
                 subTitleLink={subTitleLink}
                 numberOfTitleLines={1}
+                isScreenHeader
             />
         );
     }, [
@@ -228,7 +233,7 @@ function HeaderWithBackButton({
                 // be falsy, hence using !== undefined explicitly
                 progressBarPercentage !== undefined && styles.pl0,
                 shouldShowBackButton && [styles.pl2],
-                shouldOverlay && StyleSheet.absoluteFillObject,
+                shouldOverlay && StyleSheet.absoluteFill,
                 style,
             ]}
         >
