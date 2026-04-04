@@ -218,6 +218,9 @@ type Receipt = {
     /** Path of the receipt file */
     source?: ReceiptSource;
 
+    /** Local file URI preserved on the creating device so the remote source from the server does not cause a reload */
+    localSource?: string;
+
     /** Name of receipt file */
     filename?: string;
 

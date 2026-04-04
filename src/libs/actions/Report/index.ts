@@ -321,8 +321,9 @@ type OpenReportActionParams = {
     /** Whether the user has seen the self tour */
     // TODO: This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
     isSelfTourViewed?: boolean;
-    /** Beta features list. TODO: Remove optional (?) once buildPolicyData is updated (https://github.com/Expensify/App/issues/66417) */
-    betas?: OnyxEntry<Beta[]>;
+
+    /** Beta features list */
+    betas: OnyxEntry<Beta[]>;
 };
 
 type PregeneratedResponseParams = {
@@ -1660,9 +1661,8 @@ function createGroupChat(
     currentUserLogin: string,
     introSelected: OnyxEntry<IntroSelected>,
     isSelfTourViewed: boolean | undefined,
+    betas: OnyxEntry<Beta[]>,
     avatar?: File | CustomRNImageManipulatorResult,
-    // TODO: Remove optional (?) once buildPolicyData is updated (https://github.com/Expensify/App/issues/66417)
-    betas?: OnyxEntry<Beta[]>,
 ) {
     const optimisticReport = {
         reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
@@ -2002,16 +2002,15 @@ function navigateToAndCreateGroupChat(
     optimisticReportID: string,
     introSelected: OnyxEntry<IntroSelected>,
     isSelfTourViewed: boolean | undefined,
+    betas: OnyxEntry<Beta[]>,
     avatarUri?: string,
     avatarFile?: File | CustomRNImageManipulatorResult | undefined,
-    // TODO: Remove optional (?) once buildPolicyData is updated (https://github.com/Expensify/App/issues/66417)
-    betas?: OnyxEntry<Beta[]>,
 ) {
     const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(userLogins);
 
     // If we are creating a group chat then participantAccountIDs is expected to contain currentUserAccountID
     const newChat = buildOptimisticGroupChatReport(participantAccountIDs, reportName, avatarUri ?? '', optimisticReportID, CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
-    createGroupChat(newChat.reportID, userLogins, newChat, currentUserLogin, introSelected, isSelfTourViewed, avatarFile, betas);
+    createGroupChat(newChat.reportID, userLogins, newChat, currentUserLogin, introSelected, isSelfTourViewed, betas, avatarFile);
 
     navigateToReport(newChat.reportID);
 }
@@ -2096,6 +2095,15 @@ function createChildReport(
 
     const childReportID = childReport?.reportID ?? parentReportAction.childReportID;
     if (!childReportID) {
+        // When creating a new thread, the thread creator should never see the Join button.
+        // Override their notification preference to ALWAYS regardless of who authored the parent message.
+        if (newChat.participants?.[currentUserAccountID]) {
+            newChat.participants[currentUserAccountID] = {
+                ...newChat.participants[currentUserAccountID],
+                notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+            };
+        }
+
         const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(Object.keys(newChat.participants ?? {}).map(Number));
         openReport({
             reportID: newChat.reportID,
@@ -3477,7 +3485,8 @@ function buildNewReportOptimisticData(
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
     };
 
-    const message = getReportPreviewMessage(optimisticReportData);
+    // TODO: We'll pass the conciergeReportID in the next PR. Ref: https://github.com/Expensify/App/issues/66411
+    const message = getReportPreviewMessage(optimisticReportData, undefined);
     const createReportActionMessage = [
         {
             html: message,

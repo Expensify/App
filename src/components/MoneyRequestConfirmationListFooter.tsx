@@ -23,7 +23,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {setMoneyRequestAmount} from '@libs/actions/IOU';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
-import {convertToBackendAmount, convertToDisplayString, convertToFrontendAmountAsString, getCurrencyDecimals, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
+import {convertToBackendAmount, convertToDisplayString, convertToFrontendAmountAsString, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {isMovingTransactionFromTrackExpense, shouldShowReceiptEmptyState} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -336,7 +336,7 @@ function MoneyRequestConfirmationListFooter({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, toLocaleDigit, localeCompare, preferredLocale} = useLocalize();
-    const {getCurrencySymbol} = useCurrencyListActions();
+    const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const {isOffline} = useNetwork();
     const {windowWidth} = useWindowDimensions();
 

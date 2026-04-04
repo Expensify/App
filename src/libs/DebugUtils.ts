@@ -796,6 +796,7 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
                 name: 'string',
                 receiptID: 'string',
                 source: 'string',
+                localSource: 'string',
                 filename: 'string',
                 reservationList: 'string',
                 isTestReceipt: 'boolean',
@@ -1144,6 +1145,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
             return validateObject<ObjectElement<Transaction, 'receipt'>>(value, {
                 type: 'string',
                 source: 'string',
+                localSource: 'string',
                 name: 'string',
                 filename: 'string',
                 state: CONST.IOU.RECEIPT_STATE,
