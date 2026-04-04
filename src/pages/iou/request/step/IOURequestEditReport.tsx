@@ -49,6 +49,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}`);
+    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const personalDetails = usePersonalDetails();
     const ownerPersonalDetails = useMemo(
         () => getPersonalDetailsForAccountID(selectedReport?.ownerAccountID, personalDetails) as PersonalDetails,
@@ -71,6 +72,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         }
 
         const newReport = report ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.value}`];
+        const policyTagList = item ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${item.policyID}`] : {};
 
         setNavigationActionToMicrotaskQueue(() => {
             changeTransactionsReport({
@@ -85,6 +87,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
                 allTransactions,
                 translate,
                 toLocaleDigit,
+                policyTagList,
             });
             turnOffMobileSelectionMode();
             clearSelectedTransactions(true);
@@ -97,6 +100,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         if (!selectedReport || transactionIDs.length === 0) {
             return;
         }
+        const policyTagList = personalPolicyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${personalPolicyID}`] : {};
         changeTransactionsReport({
             transactionIDs,
             isASAPSubmitBetaEnabled,
@@ -106,6 +110,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             allTransactions,
             translate,
             toLocaleDigit,
+            policyTagList,
         });
         if (shouldTurnOffSelectionMode) {
             turnOffMobileSelectionMode();

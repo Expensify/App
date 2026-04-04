@@ -58,6 +58,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
+    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
@@ -175,6 +176,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                 );
 
                 if (isEditing) {
+                    const policyTagList = item ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${item.policyID}`] : {};
                     changeTransactionsReport({
                         transactionIDs: [transaction.transactionID],
                         isASAPSubmitBetaEnabled,
@@ -187,6 +189,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                         allTransactions,
                         translate,
                         toLocaleDigit,
+                        policyTagList,
                     });
                     removeTransaction(transaction.transactionID);
                 }
@@ -224,6 +227,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         Navigation.dismissToSuperWideRHP();
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
+            const policyTagList = personalPolicyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${personalPolicyID}`] : {};
             changeTransactionsReport({
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled,
@@ -233,6 +237,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                 allTransactions,
                 translate,
                 toLocaleDigit,
+                policyTagList,
             });
             removeTransaction(transaction.transactionID);
         });
