@@ -771,6 +771,7 @@ type OptimisticTaskReport = SetRequired<
         | 'participants'
         | 'managerID'
         | 'type'
+        | 'chatType'
         | 'parentReportID'
         | 'policyID'
         | 'stateNum'
@@ -997,7 +998,6 @@ type GetReportNameParams = {
 type GetReportStatusParams = {
     stateNum?: number;
     statusNum?: number;
-    isDeleted?: boolean;
     translate: LocaleContextProps['translate'];
 };
 
@@ -1027,12 +1027,6 @@ getEnvironmentURL().then((url: string) => (environmentURL = url));
 let environment: EnvironmentType;
 getEnvironment().then((env) => {
     environment = env;
-});
-
-let allBetas: OnyxEntry<Beta[]>;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.BETAS,
-    callback: (value) => (allBetas = value),
 });
 
 // This cache is used to save parse result of report action html message into text
@@ -1269,8 +1263,7 @@ let hiddenTranslation = '';
 let unavailableTranslation = '';
 
 Onyx.connect({
-    key: ONYXKEYS.ARE_TRANSLATIONS_LOADING,
-    initWithStoredValues: false,
+    key: ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING,
     callback: (value) => {
         if (value ?? true) {
             return;
@@ -2626,8 +2619,8 @@ function isMoneyRequestReport(reportOrID: OnyxInputOrEntry<Report> | string, rep
 /**
  * Checks if a report contains only Non-Reimbursable transactions
  */
-function hasOnlyNonReimbursableTransactions(iouReportID: string | undefined): boolean {
-    const transactions = getReportTransactions(iouReportID);
+function hasOnlyNonReimbursableTransactions(iouReportID: string | undefined, transactionsParam?: Transaction[]): boolean {
+    const transactions = transactionsParam ?? getReportTransactions(iouReportID);
     if (!transactions || transactions.length === 0) {
         return false;
     }
@@ -2995,10 +2988,10 @@ type GetAddExpenseDropdownOptionsParams = {
     icons: Record<'Location' | 'ReceiptPlus' | 'Plus', IconAsset>;
     iouReportID: string | undefined;
     policy: OnyxEntry<Policy>;
-    userBillingGraceEndPeriods: OnyxCollection<BillingGraceEndPeriod>;
+    userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     draftTransactionIDs: string[] | undefined;
     amountOwed: OnyxEntry<number>;
-    ownerBillingGraceEndPeriod: OnyxEntry<number>;
+    ownerBillingGracePeriodEnd: OnyxEntry<number>;
     iouRequestBackToReport?: string;
     unreportedExpenseBackToReport?: string;
     lastDistanceExpenseType?: IOURequestType;
@@ -3009,10 +3002,10 @@ function getAddExpenseDropdownOptions({
     icons,
     iouReportID,
     policy,
-    userBillingGraceEndPeriods,
+    userBillingGracePeriodEnds,
     draftTransactionIDs,
     amountOwed,
-    ownerBillingGraceEndPeriod,
+    ownerBillingGracePeriodEnd,
     iouRequestBackToReport,
     unreportedExpenseBackToReport,
     lastDistanceExpenseType,
@@ -3030,7 +3023,7 @@ function getAddExpenseDropdownOptions({
                 if (
                     policy &&
                     policy.type !== CONST.POLICY.TYPE.PERSONAL &&
-                    shouldRestrictUserBillableActions(policy.id, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods, amountOwed)
+                    shouldRestrictUserBillableActions(policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)
                 ) {
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
@@ -3047,7 +3040,7 @@ function getAddExpenseDropdownOptions({
                 if (!iouReportID) {
                     return;
                 }
-                if (policy && shouldRestrictUserBillableActions(policy.id, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods, amountOwed)) {
+                if (policy && shouldRestrictUserBillableActions(policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
@@ -3060,7 +3053,7 @@ function getAddExpenseDropdownOptions({
             icon: icons.ReceiptPlus,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_UNREPORTED,
             onSelected: () => {
-                if (policy && shouldRestrictUserBillableActions(policy.id, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods, amountOwed)) {
+                if (policy && shouldRestrictUserBillableActions(policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
@@ -5353,6 +5346,7 @@ function getTransactionReportName({
  */
 function getReportPreviewMessage(
     reportOrID: OnyxInputOrEntry<Report> | string,
+    conciergeReportID: string | undefined,
     iouReportAction: OnyxInputOrEntry<ReportAction> = null,
     shouldConsiderScanningReceiptOrPendingRoute = false,
     isPreviewMessageForParentChatReport = false,
@@ -5365,7 +5359,7 @@ function getReportPreviewMessage(
     const reportActionMessage = getReportActionHtml(iouReportAction);
     if (isCopyAction) {
         if (report) {
-            return computeReportName({report, currentUserLogin: ''}) || (originalReportAction?.childReportName ?? '');
+            return computeReportName({report, currentUserLogin: '', conciergeReportID}) || (originalReportAction?.childReportName ?? '');
         }
         return originalReportAction?.childReportName ?? '';
     }
@@ -5887,7 +5881,7 @@ function getReportName(reportNameInformation: GetReportNameParams): string {
     const reportPolicy = policy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const parentReportActionBasedName = computeReportNameBasedOnReportAction(translateLocal, parentReportAction, report, reportPolicy, parentReport);
+    const parentReportActionBasedName = computeReportNameBasedOnReportAction(translateLocal, parentReportAction, report, reportPolicy, parentReport, conciergeReportID);
 
     if (parentReportActionBasedName) {
         return parentReportActionBasedName;
@@ -5977,6 +5971,7 @@ function getReportName(reportNameInformation: GetReportNameParams): string {
                 // eslint-disable-next-line @typescript-eslint/no-deprecated -- translateLocal is deprecated; getReportName is non-React code that cannot use the translate hook
                 translate: translateLocal,
                 reportAction: parentReportAction,
+                policy,
                 movedFromReport,
                 movedToReport,
                 // Temporarily retrieves current user email from getCurrentUserEmail, since getReportName is deprecated and no longer requires this parameter to be passed explicitly.
@@ -7063,7 +7058,12 @@ function getMovedTransactionMessage(translate: LocalizedTranslate, action: Repor
     return translate('iou.movedTransactionFrom', reportUrl, reportName);
 }
 
-function getUnreportedTransactionMessage(translate: LocalizedTranslate, action: ReportAction) {
+function getUnreportedTransactionMessage(
+    translate: LocalizedTranslate,
+    action: ReportAction,
+    // TODO: Make this required when https://github.com/Expensify/App/issues/66411 is done
+    conciergeReportID?: string,
+) {
     const movedTransactionOriginalMessage = getOriginalMessage(action) ?? {};
     const {fromReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
 
@@ -7071,7 +7071,7 @@ function getUnreportedTransactionMessage(translate: LocalizedTranslate, action: 
 
     // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const reportName = Parser.htmlToText(getReportName({report: fromReport}) ?? fromReport?.reportName ?? '');
+    const reportName = Parser.htmlToText(getReportName({report: fromReport, conciergeReportID}) ?? fromReport?.reportName ?? '');
 
     let reportUrl = getReportURLForCurrentContext(fromReportID);
 
@@ -7649,7 +7649,8 @@ function buildOptimisticReportPreview(
     reportActionID?: string,
 ): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW> {
     const hasReceipt = hasReceiptTransactionUtils(transaction);
-    const message = getReportPreviewMessage(iouReport);
+    // TODO: We'll pass the conciergeReportID in the next PR. Ref: https://github.com/Expensify/App/issues/66411
+    const message = getReportPreviewMessage(iouReport, undefined);
     const created = DateUtils.getDBTime();
     const reportActorAccountID = (isInvoiceReport(iouReport) || isExpenseReport(iouReport) ? iouReport?.ownerAccountID : iouReport?.managerID) ?? -1;
     const delegateAccountDetails = getPersonalDetailByEmail(delegateEmail);
@@ -7838,7 +7839,8 @@ function updateReportPreview(
         }
     }
 
-    const message = getReportPreviewMessage(iouReport, reportPreviewAction);
+    // TODO: We'll pass the conciergeReportID in the next PR. Ref: https://github.com/Expensify/App/issues/66411
+    const message = getReportPreviewMessage(iouReport, undefined, reportPreviewAction);
     const originalMessage = getOriginalMessage(reportPreviewAction);
     return {
         ...reportPreviewAction,
@@ -8387,8 +8389,8 @@ function buildOptimisticCardAssignedReportAction(assigneeAccountID: number, curr
     };
 }
 
-function buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID: number, currentUserAccountID: number): OptimisticEditedTaskReportAction {
-    const delegateAccountDetails = getPersonalDetailByEmail(delegateEmail);
+function buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID: number, currentUserAccountID: number, delegateEmailParam: string | undefined): OptimisticEditedTaskReportAction {
+    const delegateAccountDetails = delegateEmailParam ? getPersonalDetailByEmail(delegateEmailParam) : undefined;
 
     return {
         reportActionID: rand64(),
@@ -8741,6 +8743,7 @@ function buildOptimisticWorkspaceChats(policyID: string, policyName: string, exp
  * @param title - Task title.
  * @param description - Task description.
  * @param policyID - PolicyID of the parent report
+ * @param parentChatType - Chat type of the parent report.
  */
 
 function buildOptimisticTaskReport(
@@ -8751,6 +8754,7 @@ function buildOptimisticTaskReport(
     description?: string,
     policyID: string = CONST.POLICY.OWNER_EMAIL_FAKE,
     notificationPreference: NotificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+    parentChatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>,
 ): OptimisticTaskReport {
     const participants: Participants = {
         [ownerAccountID]: {
@@ -8771,6 +8775,9 @@ function buildOptimisticTaskReport(
         participants,
         managerID: assigneeAccountID,
         type: CONST.REPORT.TYPE.TASK,
+        // Only #admins tasks inherit chatType for Concierge routing.
+        // Task reports are not expense chats, so we do not inherit policyExpenseChat (or other chat types).
+        ...(parentChatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS && {chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS}),
         parentReportID,
         policyID,
         stateNum: CONST.REPORT.STATE_NUM.OPEN,
@@ -11428,9 +11435,9 @@ type CreateDraftTransactionParams = {
     introSelected: OnyxEntry<IntroSelected>;
     draftTransactionIDs: string[] | undefined;
     activePolicy: OnyxEntry<Policy>;
-    userBillingGraceEndPeriods: OnyxCollection<BillingGraceEndPeriod>;
+    userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     amountOwed: OnyxEntry<number>;
-    ownerBillingGraceEndPeriod?: OnyxEntry<number>;
+    ownerBillingGracePeriodEnd?: OnyxEntry<number>;
     isRestrictedToPreferredPolicy?: boolean;
     preferredPolicyID?: string;
     transaction: OnyxEntry<Transaction>;
@@ -11443,9 +11450,9 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     introSelected,
     draftTransactionIDs,
     activePolicy,
-    userBillingGraceEndPeriods,
+    userBillingGracePeriodEnds,
     amountOwed,
-    ownerBillingGraceEndPeriod,
+    ownerBillingGracePeriodEnd,
     isRestrictedToPreferredPolicy = false,
     preferredPolicyID,
     transaction,
@@ -11512,7 +11519,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     }
 
     if (actionName === CONST.IOU.ACTION.CATEGORIZE) {
-        if (activePolicy && shouldRestrictUserBillableActions(activePolicy.id, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods, amountOwed)) {
+        if (activePolicy && shouldRestrictUserBillableActions(activePolicy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(activePolicy.id));
             return;
         }
@@ -11730,7 +11737,7 @@ type PrepareOnboardingOnyxDataParams = {
     isInvitedAccountant?: boolean;
     onboardingPurposeSelected?: OnboardingPurpose;
     isSelfTourViewed?: boolean;
-    betas?: OnyxEntry<Beta[]>;
+    betas: OnyxEntry<Beta[]>;
 };
 
 function getBespokeWelcomeMessage(companySize: OnboardingCompanySize | undefined, userReportedIntegration?: OnboardingAccounting): string {
@@ -11800,12 +11807,13 @@ function prepareOnboardingOnyxData({
     // Only the MANAGE_TEAM onboarding action uses the #admins room (with a guide); TRACK_WORKSPACE uses Concierge. Excludes emails that have a '+'.
     const shouldPostTasksInAdminsRoom = isPostingTasksInAdminsRoom(engagementChoice);
     // When posting to admins room and the user is in the suggestedFollowups beta, we skip tasks in favor of backend-generated followups.
-    const shouldUseFollowupsInsteadOfTasks = shouldPostTasksInAdminsRoom && Permissions.isBetaEnabled(CONST.BETAS.SUGGESTED_FOLLOWUPS, betas ?? allBetas, betaConfiguration);
+    const shouldUseFollowupsInsteadOfTasks = shouldPostTasksInAdminsRoom && Permissions.isBetaEnabled(CONST.BETAS.SUGGESTED_FOLLOWUPS, betas, betaConfiguration);
     const adminsChatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`];
     const targetChatReport = shouldPostTasksInAdminsRoom
-        ? (adminsChatReport ?? {reportID: adminsChatReportID, policyID: onboardingPolicyID})
+        ? (adminsChatReport ?? {reportID: adminsChatReportID, policyID: onboardingPolicyID, chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS})
         : getChatByParticipants([CONST.ACCOUNT_ID.CONCIERGE, deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID], allReports, false);
     const {reportID: targetChatReportID = '', policyID: targetChatPolicyID = ''} = targetChatReport ?? {};
+    const targetChatType = targetChatReport?.chatType;
 
     if (!targetChatReportID) {
         Log.warn('Missing reportID for onboarding optimistic data');
@@ -11948,6 +11956,7 @@ function prepareOnboardingOnyxData({
                 taskDescription,
                 targetChatPolicyID,
                 CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                targetChatType,
             );
             const emailCreatingAction =
                 engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ? (allPersonalDetails?.[actorAccountID]?.login ?? CONST.EMAIL.CONCIERGE) : CONST.EMAIL.CONCIERGE;
@@ -13092,7 +13101,7 @@ function buildOptimisticRejectReportActionComment(comment: string, created = Dat
             {
                 type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
                 text: comment,
-                html: comment,
+                html: getParsedComment(comment),
             },
         ],
         person: [
@@ -13229,10 +13238,7 @@ function buildOptimisticMarkedAsResolvedReportAction(created = DateUtils.getDBTi
  * ========================================
  */
 
-function getReportStatusTranslation({stateNum, statusNum, isDeleted, translate}: GetReportStatusParams): string {
-    if (isDeleted) {
-        return translate('iou.deleted');
-    }
+function getReportStatusTranslation({stateNum, statusNum, translate}: GetReportStatusParams): string {
     if (stateNum === undefined || statusNum === undefined) {
         return '';
     }
@@ -13260,10 +13266,7 @@ function getReportStatusTranslation({stateNum, statusNum, isDeleted, translate}:
     return '';
 }
 
-function getReportStatusColorStyle(theme: ThemeColors, stateNum?: number, statusNum?: number, isDeleted?: boolean): {backgroundColor?: ColorValue; textColor?: ColorValue} | undefined {
-    if (isDeleted) {
-        return theme.reportStatusBadge.deleted;
-    }
+function getReportStatusColorStyle(theme: ThemeColors, stateNum?: number, statusNum?: number): {backgroundColor?: ColorValue; textColor?: ColorValue} | undefined {
     if (stateNum === undefined || statusNum === undefined) {
         return undefined;
     }

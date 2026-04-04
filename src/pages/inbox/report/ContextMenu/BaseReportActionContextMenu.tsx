@@ -241,6 +241,7 @@ function BaseReportActionContextMenu({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
     const session = useSession();
@@ -412,6 +413,7 @@ function BaseReportActionContextMenu({
                             iouTransaction,
                             bankAccountList,
                             isOffline,
+                            conciergeReportID,
                         };
 
                         if ('renderContent' in contextAction) {

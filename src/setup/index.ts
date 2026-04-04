@@ -46,7 +46,7 @@ export default function () {
             [ONYXKEYS.SESSION]: {loading: false},
             [ONYXKEYS.ACCOUNT]: CONST.DEFAULT_ACCOUNT_DATA,
             [ONYXKEYS.NETWORK]: CONST.DEFAULT_NETWORK_DATA,
-            [ONYXKEYS.IS_SIDEBAR_LOADED]: false,
+            [ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED]: false,
             [ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT]: true,
             [ONYXKEYS.MODAL]: {
                 isVisible: false,
@@ -59,6 +59,12 @@ export default function () {
         skippableCollectionMemberIDs: CONST.SKIPPABLE_COLLECTION_MEMBER_IDS,
         snapshotMergeKeys: ['pendingAction', 'pendingFields'],
         ramOnlyKeys: [
+            ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING,
+            ONYXKEYS.RAM_ONLY_MOBILE_SELECTION_MODE,
+            ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED,
+            ONYXKEYS.RAM_ONLY_IS_LOADING_REPORT_DATA,
+            ONYXKEYS.RAM_ONLY_IS_LOADING_APP,
+            ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD,
             ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS,
             ONYXKEYS.RAM_ONLY_UPDATE_AVAILABLE,
             ONYXKEYS.RAM_ONLY_UPDATE_REQUIRED,

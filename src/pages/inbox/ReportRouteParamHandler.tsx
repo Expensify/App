@@ -1,29 +1,26 @@
-import {useFocusEffect} from '@react-navigation/native';
+import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
 import usePermissions from '@hooks/usePermissions';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {findLastAccessedReport} from '@libs/ReportUtils';
 import {isNumeric} from '@libs/ValidationUtils';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 
-type ReportRouteParamHandlerProps = {
-    route:
-        | PlatformStackScreenProps<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>['route']
-        | PlatformStackScreenProps<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT>['route'];
-    navigation:
-        | PlatformStackScreenProps<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>['navigation']
-        | PlatformStackScreenProps<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT>['navigation'];
-};
+type ReportScreenRoute =
+    | PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
+    | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT>;
 
 /**
  * Component that does not render anything. Resolves the reportID route param when missing,
  * and validates the reportActionID param.
  */
-function ReportRouteParamHandler({route, navigation}: ReportRouteParamHandlerProps) {
+function ReportRouteParamHandler() {
+    const route = useRoute<ReportScreenRoute>();
+    const navigation = useNavigation();
     const {isBetaEnabled} = usePermissions();
     const archivedReportsIdSet = useArchivedReportsIdSet();
 
