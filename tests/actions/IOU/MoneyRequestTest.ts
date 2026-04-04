@@ -411,7 +411,7 @@ describe('MoneyRequest', () => {
                 policyParams: {policy: policyWithTax},
             });
 
-            expect(IOU.trackExpense).toHaveBeenCalledWith(
+            expect(TrackExpense.trackExpense).toHaveBeenCalledWith(
                 expect.objectContaining({
                     transactionParams: expect.objectContaining({
                         taxCode: 'TAX_DEFAULT_123',
@@ -447,7 +447,7 @@ describe('MoneyRequest', () => {
                 policyParams: {policy: policyWithTax},
             });
 
-            expect(IOU.requestMoney).toHaveBeenCalledWith(
+            expect(TrackExpense.requestMoney).toHaveBeenCalledWith(
                 expect.objectContaining({
                     transactionParams: expect.objectContaining({
                         taxCode: 'TAX_DEFAULT_789',
@@ -483,7 +483,7 @@ describe('MoneyRequest', () => {
                 policyParams: {policy: policyWithTax},
             });
 
-            expect(IOU.trackExpense).toHaveBeenCalledWith(
+            expect(TrackExpense.trackExpense).toHaveBeenCalledWith(
                 expect.objectContaining({
                     transactionParams: expect.objectContaining({
                         taxCode: 'TAX_CUSTOM_999',
@@ -507,7 +507,7 @@ describe('MoneyRequest', () => {
                 policyParams: undefined,
             });
 
-            expect(IOU.requestMoney).toHaveBeenCalledWith(
+            expect(TrackExpense.requestMoney).toHaveBeenCalledWith(
                 expect.objectContaining({
                     transactionParams: expect.objectContaining({
                         taxCode: '',
