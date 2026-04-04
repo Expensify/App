@@ -586,7 +586,7 @@ describe('actions/IOU', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransaction.transactionID}`, originalTransaction);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
 
-            // When createDraftTransactionAndNavigateToParticipantSelector is called with empty allTransactionDrafts
+            // When createDraftTransactionAndNavigateToParticipantSelector is called
             createDraftTransactionAndNavigateToParticipantSelector({
                 reportID: selfDMReport.reportID,
                 actionName: CONST.IOU.ACTION.CATEGORIZE,

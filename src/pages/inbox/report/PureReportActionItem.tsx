@@ -277,9 +277,6 @@ type PureReportActionItemProps = {
     /** Model of onboarding selected */
     introSelected?: OnyxEntry<OnyxTypes.IntroSelected>;
 
-    /** Beta features list */
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
-
     /** All transaction draft IDs */
     draftTransactionIDs: string[] | undefined;
 
@@ -494,7 +491,6 @@ const isEmptyHTML = <T extends React.JSX.Element>({props: {html}}: T): boolean =
 function PureReportActionItem({
     personalPolicyID,
     introSelected,
-    betas,
     draftTransactionIDs,
     action,
     report,
