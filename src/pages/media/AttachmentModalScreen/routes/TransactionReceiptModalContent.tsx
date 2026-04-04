@@ -11,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import useRestartOnOdometerImagesFailure from '@hooks/useRestartOnOdometerImagesFailure';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {
     detachReceipt,
@@ -96,6 +97,13 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
 
         return transactionMain;
     }, [isDraftTransaction, mergeTransaction, mergeTransactionID, transactionDraft, transactionMain]);
+
+    useRestartOnOdometerImagesFailure(
+        isDraftTransaction && isOdometerDistanceRequest(transaction) ? transaction : undefined,
+        reportID,
+        iouTypeParam ?? CONST.IOU.TYPE.SUBMIT,
+        action ?? CONST.IOU.ACTION.CREATE,
+    );
 
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
     const receiptURIs = getThumbnailAndImageURIs(transaction);

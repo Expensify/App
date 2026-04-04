@@ -22,6 +22,7 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useRestartOnOdometerImagesFailure from '@hooks/useRestartOnOdometerImagesFailure';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -155,6 +156,8 @@ function IOURequestStepDistanceOdometer({
         setShouldEnableDiscardConfirmation(!isEditingConfirmation && !isEditing);
     }, [isEditing, isEditingConfirmation]);
 
+    useRestartOnOdometerImagesFailure(transaction, reportID, iouType, action);
+
     // Get odometer images from transaction (only for display, not for initialization)
     const odometerStartImage = transaction?.comment?.odometerStartImage;
     const odometerEndImage = transaction?.comment?.odometerEndImage;
@@ -217,6 +220,16 @@ function IOURequestStepDistanceOdometer({
         // 3. Transaction has data but local state is empty (user navigated back from another page)
         const hasTransactionData = (currentStart !== null && currentStart !== undefined) || (currentEnd !== null && currentEnd !== undefined);
         const hasLocalState = startReadingRef.current || endReadingRef.current;
+
+        // Clear local state when transaction data is cleared (e.g., after blob URL failure reset).
+        if (!hasTransactionData && hasLocalState) {
+            setStartReading('');
+            setEndReading('');
+            startReadingRef.current = '';
+            endReadingRef.current = '';
+            return;
+        }
+
         const shouldInitialize =
             (!hasInitializedRefs.current && hasTransactionData) ||
             (isEditing && hasTransactionData && !hasLocalState) ||

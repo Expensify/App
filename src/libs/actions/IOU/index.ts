@@ -1454,7 +1454,7 @@ function setMoneyRequestDistance(transactionID: string, distanceAsFloat: number,
 /**
  * Set the odometer readings for a transaction
  */
-function setMoneyRequestOdometerReading(transactionID: string, startReading: number, endReading: number, isDraft: boolean) {
+function setMoneyRequestOdometerReading(transactionID: string, startReading: number | null, endReading: number | null, isDraft: boolean) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         comment: {
             odometerStart: startReading,
@@ -9124,7 +9124,7 @@ function navigateToStartStepIfScanFileCannotBeRead(
     readFileAsync(receiptPath.toString(), receiptFilename, onSuccess, onFailure, receiptType);
 }
 
-function checkIfScanFileCanBeRead(
+function checkIfLocalFileIsAccessible(
     receiptFilename: string | undefined,
     receiptPath: ReceiptSource | undefined,
     receiptType: string | undefined,
@@ -11222,7 +11222,7 @@ export {
     getIOURequestPolicyID,
     getReportOriginalCreationTimestamp,
     initMoneyRequest,
-    checkIfScanFileCanBeRead,
+    checkIfLocalFileIsAccessible,
     dismissModalAndOpenReportInInboxTab,
     navigateToStartStepIfScanFileCannotBeRead,
     completePaymentOnboarding,

@@ -23,7 +23,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
+import {getMimeTypeFromUri, showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import getPlatform from '@libs/getPlatform';
 import type Platform from '@libs/getPlatform/types';
@@ -250,7 +250,7 @@ function IOURequestStepOdometerImage({
                                     {
                                         uri: source,
                                         name: filename,
-                                        type: (file as FileObject | undefined)?.type ?? 'image/jpeg',
+                                        type: (file as FileObject | undefined)?.type ?? getMimeTypeFromUri(source) ?? 'image/jpeg',
                                         size: (file as FileObject | undefined)?.size,
                                     },
                                     isTransactionDraft,
