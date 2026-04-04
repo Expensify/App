@@ -73,8 +73,6 @@ function SortableItem({id, children, disabled = false, isFocused = false}: Sorta
         <div
             ref={setNodeRef}
             style={style}
-            role="button"
-            tabIndex={0}
             // Use capture phase to intercept Enter before inner MenuItem handles it
             onKeyDownCapture={handleKeyDown}
             onClick={handleClick}
@@ -82,6 +80,8 @@ function SortableItem({id, children, disabled = false, isFocused = false}: Sorta
             {...attributes}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...(disabled ? {} : listeners)}
+            role="button"
+            tabIndex={0}
         >
             {children}
         </div>
