@@ -53,7 +53,7 @@ function CardSection() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['History', 'Bill', 'CreditCard', 'Close'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['History', 'Bill', 'CreditCard', 'Close']);
     const illustrations = useMemoizedLazyIllustrations(['CreditCardEyes']);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const privateSubscription = usePrivateSubscription();
@@ -81,7 +81,7 @@ function CardSection() {
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const [billingStatusOnyx] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_STATUS);
     const [amountOwed = 0] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [isGrandfatheredFree] = useOnyx(ONYXKEYS.NVP_PRIVATE_GRANDFATHERED_FREE);
     const requestRefund = useCallback(() => {
@@ -128,7 +128,7 @@ function CardSection() {
             closeIcon: expensifyIcons.Close,
             fundList,
             amountOwed,
-            ownerBillingGraceEndPeriod,
+            ownerBillingGracePeriodEnd,
         }),
     );
 
@@ -156,7 +156,7 @@ function CardSection() {
                 closeIcon: expensifyIcons.Close,
                 fundList,
                 amountOwed,
-                ownerBillingGraceEndPeriod,
+                ownerBillingGracePeriodEnd,
             }),
         );
     }, [
@@ -173,7 +173,7 @@ function CardSection() {
         expensifyIcons.Close,
         fundList,
         amountOwed,
-        ownerBillingGraceEndPeriod,
+        ownerBillingGracePeriodEnd,
     ]);
 
     const handleRetryPayment = () => {

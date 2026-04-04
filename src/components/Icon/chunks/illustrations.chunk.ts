@@ -38,6 +38,7 @@ import MultiScan from '@assets/images/educational-illustration__multi-scan.svg';
 import ExpensifyCardCoins from '@assets/images/emptystate__expensify-card-coins.svg';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import ExpensifyCardIllustration from '@assets/images/expensifyCard/cardIllustration.svg';
+import ExpensifyCardProtectionIllustration from '@assets/images/expensifyCard/cardProtectionIllustration.svg';
 // Other Images
 import Hand from '@assets/images/hand.svg';
 import LaptopOnDeskWithCoffeeAndKey from '@assets/images/laptop-on-desk-with-coffee-and-key.svg';
@@ -87,6 +88,7 @@ import TiltedCoinExpensify from '@assets/images/product-illustrations/tilted-coi
 import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cloud.svg';
 import ToddInCar from '@assets/images/product-illustrations/todd-in-car.svg';
 import ToddWithPhones from '@assets/images/product-illustrations/todd-with-phones.svg';
+import TopiaryDollarSign from '@assets/images/product-illustrations/topiary-dollar-sign.svg';
 import UpgradeRocket from '@assets/images/product-illustrations/upgrade-rocket.svg';
 import WorkspaceScene from '@assets/images/product-illustrations/workspace-scene.svg';
 import ReceiptStack from '@assets/images/receipt-upload.svg';
@@ -139,12 +141,14 @@ import HeadSet from '@assets/images/simple-illustrations/simple-illustration__he
 import Hourglass from '@assets/images/simple-illustrations/simple-illustration__hourglass.svg';
 import House from '@assets/images/simple-illustrations/simple-illustration__house.svg';
 import InvoiceBlue from '@assets/images/simple-illustrations/simple-illustration__invoice.svg';
+import LifeRing from '@assets/images/simple-illustrations/simple-illustration__lifering.svg';
 import Lightbulb from '@assets/images/simple-illustrations/simple-illustration__lightbulb.svg';
 import LockClosed from '@assets/images/simple-illustrations/simple-illustration__lockclosed.svg';
 import LockClosedOrange from '@assets/images/simple-illustrations/simple-illustration__lockclosed_orange.svg';
 import LockOpen from '@assets/images/simple-illustrations/simple-illustration__lockopen.svg';
 import Luggage from '@assets/images/simple-illustrations/simple-illustration__luggage.svg';
 import MagnifyingGlassMoney from '@assets/images/simple-illustrations/simple-illustration__magnifyingglass-money.svg';
+import MagnifyingGlassReceipt from '@assets/images/simple-illustrations/simple-illustration__magnifyingglass-receipt.svg';
 import Mailbox from '@assets/images/simple-illustrations/simple-illustration__mailbox.svg';
 import ExpensifyMobileApp from '@assets/images/simple-illustrations/simple-illustration__mobileapp.svg';
 import MoneyReceipts from '@assets/images/simple-illustrations/simple-illustration__money-receipts.svg';
@@ -192,7 +196,6 @@ import VerticalCreditCards from '@assets/images/simple-illustrations/simple-illu
 import VirtualCard from '@assets/images/simple-illustrations/simple-illustration__virtualcard.svg';
 import WalletAlt2 from '@assets/images/simple-illustrations/simple-illustration__wallet-alt2.svg';
 import Workflows from '@assets/images/simple-illustrations/simple-illustration__workflows.svg';
-import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
 import TravelCVV from '@assets/images/travel-cvv.svg';
 import TurtleInShell from '@assets/images/turtle-in-shell.svg';
 
@@ -240,6 +243,7 @@ const Illustrations = {
 
     // Expensify Card
     ExpensifyCardIllustration,
+    ExpensifyCardProtectionIllustration,
 
     // Product Illustrations
     Abracadabra,
@@ -277,6 +281,7 @@ const Illustrations = {
     ToddBehindCloud,
     ToddInCar,
     ToddWithPhones,
+    TopiaryDollarSign,
     WorkspaceScene,
     UpgradeRocket,
 
@@ -289,7 +294,6 @@ const Illustrations = {
     ReceiptStack,
     RunningTurtle,
     Shutter,
-    ExpensifyApprovedLogo,
     TravelCVV,
     TurtleInShell,
 
@@ -303,6 +307,7 @@ const Illustrations = {
     HandCard,
     InvoiceBlue,
     MagnifyingGlassMoney,
+    MagnifyingGlassReceipt,
     MoneyReceipts,
     MoneyWings,
     MoneyIntoWallet,
@@ -368,6 +373,7 @@ const Illustrations = {
     HeadSet,
     Hourglass,
     House,
+    LifeRing,
     Lightbulb,
     LockClosed,
     LockClosedOrange,

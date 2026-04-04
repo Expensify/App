@@ -22,7 +22,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {setMoneyRequestAmount} from '@libs/actions/IOU';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
-import {convertToBackendAmount, convertToDisplayString, convertToFrontendAmountAsString, getCurrencyDecimals, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
+import {convertToBackendAmount, convertToDisplayString, convertToFrontendAmountAsString, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {isMovingTransactionFromTrackExpense, shouldShowReceiptEmptyState} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -58,6 +58,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import ActivityIndicator from './ActivityIndicator';
 import Badge from './Badge';
 import Button from './Button';
 import ConfirmedRoute from './ConfirmedRoute';
@@ -145,6 +146,9 @@ type MoneyRequestConfirmationListFooterProps = {
 
     /** Flag indicating if it is an odometer distance request */
     isOdometerDistanceRequest?: boolean;
+
+    /** Whether the receipt is currently being stitched */
+    isLoadingReceipt?: boolean;
 
     /** Flag indicating if it is a GPS distance request */
     isGPSDistanceRequest: boolean;
@@ -288,6 +292,7 @@ function MoneyRequestConfirmationListFooter({
     isDistanceRequest,
     isManualDistanceRequest,
     isOdometerDistanceRequest = false,
+    isLoadingReceipt = false,
     isGPSDistanceRequest,
     isPerDiemRequest,
     isTimeRequest,
@@ -330,7 +335,7 @@ function MoneyRequestConfirmationListFooter({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, toLocaleDigit, localeCompare, preferredLocale} = useLocalize();
-    const {getCurrencySymbol} = useCurrencyListActions();
+    const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const {isOffline} = useNetwork();
     const {windowWidth} = useWindowDimensions();
 
@@ -1208,91 +1213,92 @@ function MoneyRequestConfirmationListFooter({
 
         return (
             <View
-                style={[styles.moneyRequestImage, receiptContainerStyle]}
+                style={[styles.moneyRequestImage, receiptContainerStyle, isLoadingReceipt && [styles.justifyContentCenter, styles.alignItemsCenter]]}
                 onLayout={isCompactMode ? handleCompactReceiptContainerLayout : undefined}
             >
-                {isLocalFile && Str.isPDF(receiptFilename) ? (
-                    <PressableWithoutFocus
-                        onPress={() => {
-                            if (!transactionID) {
-                                return;
-                            }
+                {isLoadingReceipt && <ActivityIndicator reasonAttributes={{context: 'MoneyRequestConfirmationListFooter.receiptThumbnail'}} />}
+                {!isLoadingReceipt &&
+                    (isLocalFile && Str.isPDF(receiptFilename) ? (
+                        <PressableWithoutFocus
+                            onPress={() => {
+                                if (!transactionID) {
+                                    return;
+                                }
 
-                            Navigation.navigate(
-                                isReceiptEditable
-                                    ? ROUTES.MONEY_REQUEST_RECEIPT_PREVIEW.getRoute(reportID, transactionID, action, iouType)
-                                    : ROUTES.TRANSACTION_RECEIPT.getRoute(reportID, transactionID),
-                            );
-                        }}
-                        accessibilityRole={CONST.ROLE.BUTTON}
-                        accessibilityLabel={translate('accessibilityHints.viewAttachment')}
-                        sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.PDF_RECEIPT_THUMBNAIL}
-                        disabled={!shouldDisplayReceipt}
-                        disabledStyle={styles.cursorDefault}
-                        style={styles.h100}
-                    >
-                        <PDFThumbnail
-                            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                            previewSourceURL={resolvedReceiptImage as string}
+                                Navigation.navigate(
+                                    isReceiptEditable
+                                        ? ROUTES.MONEY_REQUEST_RECEIPT_PREVIEW.getRoute(reportID, transactionID, action, iouType)
+                                        : ROUTES.TRANSACTION_RECEIPT.getRoute(reportID, transactionID),
+                                );
+                            }}
+                            accessibilityRole={CONST.ROLE.BUTTON}
+                            accessibilityLabel={translate('accessibilityHints.viewAttachment')}
+                            sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.PDF_RECEIPT_THUMBNAIL}
+                            disabled={!shouldDisplayReceipt}
+                            disabledStyle={styles.cursorDefault}
                             style={styles.h100}
-                            onLoadError={onPDFLoadError}
-                            onPassword={onPDFPassword}
-                        />
-                    </PressableWithoutFocus>
-                ) : (
-                    <PressableWithoutFocus
-                        onPress={() => {
-                            if (!transactionID) {
-                                return;
-                            }
+                        >
+                            <PDFThumbnail
+                                // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+                                previewSourceURL={resolvedReceiptImage as string}
+                                style={styles.h100}
+                                onLoadError={onPDFLoadError}
+                                onPassword={onPDFPassword}
+                            />
+                        </PressableWithoutFocus>
+                    ) : (
+                        <PressableWithoutFocus
+                            onPress={() => {
+                                if (!transactionID) {
+                                    return;
+                                }
 
-                            Navigation.navigate(
-                                isReceiptEditable
-                                    ? ROUTES.MONEY_REQUEST_RECEIPT_PREVIEW.getRoute(reportID, transactionID, action, iouType)
-                                    : ROUTES.TRANSACTION_RECEIPT.getRoute(reportID, transactionID),
-                            );
-                        }}
-                        disabled={!shouldDisplayReceipt || isThumbnail}
-                        accessibilityRole={CONST.ROLE.BUTTON}
-                        accessibilityLabel={translate('accessibilityHints.viewAttachment')}
-                        sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.RECEIPT_THUMBNAIL}
-                        disabledStyle={styles.cursorDefault}
-                        style={receiptThumbnailStyle}
-                    >
-                        <ReceiptImage
-                            isThumbnail={isThumbnail}
-                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                            source={resolvedThumbnail || resolvedReceiptImage || ''}
-                            // AuthToken is required when retrieving the image from the server
-                            // but we don't need it to load the blob:// or file:// image when starting an expense/split
-                            // So if we have a thumbnail, it means we're retrieving the image from the server
-                            isAuthTokenRequired={!!receiptThumbnail && !isLocalFile}
-                            fileExtension={fileExtension}
-                            shouldUseThumbnailImage
-                            shouldUseInitialObjectPosition={isDistanceRequest}
-                            shouldUseFullHeight={isCompactMode}
-                            onLoad={handleReceiptLoad}
-                            resizeMode={isOdometerDistanceRequest ? 'contain' : undefined}
-                        />
-                    </PressableWithoutFocus>
-                )}
+                                Navigation.navigate(
+                                    isReceiptEditable
+                                        ? ROUTES.MONEY_REQUEST_RECEIPT_PREVIEW.getRoute(reportID, transactionID, action, iouType)
+                                        : ROUTES.TRANSACTION_RECEIPT.getRoute(reportID, transactionID),
+                                );
+                            }}
+                            disabled={!shouldDisplayReceipt || isThumbnail}
+                            accessibilityRole={CONST.ROLE.BUTTON}
+                            accessibilityLabel={translate('accessibilityHints.viewAttachment')}
+                            sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.RECEIPT_THUMBNAIL}
+                            disabledStyle={styles.cursorDefault}
+                            style={receiptThumbnailStyle}
+                        >
+                            <ReceiptImage
+                                isThumbnail={isThumbnail}
+                                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                                source={resolvedThumbnail || resolvedReceiptImage || ''}
+                                // AuthToken is required when retrieving the image from the server
+                                // but we don't need it to load the blob:// or file:// image when starting an expense/split
+                                // So if we have a thumbnail, it means we're retrieving the image from the server
+                                isAuthTokenRequired={!!receiptThumbnail && !isLocalFile}
+                                fileExtension={fileExtension}
+                                shouldUseThumbnailImage
+                                shouldUseInitialObjectPosition={isDistanceRequest}
+                                shouldUseFullHeight={isCompactMode}
+                                onLoad={handleReceiptLoad}
+                                resizeMode={isOdometerDistanceRequest ? 'contain' : undefined}
+                            />
+                        </PressableWithoutFocus>
+                    ))}
             </View>
         );
     }, [
         isCompactMode,
         compactReceiptContainerStyle,
         styles.expenseViewImageSmall,
-        styles.moneyRequestImage,
-        styles.flex1,
         styles.h100,
+        styles.flex1,
+        styles.moneyRequestImage,
+        styles.justifyContentCenter,
+        styles.alignItemsCenter,
         styles.cursorDefault,
+        isLoadingReceipt,
+        handleCompactReceiptContainerLayout,
         isLocalFile,
         receiptFilename,
-        transactionID,
-        isReceiptEditable,
-        reportID,
-        action,
-        iouType,
         translate,
         shouldDisplayReceipt,
         resolvedReceiptImage,
@@ -1303,9 +1309,13 @@ function MoneyRequestConfirmationListFooter({
         receiptThumbnail,
         fileExtension,
         isDistanceRequest,
-        isOdometerDistanceRequest,
         handleReceiptLoad,
-        handleCompactReceiptContainerLayout,
+        isOdometerDistanceRequest,
+        transactionID,
+        isReceiptEditable,
+        reportID,
+        action,
+        iouType,
     ]);
 
     const visibleFields = fields.filter((field) => field.shouldShow);
@@ -1396,7 +1406,7 @@ function MoneyRequestConfirmationListFooter({
                 )}
             </View>
             {(!shouldShowMap || isManualDistanceRequest || isOdometerDistanceRequest) &&
-                (hasReceiptImageOrThumbnail
+                (hasReceiptImageOrThumbnail || isLoadingReceipt
                     ? receiptThumbnailContent
                     : showReceiptEmptyState && (
                           <ReceiptEmptyState
@@ -1490,5 +1500,6 @@ export default memo(
         prevProps.showMoreFields === nextProps.showMoreFields &&
         prevProps.isTimeRequest === nextProps.isTimeRequest &&
         prevProps.iouTimeCount === nextProps.iouTimeCount &&
-        prevProps.iouTimeRate === nextProps.iouTimeRate,
+        prevProps.iouTimeRate === nextProps.iouTimeRate &&
+        prevProps.isLoadingReceipt === nextProps.isLoadingReceipt,
 );

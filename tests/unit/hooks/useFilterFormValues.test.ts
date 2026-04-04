@@ -1,5 +1,5 @@
 import type {OnyxCollection} from 'react-native-onyx';
-import {typeOptionsPoliciesSelector} from '@components/Search/SearchPageHeader/useSearchFiltersBar';
+import {typeOptionsPoliciesSelector} from '@components/Search/SearchPageHeader/useSearchActionsBar';
 import {advancedSearchPoliciesSelector} from '@hooks/useAdvancedSearchFilters';
 import {exportedToPoliciesSelector} from '@hooks/useExportedToFilterOptions';
 import {policiesSelector, policyCategoriesSelector, policyTagsSelector, reportsSelector} from '@hooks/useFilterFormValues';

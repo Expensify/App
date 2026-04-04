@@ -14,7 +14,6 @@ import type {
     Transaction,
     TransactionViolation,
 } from '@src/types/onyx';
-import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {areTransactionsEligibleForMerge} from './MergeTransactionUtils';
 import {getLoginByAccountID} from './PersonalDetailsUtils';
 import {
@@ -28,6 +27,7 @@ import {
     isInstantSubmitEnabled,
     isPaidGroupPolicy,
     isPolicyAdmin,
+    isPolicyApprover,
     isPolicyMember,
     isPreferredExporter,
     isSubmitAndClose,
@@ -347,14 +347,14 @@ function isApproveAction(
         currentUserLogin,
         currentUserAccountID,
     );
-    const isReportApprover = isApproverUtils(policy, currentUserLogin);
+    const isReportApprover = isPolicyApprover(policy, currentUserLogin);
     const userControlsReport = isReportApprover || isAdmin;
     return userControlsReport && shouldShowBrokenConnectionViolation;
 }
 
 function isUnapproveAction(currentUserLogin: string, currentUserAccountID: number, report: Report, policy?: Policy): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
-    const isReportApprover = isApproverUtils(policy, currentUserLogin);
+    const isReportApprover = isPolicyApprover(policy, currentUserLogin);
     const isReportApproved = isReportApprovedUtils({report});
     const isReportSettled = isSettled(report);
     const isPaymentProcessing = report.isWaitingOnBankAccount && report.statusNum === CONST.REPORT.STATUS_NUM.APPROVED;
@@ -880,7 +880,18 @@ function getSecondaryReportActions({
     const didExportFail = !isExported && hasExportError;
 
     if (
-        isPrimaryPayAction(report, currentUserAccountID, currentUserLogin, bankAccountList, policy, reportNameValuePairs, isChatReportArchived, undefined, reportActions, true) &&
+        isPrimaryPayAction({
+            report,
+            reportTransactions,
+            currentUserAccountID,
+            currentUserLogin,
+            bankAccountList,
+            policy,
+            reportNameValuePairs,
+            isChatReportArchived,
+            reportActions,
+            isSecondaryAction: true,
+        }) &&
         (hasOnlyHeldExpenses(report?.reportID) || didExportFail)
     ) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.PAY);
