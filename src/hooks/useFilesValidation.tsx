@@ -32,7 +32,7 @@ const sortFilesByOriginalOrder = (files: FileObject[], orderMap: Map<string, num
     return files.sort((a, b) => (orderMap.get(a.uri ?? '') ?? 0) - (orderMap.get(b.uri ?? '') ?? 0));
 };
 
-const isImageFile = (file: FileObject) => hasHeicOrHeifExtension(file) ?? Str.isImage(file.name ?? '');
+const isImageFile = (file: FileObject): boolean => hasHeicOrHeifExtension(file) || Str.isImage(file.name ?? '');
 
 function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransferItems: DataTransferItem[]) => void) {
     const styles = useThemeStyles();
@@ -166,13 +166,13 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
                     return;
                 }
 
-                if (result.error === CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE && isImageFile(file) && validationState.isValidatingReceipts) {
-                    filesToResize.push(file);
+                if (result.error === CONST.FILE_VALIDATION_ERRORS.HEIC_OR_HEIF_IMAGE) {
+                    filesToConvert.push(file);
                     return;
                 }
 
-                if (result.error === CONST.FILE_VALIDATION_ERRORS.HEIC_OR_HEIF_IMAGE) {
-                    filesToConvert.push(file);
+                if (result.error === CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE && isImageFile(file) && validationState.isValidatingReceipts) {
+                    filesToResize.push(file);
                     return;
                 }
 

@@ -64,11 +64,12 @@ function useAttachmentUploadValidation({
 
     const reportAttachmentsContext = useContext(AttachmentModalContext);
     const showAttachmentModalScreen = useCallback(
-        (file: FileObject | FileObject[], dataTransferItems?: DataTransferItem[]) => {
+        (file: FileObject[]) => {
+            const sourceOfFirstAttachment = file.at(0)?.uri;
             reportAttachmentsContext.setCurrentAttachment<typeof SCREENS.REPORT_ADD_ATTACHMENT>({
                 reportID,
+                source: sourceOfFirstAttachment,
                 file,
-                dataTransferItems,
                 headerTitle: translate('reportActionCompose.sendAttachment'),
                 onConfirm: addAttachment,
                 onShow: () => setIsAttachmentPreviewActive(true),
@@ -81,13 +82,13 @@ function useAttachmentUploadValidation({
     );
 
     const attachmentUploadType = useRef<'receipt' | 'attachment'>(undefined);
-    const onFilesValidated = (files: FileObject[], dataTransferItems: DataTransferItem[]) => {
+    const onFilesValidated = (files: FileObject[]) => {
         if (files.length === 0) {
             return;
         }
 
         if (attachmentUploadType.current === 'attachment') {
-            showAttachmentModalScreen(files, dataTransferItems);
+            showAttachmentModalScreen(files);
             return;
         }
 
