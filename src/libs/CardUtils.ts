@@ -1106,6 +1106,9 @@ function flattenWorkspaceCardsList(allCardsList: OnyxCollection<WorkspaceCardsLi
  * @returns true if the card has a broken connection, false otherwise
  */
 function isCardConnectionBroken(card: Card): boolean {
+    if (card.pendingFields?.lastScrape) {
+        return false;
+    }
     return !!card.lastScrapeResult && !CONST.COMPANY_CARDS.BROKEN_CONNECTION_IGNORED_STATUSES.includes(card.lastScrapeResult);
 }
 
