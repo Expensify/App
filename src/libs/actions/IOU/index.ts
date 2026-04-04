@@ -1229,13 +1229,19 @@ function handleNavigateAfterExpenseCreate({
         alreadyOnSearchRoot && isSameSearchType ? CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY : CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH,
     );
     const queryString = buildCannedSearchQuery({type});
-    Navigation.isNavigationReady().then(() => {
+    const navigateToSearch = () => {
         if (getIsNarrowLayout()) {
             Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {forceReplace: true});
         } else {
             Navigation.revealRouteBeforeDismissingModal(ROUTES.SEARCH_ROOT.getRoute({query: queryString}));
         }
-    });
+    };
+
+    if (navigationRef.isReady()) {
+        navigateToSearch();
+    } else {
+        Navigation.isNavigationReady().then(navigateToSearch);
+    }
 }
 
 /**
@@ -12413,6 +12419,7 @@ function prepareRejectMoneyRequestData(
     // The "rejected this expense" action should come before the reject comment
     const baseTimestamp = DateUtils.getDBTime();
     const optimisticRejectReportAction = buildOptimisticRejectReportAction(baseTimestamp);
+    const parsedComment = getParsedComment(comment);
     const optimisticRejectReportActionComment = buildOptimisticRejectReportActionComment(comment, DateUtils.addMillisecondsFromDateTime(baseTimestamp, 1));
     let movedTransactionAction;
 
@@ -12602,7 +12609,7 @@ function prepareRejectMoneyRequestData(
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 amount: transactionAmount,
                 currency: getCurrency(transaction),
-                comment,
+                comment: parsedComment,
                 payeeEmail: getLoginByAccountID(report.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID) ?? '',
                 participants: [{accountID: report?.ownerAccountID}],
                 transactionID: transaction.transactionID,
@@ -12693,7 +12700,7 @@ function prepareRejectMoneyRequestData(
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 amount: transactionAmount,
                 currency: getCurrency(transaction),
-                comment,
+                comment: parsedComment,
                 payeeEmail: deprecatedCurrentUserEmail,
                 participants: [{accountID: report?.ownerAccountID}],
                 transactionID: transaction.transactionID,
@@ -13094,7 +13101,7 @@ function prepareRejectMoneyRequestData(
     const parameters: RejectMoneyRequestParams = {
         transactionID,
         reportID,
-        comment,
+        comment: parsedComment,
         rejectedToReportID,
         reportPreviewReportActionID: reportPreviewAction?.reportActionID,
         rejectedActionReportActionID: optimisticRejectReportAction.reportActionID,

@@ -809,6 +809,9 @@ const translations: TranslationDeepObject<typeof en> = {
         emoji: '絵文字',
         collapse: '折りたたむ',
         expand: '展開',
+        askConciergeToUpdate: '「経費を更新」と入力してみてください…',
+        askConciergeToCorrect: '「経費を修正」と入力してみてください…',
+        askConciergeForHelp: 'Concierge AI にヘルプを依頼…',
     },
     reportActionContextMenu: {
         copyMessage: 'メッセージをコピー',
@@ -3820,6 +3823,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             `は、従業員への支払いを${currency}で行うため、末尾が${bankAccountLastFour}の${currency}建てビジネス銀行口座をExpensifyに接続しようとしています。次のステップでは、取締役の署名者情報が必要です。`,
         error: {
             emailsMustBeDifferent: 'メールアドレスは異なる必要があります',
+            connectToWorkspace: (workspaceRoute: string) => `この銀行口座を<a href="${workspaceRoute}">ワークスペース</a>に接続して、取締役に署名を依頼してください。`,
         },
     },
     agreementsStep: {
@@ -6642,6 +6646,24 @@ ${reportName}
             customRules: {
                 title: '経費ポリシー',
                 cardSubtitle: 'ここはチームの経費ポリシーが保存されている場所です。何が対象になるか、全員が同じ認識を持てます。',
+            },
+            spendRules: {
+                title: '支出',
+                subtitle: 'Expensify カードの取引をリアルタイムで承認または却下できます。',
+                defaultRuleDescription: 'すべてのカード',
+                block: 'ブロック',
+                defaultRuleTitle: 'カテゴリ：アダルトサービス、ATM、ギャンブル、送金',
+                builtInProtectionModal: {
+                    title: 'Expensify カードには、常に標準で保護機能があります',
+                    description: `Expensify は、次のような支払いを常に拒否します：
+
+  ・アダルトサービス
+  ・ATM
+  ・ギャンブル
+  ・送金
+
+会社のキャッシュフローを守るために、支出ルールをさらに追加しましょう。`,
+                },
             },
         },
         planTypePage: {

@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-tab-view/src/PagerViewAdapter.tsx b/node_modules/react-native-tab-view/src/PagerViewAdapter.tsx
-index d4a0a0e..d66b0cb 100644
+index d4a0a0e..0000001 100644
 --- a/node_modules/react-native-tab-view/src/PagerViewAdapter.tsx
 +++ b/node_modules/react-native-tab-view/src/PagerViewAdapter.tsx
 @@ -134,9 +134,10 @@ export function PagerViewAdapter<T extends Route>({
@@ -14,7 +14,10 @@ index d4a0a0e..d66b0cb 100644
    );
  
    return children({
-@@ -166,6 +167,8 @@ export function PagerViewAdapter<T extends Route>({
+@@ -163,9 +164,11 @@ export function PagerViewAdapter<T extends Route>({
+           ],
+           { useNativeDriver }
+         )}
          onPageSelected={(e) => {
            const index = e.nativeEvent.position;
            indexRef.current = index;
