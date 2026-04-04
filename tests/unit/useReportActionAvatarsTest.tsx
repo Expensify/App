@@ -7,7 +7,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList} from '@src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
-import {createAdminRoom, createInvoiceReport, createInvoiceRoom, createRegularChat} from '../utils/collections/reports';
+import {createAdminRoom, createAnnounceRoom, createInvoiceReport, createInvoiceRoom, createRegularChat} from '../utils/collections/reports';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const mockPolicyID = '123456';
@@ -72,9 +72,11 @@ describe('useReportActionAvatars', () => {
         const conciergeAvatarURL = 'https://d2k5nsl2zxldvw.cloudfront.net/images/icons/concierge_2022.png';
         const adminRoomReportID = 9001;
         const dmReportID = 9002;
+        const announceRoomReportID = 9003;
         const adminPolicyID = '7777';
 
         const mockAdminRoom = {...createAdminRoom(adminRoomReportID), policyID: adminPolicyID};
+        const mockAnnounceRoom = {...createAnnounceRoom(announceRoomReportID), policyID: adminPolicyID};
         const mockAdminPolicy = {...createRandomPolicy(Number(adminPolicyID), CONST.POLICY.TYPE.TEAM, 'AcmeCorp'), policyID: adminPolicyID};
         const mockConciergeDM = {
             ...createRegularChat(dmReportID, [conciergeAccountID, 12345]),
@@ -91,6 +93,7 @@ describe('useReportActionAvatars', () => {
 
         beforeEach(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${mockAdminRoom.reportID}`, mockAdminRoom);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${mockAnnounceRoom.reportID}`, mockAnnounceRoom);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${mockConciergeDM.reportID}`, mockConciergeDM);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${adminPolicyID}`, mockAdminPolicy);
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, conciergePersonalDetails);
@@ -132,6 +135,17 @@ describe('useReportActionAvatars', () => {
 
             // In a 1:1 DM, getIcons resolves participant avatars, not workspace avatars
             expect(data.avatars.at(0)?.type).toBe(CONST.ICON_TYPE_AVATAR);
+        });
+
+        // Test 4 (adversarial): Bug is systemic across ALL policy rooms, not just #admins
+        test('should show workspace avatar in announce room when no action and no accountIDs are provided (bug breadth)', () => {
+            const {
+                result: {current: data},
+            } = renderHook(() => useReportActionAvatars({report: mockAnnounceRoom, action: undefined}), {wrapper});
+
+            // Same bug as admin room: useNearestReportAvatars falls through to getIcons(policyRoom) → workspace icon.
+            // Proves the fix must cover all policy room types, not just admin rooms.
+            expect(data.avatars.at(0)?.type).toBe(CONST.ICON_TYPE_WORKSPACE);
         });
     });
 });
