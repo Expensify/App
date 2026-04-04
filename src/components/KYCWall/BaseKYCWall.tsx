@@ -68,7 +68,7 @@ function KYCWall({
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
-    const {formatPhoneNumber} = useLocalize();
+    const {formatPhoneNumber, translate} = useLocalize();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserDetails.email ?? '';
     const reportPreviewAction = useParentReportAction(iouReport);
