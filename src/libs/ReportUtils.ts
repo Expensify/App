@@ -7742,8 +7742,17 @@ function buildOptimisticModifiedExpenseReportAction(
     updatedTransaction?: OnyxInputOrEntry<Transaction>,
     allowNegative = false,
 ): OptimisticModifiedExpenseReportAction {
-    const originalMessage = getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, isFromExpenseReport, policy, updatedTransaction, allowNegative);
+    const baseOriginalMessage = getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, isFromExpenseReport, policy, updatedTransaction, allowNegative);
     const delegateAccountDetails = getPersonalDetailByEmail(delegateEmail);
+
+    // If the actor is different from the expense owner, mark the expense owner as actionable
+    // so they receive a notification even though the transaction thread has HIDDEN preference.
+    // transactionThread.ownerAccountID may be 0/undefined, so walk up to the IOU report via parentReportID.
+    const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThread?.parentReportID}`];
+    const expenseOwnerAccountID = iouReport?.ownerAccountID ?? transactionThread?.ownerAccountID;
+    const actionableForAccountIDs = expenseOwnerAccountID && expenseOwnerAccountID !== deprecatedCurrentUserAccountID ? [expenseOwnerAccountID] : undefined;
+
+    const originalMessage = actionableForAccountIDs ? {...baseOriginalMessage, actionableForAccountIDs} : baseOriginalMessage;
 
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
