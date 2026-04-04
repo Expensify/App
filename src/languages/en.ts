@@ -8447,8 +8447,8 @@ const translations = {
             pricing: 'Pricing',
         },
         requestEarlyCancellation: {
-            title: 'Request early cancellation',
-            subtitle: 'What’s the main reason you’re requesting early cancellation?',
+            title: 'Cancel subscription',
+            subtitle: 'What’s the main reason you’re canceling your subscription?',
             subscriptionCanceled: {
                 title: 'Subscription canceled',
                 subtitle: 'Your annual subscription has been canceled.',

@@ -1,10 +1,12 @@
 import type {ReactNode} from 'react';
-import React, {useMemo, useState} from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FeedbackSurvey from '@components/FeedbackSurvey';
 import FixedFooter from '@components/FixedFooter';
+import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -13,26 +15,57 @@ import Text from '@components/Text';
 import useCancellationType from '@hooks/useCancellationType';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {cancelBillingSubscription} from '@libs/actions/Subscription';
 import Navigation from '@libs/Navigation/Navigation';
+import {canCancelSubscription} from '@libs/SubscriptionUtils';
 import type {CancellationType, FeedbackSurveyOptionID} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 function RequestEarlyCancellationPage() {
     const {environmentURL} = useEnvironment();
     const workspacesListRoute = `${environmentURL}/${ROUTES.WORKSPACES_LIST.route}`;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const [privateSubscription, privateSubscriptionResult] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
+    const [firstDayFreeTrial, firstDayFreeTrialResult] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
+    const [lastDayFreeTrial, lastDayFreeTrialResult] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
+    const [userBillingFundID, userBillingFundIDResult] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
+    const [account, accountResult] = useOnyx(ONYXKEYS.ACCOUNT);
+    const isLoadingEligibilityData = isLoadingOnyxValue(privateSubscriptionResult, firstDayFreeTrialResult, lastDayFreeTrialResult, userBillingFundIDResult, accountResult);
 
-    const [isLoading, setIsLoading] = useState(false);
+    const [formState] = useOnyx(ONYXKEYS.FORMS.REQUEST_EARLY_CANCELLATION_FORM);
+    const [cancellationDetails, cancellationDetailsResult] = useOnyx(ONYXKEYS.NVP_PRIVATE_CANCELLATION_DETAILS);
+    const isLoadingGuardData = isLoadingEligibilityData || isLoadingOnyxValue(cancellationDetailsResult);
 
-    const cancellationType = useCancellationType();
+    const cancellationTypeFromHook = useCancellationType();
+    const isEligibleToCancel = canCancelSubscription(privateSubscription?.type, firstDayFreeTrial, lastDayFreeTrial, userBillingFundID, account?.hasPurchases);
+
+    // Falls back to reading cancellation details directly on remount (hook only detects array growth).
+    // Skipped for eligible users so they see the survey, not a historical success screen.
+    const resolvedCancellationType = useMemo(() => {
+        if (cancellationTypeFromHook) {
+            return cancellationTypeFromHook;
+        }
+        if (isEligibleToCancel || !cancellationDetails?.length) {
+            return undefined;
+        }
+        const pendingManual = cancellationDetails.find((detail) => detail.cancellationType === CONST.CANCELLATION_TYPE.MANUAL && !detail.cancellationDate);
+        if (pendingManual) {
+            return CONST.CANCELLATION_TYPE.MANUAL;
+        }
+        const noneEntry = cancellationDetails.find((detail) => detail.cancellationType === CONST.CANCELLATION_TYPE.NONE);
+        if (noneEntry) {
+            return CONST.CANCELLATION_TYPE.NONE;
+        }
+        return CONST.CANCELLATION_TYPE.AUTOMATIC;
+    }, [cancellationTypeFromHook, cancellationDetails, isEligibleToCancel]);
 
     const handleSubmit = (cancellationReason: FeedbackSurveyOptionID, cancellationNote = '') => {
-        setIsLoading(true);
         cancelBillingSubscription(cancellationReason, cancellationNote);
     };
 
@@ -92,11 +125,11 @@ function RequestEarlyCancellationPage() {
                 optionRowStyles={styles.flex1}
                 footerText={<Text style={[styles.mb2, styles.mt4]}>{acknowledgementText}</Text>}
                 isNoteRequired
-                isLoading={isLoading}
+                isLoading={!!formState?.isLoading}
                 enabledWhenOffline={false}
             />
         ),
-        [acknowledgementText, isLoading, styles.flex1, styles.mb2, styles.mt4, translate],
+        [acknowledgementText, formState?.isLoading, styles.flex1, styles.mb2, styles.mt4, translate],
     );
 
     const contentMap: Partial<Record<CancellationType, ReactNode>> = {
@@ -105,7 +138,11 @@ function RequestEarlyCancellationPage() {
         [CONST.CANCELLATION_TYPE.NONE]: manualCancellationContent,
     };
 
-    const screenContent = cancellationType ? contentMap[cancellationType] : surveyContent;
+    const screenContent = resolvedCancellationType ? contentMap[resolvedCancellationType] : surveyContent;
+
+    if (isLoadingGuardData) {
+        return <FullscreenLoadingIndicator reasonAttributes={{context: 'RequestEarlyCancellationPage'}} />;
+    }
 
     return (
         <ScreenWrapper
@@ -113,15 +150,17 @@ function RequestEarlyCancellationPage() {
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
-            shouldShowOfflineIndicatorInWideScreen={!cancellationType}
+            shouldShowOfflineIndicatorInWideScreen={!resolvedCancellationType}
         >
-            <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
-                <HeaderWithBackButton
-                    title={translate('subscription.requestEarlyCancellation.title')}
-                    onBackButtonPress={Navigation.goBack}
-                />
-                <ScrollView contentContainerStyle={[styles.flexGrow1, styles.pt3]}>{screenContent}</ScrollView>
-            </DelegateNoAccessWrapper>
+            <FullPageNotFoundView shouldShow={!isEligibleToCancel && !resolvedCancellationType}>
+                <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
+                    <HeaderWithBackButton
+                        title={translate('subscription.requestEarlyCancellation.title')}
+                        onBackButtonPress={Navigation.goBack}
+                    />
+                    <ScrollView contentContainerStyle={[styles.flexGrow1, styles.pt3]}>{screenContent}</ScrollView>
+                </DelegateNoAccessWrapper>
+            </FullPageNotFoundView>
         </ScreenWrapper>
     );
 }

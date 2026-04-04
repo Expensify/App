@@ -8420,8 +8420,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             pricing: 'Cennik',
         },
         requestEarlyCancellation: {
-            title: 'Poproś o wcześniejsze anulowanie',
-            subtitle: 'Jaki jest główny powód, dla którego prosisz o wcześniejsze anulowanie?',
+            title: 'Anuluj subskrypcję',
+            subtitle: 'Jaki jest główny powód, dla którego prosisz o anulowanie subskrypcji?',
             subscriptionCanceled: {
                 title: 'Subskrypcja anulowana',
                 subtitle: 'Twoja subskrypcja roczna została anulowana.',

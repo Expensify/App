@@ -8461,8 +8461,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             pricing: 'Prezzi',
         },
         requestEarlyCancellation: {
-            title: 'Richiedi annullamento anticipato',
-            subtitle: 'Qual è il motivo principale per cui stai richiedendo l’annullamento anticipato?',
+            title: 'Annulla abbonamento',
+            subtitle: 'Qual è il motivo principale per cui vuoi annullare il tuo abbonamento?',
             subscriptionCanceled: {
                 title: 'Abbonamento annullato',
                 subtitle: 'Il tuo abbonamento annuale è stato annullato.',

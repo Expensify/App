@@ -8429,8 +8429,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             pricing: 'Preços',
         },
         requestEarlyCancellation: {
-            title: 'Solicitar cancelamento antecipado',
-            subtitle: 'Qual é o principal motivo pelo qual você está solicitando o cancelamento antecipado?',
+            title: 'Cancelar assinatura',
+            subtitle: 'Qual é o principal motivo pelo qual você está deseja cancelar sua assinatura?',
             subscriptionCanceled: {
                 title: 'Assinatura cancelada',
                 subtitle: 'Sua assinatura anual foi cancelada.',
