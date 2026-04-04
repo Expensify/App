@@ -107,7 +107,15 @@ jest.mock('@hooks/usePermissions', () => ({
     }),
 }));
 
-const mockDeleteTransactions = jest.fn(() => []);
+const createDeletedResult = (deletedTransactionThreadReportIDs: string[]) => ({
+    action: 'deleted' as const,
+    deletedTransactionThreadReportIDs,
+});
+const createRedirectedResult = () => ({
+    action: 'redirected' as const,
+});
+type MockDeleteTransactionsResult = ReturnType<typeof createDeletedResult> | ReturnType<typeof createRedirectedResult>;
+const mockDeleteTransactions = jest.fn<MockDeleteTransactionsResult, []>(() => createDeletedResult([]));
 const mockShouldOpenSplitExpenseEditFlowOnDelete = jest.fn(() => false);
 
 jest.mock('@hooks/useDeleteTransactions', () => ({
@@ -401,7 +409,7 @@ describe('useSelectedTransactionsActions', () => {
         transaction.transactionID = transactionID;
 
         mockSelectedTransactionIDs.push(transactionID);
-        (mockDeleteTransactions as jest.Mock<string[]>).mockReturnValue(['report1', 'report2']);
+        mockDeleteTransactions.mockReturnValue(createDeletedResult(['report1', 'report2']));
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 
@@ -487,7 +495,7 @@ describe('useSelectedTransactionsActions', () => {
         transaction.transactionID = transactionID;
 
         mockSelectedTransactionIDs.push(transactionID);
-        (mockDeleteTransactions as jest.Mock<string[]>).mockReturnValue(['report1']);
+        mockDeleteTransactions.mockReturnValue(createDeletedResult(['report1']));
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 
