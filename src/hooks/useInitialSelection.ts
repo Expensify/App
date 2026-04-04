@@ -8,12 +8,6 @@ type UseInitialSelectionOptions<T> = {
 
     /** Whether to refresh the snapshot whenever the screen gains focus */
     resetOnFocus?: boolean;
-
-    /** Whether the snapshot should continue following incoming selection changes */
-    shouldSyncSelection?: boolean;
-
-    /** Equality check used to avoid replacing the snapshot with equivalent values */
-    isEqual?: (previousSelection: T, nextSelection: T) => boolean;
 };
 
 /**
@@ -21,16 +15,13 @@ type UseInitialSelectionOptions<T> = {
  * Callers can refresh the snapshot by changing `resetDeps` or via screen focus.
  */
 function useInitialSelection<T>(selection: T, options: UseInitialSelectionOptions<T> = {}) {
-    const {resetDeps = [], resetOnFocus = false, shouldSyncSelection = false, isEqual = Object.is} = options;
+    const {resetDeps = [], resetOnFocus = false} = options;
     const [initialSelection, setInitialSelection] = useState(selection);
     const latestSelectionRef = useRef(selection);
 
-    const updateInitialSelection = useCallback(
-        (nextSelection: T) => {
-            setInitialSelection((previousSelection) => (isEqual(previousSelection, nextSelection) ? previousSelection : nextSelection));
-        },
-        [isEqual],
-    );
+    const updateInitialSelection = useCallback((nextSelection: T) => {
+        setInitialSelection((previousSelection) => (Object.is(previousSelection, nextSelection) ? previousSelection : nextSelection));
+    }, []);
 
     useEffect(() => {
         latestSelectionRef.current = selection;
@@ -52,14 +43,6 @@ function useInitialSelection<T>(selection: T, options: UseInitialSelectionOption
             updateInitialSelection(latestSelectionRef.current);
         }, [resetOnFocus, updateInitialSelection]),
     );
-
-    useEffect(() => {
-        if (!shouldSyncSelection) {
-            return;
-        }
-
-        updateInitialSelection(selection);
-    }, [selection, shouldSyncSelection, updateInitialSelection]);
 
     return initialSelection;
 }
