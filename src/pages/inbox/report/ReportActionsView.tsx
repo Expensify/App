@@ -24,6 +24,7 @@ import {getReportPreviewAction} from '@libs/actions/IOU';
 import {updateLoadingInitialReportAction} from '@libs/actions/Report';
 import DateUtils from '@libs/DateUtils';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -81,13 +82,20 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
     const [report, reportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
 
     const reportActionID = route?.params?.reportActionID;
+    const [treatAsNoPaginationAnchor, setTreatAsNoPaginationAnchor] = useState(false);
+    const nonEmptyReportIDForPages = getNonEmptyStringOnyxID(reportID);
+    const [reportActionPages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${nonEmptyReportIDForPages}`);
     const {
         reportActions: unfilteredReportActions,
         hasNewerActions,
         hasOlderActions,
+        sortedAllReportActions,
         oldestUnreadReportAction,
         linkedAction,
-    } = usePaginatedReportActions(reportID, reportActionID, {shouldLinkToOldestUnreadReportAction: true});
+    } = usePaginatedReportActions(reportID, reportActionID, {
+        shouldLinkToOldestUnreadReportAction: true,
+        treatAsNoPaginationAnchor,
+    });
     const allReportActions = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
 
     const parentReportAction = useParentReportAction(report);
@@ -440,6 +448,10 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
                 loadOlderChats={loadOlderChats}
                 loadNewerChats={loadNewerChats}
                 hasNewerActions={hasNewerActions}
+                sortedAllReportActionsForPagination={sortedAllReportActions ?? []}
+                reportActionPages={reportActionPages}
+                treatAsNoPaginationAnchor={treatAsNoPaginationAnchor}
+                setTreatAsNoPaginationAnchor={setTreatAsNoPaginationAnchor}
                 listID={listID}
                 shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScroll}
                 hasCreatedActionAdded={shouldAddCreatedAction}

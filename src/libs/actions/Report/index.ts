@@ -86,6 +86,7 @@ import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import {rand64} from '@libs/NumberUtils';
 import capturePageHTML from '@libs/PageHTMLCapture';
+import PaginationUtils from '@libs/PaginationUtils';
 import Parser from '@libs/Parser';
 import {getParsedMessageWithShortMentions} from '@libs/ParsingUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -206,6 +207,7 @@ import type {
     NewGroupChatDraft,
     Onboarding,
     OnboardingPurpose,
+    Pages,
     PersonalDetailsList,
     Policy,
     PolicyEmployee,
@@ -1650,6 +1652,18 @@ function openReport(params: OpenReportActionParams) {
             checkAndFixConflictingRequest: (persistedRequests) => resolveOpenReportDuplicationConflictAction(persistedRequests, parameters),
         });
     }
+}
+
+/**
+ * Drops stale mid-chat pagination rows after the list shows the live tail and scroll completed.
+ */
+function pruneReportActionPagesToNewestWindow(reportID: string | undefined, sortedReportActions: ReportAction[], pages: Pages | undefined) {
+    if (!reportID || !pages?.length || pages.length <= 1) {
+        return;
+    }
+
+    const pruned = PaginationUtils.prunePagesToNewestWindow(sortedReportActions, pages, (action) => action.reportActionID);
+    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${reportID}`, pruned);
 }
 
 /**
@@ -7324,6 +7338,7 @@ export {
     clearCreateChatError,
     notifyNewAction,
     openReport,
+    openReportAtLatestReportActions,
     openRoomMembersPage,
     readNewestAction,
     removeFromGroupChat,
@@ -7381,6 +7396,7 @@ export {
     optimisticReportLastData,
     setOptimisticTransactionThread,
     prepareOnyxDataForCleanUpOptimisticParticipants,
+    pruneReportActionPagesToNewestWindow,
     getGuidedSetupDataForOpenReport,
     getReportChannelName,
 };
