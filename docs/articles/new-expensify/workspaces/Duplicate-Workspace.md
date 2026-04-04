@@ -19,7 +19,7 @@ Only **Workspace Admins** can duplicate an existing workspace. Members without a
 Follow these steps to create a new workspace based on an existing one:
 
 1. In the navigation tabs (on the left on web, and at the bottom on mobile), go to **Workspaces**.
-2. Select the three dots **(⋮)** next to your workspace name and choose **Duplicate Workspace**.
+2. Select the three dots **(⋮)** next to your workspace name and choose **Duplicate workspace**.
 3. Enter a name for your new workspace.  
 4. Choose which data and settings to carry over. You can select from:
    - Overview  
