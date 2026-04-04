@@ -33,6 +33,7 @@ import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
 import {
     getMoneyRequestParticipantsFromReport,
     setMoneyRequestAmount,
+    setMoneyRequestParticipants,
     setMoneyRequestParticipantsFromReport,
     setMoneyRequestTaxAmount,
     setMoneyRequestTaxRate,
@@ -329,12 +330,15 @@ function IOURequestStepAmount({
 
         // Starting from global + menu means no participant context exists yet,
         // so we need to handle participant selection based on available workspace settings
+        const isReturningFromConfirmationPage = !!transaction?.participants?.length;
+        const firstParticipant = transaction?.participants?.at(0);
+        const isP2PChat = isParticipantP2P(firstParticipant, currentUserPersonalDetails.accountID);
+        const isNegativeAmount = convertToBackendAmount(Number.parseFloat(amount)) < 0;
         if (shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd)) {
             const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
             const targetReport = shouldAutoReport ? getPolicyExpenseChat(currentUserAccountIDParam, defaultExpensePolicy?.id) : selfDMReport;
             const transactionReportID = isSelfDM(targetReport) ? CONST.REPORT.UNREPORTED_REPORT_ID : targetReport?.reportID;
             const iouTypeTrackOrSubmit = transactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
-            const isReturningFromConfirmationPage = !!transaction?.participants?.length;
 
             const resetToDefaultWorkspace = () => {
                 setTransactionReport(transactionID, {reportID: transactionReportID}, true);
@@ -344,10 +348,6 @@ function IOURequestStepAmount({
             };
 
             if (isReturningFromConfirmationPage) {
-                const firstParticipant = transaction?.participants?.at(0);
-                const isP2PChat = isParticipantP2P(firstParticipant);
-                const isNegativeAmount = convertToBackendAmount(Number.parseFloat(amount)) < 0;
-
                 // P2P chats don't support negative amounts, so reset to default workspace when amount is negative.
                 if (isP2PChat && isNegativeAmount) {
                     resetToDefaultWorkspace();
@@ -366,6 +366,13 @@ function IOURequestStepAmount({
             } else {
                 resetToDefaultWorkspace();
             }
+        }
+        // P2P chats don't support negative amounts, so in cases where there is no default workspace when the amount is negative, we will remove the selected transaction participants.
+        else if (iouType === CONST.IOU.TYPE.CREATE && isP2PChat && isNegativeAmount && isReturningFromConfirmationPage) {
+            setTransactionReport(transactionID, {reportID: undefined}, true);
+            setMoneyRequestParticipants(transactionID, [], true).then(() => {
+                navigateToParticipantPage(iouType, transactionID, reportID);
+            });
         } else {
             Navigation.setNavigationActionToMicrotaskQueue(() => {
                 navigateToParticipantPage(iouType, transactionID, reportID);
@@ -485,8 +492,8 @@ function IOURequestStepAmount({
 /**
  * Check if the participant is a P2P chat
  */
-function isParticipantP2P(participant: {accountID?: number; isPolicyExpenseChat?: boolean} | undefined): boolean {
-    return !!(participant?.accountID && !participant.isPolicyExpenseChat);
+function isParticipantP2P(participant: {accountID?: number; isPolicyExpenseChat?: boolean} | undefined, currentUserAccountID?: number): boolean {
+    return !!(participant?.accountID && !participant.isPolicyExpenseChat && (!currentUserAccountID || participant?.accountID !== currentUserAccountID));
 }
 
 // eslint-disable-next-line rulesdir/no-negated-variables

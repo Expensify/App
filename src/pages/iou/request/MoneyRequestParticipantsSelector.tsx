@@ -237,7 +237,7 @@ function MoneyRequestParticipantsSelector({
         shouldInitialize: didScreenTransitionEnd,
         enablePhoneContacts: isNative,
         contactOptions: contacts,
-        initialSelected: participants as OptionData[],
+        initialSelected: isIOUSplit ? (participants as OptionData[]) : undefined,
         onSelectionChange: handleSelectionChange,
         onSingleSelect: (option: OptionData) => {
             if (isIOUSplit) {
@@ -443,9 +443,15 @@ function MoneyRequestParticipantsSelector({
                 return;
             }
 
+            // If the selected option is self DM, we need to recall onParticipantsAdded to handle navigation correctly
+            if (!option && selectedOptions.length === 1 && selectedOptions.at(0)?.isSelfDM) {
+                onParticipantsAdded(selectedOptions.map((selectedOption) => sanitizedSelectedParticipant(selectedOption, iouType)));
+                return;
+            }
+
             onFinish(CONST.IOU.TYPE.SPLIT);
         },
-        [shouldShowSplitBillErrorMessage, onFinish, addSingleParticipant, selectedOptions.length],
+        [shouldShowSplitBillErrorMessage, onFinish, addSingleParticipant, onParticipantsAdded, selectedOptions, iouType],
     );
 
     const shouldShowLoadingPlaceholder = useMemo(() => !areOptionsInitialized || !didScreenTransitionEnd, [areOptionsInitialized, didScreenTransitionEnd]);
