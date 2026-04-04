@@ -2169,7 +2169,7 @@ function getDisplayNameForWorkspace(email: string, displayNameOverride?: string)
     }
 
     const userDetails = PersonalDetailsUtils.getPersonalDetailByEmail(email);
-    const displayName = userDetails?.displayName?.trim();
+    const displayName = displayNameOverride?.trim() ?? userDetails?.displayName?.trim();
     if (displayName) {
         return Str.UCFirst(displayName);
     }
@@ -2195,7 +2195,7 @@ function newGenerateDefaultWorkspaceName(email: string, lastWorkspaceNumber: num
         return localeTranslate('workspace.new.myGroupWorkspace', {workspaceNumber: lastWorkspaceNumber !== undefined ? lastWorkspaceNumber + 1 : undefined});
     }
 
-    const displayNameForWorkspace = getDisplayNameForWorkspace(email);
+    const displayNameForWorkspace = getDisplayNameForWorkspace(email, displayNameOverride);
 
     return localeTranslate('workspace.new.workspaceName', displayNameForWorkspace, lastWorkspaceNumber !== undefined ? lastWorkspaceNumber + 1 : undefined);
 }
@@ -3942,6 +3942,8 @@ function createWorkspaceFromIOUPayment(
     currentUserEmail: string,
     iouReportOwnerEmail: string,
     conciergeReportID: string | undefined,
+    lastWorkspaceNumber: number | undefined,
+    translate: LocalizedTranslate,
 ): WorkspaceFromIOUCreationData | undefined {
     // This flow only works for IOU reports
     if (!iouReport || !ReportUtils.isIOUReportUsingReport(iouReport)) {
@@ -3950,7 +3952,7 @@ function createWorkspaceFromIOUPayment(
 
     // Generate new variables for the policy
     const policyID = generatePolicyID();
-    const workspaceName = generateDefaultWorkspaceName(currentUserEmail);
+    const workspaceName = newGenerateDefaultWorkspaceName(currentUserEmail, lastWorkspaceNumber, translate);
     const employeeAccountID = iouReport?.ownerAccountID;
     const {customUnits, customUnitID, customUnitRateID} = buildOptimisticDistanceRateCustomUnits(iouReport?.currency);
     const oldPersonalPolicyID = iouReport?.policyID;
