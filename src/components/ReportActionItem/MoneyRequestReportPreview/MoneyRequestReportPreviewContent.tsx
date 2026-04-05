@@ -20,6 +20,7 @@ import StatusBadge from '@components/StatusBadge';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNonReimbursablePaymentModal from '@hooks/useNonReimbursablePaymentModal';
 import useOnyx from '@hooks/useOnyx';
 import usePaymentAnimations from '@hooks/usePaymentAnimations';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -151,6 +152,7 @@ function MoneyRequestReportPreviewContent({
 
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [requestType, setRequestType] = useState<ActionHandledType>();
+    const {showNonReimbursablePaymentErrorModal, nonReimbursablePaymentErrorDecisionModal} = useNonReimbursablePaymentModal(iouReport, transactions);
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
     const [shouldShowPayButton, setShouldShowPayButton] = useState(false);
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(iouReport?.reportID);
@@ -601,9 +603,9 @@ function MoneyRequestReportPreviewContent({
                                                     >
                                                         <Icon
                                                             src={expensifyIcons.BackArrow}
-                                                            small
                                                             fill={theme.icon}
-                                                            isButtonIcon
+                                                            width={variables.iconSizeNormal}
+                                                            height={variables.iconSizeNormal}
                                                         />
                                                     </PressableWithFeedback>
                                                     <PressableWithFeedback
@@ -695,6 +697,7 @@ function MoneyRequestReportPreviewContent({
                                                 onPaymentOptionsHide={onPaymentOptionsHide}
                                                 openReportFromPreview={openReportFromPreview}
                                                 onHoldMenuOpen={handleHoldMenuOpen}
+                                                onNonReimbursablePaymentError={showNonReimbursablePaymentErrorModal}
                                                 transactionPreviewCarouselWidth={reportPreviewStyles.transactionPreviewCarouselStyle.width}
                                             />
                                             {transactions.length > 1 && !shouldShowAccessPlaceHolder && (
@@ -731,6 +734,7 @@ function MoneyRequestReportPreviewContent({
                                 chatReport={chatReport}
                                 moneyRequestReport={iouReport}
                                 transactionCount={numberOfRequests}
+                                transactions={transactions}
                                 hasNonHeldExpenses={!hasOnlyHeldExpenses}
                                 startAnimation={() => {
                                     if (requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
@@ -739,10 +743,12 @@ function MoneyRequestReportPreviewContent({
                                         startAnimation();
                                     }
                                 }}
+                                onNonReimbursablePaymentError={showNonReimbursablePaymentErrorModal}
                             />
                         );
                     })()}
             </OfflineWithFeedback>
+            {nonReimbursablePaymentErrorDecisionModal}
         </View>
     );
 }

@@ -17,6 +17,7 @@ import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportAttributes from '@hooks/useReportAttributes';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -29,7 +30,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {isArchivedReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
+import {isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
 import {getDistanceInMeters, getRateID} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
@@ -70,8 +71,7 @@ function IOURequestStepDistanceManual({
 
     const [formError, setFormError] = useState<string>('');
 
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
-    const isArchived = isArchivedReport(reportNameValuePairs);
+    const isArchived = useReportIsArchived(report?.reportID);
     const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`);
     const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
     const selfDMReport = useSelfDMReport();
@@ -82,7 +82,8 @@ function IOURequestStepDistanceManual({
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
@@ -110,8 +111,8 @@ function IOURequestStepDistanceManual({
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
 
     const shouldUseDefaultExpensePolicy = useMemo(
-        () => shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy, amountOwed, ownerBillingGraceEndPeriod),
-        [iouType, defaultExpensePolicy, amountOwed, ownerBillingGraceEndPeriod],
+        () => shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd),
+        [iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd],
     );
 
     const customUnitRateID = getRateID(transaction);
@@ -192,7 +193,7 @@ function IOURequestStepDistanceManual({
 
                 if (shouldUpdateTransaction) {
                     updateMoneyRequestDistance({
-                        transactionID: transaction?.transactionID,
+                        transaction,
                         transactionThreadReport: report,
                         parentReport,
                         distance: distanceAsFloat,
@@ -239,7 +240,7 @@ function IOURequestStepDistanceManual({
                 policyRecentlyUsedCurrencies,
                 introSelected,
                 activePolicyID,
-                privateIsArchived: reportNameValuePairs?.private_isArchived,
+                privateIsArchived: isArchived,
                 selfDMReport,
                 policyForMovingExpenses,
                 betas,
@@ -249,7 +250,8 @@ function IOURequestStepDistanceManual({
                 draftTransactionIDs,
                 isSelfTourViewed: !!isSelfTourViewed,
                 amountOwed,
-                ownerBillingGraceEndPeriod,
+                userBillingGracePeriodEnds,
+                ownerBillingGracePeriodEnd,
             });
         },
         [
@@ -280,7 +282,6 @@ function IOURequestStepDistanceManual({
             policyRecentlyUsedCurrencies,
             introSelected,
             activePolicyID,
-            reportNameValuePairs?.private_isArchived,
             isEditingSplit,
             distance,
             splitDraftTransaction,
@@ -297,7 +298,7 @@ function IOURequestStepDistanceManual({
             draftTransactionIDs,
             isSelfTourViewed,
             amountOwed,
-            ownerBillingGraceEndPeriod,
+            ownerBillingGracePeriodEnd,
         ],
     );
 

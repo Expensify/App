@@ -152,7 +152,7 @@ function BaseReportActionContextMenu({
         'Stopwatch',
         'ThreeDots',
         'Trashcan',
-    ] as const);
+    ]);
     const StyleUtils = useStyleUtils();
     const {translate, getLocalDateFromDatetime} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -414,6 +414,7 @@ function BaseReportActionContextMenu({
                             encryptedAuthToken,
                             iouTransaction,
                             bankAccountList,
+                            isOffline,
                             reportAttributes: reportAttributes?.reports,
                         };
 
