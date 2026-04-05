@@ -45,15 +45,16 @@ const shouldOpenRHPVariant: ShouldOpenRHPVariant = (variantOverride) => {
     const isMicroCompany = onboardingCompanySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO;
     const isRHPConciergeDM = variant === CONST.ONBOARDING_RHP_VARIANT.RHP_CONCIERGE_DM;
     const isRHPAdminsRoom = variant === CONST.ONBOARDING_RHP_VARIANT.RHP_ADMINS_ROOM;
+    const isRHPHomePage = variant === CONST.ONBOARDING_RHP_VARIANT.RHP_HOME_PAGE;
 
-    return isMicroCompany && (isRHPConciergeDM || isRHPAdminsRoom);
+    return isMicroCompany && (isRHPConciergeDM || isRHPAdminsRoom || isRHPHomePage);
 };
 
 /**
- * Handles navigation for RHP experiment:
- * - Control: navigate to the last accessed report on small screens, do not open side panel
- * - RHP Concierge DM: navigate to the workspace overview and open the side panel with the Concierge DM
- * - RHP Admins Room: navigate to the workspace overview and open the side panel with the Admins Room
+ * Handles navigation for RHP experiment variants (B/C/D):
+ * Variants B and C navigate to the workspace overview, Variant D navigates to home.
+ * All variants open the side panel without overlay.
+ * The control variant is handled separately in navigateAfterOnboarding.
  */
 const handleRHPVariantNavigation: HandleRHPVariantNavigation = (onboardingPolicyID, variantOverride) => {
     const variant = variantOverride ?? onboardingRHPVariant;
@@ -63,7 +64,13 @@ const handleRHPVariantNavigation: HandleRHPVariantNavigation = (onboardingPolicy
         return;
     }
 
-    Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(onboardingPolicyID));
+    const isRHPHomePage = variant === CONST.ONBOARDING_RHP_VARIANT.RHP_HOME_PAGE;
+
+    if (isRHPHomePage) {
+        Navigation.navigate(ROUTES.HOME);
+    } else {
+        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(onboardingPolicyID));
+    }
     SidePanelActions.openSidePanel(true);
 };
 
