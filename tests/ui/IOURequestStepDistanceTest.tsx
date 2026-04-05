@@ -362,7 +362,7 @@ describe('IOURequestStepDistance - submitManualDistance', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, null);
-            await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
+            await Onyx.merge(ONYXKEYS.RAM_ONLY_IS_LOADING_APP, false);
         });
 
         renderEditMode(transaction, report);
@@ -392,7 +392,7 @@ describe('IOURequestStepDistance - submitManualDistance', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, null);
-            await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
+            await Onyx.merge(ONYXKEYS.RAM_ONLY_IS_LOADING_APP, false);
         });
 
         renderEditMode(transaction, report);
@@ -416,7 +416,7 @@ describe('IOURequestStepDistance - submitManualDistance', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, null);
-            await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
+            await Onyx.merge(ONYXKEYS.RAM_ONLY_IS_LOADING_APP, false);
         });
 
         renderEditMode(transaction, report);
