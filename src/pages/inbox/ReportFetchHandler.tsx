@@ -8,7 +8,6 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import usePrevious from '@hooks/usePrevious';
-import useReportTransactions from '@hooks/useReportTransactions';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -22,6 +21,7 @@ import {createTransactionThreadReport, openReport, readNewestAction, subscribeTo
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+import type {Transaction} from '@src/types/onyx';
 
 type ReportScreenRoute =
     | PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
@@ -79,7 +79,7 @@ function ReportFetchHandler() {
 
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${linkedAction?.childReportID}`);
 
-    const oneTransactionThreadTransactions = useReportTransactions(reportID);
+    const oneTransactionThreadTransactionsCollection = useReportTransactionsCollection(reportID);
     const allReportTransactions = useReportTransactionsCollection(reportIDFromRoute);
     const reportTransactions = getAllNonDeletedTransactions(allReportTransactions, reportActions, isOffline, true);
     const visibleTransactions = isOffline ? reportTransactions : reportTransactions?.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
@@ -126,10 +126,12 @@ function ReportFetchHandler() {
     });
 
     const createOneTransactionThread = useEffectEvent(() => {
-        const currentReportTransaction = oneTransactionThreadTransactions.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-        const oneTransactionID = currentReportTransaction.at(0)?.transactionID;
+        const currentReportTransactions = Object.values(oneTransactionThreadTransactionsCollection ?? {}).filter(
+            (transaction): transaction is Transaction => !!transaction && transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        );
+        const oneTransactionID = currentReportTransactions.at(0)?.transactionID;
         const iouAction = getIOUActionForReportID(reportID, oneTransactionID);
-        createTransactionThreadReport(introSelected, currentUserEmail ?? '', currentUserAccountID, betas, report, iouAction, currentReportTransaction.at(0));
+        createTransactionThreadReport(introSelected, currentUserEmail ?? '', currentUserAccountID, betas, report, iouAction, currentReportTransactions.at(0));
     });
 
     const onUnmount = useEffectEvent(() => {

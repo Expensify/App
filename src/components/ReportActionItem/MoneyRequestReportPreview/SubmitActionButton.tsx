@@ -6,13 +6,14 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import useReportTransactions from '@hooks/useReportTransactions';
+import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import {canSubmitAndIsAwaitingForCurrentUser, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils} from '@libs/TransactionUtils';
 import {submitReport} from '@userActions/IOU';
 import {markPendingRTERTransactionsAsCash} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Transaction} from '@src/types/onyx';
 
 type SubmitActionButtonProps = {
     iouReportID: string | undefined;
@@ -39,8 +40,10 @@ function SubmitActionButton({iouReportID, chatReportID, isSubmittingAnimationRun
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`);
     const {isOffline} = useNetwork();
-    const reportTransactions = useReportTransactions(iouReportID);
-    const transactions = reportTransactions.filter((t) => isOffline || t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const reportTransactionsCollection = useReportTransactionsCollection(iouReportID);
+    const transactions = Object.values(reportTransactionsCollection ?? {}).filter(
+        (t): t is Transaction => !!t && (isOffline || t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
+    );
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserAccountID, currentUserEmail);
