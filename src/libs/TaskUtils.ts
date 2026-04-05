@@ -4,12 +4,13 @@ import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
 import type {Message} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import {getReportActionHtml, getReportActionText} from './ReportActionsUtils';
 
 /** Last URL segment for task edit screens (see ROUTES.TASK_TITLE, ROUTES.REPORT_DESCRIPTION, ROUTES.TASK_ASSIGNEE). */
-const TASK_EDIT_URL_SUFFIXES = ['title', 'description', 'assignee'] as const;
+const TASK_EDIT_URL_SUFFIXES = [DYNAMIC_ROUTES.TASK_TITLE.path, DYNAMIC_ROUTES.REPORT_DESCRIPTION.path, 'assignee'] as const;
 
 /**
  * Check if the active route belongs to task edit flow.

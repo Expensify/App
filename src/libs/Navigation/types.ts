@@ -2223,9 +2223,7 @@ type TeachersUniteNavigatorParamList = {
 };
 
 type TaskDetailsNavigatorParamList = {
-    [SCREENS.TASK.TITLE]: {
-        reportID: string;
-    };
+    [SCREENS.TASK.TITLE]: undefined;
     [SCREENS.TASK.ASSIGNEE]: {
         reportID: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md

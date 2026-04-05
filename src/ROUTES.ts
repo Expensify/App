@@ -935,26 +935,6 @@ const ROUTES = {
             return getUrlWithBackToParam(`r/${reportID}/split/${reportActionID}` as const, backTo);
         },
     },
-    TASK_TITLE: {
-        route: 'r/:reportID/title',
-        getRoute: (reportID: string | undefined) => {
-            if (!reportID) {
-                Log.warn('Invalid reportID is used to build the TASK_TITLE route');
-            }
-
-            return `r/${reportID}/title` as const;
-        },
-    },
-    REPORT_DESCRIPTION: {
-        route: 'r/:reportID/description',
-        getRoute: (reportID: string | undefined) => {
-            if (!reportID) {
-                Log.warn('Invalid reportID is used to build the REPORT_DESCRIPTION route');
-            }
-
-            return `r/${reportID}/description` as const;
-        },
-    },
     TASK_ASSIGNEE: {
         route: 'r/:reportID/assignee',
         getRoute: (reportID: string | undefined, backTo?: string) => {
