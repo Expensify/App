@@ -330,7 +330,7 @@ function computeAutoReportingInfo(part: FormulaPart, context: FormulaContext, su
         return part.definition;
     }
 
-    const {startDate, endDate} = getAutoReportingDates(policy, report);
+    const {startDate, endDate} = getAutoReportingDates(policy, report, new Date(), context);
 
     switch (subField.toLowerCase()) {
         case 'start':
@@ -658,6 +658,21 @@ function getAllReportTransactionsWithContext(reportID: string, context?: Formula
     const transactions = [...getReportTransactions(reportID)];
     const contextTransaction = context?.transaction;
 
+    // Merge optimistic transactions not yet in Onyx, passed via FormulaContext.allTransactions.
+    if (context?.allTransactions) {
+        for (const ctxTransaction of Object.values(context.allTransactions)) {
+            if (!ctxTransaction?.transactionID || ctxTransaction.reportID !== reportID) {
+                continue;
+            }
+            const existingIndex = transactions.findIndex((t) => t?.transactionID === ctxTransaction.transactionID);
+            if (existingIndex >= 0) {
+                transactions[existingIndex] = ctxTransaction;
+            } else {
+                transactions.push(ctxTransaction);
+            }
+        }
+    }
+
     if (contextTransaction?.transactionID && contextTransaction.reportID === reportID) {
         const transactionIndex = transactions.findIndex((transaction) => transaction?.transactionID === contextTransaction.transactionID);
         if (transactionIndex >= 0) {
@@ -770,7 +785,7 @@ function getMonthlyLastBusinessDayPeriod(currentDate: Date): {startDate: Date; e
 /**
  * Calculate the start and end dates for auto-reporting based on the frequency and current date
  */
-function getAutoReportingDates(policy: OnyxEntry<Policy>, report: Report, currentDate = new Date()): {startDate: Date | undefined; endDate: Date | undefined} {
+function getAutoReportingDates(policy: OnyxEntry<Policy>, report: Report, currentDate = new Date(), context?: FormulaContext): {startDate: Date | undefined; endDate: Date | undefined} {
     const frequency = policy?.autoReportingFrequency;
     const offset = policy?.autoReportingOffset;
 
@@ -823,10 +838,11 @@ function getAutoReportingDates(policy: OnyxEntry<Policy>, report: Report, curren
         }
 
         case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP: {
-            // For trip-based, use oldest transaction as start
-            const oldestTransactionDateString = getOldestTransactionDate(report.reportID);
+            // For trip-based, use oldest transaction as start and newest transaction as end
+            const oldestTransactionDateString = getOldestTransactionDate(report.reportID, context);
+            const newestTransactionDateString = getNewestTransactionDate(report.reportID, context);
             startDate = oldestTransactionDateString ? new Date(oldestTransactionDateString) : currentDate;
-            endDate = currentDate;
+            endDate = newestTransactionDateString ? new Date(newestTransactionDateString) : currentDate;
             break;
         }
 
