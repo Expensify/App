@@ -3,7 +3,7 @@ import type {ValueOf} from 'type-fest';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {OnyxInputOrEntry, PersonalDetails, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {OnyxInputOrEntry, PersonalDetails, Policy, Report, ReportAction} from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import SafeString from '@src/utils/SafeString';
 import type {IOURequestType} from './actions/IOU';
@@ -13,7 +13,7 @@ import {isPaidGroupPolicy} from './PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from './ReportActionsUtils';
 import {isSelfDM} from './ReportUtils';
 import {endSpan, getSpan, startSpan} from './telemetry/activeSpans';
-import {getCurrency, getTagArrayFromName} from './TransactionUtils';
+import {getTagArrayFromName} from './TransactionUtils';
 
 function navigateToStartMoneyRequestStep(requestType: IOURequestType, iouType: IOUType, transactionID: string, reportID: string, iouAction?: IOUAction, backToReport?: string): void {
     if (iouAction === CONST.IOU.ACTION.CATEGORIZE || iouAction === CONST.IOU.ACTION.SUBMIT || iouAction === CONST.IOU.ACTION.SHARE) {
@@ -252,15 +252,6 @@ function updateIOUOwnerAndTotal<TReport extends OnyxInputOrEntry<Report>>(
 }
 
 /**
- * Returns whether or not an IOU report contains expenses in a different currency
- * that are either created or cancelled offline, and thus haven't been converted to the report's currency yet
- */
-function isIOUReportPendingCurrencyConversion(iouReport: Report, iouTransactions: Transaction[]): boolean {
-    const pendingRequestsInDifferentCurrency = iouTransactions.filter((transaction) => transaction.pendingAction && getCurrency(transaction) !== iouReport.currency);
-    return pendingRequestsInDifferentCurrency.length > 0;
-}
-
-/**
  * Checks if the iou type is one of request, send, invoice or split.
  */
 function isValidMoneyRequestType(iouType: string): boolean {
@@ -464,7 +455,6 @@ export {
     calculateSplitPercentagesFromAmounts,
     getExistingTransactionID,
     insertTagIntoTransactionTagsString,
-    isIOUReportPendingCurrencyConversion,
     isMovingTransactionFromTrackExpense,
     shouldUseTransactionDraft,
     isValidMoneyRequestType,
