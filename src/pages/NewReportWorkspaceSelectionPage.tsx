@@ -71,13 +71,13 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [hasDismissedEmptyReportsConfirmation] = useOnyx(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [userBillingGracePeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_APP);
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
     const [pendingPolicySelection, setPendingPolicySelection] = useState<{policy: WorkspaceListItem; shouldShowEmptyReportConfirmation: boolean} | null>(null);
 
@@ -183,7 +183,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
             return;
         }
 
-        if (shouldRestrictUserBillableActions(policy.policyID, userBillingGracePeriods, undefined, ownerBillingGraceEndPeriod)) {
+        if (shouldRestrictUserBillableActions(policy.policyID, ownerBillingGracePeriodEnd, userBillingGracePeriods)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.policyID));
             return;
         }
@@ -283,7 +283,6 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                                 onSelectRow={selectPolicy}
                                 textInputOptions={textInputOptions}
                                 shouldShowLoadingPlaceholder={fetchStatus.status === 'loading' || !didScreenTransitionEnd}
-                                shouldShowRadioButton
                             />
                         </>
                     )}

@@ -1,4 +1,5 @@
 /* eslint-disable rulesdir/no-deep-equal-in-memo */
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {deepEqual} from 'fast-equals';
 import mapValues from 'lodash/mapValues';
 import React, {memo, use, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
@@ -72,7 +73,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getBankAccountLastFourDigits} from '@libs/PaymentUtils';
 import Permissions from '@libs/Permissions';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {getCleanedTagName, hasDynamicExternalWorkflow, isPolicyAdmin, isPolicyMember, isPolicyOwner} from '@libs/PolicyUtils';
+import {getCleanedTagName, hasDynamicExternalWorkflow, isPolicyAdmin, isPolicyMember, isPolicyOwner, isSubmitAndClose} from '@libs/PolicyUtils';
 import {containsActionableFollowUps, parseFollowupsFromHtml} from '@libs/ReportActionFollowupUtils';
 import {
     extractLinksFromMessageHtml,
@@ -81,7 +82,9 @@ import {
     getActionableMentionWhisperMessage,
     getAddedApprovalRuleMessage,
     getAddedBudgetMessage,
+    getAddedCardFeedMessage,
     getAddedConnectionMessage,
+    getAssignedCompanyCardMessage,
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
     getCardConnectionBrokenMessage,
@@ -115,9 +118,12 @@ import {
     getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
     getPolicyChangeLogUpdateEmployee,
     getReimburserUpdateMessage,
+    getRemovedCardFeedMessage,
     getRemovedConnectionMessage,
     getRemovedFromApprovalChainMessage,
     getRenamedAction,
+    getRenamedCardFeedMessage,
+    getReportActionHtml,
     getReportActionMessage,
     getReportActionText,
     getSetAutoJoinMessage,
@@ -127,11 +133,14 @@ import {
     getTagListUpdatedMessage,
     getTagListUpdatedRequiredMessage,
     getTravelUpdateMessage,
+    getUnassignedCompanyCardMessage,
     getUpdateACHAccountMessage,
     getUpdatedApprovalRuleMessage,
     getUpdatedAuditRateMessage,
     getUpdatedAutoHarvestingMessage,
     getUpdatedBudgetMessage,
+    getUpdatedCardFeedLiabilityMessage,
+    getUpdatedCardFeedStatementPeriodMessage,
     getUpdatedDefaultTitleMessage,
     getUpdatedIndividualBudgetNotificationMessage,
     getUpdatedManualApprovalThresholdMessage,
@@ -268,6 +277,9 @@ type PureReportActionItemProps = {
 
     /** Model of onboarding selected */
     introSelected?: OnyxEntry<OnyxTypes.IntroSelected>;
+
+    /** Beta features list */
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
 
     /** All transaction draft IDs */
     draftTransactionIDs: string[] | undefined;
@@ -471,7 +483,7 @@ type PureReportActionItemProps = {
     reportMetadata?: OnyxEntry<OnyxTypes.ReportMetadata>;
 
     /** The billing grace end period's shared NVP collection */
-    userBillingGraceEndPeriods: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
+    userBillingGracePeriodEnds: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
 };
 
 // This is equivalent to returning a negative boolean in normal functions, but we can keep the element return type
@@ -483,6 +495,7 @@ const isEmptyHTML = <T extends React.JSX.Element>({props: {html}}: T): boolean =
 function PureReportActionItem({
     personalPolicyID,
     introSelected,
+    betas,
     draftTransactionIDs,
     action,
     report,
@@ -541,14 +554,16 @@ function PureReportActionItem({
     reportNameValuePairsOrigin,
     reportNameValuePairsOriginalID,
     reportMetadata,
-    userBillingGraceEndPeriods,
+    userBillingGracePeriodEnds,
 }: PureReportActionItemProps) {
     const isConciergeGreeting = action.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID;
     const shouldDisplayContextMenuValue = shouldDisplayContextMenu && !isConciergeGreeting;
 
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
+    const isTrackIntentUser = isTrackIntentUserSelector(introSelected);
     const {translate, formatPhoneNumber, localeCompare, formatTravelDate, getLocalDateFromDatetime, datetimeToCalendarTime} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const personalDetail = useCurrentUserPersonalDetails();
@@ -579,7 +594,7 @@ function PureReportActionItem({
     const isReportArchived = useReportIsArchived(reportID);
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const isHarvestCreatedExpenseReport = isHarvestCreatedExpenseReportUtils(reportNameValuePairsOrigin, reportNameValuePairsOriginalID);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Eye'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Eye']);
     const {environmentURL} = useEnvironment();
 
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(action.childReportID)}`);
@@ -953,9 +968,9 @@ function PureReportActionItem({
                             introSelected,
                             draftTransactionIDs,
                             activePolicy,
-                            userBillingGraceEndPeriods,
+                            userBillingGracePeriodEnds,
                             amountOwed,
-                            ownerBillingGraceEndPeriod,
+                            ownerBillingGracePeriodEnd,
                             isRestrictedToPreferredPolicy,
                             preferredPolicyID,
                             transaction: trackExpenseTransaction,
@@ -977,9 +992,9 @@ function PureReportActionItem({
                                 introSelected,
                                 draftTransactionIDs,
                                 activePolicy,
-                                userBillingGraceEndPeriods,
+                                userBillingGracePeriodEnds,
                                 amountOwed,
-                                ownerBillingGraceEndPeriod,
+                                ownerBillingGracePeriodEnd,
                                 transaction: trackExpenseTransaction,
                             });
                         },
@@ -995,9 +1010,9 @@ function PureReportActionItem({
                                 introSelected,
                                 draftTransactionIDs,
                                 activePolicy,
-                                userBillingGraceEndPeriods,
+                                userBillingGracePeriodEnds,
                                 amountOwed,
-                                ownerBillingGraceEndPeriod,
+                                ownerBillingGracePeriodEnd,
                                 transaction: trackExpenseTransaction,
                             });
                         },
@@ -1144,9 +1159,9 @@ function PureReportActionItem({
         report,
         originalReport,
         personalPolicyID,
-        userBillingGraceEndPeriods,
+        userBillingGracePeriodEnds,
         amountOwed,
-        ownerBillingGraceEndPeriod,
+        ownerBillingGracePeriodEnd,
         trackExpenseTransaction,
     ]);
 
@@ -1214,6 +1229,7 @@ function PureReportActionItem({
                                             introSelected,
                                             personalDetail.email ?? '',
                                             personalDetail.accountID,
+                                            betas,
                                             iouReport,
                                             action,
                                         );
@@ -1353,7 +1369,9 @@ function PureReportActionItem({
             const isDEWPolicy = hasDynamicExternalWorkflow(policy);
 
             const isPendingAdd = action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
-            if (wasSubmittedViaHarvesting) {
+            if (isTrackIntentUser && isSubmitAndClose(policy)) {
+                children = <ReportActionItemBasicMessage message={translate('iou.markedAsDone', getOriginalMessage(action)?.message)} />;
+            } else if (wasSubmittedViaHarvesting) {
                 children = (
                     <ReportActionItemMessageWithExplain
                         message={translate('iou.automaticallySubmitted')}
@@ -1375,7 +1393,9 @@ function PureReportActionItem({
             const isDEWPolicy = hasDynamicExternalWorkflow(policy);
             const isPendingAdd = action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
 
-            if (wasAutoApproved) {
+            if (isTrackIntentUser && isSubmitAndClose(policy)) {
+                children = <ReportActionItemBasicMessage message={translate('iou.markedAsDone')} />;
+            } else if (wasAutoApproved) {
                 children = (
                     <ReportActionItemMessageWithExplain
                         message={translate('iou.automaticallyApproved')}
@@ -1504,6 +1524,12 @@ function PureReportActionItem({
             children = <UnreportedTransactionAction action={action as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION>} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION) {
             children = <ReportActionItemBasicMessage message={translate('systemMessage.mergedWithCashTransaction')} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN || action.actionName === CONST.REPORT.ACTIONS.TYPE.CARD_UNFROZEN) {
+            children = (
+                <ReportActionItemBasicMessage message="">
+                    <RenderHTML html={`<comment><muted-text>${getReportActionHtml(action)}</muted-text></comment>`} />
+                </ReportActionItemBasicMessage>
+            );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION)) {
             children = <ReportActionItemBasicMessage message={getDismissedViolationMessageText(translate, getOriginalMessage(action))} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.RESOLVED_DUPLICATES)) {
@@ -1704,6 +1730,20 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getAddedConnectionMessage(translate, action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_INTEGRATION)) {
             children = <ReportActionItemBasicMessage message={getRemovedConnectionMessage(translate, action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CARD_FEED)) {
+            children = <ReportActionItemBasicMessage message={getAddedCardFeedMessage(translate, action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CARD_FEED)) {
+            children = <ReportActionItemBasicMessage message={getRemovedCardFeedMessage(translate, action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.RENAME_CARD_FEED)) {
+            children = <ReportActionItemBasicMessage message={getRenamedCardFeedMessage(translate, action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ASSIGN_COMPANY_CARD)) {
+            children = <ReportActionItemBasicMessage message={getAssignedCompanyCardMessage(translate, action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UNASSIGN_COMPANY_CARD)) {
+            children = <ReportActionItemBasicMessage message={getUnassignedCompanyCardMessage(translate, action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_LIABILITY)) {
+            children = <ReportActionItemBasicMessage message={getUpdatedCardFeedLiabilityMessage(translate, action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_STATEMENT_PERIOD)) {
+            children = <ReportActionItemBasicMessage message={getUpdatedCardFeedStatementPeriodMessage(translate, action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUDIT_RATE)) {
             children = <ReportActionItemBasicMessage message={getUpdatedAuditRateMessage(translate, action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MANUAL_APPROVAL_THRESHOLD)) {
@@ -2039,7 +2079,7 @@ function PureReportActionItem({
                             }}
                             numberOfLines={1}
                         >
-                            {getChatListItemReportName(action, report)}
+                            {getChatListItemReportName(action, report, conciergeReportID)}
                         </TextLink>
                     </View>
                     {children}
@@ -2212,6 +2252,7 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         prevProps.parentReport?.reportID === nextProps.parentReport?.reportID &&
         deepEqual(prevProps.personalDetails, nextProps.personalDetails) &&
         deepEqual(prevProps.introSelected, nextProps.introSelected) &&
+        deepEqual(prevProps.betas, nextProps.betas) &&
         deepEqual(prevProps.blockedFromConcierge, nextProps.blockedFromConcierge) &&
         prevProps.originalReportID === nextProps.originalReportID &&
         deepEqual(prevProps.originalReport?.participants, nextProps.originalReport?.participants) &&

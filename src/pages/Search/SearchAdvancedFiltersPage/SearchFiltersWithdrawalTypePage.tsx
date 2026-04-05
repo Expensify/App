@@ -63,7 +63,6 @@ function SearchFiltersWithdrawalTypePage() {
                     ListItem={SingleSelectListItem}
                     onSelectRow={updateSelectedItem}
                     shouldSingleExecuteRowSelect
-                    style={{listItemWrapperStyle: styles.optionRowCompact}}
                 />
             </View>
             <FixedFooter style={styles.mtAuto}>

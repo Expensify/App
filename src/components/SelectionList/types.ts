@@ -115,9 +115,6 @@ type BaseSelectionListProps<TItem extends ListItem> = {
 
     /** Whether to set the hover style */
     setShouldDisableHoverStyle?: React.Dispatch<React.SetStateAction<boolean>>;
-
-    /** Whether to show the radio button */
-    shouldShowRadioButton?: boolean;
 };
 
 /**
@@ -287,7 +284,7 @@ type ConfirmButtonOptions<TItem extends ListItem> = {
     isDisabled?: boolean;
 };
 
-type ButtonOrCheckBoxRoles = 'button' | 'checkbox';
+type InteractiveElementRoles = 'button' | 'checkbox' | 'switch';
 
 type SelectionListHandle<TItem extends ListItem> = {
     /** Scrolls to and highlights the specified items */
@@ -334,7 +331,7 @@ export type {
     TextInputOptions,
     ConfirmButtonOptions,
     ListItem,
-    ButtonOrCheckBoxRoles,
+    InteractiveElementRoles,
     SelectionListStyle,
     SelectionListWithSectionsHandle,
     SelectionListWithSectionsProps,

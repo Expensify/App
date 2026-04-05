@@ -609,8 +609,11 @@ function isPartialMerchant(merchant: string): boolean {
     return merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
 }
 
-function isAmountMissing(transaction: OnyxEntry<Transaction>) {
-    return transaction?.amount === undefined && (transaction?.modifiedAmount === undefined || transaction?.modifiedAmount === '');
+function isAmountMissing(transaction: OnyxEntry<Transaction>, isFromExpenseReport = true) {
+    if (isFromExpenseReport) {
+        return transaction?.amount === undefined && (transaction?.modifiedAmount === undefined || transaction?.modifiedAmount === '');
+    }
+    return (transaction?.amount === 0 || transaction?.amount === undefined) && (!transaction?.modifiedAmount || transaction?.modifiedAmount === 0 || transaction?.modifiedAmount === '');
 }
 
 function hasValidModifiedAmount(transaction: OnyxEntry<Transaction> | null): boolean {
@@ -894,6 +897,10 @@ function getUpdatedTransaction({
         lodashSet(updatedTransaction, 'comment.odometerEnd', transactionChanges.odometerEnd);
     }
 
+    if (Object.hasOwn(transactionChanges, 'reportID')) {
+        updatedTransaction.reportID = transactionChanges.reportID;
+    }
+
     // For distance split requests, if the amount is changed, we need to update the amount and merchant based on the new distance which we calculate before and save in transactionChanges
     if (isSplitTransaction && isDistanceRequest(transaction) && transactionChanges.amount) {
         const amount = transactionChanges.amount ?? Number(transaction.modifiedAmount) ?? transaction.amount ?? 0;
@@ -1170,7 +1177,7 @@ function getReportOwnerAsAttendee(transaction: OnyxInputOrEntry<Transaction>, cu
                 accountID: creatorAccountID,
                 text: creatorDisplayName,
                 searchText: creatorDisplayName,
-                avatarUrl: creatorDetails?.avatarThumbnail ?? '',
+                avatarUrl: (creatorDetails?.avatarThumbnail ?? creatorDetails?.avatar ?? '') as string,
                 selected: true,
             };
         }

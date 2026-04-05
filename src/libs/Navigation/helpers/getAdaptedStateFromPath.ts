@@ -117,17 +117,22 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
 
     if (RHP_TO_WORKSPACES_LIST[route.name]) {
         return {
-            name: SCREENS.WORKSPACES_LIST,
-            // prepending a slash to ensure closing the RHP after refreshing the page
-            // replaces the whole path with "/workspaces", instead of just replacing the last url segment ("/x/y/workspaces")
-            path: normalizePath(ROUTES.WORKSPACES_LIST.route),
+            name: NAVIGATORS.WORKSPACE_NAVIGATOR,
+            state: getRoutesWithIndex([
+                {
+                    name: SCREENS.WORKSPACES_LIST,
+                    // prepending a slash to ensure closing the RHP after refreshing the page
+                    // replaces the whole path with "/workspaces", instead of just replacing the last url segment ("/x/y/workspaces")
+                    path: normalizePath(ROUTES.WORKSPACES_LIST.route),
+                },
+            ]),
         };
     }
 
     if (RHP_TO_WORKSPACE[route.name]) {
         const paramsFromRoute = getParamsFromRoute(RHP_TO_WORKSPACE[route.name]);
 
-        return getInitialSplitNavigatorState(
+        const workspaceSplitRoute = getInitialSplitNavigatorState(
             {
                 name: SCREENS.WORKSPACE.INITIAL,
                 params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
@@ -137,6 +142,11 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
                 params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
             },
         );
+
+        return {
+            name: NAVIGATORS.WORKSPACE_NAVIGATOR,
+            state: getRoutesWithIndex([{name: SCREENS.WORKSPACES_LIST}, workspaceSplitRoute]),
+        };
     }
 
     if (RHP_TO_SETTINGS[route.name]) {
@@ -156,7 +166,7 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
     if (RHP_TO_DOMAIN[route.name]) {
         const paramsFromRoute = getParamsFromRoute(RHP_TO_DOMAIN[route.name]);
 
-        return getInitialSplitNavigatorState(
+        const domainSplitRoute = getInitialSplitNavigatorState(
             {
                 name: SCREENS.DOMAIN.INITIAL,
                 params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
@@ -166,6 +176,11 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
                 params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
             },
         );
+
+        return {
+            name: NAVIGATORS.WORKSPACE_NAVIGATOR,
+            state: getRoutesWithIndex([{name: SCREENS.WORKSPACES_LIST}, domainSplitRoute]),
+        };
     }
 
     // Handle dynamic routes: find the appropriate full screen route
@@ -251,11 +266,19 @@ function getOnboardingAdaptedState(state: PartialState<NavigationState>): Partia
 
 function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamList>>): GetAdaptedStateReturnType {
     const fullScreenRoute = state.routes.find((route) => isFullScreenName(route.name));
-    const isWorkspaceSplitNavigator = fullScreenRoute?.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR;
 
-    if (isWorkspaceSplitNavigator) {
-        const workspacesListRoute = {name: SCREENS.WORKSPACES_LIST};
-        return getRoutesWithIndex([workspacesListRoute, ...state.routes]);
+    if (fullScreenRoute?.name === NAVIGATORS.WORKSPACE_NAVIGATOR) {
+        const workspacesNavigatorState = fullScreenRoute.state as PartialState<NavigationState> | undefined;
+        const hasWorkspacesList = workspacesNavigatorState?.routes?.some((r) => r.name === SCREENS.WORKSPACES_LIST);
+
+        if (!hasWorkspacesList) {
+            const updatedNestedState = getRoutesWithIndex([{name: SCREENS.WORKSPACES_LIST}, ...(workspacesNavigatorState?.routes ?? [])]);
+            const updatedFullScreenRoute = {...fullScreenRoute, state: updatedNestedState};
+            const updatedRoutes = state.routes.map((r) => (r.name === NAVIGATORS.WORKSPACE_NAVIGATOR ? updatedFullScreenRoute : r)) as NavigationPartialRoute[];
+            return getRoutesWithIndex(updatedRoutes);
+        }
+
+        return state;
     }
 
     // If there is no full screen route in the root, we want to add it.
@@ -267,12 +290,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
 
             // If there is a matching root route, add it to the state.
             if (matchingRootRoute) {
-                const routes = [matchingRootRoute, ...state.routes];
-                if (matchingRootRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
-                    const workspacesListRoute = {name: SCREENS.WORKSPACES_LIST};
-                    routes.unshift(workspacesListRoute);
-                }
-                return getRoutesWithIndex(routes);
+                return getRoutesWithIndex([matchingRootRoute, ...state.routes]);
             }
         }
 

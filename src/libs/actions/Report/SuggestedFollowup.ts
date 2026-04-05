@@ -78,10 +78,13 @@ function resolveSuggestedFollowup(
         },
     });
 
+    // Use the full delay as createdOffset so the Concierge response timestamp is
+    // strictly after the user's comment — a 1ms offset was not enough to guarantee
+    // correct sort order when both actions are queued to Onyx near-simultaneously.
     const optimisticConciergeAction = buildOptimisticAddCommentReportAction({
         text: selectedFollowup.response,
         actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
-        createdOffset: 1,
+        createdOffset: CONCIERGE_RESPONSE_DELAY_MS,
         reportActionID: optimisticConciergeReportActionID,
         reportID,
         isHTML: true,
@@ -122,7 +125,7 @@ function addOptimisticConciergeActionWithDelay(reportID: string, optimisticConci
  * Discards a stale pending concierge response and clears the typing indicator.
  * Called when the response has been pending too long (e.g. app was killed and restarted).
  */
-function discardPendingConciergeAction(reportID: string) {
+function discardPendingConciergeAction(reportID: string | undefined) {
     Onyx.update([
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -141,7 +144,7 @@ function discardPendingConciergeAction(reportID: string) {
  * Applies a pending concierge response by moving it to REPORT_ACTIONS
  * and clearing the pending state and typing indicator.
  */
-function applyPendingConciergeAction(reportID: string, reportAction: ReportAction) {
+function applyPendingConciergeAction(reportID: string | undefined, reportAction: ReportAction) {
     Onyx.update([
         {
             onyxMethod: Onyx.METHOD.SET,

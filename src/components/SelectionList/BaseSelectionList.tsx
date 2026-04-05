@@ -17,7 +17,6 @@ import useScrollEnabled from '@hooks/useScrollEnabled';
 import useSingleExecution from '@hooks/useSingleExecution';
 import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
@@ -27,7 +26,7 @@ import TextInput from './components/TextInput';
 import useSearchFocusSync from './hooks/useSearchFocusSync';
 import useSelectedItemFocusSync from './hooks/useSelectedItemFocusSync';
 import ListItemRenderer from './ListItem/ListItemRenderer';
-import type {ButtonOrCheckBoxRoles, DataDetailsType, ListItem, SelectionListProps} from './types';
+import type {DataDetailsType, InteractiveElementRoles, ListItem, SelectionListProps} from './types';
 import {getListboxRole} from './utils/getListboxRole';
 
 const ANIMATED_HIGHLIGHT_DURATION =
@@ -90,10 +89,9 @@ function BaseSelectionList<TItem extends ListItem>({
     shouldPreventDefaultFocusOnSelectRow = false,
     shouldShowTextInput = !!textInputOptions?.label,
     shouldClearInputOnSelect = false,
-    shouldHighlightSelectedItem,
+    shouldHighlightSelectedItem = true,
     shouldUseDefaultRightHandSideCheckmark,
     shouldDisableHoverStyle = false,
-    shouldShowRadioButton,
     setShouldDisableHoverStyle = () => {},
 }: SelectionListProps<TItem>) {
     const styles = useThemeStyles();
@@ -158,12 +156,6 @@ function BaseSelectionList<TItem extends ListItem>({
         }
         hasKeyBeenPressed.current = true;
     }, []);
-
-    useEffect(() => {
-        addKeyDownPressListener(setHasKeyBeenPressed);
-
-        return () => removeKeyDownPressListener(setHasKeyBeenPressed);
-    }, [setHasKeyBeenPressed]);
 
     const scrollToIndex = useCallback(
         (index: number) => {
@@ -271,8 +263,8 @@ function BaseSelectionList<TItem extends ListItem>({
         selectRow(focusedOption);
     };
 
-    // Disable `Enter` shortcut if the active element is a button or checkbox
-    const disableEnterShortcut = activeElementRole && [CONST.ROLE.BUTTON, CONST.ROLE.CHECKBOX].includes(activeElementRole as ButtonOrCheckBoxRoles);
+    // Disable `Enter` shortcut if the active element is a button, checkbox, or switch
+    const disableEnterShortcut = activeElementRole && [CONST.ROLE.BUTTON, CONST.ROLE.CHECKBOX, CONST.ROLE.SWITCH].includes(activeElementRole as InteractiveElementRoles);
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
         captureOnInputs: true,
@@ -371,7 +363,6 @@ function BaseSelectionList<TItem extends ListItem>({
                 shouldSyncFocus={!isTextInputFocusedRef.current && hasKeyBeenPressed.current}
                 shouldDisableHoverStyle={shouldDisableHoverStyle}
                 shouldShowRightCaret={shouldShowRightCaret}
-                shouldShowRadioButton={shouldShowRadioButton}
             />
         );
     };

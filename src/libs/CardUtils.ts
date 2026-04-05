@@ -7,7 +7,6 @@ import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleCon
 import type {CombinedCardFeed, CombinedCardFeeds} from '@hooks/useCardFeeds';
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
 import type IllustrationsType from '@styles/theme/illustrations/types';
-import * as Illustrations from '@src/components/Icon/Illustrations';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -60,6 +59,7 @@ const COMPANY_CARD_FEED_ICON_NAMES = [
     'BrexCompanyCardDetailLarge',
     'StripeCompanyCardDetailLarge',
     'PlaidCompanyCardDetailLarge',
+    'ExpensifyCardImage',
 ] as const;
 
 type CompanyCardFeedIconName = TupleToUnion<typeof COMPANY_CARD_FEED_ICON_NAMES>;
@@ -493,11 +493,11 @@ function getCardFeedIcon(cardFeed: CardFeedWithNumber | CardFeedWithDomainID | u
         [CONST.COMPANY_CARD.FEED_BANK_NAME.CSV]: illustrations.GenericCSVCompanyCardLarge,
         [CONST.COMPANY_CARD.FEED_BANK_NAME.PEX]: illustrations.GenericCompanyCardLarge,
         [CONST.COMPANY_CARD.FEED_BANK_NAME.MOCK_BANK]: illustrations.GenericCompanyCardLarge,
-        [CONST.EXPENSIFY_CARD.BANK]: Illustrations.ExpensifyCardImage,
+        [CONST.EXPENSIFY_CARD.BANK]: companyCardIllustrations.ExpensifyCardImage,
     };
 
     if (cardFeed.startsWith(CONST.EXPENSIFY_CARD.BANK)) {
-        return Illustrations.ExpensifyCardImage;
+        return companyCardIllustrations.ExpensifyCardImage;
     }
 
     const feedIcon = feedIcons[cardFeed as keyof typeof feedIcons];
@@ -654,6 +654,7 @@ const getBankCardDetailsImage = (bank: BankName, illustrations: IllustrationsTyp
         [CONST.COMPANY_CARDS.BANKS.STRIPE]: companyCardIllustrations.StripeCompanyCardDetail,
         [CONST.COMPANY_CARDS.BANKS.MOCK_BANK]: illustrations.GenericCompanyCard,
         [CONST.COMPANY_CARDS.BANKS.OTHER]: illustrations.GenericCompanyCard,
+        [CONST.COMPANY_CARDS.BANKS.FILE_IMPORT]: illustrations.FileImportTable,
     };
     return iconMap[bank];
 };
@@ -1036,7 +1037,7 @@ function isSmartLimitEnabled(cardsList: CardList) {
     return Object.values(assignedCards).some((card) => card.nameValuePairs?.limitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART);
 }
 
-const CUSTOM_FEEDS = [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX];
+const CUSTOM_FEEDS = [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX, CONST.COMPANY_CARD.FEED_BANK_NAME.CSV];
 
 function getFeedType(feedKey: CompanyCardFeed, cardFeeds: OnyxEntry<CombinedCardFeeds>): CompanyCardFeedWithNumber {
     if (CUSTOM_FEEDS.some((feed) => feed === feedKey)) {
@@ -1417,6 +1418,10 @@ function isCardFrozen(card?: OnyxEntry<Card>): boolean {
     return card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED && card?.nameValuePairs?.frozen != null;
 }
 
+function isCardInactive(card?: OnyxEntry<Card>): boolean {
+    return card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED && !card?.nameValuePairs?.frozen;
+}
+
 /**
  * Return url for fixing broken personal card connection
  *
@@ -1658,6 +1663,7 @@ export {
     generateCardID,
     hasDisplayableAssignedCards,
     isCardFrozen,
+    isCardInactive,
     isCardWithPotentialFraud,
     getDisplayableExpensifyCards,
     isExpiredCard,

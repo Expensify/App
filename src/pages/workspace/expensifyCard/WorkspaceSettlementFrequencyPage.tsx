@@ -3,7 +3,7 @@ import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import Text from '@components/Text';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
@@ -86,7 +86,7 @@ function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyP
                 <Text style={[styles.mh5, styles.mv4]}>{translate('workspace.expensifyCard.settlementFrequencyDescription')}</Text>
                 <SelectionList
                     data={data}
-                    ListItem={SingleSelectListItem}
+                    ListItem={RadioListItem}
                     onSelectRow={({value}) => updateSettlementFrequency(value)}
                     initiallyFocusedItemKey={selectedFrequency}
                     shouldUpdateFocusedIndex
