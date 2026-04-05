@@ -27,7 +27,6 @@ function FocusModeNotification({onClose}: FocusModeNotificationProps) {
             title: translate('focusModeUpdateModal.title'),
             confirmText: translate('common.buttonConfirm'),
             shouldShowCancelButton: false,
-            onBackdropPress: onClose,
             prompt: (
                 <View style={[styles.renderHTML, styles.flexRow]}>
                     <RenderHTML html={translate('focusModeUpdateModal.prompt', priorityModePageUrl)} />
