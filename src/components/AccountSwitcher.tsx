@@ -61,7 +61,6 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
 
     const buttonRef = useRef<HTMLDivElement>(null);
     const {windowHeight} = useWindowDimensions();
-    const {showConfirmModal} = useConfirmModal();
 
     const [shouldShowDelegatorMenu, setShouldShowDelegatorMenu] = useState(false);
     const delegators = account?.delegatedAccess?.delegators ?? [];
@@ -75,6 +74,8 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.ACCOUNT_SWITCHER,
         isScreenFocused && canSwitchAccounts,
     );
+
+    const {showConfirmModal} = useConfirmModal();
 
     const showOfflineModal = () => {
         showConfirmModal({
