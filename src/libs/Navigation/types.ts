@@ -302,10 +302,8 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.DESCRIPTION]: undefined;
     [SCREENS.WORKSPACE.CLIENT_ID]: undefined;
     [SCREENS.WORKSPACE.SHARE]: undefined;
-    [SCREENS.WORKSPACE.INVITE]: {
+    [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_INVITE]: {
         policyID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.MEMBERS_IMPORT]: {
         policyID: string;
@@ -316,15 +314,11 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.MEMBERS_IMPORTED_CONFIRMATION]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.INVITE_MESSAGE]: {
+    [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_INVITE_MESSAGE]: {
         policyID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
-    [SCREENS.WORKSPACE.INVITE_MESSAGE_ROLE]: {
+    [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_INVITE_MESSAGE_ROLE]: {
         policyID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
     [SCREENS.WORKSPACE.INVITE_MESSAGE_APPROVER]: {
         policyID: string;
@@ -3077,6 +3071,8 @@ type SearchReportActionsParamList = {
         /** Selected transactions' report ID  */
         reportID: string;
     };
+    [SCREENS.SEARCH.CHANGE_APPROVER.ROOT]: undefined;
+    [SCREENS.SEARCH.CHANGE_APPROVER.ADD_APPROVER]: undefined;
 };
 
 type SearchFullscreenNavigatorParamList = {

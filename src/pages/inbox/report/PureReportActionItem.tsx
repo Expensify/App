@@ -122,6 +122,7 @@ import {
     getRemovedFromApprovalChainMessage,
     getRenamedAction,
     getRenamedCardFeedMessage,
+    getReportActionHtml,
     getReportActionMessage,
     getReportActionText,
     getSetAutoJoinMessage,
@@ -277,7 +278,7 @@ type PureReportActionItemProps = {
     introSelected?: OnyxEntry<OnyxTypes.IntroSelected>;
 
     /** Beta features list */
-    betas?: OnyxEntry<OnyxTypes.Beta[]>;
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
 
     /** All transaction draft IDs */
     draftTransactionIDs: string[] | undefined;
@@ -1517,6 +1518,12 @@ function PureReportActionItem({
             children = <UnreportedTransactionAction action={action as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION>} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION) {
             children = <ReportActionItemBasicMessage message={translate('systemMessage.mergedWithCashTransaction')} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN || action.actionName === CONST.REPORT.ACTIONS.TYPE.CARD_UNFROZEN) {
+            children = (
+                <ReportActionItemBasicMessage message="">
+                    <RenderHTML html={`<comment><muted-text>${getReportActionHtml(action)}</muted-text></comment>`} />
+                </ReportActionItemBasicMessage>
+            );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION)) {
             children = <ReportActionItemBasicMessage message={getDismissedViolationMessageText(translate, getOriginalMessage(action))} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.RESOLVED_DUPLICATES)) {
