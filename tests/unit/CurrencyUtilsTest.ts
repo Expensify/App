@@ -1,8 +1,10 @@
+import type {RenderAPI} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import * as CurrencyUtils from '@src/libs/CurrencyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import initCurrencyListContext from '../utils/initCurrencyListContext';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 // This file can get outdated. In that case, you can follow these steps to update it:
 // - open your browser console and navigate to the Network tab
@@ -16,26 +18,26 @@ const currencyCodeList = Object.keys(currencyList);
 const AVAILABLE_LOCALES = [CONST.LOCALES.EN, CONST.LOCALES.ES];
 
 describe('CurrencyUtils', () => {
-    beforeAll(() => {
-        Onyx.init({
+    let currencyListProvider: RenderAPI;
+
+    beforeEach(async () => {
+        currencyListProvider = await initCurrencyListContext({
             keys: {
                 NVP_PREFERRED_LOCALE: ONYXKEYS.NVP_PREFERRED_LOCALE,
                 CURRENCY_LIST: ONYXKEYS.CURRENCY_LIST,
             },
             initialKeyStates: {
                 [ONYXKEYS.NVP_PREFERRED_LOCALE]: CONST.LOCALES.DEFAULT,
-                [ONYXKEYS.CURRENCY_LIST]: currencyList,
             },
         });
-        return waitForBatchedUpdates();
-    });
-
-    beforeEach(() => {
         IntlStore.load(CONST.LOCALES.DEFAULT);
-        return waitForBatchedUpdates();
+        await waitForBatchedUpdates();
     });
 
-    afterEach(() => Onyx.clear());
+    afterEach(async () => {
+        currencyListProvider.unmount();
+        await Onyx.clear();
+    });
 
     describe('getLocalizedCurrencySymbol', () => {
         test.each(AVAILABLE_LOCALES)('Returns non empty string for all currencyCode with preferredLocale %s', (preferredLocale) =>

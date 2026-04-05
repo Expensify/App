@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {deepEqual} from 'fast-equals';
+import type {RenderAPI} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {getReportPreviewAction} from '@libs/actions/IOU';
@@ -44,13 +45,13 @@ import type Transaction from '@src/types/onyx/Transaction';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import currencyList from '../../unit/currencyList.json';
 import createPersonalDetails from '../../utils/collections/personalDetails';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../../utils/collections/policies';
 import createRandomReportAction from '../../utils/collections/reportActions';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
+import initCurrencyListContext from '../../utils/initCurrencyListContext';
 import type {MockFetch} from '../../utils/TestHelper';
 import {getGlobalFetchMock, getOnyxData} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
@@ -200,29 +201,31 @@ const getTransactionAndExpenseReports = (reportID: string) => {
 };
 
 let mockFetch: MockFetch;
+let currencyListProvider: RenderAPI;
 
 beforeAll(() => {
-    Onyx.init({
-        keys: ONYXKEYS,
-        initialKeyStates: {
-            [ONYXKEYS.SESSION]: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
-            [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
-            [ONYXKEYS.CURRENCY_LIST]: currencyList,
-        },
-    });
+    Onyx.init({keys: ONYXKEYS});
     initOnyxDerivedValues();
     IntlStore.load(CONST.LOCALES.EN);
     return waitForBatchedUpdates();
 });
 
-beforeEach(() => {
+beforeEach(async () => {
     jest.clearAllTimers();
     global.fetch = getGlobalFetchMock();
     mockFetch = fetch as MockFetch;
-    return Onyx.clear().then(waitForBatchedUpdates);
+    await Onyx.clear();
+    currencyListProvider = await initCurrencyListContext({
+        keys: ONYXKEYS,
+        initialKeyStates: {
+            [ONYXKEYS.SESSION]: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+            [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+        },
+    });
 });
 
 afterEach(() => {
+    currencyListProvider.unmount();
     jest.clearAllMocks();
 });
 
