@@ -1,5 +1,5 @@
 import type {NavigationState, PartialState} from '@react-navigation/native';
-import {findFocusedRoute, getStateFromPath as RNGetStateFromPath} from '@react-navigation/native';
+import {getStateFromPath as RNGetStateFromPath} from '@react-navigation/native';
 import Log from '@libs/Log';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
 import type {Route} from '@src/ROUTES';
@@ -9,6 +9,7 @@ import SCREENS from '@src/SCREENS';
 import findMatchingDynamicSuffix from './dynamicRoutesUtils/findMatchingDynamicSuffix';
 import getPathWithoutDynamicSuffix from './dynamicRoutesUtils/getPathWithoutDynamicSuffix';
 import getStateForDynamicRoute from './dynamicRoutesUtils/getStateForDynamicRoute';
+import findFocusedRouteWithOnyxTabGuard from './findFocusedRouteWithOnyxTabGuard';
 import getMatchingNewRoute from './getMatchingNewRoute';
 import getRedirectedPath from './getRedirectedPath';
 
@@ -32,12 +33,12 @@ function getStateFromPath(path: Route): PartialState<NavigationState> {
         const dynamicRoute: string = dynamicRouteKeys.find((key) => DYNAMIC_ROUTES[key].path === dynamicRouteSuffix) ?? '';
 
         // Get the currently focused route from the base path to check permissions
-        const focusedRoute = findFocusedRoute(getStateFromPath(pathWithoutDynamicSuffix) ?? {});
-        const entryScreens: Screen[] = DYNAMIC_ROUTES[dynamicRoute as DynamicRouteKey]?.entryScreens ?? [];
+        const focusedRoute = findFocusedRouteWithOnyxTabGuard(getStateFromPath(pathWithoutDynamicSuffix) ?? {});
+        const entryScreens: ReadonlyArray<Screen | '*'> = DYNAMIC_ROUTES[dynamicRoute as DynamicRouteKey]?.entryScreens ?? [];
 
         // Check if the focused route is allowed to access this dynamic route
         if (focusedRoute?.name) {
-            if (entryScreens.includes(focusedRoute.name as Screen)) {
+            if (entryScreens.some((s) => s === '*' || s === focusedRoute.name)) {
                 // Generate navigation state for the dynamic route
                 const dynamicRouteState = getStateForDynamicRoute(normalizedPath, dynamicRoute as DynamicRouteKey, focusedRoute?.params as Record<string, unknown> | undefined);
                 return dynamicRouteState;

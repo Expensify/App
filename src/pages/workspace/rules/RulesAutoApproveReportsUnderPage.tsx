@@ -56,7 +56,7 @@ function RulesAutoApproveReportsUnderPage({route}: RulesAutoApproveReportsUnderP
                     style={[styles.flexGrow1, styles.mh5]}
                     formID={ONYXKEYS.FORMS.RULES_AUTO_APPROVE_REPORTS_UNDER_MODAL_FORM}
                     onSubmit={({maxExpenseAutoApprovalAmount}) => {
-                        setPolicyAutomaticApprovalLimit(policyID, maxExpenseAutoApprovalAmount);
+                        setPolicyAutomaticApprovalLimit(policyID, maxExpenseAutoApprovalAmount, policy?.autoApproval?.limit);
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                     }}
                     submitButtonText={translate('common.save')}

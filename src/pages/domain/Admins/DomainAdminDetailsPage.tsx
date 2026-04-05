@@ -24,7 +24,7 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
     const {domainAccountID, accountID} = route.params;
 
     const {translate, formatPhoneNumber} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Info', 'ClosedSign'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Info', 'ClosedSign']);
 
     const [primaryContact] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
         selector: domainSettingsPrimaryContactSelector,

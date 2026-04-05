@@ -2,6 +2,7 @@ import {accountIDSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -14,17 +15,19 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {clearDelegatorErrors, connect, disconnect} from '@libs/actions/Delegate';
 import {close} from '@libs/actions/Modal';
 import {getLatestError} from '@libs/ErrorUtils';
+import {stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import TextWithEmojiFragment from '@pages/inbox/report/comment/TextWithEmojiFragment';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 import type {PersonalDetails} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import Avatar from './Avatar';
-import ConfirmModal from './ConfirmModal';
 import Icon from './Icon';
+import {ModalActions} from './Modal/Global/ModalContext';
 import type {PopoverMenuItem} from './PopoverMenu';
 import PopoverMenu from './PopoverMenu';
 import {PressableWithFeedback} from './Pressable';
@@ -39,7 +42,7 @@ type AccountSwitcherProps = {
 };
 
 function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['CaretUpDown', 'Checkmark'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['CaretUpDown', 'Checkmark']);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -51,6 +54,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
     const [stashedCredentials = CONST.EMPTY_OBJECT] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS);
+    const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {selector: isTrackingSelector});
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
@@ -59,7 +63,6 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     const {windowHeight} = useWindowDimensions();
 
     const [shouldShowDelegatorMenu, setShouldShowDelegatorMenu] = useState(false);
-    const [shouldShowOfflineModal, setShouldShowOfflineModal] = useState(false);
     const delegators = account?.delegatedAccess?.delegators ?? [];
 
     const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
@@ -71,6 +74,34 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.ACCOUNT_SWITCHER,
         isScreenFocused && canSwitchAccounts,
     );
+
+    const {showConfirmModal} = useConfirmModal();
+
+    const showOfflineModal = () => {
+        showConfirmModal({
+            title: translate('common.youAppearToBeOffline'),
+            prompt: translate('common.offlinePrompt'),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+        });
+    };
+
+    const showGpsInProgressModal = async (switchAccount: () => ReturnType<typeof connect | typeof disconnect>) => {
+        const result = await showConfirmModal({
+            title: translate('gps.switchAccountWarningTripInProgress.title'),
+            prompt: translate('gps.switchAccountWarningTripInProgress.prompt'),
+            confirmText: translate('gps.switchAccountWarningTripInProgress.confirm'),
+            cancelText: translate('common.cancel'),
+        });
+
+        if (result.action !== ModalActions.CONFIRM) {
+            return;
+        }
+
+        await stopGpsTrip(false, true);
+
+        switchAccount();
+    };
 
     const onPressSwitcher = () => {
         hideProductTrainingTooltip();
@@ -143,9 +174,15 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                 createBaseMenuItem(delegatePersonalDetails, error, {
                     onSelected: () => {
                         if (isOffline) {
-                            close(() => setShouldShowOfflineModal(true));
+                            close(showOfflineModal);
                             return;
                         }
+
+                        if (isTrackingGPS) {
+                            close(() => showGpsInProgressModal(() => disconnect({stashedCredentials, stashedSession})));
+                            return;
+                        }
+
                         disconnect({stashedCredentials, stashedSession});
                     },
                 }),
@@ -164,7 +201,11 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                         badgeText: translate('delegate.role', {role}),
                         onSelected: () => {
                             if (isOffline) {
-                                close(() => setShouldShowOfflineModal(true));
+                                close(showOfflineModal);
+                                return;
+                            }
+                            if (isTrackingGPS) {
+                                close(() => showGpsInProgressModal(() => connect({email, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID})));
                                 return;
                             }
                             connect({email, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID});
@@ -273,15 +314,6 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                     shouldUpdateFocusedIndex={false}
                 />
             )}
-            <ConfirmModal
-                title={translate('common.youAppearToBeOffline')}
-                isVisible={shouldShowOfflineModal}
-                onConfirm={() => setShouldShowOfflineModal(false)}
-                onCancel={() => setShouldShowOfflineModal(false)}
-                confirmText={translate('common.buttonConfirm')}
-                prompt={translate('common.offlinePrompt')}
-                shouldShowCancelButton={false}
-            />
         </>
     );
 }

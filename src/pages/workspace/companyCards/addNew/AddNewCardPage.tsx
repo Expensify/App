@@ -1,5 +1,6 @@
 import {isActingAsDelegateSelector} from '@selectors/Account';
-import React, {useCallback, useEffect, useState} from 'react';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
@@ -11,7 +12,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
-import {updateSelectedFeed} from '@libs/actions/Card';
 import {navigateToConciergeChat} from '@libs/actions/Report';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import Navigation from '@navigation/Navigation';
@@ -19,11 +19,10 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import BankConnection from '@pages/workspace/companyCards/BankConnection';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
-import {clearAddNewCardFlow, openPolicyAddCardFeedPage, setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
+import {clearAddNewCardFlow, openPolicyAddCardFeedPage} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import AmexCustomFeed from './AmexCustomFeed';
 import CardInstructionsStep from './CardInstructionsStep';
@@ -31,6 +30,7 @@ import CardNameStep from './CardNameStep';
 import CardTypeStep from './CardTypeStep';
 import DetailsStep from './DetailsStep';
 import DirectStatementCloseDateStep from './DirectStatementCloseDatePage';
+import ImportFromFileStep from './ImportFromFileStep';
 import PlaidConnectionStep from './PlaidConnectionStep';
 import SelectBankStep from './SelectBankStep';
 import SelectCountryStep from './SelectCountryStep';
@@ -48,6 +48,8 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     const {translate} = useLocalize();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector});
@@ -75,32 +77,6 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
         // Calling openPolicyAddCardFeedPage will trigger the creation of the workspace account (if necessary) and enable the "Company cards" feature (if not enabled).
         openPolicyAddCardFeedPage(policyID);
     }, [policyID]);
-
-    const handleBankConnectionSuccess = useCallback(
-        (newFeed?: CompanyCardFeedWithDomainID) => {
-            if (newFeed) {
-                updateSelectedFeed(newFeed, policyID);
-            }
-
-            const isPlaid = !!addNewCardFeed?.data?.publicToken;
-
-            // Direct feeds (except those added via Plaid) are created with default statement period end date.
-            // Redirect the user to set a custom date.
-            if (policyID && !isPlaid) {
-                setAddNewCompanyCardStepAndData({
-                    step: CONST.COMPANY_CARDS.STEP.SELECT_DIRECT_STATEMENT_CLOSE_DATE,
-                });
-            } else {
-                Navigation.closeRHPFlow();
-                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {forceReplace: true});
-            }
-        },
-        [addNewCardFeed?.data?.publicToken, policyID],
-    );
-
-    const handleBackButtonPress = useCallback(() => {
-        setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
-    }, []);
 
     if (isAddCardFeedLoading || isAllFeedsResultLoading || isBlockedToAddNewFeeds) {
         const reasonAttributes: SkeletonSpanReasonAttributes = {
@@ -136,13 +112,7 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
             CurrentStep = <CardTypeStep />;
             break;
         case CONST.COMPANY_CARDS.STEP.BANK_CONNECTION:
-            CurrentStep = (
-                <BankConnection
-                    policyID={policyID}
-                    onBackButtonPress={handleBackButtonPress}
-                    onSuccess={handleBankConnectionSuccess}
-                />
-            );
+            CurrentStep = <BankConnection policyID={policyID} />;
             break;
         case CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS:
             CurrentStep = <CardInstructionsStep policyID={policyID} />;
@@ -170,6 +140,9 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
         case CONST.COMPANY_CARDS.STEP.SELECT_DIRECT_STATEMENT_CLOSE_DATE:
             CurrentStep = <DirectStatementCloseDateStep policyID={policyID} />;
             break;
+        case CONST.COMPANY_CARDS.STEP.IMPORT_FROM_FILE:
+            CurrentStep = <ImportFromFileStep />;
+            break;
         default:
             CurrentStep = <SelectCountryStep policyID={policyID} />;
             break;
@@ -192,7 +165,7 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
                 onCancel={() => setIsModalVisible(false)}
                 onConfirm={() => {
                     setIsModalVisible(false);
-                    navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, false);
+                    navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false);
                 }}
             />
         </AccessOrNotFoundWrapper>
