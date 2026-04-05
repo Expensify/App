@@ -45,7 +45,7 @@ function ConfirmationStep({policyID, stepNames, startStepIndex, backTo}: Confirm
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
+    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const defaultFundID = useDefaultFundID(policyID);
     const {isBetaEnabled} = usePermissions();
@@ -121,11 +121,10 @@ function ConfirmationStep({policyID, stepNames, startStepIndex, backTo}: Confirm
     const isPhysicalCard = data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL;
     const cardReadyTranslationKey = isPhysicalCard ? 'workspace.card.issueNewCard.willBeReadyToShip' : 'workspace.card.issueNewCard.willBeReadyToUse';
 
-    const isSingleUseEnabled = isBetaEnabled(CONST.BETAS.SINGLE_USE_AND_EXPIRE_BY_CARDS);
     const expirationDateTitle =
         data?.validFrom && data?.validThru ? translate('workspace.card.issueNewCard.validFromToWithoutText', {startDate: data?.validFrom, endDate: data?.validThru}) : '';
 
-    const shouldShowExpirationDate = isSingleUseEnabled && !isPhysicalCard;
+    const shouldShowExpirationDate = !isPhysicalCard;
 
     return (
         <InteractiveStepWrapper

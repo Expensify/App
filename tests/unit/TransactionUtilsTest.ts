@@ -450,6 +450,32 @@ describe('TransactionUtils', () => {
 
             expect(updatedTransaction.modifiedAmount).toBe(newAmount);
         });
+
+        it('should update taxValue when taxValue and taxCode are both in transactionChanges', () => {
+            const transaction = generateTransaction();
+
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: true,
+                transactionChanges: {taxCode: 'id_TAX_RATE_1', taxAmount: 50, taxValue: '5%'},
+            });
+
+            expect(updatedTransaction.taxValue).toBe('5%');
+            expect(updatedTransaction.taxCode).toBe('id_TAX_RATE_1');
+            expect(updatedTransaction.taxAmount).toBe(-50);
+        });
+
+        it('should not update taxValue when taxCode is not in transactionChanges', () => {
+            const transaction = generateTransaction({taxValue: '10%'});
+
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: false,
+                transactionChanges: {taxValue: '5%'},
+            });
+
+            expect(updatedTransaction.taxValue).toBe('10%');
+        });
     });
 
     describe('isScanning', () => {
@@ -2301,8 +2327,8 @@ describe('TransactionUtils', () => {
 
                 const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, policyCategories);
 
-                // When only one valid category exists and fields differ, neither keep nor change is set
-                expect(result.keep.category).toBeUndefined();
+                // When only one valid category exists and fields differ, keep preserves the first transaction's category
+                expect(result.keep.category).toBe('Travel');
                 expect(result.change.category).toBeUndefined();
             });
 
@@ -2336,8 +2362,8 @@ describe('TransactionUtils', () => {
 
                 const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, policyCategories);
 
-                // When only one valid category exists and fields differ, neither keep nor change is set
-                expect(result.keep.category).toBeUndefined();
+                // When only one valid category exists and fields differ, keep preserves the first transaction's category
+                expect(result.keep.category).toBe('Travel');
                 expect(result.change.category).toBeUndefined();
             });
 
@@ -2359,8 +2385,8 @@ describe('TransactionUtils', () => {
 
                 const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, undefined);
 
-                // When categories are not enabled and fields differ, neither keep nor change is set
-                expect(result.keep.category).toBeUndefined();
+                // When categories are not enabled and fields differ, keep preserves the first transaction's category
+                expect(result.keep.category).toBe('Travel');
                 expect(result.change.category).toBeUndefined();
             });
 
@@ -2632,8 +2658,8 @@ describe('TransactionUtils', () => {
 
                 const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, undefined);
 
-                // When only one valid tax exists and fields differ, neither keep nor change is set
-                expect(result.keep.taxCode).toBeUndefined();
+                // When only one valid tax exists and fields differ, keep preserves the first transaction's taxCode
+                expect(result.keep.taxCode).toBe('id_TAX_EXEMPT');
                 expect(result.change.taxCode).toBeUndefined();
             });
 
@@ -2673,8 +2699,8 @@ describe('TransactionUtils', () => {
 
                 const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, undefined);
 
-                // When only one valid tax exists and fields differ, neither keep nor change is set
-                expect(result.keep.taxCode).toBeUndefined();
+                // When only one valid tax exists and fields differ, keep preserves the first transaction's taxCode
+                expect(result.keep.taxCode).toBe('id_TAX_EXEMPT');
                 expect(result.change.taxCode).toBeUndefined();
             });
         });
@@ -2918,6 +2944,88 @@ describe('TransactionUtils', () => {
 
         it('returns empty string array for empty string', () => {
             expect(TransactionUtils.getTagArrayFromName('')).toEqual(['']);
+        });
+    });
+
+    describe('getExchangeRate', () => {
+        it('returns groupExchangeRate string when groupExchangeRate is set and not 1', () => {
+            const transaction = generateTransaction({
+                currency: 'USD',
+                groupExchangeRate: 1.25,
+                groupCurrency: 'EUR',
+            });
+
+            expect(TransactionUtils.getExchangeRate(transaction)).toBe('1.25 USD/EUR');
+        });
+
+        it('returns empty string when groupExchangeRate is 1', () => {
+            const transaction = generateTransaction({
+                currency: 'USD',
+                groupExchangeRate: 1,
+                groupCurrency: 'EUR',
+            });
+
+            expect(TransactionUtils.getExchangeRate(transaction)).toBe('');
+        });
+
+        it('returns empty string when groupExchangeRate is undefined and no reportCurrency', () => {
+            const transaction = generateTransaction({
+                currency: 'USD',
+                groupExchangeRate: undefined,
+            });
+
+            expect(TransactionUtils.getExchangeRate(transaction)).toBe('');
+        });
+
+        it('returns currencyConversionRate string when groupExchangeRate is missing but currencyConversionRate is set', () => {
+            const transaction = generateTransaction({
+                currency: 'USD',
+                currencyConversionRate: '0.85',
+                groupCurrency: 'EUR',
+            });
+
+            expect(TransactionUtils.getExchangeRate(transaction)).toBe('0.85 USD/EUR');
+        });
+
+        it('returns empty string when currencyConversionRate is 1', () => {
+            const transaction = generateTransaction({
+                currency: 'USD',
+                currencyConversionRate: '1',
+                groupCurrency: 'EUR',
+            });
+
+            expect(TransactionUtils.getExchangeRate(transaction)).toBe('');
+        });
+
+        it('returns empty string when currencyConversionRate is undefined and groupExchangeRate is missing', () => {
+            const transaction = generateTransaction({
+                currency: 'USD',
+                currencyConversionRate: undefined,
+            });
+
+            expect(TransactionUtils.getExchangeRate(transaction)).toBe('');
+        });
+
+        it('uses fromCurrency as toCurrency when groupCurrency is not set', () => {
+            const transaction = generateTransaction({
+                currency: 'USD',
+                groupExchangeRate: 2.5,
+                groupCurrency: undefined,
+            });
+
+            // groupCurrency falls back to fromCurrency (USD)
+            expect(TransactionUtils.getExchangeRate(transaction)).toBe('2.5 USD/USD');
+        });
+
+        it('prefers groupExchangeRate over currencyConversionRate when both are set', () => {
+            const transaction = generateTransaction({
+                currency: 'USD',
+                groupExchangeRate: 1.25,
+                currencyConversionRate: '0.85',
+                groupCurrency: 'EUR',
+            });
+
+            expect(TransactionUtils.getExchangeRate(transaction)).toBe('1.25 USD/EUR');
         });
     });
 });

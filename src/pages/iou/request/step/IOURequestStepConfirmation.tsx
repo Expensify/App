@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -5,6 +6,7 @@ import {View} from 'react-native';
 import DragAndDropConsumer from '@components/DragAndDrop/Consumer';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import DropZoneUI from '@components/DropZone/DropZoneUI';
+import FormHelpMessage from '@components/FormHelpMessage';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LocationPermissionModal from '@components/LocationPermissionModal';
@@ -33,6 +35,7 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {completeTestDriveTask} from '@libs/actions/Task';
+import {isMobileSafari} from '@libs/Browser';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -53,6 +56,7 @@ import Log from '@libs/Log';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
+import {getOdometerImageName, getOdometerImageType, getOdometerImageUri} from '@libs/OdometerImageUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {
@@ -65,6 +69,7 @@ import {
     isReportOutstanding,
     isSelectedManagerMcTest,
 } from '@libs/ReportUtils';
+import stitchOdometerImages from '@libs/stitchOdometerImages';
 import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import getSubmitExpenseScenario from '@libs/telemetry/getSubmitExpenseScenario';
 import markSubmitExpenseEnd from '@libs/telemetry/markSubmitExpenseEnd';
@@ -74,6 +79,7 @@ import {
     getDefaultTaxCode,
     getRateID,
     getRequestType,
+    getTaxValue,
     getValidWaypoints,
     hasReceipt,
     isDistanceRequest as isDistanceRequestTransactionUtils,
@@ -86,22 +92,21 @@ import type {GpsPoint} from '@userActions/IOU';
 import {
     createDistanceRequest as createDistanceRequestIOUActions,
     getIOURequestPolicyID,
-    requestMoney as requestMoneyIOUActions,
     setMoneyRequestBillable,
     setMoneyRequestCategory,
     setMoneyRequestParticipantsFromReport,
     setMoneyRequestReceipt,
     setMoneyRequestReimbursable,
     startMoneyRequest,
-    trackExpense as trackExpenseIOUActions,
     updateLastLocationPermissionPrompt,
 } from '@userActions/IOU';
 import {submitPerDiemExpenseForSelfDM, submitPerDiemExpense as submitPerDiemExpenseIOUActions} from '@userActions/IOU/PerDiem';
 import {getReceiverType, sendInvoice} from '@userActions/IOU/SendInvoice';
 import {sendMoneyElsewhere, sendMoneyWithWallet} from '@userActions/IOU/SendMoney';
 import {splitBill, splitBillAndOpenReport, startSplitBill} from '@userActions/IOU/Split';
+import {requestMoney as requestMoneyIOUActions, trackExpense as trackExpenseIOUActions} from '@userActions/IOU/TrackExpense';
 import {openDraftWorkspaceRequest} from '@userActions/Policy/Policy';
-import {removeDraftTransaction, removeDraftTransactions, replaceDefaultDraftTransaction} from '@userActions/TransactionEdit';
+import {removeDraftTransaction, removeDraftTransactionsByIDs, replaceDefaultDraftTransaction} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -122,6 +127,32 @@ import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 type IOURequestStepConfirmationProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION> &
     WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION>;
 
+// Ends the submit expense span, starts a geolocation child span, then calls getCurrentPosition.
+// The expense callback receives GPS coordinates on success or undefined on error.
+// Extracted to avoid duplicating this identical telemetry block across trackExpense and requestMoney paths.
+function getCurrentPositionWithGeolocationSpan(onPosition: (gpsCoords?: {lat: number; long: number}) => void) {
+    const parentSpan = getSpan(CONST.TELEMETRY.SPAN_SUBMIT_EXPENSE);
+    markSubmitExpenseEnd();
+
+    startSpan(CONST.TELEMETRY.SPAN_GEOLOCATION_WAIT, {
+        name: CONST.TELEMETRY.SPAN_GEOLOCATION_WAIT,
+        op: CONST.TELEMETRY.SPAN_GEOLOCATION_WAIT,
+        parentSpan,
+    });
+
+    getCurrentPosition(
+        (successData) => {
+            onPosition({lat: successData.coords.latitude, long: successData.coords.longitude});
+            endSpan(CONST.TELEMETRY.SPAN_GEOLOCATION_WAIT);
+        },
+        (errorData) => {
+            Log.info('[IOURequestStepConfirmation] getCurrentPosition failed', false, errorData);
+            onPosition();
+            endSpan(CONST.TELEMETRY.SPAN_GEOLOCATION_WAIT);
+        },
+    );
+}
+
 function IOURequestStepConfirmation({
     report: reportReal,
     reportDraft,
@@ -137,6 +168,7 @@ function IOURequestStepConfirmation({
 
     const [transactions] = useOptimisticDraftTransactions(initialTransaction);
     const hasMultipleTransactions = transactions.length > 1;
+
     // Depend on transactions.length to avoid updating transactionIDs when only the transaction details change
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const transactionIDs = useMemo(() => transactions?.map((transaction) => transaction.transactionID), [transactions.length]);
@@ -165,6 +197,7 @@ function IOURequestStepConfirmation({
     const [reportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT);
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ReplaceReceipt', 'SmartScan']);
 
@@ -257,6 +290,7 @@ function IOURequestStepConfirmation({
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const isManualDistanceRequest = isManualDistanceRequestTransactionUtils(transaction);
     const isOdometerDistanceRequest = isOdometerDistanceRequestTransactionUtils(transaction);
+    const isFocused = useIsFocused();
     const isGPSDistanceRequest = isGPSDistanceRequestTransactionUtils(transaction);
     const transactionDistance = isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest ? (transaction?.comment?.customUnit?.quantity ?? undefined) : undefined;
     const isTimeRequest = requestType === CONST.IOU.REQUEST_TYPE.TIME;
@@ -277,6 +311,7 @@ function IOURequestStepConfirmation({
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
     const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
+    const transactionTaxValue = transaction?.taxValue ?? getTaxValue(policy, transaction, transactionTaxCode) ?? '';
     const isSharingTrackExpense = action === CONST.IOU.ACTION.SHARE;
     const isCategorizingTrackExpense = action === CONST.IOU.ACTION.CATEGORIZE;
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseIOUUtils(action);
@@ -285,6 +320,12 @@ function IOURequestStepConfirmation({
     const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && Object.values(receiptFiles).length && !isTestTransaction && isScanRequest(transaction);
     const [isConfirmed, setIsConfirmed] = useState(false);
     const [isConfirming, setIsConfirming] = useState(false);
+    const [isStitchingReceipt, setIsStitchingReceipt] = useState(false);
+    const [stitchError, setStitchError] = useState('');
+    const lastStitchedImages = useRef<{
+        startImage: FileObject | string | undefined;
+        endImage: FileObject | string | undefined;
+    } | null>(null);
 
     const headerTitle = useMemo(() => {
         if (isCategorizingTrackExpense) {
@@ -315,9 +356,9 @@ function IOURequestStepConfirmation({
                 const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
                 return participant.accountID
                     ? getParticipantsOption(participant, personalDetails)
-                    : getReportOption(participant, privateIsArchived, policy, currentUserPersonalDetails.accountID, personalDetails, reportAttributesDerived, reportDrafts);
+                    : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, reportDrafts);
             }) ?? [],
-        [transaction?.participants, iouType, personalDetails, reportAttributesDerived, reportDrafts, privateIsArchivedMap, policy, currentUserPersonalDetails.accountID],
+        [transaction?.participants, iouType, personalDetails, reportAttributesDerived, reportDrafts, privateIsArchivedMap, policy, conciergeReportID],
     );
     const participantsPolicyTags = useParticipantsPolicyTags(participants ?? []);
     const isPolicyExpenseChat = useMemo(() => participants?.some((participant) => participant.isPolicyExpenseChat), [participants]);
@@ -326,7 +367,7 @@ function IOURequestStepConfirmation({
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
-    useFetchRoute(transaction, transaction?.comment?.waypoints, action, shouldUseTransactionDraft(action) ? CONST.TRANSACTION.STATE.DRAFT : CONST.TRANSACTION.STATE.CURRENT);
+    useFetchRoute(transaction, transaction?.comment?.waypoints, action, shouldUseTransactionDraft(action, iouType) ? CONST.TRANSACTION.STATE.DRAFT : CONST.TRANSACTION.STATE.CURRENT);
 
     useEffect(() => {
         endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
@@ -382,6 +423,81 @@ function IOURequestStepConfirmation({
             openDraftWorkspaceRequest(senderPolicyID);
         }
     }, [isOffline, policy?.pendingAction, policyExpenseChatPolicyID, senderPolicyID]);
+
+    useEffect(() => {
+        if (!isOdometerDistanceRequest || !isFocused) {
+            return;
+        }
+
+        const odometerStartImage = transaction?.comment?.odometerStartImage;
+        const odometerEndImage = transaction?.comment?.odometerEndImage;
+
+        // Skip stitching when source images haven't changed (compare by URI not reference
+        // because Onyx may create new object instances when restoring a backup transaction)
+        const startUri = getOdometerImageUri(odometerStartImage);
+        const endUri = getOdometerImageUri(odometerEndImage);
+        if (
+            lastStitchedImages.current !== null &&
+            getOdometerImageUri(lastStitchedImages.current.startImage) === startUri &&
+            getOdometerImageUri(lastStitchedImages.current.endImage) === endUri
+        ) {
+            return;
+        }
+
+        if (!odometerStartImage || !odometerEndImage) {
+            const singleImage = odometerStartImage ?? odometerEndImage;
+
+            if (!singleImage) {
+                return;
+            }
+
+            setMoneyRequestReceipt(
+                currentTransactionID,
+                getOdometerImageUri(singleImage),
+                getOdometerImageName(singleImage),
+                shouldUseTransactionDraft(action, iouType),
+                getOdometerImageType(singleImage),
+            );
+            lastStitchedImages.current = {startImage: odometerStartImage, endImage: odometerEndImage};
+            return;
+        }
+
+        let ignore = false;
+        setIsStitchingReceipt(true);
+        setStitchError('');
+
+        stitchOdometerImages(odometerStartImage, odometerEndImage)
+            .then((stitchedImage) => {
+                if (ignore || !stitchedImage) {
+                    return;
+                }
+                setMoneyRequestReceipt(
+                    currentTransactionID,
+                    getOdometerImageUri(stitchedImage),
+                    getOdometerImageName(stitchedImage),
+                    shouldUseTransactionDraft(action, iouType),
+                    getOdometerImageType(stitchedImage),
+                );
+                lastStitchedImages.current = {startImage: odometerStartImage, endImage: odometerEndImage};
+            })
+            .catch((error: unknown) => {
+                if (ignore) {
+                    return;
+                }
+                Log.warn('stitchOdometerImages failed', {error});
+                setStitchError(translate('iou.error.stitchOdometerImagesFailed'));
+            })
+            .finally(() => {
+                if (ignore) {
+                    return;
+                }
+                setIsStitchingReceipt(false);
+            });
+
+        return () => {
+            ignore = true;
+        };
+    }, [isOdometerDistanceRequest, isFocused, currentTransactionID, transaction?.comment?.odometerStartImage, transaction?.comment?.odometerEndImage, action, translate, iouType]);
 
     const defaultBillable = !!policy?.defaultBillable;
     useEffect(() => {
@@ -495,7 +611,7 @@ function IOURequestStepConfirmation({
         }
 
         // This has selected the participants from the beginning and the participant field shouldn't be editable.
-        navigateToStartMoneyRequestStep(requestType, iouType, initialTransactionID, reportID, action);
+        navigateToStartMoneyRequestStep(requestType, iouType, initialTransactionID, reportID, action, backToReport);
     }, [
         action,
         isPerDiemRequest,
@@ -513,6 +629,7 @@ function IOURequestStepConfirmation({
         isMovingTransactionFromTrackExpense,
         participantsAutoAssignedFromRoute,
         backTo,
+        backToReport,
     ]);
 
     // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
@@ -570,7 +687,7 @@ function IOURequestStepConfirmation({
                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, initialTransactionID, reportID, Navigation.getActiveRouteWithoutParams()));
                 return;
             }
-            removeDraftTransactions(true);
+            removeDraftTransactionsByIDs(draftTransactionIDs, true);
             navigateToStartMoneyRequestStep(requestType, iouType, initialTransactionID, reportID);
         });
     }, [requestType, iouType, initialTransactionID, reportID, action, report, transactions, participants]);
@@ -596,7 +713,10 @@ function IOURequestStepConfirmation({
                 const isTestReceipt = receipt?.isTestReceipt ?? false;
                 const isTestDriveReceipt = receipt?.isTestDriveReceipt ?? false;
                 const isLinkedTrackedExpenseReportArchived =
-                    !!item.linkedTrackedExpenseReportID && !!privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`];
+                    !!item.linkedTrackedExpenseReportID && privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`];
+
+                const itemAmount = isTestReceipt ? CONST.TEST_RECEIPT.AMOUNT : item.amount;
+                const itemCurrency = isTestReceipt ? CONST.TEST_RECEIPT.CURRENCY : item.currency;
 
                 if (isTestDriveReceipt) {
                     completeTestDriveTask(
@@ -654,10 +774,10 @@ function IOURequestStepConfirmation({
                     gpsPoint,
                     action,
                     transactionParams: {
-                        amount: isTestReceipt ? CONST.TEST_RECEIPT.AMOUNT : item.amount,
+                        amount: itemAmount,
                         distance: isManualDistanceRequest && typeof item.comment?.customUnit?.quantity === 'number' ? roundToTwoDecimalPlaces(item.comment.customUnit.quantity) : undefined,
                         attendees: item.comment?.attendees,
-                        currency: isTestReceipt ? CONST.TEST_RECEIPT.CURRENCY : item.currency,
+                        currency: itemCurrency,
                         created: item.created,
                         merchant: merchantToUse,
                         comment: item?.comment?.comment?.trim() ?? '',
@@ -666,6 +786,7 @@ function IOURequestStepConfirmation({
                         tag: item.tag,
                         taxCode: transactionTaxCode,
                         taxAmount: transactionTaxAmount,
+                        taxValue: transactionTaxValue,
                         billable: item.billable,
                         reimbursable: item.reimbursable,
                         actionableWhisperReportActionID: item.actionableWhisperReportActionID,
@@ -701,7 +822,6 @@ function IOURequestStepConfirmation({
             }
         },
         [
-            transactionIDs,
             transactions,
             receiptFiles,
             privateIsArchivedMap,
@@ -718,6 +838,7 @@ function IOURequestStepConfirmation({
             isManualDistanceRequest,
             transactionTaxCode,
             transactionTaxAmount,
+            transactionTaxValue,
             customUnitRateID,
             isTimeRequest,
             shouldGenerateTransactionThreadReport,
@@ -846,7 +967,7 @@ function IOURequestStepConfirmation({
             }
             for (const [index, item] of transactions.entries()) {
                 const isLinkedTrackedExpenseReportArchived =
-                    !!item.linkedTrackedExpenseReportID && !!privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`];
+                    !!item.linkedTrackedExpenseReportID && privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`];
                 const itemDistance = isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest ? (item.comment?.customUnit?.quantity ?? undefined) : undefined;
 
                 trackExpenseIOUActions({
@@ -875,6 +996,7 @@ function IOURequestStepConfirmation({
                         tag: item.tag,
                         taxCode: transactionTaxCode,
                         taxAmount: transactionTaxAmount,
+                        taxValue: transactionTaxValue,
                         billable: item.billable,
                         reimbursable: item.reimbursable,
                         gpsPoint,
@@ -924,6 +1046,7 @@ function IOURequestStepConfirmation({
             receiptFiles,
             transactionTaxCode,
             transactionTaxAmount,
+            transactionTaxValue,
             customUnitRateID,
             gpsDraftDetails,
             isASAPSubmitBetaEnabled,
@@ -968,6 +1091,7 @@ function IOURequestStepConfirmation({
                     tag: transaction.tag,
                     taxCode: transactionTaxCode,
                     taxAmount: transactionTaxAmount,
+                    taxValue: transactionTaxValue,
                     customUnitRateID,
                     splitShares: transaction.splitShares,
                     validWaypoints: getValidWaypoints(transaction.comment?.waypoints, true, isGPSDistanceRequest),
@@ -1004,6 +1128,7 @@ function IOURequestStepConfirmation({
             transactionDistance,
             transactionTaxCode,
             transactionTaxAmount,
+            transactionTaxValue,
             customUnitRateID,
             isManualDistanceRequest,
             isOdometerDistanceRequest,
@@ -1120,6 +1245,7 @@ function IOURequestStepConfirmation({
                             currency: item.currency,
                             taxCode: transactionTaxCode,
                             taxAmount: transactionTaxAmount,
+                            taxValue: transactionTaxValue,
                             shouldPlaySound: index === transactions.length - 1,
                             policyRecentlyUsedCategories,
                             policyRecentlyUsedTags,
@@ -1155,6 +1281,7 @@ function IOURequestStepConfirmation({
                         splitShares: transaction.splitShares,
                         taxCode: transactionTaxCode,
                         taxAmount: transactionTaxAmount,
+                        taxValue: transactionTaxValue,
                         policyRecentlyUsedCategories,
                         policyRecentlyUsedTags,
                         isASAPSubmitBetaEnabled,
@@ -1189,6 +1316,7 @@ function IOURequestStepConfirmation({
                         splitShares: transaction.splitShares,
                         taxCode: transactionTaxCode,
                         taxAmount: transactionTaxAmount,
+                        taxValue: transactionTaxValue,
                         policyRecentlyUsedCategories,
                         policyRecentlyUsedTags,
                         isASAPSubmitBetaEnabled,
@@ -1238,21 +1366,7 @@ function IOURequestStepConfirmation({
                             return;
                         }
 
-                        getCurrentPosition(
-                            (successData) => {
-                                trackExpense(selectedParticipants, {
-                                    lat: successData.coords.latitude,
-                                    long: successData.coords.longitude,
-                                });
-                                markSubmitExpenseEnd();
-                            },
-                            (errorData) => {
-                                Log.info('[IOURequestStepConfirmation] getCurrentPosition failed', false, errorData);
-                                // When there is an error, the money can still be requested, it just won't include the GPS coordinates
-                                trackExpense(selectedParticipants);
-                                markSubmitExpenseEnd();
-                            },
-                        );
+                        getCurrentPositionWithGeolocationSpan((gpsCoords) => trackExpense(selectedParticipants, gpsCoords));
                         return;
                     }
 
@@ -1290,21 +1404,7 @@ function IOURequestStepConfirmation({
                         return;
                     }
 
-                    getCurrentPosition(
-                        (successData) => {
-                            requestMoney(selectedParticipants, {
-                                lat: successData.coords.latitude,
-                                long: successData.coords.longitude,
-                            });
-                            markSubmitExpenseEnd();
-                        },
-                        (errorData) => {
-                            Log.info('[IOURequestStepConfirmation] getCurrentPosition failed', false, errorData);
-                            // When there is an error, the money can still be requested, it just won't include the GPS coordinates
-                            requestMoney(selectedParticipants);
-                            markSubmitExpenseEnd();
-                        },
-                    );
+                    getCurrentPositionWithGeolocationSpan((gpsCoords) => requestMoney(selectedParticipants, gpsCoords));
                     return;
                 }
 
@@ -1335,6 +1435,7 @@ function IOURequestStepConfirmation({
             report,
             transactionTaxCode,
             transactionTaxAmount,
+            transactionTaxValue,
             policyRecentlyUsedCategories,
             policyRecentlyUsedTags,
             quickAction,
@@ -1534,10 +1635,11 @@ function IOURequestStepConfirmation({
     const shouldShowSmartScanFields = !!transaction?.receipt?.isTestDriveReceipt || isMovingTransactionFromTrackExpense || requestType !== CONST.IOU.REQUEST_TYPE.SCAN;
     return (
         <ScreenWrapper
-            shouldEnableMaxHeight={canUseTouchScreen()}
+            shouldEnableMaxHeight={canUseTouchScreen() && !isMobileSafari()}
+            shouldAvoidScrollOnVirtualViewport={!isMobileSafari()}
             testID="IOURequestStepConfirmation"
         >
-            <DragAndDropProvider isDisabled={!showReceiptEmptyState}>
+            <DragAndDropProvider isDisabled={!showReceiptEmptyState || isOdometerDistanceRequest}>
                 <View style={styles.flex1}>
                     <HeaderWithBackButton
                         title={headerTitle}
@@ -1593,6 +1695,7 @@ function IOURequestStepConfirmation({
                             }}
                         />
                     )}
+                    {!!stitchError && <FormHelpMessage message={stitchError} />}
                     <MoneyRequestConfirmationList
                         transaction={transaction}
                         selectedParticipants={participants}
@@ -1620,6 +1723,7 @@ function IOURequestStepConfirmation({
                         isDistanceRequest={isDistanceRequest}
                         isManualDistanceRequest={isManualDistanceRequest}
                         isOdometerDistanceRequest={isOdometerDistanceRequest}
+                        isLoadingReceipt={isStitchingReceipt}
                         isGPSDistanceRequest={isGPSDistanceRequest}
                         isPerDiemRequest={isPerDiemRequest}
                         shouldShowSmartScanFields={shouldShowSmartScanFields}
