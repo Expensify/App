@@ -958,6 +958,7 @@ function handleNavigateAfterExpenseCreate({
     if (!isFromGlobalCreate || isUserOnInbox || !transactionID) {
         if (shouldHandleNavigation) {
             dismissModalAndOpenReportInInboxTab(activeReportID, isInvoice);
+            addPendingNewTransactionIDs(activeReportID, transactionID);
         }
         return;
     }
@@ -4388,6 +4389,34 @@ function updateMoneyRequestDistanceRate({
     // `taxAmount` & `taxCode` only needs to be updated in the optimistic data, so we need to remove them from the params
     const {taxAmount, taxCode, ...paramsWithoutTaxUpdated} = params;
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE_RATE, paramsWithoutTaxUpdated, onyxData);
+}
+
+/**
+ * Mark the transaction for highlight/scroll when the target report first loads (cross-navigation case)
+ */
+function addPendingNewTransactionIDs(reportID: string | undefined, transactionID: string | undefined) {
+    if (!reportID || !transactionID) {
+        return;
+    }
+
+    Onyx.merge(
+        `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+        // We are saving in object form so that consecutive onyx merge will not reset previous value.
+        {pendingNewTransactionIDs: {[transactionID]: true}},
+    );
+
+    // In case useNewTransactions hasn't triggered the deletion we delete it after a long delay here.
+    setTimeout(() => {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {pendingNewTransactionIDs: {[transactionID]: null}});
+    }, CONST.PENDING_TRANSACTION_DELETION_TIMEOUT);
+}
+
+function deletePendingNewTransactionIDs(reportID: string | undefined, transactionIDs: string[]) {
+    const pendingNewTransactionIDs = {};
+    for (const transactionID of transactionIDs) {
+        Object.assign(pendingNewTransactionIDs, {[transactionID]: null});
+    }
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {pendingNewTransactionIDs});
 }
 
 function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string | undefined, participants: Participant[], participantAccountIDs: number[], currentUserAccountID: number) {
@@ -11324,6 +11353,7 @@ export {
     createSplitsAndOnyxData,
     getMoneyRequestInformation,
     getOrCreateOptimisticSplitChatReport,
+    deletePendingNewTransactionIDs,
     getTransactionWithPreservedLocalReceiptSource,
 };
 export type {
