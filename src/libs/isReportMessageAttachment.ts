@@ -3,10 +3,12 @@ import CONST from '@src/CONST';
 import type {Message} from '@src/types/onyx/ReportAction';
 
 const attachmentRegex = new RegExp(` ${CONST.ATTACHMENT_SOURCE_ATTRIBUTE}="(.*)"`, 'i');
+const originalFilenameRegex = new RegExp(` ${CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE}="([^"]*)"`, 'i');
 
 /**
- * Check whether a report action is Attachment or not.
- * Ignore messages containing [Attachment] as the main content. Attachments are actions with only text as [Attachment].
+ * Check whether a report action is Attachment-only or not.
+ * Returns true only for attachment-only messages (no user text beyond the attachment).
+ * Returns false for attachment+text messages so that the text is displayed normally.
  *
  * @param message report action's message as text, html and translationKey
  */
@@ -15,8 +17,9 @@ function isReportMessageAttachment(message: Message | undefined): boolean {
         return false;
     }
 
-    if (message.translationKey) {
-        return message.text === CONST.ATTACHMENT_MESSAGE_TEXT && message.translationKey === CONST.TRANSLATION_KEYS.ATTACHMENT;
+    // translationKey is set only for attachment-only optimistic messages, so trust it as the authoritative signal
+    if (message.translationKey && message.translationKey === CONST.TRANSLATION_KEYS.ATTACHMENT) {
+        return true;
     }
 
     const hasAttachmentHtml = attachmentRegex.test(message.html);
@@ -25,13 +28,22 @@ function isReportMessageAttachment(message: Message | undefined): boolean {
         return false;
     }
 
-    const isAttachmentMessageText = message.text === CONST.ATTACHMENT_MESSAGE_TEXT;
-
-    if (isAttachmentMessageText) {
+    if (message.text === CONST.ATTACHMENT_MESSAGE_TEXT) {
         return true;
     }
 
-    return Str.isVideo(message.text);
+    if (Str.isVideo(message.text)) {
+        return true;
+    }
+
+    // For document attachments (.docx, .pdf, etc.), message.text is the filename rather than [Attachment].
+    // Check if the text matches the original filename attribute — if so, it's attachment-only.
+    const filenameMatch = message.html.match(originalFilenameRegex);
+    if (filenameMatch && filenameMatch[1] === message.text) {
+        return true;
+    }
+
+    return false;
 }
 
 // eslint-disable-next-line import/prefer-default-export
