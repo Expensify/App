@@ -21,6 +21,7 @@ import {getExportTemplates, updateAdvancedFilters} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 /** Maps standard export template IDs to the display label used in search query/filter */
 const STANDARD_EXPORT_TEMPLATE_ID_TO_DISPLAY_LABEL: Record<string, string> = {
@@ -28,14 +29,18 @@ const STANDARD_EXPORT_TEMPLATE_ID_TO_DISPLAY_LABEL: Record<string, string> = {
     [CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT]: CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT,
 };
 
+function getPickerItemValueKey(value: SearchMultipleSelectionPickerItem['value']): string {
+    return typeof value === 'string' ? value : (value.at(0) ?? '');
+}
+
 function SearchFiltersExportedToPage() {
     const styles = useThemeStyles();
-    const {translate, localeCompare} = useLocalize();
+    const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['XeroSquare', 'QBOSquare', 'NetSuiteSquare', 'IntacctSquare', 'QBDSquare', 'CertiniaSquare', 'Table']);
 
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const [searchAdvancedFiltersForm, searchAdvancedFiltersFormResult] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES);
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS);
     const policyIDs = searchAdvancedFiltersForm?.policyID ?? [];
@@ -82,6 +87,7 @@ function SearchFiltersExportedToPage() {
                 };
             });
 
+        const usedPickerValueKeys = new Set(connectedIntegrationPickerItems.map((item) => getPickerItemValueKey(item.value)));
         const policiesToLoadTemplatesFrom = policyIDs.length > 0 ? policyIDs.map((id) => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${id}`]).filter(Boolean) : Object.values(policies ?? {});
         const exportTemplatesFromPolicies = policiesToLoadTemplatesFrom.flatMap((policy) => getExportTemplates([], {}, translate, policy, false));
         const exportTemplatesFromAccount = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, undefined, true);
@@ -95,35 +101,29 @@ function SearchFiltersExportedToPage() {
         }
         const deduplicatedExportTemplates = Array.from(exportTemplatesByTemplateId.values());
 
-        const customExportTemplatePickerItems: SearchMultipleSelectionPickerItem[] = [];
-        const standardExportTemplatePickerItems: SearchMultipleSelectionPickerItem[] = [];
+        const standardAndIntegrationCustomTemplatePickerItems: SearchMultipleSelectionPickerItem[] = [];
 
         for (const template of deduplicatedExportTemplates) {
-            if (!template.templateName || integrationConnectionNamesSet.has(template.templateName)) {
+            if (!template.templateName || integrationConnectionNamesSet.has(template.templateName) || template.type === CONST.EXPORT_TEMPLATE_TYPES.IN_APP) {
                 continue;
             }
 
             const displayName = template.name ?? template.templateName ?? '';
-            const isStandardExportTemplate = !!STANDARD_EXPORT_TEMPLATE_ID_TO_DISPLAY_LABEL[template.templateName];
-            const filterValue = isStandardExportTemplate
-                ? (STANDARD_EXPORT_TEMPLATE_ID_TO_DISPLAY_LABEL[template.templateName] ?? template.templateName)
-                : (template.name ?? template.templateName);
-            const pickerItem: SearchMultipleSelectionPickerItem = {
+            const filterValue = STANDARD_EXPORT_TEMPLATE_ID_TO_DISPLAY_LABEL[template.templateName] ?? displayName;
+            const filterValueKey = getPickerItemValueKey(filterValue);
+            if (usedPickerValueKeys.has(filterValueKey)) {
+                continue;
+            }
+
+            usedPickerValueKeys.add(filterValueKey);
+            standardAndIntegrationCustomTemplatePickerItems.push({
                 name: displayName,
                 value: filterValue,
                 leftElement: tableIconForExportOption,
-            };
-
-            if (STANDARD_EXPORT_TEMPLATE_ID_TO_DISPLAY_LABEL[template.templateName]) {
-                standardExportTemplatePickerItems.push(pickerItem);
-            } else {
-                customExportTemplatePickerItems.push(pickerItem);
-            }
+            });
         }
 
-        customExportTemplatePickerItems.sort((a, b) => localeCompare(a.name, b.name));
-
-        return [...connectedIntegrationPickerItems, ...customExportTemplatePickerItems, ...standardExportTemplatePickerItems];
+        return [...connectedIntegrationPickerItems, ...standardAndIntegrationCustomTemplatePickerItems];
     })();
 
     const initiallySelectedPickerItems: SearchMultipleSelectionPickerItem[] | undefined = (() => {
@@ -132,12 +132,10 @@ function SearchFiltersExportedToPage() {
         }
         const normalizedSelectedValues = new Set(selectedExportedToValues);
         const selectedOptionsPresentInCurrentList = exportedToPickerOptions.filter((option) => {
-            const optionValue = typeof option.value === 'string' ? option.value : (option.value.at(0) ?? '');
+            const optionValue = getPickerItemValueKey(option.value);
             return normalizedSelectedValues.has(optionValue);
         });
-        const selectedValueIdsFoundInCurrentOptions = new Set(
-            selectedOptionsPresentInCurrentList.map((option) => (typeof option.value === 'string' ? option.value : (option.value.at(0) ?? ''))),
-        );
+        const selectedValueIdsFoundInCurrentOptions = new Set(selectedOptionsPresentInCurrentList.map((option) => getPickerItemValueKey(option.value)));
         const unavailableSelectedValues = selectedExportedToValues.filter((value) => !selectedValueIdsFoundInCurrentOptions.has(value));
         const unavailableSelectedOptions: SearchMultipleSelectionPickerItem[] = unavailableSelectedValues.map((value) => {
             const connectionName = integrationConnectionNames.find((name) => CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[name] === value);
@@ -179,12 +177,14 @@ function SearchFiltersExportedToPage() {
                 }}
             />
             <View style={[styles.flex1]}>
-                <SearchMultipleSelectionPicker
-                    items={exportedToPickerOptions}
-                    initiallySelectedItems={initiallySelectedPickerItems}
-                    onSaveSelection={onSaveSelection}
-                    shouldShowTextInput
-                />
+                {!isLoadingOnyxValue(searchAdvancedFiltersFormResult) && (
+                    <SearchMultipleSelectionPicker
+                        items={exportedToPickerOptions}
+                        initiallySelectedItems={initiallySelectedPickerItems}
+                        onSaveSelection={onSaveSelection}
+                        shouldShowTextInput={exportedToPickerOptions.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
+                    />
+                )}
             </View>
         </ScreenWrapper>
     );

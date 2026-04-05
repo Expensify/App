@@ -13,7 +13,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateAdvancedFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {isSearchDatePreset} from '@libs/SearchQueryUtils';
+import {getDateRangeDisplayValueFromFormValue, isSearchDatePreset} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -43,6 +43,7 @@ function SearchFiltersReportFieldPage() {
                 const onValue = advancedFiltersForm?.[`${CONST.SEARCH.REPORT_FIELD.ON_PREFIX}${suffix}`];
                 const afterValue = advancedFiltersForm?.[`${CONST.SEARCH.REPORT_FIELD.AFTER_PREFIX}${suffix}`];
                 const beforeValue = advancedFiltersForm?.[`${CONST.SEARCH.REPORT_FIELD.BEFORE_PREFIX}${suffix}`];
+                const rangeValue = advancedFiltersForm?.[`${CONST.SEARCH.REPORT_FIELD.RANGE_PREFIX}${suffix}`];
 
                 if (onValue) {
                     dateValues.push(isSearchDatePreset(onValue) ? translate(`search.filters.date.presets.${onValue}`) : translate('search.filters.date.on', onValue));
@@ -54,6 +55,13 @@ function SearchFiltersReportFieldPage() {
 
                 if (beforeValue) {
                     dateValues.push(translate('search.filters.date.before', beforeValue));
+                }
+
+                if (rangeValue) {
+                    const rangeDisplay = getDateRangeDisplayValueFromFormValue(rangeValue, afterValue, beforeValue);
+                    if (rangeDisplay) {
+                        dateValues.push(`${translate('common.range')}: ${rangeDisplay}`);
+                    }
                 }
 
                 return {key: field.fieldID, name: field.name, value: dateValues.join(', '), field};

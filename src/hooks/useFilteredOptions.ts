@@ -1,10 +1,9 @@
-import {useEffect, useState} from 'react';
+import {useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {createFilteredOptionList} from '@libs/OptionsListUtils';
 import type {OptionList} from '@libs/OptionsListUtils/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Beta from '@src/types/onyx/Beta';
-import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
 import usePrivateIsArchivedMap from './usePrivateIsArchivedMap';
 import useReportAttributes from './useReportAttributes';
@@ -63,58 +62,54 @@ type UseFilteredOptionsResult = {
  *
  * <SelectionList
  *   sections={isLoading ? [] : sections}
- *   showLoadingPlaceholder={isLoading}
+ *   shouldShowLoadingPlaceholder={isLoading}
  * />
  */
 function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredOptionsResult {
     const {maxRecentReports = 500, enabled = true, includeP2P = true, batchSize = 100, searchTerm = '', betas} = config;
 
-    const [isLoadingMore, setIsLoadingMore] = useState(false);
     const [reportsLimit, setReportsLimit] = useState(maxRecentReports);
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const reportAttributesDerived = useReportAttributes();
 
     const privateIsArchivedMap = usePrivateIsArchivedMap();
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const totalReports = allReports ? Object.keys(allReports).length : 0;
 
-    const options: OptionList | null =
-        enabled && allReports && allPersonalDetails
-            ? createFilteredOptionList(allPersonalDetails, allReports, currentUserPersonalDetails.accountID, reportAttributesDerived, privateIsArchivedMap, {
-                  maxRecentReports: reportsLimit,
-                  includeP2P,
-                  searchTerm,
-                  betas,
-              })
-            : null;
-
-    // Reset loading state after options are computed
-    useEffect(() => {
-        if (!isLoadingMore || !options) {
-            return;
-        }
-        setIsLoadingMore(false);
-    }, [options, isLoadingMore]);
-
-    const loadMore = () => {
-        if (!options || isLoadingMore) {
-            return;
-        }
-        setIsLoadingMore(true);
-        setReportsLimit((prev) => prev + batchSize);
-    };
+    // React Compiler can't prove referential stability for the destructured `config` param with default values, so explicit useMemo is required here.
+    const options: OptionList | null = useMemo(
+        () =>
+            enabled && allReports && allPersonalDetails
+                ? createFilteredOptionList(allPersonalDetails, allReports, reportAttributesDerived, privateIsArchivedMap, allPolicies, {
+                      maxRecentReports: reportsLimit,
+                      includeP2P,
+                      searchTerm,
+                      betas,
+                  })
+                : null,
+        [enabled, allReports, allPersonalDetails, reportAttributesDerived, privateIsArchivedMap, allPolicies, reportsLimit, includeP2P, searchTerm, betas],
+    );
 
     const hasMore = options ? reportsLimit < totalReports : false;
+
+    const loadMore = () => {
+        if (!hasMore) {
+            return;
+        }
+        setReportsLimit((prev) => prev + batchSize);
+    };
 
     return {
         options,
         isLoading: !options,
         loadMore,
         hasMore,
-        isLoadingMore,
+        // Options are derived synchronously from reportsLimit, so there is no
+        // intermediate "loading" state between calling loadMore and the recomputed options.
+        isLoadingMore: false,
     };
 }
 

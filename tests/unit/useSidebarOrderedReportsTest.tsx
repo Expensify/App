@@ -183,8 +183,11 @@ describe('useSidebarOrderedReports', () => {
         // Then the mock calls are cleared
         mockSidebarUtils.sortReportsToDisplayInLHN.mockClear();
 
-        // When the mock is updated
+        // When the mocks are updated to reflect the new content
+        // getReportsToDisplayInLHN covers the full-scan path; updateReportsToDisplayInLHN covers
+        // the incremental path (taken when priority mode changes and the cache is already populated).
         mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue(updatedReports);
+        mockSidebarUtils.updateReportsToDisplayInLHN.mockReturnValue(updatedReports);
 
         // When the priority mode is changed
         await act(async () => {
@@ -202,7 +205,7 @@ describe('useSidebarOrderedReports', () => {
             expect.any(Function), // localeCompare
             expect.any(Object), // reportsDrafts
             expect.any(Object), // reportNameValuePairs
-            undefined, // conciergeReportID - undefined when not set in Onyx
+            expect.anything(), // reportAttributes
         );
     });
 

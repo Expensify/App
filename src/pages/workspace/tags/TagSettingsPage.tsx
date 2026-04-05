@@ -44,18 +44,18 @@ type TagSettingsPageProps =
 function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     const {orderWeight, policyID, tagName, backTo, parentTagsFilter} = route.params;
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const policyData = usePolicyData(policyID);
     const {policy, tags: policyTags} = policyData;
     const policyTag = getTagListByOrderWeight(policyTags, orderWeight);
     const {environmentURL} = useEnvironment();
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lock', 'Trashcan'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lock', 'Trashcan']);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAG_SETTINGS;
     const tagApprover = getTagApproverRule(policy, route.params?.tagName)?.approver ?? '';
     const approver = getPersonalDetailByEmail(tagApprover);
-    const approverText = approver?.displayName ?? tagApprover;
+    const approverText = formatPhoneNumber(approver?.displayName ?? tagApprover);
     const hasDependentTags = hasDependentTagsPolicyUtils(policy, policyTags);
     const currentPolicyTag = hasDependentTags
         ? Object.values(policyTag.tags ?? {}).find((tag) => tag?.name === tagName && tag.rules?.parentTagsFilter === parentTagsFilter)

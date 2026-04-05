@@ -13,7 +13,7 @@ import MenuItem from '@components/MenuItem';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
-import TopBar from '@components/Navigation/TopBar';
+import TopBarWithLoadingBar from '@components/Navigation/TopBarWithLoadingBar';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
@@ -44,10 +44,12 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import useIsSidebarRouteActive from '@libs/Navigation/helpers/useIsSidebarRouteActive';
 import Navigation from '@libs/Navigation/Navigation';
 import {getFreeTrialText, hasSubscriptionRedDotError} from '@libs/SubscriptionUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getProfilePageBrickRoadIndicator} from '@libs/UserUtils';
 import type SETTINGS_TO_RHP from '@navigation/linkingConfig/RELATIONS/SETTINGS_TO_RHP';
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import {BACKGROUND_LOCATION_TRACKING_TASK_NAME} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
+import {stopGpsTripNotification} from '@pages/iou/request/step/IOURequestStepDistanceGPS/GPSNotifications';
 import variables from '@styles/variables';
 import {confirmReadyToOpenApp} from '@userActions/App';
 import {openExternalLink, openOldDotLink} from '@userActions/Link';
@@ -89,6 +91,9 @@ type MenuData = WithSentryLabel & {
     iconRight?: IconAsset;
     badgeText?: string;
     badgeStyle?: ViewStyle;
+    isBadgeSuccess?: boolean;
+    isBadgeStrong?: boolean;
+    isBadgeCondensed?: boolean;
 };
 
 type Menu = {sectionStyle: StyleProp<ViewStyle>; sectionTranslationKey: TranslationPaths; items: MenuData[]};
@@ -110,7 +115,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         'CreditCard',
         'Wallet',
         'Bolt',
-    ] as const);
+    ]);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
@@ -128,7 +133,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [retryBillingFailed] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED);
     const [billingStatus] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_STATUS);
     const [amountOwed = 0] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const network = useNetwork();
     const theme = useTheme();
@@ -140,10 +145,12 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
     const isScreenFocused = useIsSidebarRouteActive(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, shouldUseNarrowLayout);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
+    const hasLockedBankAccount = bankAccountList ? Object.values(bankAccountList).some((bankAccount) => bankAccount.accountData?.state === CONST.BANK_ACCOUNT.STATE.LOCKED) : false;
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {selector: isTrackingSelector});
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
     const [unsharedBankAccount] = useOnyx(ONYXKEYS.UNSHARE_BANK_ACCOUNT);
+    const [stashedCredentials] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS);
     const privateSubscription = usePrivateSubscription();
     const subscriptionPlan = useSubscriptionPlan();
     const previousUserPersonalDetails = usePrevious(currentUserPersonalDetails);
@@ -154,18 +161,16 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const shouldDisplayLHB = !shouldUseNarrowLayout;
 
     const {
-        all: {shouldShowRBR},
         personalCard: {shouldShowRBR: shouldShowRBRForPersonalCard},
     } = useCardFeedErrors();
-
     const hasPendingCardAction = hasPendingExpensifyCardAction(allCards, privatePersonalDetails);
     let walletBrickRoadIndicator;
     if (
-        hasPaymentMethodError(bankAccountList, fundList, allCards) ||
+        hasLockedBankAccount ||
+        hasPaymentMethodError(bankAccountList, fundList, allCards, session, policies) ||
         !isEmptyObject(userWallet?.errors) ||
         !isEmptyObject(walletTerms?.errors) ||
         !isEmptyObject(unsharedBankAccount?.errors) ||
-        shouldShowRBR ||
         shouldShowRBRForPersonalCard
     ) {
         walletBrickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
@@ -215,6 +220,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             return;
         }
         if (isTrackingGPS) {
+            stopGpsTripNotification();
             stopLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME).catch((error) => console.error('[GPS distance request] Failed to stop location tracking', error));
         }
         signOut(true);
@@ -273,7 +279,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         },
     ];
 
-    if (subscriptionPlan) {
+    if (subscriptionPlan || (amountOwed ?? 0) > 0) {
         accountItems.splice(1, 0, {
             translationKey: 'allSettingsScreen.subscription',
             icon: icons.CreditCard,
@@ -288,12 +294,13 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     fundList,
                     billingStatus,
                     amountOwed,
-                    ownerBillingGraceEndPeriod,
+                    ownerBillingGracePeriodEnd,
                 )
                     ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                     : undefined,
             badgeText: freeTrialText,
-            badgeStyle: freeTrialText ? styles.badgeSuccess : undefined,
+            isBadgeSuccess: !!freeTrialText,
+            isBadgeCondensed: !!freeTrialText,
             sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.SUBSCRIPTION,
             action: () => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.route),
         });
@@ -340,7 +347,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
      * Return a list of menu items data for general section
      * @returns object with translationKey, style and items for the general section
      */
-    const signOutTranslationKey = isSupportAuthToken() && hasStashedSession() ? 'initialSettingsPage.restoreStashed' : 'initialSettingsPage.signOut';
+    const signOutTranslationKey = isSupportAuthToken() && hasStashedSession(stashedCredentials) ? 'initialSettingsPage.restoreStashed' : 'initialSettingsPage.signOut';
     const generalMenuItemsData: Menu = {
         sectionStyle: {
             ...styles.pt4,
@@ -351,13 +358,9 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             {
                 translationKey: 'initialSettingsPage.help',
                 icon: icons.QuestionMark,
-                iconRight: icons.NewWindow,
-                shouldShowRightIcon: true,
+                screenName: SCREENS.SETTINGS.HELP,
                 sentryLabel: CONST.SENTRY_LABEL.SETTINGS_GENERAL.HELP,
-                link: CONST.NEWHELP_URL,
-                action: () => {
-                    openExternalLink(CONST.NEWHELP_URL);
-                },
+                action: () => Navigation.navigate(ROUTES.SETTINGS_HELP),
             },
             {
                 translationKey: 'initialSettingsPage.whatIsNew',
@@ -447,7 +450,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     return (
                         <MenuItem
                             key={keyTitle}
-                            wrapperStyle={styles.sectionMenuItem}
+                            wrapperStyle={styles.sectionMenuItem(shouldUseNarrowLayout)}
                             title={keyTitle}
                             icon={item.icon}
                             iconType={item.iconType}
@@ -456,13 +459,18 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                             iconStyles={item.iconStyles}
                             badgeText={item.badgeText}
                             badgeStyle={item.badgeStyle}
+                            isBadgeSuccess={item.isBadgeSuccess}
+                            isBadgeStrong={item.isBadgeStrong}
+                            isBadgeCondensed={item.isBadgeCondensed}
                             fallbackIcon={item.fallbackIcon}
                             brickRoadIndicator={item.brickRoadIndicator}
                             shouldStackHorizontally={item.shouldStackHorizontally}
                             ref={popoverAnchor}
                             shouldBlockSelection={!!item.link}
                             onSecondaryInteraction={item.link ? (event) => openPopover(item.link, event) : undefined}
+                            shouldShowContextMenuHint={!!item.link}
                             focused={isFocused}
+                            role={CONST.ROLE.TAB}
                             isPaneMenu
                             sentryLabel={item.sentryLabel}
                             iconRight={item.iconRight}
@@ -478,10 +486,19 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const accountMenuItems = getMenuItemsSection(accountMenuItemsData);
     const generalMenuItems = getMenuItemsSection(generalMenuItemsData);
 
+    const isPersonalDetailsEmpty = isEmptyObject(currentUserPersonalDetails) || currentUserPersonalDetails.displayName === undefined;
+    const skeletonReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'InitialSettingsPage',
+        isPersonalDetailsEmpty,
+    };
+
     const headerContent = (
         <View style={[styles.ph5, styles.pv4]}>
-            {isEmptyObject(currentUserPersonalDetails) || currentUserPersonalDetails.displayName === undefined ? (
-                <AccountSwitcherSkeletonView avatarSize={CONST.AVATAR_SIZE.DEFAULT} />
+            {isPersonalDetailsEmpty ? (
+                <AccountSwitcherSkeletonView
+                    avatarSize={CONST.AVATAR_SIZE.DEFAULT}
+                    reasonAttributes={skeletonReasonAttributes}
+                />
             ) : (
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap3]}>
                     <AccountSwitcher isScreenFocused={isScreenFocused} />
@@ -544,7 +561,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         >
             {shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />}
             {shouldUseNarrowLayout && (
-                <TopBar
+                <TopBarWithLoadingBar
                     breadcrumbLabel={translate('initialSettingsPage.account')}
                     shouldDisplaySearch
                     shouldDisplayHelpButton
@@ -554,7 +571,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             <ScrollView
                 ref={scrollViewRef}
                 onScroll={onScroll}
-                scrollEventThrottle={16}
+                scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
                 contentContainerStyle={[styles.w100]}
                 showsVerticalScrollIndicator={false}
             >

@@ -20,6 +20,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -57,24 +58,14 @@ type BaseMenuItemType = WithSentryLabel & {
 };
 
 function SecuritySettingsPage() {
-    const icons = useMemoizedLazyExpensifyIcons([
-        'ArrowCollapse',
-        'ClosedSign',
-        'FallbackAvatar',
-        'Fingerprint',
-        'Pencil',
-        'Shield',
-        'ThreeDots',
-        'Trashcan',
-        'UserLock',
-        'UserPlus',
-    ] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowCollapse', 'ClosedSign', 'FallbackAvatar', 'Fingerprint', 'Pencil', 'Shield', 'ThreeDots', 'Trashcan', 'UserLock', 'UserPlus']);
     const illustrations = useMemoizedLazyIllustrations(['LockClosed']);
     const securitySettingsIllustration = useSecuritySettingsSectionIllustration();
     const styles = useThemeStyles();
     const {localeCompare, translate, formatPhoneNumber} = useLocalize();
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    useDocumentTitle(translate('initialSettingsPage.security'));
     const {windowWidth} = useWindowDimensions();
     const personalDetails = usePersonalDetails();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -108,7 +99,7 @@ function SecuritySettingsPage() {
 
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
-    const {isActingAsDelegate, isDelegateAccessRestricted} = useDelegateNoAccessState();
+    const {isActingAsDelegate} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const delegates = account?.delegatedAccess?.delegates ?? [];
     const delegators = account?.delegatedAccess?.delegators ?? [];
@@ -158,7 +149,7 @@ function SecuritySettingsPage() {
                 icon: icons.Shield,
                 sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.TWO_FACTOR_AUTH,
                 action: () => {
-                    if (isDelegateAccessRestricted) {
+                    if (isActingAsDelegate) {
                         showDelegateNoAccessModal();
                         return;
                     }
@@ -191,10 +182,6 @@ function SecuritySettingsPage() {
             icon: icons.ArrowCollapse,
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.MERGE_ACCOUNTS,
             action: () => {
-                if (isDelegateAccessRestricted) {
-                    showDelegateNoAccessModal();
-                    return;
-                }
                 if (isAccountLocked) {
                     showLockedAccountModal();
                     return;
@@ -231,11 +218,6 @@ function SecuritySettingsPage() {
             icon: icons.ClosedSign,
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.CLOSE_ACCOUNT,
             action: () => {
-                if (isDelegateAccessRestricted) {
-                    showDelegateNoAccessModal();
-                    return;
-                }
-
                 if (isAccountLocked) {
                     showLockedAccountModal();
                     return;
@@ -260,7 +242,7 @@ function SecuritySettingsPage() {
         icons.Shield,
         icons.Fingerprint,
         isAccountLocked,
-        isDelegateAccessRestricted,
+        isActingAsDelegate,
         isUserValidated,
         showDelegateNoAccessModal,
         showLockedAccountModal,
@@ -355,7 +337,7 @@ function SecuritySettingsPage() {
             icon: icons.Pencil,
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.DELEGATE_CHANGE_ACCESS,
             onPress: () => {
-                if (isDelegateAccessRestricted) {
+                if (isActingAsDelegate) {
                     modalClose(() => showDelegateNoAccessModal());
                     return;
                 }
@@ -374,7 +356,7 @@ function SecuritySettingsPage() {
             icon: icons.Trashcan,
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_SECURITY.DELEGATE_REMOVE,
             onPress: () => {
-                if (isActingAsDelegate) {
+                if (selectedDelegate?.email !== account?.delegatedAccess?.delegate && isActingAsDelegate) {
                     modalClose(() => showDelegateNoAccessModal());
                     return;
                 }
@@ -389,7 +371,7 @@ function SecuritySettingsPage() {
                         if (result.action === ModalActions.CLOSE) {
                             setSelectedDelegate(undefined);
                         } else {
-                            if (isActingAsDelegate) {
+                            if (selectedDelegate?.email !== account?.delegatedAccess?.delegate && isActingAsDelegate) {
                                 showDelegateNoAccessModal();
                                 return;
                             }
@@ -452,7 +434,7 @@ function SecuritySettingsPage() {
                                             <TextLink
                                                 style={[styles.link]}
                                                 href={CONST.COPILOT_HELP_URL}
-                                                accessibilityLabel={translate('delegate.copilotDelegatedAccess')}
+                                                accessibilityLabel={translate('delegate.learnMoreAboutDelegatedAccess')}
                                             >
                                                 {translate('common.learnMore')}
                                             </TextLink>
@@ -470,26 +452,28 @@ function SecuritySettingsPage() {
                                             <MenuItemList menuItems={delegateMenuItems} />
                                         </>
                                     )}
-                                    {!isDelegateAccessRestricted && (
-                                        <MenuItem
-                                            title={translate('delegate.addCopilot')}
-                                            icon={icons.UserPlus}
-                                            sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SECURITY.ADD_COPILOT}
-                                            onPress={() => {
-                                                if (!isUserValidated) {
-                                                    Navigation.navigate(ROUTES.SETTINGS_DELEGATE_VERIFY_ACCOUNT);
-                                                    return;
-                                                }
-                                                if (isAccountLocked) {
-                                                    showLockedAccountModal();
-                                                    return;
-                                                }
-                                                Navigation.navigate(ROUTES.SETTINGS_ADD_DELEGATE);
-                                            }}
-                                            shouldShowRightIcon
-                                            wrapperStyle={[styles.sectionMenuItemTopDescription, hasDelegators && styles.mb6]}
-                                        />
-                                    )}
+                                    <MenuItem
+                                        title={translate('delegate.addCopilot')}
+                                        icon={icons.UserPlus}
+                                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SECURITY.ADD_COPILOT}
+                                        onPress={() => {
+                                            if (isActingAsDelegate) {
+                                                modalClose(() => showDelegateNoAccessModal());
+                                                return;
+                                            }
+                                            if (!isUserValidated) {
+                                                Navigation.navigate(ROUTES.SETTINGS_DELEGATE_VERIFY_ACCOUNT);
+                                                return;
+                                            }
+                                            if (isAccountLocked) {
+                                                showLockedAccountModal();
+                                                return;
+                                            }
+                                            Navigation.navigate(ROUTES.SETTINGS_ADD_DELEGATE);
+                                        }}
+                                        shouldShowRightIcon
+                                        wrapperStyle={[styles.sectionMenuItemTopDescription, hasDelegators && styles.mb6]}
+                                    />
                                     {hasDelegators && (
                                         <>
                                             <Text style={[styles.textLabelSupporting, styles.pv1]}>{translate('delegate.youCanAccessTheseAccounts')}</Text>

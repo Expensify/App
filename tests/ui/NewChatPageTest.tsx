@@ -1,7 +1,7 @@
 import * as NativeNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/react-native';
 import React from 'react';
-// eslint-disable-next-line no-restricted-imports
+// eslint-disable-next-line no-restricted-imports -- ScrollView is imported directly to spy on its prototype in tests
 import {ScrollView} from 'react-native';
 import Onyx from 'react-native-onyx';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';

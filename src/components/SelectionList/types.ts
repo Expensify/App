@@ -1,5 +1,6 @@
-import type {ReactElement, RefObject} from 'react';
+import type {ReactElement, Ref} from 'react';
 import type {GestureResponderEvent, InputModeOptions, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {ListItem, ValidListItem} from './ListItem/types';
@@ -29,7 +30,7 @@ type BaseSelectionListProps<TItem extends ListItem> = {
     listFooterContent?: React.JSX.Element | null | undefined;
 
     /** Whether to show the loading placeholder */
-    showLoadingPlaceholder?: boolean;
+    shouldShowLoadingPlaceholder?: boolean;
 
     /** Component to display on the right side of each item */
     rightHandSideComponent?: ((item: TItem, isFocused?: boolean) => ReactElement | null | undefined) | ReactElement | null;
@@ -65,7 +66,7 @@ type BaseSelectionListProps<TItem extends ListItem> = {
     listEmptyContent?: React.JSX.Element | null | undefined;
 
     /** Whether to show the empty list content */
-    showListEmptyContent?: boolean;
+    shouldShowListEmptyContent?: boolean;
 
     /** Whether to add bottom safe area padding */
     addBottomSafeAreaPadding?: boolean;
@@ -108,6 +109,12 @@ type BaseSelectionListProps<TItem extends ListItem> = {
 
     /** Configuration for the confirm button */
     confirmButtonOptions?: ConfirmButtonOptions<TItem>;
+
+    /** Whether hover style should be disabled */
+    shouldDisableHoverStyle?: boolean;
+
+    /** Whether to set the hover style */
+    setShouldDisableHoverStyle?: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 /**
@@ -127,7 +134,7 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> &
         onSelectAll?: () => void;
 
         /** Callback to fire when the item is long pressed */
-        onLongPressRow?: (item: TItem) => void;
+        onLongPressRow?: (item: TItem, itemTransactions?: TransactionListItemType[]) => void;
 
         /** Custom header content to render instead of the default select all header */
         customListHeader?: React.ReactNode;
@@ -173,12 +180,6 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> &
 
         /** Whether to show the default right hand side checkmark */
         shouldUseDefaultRightHandSideCheckmark?: boolean;
-
-        /** Whether hover style should be disabled */
-        shouldDisableHoverStyle?: boolean;
-
-        /** Whether to set the hover style */
-        setShouldDisableHoverStyle?: React.Dispatch<React.SetStateAction<boolean>>;
     };
 
 type SelectionListStyle = {
@@ -263,7 +264,7 @@ type TextInputOptions = {
     };
 
     /** Reference to the text input component */
-    ref?: RefObject<BaseTextInputRef | null>;
+    ref?: Ref<BaseTextInputRef | null>;
 };
 
 type ConfirmButtonOptions<TItem extends ListItem> = {
@@ -283,7 +284,7 @@ type ConfirmButtonOptions<TItem extends ListItem> = {
     isDisabled?: boolean;
 };
 
-type ButtonOrCheckBoxRoles = 'button' | 'checkbox';
+type InteractiveElementRoles = 'button' | 'checkbox' | 'switch';
 
 type SelectionListHandle<TItem extends ListItem> = {
     /** Scrolls to and highlights the specified items */
@@ -330,7 +331,7 @@ export type {
     TextInputOptions,
     ConfirmButtonOptions,
     ListItem,
-    ButtonOrCheckBoxRoles,
+    InteractiveElementRoles,
     SelectionListStyle,
     SelectionListWithSectionsHandle,
     SelectionListWithSectionsProps,

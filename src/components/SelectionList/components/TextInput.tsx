@@ -6,8 +6,10 @@ import type {TextInputOptions} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import BaseTextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Accessibility from '@libs/Accessibility';
 import mergeRefs from '@libs/mergeRefs';
 import CONST from '@src/CONST';
 
@@ -40,7 +42,7 @@ type TextInputProps = {
     shouldShowTextInput?: boolean;
 
     /** Whether to show the loading placeholder */
-    showLoadingPlaceholder?: boolean;
+    shouldShowLoadingPlaceholder?: boolean;
 
     /** Whether to show the loading indicator for new options */
     isLoadingNewOptions?: boolean;
@@ -58,7 +60,7 @@ function TextInput({
     onSubmit,
     onKeyPress,
     onFocusChange,
-    showLoadingPlaceholder,
+    shouldShowLoadingPlaceholder,
     isLoadingNewOptions,
     shouldShowTextInput,
     focusTextInput,
@@ -81,9 +83,20 @@ function TextInput({
         disableAutoCorrect,
         shouldInterceptSwipe,
     } = options ?? {};
-    const resultsFound = headerMessage !== translate('common.noResultsFound');
-    const noData = dataLength === 0 && !showLoadingPlaceholder;
-    const shouldShowHeaderMessage = !!headerMessage && (!isLoadingNewOptions || resultsFound || noData);
+    const noResultsFoundText = translate('common.noResultsFound');
+    const isNoResultsFoundMessage = headerMessage === noResultsFoundText;
+    const isScreenReaderEnabled = Accessibility.useScreenReaderStatus();
+    const noData = dataLength === 0 && !shouldShowLoadingPlaceholder;
+    const shouldShowHeaderMessage = !!shouldShowTextInput && !!headerMessage && (!isLoadingNewOptions || !isNoResultsFoundMessage || noData);
+    const trimmedSearchValue = value?.trim() ?? '';
+    const suggestionsCount = dataLength ?? 0;
+    const suggestionsAnnouncement =
+        !!shouldShowTextInput && !shouldShowLoadingPlaceholder && !isLoadingNewOptions && suggestionsCount > 0
+            ? translate('search.suggestionsAvailable', {count: suggestionsCount}, trimmedSearchValue)
+            : '';
+
+    useDebouncedAccessibilityAnnouncement(headerMessage ?? '', shouldShowHeaderMessage, value ?? '');
+    useDebouncedAccessibilityAnnouncement(suggestionsAnnouncement, !!suggestionsAnnouncement, value ?? '');
 
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const mergedRef = mergeRefs<BaseTextInputRef>(ref, optionsRef);
@@ -97,7 +110,7 @@ function TextInput({
 
     useFocusEffect(
         useCallback(() => {
-            if (!shouldShowTextInput || disableAutoFocus) {
+            if (!shouldShowTextInput || disableAutoFocus || isScreenReaderEnabled) {
                 return;
             }
 
@@ -110,7 +123,7 @@ function TextInput({
                 clearTimeout(focusTimeoutRef.current);
                 focusTimeoutRef.current = null;
             };
-        }, [shouldShowTextInput, disableAutoFocus, focusTextInput]),
+        }, [shouldShowTextInput, disableAutoFocus, focusTextInput, isScreenReaderEnabled]),
     );
 
     const handleFocus = useCallback(() => {
@@ -155,7 +168,12 @@ function TextInput({
             </View>
             {shouldShowHeaderMessage && (
                 <View style={[styles.ph5, styles.pb5, style?.headerMessageStyle]}>
-                    <Text style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}>{headerMessage}</Text>
+                    <Text
+                        style={[styles.textLabel, styles.colorMuted, styles.minHeight5]}
+                        aria-hidden
+                    >
+                        {headerMessage}
+                    </Text>
                 </View>
             )}
         </>

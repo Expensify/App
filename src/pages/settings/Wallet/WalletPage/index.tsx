@@ -1,3 +1,4 @@
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import debounce from 'lodash/debounce';
 import isEmpty from 'lodash/isEmpty';
 import type {ForwardedRef, RefObject} from 'react';
@@ -20,8 +21,11 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import useBankLinkedPersonalCards from '@hooks/useBankLinkedPersonalCards';
+import useCardFeedsForActivePolicies from '@hooks/useCardFeedsForActivePolicies';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -32,20 +36,22 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {hasDisplayableAssignedCards, maskCardNumber} from '@libs/CardUtils';
+import {hasDisplayableAssignedCards, isDirectFeed, maskCardNumber} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
-import createDynamicRoute from '@libs/Navigation/helpers/createDynamicRoute';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getPaymentMethodDescription} from '@libs/PaymentUtils';
-import {getDescriptionForPolicyDomainCard, hasActiveAdminWorkspaces, hasEligibleActiveAdminFromWorkspaces} from '@libs/PolicyUtils';
+import {getActiveAdminWorkspaces, getDescriptionForPolicyDomainCard, hasActiveAdminWorkspaces, hasEligibleActiveAdminFromWorkspaces, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
-import WalletTravelCVVSection from '@pages/settings/Wallet/TravelCVVPage/WalletTravelCVVSection';
-import {deletePaymentBankAccount, openPersonalBankAccountSetupView, setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
+import {deletePaymentBankAccount, openPersonalBankAccountSetupView, pressLockedBankAccount, setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
 import {deletePersonalCard} from '@userActions/Card';
 import {close as closeModal} from '@userActions/Modal';
 import {clearWalletError, clearWalletTermsError, deletePaymentCard, getPaymentMethods, makeDefaultPaymentMethod as makeDefaultPaymentMethodPaymentMethods} from '@userActions/PaymentMethods';
+import {enableCompanyCards} from '@userActions/Policy/Policy';
 import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
+import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -67,26 +73,35 @@ function WalletPage() {
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [savedColumnLayouts] = useOnyx(ONYXKEYS.NVP_SAVED_CSV_COLUMN_LAYOUT_LIST);
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [isLoadingPaymentMethods = true] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
+    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
     const [walletTerms = getEmptyObject<OnyxTypes.WalletTerms>()] = useOnyx(ONYXKEYS.WALLET_TERMS);
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_APP);
     const [userAccount] = useOnyx(ONYXKEYS.ACCOUNT);
     const [lastUsedPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const isUserValidated = userAccount?.validated ?? false;
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
-    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
+    const {login: currentUserLogin, email, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const {translate, localeCompare} = useLocalize();
+    useDocumentTitle(translate('common.wallet'));
+    const {cardFeedsByPolicy} = useCardFeedsForActivePolicies();
 
-    const icons = useMemoizedLazyExpensifyIcons(['MoneySearch', 'Wallet', 'Transfer', 'Hourglass', 'Exclamation', 'Star', 'Trashcan', 'Globe', 'UserPlus', 'UserMinus', 'Table']);
-    const illustrations = useMemoizedLazyIllustrations(['MoneyIntoWallet']);
+    const activeAdminPolicies = getActiveAdminWorkspaces(allPolicies, currentUserLogin).sort((a, b) => localeCompare(a.name || '', b.name || ''));
+    const hasSinglePolicy = activeAdminPolicies.length === 1;
+
+    const icons = useMemoizedLazyExpensifyIcons(['MoneySearch', 'Wallet', 'Transfer', 'Hourglass', 'Exclamation', 'Star', 'Trashcan', 'Globe', 'UserPlus', 'UserMinus', 'Table', 'Plus']);
+    const illustrations = useMemoizedLazyIllustrations(['MoneyIntoWallet', 'VerticalCreditCards']);
     const walletIllustration = useWalletSectionIllustration();
 
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
     const network = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isBetaEnabled} = usePermissions();
@@ -99,14 +114,17 @@ function WalletPage() {
     const [shouldShowUnshareButton, setShouldShowUnshareButton] = useState(false);
     const kycWallRef = useContext(KYCWallContext);
     const isCurrentUserPolicyAdmin = hasActiveAdminWorkspaces(currentUserLogin, allPolicies);
+    const personalCardList = useBankLinkedPersonalCards();
 
     const hasWallet = !isEmpty(userWallet);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
     const hasAssignedCard = hasDisplayableAssignedCards(cardList);
-
+    const shouldShowGBDisclaimer = countryByIp === CONST.COUNTRY.GB;
     const isPendingOnfidoResult = userWallet?.isPendingOnfidoResult ?? false;
     const hasFailedOnfido = userWallet?.hasFailedOnfido ?? false;
     const hasEligibleActiveAdmin = hasEligibleActiveAdminFromWorkspaces(allPolicies, currentUserLogin, paymentMethod?.selectedPaymentMethod?.bankAccountID?.toString());
+    const paidGroupPolicy = Object.values(allPolicies ?? {}).find(isPaidGroupPolicy);
+    const walletLoadingReasonAttributes: SkeletonSpanReasonAttributes = {context: 'WalletPage', shouldShowLoadingSpinner};
 
     const updateShouldShowLoadingSpinner = useCallback(() => {
         // In order to prevent a loop, only update state of the spinner if there is a change
@@ -123,6 +141,12 @@ function WalletPage() {
      */
     const paymentMethodPressed = ({event, accountData, accountType, methodID, isDefault, icon, description}: PaymentMethodPressHandlerParams) => {
         paymentMethodButtonRef.current = event?.currentTarget as HTMLDivElement;
+
+        if (accountData?.state === CONST.BANK_ACCOUNT.STATE.LOCKED && accountData?.bankAccountID) {
+            pressLockedBankAccount(accountData?.bankAccountID, translate, conciergeReportID ?? undefined);
+            navigateToConciergeChat(conciergeReportID ?? undefined, introSelected, currentUserAccountID, isSelfTourViewed, betas);
+            return;
+        }
 
         // The delete/default menu
         if (accountType) {
@@ -146,7 +170,7 @@ function WalletPage() {
             }
             setShouldShowShareButton(accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN);
             if (accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && !!accountData?.sharees?.length) {
-                const isOnlyCurrentUserInSharees = accountData.sharees.length === 1 && accountData.sharees.at(0) === currentUserPersonalDetails?.email;
+                const isOnlyCurrentUserInSharees = accountData.sharees.length === 1 && accountData.sharees.at(0) === email;
                 setShouldShowUnshareButton(accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN && !isOnlyCurrentUserInSharees);
             } else {
                 setShouldShowUnshareButton(false);
@@ -234,9 +258,45 @@ function WalletPage() {
     const deletePaymentMethod = useCallback(() => {
         const bankAccountID = paymentMethod.selectedPaymentMethod.bankAccountID;
         const fundID = paymentMethod.selectedPaymentMethod.fundID;
+        let newBankAccountID: number | undefined;
+        if (paymentMethod.isSelectedPaymentMethodDefault) {
+            const paymentCardList = fundList ?? {};
+            const allPaymentMethods = formatPaymentMethods(bankAccountList ?? {}, paymentCardList, styles, translate);
+
+            const remainingPaymentMethods = allPaymentMethods
+                .filter(
+                    (method) =>
+                        method.methodID !== paymentMethod.methodID &&
+                        method.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT &&
+                        method.accountData?.type !== CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
+                        method.accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN &&
+                        method.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                )
+                .sort((a, b) => {
+                    const aCreated = a.accountData?.created ?? '';
+                    const bCreated = b.accountData?.created ?? '';
+                    if (!aCreated && !bCreated) {
+                        return 0;
+                    }
+                    if (!aCreated) {
+                        return 1;
+                    }
+                    if (!bCreated) {
+                        return -1;
+                    }
+                    return new Date(bCreated).getTime() - new Date(aCreated).getTime();
+                });
+
+            if (remainingPaymentMethods.length > 0) {
+                const newDefaultMethod = remainingPaymentMethods.at(0);
+                newBankAccountID =
+                    newDefaultMethod?.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT ? (newDefaultMethod?.accountData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID) : undefined;
+            }
+        }
+
         if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && bankAccountID) {
             const bankAccount = bankAccountList?.[paymentMethod.methodID] ?? {};
-            deletePaymentBankAccount(bankAccountID, personalPolicyID, lastUsedPaymentMethods, bankAccount);
+            deletePaymentBankAccount(bankAccountID, personalPolicyID, lastUsedPaymentMethods, bankAccount, newBankAccountID);
         } else if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD && fundID) {
             deletePaymentCard(fundID);
         }
@@ -244,10 +304,14 @@ function WalletPage() {
     }, [
         paymentMethod.selectedPaymentMethod.bankAccountID,
         paymentMethod.selectedPaymentMethod.fundID,
+        paymentMethod.isSelectedPaymentMethodDefault,
         paymentMethod.selectedPaymentMethodType,
         paymentMethod.methodID,
         resetSelectedPaymentMethodData,
+        fundList,
         bankAccountList,
+        styles,
+        translate,
         lastUsedPaymentMethods,
         personalPolicyID,
     ]);
@@ -296,7 +360,7 @@ function WalletPage() {
         if (network.isOffline) {
             return;
         }
-        getPaymentMethods(true);
+        getPaymentMethods();
     }, [network.isOffline]);
 
     // Don't show "Make default payment method" button if it's the only payment method or if it's already the default
@@ -443,7 +507,14 @@ function WalletPage() {
                                   closeModal(() => showLockedAccountModal());
                                   return;
                               }
-                              closeModal(() => Navigation.navigate(ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS.getRoute(paymentMethod.selectedPaymentMethod.bankAccountID)));
+                              closeModal(() =>
+                                  Navigation.navigate(
+                                      ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS.getRoute(
+                                          paymentMethod.selectedPaymentMethod.bankAccountID,
+                                          CONST.ENABLE_GLOBAL_REIMBURSEMENTS.PAGE_NAME.BUSINESS_INFO.REGISTRATION_NUMBER,
+                                      ),
+                                  ),
+                              );
                           },
                       },
                   ]
@@ -470,6 +541,36 @@ function WalletPage() {
             showDeleteAccountModal,
         ],
     );
+
+    const onAddPersonalCardPress = () => {
+        if (!paidGroupPolicy && Object.keys(personalCardList).length >= 2) {
+            Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_UPGRADE);
+            return;
+        }
+        const hasDirectFeed = Object.values(cardFeedsByPolicy).some((feeds) => feeds.some((feed) => isDirectFeed(feed.feed)));
+        if (hasDirectFeed) {
+            Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_WARNING);
+            return;
+        }
+        Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_ADD_NEW);
+    };
+
+    const openCompanyCardFlow = () => {
+        if (hasSinglePolicy) {
+            const policy = activeAdminPolicies.at(0);
+            const policyID = policy?.id;
+            const isCompanyCardEnabled = policy?.areCompanyCardsEnabled;
+            if (!policyID) {
+                return;
+            }
+            if (!isCompanyCardEnabled) {
+                enableCompanyCards(policyID, true, false);
+            }
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
+            return;
+        }
+        Navigation.navigate(ROUTES.WORKSPACES_LIST.route);
+    };
 
     const cardThreeDotsMenuItems = useMemo(() => {
         const shouldShowCSVImportItems = selectedCard?.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD && isBetaEnabled(CONST.BETAS.CSV_CARD_IMPORT);
@@ -522,6 +623,7 @@ function WalletPage() {
     }, [bottomMountItem, confirmDeleteCard, isBetaEnabled, icons.MoneySearch, icons.Table, icons.Trashcan, paymentMethod.methodID, selectedCard?.bank, shouldUseNarrowLayout, translate]);
 
     if (isLoadingApp) {
+        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'WalletPage', isLoadingApp: !!isLoadingApp};
         return (
             <ScreenWrapper
                 testID="WalletPage"
@@ -529,7 +631,7 @@ function WalletPage() {
             >
                 {headerWithBackButton}
                 <View style={styles.flex1}>
-                    <FullScreenLoadingIndicator />
+                    <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />
                 </View>
             </ScreenWrapper>
         );
@@ -578,21 +680,30 @@ function WalletPage() {
                                 title={translate('walletPage.assignedCards')}
                                 isCentralPane
                                 subtitleMuted
+                                centralPaneContainerStyle={!hasAssignedCard ? styles.pb0 : undefined}
                                 titleStyles={styles.accountSettingsSectionTitle}
                             >
-                                {hasAssignedCard && (
-                                    <>
-                                        <PaymentMethodList
-                                            shouldShowAddBankAccount={false}
-                                            shouldShowAssignedCards
-                                            onPress={assignedCardPressed}
-                                            threeDotsMenuItems={cardThreeDotsMenuItems}
-                                            style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
-                                            listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
-                                        />
-                                        <WalletTravelCVVSection />
-                                    </>
-                                )}
+                                <>
+                                    <PaymentMethodList
+                                        shouldShowAddBankAccount={false}
+                                        shouldShowAssignedCards
+                                        onPress={assignedCardPressed}
+                                        threeDotsMenuItems={cardThreeDotsMenuItems}
+                                        style={[styles.mt5, [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
+                                        listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                                    />
+                                    {isBetaEnabled(CONST.BETAS.PERSONAL_CARD_IMPORT) && (
+                                        <View style={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}>
+                                            <MenuItem
+                                                onPress={onAddPersonalCardPress}
+                                                title={translate('personalCard.addPersonalCard')}
+                                                icon={icons.Plus}
+                                                wrapperStyle={[styles.paymentMethod, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
+                                                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.ADD_PERSONAL_CARD}
+                                            />
+                                        </View>
+                                    )}
+                                </>
                                 {isBetaEnabled(CONST.BETAS.PERSONAL_CARD_IMPORT) && (
                                     <View style={[hasAssignedCard ? styles.mt3 : styles.mt5, shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}>
                                         <MenuItem
@@ -605,6 +716,20 @@ function WalletPage() {
                                         />
                                     </View>
                                 )}
+                                {!hasAssignedCard ? (
+                                    <MenuItem
+                                        iconHeight={48}
+                                        iconWidth={48}
+                                        containerStyle={styles.hoveredComponentBG}
+                                        shouldShowRightIcon
+                                        icon={illustrations.VerticalCreditCards}
+                                        wrapperStyle={styles.sectionMenuItemTopDescription}
+                                        title={translate('personalCard.lookingForCompanyCards')}
+                                        description={translate('personalCard.lookingForCompanyCardsDescription')}
+                                        titleStyle={styles.textStrong}
+                                        onPress={openCompanyCardFlow}
+                                    />
+                                ) : null}
                             </Section>
                         )}
 
@@ -622,6 +747,7 @@ function WalletPage() {
                                         <ActivityIndicator
                                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                                             style={[styles.mb5]}
+                                            reasonAttributes={walletLoadingReasonAttributes}
                                         />
                                     )}
                                     {!shouldShowLoadingSpinner && hasActivatedWallet && (
@@ -741,6 +867,7 @@ function WalletPage() {
                             </Section>
                         )}
                     </OfflineWithFeedback>
+                    {!!shouldShowGBDisclaimer && <Text style={[styles.textMicroSupporting, styles.mh4, styles.mb5]}>{translate('workspace.companyCards.ukRegulation')}</Text>}
                 </View>
             </ScrollView>
         </ScreenWrapper>

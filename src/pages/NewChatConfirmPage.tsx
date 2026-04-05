@@ -24,6 +24,7 @@ import {navigateToAndCreateGroupChat, setGroupDraft} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {hasSeenTourSelector} from '@src/selectors/Onboarding';
 import type {Participant} from '@src/types/onyx/IOU';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
@@ -44,6 +45,8 @@ function NewChatConfirmPage() {
     const [newGroupDraft, newGroupDraftMetaData] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
     const icons = useMemoizedLazyExpensifyIcons(['Camera']);
 
@@ -101,8 +104,18 @@ function NewChatConfirmPage() {
         }
 
         const logins: string[] = (newGroupDraft.participants ?? []).map((participant) => participant.login).filter((login): login is string => !!login);
-        navigateToAndCreateGroupChat(logins, newGroupDraft.reportName ?? '', personalData.login ?? '', optimisticReportID.current, introSelected, newGroupDraft.avatarUri ?? '', avatarFile);
-    }, [newGroupDraft, avatarFile, personalData.login, introSelected]);
+        navigateToAndCreateGroupChat(
+            logins,
+            newGroupDraft.reportName ?? '',
+            personalData.login ?? '',
+            optimisticReportID.current,
+            introSelected,
+            isSelfTourViewed,
+            betas,
+            newGroupDraft.avatarUri ?? '',
+            avatarFile,
+        );
+    }, [newGroupDraft, avatarFile, personalData.login, introSelected, betas, isSelfTourViewed]);
 
     const stashedLocalAvatarImage = newGroupDraft?.avatarUri;
 

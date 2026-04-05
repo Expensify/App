@@ -11,20 +11,25 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import useLocalize from '@hooks/useLocalize';
+import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import {clearWorkspaceDetailsDraft} from '@userActions/Onboarding';
-import {createWorkspace, generateDefaultWorkspaceName, generatePolicyID} from '@userActions/Policy/Policy';
+import {createWorkspace, generatePolicyID, newGenerateDefaultWorkspaceName} from '@userActions/Policy/Policy';
 import {setOnboardingAdminsChatReportID, setOnboardingErrorMessage, setOnboardingPolicyID} from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
+import {lastWorkspaceNumberSelector} from '@src/selectors/Policy';
 import INPUT_IDS from '@src/types/form/WorkspaceConfirmationForm';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import OnboardingCurrencyPicker from './OnboardingCurrencyPicker';
@@ -34,6 +39,7 @@ function BaseOnboardingWorkspaceConfirmation({shouldUseNativeStyles}: BaseOnboar
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID);
@@ -43,14 +49,18 @@ function BaseOnboardingWorkspaceConfirmation({shouldUseNativeStyles}: BaseOnboar
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
     const {inputCallbackRef} = useAutoFocusInput();
+    const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.WORKSPACE_CONFIRMATION);
 
     const [draftValues, draftValuesMetadata] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_WORKSPACE_DETAILS_FORM_DRAFT);
     const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const hasActiveAdminPolicies = useHasActiveAdminPolicies();
 
     const paidGroupPolicy = Object.values(allPolicies ?? {}).find((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
 
-    const defaultWorkspaceName = draftValues?.name ?? generateDefaultWorkspaceName(session?.email);
+    const email = session?.email ?? '';
+    const lastWorkspaceNumber = lastWorkspaceNumberSelector(allPolicies, email);
+    const defaultWorkspaceName = draftValues?.name ?? newGenerateDefaultWorkspaceName(email, lastWorkspaceNumber, translate);
     const defaultCurrency = draftValues?.currency ?? currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD;
 
     useEffect(() => {
@@ -83,7 +93,9 @@ function BaseOnboardingWorkspaceConfirmation({shouldUseNativeStyles}: BaseOnboar
                       currentUserEmailParam: currentUserPersonalDetails.email ?? '',
                       shouldAddGuideWelcomeMessage: false,
                       onboardingPurposeSelected,
+                      betas,
                       isSelfTourViewed,
+                      hasActiveAdminPolicies,
                   })
                 : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
 
@@ -103,7 +115,9 @@ function BaseOnboardingWorkspaceConfirmation({shouldUseNativeStyles}: BaseOnboar
             currentUserPersonalDetails.accountID,
             currentUserPersonalDetails.email,
             introSelected,
+            betas,
             isSelfTourViewed,
+            hasActiveAdminPolicies,
         ],
     );
 
@@ -127,7 +141,8 @@ function BaseOnboardingWorkspaceConfirmation({shouldUseNativeStyles}: BaseOnboar
     };
 
     if (isLoadingOnyxValue(draftValuesMetadata, sessionMetadata)) {
-        return <FullScreenLoadingIndicator />;
+        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'BaseOnboardingWorkspaceConfirmation'};
+        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     return (
@@ -138,7 +153,8 @@ function BaseOnboardingWorkspaceConfirmation({shouldUseNativeStyles}: BaseOnboar
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
             <HeaderWithBackButton
-                progressBarPercentage={100}
+                stepCounter={onboardingStep?.stepCounter}
+                progressBarPercentage={onboardingStep?.progressBarPercentage}
                 shouldDisplayHelpButton={false}
             />
             <FormProvider

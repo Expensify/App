@@ -37,7 +37,7 @@ function VerifyPage({route}: VerifyPageProps) {
     const {translate} = useLocalize();
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const icons = useMemoizedLazyExpensifyIcons(['Copy'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Copy']);
     const contactMethod = getContactMethod(account?.primaryLogin, session?.email);
     const formRef = useRef<BaseTwoFactorAuthFormRef>(null);
 
@@ -125,12 +125,12 @@ function VerifyPage({route}: VerifyPageProps) {
                             textChecked={translate('common.copied')}
                             tooltipText=""
                             tooltipTextChecked=""
+                            accessibilityLabel={`${translate('twoFactorAuth.copy')}, ${translate('twoFactorAuth.secretKey')}`}
                             icon={icons.Copy}
                             inline={false}
                             onPress={() => Clipboard.setString(account?.twoFactorAuthSecretKey ?? '')}
                             styles={[styles.button, styles.buttonMedium, styles.twoFactorAuthCopyCodeButton]}
                             textStyles={[styles.buttonMediumText]}
-                            accessible={false}
                             sentryLabel={CONST.SENTRY_LABEL.TWO_FACTOR_AUTH.COPY}
                         />
                     </View>

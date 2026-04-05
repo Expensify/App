@@ -1,4 +1,5 @@
 import React from 'react';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -14,6 +15,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import RadioListItem from './SelectionList/ListItem/RadioListItem';
 import SelectionListWithSections from './SelectionList/SelectionListWithSections';
 import type {ListItem} from './SelectionList/types';
+import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
 
 type CategoryPickerProps = {
     policyID: string | undefined;
@@ -42,6 +44,7 @@ const getSelectedOptions = (selectedCategory?: string): Category[] => {
 
 function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeAreaPadding = false}: CategoryPickerProps) {
     const styles = useThemeStyles();
+    const {inputCallbackRef} = useAutoFocusInput();
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`);
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`);
@@ -74,6 +77,8 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeArea
         onChangeText: setSearchValue,
         headerMessage: getHeaderMessageForNonUserList(categoryData.length > 0, debouncedSearchValue),
         hint: offlineMessage,
+        disableAutoFocus: true,
+        ref: inputCallbackRef as (ref: BaseTextInputRef | null) => void,
     };
 
     return (
@@ -86,6 +91,9 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeArea
             initiallyFocusedItemKey={selectedOptionKey}
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}
             style={{listItemTitleStyles: styles.w100}}
+            isRowMultilineSupported
+            titleNumberOfLines={3}
+            shouldUseDefaultRightHandSideComponent
         />
     );
 }

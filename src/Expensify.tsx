@@ -4,48 +4,34 @@ import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from '
 import type {NativeEventSubscription} from 'react-native';
 import {AppState, Platform} from 'react-native';
 import Onyx from 'react-native-onyx';
-import DelegateNoAccessModalProvider from './components/DelegateNoAccessModalProvider';
-import EmojiPicker from './components/EmojiPicker/EmojiPicker';
-import GrowlNotification from './components/GrowlNotification';
 import {useInitialURLActions} from './components/InitialURLContextProvider';
-import ProactiveAppReviewModalManager from './components/ProactiveAppReviewModalManager';
-import ScreenShareRequestModal from './components/ScreenShareRequestModal';
 import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 import SplashScreenHider from './components/SplashScreenHider';
-import UpdateAppModal from './components/UpdateAppModal';
 import CONFIG from './CONFIG';
 import CONST from './CONST';
 import DeepLinkHandler from './DeepLinkHandler';
 import DelegateAccessHandler from './DelegateAccessHandler';
 import FullstoryInitHandler from './FullstoryInitHandler';
+import GlobalModals from './GlobalModals';
 import useDebugShortcut from './hooks/useDebugShortcut';
 import useIsAuthenticated from './hooks/useIsAuthenticated';
 import useLocalize from './hooks/useLocalize';
 import useOnyx from './hooks/useOnyx';
 import {updateLastRoute} from './libs/actions/App';
-import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
-// This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
-import './libs/actions/replaceOptimisticReportWithActualReport';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import {isSafari} from './libs/Browser';
-import {growlRef} from './libs/Growl';
 import Log from './libs/Log';
 import migrateOnyx from './libs/migrateOnyx';
 import Navigation from './libs/Navigation/Navigation';
 import NavigationRoot from './libs/Navigation/NavigationRoot';
 import NetworkConnection from './libs/NetworkConnection';
 import PushNotification from './libs/Notification/PushNotification';
-import './libs/Notification/PushNotification/subscribeToPushNotifications';
-// This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
-import './libs/registerPaginationConfig';
 import {endSpan, getSpan, startSpan} from './libs/telemetry/activeSpans';
+import type {BootsplashGateStatus} from './libs/telemetry/bootsplashTelemetry';
+import {startBootsplashMonitor} from './libs/telemetry/bootsplashTelemetry';
 import {cleanupMemoryTrackingTelemetry, initializeMemoryTrackingTelemetry} from './libs/telemetry/TelemetrySynchronizer';
-// This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
-import './libs/UnreadIndicatorUpdater';
 import Visibility from './libs/Visibility';
 import ONYXKEYS from './ONYXKEYS';
-import PopoverReportActionContextMenu from './pages/inbox/report/ContextMenu/PopoverReportActionContextMenu';
-import * as ReportActionContextMenu from './pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import PriorityModeHandler from './PriorityModeHandler';
 import type {Route} from './ROUTES';
 import {accountIDSelector} from './selectors/Session';
@@ -73,8 +59,7 @@ function Expensify() {
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [lastRoute] = useOnyx(ONYXKEYS.LAST_ROUTE);
     const [isCheckingPublicRoom = true] = useOnyx(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, {initWithStoredValues: false});
-    const [updateAvailable] = useOnyx(ONYXKEYS.UPDATE_AVAILABLE, {initWithStoredValues: false});
-    const [updateRequired] = useOnyx(ONYXKEYS.UPDATE_REQUIRED, {initWithStoredValues: false});
+    const [updateRequired] = useOnyx(ONYXKEYS.RAM_ONLY_UPDATE_REQUIRED);
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
 
     useDebugShortcut();
@@ -92,11 +77,12 @@ function Expensify() {
     const {setIsAuthenticatedAtStartup} = useInitialURLActions();
 
     useEffect(() => {
-        bootsplashSpan.current = startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT, {
-            name: CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT,
-            op: CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT,
-            parentSpan: getSpan(CONST.TELEMETRY.SPAN_APP_STARTUP),
-        });
+        bootsplashSpan.current =
+            startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT, {
+                name: CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT,
+                op: CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT,
+                parentSpan: getSpan(CONST.TELEMETRY.SPAN_APP_STARTUP),
+            }) ?? null;
 
         startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ONYX, {
             name: CONST.TELEMETRY.SPAN_BOOTSPLASH.ONYX,
@@ -153,6 +139,22 @@ function Expensify() {
 
     const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom && !!preferredLocale;
     const shouldHideSplash = shouldInit && (CONFIG.IS_HYBRID_APP ? isSplashReadyToBeHidden : isSplashVisible);
+
+    // We store this in a ref to get the latest values in BootsplashMonitor callback
+    const gateStatusRef = useRef<BootsplashGateStatus | null>(null);
+    gateStatusRef.current = {
+        splashScreenState,
+        isOnyxMigrated,
+        isCheckingPublicRoom,
+        hasAttemptedToOpenPublicRoom,
+        isNavigationReady,
+        preferredLocale,
+        shouldInit,
+        shouldHideSplash,
+        isAuthenticated,
+        updateRequired,
+        lastVisitedPath,
+    };
 
     useEffect(() => {
         if (!shouldHideSplash) {
@@ -221,22 +223,10 @@ function Expensify() {
     }, []);
 
     useEffect(() => {
-        setTimeout(() => {
-            const appState = AppState.currentState;
-            Log.info('[BootSplash] splash screen status', false, {appState, splashScreenState});
+        return startBootsplashMonitor(gateStatusRef);
+    }, []);
 
-            if (splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE) {
-                const propsToLog = {
-                    isCheckingPublicRoom,
-                    updateRequired,
-                    updateAvailable,
-                    isAuthenticated,
-                    lastVisitedPath,
-                };
-                Log.alert('[BootSplash] splash screen is still visible', {propsToLog}, false);
-            }
-        }, 30 * 1000);
-
+    useEffect(() => {
         // Run any Onyx schema migrations and then continue loading the main app
         migrateOnyx().then(() => {
             // In case of a crash that led to disconnection, we want to remove all the push notifications.
@@ -288,21 +278,7 @@ function Expensify() {
 
     return (
         <>
-            {shouldInit && (
-                <>
-                    <GrowlNotification ref={growlRef} />
-                    <DelegateNoAccessModalProvider>
-                        <PopoverReportActionContextMenu ref={ReportActionContextMenu.contextMenuRef} />
-                    </DelegateNoAccessModalProvider>
-                    <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
-                    {/* We include the modal for showing a new update at the top level so the option is always present. */}
-                    {updateAvailable && !updateRequired ? <UpdateAppModal /> : null}
-                    {/* Proactive app review modal shown when user has completed a trigger action */}
-                    <ProactiveAppReviewModalManager />
-                    <ScreenShareRequestModal />
-                </>
-            )}
-
+            {shouldInit && <GlobalModals />}
             <PriorityModeHandler />
             <DelegateAccessHandler />
             <FullstoryInitHandler />
@@ -316,7 +292,12 @@ function Expensify() {
                     initialUrl={initialUrl}
                 />
             )}
-            {shouldHideSplash && <SplashScreenHider onHide={onSplashHide} />}
+            {(isSplashVisible || isSplashReadyToBeHidden) && (
+                <SplashScreenHider
+                    shouldHideSplash={shouldHideSplash}
+                    onHide={onSplashHide}
+                />
+            )}
         </>
     );
 }

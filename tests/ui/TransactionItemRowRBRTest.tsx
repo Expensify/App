@@ -16,7 +16,6 @@ import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-jest.mock('@components/Icon/Expensicons');
 jest.mock('@libs/Navigation/Navigation');
 jest.mock('@hooks/useAnimatedHighlightStyle');
 
@@ -46,6 +45,7 @@ const renderTransactionItemRow = (transactionItem: TransactionWithOptionalSearch
                 transactionItem={transactionItem}
                 violations={transactionItem.violations}
                 report={transactionItem.report}
+                policy={transactionItem.policy}
                 reportActions={reportActions}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...defaultProps}

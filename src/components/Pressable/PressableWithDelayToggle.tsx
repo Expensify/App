@@ -1,4 +1,3 @@
-/* eslint-disable react-native-a11y/has-valid-accessibility-descriptors */
 import React from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
@@ -68,6 +67,12 @@ type PressableWithDelayToggleProps = PressableProps & {
 
     /** Icon height */
     iconHeight?: number;
+
+    /** Custom accessibility label that overrides the tooltipText-based label for both states */
+    accessibilityLabel?: string;
+
+    /** Custom accessibility label to use in the checked (pressed) state */
+    accessibilityLabelChecked?: string;
 };
 
 function PressableWithDelayToggle({
@@ -83,17 +88,19 @@ function PressableWithDelayToggle({
     iconStyles,
     icon,
     ref,
-    accessibilityRole,
+    accessibilityRole = CONST.ROLE.BUTTON,
+    sentryLabel,
     shouldHaveActiveBackground,
     iconWidth = variables.iconSizeSmall,
     iconHeight = variables.iconSizeSmall,
     shouldUseButtonBackground = false,
-    sentryLabel,
+    accessibilityLabel: accessibilityLabelProp,
+    accessibilityLabelChecked,
 }: PressableWithDelayToggleProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [isActive, temporarilyDisableInteractions] = useThrottledButtonState();
-    const lazyIcons = useMemoizedLazyExpensifyIcons(['Checkmark'] as const);
+    const lazyIcons = useMemoizedLazyExpensifyIcons(['Checkmark']);
     const resolvedIconChecked = iconChecked ?? lazyIcons.Checkmark;
 
     const updatePressState = () => {
@@ -109,6 +116,11 @@ function PressableWithDelayToggle({
     // of a Pressable
     const PressableView = inline ? Text : PressableWithoutFeedback;
     const tooltipTexts = !isActive ? tooltipTextChecked : tooltipText;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Using || intentionally so empty string tooltip/text values fall through to the next fallback
+    const checkedAccessibilityLabel = accessibilityLabelChecked || accessibilityLabelProp || tooltipTextChecked || textChecked || text || '';
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Using || intentionally so empty string tooltip/text values fall through to the next fallback
+    const defaultAccessibilityLabel = accessibilityLabelProp || tooltipText || text || '';
+    const accessibilityLabel = !isActive ? checkedAccessibilityLabel : defaultAccessibilityLabel;
     const shouldShowIcon = !!icon || (!isActive && !!resolvedIconChecked);
     const labelText =
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
@@ -132,7 +144,7 @@ function PressableWithDelayToggle({
             // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
             ref={ref as any}
             onPress={updatePressState}
-            accessibilityLabel={tooltipTexts}
+            accessibilityLabel={accessibilityLabel}
             suppressHighlighting={inline ? true : undefined}
             accessibilityRole={accessibilityRole}
         >
@@ -142,6 +154,7 @@ function PressableWithDelayToggle({
                     text={tooltipTexts}
                     shouldRender
                 >
+                    {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-descriptors -- Inner pressable is intentionally non-accessible (accessible={false}) since the outer PressableView handles accessibility */}
                     <PressableWithoutFeedback
                         tabIndex={-1}
                         accessible={false}
@@ -160,17 +173,17 @@ function PressableWithDelayToggle({
                     >
                         {({hovered, pressed}) => (
                             <>
-                                {!inline && displayLabelText}
                                 {shouldShowIcon && (
                                     <Icon
                                         src={!isActive ? resolvedIconChecked : (icon ?? resolvedIconChecked)}
                                         fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, !isActive))}
-                                        additionalStyles={iconStyles}
+                                        additionalStyles={[styles.mr2, iconStyles]}
                                         width={iconWidth}
                                         height={iconHeight}
                                         inline={inline}
                                     />
                                 )}
+                                {!inline && displayLabelText}
                             </>
                         )}
                     </PressableWithoutFeedback>

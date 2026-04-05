@@ -24,11 +24,12 @@ import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
 import useReportAttributes from '@hooks/useReportAttributes';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaypointItems from '@hooks/useWaypointItems';
-import {getIOURequestPolicyID, setMoneyRequestAmount, updateMoneyRequestDistance} from '@libs/actions/IOU';
+import {setMoneyRequestAmount, updateMoneyRequestDistance} from '@libs/actions/IOU';
 import {handleMoneyRequestStepDistanceNavigation} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction, setSplitShares} from '@libs/actions/IOU/Split';
 import {init, stop} from '@libs/actions/MapboxToken';
@@ -41,13 +42,14 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getPolicy} from '@libs/PolicyUtils';
-import {isArchivedReport, isPolicyExpenseChat as isPolicyExpenseChatUtil} from '@libs/ReportUtils';
+import {isPolicyExpenseChat as isPolicyExpenseChatUtil} from '@libs/ReportUtils';
 import {getDistanceInMeters, getRateID, getRequestType, hasRoute, isCustomUnitRateIDForP2P, isWaypointNullIsland} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {hasSeenTourSelector} from '@src/selectors/Onboarding';
+import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
@@ -78,9 +80,7 @@ function IOURequestStepDistanceMap({
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
-    const isArchived = isArchivedReport(reportNameValuePairs);
+    const isArchived = useReportIsArchived(report?.reportID);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`);
@@ -92,6 +92,9 @@ function IOURequestStepDistanceMap({
     const personalPolicy = usePersonalPolicy();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const defaultExpensePolicy = useDefaultExpensePolicy();
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
@@ -99,6 +102,7 @@ function IOURequestStepDistanceMap({
     const [optimisticWaypoints, setOptimisticWaypoints] = useState<WaypointCollection | null>(null);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && isEditing;
     const currentTransaction = isEditingSplit && !isEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction;
@@ -166,25 +170,19 @@ function IOURequestStepDistanceMap({
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
 
     // Sets `amount` and `split` share data before moving to the next step to avoid briefly showing `0.00` as the split share for participants
     const setDistanceRequestData = useCallback(
         (participants: Participant[]) => {
-            // Get policy report based on transaction participants
             const isPolicyExpenseChat = participants?.some((participant) => participant.isPolicyExpenseChat);
-            const selectedReportID = participants?.length === 1 ? (participants.at(0)?.reportID ?? reportID) : reportID;
-            const policyReport = participants.at(0) ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`] : report;
-
-            const IOUpolicyID = getIOURequestPolicyID(transaction, policyReport);
-            // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const IOUpolicy = getPolicy(report?.policyID ?? IOUpolicyID);
             const policyCurrency = policy?.outputCurrency ?? personalPolicy?.outputCurrency ?? CONST.CURRENCY.USD;
 
-            const mileageRates = DistanceRequestUtils.getMileageRates(IOUpolicy);
-            const defaultMileageRate = DistanceRequestUtils.getDefaultMileageRate(IOUpolicy);
+            const mileageRates = DistanceRequestUtils.getMileageRates(policy);
+            const defaultMileageRate = DistanceRequestUtils.getDefaultMileageRate(policy);
             const mileageRate: MileageRate | undefined = isCustomUnitRateIDForP2P(transaction)
                 ? DistanceRequestUtils.getRateForP2P(policyCurrency, transaction)
                 : // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -201,7 +199,7 @@ function IOURequestStepDistanceMap({
                 setSplitShares(transaction, amount, currency ?? '', participantAccountIDs ?? []);
             }
         },
-        [report, allReports, transaction, transactionID, isSplitRequest, policy?.outputCurrency, reportID, customUnitRateID, personalPolicy?.outputCurrency],
+        [policy, personalPolicy?.outputCurrency, transaction, customUnitRateID, transactionID, isSplitRequest],
     );
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
@@ -276,7 +274,7 @@ function IOURequestStepDistanceMap({
             if (!transaction?.reportID || hasRoute(transaction, true)) {
                 return;
             }
-            openReport(transaction?.reportID, introSelected);
+            openReport({reportID: transaction?.reportID, introSelected, betas});
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -303,13 +301,13 @@ function IOURequestStepDistanceMap({
             iouType,
             report,
             policy,
-            policyForMovingExpenses,
             transaction,
             reportID,
             transactionID,
             reportAttributesDerived,
             personalDetails,
             waypoints,
+            customUnitRateID,
             currentUserLogin: currentUserEmailParam,
             currentUserAccountID: currentUserAccountIDParam,
             backTo,
@@ -327,10 +325,16 @@ function IOURequestStepDistanceMap({
             policyRecentlyUsedCurrencies,
             introSelected,
             activePolicyID,
-            privateIsArchived: reportNameValuePairs?.private_isArchived,
+            privateIsArchived: isArchived,
             selfDMReport,
+            policyForMovingExpenses,
             betas,
             recentWaypoints,
+            draftTransactionIDs,
+            isSelfTourViewed: !!isSelfTourViewed,
+            amountOwed,
+            userBillingGracePeriodEnds,
+            ownerBillingGracePeriodEnd,
         });
     }, [
         iouType,
@@ -342,6 +346,7 @@ function IOURequestStepDistanceMap({
         reportAttributesDerived,
         personalDetails,
         waypoints,
+        customUnitRateID,
         currentUserEmailParam,
         currentUserAccountIDParam,
         backTo,
@@ -359,11 +364,15 @@ function IOURequestStepDistanceMap({
         policyRecentlyUsedCurrencies,
         introSelected,
         activePolicyID,
-        reportNameValuePairs?.private_isArchived,
         policyForMovingExpenses,
         selfDMReport,
         betas,
         recentWaypoints,
+        draftTransactionIDs,
+        isSelfTourViewed,
+        amountOwed,
+        userBillingGracePeriodEnds,
+        ownerBillingGracePeriodEnd,
     ]);
 
     const getError = () => {
@@ -447,7 +456,7 @@ function IOURequestStepDistanceMap({
             }
             if (transaction?.transactionID && report?.reportID) {
                 updateMoneyRequestDistance({
-                    transactionID: transaction?.transactionID,
+                    transaction,
                     transactionThreadReport: report,
                     parentReport,
                     waypoints,

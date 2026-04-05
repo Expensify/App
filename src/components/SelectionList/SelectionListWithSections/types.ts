@@ -47,6 +47,15 @@ type SelectionListWithSectionsProps<TItem extends ListItem> = BaseSelectionListP
     /** Callback to fire when the list layout changes */
     onLayout?: (event: LayoutChangeEvent) => void;
 
+    /** Whether to wrap long text in rows */
+    isRowMultilineSupported?: boolean;
+
+    /** Number of lines to show for title text when multiline is supported */
+    titleNumberOfLines?: number;
+
+    /** Whether to show the default right hand side component */
+    shouldUseDefaultRightHandSideComponent?: boolean;
+
     /** Whether product training tooltips can be displayed */
     canShowProductTrainingTooltip?: boolean;
 };
