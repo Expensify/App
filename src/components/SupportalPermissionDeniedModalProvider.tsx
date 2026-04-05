@@ -18,7 +18,7 @@ function SupportalPermissionDeniedModalProvider({children}: React.PropsWithChild
 
         showConfirmModal({
             title: translate('supportalNoAccess.title'),
-            prompt: translate('supportalNoAccess.descriptionWithCommand', {command: payload?.command}),
+            prompt: translate('supportalNoAccess.descriptionWithCommand', payload?.command),
             confirmText: translate('common.buttonConfirm'),
             shouldShowCancelButton: false,
         }).then(() => {
