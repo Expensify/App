@@ -1,10 +1,10 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 import type {Message} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import {getReportActionHtml, getReportActionText} from './ReportActionsUtils';
