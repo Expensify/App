@@ -9,6 +9,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import NetworkConnection from '@libs/NetworkConnection';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -361,7 +362,11 @@ function createTaskAndNavigate(params: CreateTaskAndNavigateParams) {
         InteractionManager.runAfterInteractions(() => {
             clearOutTaskInfo();
         });
-        Navigation.dismissModalWithReport({reportID: parentReportID});
+        if (isSearchTopmostFullScreenRoute()) {
+            Navigation.dismissModal();
+        } else {
+            Navigation.dismissModalWithReport({reportID: parentReportID});
+        }
     }
     notifyNewAction(parentReportID, optimisticAddCommentReport.reportAction, true);
 }
