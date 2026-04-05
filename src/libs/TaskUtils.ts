@@ -14,7 +14,7 @@ const TASK_EDIT_URL_SUFFIXES = [DYNAMIC_ROUTES.TASK_TITLE.path, DYNAMIC_ROUTES.R
 
 /**
  * Check if the active route belongs to task edit flow.
- * Matches canonical paths (r/:reportID/title) and dynamic suffix paths (e.g. search/view/:reportID/title, r/:reportID/details/description).
+ * Matches canonical paths (r/:reportID/title) and dynamic suffix paths (e.g. search/view/:reportID/title, r/:reportID/description).
  */
 function isActiveTaskEditRoute(reportID: string | undefined): boolean {
     if (!reportID) {

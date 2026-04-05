@@ -4,7 +4,6 @@ import {createRegularTaskReport} from '../../utils/collections/reports';
 
 jest.mock('../../../src/libs/Localize');
 jest.mock('../../../src/libs/Navigation/Navigation', () => ({
-    __esModule: true,
     default: {
         getActiveRoute: jest.fn(),
     },
