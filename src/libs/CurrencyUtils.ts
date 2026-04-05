@@ -71,11 +71,9 @@ function convertToBackendAmount(amountAsFloat: number): number {
 
 /**
  * Takes an amount in "cents" as an integer and converts it to a floating point amount used in the frontend.
- *
- * @note we do not support any currencies with more than two decimal places.
  */
-function convertToFrontendAmountAsInteger(amountAsInt: number, currency: string = CONST.CURRENCY.USD, currencies?: CurrencyList): number {
-    const decimals = getCurrencyDecimals(currency, currencies);
+function convertToFrontendAmountAsInteger(amountAsInt: number, currencyOrDecimals: string | number = CONST.CURRENCY.USD, currencies?: CurrencyList): number {
+    const decimals = typeof currencyOrDecimals === 'number' ? currencyOrDecimals : getCurrencyDecimals(currencyOrDecimals, currencies);
     return Number((Math.trunc(amountAsInt) / 100.0).toFixed(decimals));
 }
 
@@ -89,7 +87,7 @@ function convertToFrontendAmountAsString(amountAsInt: number | null | undefined,
         return '';
     }
     const decimals = withDecimals ? getCurrencyDecimals(currency, currencies) : 0;
-    return convertToFrontendAmountAsInteger(amountAsInt, currency, currencies).toFixed(decimals);
+    return convertToFrontendAmountAsInteger(amountAsInt, decimals).toFixed(decimals);
 }
 
 /**
@@ -100,7 +98,8 @@ function convertToFrontendAmountAsString(amountAsInt: number | null | undefined,
  * @param currency - IOU currency
  */
 function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURRENCY.USD, shouldUseLocalCurrencySymbol = false, currencies?: CurrencyList): string {
-    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, currency, currencies);
+    const decimals = getCurrencyDecimals(currency, currencies);
+    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, decimals);
     /**
      * Fallback currency to USD if it empty string or undefined
      */
@@ -115,7 +114,7 @@ function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURR
         if (currencySymbol) {
             const formattedNumber = format(IntlStore.getCurrentLocale(), convertedAmount, {
                 style: 'decimal',
-                minimumFractionDigits: getCurrencyDecimals(currency, currencies),
+                minimumFractionDigits: decimals,
                 maximumFractionDigits: 2,
             });
             return `${currencySymbol}${formattedNumber}`;
@@ -128,7 +127,7 @@ function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURR
 
         // We are forcing the number of decimals because we override the default number of decimals in the backend for some currencies
         // See: https://github.com/Expensify/PHP-Libs/pull/834
-        minimumFractionDigits: getCurrencyDecimals(currency, currencies),
+        minimumFractionDigits: decimals,
         // For currencies that have decimal places > 2, floor to 2 instead as we don't support more than 2 decimal places.
         maximumFractionDigits: 2,
     });
@@ -149,8 +148,9 @@ function convertToDisplayStringWithExplicitCurrency(amountInCents: number, curre
  * @param amountInCents – should be an integer. Anything after a decimal place will be dropped.
  * @param currency - IOU currency
  */
-function convertToShortDisplayString(amountInCents = 0, currency: string = CONST.CURRENCY.USD, currencies?: CurrencyList): string {
-    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, currency, currencies);
+function convertToShortDisplayString(amountInCents = 0, currency: string = CONST.CURRENCY.USD): string {
+    // We want to make sure that we are not showing any decimals in the short display string, so we pass 0 as the decimals parameter
+    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, 0);
 
     return format(IntlStore.getCurrentLocale(), convertedAmount, {
         style: 'currency',
@@ -182,14 +182,15 @@ function convertAmountToDisplayString(amount = 0, currency: string = CONST.CURRE
  * Acts the same as `convertAmountToDisplayString` but the result string does not contain currency
  */
 function convertToDisplayStringWithoutCurrency(amountInCents: number, currency: string = CONST.CURRENCY.USD, currencies?: CurrencyList) {
-    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, currency, currencies);
+    const decimals = getCurrencyDecimals(currency, currencies);
+    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, decimals);
     return formatToParts(IntlStore.getCurrentLocale(), convertedAmount, {
         style: 'currency',
         currency,
 
         // We are forcing the number of decimals because we override the default number of decimals in the backend for some currencies
         // See: https://github.com/Expensify/PHP-Libs/pull/834
-        minimumFractionDigits: getCurrencyDecimals(currency, currencies),
+        minimumFractionDigits: decimals,
         // For currencies that have decimal places > 2, floor to 2 instead as we don't support more than 2 decimal places.
         maximumFractionDigits: 2,
     })

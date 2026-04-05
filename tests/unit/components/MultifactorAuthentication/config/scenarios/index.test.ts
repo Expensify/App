@@ -31,7 +31,7 @@ describe('MultifactorAuthentication Scenarios Config', () => {
         const biometricsTestScenario = config[CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST];
 
         expect(biometricsTestScenario).toBeDefined();
-        expect(biometricsTestScenario.allowedAuthenticationMethods).toStrictEqual([CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS, CONST.MULTIFACTOR_AUTHENTICATION.TYPE.PASSKEYS]);
+        expect(biometricsTestScenario.allowedAuthenticationMethods).toStrictEqual([CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS_HSM, CONST.MULTIFACTOR_AUTHENTICATION.TYPE.PASSKEYS]);
         expect(biometricsTestScenario.screen).toBe(SCREENS.MULTIFACTOR_AUTHENTICATION.BIOMETRICS_TEST);
         expect(biometricsTestScenario.pure).toBe(true);
         expect(biometricsTestScenario.action).toBeDefined();
@@ -41,8 +41,8 @@ describe('MultifactorAuthentication Scenarios Config', () => {
         const config = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG as MultifactorAuthenticationScenarioConfigRecord;
         const biometricsTestConfig = config[CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST];
 
-        expect(biometricsTestConfig.failureScreens).toHaveProperty(CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.NO_ELIGIBLE_METHODS);
-        expect(biometricsTestConfig.failureScreens).toHaveProperty(CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.UNSUPPORTED_DEVICE);
+        expect(biometricsTestConfig.failureScreens).toHaveProperty(CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.NO_AUTHENTICATION_METHODS_ENROLLED);
+        expect(biometricsTestConfig.failureScreens).toHaveProperty(CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.AUTHENTICATION_TYPE_NOT_SUPPORTED);
     });
 
     /**
@@ -97,7 +97,7 @@ describe('MultifactorAuthentication Scenarios Config', () => {
             addressStreet2: '',
             addressZip: 'SW1A 1AA',
             addressCountry: 'GB',
-            addressState: '',
+            addressProvince: '',
             dob: '1990-01-15',
             pin: '5739',
             cardID: '12345',
@@ -108,7 +108,7 @@ describe('MultifactorAuthentication Scenarios Config', () => {
             const setPinScenario = config[CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.SET_PIN_ORDER_CARD];
 
             expect(setPinScenario).toBeDefined();
-            expect(setPinScenario.allowedAuthenticationMethods).toStrictEqual([CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS, CONST.MULTIFACTOR_AUTHENTICATION.TYPE.PASSKEYS]);
+            expect(setPinScenario.allowedAuthenticationMethods).toStrictEqual([CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS_HSM, CONST.MULTIFACTOR_AUTHENTICATION.TYPE.PASSKEYS]);
             expect(setPinScenario.action).toBeDefined();
             expect(setPinScenario.callback).toBeDefined();
             expect(typeof setPinScenario.callback).toBe('function');
@@ -120,8 +120,8 @@ describe('MultifactorAuthentication Scenarios Config', () => {
 
             expect(setPinScenario.defaultClientFailureScreen).toBeDefined();
             expect(setPinScenario.defaultServerFailureScreen).toBeDefined();
-            expect(setPinScenario.failureScreens).toHaveProperty(CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.NO_ELIGIBLE_METHODS);
-            expect(setPinScenario.failureScreens).toHaveProperty(CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.UNSUPPORTED_DEVICE);
+            expect(setPinScenario.failureScreens).toHaveProperty(CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.NO_AUTHENTICATION_METHODS_ENROLLED);
+            expect(setPinScenario.failureScreens).toHaveProperty(CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.AUTHENTICATION_TYPE_NOT_SUPPORTED);
         });
 
         it('should return SHOW_OUTCOME_SCREEN on authentication failure', async () => {

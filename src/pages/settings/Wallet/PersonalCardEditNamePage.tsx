@@ -36,7 +36,7 @@ function PersonalCardEditNamePage({route}: PersonalCardEditNamePageProps) {
     const [card] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardSelector});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const cardholder = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
-    const defaultValue = customCardNames?.[cardID] ?? getDefaultCardName(cardholder?.firstName);
+    const defaultValue = customCardNames?.[cardID] ?? card?.cardName ?? getDefaultCardName(cardholder?.firstName);
 
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();

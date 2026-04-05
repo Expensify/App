@@ -2,6 +2,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useMemo, useState} from 'react';
 import type {ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import cardScarf from '@assets/images/card-scarf.svg';
 import AddToWalletButton from '@components/AddToWalletButton/index';
@@ -11,7 +12,6 @@ import ConfirmModal from '@components/ConfirmModal';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import FrozenCardHeader from '@components/FrozenCardHeader';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -38,6 +38,7 @@ import {
     getDomainCards,
     getTranslationKeyForLimitType,
     isCardFrozen,
+    isTravelCard,
     maskCard,
     maskPin,
     supportsPINManagementFeatures,
@@ -46,6 +47,8 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DomainCardNavigatorParamList, SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {isPolicyAdmin} from '@libs/PolicyUtils';
+import {getPolicyExpenseChat} from '@libs/ReportUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import RedDotCardSection from '@pages/settings/Wallet/RedDotCardSection';
@@ -57,6 +60,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type {Policy} from '@src/types/onyx';
 import {useExpensifyCardActions, useExpensifyCardState} from './ExpensifyCardContextProvider';
 
 type ExpensifyCardPageProps =
@@ -92,14 +96,13 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const {executeScenario} = useMultifactorAuthentication();
-    const isTravelCard = cardList?.[cardID]?.nameValuePairs?.isTravelCard;
-    const shouldDisplayCardDomain = !isTravelCard && (!cardList?.[cardID]?.nameValuePairs?.issuedBy || !cardList?.[cardID]?.nameValuePairs?.isVirtual);
+    const shouldDisplayCardDomain = !isTravelCard(cardList?.[cardID]) && (!cardList?.[cardID]?.nameValuePairs?.issuedBy || !cardList?.[cardID]?.nameValuePairs?.isVirtual);
     const domain = cardList?.[cardID]?.domainName ?? '';
-    const expensifyCardTitle = isTravelCard ? translate('cardPage.expensifyTravelCard') : translate('cardPage.expensifyCard');
+    const expensifyCardTitle = isTravelCard(cardList?.[cardID]) ? translate('cardPage.expensifyTravelCard') : translate('cardPage.expensifyCard');
     const pageTitle = shouldDisplayCardDomain ? expensifyCardTitle : (cardList?.[cardID]?.nameValuePairs?.cardTitle ?? expensifyCardTitle);
     const {displayName} = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Flag', 'MoneySearch', 'FreezeCard', 'Key']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Flag', 'MoneySearch', 'FreezeCard', 'Key', 'Eye']);
 
     const cardsToShow = useMemo(() => {
         if (shouldDisplayCardDomain) {
@@ -108,8 +111,9 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
         return [cardList?.[cardID]];
     }, [shouldDisplayCardDomain, cardList, cardID, domain]);
     const currentCard = useMemo(() => cardsToShow?.find((card) => String(card?.cardID) === cardID) ?? cardsToShow?.at(0), [cardsToShow, cardID]);
-    const virtualCards = useMemo(() => cardsToShow?.filter((card) => card?.nameValuePairs?.isVirtual && !card?.nameValuePairs?.isTravelCard), [cardsToShow]);
-    const travelCards = useMemo(() => cardsToShow?.filter((card) => card?.nameValuePairs?.isVirtual && card?.nameValuePairs?.isTravelCard), [cardsToShow]);
+
+    const virtualCards = useMemo(() => cardsToShow?.filter((card) => card?.nameValuePairs?.isVirtual && !isTravelCard(card)), [cardsToShow]);
+    const travelCards = useMemo(() => cardsToShow?.filter((card) => card?.nameValuePairs?.isVirtual && isTravelCard(card)), [cardsToShow]);
     const physicalCards = useMemo(() => cardsToShow?.filter((card) => !card?.nameValuePairs?.isVirtual), [cardsToShow]);
     const cardToAdd = useMemo(() => {
         return virtualCards?.at(0);
@@ -151,9 +155,27 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
 
     const session = useSession();
     const isCardHolder = currentCard?.accountID === session?.accountID;
+    const frozenByAccountID = currentCard?.nameValuePairs?.frozen?.byAccountID;
 
     const {isBetaEnabled} = usePermissions();
     const canManageCardFreeze = isBetaEnabled(CONST.BETAS.FREEZE_CARD) && isCardHolder && !!currentCard && !isAccountLocked;
+
+    const policySelector = useCallback(
+        (allPolicies: OnyxCollection<Policy>): Policy | undefined => {
+            const workspaceAccountID = Number(currentCard?.fundID);
+            if (!workspaceAccountID || Number.isNaN(workspaceAccountID)) {
+                return undefined;
+            }
+
+            return Object.values(allPolicies ?? {}).find((policy) => policy?.workspaceAccountID === workspaceAccountID);
+        },
+        [currentCard?.fundID],
+    );
+    const [policyForCurrentCard] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policySelector}, [policySelector]);
+    const policyIDForCurrentCard = policyForCurrentCard?.id;
+    const isWorkspaceAdmin = isPolicyAdmin(policyForCurrentCard, session?.email);
+    const canUnfreezeCard = canManageCardFreeze && (frozenByAccountID === session?.accountID || isWorkspaceAdmin);
+
     const scarfOverlayStyle = useMemo<ViewStyle>(
         () => ({
             top: 0,
@@ -188,6 +210,14 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
         setIsUnfreezeModalVisible(true);
     }, []);
 
+    const handleAskToUnfreezePress = useCallback(() => {
+        const cardHolderWorkspaceChatReportID = getPolicyExpenseChat(currentCard?.accountID, policyIDForCurrentCard)?.reportID;
+        if (!cardHolderWorkspaceChatReportID) {
+            return;
+        }
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(cardHolderWorkspaceChatReportID));
+    }, [currentCard?.accountID, policyIDForCurrentCard]);
+
     const handleDismissUnfreezeModal = useCallback(() => {
         setIsUnfreezeModalVisible(false);
     }, []);
@@ -213,7 +243,11 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
             <ScrollView>
                 {canManageCardFreeze && isCardFrozen(currentCard) ? (
                     <FrozenCardHeader
-                        cardID={cardID}
+                        isWorkspaceAdmin={isWorkspaceAdmin}
+                        frozenByAccountID={currentCard?.nameValuePairs?.frozen?.byAccountID}
+                        frozenDate={currentCard?.nameValuePairs?.frozen?.date}
+                        canUnfreezeCard={canUnfreezeCard}
+                        onAskToUnfreezePress={handleAskToUnfreezePress}
                         onUnfreezePress={handleUnfreezePress}
                         cardPreview={
                             <CardPreview
@@ -364,7 +398,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                 )}
                             </React.Fragment>
                         ))}
-                        {isTravelCard &&
+                        {isTravelCard(cardList?.[cardID]) &&
                             travelCards.map((card) => (
                                 <React.Fragment key={card.cardID}>
                                     {!!cardsDetails[card.cardID] && cardsDetails[card.cardID]?.cvv ? (
@@ -425,7 +459,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                         rightComponent={
                                             canRevealPIN ? (
                                                 <Button
-                                                    icon={Expensicons.Eye}
+                                                    icon={expensifyIcons.Eye}
                                                     text={translate('cardPage.revealPin')}
                                                     onPress={() => {
                                                         executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.REVEAL_PIN, {

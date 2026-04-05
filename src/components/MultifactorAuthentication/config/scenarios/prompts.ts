@@ -1,4 +1,4 @@
-import * as Illustrations from '@components/Icon/Illustrations';
+import EncryptionPasskeys from '@assets/images/simple-illustrations/simple-illustration__encryption-passkeys.svg';
 import LottieAnimations from '@components/LottieAnimations';
 import type {MultifactorAuthenticationPrompt} from '@components/MultifactorAuthentication/config/types';
 import VALUES from '@libs/MultifactorAuthentication/VALUES';
@@ -8,13 +8,13 @@ import VALUES from '@libs/MultifactorAuthentication/VALUES';
  * Exported to a separate file to avoid circular dependencies.
  */
 export default {
-    [VALUES.PROMPT.BIOMETRICS]: {
+    [VALUES.PROMPT.BIOMETRICS_HSM]: {
         illustration: LottieAnimations.Fingerprint,
         title: 'multifactorAuthentication.verifyYourself.biometrics',
         subtitle: 'multifactorAuthentication.enableQuickVerification.biometrics',
     },
     [VALUES.PROMPT.PASSKEYS]: {
-        illustration: Illustrations.EncryptionPasskeys,
+        illustration: EncryptionPasskeys,
         title: 'multifactorAuthentication.verifyYourself.passkeys',
         subtitle: 'multifactorAuthentication.enableQuickVerification.passkeys',
     },

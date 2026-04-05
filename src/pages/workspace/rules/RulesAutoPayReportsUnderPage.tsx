@@ -71,7 +71,7 @@ function RulesAutoPayReportsUnderPage({route}: RulesAutoPayReportsUnderPageProps
                     formID={ONYXKEYS.FORMS.RULES_AUTO_PAY_REPORTS_UNDER_MODAL_FORM}
                     validate={validateLimit}
                     onSubmit={({maxExpenseAutoPayAmount}) => {
-                        setPolicyAutoReimbursementLimit(policyID, maxExpenseAutoPayAmount);
+                        setPolicyAutoReimbursementLimit(policyID, maxExpenseAutoPayAmount, policy?.autoReimbursement?.limit ?? policy?.autoReimbursementLimit);
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                     }}
                     submitButtonText={translate('common.save')}

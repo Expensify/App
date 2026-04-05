@@ -30,7 +30,7 @@ type RadioButtonProps = {
 function RadioButton({isChecked, onPress, accessibilityLabel, hasError = false, disabled = false, shouldUseNewStyle = false}: RadioButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
 
     if (shouldUseNewStyle) {
         return (
