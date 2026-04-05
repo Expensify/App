@@ -132,12 +132,12 @@ describe('Split Expense Auto-Adjustment', () => {
             expect(totalAmount).toBe(TOTAL_AMOUNT);
         });
 
-        it('should keep new split at 0 when existing splits sum to total', async () => {
+        it('should keep new split at 0 when manual edits exist and sum matches total', async () => {
             // Setup: Total -$10.00, splits already sum to -$10.00
             const total = -1000;
             const initialSplits = [
-                createSplitExpense('split1', -500), // -$5.00
-                createSplitExpense('split2', -500), // -$5.00 = -$10.00 total
+                createSplitExpense('split1', -500, true), // -$5.00 (edited)
+                createSplitExpense('split2', -500, true), // -$5.00 (edited)
             ];
 
             const mockTransaction = createMockDraftTransaction(initialSplits, total);
@@ -176,12 +176,12 @@ describe('Split Expense Auto-Adjustment', () => {
             expect(totalAmount).toBe(-1000);
         });
 
-        it('should redistribute when existing splits do not sum to total', async () => {
+        it('should redistribute when no manual edits exist', async () => {
             // Setup: Total -$10.00, splits sum to -$8.00 (don't match)
             const total = -1000; // -$10.00
             const initialSplits = [
-                createSplitExpense('split1', -300), // -$3.00
-                createSplitExpense('split2', -500), // -$5.00 = -$8.00 total (mismatch!)
+                createSplitExpense('split1', -500, false), // -$5.00 (unedited)
+                createSplitExpense('split2', -500, false), // -$5.00 (unedited)
             ];
 
             const mockTransaction = createMockDraftTransaction(initialSplits, total);
@@ -207,7 +207,7 @@ describe('Split Expense Auto-Adjustment', () => {
             const splitExpenses = draftTransaction?.comment?.splitExpenses ?? [];
             expect(splitExpenses.length).toBe(3);
 
-            // All splits redistributed to sum to -$10.00
+            // Should redistribute evenly (splits sum to total, but NO manual edits)
             const amounts = splitExpenses.map((s) => s.amount).sort((a, b) => a - b);
             expect(amounts).toEqual([-334, -333, -333]); // -$3.34, -$3.33, -$3.33
 
