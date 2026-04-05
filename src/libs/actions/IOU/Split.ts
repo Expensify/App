@@ -2635,12 +2635,15 @@ function addSplitExpenseField(
     const currency = getCurrency(draftTransaction);
     const originalTransactionID = draftTransaction.comment?.originalTransactionID ?? transaction.transactionID;
 
+    // Check if existing splits already sum to the total
+    const existingSum = existingSplits.reduce((sum, s) => sum + s.amount, 0);
+    const splitsAlreadyMatchTotal = Math.abs(existingSum) === Math.abs(total);
+
     let redistributedSplitExpenses = updatedSplitExpenses;
 
     // Auto-redistribute amounts for all splits if this is not a distance request
-    // Only auto-redistribute if there are no manually edited splits - otherwise respect user's edits
-    const hasManuallyEditedSplits = existingSplits.some((split) => split.isManuallyEdited);
-    if (!isDistanceRequest && !hasManuallyEditedSplits) {
+    // Skip redistribution if existing splits already match the total (new split stays at 0)
+    if (!isDistanceRequest && !splitsAlreadyMatchTotal) {
         redistributedSplitExpenses = redistributeSplitExpenseAmounts(updatedSplitExpenses, total, currency);
     }
 

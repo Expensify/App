@@ -102,11 +102,13 @@ describe('Split Expense Auto-Adjustment', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${ORIGINAL_TRANSACTION_ID}`, mockTransaction);
             await waitForBatchedUpdates();
 
-            // Action: Add a new split when manual edits exist
+            // Action: Add a new split
             addSplitExpenseField(mockTransaction, mockTransaction, undefined);
             await waitForBatchedUpdates();
 
-            // Verify: New split starts at 0 when manual edits exist (no redistribution)
+            // Verify: 3 splits
+            // Split 1: locked at 300
+            // New split + Split 2: share remaining 700 -> 350 each
             const draftTransaction = await new Promise<OnyxEntry<Transaction>>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${ORIGINAL_TRANSACTION_ID}`,
@@ -125,107 +127,93 @@ describe('Split Expense Auto-Adjustment', () => {
             expect(split1?.amount).toBe(300);
             expect(split1?.isManuallyEdited).toBe(true);
 
-            // New split should start at 0 (not auto-redistributed when manual edits exist)
-            const newSplit = splitExpenses.find((s) => s.transactionID !== 'split1' && s.transactionID !== 'split2');
-            expect(newSplit?.amount).toBe(0);
-            expect(newSplit?.isManuallyEdited).toBe(false);
-
-            // Split2 should remain unchanged at 700
-            const split2 = splitExpenses.find((s) => s.transactionID === 'split2');
-            expect(split2?.amount).toBe(700);
-
-            // Total will not match original (user needs to manually adjust)
-            const totalAmount = splitExpenses.reduce((sum, split) => sum + split.amount, 0);
-            expect(totalAmount).toBe(1000); // 300 + 700 + 0
-        });
-
-        it('should handle negative amounts when adding split with manual edits', async () => {
-            // Setup: Original expense is -$10.00
-            const negativeTotal = -1000;
-            const initialSplits = [
-                createSplitExpense('split1', -2000, true), // Edited to -$20
-                createSplitExpense('split2', 1000, false), // Unedited (remaining)
-            ];
-
-            const mockTransaction = createMockDraftTransaction(initialSplits, negativeTotal);
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${ORIGINAL_TRANSACTION_ID}`, mockTransaction);
-            await waitForBatchedUpdates();
-
-            // Action: Add a new split when manual edits exist
-            addSplitExpenseField(mockTransaction, mockTransaction, undefined);
-            await waitForBatchedUpdates();
-
-            // Verify: New split should start at 0, not incorrectly redistributed
-            const draftTransaction = await new Promise<OnyxEntry<Transaction>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${ORIGINAL_TRANSACTION_ID}`,
-                    callback: (value) => {
-                        Onyx.disconnect(connection);
-                        resolve(value);
-                    },
-                });
-            });
-
-            const splitExpenses = draftTransaction?.comment?.splitExpenses ?? [];
-            expect(splitExpenses.length).toBe(3);
-
-            // Verify split 1 is still -2000 and marked as edited
-            const split1 = splitExpenses.find((s) => s.transactionID === 'split1');
-            expect(split1?.amount).toBe(-2000);
-            expect(split1?.isManuallyEdited).toBe(true);
-
-            // New split should start at 0 (not auto-redistributed)
-            const newSplit = splitExpenses.find((s) => s.transactionID !== 'split1' && s.transactionID !== 'split2');
-            expect(newSplit?.amount).toBe(0);
-            expect(newSplit?.isManuallyEdited).toBe(false);
-
-            // Split2 should remain unchanged at 1000
-            const split2 = splitExpenses.find((s) => s.transactionID === 'split2');
-            expect(split2?.amount).toBe(1000);
-
-            // Total will not match original (user needs to manually adjust)
-            const totalAmount = splitExpenses.reduce((sum, split) => sum + split.amount, 0);
-            expect(totalAmount).toBe(-1000); // -2000 + 1000 + 0
-        });
-
-        it('should auto-redistribute when adding a split with no manual edits', async () => {
-            // Setup: 2 unedited splits at $5/$5
-            const initialSplits = [createSplitExpense('split1', 500, false), createSplitExpense('split2', 500, false)];
-
-            const mockTransaction = createMockDraftTransaction(initialSplits);
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${ORIGINAL_TRANSACTION_ID}`, mockTransaction);
-            await waitForBatchedUpdates();
-
-            // Action: Add a new split (no manual edits exist)
-            addSplitExpenseField(mockTransaction, mockTransaction, undefined);
-            await waitForBatchedUpdates();
-
-            // Verify: Should redistribute evenly to ~$3.33 each
-            const draftTransaction = await new Promise<OnyxEntry<Transaction>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${ORIGINAL_TRANSACTION_ID}`,
-                    callback: (value) => {
-                        Onyx.disconnect(connection);
-                        resolve(value);
-                    },
-                });
-            });
-
-            const splitExpenses = draftTransaction?.comment?.splitExpenses ?? [];
-            expect(splitExpenses.length).toBe(3);
-
-            // All splits should be redistributed evenly to ~$3.33 each
-            const amounts = splitExpenses.map((s) => s.amount).sort((a, b) => a - b);
-            expect(amounts).toEqual([333, 333, 334]);
-
-            // All splits should be unedited
-            expect(splitExpenses.every((split) => !split.isManuallyEdited)).toBe(true);
-
-            // Total should equal original amount
+            // Verify total matches
             const totalAmount = splitExpenses.reduce((sum, split) => sum + split.amount, 0);
             expect(totalAmount).toBe(TOTAL_AMOUNT);
+        });
+
+        it('should keep new split at 0 when existing splits sum to total', async () => {
+            // Setup: Total -$10.00, splits already sum to -$10.00
+            const total = -1000;
+            const initialSplits = [
+                createSplitExpense('split1', -500), // -$5.00
+                createSplitExpense('split2', -500), // -$5.00 = -$10.00 total
+            ];
+
+            const mockTransaction = createMockDraftTransaction(initialSplits, total);
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${ORIGINAL_TRANSACTION_ID}`, mockTransaction);
+            await waitForBatchedUpdates();
+
+            // Action: Add new split
+            addSplitExpenseField(mockTransaction, mockTransaction, undefined);
+            await waitForBatchedUpdates();
+
+            // Verify: New split should stay at 0 (not redistributed)
+            const draftTransaction = await new Promise<OnyxEntry<Transaction>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${ORIGINAL_TRANSACTION_ID}`,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+
+            const splitExpenses = draftTransaction?.comment?.splitExpenses ?? [];
+            expect(splitExpenses.length).toBe(3);
+
+            // Original splits unchanged
+            expect(splitExpenses.at(0)?.amount).toBe(-500);
+            expect(splitExpenses.at(1)?.amount).toBe(-500);
+
+            // New split is 0, not redistributed
+            expect(splitExpenses.at(2)?.amount).toBe(0);
+            expect(splitExpenses.at(2)?.isManuallyEdited).toBe(false);
+
+            // Total should be -$10.00 + $0 = -$10.00 (unchanged)
+            const totalAmount = splitExpenses.reduce((sum, split) => sum + split.amount, 0);
+            expect(totalAmount).toBe(-1000);
+        });
+
+        it('should redistribute when existing splits do not sum to total', async () => {
+            // Setup: Total -$10.00, splits sum to -$8.00 (don't match)
+            const total = -1000; // -$10.00
+            const initialSplits = [
+                createSplitExpense('split1', -300), // -$3.00
+                createSplitExpense('split2', -500), // -$5.00 = -$8.00 total (mismatch!)
+            ];
+
+            const mockTransaction = createMockDraftTransaction(initialSplits, total);
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${ORIGINAL_TRANSACTION_ID}`, mockTransaction);
+            await waitForBatchedUpdates();
+
+            // Action: Add new split
+            addSplitExpenseField(mockTransaction, mockTransaction, undefined);
+            await waitForBatchedUpdates();
+
+            // Verify: All unedited splits should be redistributed
+            const draftTransaction = await new Promise<OnyxEntry<Transaction>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${ORIGINAL_TRANSACTION_ID}`,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+
+            const splitExpenses = draftTransaction?.comment?.splitExpenses ?? [];
+            expect(splitExpenses.length).toBe(3);
+
+            // All splits redistributed to sum to -$10.00
+            const amounts = splitExpenses.map((s) => s.amount).sort((a, b) => a - b);
+            expect(amounts).toEqual([-334, -333, -333]); // -$3.34, -$3.33, -$3.33
+
+            // Total matches -$10.00
+            const totalAmount = splitExpenses.reduce((sum, split) => sum + split.amount, 0);
+            expect(totalAmount).toBe(-1000);
         });
     });
 
