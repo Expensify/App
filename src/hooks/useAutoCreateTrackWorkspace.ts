@@ -122,6 +122,7 @@ function useAutoCreateTrackWorkspace() {
             session?.email,
             session?.accountID,
             lastWorkspaceNumber,
+            translate,
             formatPhoneNumber,
             isRestrictedPolicyCreation,
             onboardingPolicyID,
