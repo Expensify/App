@@ -1,4 +1,4 @@
-import {agentZeroProcessingIndicatorSelector} from '@selectors/ReportNameValuePairs';
+import agentZeroProcessingIndicatorSelector from '@selectors/ReportNameValuePairs';
 import React, {createContext, useContext, useEffect, useRef, useState} from 'react';
 import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
