@@ -7305,6 +7305,7 @@ const CONST = {
 
     PNR_STATUS: {
         CANCELLED: 'CANCELLED',
+        CANCELLED_STATUS: 'CANCELLED_STATUS',
         VOIDED: 'VOIDED',
     },
 
