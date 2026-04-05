@@ -36,4 +36,16 @@ describe('useSyncFocus', () => {
         // Then the ref focus will be called.
         expect(refMock.current.focus).toHaveBeenCalled();
     });
+
+    it("doesn't steal focus from another already-focused element", () => {
+        const refMock = {current: {focus: jest.fn()}};
+        const activeButton = document.createElement('button');
+        document.body.appendChild(activeButton);
+        activeButton.focus();
+
+        renderHook(() => useSyncFocus(refMock as unknown as RefObject<View>, true, true));
+
+        expect(document.activeElement).toBe(activeButton);
+        expect(refMock.current.focus).not.toHaveBeenCalled();
+    });
 });

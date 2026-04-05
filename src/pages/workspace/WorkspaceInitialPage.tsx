@@ -186,7 +186,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const shouldShowNavigationTabBar = !shouldShowNotFoundPage;
 
     const fetchPolicyData = () => {
-        if (policyDraft?.id) {
+        if (policyDraft?.id || !isFocused) {
             return;
         }
         openPolicyInitialPage(route.params.policyID);
@@ -478,6 +478,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                                     wrapperStyle={styles.sectionMenuItem(shouldUseNarrowLayout)}
                                     highlighted={!!item?.highlighted}
                                     focused={!!(item.screenName && activeRoute?.startsWith(item.screenName))}
+                                    role={CONST.ROLE.TAB}
                                     badgeText={item.badgeText}
                                     shouldIconUseAutoWidthStyle
                                     sentryLabel={item.sentryLabel}

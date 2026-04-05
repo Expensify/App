@@ -986,6 +986,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 title: ({cardName}: {cardName?: string}) => (cardName ? `Corrigir conexão do cartão pessoal ${cardName}` : 'Corrigir conexão do cartão pessoal'),
                 subtitle: 'Carteira',
             },
+            validateAccount: {title: 'Valide sua conta para continuar usando o Expensify', subtitle: 'Conta', cta: 'Validar'},
         },
         assignedCards: 'Seus Cartões Expensify',
         assignedCardsRemaining: ({amount}: {amount: string}) => `${amount} restante`,
@@ -5359,10 +5360,6 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 removeCardFeed: 'Remover feed do cartão',
                 removeCardFeedTitle: (feedName: string) => `Remover feed ${feedName}`,
                 removeCardFeedDescription: 'Tem certeza de que deseja remover este feed de cartão? Isso removerá a atribuição de todos os cartões.',
-                assignNewCards: 'Atribuir novos cartões',
-                assignNewCardsDescription: 'Obtenha os cartões mais recentes do seu banco para atribuir',
-                refreshConnectionSuccess: 'Conexão atualizada',
-                refreshConnectionSuccessDescription: 'Sua conexão bancária foi reautenticada com sucesso. Agora você pode atribuir novos cartões.',
                 error: {
                     feedNameRequired: 'O nome do feed do cartão é obrigatório',
                     statementCloseDateRequired: 'Selecione uma data de fechamento do extrato.',
@@ -7794,11 +7791,13 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT]: {
             buttonText: 'Inicie um chat, <success><strong>indique um amigo</strong></success>.',
             header: 'Inicie um chat, indique um amigo',
+            closeAccessibilityLabel: 'Fechar, iniciar um chat, indicar um amigo, banner',
             body: 'Quer que seus amigos também usem o Expensify? É só começar um chat com eles e nós cuidamos do resto.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE]: {
             buttonText: 'Envie uma despesa, <success><strong>indique sua equipe</strong></success>.',
             header: 'Envie uma despesa, indique sua equipe',
+            closeAccessibilityLabel: 'Fechar, enviar uma despesa, indicar sua equipe, banner',
             body: 'Quer que sua equipe também use o Expensify? Basta enviar uma despesa para eles e nós cuidaremos do resto.',
         },
         [CONST.REFERRAL_PROGRAM.CONTENT_TYPES.REFER_FRIEND]: {

@@ -633,7 +633,10 @@ function MenuItem({
         if (!title || !shouldParseTitle) {
             return '';
         }
-        return Parser.replace(title, {shouldEscapeText, disabledRules: excludedMarkdownRules});
+        return Parser.replace(title, {
+            shouldEscapeText,
+            disabledRules: excludedMarkdownRules,
+        });
     }, [title, shouldParseTitle, shouldEscapeText, excludedMarkdownRules]);
 
     const helperHtml = useMemo(() => {
@@ -744,6 +747,20 @@ function MenuItem({
         enhancedAccessibilityLabel = `${enhancedAccessibilityLabel}. ${translate('common.opensInNewTab')}`;
     }
 
+    // When interactive={false}, don't pass onPress to allow events to bubble to parent wrapper.
+    // This is critical for components like ApprovalWorkflowSection where outer PressableWithoutFeedback
+    // handles all clicks and inner MenuItems are display-only.
+    const getResolvedOnPress = () => {
+        if (!interactive) {
+            return undefined;
+        }
+        if (shouldCheckActionAllowedOnPress) {
+            return callFunctionIfActionIsAllowed(onPressAction, isAnonymousAction);
+        }
+        return onPressAction;
+    };
+    const resolvedOnPress = getResolvedOnPress();
+
     return (
         <View
             style={rootWrapperStyle}
@@ -769,7 +786,7 @@ function MenuItem({
                     <Hoverable isFocused={isFocused}>
                         {(isHovered) => (
                             <PressableWithSecondaryInteraction
-                                onPress={shouldCheckActionAllowedOnPress ? callFunctionIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction}
+                                onPress={resolvedOnPress}
                                 onPressIn={() => shouldBlockSelection && shouldUseNarrowLayout && canUseTouchScreen() && ControlSelection.block()}
                                 onPressOut={ControlSelection.unblock}
                                 onSecondaryInteraction={copyable && !deviceHasHoverSupport ? secondaryInteraction : onSecondaryInteraction}
@@ -797,6 +814,7 @@ function MenuItem({
                                 role={interactive ? role : undefined}
                                 accessibilityLabel={`${enhancedAccessibilityLabel}${brickRoadIndicator ? `. ${translate('common.yourReviewIsRequired')}` : ''}`}
                                 accessible={shouldBeAccessible}
+                                accessibilityState={role === CONST.ROLE.TAB ? {selected: focused} : undefined}
                                 tabIndex={interactive ? tabIndex : -1}
                                 onFocus={onFocus}
                                 sentryLabel={sentryLabel}
@@ -946,7 +964,9 @@ function MenuItem({
                                                                     <Text
                                                                         style={combinedTitleTextStyle}
                                                                         numberOfLines={numberOfLinesTitle || undefined}
-                                                                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: interactive && disabled}}
+                                                                        dataSet={{
+                                                                            [CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: interactive && disabled,
+                                                                        }}
                                                                         accessibilityRole={titleAccessibilityRole}
                                                                     >
                                                                         {renderTitleContent()}

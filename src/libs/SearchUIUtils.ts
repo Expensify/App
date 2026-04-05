@@ -496,6 +496,7 @@ type GetSectionsParams = {
     allTransactionViolations?: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     visibleReportActionsData?: OnyxTypes.VisibleReportActionsDerivedValue;
     allReportMetadata: OnyxCollection<OnyxTypes.ReportMetadata>;
+    conciergeReportID: string | undefined;
     onyxPersonalDetailsList?: OnyxTypes.PersonalDetailsList;
 };
 
@@ -2025,6 +2026,7 @@ function getActions(
 function getTaskSections(
     data: OnyxTypes.SearchResults['data'],
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    conciergeReportID: string | undefined,
     archivedReportsIDList?: ArchivedReportsIDSet,
 ): [TaskListItemType[], number] {
     const {shouldShowYearCreated} = shouldShowYear(data);
@@ -2064,7 +2066,7 @@ function getTaskSections(
                 const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${parentReport.policyID}`];
                 const isParentReportArchived = archivedReportsIDList?.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${parentReport?.reportID}`);
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
-                const parentReportName = getReportName({report: parentReport, policy, isReportArchived: isParentReportArchived});
+                const parentReportName = getReportName({report: parentReport, policy, isReportArchived: isParentReportArchived, conciergeReportID});
                 const icons = getIcons(parentReport, formatPhoneNumber, personalDetails, null, '', -1, policy, undefined, isParentReportArchived);
                 const parentReportIcon = icons?.at(0);
 
@@ -2919,13 +2921,14 @@ function getSections({
     visibleReportActionsData,
     allReportMetadata,
     cardList,
+    conciergeReportID,
     onyxPersonalDetailsList,
 }: GetSectionsParams) {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return getReportActionsSections(data, visibleReportActionsData);
     }
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
-        return getTaskSections(data, formatPhoneNumber, archivedReportsIDList);
+        return getTaskSections(data, formatPhoneNumber, conciergeReportID, archivedReportsIDList);
     }
 
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
@@ -3356,8 +3359,8 @@ function getSortedReportData(
         // When sorting by total, apply the backend logic:
         // IOU reports have positive amounts, expense reports have negative amounts
         if (sortingProperty === 'total' && typeof aValue === 'number' && typeof bValue === 'number') {
-            aValue = a.type === CONST.REPORT.TYPE.IOU ? aValue : -(aValue as number);
-            bValue = b.type === CONST.REPORT.TYPE.IOU ? bValue : -(bValue as number);
+            aValue = a.type === CONST.REPORT.TYPE.IOU ? aValue : -aValue;
+            bValue = b.type === CONST.REPORT.TYPE.IOU ? bValue : -bValue;
         }
 
         return compareValues(aValue, bValue, sortOrder, sortingProperty, localeCompare);

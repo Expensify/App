@@ -30,6 +30,13 @@ const useSyncFocusImplementation = (ref: RefObject<View | HTMLElement | null>, i
             return;
         }
 
+        // Don't steal focus from already-focused interactive elements
+        // This preserves focus restoration from NavigationFocusManager
+        const activeElement = document.activeElement;
+        if (activeElement && activeElement !== document.body && activeElement !== document.documentElement && activeElement !== ref.current) {
+            return;
+        }
+
         ref.current?.focus({preventScroll: true});
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [didScreenTransitionEnd, isFocused, ref]);

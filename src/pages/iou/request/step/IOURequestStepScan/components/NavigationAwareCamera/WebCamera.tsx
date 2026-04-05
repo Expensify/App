@@ -22,7 +22,7 @@ function WebCamera({itemRef, ref, ...props}: NavigationAwareCameraProps) {
             <Webcam
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
-                onResize={() => setIsInitialized(true)}
+                onUserMedia={() => setIsInitialized(true)}
                 ref={ref as unknown as ForwardedRef<Webcam>}
             />
         </View>

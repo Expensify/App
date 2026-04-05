@@ -111,7 +111,7 @@ describe('PureReportActionItem', () => {
                                 linkedReport={undefined}
                                 iouReportOfLinkedReport={undefined}
                                 currentUserAccountID={ACTOR_ACCOUNT_ID}
-                                allTransactionDrafts={undefined}
+                                draftTransactionIDs={[]}
                                 userBillingGraceEndPeriods={undefined}
                             />
                         </PortalProvider>
@@ -336,7 +336,7 @@ describe('PureReportActionItem', () => {
                                     iouReportOfLinkedReport={undefined}
                                     reportMetadata={reportMetadata}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
-                                    allTransactionDrafts={undefined}
+                                    draftTransactionIDs={[]}
                                     userBillingGraceEndPeriods={undefined}
                                 />
                             </PortalProvider>
@@ -393,7 +393,7 @@ describe('PureReportActionItem', () => {
                                     linkedReport={undefined}
                                     iouReportOfLinkedReport={undefined}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
-                                    allTransactionDrafts={undefined}
+                                    draftTransactionIDs={[]}
                                     userBillingGraceEndPeriods={undefined}
                                 />
                             </PortalProvider>
@@ -462,7 +462,7 @@ describe('PureReportActionItem', () => {
                                     linkedReport={undefined}
                                     iouReportOfLinkedReport={undefined}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
-                                    allTransactionDrafts={undefined}
+                                    draftTransactionIDs={[]}
                                     userBillingGraceEndPeriods={undefined}
                                 />
                             </PortalProvider>
@@ -526,7 +526,7 @@ describe('PureReportActionItem', () => {
                                     linkedReport={undefined}
                                     iouReportOfLinkedReport={undefined}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
-                                    allTransactionDrafts={undefined}
+                                    draftTransactionIDs={[]}
                                     userBillingGraceEndPeriods={undefined}
                                 />
                             </PortalProvider>
@@ -576,7 +576,7 @@ describe('PureReportActionItem', () => {
                                     linkedReport={undefined}
                                     iouReportOfLinkedReport={undefined}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
-                                    allTransactionDrafts={undefined}
+                                    draftTransactionIDs={[]}
                                     modifiedExpenseMessage={modifiedExpenseMessage}
                                     userBillingGraceEndPeriods={undefined}
                                 />
