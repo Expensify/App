@@ -4758,7 +4758,7 @@ function canEditMoneyRequest(
         return true;
     }
 
-    // Allow workflow approvers to edit OPEN expense reports
+    // Allow workflow approvers to edit OPEN expense reports (excludes rule-based approvers who lack pre-submission access).
     if (isExpenseReport(moneyRequestReport) && isOpenReport(moneyRequestReport) && deprecatedCurrentUserAccountID === getManagerAccountID(reportPolicy, moneyRequestReport)) {
         return true;
     }
@@ -4986,6 +4986,7 @@ function canEditFieldOfMoneyRequest({
     const isAdmin = isExpenseReport(moneyRequestReport) && reportPolicy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = isExpenseReport(moneyRequestReport) && deprecatedCurrentUserAccountID === moneyRequestReport?.managerID;
     const isRequestor = deprecatedCurrentUserAccountID === reportAction?.actorAccountID;
+    // Workflow approvers only — excludes rule-based approvers who lack pre-submission access.
     const isApprover = isExpenseReport(moneyRequestReport) && isOpenReport(moneyRequestReport) && deprecatedCurrentUserAccountID === getManagerAccountID(reportPolicy, moneyRequestReport);
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.REIMBURSABLE) {
@@ -6994,7 +6995,6 @@ function buildOptimisticEmptyReport(
     betas: OnyxEntry<Beta[]>,
 ) {
     const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy, betas, true);
-    const managerID = getManagerAccountID(policy, {ownerAccountID: accountID});
     const optimisticEmptyReport: OptimisticNewReport = {
         reportName: '',
         reportID,
@@ -7013,7 +7013,7 @@ function buildOptimisticEmptyReport(
         parentReportID: parentReport?.reportID,
         parentReportActionID,
         chatReportID: parentReport?.reportID,
-        managerID,
+        managerID: getManagerAccountID(policy, {ownerAccountID: accountID}),
     };
 
     // Compute optimistic report name if applicable
