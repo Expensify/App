@@ -4,13 +4,13 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
-import type {RenderItemParams} from 'react-native-draggable-flatlist/lib/typescript/types';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import DistanceRequestFooter from '@components/DistanceRequest/DistanceRequestFooter';
 import DistanceRequestRenderItem from '@components/DistanceRequest/DistanceRequestRenderItem';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import DraggableList from '@components/DraggableList';
+import type {DraggableListRenderItemParams} from '@components/DraggableList/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
@@ -506,7 +506,7 @@ function IOURequestStepDistanceMap({
     ]);
 
     const renderItem = useCallback(
-        ({item, drag, isActive, getIndex}: RenderItemParams<string>) => {
+        ({item, drag, isActive, getIndex, isKeyboardMoving}: DraggableListRenderItemParams<string>) => {
             const index = getIndex?.();
             const sentryLabel = index === 0 ? CONST.SENTRY_LABEL.IOU_REQUEST_STEP.WAYPOINT_START_MENU_ITEM : CONST.SENTRY_LABEL.IOU_REQUEST_STEP.WAYPOINT_STOP_MENU_ITEM;
             return (
@@ -516,7 +516,7 @@ function IOURequestStepDistanceMap({
                     onSecondaryInteraction={drag}
                     isActive={isActive}
                     getIndex={getIndex}
-                    onPress={navigateToWaypointEditPage}
+                    onPress={isKeyboardMoving ? undefined : navigateToWaypointEditPage}
                     disabled={isLoadingRoute}
                     sentryLabel={sentryLabel}
                 />

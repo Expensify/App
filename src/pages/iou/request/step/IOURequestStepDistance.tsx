@@ -4,13 +4,13 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
-import type {RenderItemParams} from 'react-native-draggable-flatlist/lib/typescript/types';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import DistanceRequestFooter from '@components/DistanceRequest/DistanceRequestFooter';
 import DistanceRequestRenderItem from '@components/DistanceRequest/DistanceRequestRenderItem';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import DraggableList from '@components/DraggableList';
+import type {DraggableListRenderItemParams} from '@components/DraggableList/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
@@ -521,14 +521,14 @@ function IOURequestStepDistance({
     ]);
 
     const renderItem = useCallback(
-        ({item, drag, isActive, getIndex}: RenderItemParams<string>) => (
+        ({item, drag, isActive, getIndex, isKeyboardMoving}: DraggableListRenderItemParams<string>) => (
             <DistanceRequestRenderItem
                 waypoints={waypoints}
                 item={getWaypointKey(item)}
                 onSecondaryInteraction={drag}
                 isActive={isActive}
                 getIndex={getIndex}
-                onPress={navigateToWaypointEditPage}
+                onPress={isKeyboardMoving ? undefined : navigateToWaypointEditPage}
                 disabled={isLoadingRoute}
             />
         ),
