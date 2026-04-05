@@ -1,8 +1,6 @@
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {Route} from '@src/ROUTES';
-import findMatchingDynamicSuffix from './findMatchingDynamicSuffix';
-import getPathWithoutDynamicSuffix from './getPathWithoutDynamicSuffix';
 import isDynamicRouteSuffix from './isDynamicRouteSuffix';
 import splitPathAndQuery from './splitPathAndQuery';
 
@@ -64,12 +62,7 @@ const createDynamicRoute = (dynamicRouteSuffixWithParams: string): Route => {
         throw new Error(`The route name ${suffixPath} is not supported in createDynamicRoute`);
     }
 
-    let activeRoute = Navigation.getActiveRoute();
-    const existingDynamicSuffix = findMatchingDynamicSuffix(activeRoute);
-    if (existingDynamicSuffix) {
-        activeRoute = getPathWithoutDynamicSuffix(activeRoute, existingDynamicSuffix);
-    }
-
+    const activeRoute = Navigation.getActiveRoute();
     return combinePathAndSuffix(activeRoute, dynamicRouteSuffixWithParams);
 };
 
