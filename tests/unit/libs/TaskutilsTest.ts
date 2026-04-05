@@ -30,7 +30,7 @@ describe('TaskUtils', () => {
         });
 
         it('returns false when getActiveRoute returns undefined', () => {
-            mockGetActiveRoute.mockReturnValue(undefined);
+            mockGetActiveRoute.mockReturnValue(undefined as unknown as string);
             expect(isActiveTaskEditRoute('123')).toBe(false);
         });
 
