@@ -68,11 +68,18 @@ type GetReportPreviewSenderIDParams = {
 
 function getReportPreviewSenderID({iouReport, action, chatReport, iouActions, transactions, splits, policy, currentUserAccountID}: GetReportPreviewSenderIDParams): number | undefined {
     const isOptimisticReportPreview = action?.isOptimisticAction && action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && isIOUReport(iouReport);
-
     if (isOptimisticReportPreview) {
         return currentUserAccountID;
     }
+    const loadedTransactionCount = transactions?.length ?? 0;
+    const childMoneyRequestCount = action?.childMoneyRequestCount ?? 0;
 
+    // After refresh, the report preview action can arrive before all child transactions hydrate.
+    // In that partial state, making a single-avatar decision is unsafe because we may only see a subset
+    // of the requests that belong to the preview.
+    if (childMoneyRequestCount > loadedTransactionCount) {
+        return undefined;
+    }
     const transactionActorAccountIDs = transactions?.map((transaction) => getIOUActionForTransactionID(iouActions ?? [], transaction.transactionID)?.actorAccountID);
     const hasActorAccountIDForEachTransaction =
         !!iouActions?.length && !!transactionActorAccountIDs && transactionActorAccountIDs.length > 0 && transactionActorAccountIDs.every((accountID) => accountID !== undefined);
