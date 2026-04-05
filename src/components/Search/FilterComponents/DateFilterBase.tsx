@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -34,6 +34,8 @@ type DateFilterBaseProps = {
     onBackButtonPress?: () => void;
     /** Callback when the filter is submitted with the selected date values */
     onSubmit: (values: SearchDateValues) => void;
+    /** Callback when the filter is reset, used to persist cleared values without triggering navigation */
+    onReset?: (values: SearchDateValues) => void;
     /** Callback when a date value changes (e.g. preset click or calendar save) */
     onDateValuesChange?: (values: SearchDateValues) => void;
     /** Controlled selected date modifier */
@@ -58,6 +60,7 @@ function DateFilterBase({
     isSearchAdvancedFiltersFormLoading,
     onBackButtonPress,
     onSubmit,
+    onReset,
     onDateValuesChange,
     onDateModifierChange,
     shouldShowButtonsOnlyWithDateModifier = false,
@@ -71,6 +74,7 @@ function DateFilterBase({
 
     const normalizedDefaultDateValues = useMemo(() => ({...getEmptyDateValues(), ...defaultDateValues}), [defaultDateValues]);
     const searchDatePresetFilterBaseRef = useRef<SearchDatePresetFilterBaseHandle>(null);
+    const scrollViewRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
     const [selectedDateModifierState, setSelectedDateModifierState] = useState<SearchDateModifier | null>(null);
     const [shouldShowRangeError, setShouldShowRangeError] = useState(false);
     const [rangeDisplayText, setRangeDisplayText] = useState(() =>
@@ -149,6 +153,13 @@ function DateFilterBase({
 
     const computedTitle = getDateModifierTitle(selectedDateModifier, title ?? '', translate);
 
+    useLayoutEffect(() => {
+        if (!shouldShowRangeError || selectedDateModifier !== CONST.SEARCH.DATE_MODIFIERS.RANGE) {
+            return;
+        }
+        scrollViewRef.current?.scrollToEnd({animated: true});
+    }, [selectedDateModifier, shouldShowRangeError]);
+
     const reset = useCallback(() => {
         if (!searchDatePresetFilterBaseRef.current) {
             return;
@@ -156,15 +167,19 @@ function DateFilterBase({
 
         if (selectedDateModifier) {
             searchDatePresetFilterBaseRef.current.clearDateValueOfSelectedDateModifier();
+            const dateValues = searchDatePresetFilterBaseRef.current.getDateValues();
             setSelectedDateModifier(null);
             setShouldShowRangeError(false);
             onDateModifierChange?.(false);
+            onReset?.(dateValues);
             return;
         }
 
         searchDatePresetFilterBaseRef.current.clearDateValues();
+        const dateValues = searchDatePresetFilterBaseRef.current.getDateValues();
         setShouldShowRangeError(false);
-    }, [onDateModifierChange, selectedDateModifier, setSelectedDateModifier]);
+        onReset?.(dateValues);
+    }, [onDateModifierChange, onReset, selectedDateModifier, setSelectedDateModifier]);
 
     const save = useCallback(() => {
         if (!searchDatePresetFilterBaseRef.current) {
@@ -200,6 +215,7 @@ function DateFilterBase({
                 />
             )}
             <ScrollView
+                ref={scrollViewRef}
                 keyboardShouldPersistTaps="handled"
                 contentContainerStyle={[styles.flexGrow1]}
             >
