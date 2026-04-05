@@ -6,7 +6,7 @@ import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import type {MenuItemProps} from '@components/MenuItem';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import {requestMoney} from '@libs/actions/IOU';
+import {requestMoney} from '@libs/actions/IOU/TrackExpense';
 import IOURequestStepConfirmation from '@pages/iou/request/step/IOURequestStepConfirmation';
 import type {IOUAction} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -14,6 +14,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
+import type * as TrackExpense from '../../src/libs/actions/IOU/TrackExpense';
 import createRandomPolicy from '../utils/collections/policies';
 import {signInWithTestUser} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -43,6 +44,13 @@ jest.mock('@libs/actions/IOU', () => {
     return {
         ...jest.requireActual('@libs/actions/IOU'),
         startMoneyRequest: jest.fn(),
+    };
+});
+
+jest.mock('@libs/actions/IOU/TrackExpense', () => {
+    const actual = jest.requireActual<typeof TrackExpense>('@libs/actions/IOU/TrackExpense');
+    return {
+        ...actual,
         requestMoney: jest.fn(() => ({iouReport: undefined})),
     };
 });
@@ -231,8 +239,15 @@ describe('TimeExpenseConfirmationTest', () => {
             renderConfirmation();
             await waitForBatchedUpdatesWithAct();
 
-            const amountRow = screen.getByTestId('menu-item-Amount');
-            expect(within(amountRow).getByText(/\$400\.00/)).toBeDefined();
+            const amountRow = screen.queryByTestId('menu-item-Amount');
+
+            // In the new manual expense flow, amount is rendered as a text input instead of a menu item.
+            if (amountRow) {
+                expect(within(amountRow).getByText(/\$400\.00/)).toBeDefined();
+            } else {
+                const amountInput = screen.getByLabelText('Amount');
+                expect(amountInput.props.value).toBe('400.00');
+            }
         });
     });
 

@@ -1158,12 +1158,78 @@ button {
         box-sizing: border-box;
         display: flex;
         flex-direction: column;
+        position: relative;
 
         &.ai-panel-loading {
             min-height: 320px;
 
             @include breakpoint($breakpoint-tablet) {
                 min-height: 676px;
+            }
+        }
+    }
+
+    .ai-copy-button {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        width: 28px;
+        height: 28px;
+        padding: 0;
+        border: none;
+        border-radius: 50%;
+        background-color: var(--color-row-hover);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        &:hover {
+            background-color: var(--color-button-background-hover);
+        }
+
+        img {
+            width: 12px;
+            height: 12px;
+            display: block;
+        }
+
+        .ai-copy-icon-dark,
+        .ai-checkmark-icon {
+            display: none;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .ai-copy-icon-light {
+                display: none;
+            }
+
+            .ai-copy-icon-dark {
+                display: block;
+            }
+        }
+
+        &.copied {
+            .ai-copy-icon {
+                display: none;
+            }
+
+            .ai-checkmark-icon-light {
+                display: block;
+            }
+
+            .ai-checkmark-icon-dark {
+                display: none;
+            }
+
+            @media (prefers-color-scheme: dark) {
+                .ai-checkmark-icon-light {
+                    display: none;
+                }
+
+                .ai-checkmark-icon-dark {
+                    display: block;
+                }
             }
         }
     }

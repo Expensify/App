@@ -85,7 +85,7 @@ const COLLATOR_OPTIONS: Intl.CollatorOptions = {usage: 'sort', sensitivity: 'var
 
 function LocaleContextProvider({children}: LocaleContextProviderProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [areTranslationsLoading = true] = useOnyx(ONYXKEYS.ARE_TRANSLATIONS_LOADING, {initWithStoredValues: false});
+    const [areTranslationsLoading = true] = useOnyx(ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING);
     const [countryCodeByIP = 1] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [nvpPreferredLocale, nvpPreferredLocaleMetadata] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
     const [currentLocale, setCurrentLocale] = useState<Locale | undefined>(() => IntlStore.getCurrentLocale());
@@ -119,7 +119,14 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
 
         importEmojiLocale(normalizedLocale).then(() => {
             endSpan(CONST.TELEMETRY.SPAN_LOCALE.EMOJI_IMPORT);
+
+            startSpan(CONST.TELEMETRY.SPAN_LOCALE.EMOJI_TRIE_BUILD, {
+                name: CONST.TELEMETRY.SPAN_LOCALE.EMOJI_TRIE_BUILD,
+                op: CONST.TELEMETRY.SPAN_LOCALE.EMOJI_TRIE_BUILD,
+                parentSpan: getSpan(CONST.TELEMETRY.SPAN_APP_STARTUP),
+            });
             buildEmojisTrie(normalizedLocale);
+            endSpan(CONST.TELEMETRY.SPAN_LOCALE.EMOJI_TRIE_BUILD);
         });
     }, [localeToApply, nvpPreferredLocale]);
 
@@ -188,6 +195,7 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
         preferredLocale: currentLocale,
     };
 
+    // eslint-disable-next-line rulesdir/context-provider-split-values
     return <LocaleContext.Provider value={contextValue}>{children}</LocaleContext.Provider>;
 }
 

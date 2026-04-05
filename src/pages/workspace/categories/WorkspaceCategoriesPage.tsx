@@ -5,11 +5,11 @@ import Avatar from '@components/Avatar';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
 import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -22,6 +22,7 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useAutoTurnSelectionModeOffWhenHasNoActiveOption from '@hooks/useAutoTurnSelectionModeOffWhenHasNoActiveOption';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useGenericEmptyStateIllustration from '@hooks/useGenericEmptyStateIllustration';
@@ -37,6 +38,7 @@ import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSearchResults from '@hooks/useSearchResults';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {getCategoryApproverRule, getDecodedCategoryName} from '@libs/CategoryUtils';
@@ -48,6 +50,7 @@ import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isDisablingOrDeletingLastEnabledCategory} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getConnectedIntegration, getCurrentConnectionName, hasAccountingConnections, hasTags, isControlPolicy, shouldShowSyncError} from '@libs/PolicyUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
@@ -70,15 +73,14 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, localeCompare} = useLocalize();
-    const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
-    const [deleteCategoriesConfirmModalVisible, setDeleteCategoriesConfirmModalVisible] = useState(false);
-    const [isCannotDeleteOrDisableLastCategoryModalVisible, setIsCannotDeleteOrDisableLastCategoryModalVisible] = useState(false);
+    const {showConfirmModal} = useConfirmModal();
     const {environmentURL} = useEnvironment();
     const {backTo, policyID: policyId} = route.params;
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const policyData = usePolicyData(policyId);
     const {policy, categories: policyCategories} = policyData;
+    useWorkspaceDocumentTitle(policy?.name, 'workspace.common.categories');
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
     const hasSyncError = shouldShowSyncError(policy, isSyncInProgress);
@@ -92,7 +94,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const canSelectMultiple = isSmallScreenWidth ? isMobileSelectionModeEnabled : true;
     const isControlPolicyWithWideLayout = !shouldUseNarrowLayout && isControlPolicy(policy);
     const shouldShowApproverColumn = isControlPolicyWithWideLayout && !!policy?.areRulesEnabled;
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close', 'Download', 'Gear', 'Plus', 'Table', 'Trashcan'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close', 'Download', 'Gear', 'Plus', 'Table', 'Trashcan']);
     const illustrations = useMemoizedLazyIllustrations(['FolderOpen']);
     const genericIllustration = useGenericEmptyStateIllustration();
 
@@ -162,6 +164,16 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         onClearSelection: () => setSelectedCategories([]),
         onNavigationCallBack: () => Navigation.goBack(backTo),
     });
+
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const showCannotDeleteOrDisableLastCategoryModal = useCallback(() => {
+        showConfirmModal({
+            title: translate('workspace.categories.cannotDeleteOrDisableAllCategories.title'),
+            prompt: translate('workspace.categories.cannotDeleteOrDisableAllCategories.description'),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+        });
+    }, [showConfirmModal, translate]);
 
     const updateWorkspaceCategoryEnabled = useCallback(
         (value: boolean, categoryName: string) => {
@@ -262,7 +274,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                                 accessibilityLabel={`${translate('workspace.categories.enableCategory')}: ${getDecodedCategoryName(value.name)}`}
                                 onToggle={(newValue: boolean) => {
                                     if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value])) {
-                                        setIsCannotDeleteOrDisableLastCategoryModalVisible(true);
+                                        showCannotDeleteOrDisableLastCategoryModal();
                                         return;
                                     }
                                     updateWorkspaceCategoryEnabled(newValue, value.name);
@@ -278,7 +290,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         accessibilityLabel={`${translate('workspace.categories.enableCategory')}: ${getDecodedCategoryName(value.name)}`}
                         onToggle={(newValue: boolean) => {
                             if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value])) {
-                                setIsCannotDeleteOrDisableLastCategoryModalVisible(true);
+                                showCannotDeleteOrDisableLastCategoryModal();
                                 return;
                             }
                             updateWorkspaceCategoryEnabled(newValue, value.name);
@@ -291,6 +303,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             return acc;
         }, []);
     }, [
+        showCannotDeleteOrDisableLastCategoryModal,
         policyCategories,
         isOffline,
         translate,
@@ -412,7 +425,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 parentReportAction,
             );
         }
-        setDeleteCategoriesConfirmModalVisible(false);
 
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
@@ -423,9 +435,20 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const policyHasAccountingConnections = hasAccountingConnections(policy);
 
+    const showOfflineModal = useCallback(() => {
+        close(() => {
+            showConfirmModal({
+                title: translate('common.youAppearToBeOffline'),
+                prompt: translate('common.thisFeatureRequiresInternet'),
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+            });
+        });
+    }, [showConfirmModal, translate]);
+
     const navigateToImportSpreadsheet = useCallback(() => {
         if (isOffline) {
-            close(() => setIsOfflineModalVisible(true));
+            showOfflineModal();
             return;
         }
         Navigation.navigate(
@@ -433,7 +456,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 ? ROUTES.SETTINGS_CATEGORIES_IMPORT.getRoute(policyId, ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyId, backTo))
                 : ROUTES.WORKSPACE_CATEGORIES_IMPORT.getRoute(policyId),
         );
-    }, [backTo, isOffline, isQuickSettingsFlow, policyId]);
+    }, [backTo, isOffline, isQuickSettingsFlow, policyId, showOfflineModal]);
 
     const secondaryActions = useMemo(() => {
         const menuItems = [];
@@ -457,7 +480,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 text: translate('spreadsheet.downloadCSV'),
                 onSelected: () => {
                     if (isOffline) {
-                        close(() => setIsOfflineModalVisible(true));
+                        showOfflineModal();
                         return;
                     }
                     close(() => {
@@ -476,6 +499,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
         return menuItems;
     }, [
+        showOfflineModal,
         icons.Download,
         icons.Gear,
         icons.Table,
@@ -499,13 +523,22 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     icon: icons.Trashcan,
                     text: translate(selectedCategories.length === 1 ? 'workspace.categories.deleteCategory' : 'workspace.categories.deleteCategories'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
-                    onSelected: () => {
+                    onSelected: async () => {
                         if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, selectedCategoriesObject)) {
-                            setIsCannotDeleteOrDisableLastCategoryModalVisible(true);
+                            showCannotDeleteOrDisableLastCategoryModal();
                             return;
                         }
 
-                        setDeleteCategoriesConfirmModalVisible(true);
+                        const {action} = await showConfirmModal({
+                            title: translate(selectedCategories.length === 1 ? 'workspace.categories.deleteCategory' : 'workspace.categories.deleteCategories'),
+                            prompt: translate(selectedCategories.length === 1 ? 'workspace.categories.deleteCategoryPrompt' : 'workspace.categories.deleteCategoriesPrompt'),
+                            confirmText: translate('common.delete'),
+                            cancelText: translate('common.cancel'),
+                            danger: true,
+                        });
+                        if (action === ModalActions.CONFIRM) {
+                            handleDeleteCategories();
+                        }
                     },
                 });
             }
@@ -527,7 +560,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
                     onSelected: () => {
                         if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, selectedCategoriesObject)) {
-                            setIsCannotDeleteOrDisableLastCategoryModalVisible(true);
+                            showCannotDeleteOrDisableLastCategoryModal();
                             return;
                         }
                         setSelectedCategories([]);
@@ -631,6 +664,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     };
 
     const isLoading = !isOffline && policyCategories === undefined;
+    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'WorkspaceCategoriesPage', isOffline, isPolicyCategoriesUndefined: policyCategories === undefined};
 
     useEffect(() => {
         if (isMobileSelectionModeEnabled) {
@@ -684,6 +718,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
+                shouldEnableMaxHeight
                 style={[styles.defaultModalContainer]}
                 testID="WorkspaceCategoriesPage"
                 shouldShowOfflineIndicatorInWideScreen
@@ -712,22 +747,13 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 >
                     {!shouldUseNarrowLayout && getHeaderButtons()}
                 </HeaderWithBackButton>
-                <ConfirmModal
-                    isVisible={deleteCategoriesConfirmModalVisible}
-                    onConfirm={handleDeleteCategories}
-                    onCancel={() => setDeleteCategoriesConfirmModalVisible(false)}
-                    title={translate(selectedCategories.length === 1 ? 'workspace.categories.deleteCategory' : 'workspace.categories.deleteCategories')}
-                    prompt={translate(selectedCategories.length === 1 ? 'workspace.categories.deleteCategoryPrompt' : 'workspace.categories.deleteCategoriesPrompt')}
-                    confirmText={translate('common.delete')}
-                    cancelText={translate('common.cancel')}
-                    danger
-                />
                 {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
                 {(!hasVisibleCategories || isLoading) && headerContent}
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={[styles.flex1]}
+                        reasonAttributes={reasonAttributes}
                     />
                 )}
                 {hasVisibleCategories && !isLoading && (
@@ -780,25 +806,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         />
                     </ScrollView>
                 )}
-                <ConfirmModal
-                    isVisible={isCannotDeleteOrDisableLastCategoryModalVisible}
-                    onConfirm={() => setIsCannotDeleteOrDisableLastCategoryModalVisible(false)}
-                    onCancel={() => setIsCannotDeleteOrDisableLastCategoryModalVisible(false)}
-                    title={translate('workspace.categories.cannotDeleteOrDisableAllCategories.title')}
-                    prompt={translate('workspace.categories.cannotDeleteOrDisableAllCategories.description')}
-                    confirmText={translate('common.buttonConfirm')}
-                    shouldShowCancelButton={false}
-                />
-                <ConfirmModal
-                    isVisible={isOfflineModalVisible}
-                    onConfirm={() => setIsOfflineModalVisible(false)}
-                    title={translate('common.youAppearToBeOffline')}
-                    prompt={translate('common.thisFeatureRequiresInternet')}
-                    confirmText={translate('common.buttonConfirm')}
-                    shouldShowCancelButton={false}
-                    onCancel={() => setIsOfflineModalVisible(false)}
-                    shouldHandleNavigationBack
-                />
                 <DecisionModal
                     title={translate('common.downloadFailedTitle')}
                     prompt={translate('common.downloadFailedDescription')}

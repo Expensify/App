@@ -1,4 +1,5 @@
 import {Image} from 'expo-image';
+import type {ImageProps as ExpoImageProps} from 'expo-image';
 import React, {useEffect, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import type {ImageSourcePropType} from 'react-native';
@@ -58,7 +59,7 @@ function BackgroundImage({width}: BackgroundImageProps) {
                 source={MobileBackgroundImage as ImageSourcePropType}
                 onLoadEnd={() => setOpacityAnimation()}
                 pointerEvents="none"
-                style={[styles.signInBackground, StyleUtils.getWidthStyle(width)]}
+                style={[styles.signInBackground, StyleUtils.getWidthStyle(width) as ExpoImageProps['style']]}
                 transition={CONST.BACKGROUND_IMAGE_TRANSITION_DURATION}
             />
         </Reanimated.View>

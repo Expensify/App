@@ -16,24 +16,7 @@ import {PressableWithFeedback} from '@components/Pressable';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
 import type {SearchColumnType, SearchGroupBy, SearchQueryJSON, SelectedTransactions} from '@components/Search/types';
-import type ChatListItem from '@components/SelectionListWithSections/ChatListItem';
-import type TaskListItem from '@components/SelectionListWithSections/Search/TaskListItem';
-import type TransactionGroupListItem from '@components/SelectionListWithSections/Search/TransactionGroupListItem';
-import type TransactionListItem from '@components/SelectionListWithSections/Search/TransactionListItem';
-import type {
-    ExtendedTargetedEvent,
-    ReportActionListItemType,
-    TaskListItemType,
-    TransactionCardGroupListItemType,
-    TransactionCategoryGroupListItemType,
-    TransactionGroupListItemType,
-    TransactionListItemType,
-    TransactionMerchantGroupListItemType,
-    TransactionMonthGroupListItemType,
-    TransactionQuarterGroupListItemType,
-    TransactionWeekGroupListItemType,
-    TransactionYearGroupListItemType,
-} from '@components/SelectionListWithSections/types';
+import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
 import Text from '@components/Text';
 import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -55,6 +38,23 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction, TransactionViolations} from '@src/types/onyx';
 import BaseSearchList from './BaseSearchList';
+import type ChatListItem from './ListItem/ChatListItem';
+import type TaskListItem from './ListItem/TaskListItem';
+import type TransactionGroupListItem from './ListItem/TransactionGroupListItem';
+import type TransactionListItem from './ListItem/TransactionListItem';
+import type {
+    ReportActionListItemType,
+    TaskListItemType,
+    TransactionCardGroupListItemType,
+    TransactionCategoryGroupListItemType,
+    TransactionGroupListItemType,
+    TransactionListItemType,
+    TransactionMerchantGroupListItemType,
+    TransactionMonthGroupListItemType,
+    TransactionQuarterGroupListItemType,
+    TransactionWeekGroupListItemType,
+    TransactionYearGroupListItemType,
+} from './ListItem/types';
 
 const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0);
 
@@ -125,12 +125,6 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
 
     /** Custom card names */
     customCardNames?: Record<number, string>;
-
-    /** Callback to fire when DEW modal should be opened */
-    onDEWModalOpen?: () => void;
-
-    /** Whether the DEW beta flag is enabled */
-    isDEWBetaEnabled?: boolean;
 
     /** Selected transactions for determining isSelected state */
     selectedTransactions: SelectedTransactions;
@@ -220,8 +214,6 @@ function SearchList({
     newTransactions = [],
     violations,
     customCardNames,
-    onDEWModalOpen,
-    isDEWBetaEnabled,
     selectedTransactions,
     hasLoadedAllTransactions,
     ref,
@@ -285,8 +277,6 @@ function SearchList({
         return selectableTransactions.length;
     }, [data, type, flattenedItems, emptyReports]);
 
-    const itemsWithSelection = useMemo(() => data.map((item) => applySelectionToItem(item, canSelectMultiple, selectedTransactions)), [data, canSelectMultiple, selectedTransactions]);
-
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const listRef = useRef<FlashListRef<SearchListItem>>(null);
@@ -316,6 +306,23 @@ function SearchList({
     const {getScrollOffset} = useContext(ScrollOffsetContext);
 
     const [longPressedItemTransactions, setLongPressedItemTransactions] = useState<TransactionListItemType[]>();
+
+    const newTransactionIDByItemKey = useMemo(() => {
+        if (newTransactions.length === 0) {
+            return CONST.EMPTY_MAP;
+        }
+
+        // Precompute the per-row highlight lookup once so renderItem can stay O(1) during list renders.
+        const mappedTransactionIDs = new Map<string, string>();
+        for (const item of data) {
+            const matchedTransactionID = newTransactions.find((transaction) => isTransactionMatchWithGroupItem(transaction, item, groupBy))?.transactionID;
+            if (matchedTransactionID && item.keyForList) {
+                mappedTransactionIDs.set(item.keyForList, matchedTransactionID);
+            }
+        }
+
+        return mappedTransactionIDs;
+    }, [data, groupBy, newTransactions]);
 
     const {windowWidth} = useWindowDimensions();
     const minTableWidth = getTableMinWidth(columns);
@@ -406,10 +413,9 @@ function SearchList({
             const isDisabled = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
             const shouldApplyAnimation = shouldAnimate && index < data.length - 1;
 
-            const newTransactionID = newTransactions.find((transaction) => isTransactionMatchWithGroupItem(transaction, item, groupBy))?.transactionID;
-
-            const itemData = itemsWithSelection.at(index);
-            const itemWithSelection = itemData?.itemWithSelection ?? item;
+            const newTransactionID = item.keyForList ? newTransactionIDByItemKey.get(item.keyForList) : undefined;
+            // Apply selection lazily per row so we don't rebuild a list-wide wrapper structure on every render.
+            const {itemWithSelection} = applySelectionToItem(item, canSelectMultiple, selectedTransactions);
 
             return (
                 <Animated.View
@@ -433,8 +439,6 @@ function SearchList({
                         isDisabled={isDisabled}
                         groupBy={groupBy}
                         searchType={type}
-                        onDEWModalOpen={onDEWModalOpen}
-                        isDEWBetaEnabled={isDEWBetaEnabled}
                         lastPaymentMethod={lastPaymentMethod}
                         personalPolicyID={personalPolicyID}
                         userWalletTierName={userWalletTierName}
@@ -446,6 +450,7 @@ function SearchList({
                         customCardNames={customCardNames}
                         onFocus={onFocus}
                         newTransactionID={newTransactionID}
+                        keyForList={item.keyForList}
                     />
                 </Animated.View>
             );
@@ -453,10 +458,9 @@ function SearchList({
         [
             type,
             groupBy,
-            newTransactions,
+            newTransactionIDByItemKey,
             shouldAnimate,
             data.length,
-            itemsWithSelection,
             styles.overflowHidden,
             hasItemsBeingRemoved,
             ListItem,
@@ -474,11 +478,10 @@ function SearchList({
             userBillingFundID,
             isOffline,
             violations,
-            onDEWModalOpen,
-            isDEWBetaEnabled,
             lastPaymentMethod,
             personalPolicyID,
             customCardNames,
+            selectedTransactions,
         ],
     );
 
@@ -567,7 +570,7 @@ function SearchList({
                 contentContainerStyle={{width: minTableWidth}}
                 contentOffset={{x: savedHorizontalScrollOffset, y: 0}}
                 onScroll={handleHorizontalScroll}
-                scrollEventThrottle={16}
+                scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
             >
                 {content}
             </ScrollView>
