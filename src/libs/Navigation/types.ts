@@ -3065,6 +3065,8 @@ type SearchReportActionsParamList = {
         /** Selected transactions' report ID  */
         reportID: string;
     };
+    [SCREENS.SEARCH.CHANGE_APPROVER.ROOT]: undefined;
+    [SCREENS.SEARCH.CHANGE_APPROVER.ADD_APPROVER]: undefined;
 };
 
 type SearchFullscreenNavigatorParamList = {
