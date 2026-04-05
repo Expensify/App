@@ -140,6 +140,18 @@ describe('getReportPreviewSenderID', () => {
         expect(result).toBeUndefined();
     });
 
+    it('returns undefined when the report preview has not loaded all child transactions yet', () => {
+        const result = getReportPreviewSenderID({
+            ...baseParams,
+            iouReport: makeIOUReport(),
+            action: makeAction({childMoneyRequestCount: 2}),
+            iouActions: [],
+            transactions: [makeTransaction(100)],
+        });
+
+        expect(result).toBeUndefined();
+    });
+
     it('returns undefined for multi-sender: multiple attendees', () => {
         // Two transactions with different attendees (different emails resolve to different accountIDs)
         // Since getPersonalDetailByEmail returns undefined in test (no Onyx), attendeesIDs will be filtered out
@@ -238,7 +250,7 @@ describe('getReportPreviewSenderID', () => {
         expect(result).toBe(OWNER_ACCOUNT_ID);
     });
 
-    it('returns sender ID when no transactions (empty set has size 0 < 2)', () => {
+    it('returns undefined when transactions have not loaded yet for a money request preview', () => {
         const result = getReportPreviewSenderID({
             ...baseParams,
             iouReport: makeIOUReport(),
@@ -247,6 +259,6 @@ describe('getReportPreviewSenderID', () => {
             transactions: [],
         });
 
-        expect(result).toBe(OWNER_ACCOUNT_ID);
+        expect(result).toBeUndefined();
     });
 });
