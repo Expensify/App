@@ -17,6 +17,7 @@ import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportDescriptionNavigatorParamList} from '@libs/Navigation/types';
@@ -60,6 +61,11 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
                 // Set the description of the report in the store and then call EditTask API
                 // to update the description of the report on the server
                 editTask(report, {description: values.description}, delegateEmail);
+            }
+
+            if (isSearchTopmostFullScreenRoute()) {
+                Navigation.dismissModal();
+                return;
             }
 
             Navigation.dismissModalWithReport({reportID: report?.reportID});
