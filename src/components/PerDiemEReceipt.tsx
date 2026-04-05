@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import {useCurrencyListActions, useCurrencyListState} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -54,6 +54,7 @@ function PerDiemEReceipt({transactionID}: PerDiemEReceiptProps) {
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {getCurrencySymbol} = useCurrencyListActions();
+    const {currencyList} = useCurrencyListState();
     const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark']);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
 
@@ -64,7 +65,7 @@ function PerDiemEReceipt({transactionID}: PerDiemEReceiptProps) {
     const ratesDescription = computeDefaultPerDiemExpenseRates(transaction?.comment?.customUnit ?? {}, transactionCurrency ?? '');
     const datesDescription = getPerDiemDates(transactionMerchant ?? '');
     const destination = getPerDiemDestination(transactionMerchant ?? '');
-    const formattedAmount = convertToDisplayStringWithoutCurrency(transactionAmount ?? 0, transactionCurrency);
+    const formattedAmount = convertToDisplayStringWithoutCurrency(transactionAmount ?? 0, transactionCurrency, currencyList);
     const currency = getCurrencySymbol(transactionCurrency ?? '');
 
     const secondaryTextColorStyle = secondaryColor ? StyleUtils.getColorStyle(secondaryColor) : undefined;

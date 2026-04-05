@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import type {RenderAPI} from '@testing-library/react-native';
 import type {OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {getReportPreviewAction} from '@libs/actions/IOU';
@@ -23,13 +24,13 @@ import type ReportAction from '@src/types/onyx/ReportAction';
 import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
-import currencyList from '../../unit/currencyList.json';
 import createRandomPolicy from '../../utils/collections/policies';
 import createRandomPolicyCategories from '../../utils/collections/policyCategory';
 import createRandomReportAction from '../../utils/collections/reportActions';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
+import initCurrencyListContext from '../../utils/initCurrencyListContext';
 import {getGlobalFetchMock, getOnyxData} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -70,14 +71,7 @@ const RORY_ACCOUNT_ID = 3;
 OnyxUpdateManager();
 describe('actions/Duplicate', () => {
     beforeAll(() => {
-        Onyx.init({
-            keys: ONYXKEYS,
-            initialKeyStates: {
-                [ONYXKEYS.SESSION]: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
-                [ONYXKEYS.CURRENCY_LIST]: currencyList,
-            },
-        });
+        Onyx.init({keys: ONYXKEYS});
         initOnyxDerivedValues();
         IntlStore.load(CONST.LOCALES.EN);
         return waitForBatchedUpdates();
@@ -85,8 +79,9 @@ describe('actions/Duplicate', () => {
 
     describe('mergeDuplicates', () => {
         let writeSpy: jest.SpyInstance;
+        let currencyListProvider: RenderAPI;
 
-        beforeEach(() => {
+        beforeEach(async () => {
             jest.clearAllMocks();
             global.fetch = getGlobalFetchMock();
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
@@ -103,10 +98,18 @@ describe('actions/Duplicate', () => {
                 }
                 return Promise.resolve();
             });
-            return Onyx.clear();
+            await Onyx.clear();
+            currencyListProvider = await initCurrencyListContext({
+                keys: ONYXKEYS,
+                initialKeyStates: {
+                    [ONYXKEYS.SESSION]: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+                },
+            });
         });
 
         afterEach(() => {
+            currencyListProvider.unmount();
             writeSpy.mockRestore();
         });
 

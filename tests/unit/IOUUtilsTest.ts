@@ -1,4 +1,5 @@
 import {renderHook} from '@testing-library/react-native';
+import type {RenderAPI} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -17,21 +18,10 @@ import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-import currencyList from './currencyList.json';
+import initCurrencyListContext from '../utils/initCurrencyListContext';
 
 const testDate = DateUtils.getDBTime();
 const currentUserAccountID = 5;
-
-function initCurrencyList() {
-    Onyx.init({
-        keys: ONYXKEYS,
-        initialKeyStates: {
-            [ONYXKEYS.CURRENCY_LIST]: currencyList,
-        },
-    });
-    return waitForBatchedUpdates();
-}
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
@@ -109,7 +99,16 @@ describe('IOUUtils', () => {
     });
 
     describe('calculateAmount', () => {
-        beforeAll(() => initCurrencyList());
+        let currencyListProvider: RenderAPI;
+
+        beforeEach(async () => {
+            currencyListProvider = await initCurrencyListContext({keys: ONYXKEYS});
+        });
+
+        afterEach(async () => {
+            currencyListProvider.unmount();
+            await Onyx.clear();
+        });
 
         test('103 JPY split among 3 participants including the default user should be [35, 34, 34]', () => {
             const participantsAccountIDs = [100, 101];
@@ -162,8 +161,6 @@ describe('IOUUtils', () => {
         });
 
         describe('calculateAmount - floorToLast rounding', () => {
-            beforeAll(() => initCurrencyList());
-
             test('Positive total: remainder added entirely to default user', () => {
                 // $10.00 among 3 -> base 3.33, remainder 0.01 -> default gets 3.34
                 const numberOfSplits = 2; // total participants = 3

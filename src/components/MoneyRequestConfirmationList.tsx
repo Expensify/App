@@ -3,7 +3,7 @@ import {deepEqual} from 'fast-equals';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import {useCurrencyListActions, useCurrencyListState} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
@@ -299,6 +299,7 @@ function MoneyRequestConfirmationList({
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`);
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
+    const {currencyList} = useCurrencyListState();
     const {isBetaEnabled} = usePermissions();
     const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
@@ -429,16 +430,19 @@ function MoneyRequestConfirmationList({
         amountToBeUsed = perDiemRequestAmount;
     }
 
-    let formattedAmount = convertToDisplayString(amountToBeUsed, isDistanceRequest ? currency : iouCurrencyCode);
-    if (isDistanceRequestWithPendingRoute) {
-        formattedAmount = '';
-    } else if (isScanning(transaction)) {
+    let formattedAmount = isDistanceRequestWithPendingRoute ? '' : convertToDisplayString(amountToBeUsed, isDistanceRequest ? currency : iouCurrencyCode, false, currencyList);
+    if (!isDistanceRequestWithPendingRoute && isScanning(transaction)) {
         formattedAmount = translate('iou.receiptStatusTitle');
     }
     const formattedAmountPerAttendee =
         isDistanceRequestWithPendingRoute || isScanRequest
             ? ''
-            : convertToDisplayString(amountToBeUsed / (iouAttendees?.length && iouAttendees.length > 0 ? iouAttendees.length : 1), isDistanceRequest ? currency : iouCurrencyCode);
+            : convertToDisplayString(
+                  amountToBeUsed / (iouAttendees?.length && iouAttendees.length > 0 ? iouAttendees.length : 1),
+                  isDistanceRequest ? currency : iouCurrencyCode,
+                  false,
+                  currencyList,
+              );
     const isFocused = useIsFocused();
     const [formError, debouncedFormError, setFormError] = useDebouncedState<TranslationPaths | ''>('');
 
@@ -767,7 +771,7 @@ function MoneyRequestConfirmationList({
                     isInteractive: false,
                     rightElement: (
                         <View style={[styles.flexWrap, styles.pl2]}>
-                            <Text style={[styles.textLabel]}>{amount ? convertToDisplayString(amount, iouCurrencyCode) : ''}</Text>
+                            <Text style={[styles.textLabel]}>{amount ? convertToDisplayString(amount, iouCurrencyCode, false, currencyList) : ''}</Text>
                         </View>
                     ),
                 };
@@ -775,7 +779,7 @@ function MoneyRequestConfirmationList({
         }
 
         const currencySymbol = getCurrencySymbol(iouCurrencyCode ?? '') ?? iouCurrencyCode;
-        const formattedTotalAmount = convertToDisplayStringWithoutCurrency(iouAmount, iouCurrencyCode);
+        const formattedTotalAmount = convertToDisplayStringWithoutCurrency(iouAmount, iouCurrencyCode, currencyList);
 
         return [payeeOption, ...selectedParticipants].map((participantOption: Participant) => ({
             ...participantOption,
@@ -799,7 +803,7 @@ function MoneyRequestConfirmationList({
                     inputStyle={[styles.optionRowAmountInput, styles.lineHeightUndefined]}
                     containerStyle={[styles.textInputContainer, styles.pl2, styles.pr1]}
                     touchableInputWrapperStyle={[styles.ml3]}
-                    onFormatAmount={convertToDisplayStringWithoutCurrency}
+                    onFormatAmount={(amountInCents, currencyCode) => convertToDisplayStringWithoutCurrency(amountInCents, currencyCode, currencyList)}
                     onAmountChange={(value: string) => onSplitShareChange(participantOption.accountID ?? CONST.DEFAULT_NUMBER_ID, Number(value))}
                     maxLength={formattedTotalAmount.length + 1}
                     contentWidth={(formattedTotalAmount.length + 1) * CONST.CHARACTER_WIDTH}
@@ -830,6 +834,7 @@ function MoneyRequestConfirmationList({
         transaction?.splitShares,
         onSplitShareChange,
         getCurrencySymbol,
+        currencyList,
     ]);
 
     const isSplitModified = useMemo(() => {

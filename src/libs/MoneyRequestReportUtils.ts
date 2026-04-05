@@ -2,7 +2,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import CONST from '@src/CONST';
-import type {OriginalMessageIOU, Policy, Report, ReportAction, ReportMetadata, Transaction} from '@src/types/onyx';
+import type {CurrencyList, OriginalMessageIOU, Policy, Report, ReportAction, ReportMetadata, Transaction} from '@src/types/onyx';
 import {convertToDisplayString} from './CurrencyUtils';
 import {isPaidGroupPolicy} from './PolicyUtils';
 import {getIOUActionForTransactionID, getOriginalMessage, isDeletedAction, isDeletedParentAction, isMoneyRequestAction} from './ReportActionsUtils';
@@ -157,8 +157,12 @@ const getTotalAmountForIOUReportPreviewButton = (
     report: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
     reportPreviewAction: ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS>,
-    transactions?: Transaction[],
+    transactionsOrCurrencyList?: Transaction[] | CurrencyList,
+    currencyList?: CurrencyList,
 ) => {
+    const transactions = Array.isArray(transactionsOrCurrencyList) ? transactionsOrCurrencyList : undefined;
+    const resolvedCurrencyList = Array.isArray(transactionsOrCurrencyList) ? currencyList : transactionsOrCurrencyList;
+
     // Determine whether the non-held amount is appropriate to display for the PAY button.
     const {nonHeldAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(report, reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(report?.reportID);
@@ -175,7 +179,7 @@ const getTotalAmountForIOUReportPreviewButton = (
 
         // For reports with only non-reimbursable expenses, show total display spend for Mark as paid.
         if (hasOnlyNonReimbursableTransactions(report?.reportID, transactions)) {
-            return convertToDisplayString(totalDisplaySpend, report?.currency);
+            return convertToDisplayString(totalDisplaySpend, report?.currency, false, resolvedCurrencyList);
         }
 
         // We shouldn't display the nonHeldAmount as the default option if it's not valid since we cannot pay partially in this case
@@ -184,11 +188,11 @@ const getTotalAmountForIOUReportPreviewButton = (
         }
 
         // Default to reimbursable spend for PAY button if above conditions are not met.
-        return convertToDisplayString(reimbursableSpend, report?.currency);
+        return convertToDisplayString(reimbursableSpend, report?.currency, false, resolvedCurrencyList);
     }
 
     // For all other cases, return the total display spend.
-    return convertToDisplayString(totalDisplaySpend, report?.currency);
+    return convertToDisplayString(totalDisplaySpend, report?.currency, false, resolvedCurrencyList);
 };
 
 export {

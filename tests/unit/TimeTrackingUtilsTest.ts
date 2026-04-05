@@ -1,22 +1,25 @@
+import type {RenderAPI} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import {computeTimeAmount, formatTimeMerchant, isValidTimeExpenseAmount} from '@libs/TimeTrackingUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
+import initCurrencyListContext from '../utils/initCurrencyListContext';
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
-import currencyList from './currencyList.json';
 
 describe('TimeTrackingUtils', () => {
-    beforeAll(() => {
-        Onyx.init({
-            keys: ONYXKEYS,
-            initialKeyStates: {
-                [ONYXKEYS.CURRENCY_LIST]: currencyList,
-            },
-        });
+    let currencyListProvider: RenderAPI;
+
+    beforeEach(async () => {
+        currencyListProvider = await initCurrencyListContext({keys: ONYXKEYS});
         IntlStore.load(CONST.LOCALES.EN);
-        return waitForBatchedUpdates();
+        await waitForBatchedUpdates();
+    });
+
+    afterEach(async () => {
+        currencyListProvider.unmount();
+        await Onyx.clear();
     });
 
     describe('computeTimeAmount', () => {
