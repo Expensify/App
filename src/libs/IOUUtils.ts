@@ -255,8 +255,8 @@ function updateIOUOwnerAndTotal<TReport extends OnyxInputOrEntry<Report>>(
  * Returns whether or not an IOU report contains expenses in a different currency
  * that are either created or cancelled offline, and thus haven't been converted to the report's currency yet
  */
-function isIOUReportPendingCurrencyConversion(iouReport: Report, transactions: Transaction[]): boolean {
-    const pendingRequestsInDifferentCurrency = transactions.filter((transaction) => transaction.pendingAction && getCurrency(transaction) !== iouReport.currency);
+function isIOUReportPendingCurrencyConversion(iouReport: Report, iouTransactions: Transaction[]): boolean {
+    const pendingRequestsInDifferentCurrency = iouTransactions.filter((transaction) => transaction.pendingAction && getCurrency(transaction) !== iouReport.currency);
     return pendingRequestsInDifferentCurrency.length > 0;
 }
 
