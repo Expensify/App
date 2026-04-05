@@ -1,36 +1,29 @@
-import {useCallback, useMemo} from 'react';
+import {useCallback} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import {extractCollectionItemID} from '@libs/CollectionUtils';
 import {isChatRoom, isPolicyExpenseChat, isPolicyRelatedReport, isTaskReport} from '@libs/ReportUtils';
 import type {OnyxCollectionKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, Transaction, TransactionViolations} from '@src/types/onyx';
+import {transactionsByReportIDSelector} from '@src/selectors/Transaction';
+import type {Report, TransactionViolations} from '@src/types/onyx';
 import useOnyx from './useOnyx';
 
 function useTransactionViolationOfWorkspace(policyID?: string) {
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
+    const [transactionsByReportID] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {selector: transactionsByReportIDSelector});
     const reportsToArchive = Object.values(allReports ?? {}).filter(
         (report): report is Report => report != null && isPolicyRelatedReport(report, policyID) && (isChatRoom(report) || isPolicyExpenseChat(report) || isTaskReport(report)),
     );
-    const iouReportIDs = useMemo(() => {
-        const ids = new Set<string>();
-        for (const report of reportsToArchive) {
-            if (report?.iouReportID) {
-                ids.add(report.iouReportID);
-            }
+    const transactionIDSet = new Set<string>();
+    for (const report of reportsToArchive) {
+        if (!report?.iouReportID) {
+            continue;
         }
-        return ids;
-    }, [reportsToArchive]);
-    const transactionIDSet = useMemo(() => {
-        const ids = new Set<string>();
-        for (const transaction of Object.values(allTransactions ?? {}) as Transaction[]) {
-            if (transaction?.reportID && iouReportIDs.has(transaction.reportID)) {
-                ids.add(transaction.transactionID);
-            }
+        const reportTransactions = transactionsByReportID?.[report.iouReportID] ?? [];
+        for (const transaction of reportTransactions) {
+            transactionIDSet.add(transaction.transactionID);
         }
-        return ids;
-    }, [allTransactions, iouReportIDs]);
+    }
 
     const transactionViolationSelector = useCallback(
         (violations: OnyxCollection<TransactionViolations>) => {
