@@ -50,7 +50,7 @@ describe('useTransactionViolationOfWorkspace', () => {
         const {result} = renderHook(() => useTransactionViolationOfWorkspace(POLICY_ID));
 
         expect(result.current.reportsToArchive.length).toBe(1);
-        expect(result.current.reportsToArchive[0]?.reportID).toBe(CHAT_REPORT_ID);
+        expect(result.current.reportsToArchive.at(0)?.reportID).toBe(CHAT_REPORT_ID);
         expect(result.current.transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]).toEqual(violations);
     });
 
