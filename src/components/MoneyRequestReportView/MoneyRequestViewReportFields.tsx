@@ -1,5 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -120,11 +121,16 @@ function MoneyRequestViewReportFields({report, policy, isCombinedReport = false,
 
     const shouldDisplayReportFields = (isPaidGroupPolicyExpenseReport || isInvoiceReport) && !!policy?.areReportFieldsEnabled && (!isOnlyTitleFieldEnabled || !isCombinedReport);
 
+    if (!shouldDisplayReportFields || !sortedPolicyReportFields.length) {
+        return null;
+    }
+
     return (
-        shouldDisplayReportFields &&
-        sortedPolicyReportFields.map((reportField) => {
-            return ReportFieldView(reportField, report, styles, pendingAction);
-        })
+        <View style={styles.mb3}>
+            {sortedPolicyReportFields.map((reportField) => {
+                return ReportFieldView(reportField, report, styles, pendingAction);
+            })}
+        </View>
     );
 }
 

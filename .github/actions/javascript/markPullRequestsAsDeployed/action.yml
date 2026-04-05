@@ -32,6 +32,12 @@ inputs:
     NOTE:
         description: "Additional note from the deployer"
         required: false
+    ANDROID_SENTRY_URL:
+        description: "URL to Sentry size analysis for Android"
+        required: false
+    IOS_SENTRY_URL:
+        description: "URL to Sentry size analysis for iOS"
+        required: false
 runs:
     using: "node20"
     main: "./index.js"

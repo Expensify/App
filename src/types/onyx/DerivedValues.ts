@@ -30,6 +30,14 @@ type ReportAttributes = {
      */
     requiresAttention: boolean;
     /**
+     * The action badge to display instead of the GBR/RBR dot (e.g. 'submit', 'approve', 'pay').
+     */
+    actionBadge?: ValueOf<typeof CONST.REPORT.ACTION_BADGE>;
+    /**
+     * The reportActionID that the action badge refers to, used for deep linking when the LHN row is pressed.
+     */
+    actionTargetReportActionID?: string;
+    /**
      * The errors of the report.
      */
     reportErrors: Errors;
@@ -76,6 +84,11 @@ type ReportTransactionsAndViolationsDerivedValue = Record<string, ReportTransact
  * The derived value for report outstanding reports.
  */
 type OutstandingReportsByPolicyIDDerivedValue = Record<string, OnyxCollection<Report>>;
+
+/**
+ * The derived value for visible report actions.
+ */
+type VisibleReportActionsDerivedValue = Record<string, Record<string, boolean>>;
 
 /**
  * The errors of a card.
@@ -258,6 +271,7 @@ export type {
     ReportTransactionsAndViolationsDerivedValue,
     ReportTransactionsAndViolations,
     OutstandingReportsByPolicyIDDerivedValue,
+    VisibleReportActionsDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
     PersonalAndWorkspaceCardListDerivedValue,
     CardFeedErrorsDerivedValue,

@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useState} from 'react';
+import {useCallback, useEffect, useState, useSyncExternalStore} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {AccessibilityInfo} from 'react-native';
 import moveAccessibilityFocus from './moveAccessibilityFocus';
@@ -17,6 +17,30 @@ const useScreenReaderStatus = (): boolean => {
 
     return isScreenReaderEnabled;
 };
+
+let cachedReduceMotionValue = false;
+
+function subscribeReduceMotion(callback: () => void) {
+    const subscription = AccessibilityInfo.addEventListener('reduceMotionChanged', (enabled) => {
+        cachedReduceMotionValue = enabled;
+        callback();
+    });
+
+    AccessibilityInfo.isReduceMotionEnabled()
+        .then((enabled) => {
+            cachedReduceMotionValue = enabled;
+            callback();
+        })
+        .catch(() => {});
+
+    return () => subscription?.remove();
+}
+
+function getReduceMotionSnapshot() {
+    return cachedReduceMotionValue;
+}
+
+const useReducedMotion = (): boolean => useSyncExternalStore(subscribeReduceMotion, getReduceMotionSnapshot, () => false);
 
 const getHitSlopForSize = ({x, y}: HitSlop) => {
     /* according to https://developer.apple.com/design/human-interface-guidelines/ios/visual-design/adaptivity-and-layout/
@@ -50,4 +74,5 @@ export default {
     moveAccessibilityFocus,
     useScreenReaderStatus,
     useAutoHitSlop,
+    useReducedMotion,
 };

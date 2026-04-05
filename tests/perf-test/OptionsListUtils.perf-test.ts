@@ -3,7 +3,7 @@ import type * as NativeNavigation from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
-import {createOptionList, filterAndOrderOptions, getMemberInviteOptions, getSearchOptions, getValidOptions} from '@libs/OptionsListUtils';
+import {createFilteredOptionList, createOptionList, filterAndOrderOptions, getSearchOptions, getValidOptions} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -20,7 +20,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const REPORTS_COUNT = 5000;
 const PERSONAL_DETAILS_LIST_COUNT = 1000;
-const SEARCH_VALUE = 'TestingValue';
+const SEARCH_VALUE = 'Report';
 const COUNTRY_CODE = 1;
 
 const PERSONAL_DETAILS_COUNT = 1000;
@@ -209,25 +209,6 @@ describe('OptionsListUtils', () => {
         );
     });
 
-    /* Testing getMemberInviteOptions */
-    test('[OptionsListUtils] getMemberInviteOptions', async () => {
-        await waitForBatchedUpdates();
-        await measureFunction(() =>
-            getMemberInviteOptions(
-                options.personalDetails,
-                nvpDismissedProductTraining,
-                loginList,
-                MOCK_CURRENT_USER_ACCOUNT_ID,
-                MOCK_CURRENT_USER_EMAIL,
-                personalDetails,
-                mockedBetas,
-                {},
-                false,
-                COUNTRY_CODE,
-            ),
-        );
-    });
-
     test('[OptionsListUtils] worst case scenario with a search term that matches a subset of selectedOptions, filteredRecentReports, and filteredPersonalDetails', async () => {
         const SELECTED_OPTION_TEXT = 'Selected Option';
         const RECENT_REPORT_TEXT = 'Recent Report';
@@ -270,6 +251,7 @@ describe('OptionsListUtils', () => {
                 Object.values(selectedOptions),
                 Object.values(filteredRecentReports),
                 Object.values(filteredPersonalDetails),
+                {},
                 MOCK_CURRENT_USER_ACCOUNT_ID,
                 mockedPersonalDetails,
                 true,
@@ -283,6 +265,46 @@ describe('OptionsListUtils', () => {
         const mockedPersonalDetails = getMockedPersonalDetails(PERSONAL_DETAILS_COUNT);
 
         await waitForBatchedUpdates();
-        await measureFunction(() => formatSectionsFromSearchTerm('', Object.values(selectedOptions), [], [], MOCK_CURRENT_USER_ACCOUNT_ID, mockedPersonalDetails, true));
+        await measureFunction(() => formatSectionsFromSearchTerm('', Object.values(selectedOptions), [], [], {}, MOCK_CURRENT_USER_ACCOUNT_ID, mockedPersonalDetails, true));
+    });
+
+    test('[OptionsListUtils] createFilteredOptionList', async () => {
+        await waitForBatchedUpdates();
+        await measureFunction(() =>
+            createFilteredOptionList(personalDetails, mockedReportsMap, MOCK_CURRENT_USER_ACCOUNT_ID, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, {maxRecentReports: 500, searchTerm: ''}),
+        );
+    });
+
+    test('[OptionsListUtils] createFilteredOptionList with searchTerm', async () => {
+        await waitForBatchedUpdates();
+        await measureFunction(() =>
+            createFilteredOptionList(personalDetails, mockedReportsMap, MOCK_CURRENT_USER_ACCOUNT_ID, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, {
+                maxRecentReports: 500,
+                searchTerm: SEARCH_VALUE,
+            }),
+        );
+    });
+
+    test('[OptionsListUtils] getSearchOptions with searchTerm', async () => {
+        await waitForBatchedUpdates();
+        const optionLists = createFilteredOptionList(personalDetails, mockedReportsMap, MOCK_CURRENT_USER_ACCOUNT_ID, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, {
+            maxRecentReports: 500,
+            searchTerm: SEARCH_VALUE,
+        });
+
+        await measureFunction(() =>
+            getSearchOptions({
+                options: optionLists,
+                betas: mockedBetas,
+                draftComments: {},
+                nvpDismissedProductTraining,
+                loginList,
+                currentUserAccountID: MOCK_CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: MOCK_CURRENT_USER_EMAIL,
+                policyCollection: allPolicies,
+                personalDetails,
+                maxResults: 20,
+            }),
+        );
     });
 });

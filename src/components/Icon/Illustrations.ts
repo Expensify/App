@@ -1,5 +1,5 @@
 import Computer from '@assets/images/computer.svg';
-import EmptyCardState from '@assets/images/emptystate__expensifycard.svg';
+import ExpensifyCardCoins from '@assets/images/emptystate__expensify-card-coins.svg';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import LaptopWithSecondScreenAndHourglass from '@assets/images/laptop-with-second-screen-and-hourglass.svg';
 import LaptopWithSecondScreenSync from '@assets/images/laptop-with-second-screen-sync.svg';
@@ -7,6 +7,7 @@ import LaptopWithSecondScreenX from '@assets/images/laptop-with-second-screen-x.
 import PendingTravel from '@assets/images/pending-travel.svg';
 import EmptyStateTravel from '@assets/images/product-illustrations/emptystate__travel.svg';
 import Fireworks from '@assets/images/product-illustrations/fireworks.svg';
+import UpgradeRocket from '@assets/images/product-illustrations/upgrade-rocket.svg';
 import Puzzle from '@assets/images/simple-illustrations/emptystate__puzzlepieces.svg';
 import Abacus from '@assets/images/simple-illustrations/simple-illustration__abacus.svg';
 import Alert from '@assets/images/simple-illustrations/simple-illustration__alert.svg';
@@ -69,8 +70,8 @@ export {
     CreditCardEyes,
     CreditCardsNewGreen,
     EmailAddress,
-    EmptyCardState,
     EmptyShelves,
+    ExpensifyCardCoins,
     EmptyStateTravel,
     Encryption,
     EnvelopeReceipt,
@@ -100,4 +101,5 @@ export {
     TravelCVV,
     ThumbsUpStars,
     TurtleInShell,
+    UpgradeRocket,
 };

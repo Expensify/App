@@ -14,9 +14,15 @@
 import {transformSync} from '@babel/core';
 import _ from 'lodash';
 
-// Rules that are unnecessary when React Compiler successfully compiles all
-// functions in a file. Add more rules here as needed.
-const RULES_SUPPRESSED_BY_REACT_COMPILER = new Set(['react/jsx-no-constructed-context-values']);
+// Rules that are entirely unnecessary when React Compiler successfully compiles
+// all functions in a file. Add more rules here as needed.
+const RULES_SUPPRESSED_BY_REACT_COMPILER = new Set(['react/jsx-no-constructed-context-values', 'rulesdir/no-inline-useOnyx-selector']);
+
+// react-hooks/exhaustive-deps warnings that suggest useCallback/useMemo are
+// false positives in compiled files, since React Compiler auto-memoizes.
+// We only suppress the "wrap in useCallback/useMemo" suggestions, NOT warnings
+// about genuinely missing dependencies.
+const EXHAUSTIVE_DEPS_USECALLBACK_USEMEMO_PATTERN = /\buseCallback\(\) Hook\b|\buseMemo\(\) Hook\b/;
 
 // Mirror the compiler config from babel.config.js (excluding `sources`,
 // which is only relevant for the Babel build pipeline, not for our analysis).
@@ -109,7 +115,15 @@ const plugin = {
                 compilationResults.delete(filename);
 
                 if (allCompiled) {
-                    return _.filter(messages[0], (msg) => !RULES_SUPPRESSED_BY_REACT_COMPILER.has(msg.ruleId));
+                    return _.filter(messages[0], (msg) => {
+                        if (RULES_SUPPRESSED_BY_REACT_COMPILER.has(msg.ruleId)) {
+                            return false;
+                        }
+                        if (msg.ruleId === 'react-hooks/exhaustive-deps' && EXHAUSTIVE_DEPS_USECALLBACK_USEMEMO_PATTERN.test(msg.message)) {
+                            return false;
+                        }
+                        return true;
+                    });
                 }
 
                 return messages[0];

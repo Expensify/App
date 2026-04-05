@@ -14,6 +14,7 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import typescriptEslint from 'typescript-eslint';
 import reactCompilerCompat from './eslint-plugin-react-compiler-compat/index.mjs';
+import reportNameUtilsPlugin from './eslint-plugin-report-name-utils/index.mjs';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -593,10 +594,23 @@ const config = defineConfig([
     },
 
     {
+        files: ['src/libs/ReportNameUtils.ts'],
+        plugins: {'report-name-utils': reportNameUtilsPlugin},
+        rules: {'report-name-utils/no-function-call-in-get-report-name': 'error'},
+    },
+
+    {
         files: ['src/**/*'],
         ignores: ['src/languages/**', 'src/CONST/index.ts', 'src/NAICS.ts'],
         rules: {
             'max-lines': ['error', 4000],
+        },
+    },
+
+    {
+        files: ['modules/ExpensifyNitroUtils/src/**/*'],
+        rules: {
+            '@typescript-eslint/consistent-type-definitions': 'off',
         },
     },
 
