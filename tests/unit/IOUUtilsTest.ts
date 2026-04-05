@@ -109,6 +109,11 @@ describe('IOUUtils', () => {
                 expect(IOUUtils.isIOUReportPendingCurrencyConversion(iouReport, [onlineUsdTransaction, onlineAedTransaction])).toBe(false);
             });
         });
+
+        test('An IOU report with no transactions should not show the pending conversion message', () => {
+            const iouReport = ReportUtils.buildOptimisticIOUReport(1, 2, 100, '1', 'USD');
+            expect(IOUUtils.isIOUReportPendingCurrencyConversion(iouReport, [])).toBe(false);
+        });
     });
 
     describe('calculateAmount', () => {
