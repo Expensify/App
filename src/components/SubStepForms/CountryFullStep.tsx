@@ -3,11 +3,13 @@ import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import FormHelpMessage from '@components/FormHelpMessage';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import PushRowWithModal from '@components/PushRowWithModal';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useEnvironment from '@hooks/useEnvironment';
 import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -49,9 +51,11 @@ function CountryFullStep({onBackButtonPress, stepNames, onSubmit, policyID, isCo
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
+    const {environmentURL} = useEnvironment();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [showNoPolicyError, setShowNoPolicyError] = useState(false);
 
     const currency =
         reimbursementAccountDraft?.currency ??
@@ -80,6 +84,10 @@ function CountryFullStep({onBackButtonPress, stepNames, onSubmit, policyID, isCo
     };
 
     const handleSubmit = () => {
+        if (currency === CONST.CURRENCY.AUD && !policyID) {
+            setShowNoPolicyError(true);
+            return;
+        }
         if (selectedCountry !== countryDefaultValue) {
             setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[COUNTRY]: selectedCountry});
         }
@@ -117,6 +125,7 @@ function CountryFullStep({onBackButtonPress, stepNames, onSubmit, policyID, isCo
                 submitButtonStyles={[styles.mh5, styles.pb0]}
                 isSubmitDisabled={disableSubmit}
                 shouldHideFixErrorsAlert
+                submitFlexEnabled={!showNoPolicyError}
             >
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('countryStep.confirmBusinessBank')}</Text>
                 <MenuItemWithTopDescription
@@ -150,6 +159,16 @@ function CountryFullStep({onBackButtonPress, stepNames, onSubmit, policyID, isCo
                     inputID={COUNTRY}
                     shouldSaveDraft={false}
                 />
+                {showNoPolicyError && (
+                    <View style={[styles.flex1, styles.justifyContentEnd, styles.ph5]}>
+                        <FormHelpMessage
+                            style={styles.mt3}
+                            isError
+                            shouldRenderMessageAsHTML
+                            message={translate('countryStep.error.connectToWorkspace', `${environmentURL}/${ROUTES.WORKSPACES_LIST.getRoute()}`)}
+                        />
+                    </View>
+                )}
             </FormProvider>
         </InteractiveStepWrapper>
     );

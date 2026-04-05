@@ -26,6 +26,7 @@ function RadioListItem<TItem extends ListItem>({
     wrapperStyle,
     titleStyles,
     shouldHighlightSelectedItem = true,
+    shouldDisableHoverStyle,
     accessibilityRole,
     shouldUseDefaultRightHandSideComponent,
 }: RadioListItemProps<TItem>) {
@@ -69,7 +70,9 @@ function RadioListItem<TItem extends ListItem>({
             onFocus={onFocus}
             shouldSyncFocus={shouldSyncFocus}
             pendingAction={item.pendingAction}
+            errors={item.errors}
             shouldHighlightSelectedItem={shouldHighlightSelectedItem}
+            shouldDisableHoverStyle={shouldDisableHoverStyle}
             accessibilityRole={accessibilityRole}
         >
             <>

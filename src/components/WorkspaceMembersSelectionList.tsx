@@ -97,7 +97,6 @@ function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}
             addBottomSafeAreaPadding
             showScrollIndicator
             isRowMultilineSupported
-            shouldShowRadioButton
         />
     );
 }

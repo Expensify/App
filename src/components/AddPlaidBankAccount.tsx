@@ -83,18 +83,19 @@ function AddPlaidBankAccount({
     const subscribedKeyboardShortcuts = useRef<Array<() => void>>([]);
     const previousNetworkState = useRef<boolean | undefined>(undefined);
     const [selectedPlaidAccountMask, setSelectedPlaidAccountMask] = useState(defaultSelectedPlaidAccountMask);
-    const [plaidLinkToken] = useOnyx(ONYXKEYS.PLAID_LINK_TOKEN, {initWithStoredValues: false});
+    const [plaidLinkToken] = useOnyx(ONYXKEYS.PLAID_LINK_TOKEN);
+    const [isPlaidTokenReady, setIsPlaidTokenReady] = useState(false);
     const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED);
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
     const getPlaidLinkToken = (): string | undefined => {
-        if (plaidLinkToken) {
-            return plaidLinkToken;
-        }
-
         if (receivedRedirectURI && plaidLinkOAuthToken) {
             return plaidLinkOAuthToken;
+        }
+
+        if (isPlaidTokenReady && plaidLinkToken) {
+            return plaidLinkToken;
         }
     };
 
@@ -140,9 +141,11 @@ function AddPlaidBankAccount({
 
         // If we're coming from Plaid OAuth flow then we need to reuse the existing plaidLinkToken
         if (isAuthenticatedWithPlaid()) {
+            setIsPlaidTokenReady(true);
             return unsubscribeToNavigationShortcuts;
         }
         openPlaidBankLogin(allowDebit, bankAccountID);
+        setIsPlaidTokenReady(true);
         return unsubscribeToNavigationShortcuts;
 
         // disabling this rule, as we want this to run only on the first render
@@ -251,11 +254,9 @@ function AddPlaidBankAccount({
 
     return (
         <FullPageOfflineBlockingView>
-            <Text style={[styles.mh5, styles.mb3, styles.textHeadlineLineHeightXXL]}>
-                {translate(isDisplayedInWalletFlow ? 'walletPage.chooseYourBankAccount' : 'bankAccount.chooseAnAccount')}
-            </Text>
-            {!!text && <Text style={[styles.mh5, styles.mb6, styles.textSupporting]}>{text}</Text>}
-            <View style={[styles.mh5, styles.flexRow, styles.alignItemsCenter, styles.mb6]}>
+            <Text style={[styles.mb3, styles.textHeadlineLineHeightXXL]}>{translate(isDisplayedInWalletFlow ? 'walletPage.chooseYourBankAccount' : 'bankAccount.chooseAnAccount')}</Text>
+            {!!text && <Text style={[styles.mb6, styles.textSupporting]}>{text}</Text>}
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb6]}>
                 <Icon
                     src={icon}
                     height={iconSize}
@@ -269,12 +270,12 @@ function AddPlaidBankAccount({
                     )}
                 </View>
             </View>
-            <Text style={[styles.textLabelSupporting, styles.mh5]}>{`${translate('bankAccount.chooseAnAccountBelow')}:`}</Text>
+            <Text style={[styles.textLabelSupporting]}>{`${translate('bankAccount.chooseAnAccountBelow')}:`}</Text>
             <RadioButtons
                 items={options}
                 defaultCheckedValue={defaultSelectedPlaidAccountID}
                 onPress={handleSelectingPlaidAccount}
-                radioButtonStyle={[styles.optionRowCompact, styles.ph5]}
+                radioButtonStyle={[styles.mb6]}
             />
             <FormHelpMessage message={errorText} />
         </FullPageOfflineBlockingView>

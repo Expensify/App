@@ -69,7 +69,7 @@ function ShareTab({ref}: ShareTabProps) {
         isSearching: !!debouncedTextInputValue.trim(),
     });
     const areOptionsInitialized = !isLoading;
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
 
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
     const shouldShowLoadingPlaceholder = !areOptionsInitialized || !didScreenTransitionEnd;

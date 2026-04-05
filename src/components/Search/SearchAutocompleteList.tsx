@@ -4,6 +4,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import type {ListItem as NewListItem, UserListItemProps} from '@components/SelectionList/ListItem/types';
+import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {Section, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 import useAutocompleteSuggestions from '@hooks/useAutocompleteSuggestions';
@@ -25,7 +26,7 @@ import Parser from '@libs/Parser';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import {getReportOrDraftReport} from '@libs/ReportUtils';
+import {formatReportLastMessageText, getReportOrDraftReport, getReportSubtitlePrefix} from '@libs/ReportUtils';
 import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithoutFilters, shouldHighlight} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 import {cancelSpan, endSpan, getSpan} from '@libs/telemetry/activeSpans';
@@ -35,7 +36,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeeds, CardList, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import NewChatListItem from './NewChatListItem';
 import type {SearchQueryItem, SearchQueryListItemProps} from './SearchList/ListItem/SearchQueryListItem';
 import SearchQueryListItem, {isSearchQueryItem} from './SearchList/ListItem/SearchQueryListItem';
 import {getSubstitutionMapKey} from './SearchRouter/getQueryWithSubstitutions';
@@ -123,39 +123,14 @@ function SearchRouterItem(props: UserListItemProps<AutocompleteListItem> | Searc
         );
     }
 
-    const {
-        item,
-        isFocused,
-        showTooltip,
-        isDisabled,
-        canSelectMultiple,
-        onSelectRow,
-        onDismissError,
-        shouldPreventEnterKeySubmit,
-        rightHandSideComponent,
-        onFocus,
-        shouldSyncFocus,
-        wrapperStyle,
-    } = props;
-    const fsClass = FS.getChatFSClass((item as SearchOption<Report> | undefined)?.item);
+    const fsClass = FS.getChatFSClass((props.item as SearchOption<Report> | undefined)?.item);
 
     return (
-        <NewChatListItem
-            item={item}
-            keyForList={item.keyForList}
-            isFocused={isFocused}
-            showTooltip={showTooltip}
-            isDisabled={isDisabled}
-            canSelectMultiple={canSelectMultiple}
-            onSelectRow={onSelectRow}
-            onDismissError={onDismissError}
-            shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
-            rightHandSideComponent={rightHandSideComponent}
-            onFocus={onFocus}
-            shouldSyncFocus={shouldSyncFocus}
-            wrapperStyle={wrapperStyle}
+        <UserListItem
             pressableStyle={[styles.br2, styles.ph3]}
             forwardedFSClass={fsClass}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
         />
     );
 }
@@ -420,13 +395,15 @@ function SearchAutocompleteList({
         const nextStyledRecentReports = recentReportsOptions.map((option) => {
             const report = getReportOrDraftReport(option.reportID);
             const reportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
-            const shouldParserToHTML = reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
+            const shouldParserToHTML = !!reportAction && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
+            const shouldParseAlternateText = report?.lastActionType !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
             const keyForList = option.keyForList ?? option.reportID ?? (option.accountID ? String(option.accountID) : undefined);
             return {
                 ...option,
                 keyForList,
                 pressableStyle: styles.br2,
                 text: StringUtils.lineBreaksToSpaces(shouldParserToHTML ? Parser.htmlToText(option.text ?? '') : (option.text ?? '')),
+                alternateText: shouldParseAlternateText ? option.alternateText : getReportSubtitlePrefix(report) + formatReportLastMessageText(option.lastMessageText ?? ''),
                 wrapperStyle: [styles.pr3, styles.pl3],
             } as AutocompleteListItem;
         });

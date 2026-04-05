@@ -2,9 +2,9 @@ import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
+import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
-import SelectionCheckbox from '@components/SelectionList/components/SelectionCheckbox';
 import TextWithTooltip from '@components/TextWithTooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -48,6 +48,14 @@ function CardListItem<TItem extends ListItem>({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const theme = useTheme();
+
+    const handleCheckboxPress = () => {
+        if (onCheckboxPress) {
+            onCheckboxPress(item);
+        } else {
+            onSelectRow(item);
+        }
+    };
 
     const ownersAvatar = {
         source: item.cardOwnerPersonalDetails?.avatar ?? icons.FallbackAvatar,
@@ -158,9 +166,11 @@ function CardListItem<TItem extends ListItem>({
                     </View>
                 </View>
                 {!!canSelectMultiple && !item.isDisabled && (
-                    <SelectionCheckbox
-                        item={item}
-                        onSelectRow={onCheckboxPress ?? onSelectRow}
+                    <Checkbox
+                        shouldSelectOnPressEnter
+                        isChecked={item.isSelected ?? false}
+                        accessibilityLabel={item.text ?? ''}
+                        onPress={handleCheckboxPress}
                         disabled={!!isDisabled}
                         style={styles.ml3}
                     />

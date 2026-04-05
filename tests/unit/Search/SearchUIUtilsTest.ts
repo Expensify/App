@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {renderHook} from '@testing-library/react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
@@ -25,7 +24,6 @@ import type {
     TransactionYearGroupListItemType,
 } from '@components/Search/SearchList/ListItem/types';
 import type {SelectedTransactionInfo} from '@components/Search/types';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import Navigation from '@navigation/Navigation';
 // eslint-disable-next-line no-restricted-syntax
 import type * as ReportUserActions from '@userActions/Report';
@@ -888,7 +886,7 @@ const transactionsListItems = [
     },
     {
         action: 'approve',
-        allActions: ['approve'],
+        allActions: ['approve', 'changeApprover'],
         amount: -5000,
         report: report2,
         policy,
@@ -1105,6 +1103,7 @@ const transactionReportGroupListItems = [
         },
         hasVisibleViolations: false,
         isOneTransactionReport: true,
+        isRejectedReport: false,
         shouldShowStatusAsPending: false,
         isWaitingOnBankAccount: false,
         keyForList: '123456789',
@@ -1196,7 +1195,7 @@ const transactionReportGroupListItems = [
         groupedBy: 'expense-report',
         accountID: 18439984,
         action: 'approve',
-        allActions: ['approve'],
+        allActions: ['approve', 'changeApprover'],
         chatReportID: '1706144653204915',
         created: '2024-12-21 13:05:20',
         submitted: '2024-12-21 13:05:20',
@@ -1214,6 +1213,7 @@ const transactionReportGroupListItems = [
         },
         hasVisibleViolations: true,
         isOneTransactionReport: true,
+        isRejectedReport: false,
         shouldShowStatusAsPending: false,
         isWaitingOnBankAccount: false,
         keyForList: '11111',
@@ -1247,7 +1247,7 @@ const transactionReportGroupListItems = [
         transactions: [
             {
                 action: 'approve',
-                allActions: ['approve'],
+                allActions: ['approve', 'changeApprover'],
                 report: report2,
                 policy,
                 reportAction: reportAction2,
@@ -1330,6 +1330,7 @@ const transactionReportGroupListItems = [
         formattedTo: 'Approver',
         hasVisibleViolations: false,
         isOneTransactionReport: false,
+        isRejectedReport: false,
         shouldShowStatusAsPending: false,
         isOwnPolicyExpenseChat: false,
         isWaitingOnBankAccount: false,
@@ -1518,6 +1519,7 @@ const transactionReportGroupListItems = [
         },
         hasVisibleViolations: false,
         isOneTransactionReport: true,
+        isRejectedReport: false,
         shouldShowStatusAsPending: false,
         isWaitingOnBankAccount: false,
         keyForList: reportID5,
@@ -5657,9 +5659,7 @@ describe('SearchUIUtils', () => {
 
     describe('Test createTypeMenuItems', () => {
         it('should return the default menu items', () => {
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
             const menuItems = SearchUIUtils.createTypeMenuSections({
-                icons: icons.current,
                 currentUserEmail: undefined,
                 currentUserAccountID: undefined,
                 cardFeedsByPolicy: {},
@@ -5686,7 +5686,7 @@ describe('SearchUIUtils', () => {
                     expect.objectContaining({
                         translationPath: 'common.reports',
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-                        icon: icons.current.Document,
+                        icon: 'Document',
                     }),
                     expect.objectContaining({
                         translationPath: 'common.chats',
@@ -5749,9 +5749,7 @@ describe('SearchUIUtils', () => {
 
             const mockSavedSearches = {};
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections({
-                icons: icons.current,
                 currentUserEmail: adminEmail,
                 currentUserAccountID: adminAccountID,
                 cardFeedsByPolicy: mockCardFeedsByPolicy,
@@ -5813,9 +5811,7 @@ describe('SearchUIUtils', () => {
 
             const mockSavedSearches = {};
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections({
-                icons: icons.current,
                 currentUserEmail: adminEmail,
                 currentUserAccountID: adminAccountID,
                 cardFeedsByPolicy: mockCardFeedsByPolicy,
@@ -5863,9 +5859,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections({
-                icons: icons.current,
                 currentUserEmail: adminEmail,
                 currentUserAccountID: adminAccountID,
                 cardFeedsByPolicy: {},
@@ -5886,9 +5880,7 @@ describe('SearchUIUtils', () => {
         it('should not show saved section when there are no saved searches', () => {
             const mockSavedSearches = {};
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections({
-                icons: icons.current,
                 currentUserEmail: adminEmail,
                 currentUserAccountID: adminAccountID,
                 cardFeedsByPolicy: {},
@@ -5916,9 +5908,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections({
-                icons: icons.current,
                 currentUserEmail: adminEmail,
                 currentUserAccountID: adminAccountID,
                 cardFeedsByPolicy: {},
@@ -5946,9 +5936,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections({
-                icons: icons.current,
                 currentUserEmail: adminEmail,
                 currentUserAccountID: adminAccountID,
                 cardFeedsByPolicy: {},
@@ -5980,9 +5968,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections({
-                icons: icons.current,
                 currentUserEmail: adminEmail,
                 currentUserAccountID: adminAccountID,
                 cardFeedsByPolicy: {},
@@ -6014,9 +6000,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections({
-                icons: icons.current,
                 currentUserEmail: adminEmail,
                 currentUserAccountID: adminAccountID,
                 cardFeedsByPolicy: {},
@@ -6060,9 +6044,7 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections({
-                icons: icons.current,
                 currentUserEmail: adminEmail,
                 currentUserAccountID: adminAccountID,
                 cardFeedsByPolicy: {},
@@ -6100,9 +6082,7 @@ describe('SearchUIUtils', () => {
             };
 
             const mockCardFeedsByPolicy: Record<string, CardFeedForDisplay[]> = {};
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections({
-                icons: icons.current,
                 currentUserEmail: adminEmail,
                 currentUserAccountID: adminAccountID,
                 cardFeedsByPolicy: mockCardFeedsByPolicy,
@@ -6125,9 +6105,7 @@ describe('SearchUIUtils', () => {
         });
 
         it('should generate correct routes', () => {
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
             const menuItems = SearchUIUtils.createTypeMenuSections({
-                icons: icons.current,
                 currentUserEmail: undefined,
                 currentUserAccountID: undefined,
                 cardFeedsByPolicy: {},
@@ -6201,9 +6179,7 @@ describe('SearchUIUtils', () => {
                 ],
             };
 
-            const {result: icons} = renderHook(() => useMemoizedLazyExpensifyIcons(['Document', 'Send', 'ThumbsUp']));
             const sections = SearchUIUtils.createTypeMenuSections({
-                icons: icons.current,
                 currentUserEmail: adminEmail,
                 currentUserAccountID: adminAccountID,
                 cardFeedsByPolicy: mockCardFeedsByPolicy,
@@ -6707,7 +6683,7 @@ describe('SearchUIUtils', () => {
         });
 
         test('Should return Spend Over Time search with correct properties', () => {
-            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined, undefined);
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined);
             const spendOverTimeSearch = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME];
 
             expect(spendOverTimeSearch).toBeDefined();
@@ -6718,7 +6694,7 @@ describe('SearchUIUtils', () => {
         });
 
         test('Should return Spend Over Time search query with correct parameters', () => {
-            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined, undefined);
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined);
             const spendOverTimeSearch = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME];
             const searchQueryJSON = spendOverTimeSearch.searchQueryJSON;
 
@@ -6737,7 +6713,7 @@ describe('SearchUIUtils', () => {
         });
 
         test('Should return Spend Over Time search with valid hash', () => {
-            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined, undefined);
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined);
             const spendOverTimeSearch = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME];
 
             expect(spendOverTimeSearch.hash).toBeGreaterThan(0);
@@ -6745,7 +6721,7 @@ describe('SearchUIUtils', () => {
         });
 
         test('Should return Spend Over Time search query string with correct format', () => {
-            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined, undefined);
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined);
             const spendOverTimeSearch = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME];
             const searchQuery = spendOverTimeSearch.searchQuery;
 
@@ -6758,7 +6734,7 @@ describe('SearchUIUtils', () => {
         });
 
         test('Should return Top Merchants search query with pie view', () => {
-            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined, undefined);
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined);
             const topMerchantsSearch = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS];
 
             expect(topMerchantsSearch).toBeDefined();
@@ -6769,7 +6745,7 @@ describe('SearchUIUtils', () => {
         });
 
         test('Should return Top Merchants search query string with pie view', () => {
-            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined, undefined);
+            const suggestedSearches = SearchUIUtils.getSuggestedSearches(adminAccountID, undefined);
             const topMerchantsSearch = suggestedSearches[CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS];
 
             expect(topMerchantsSearch).toBeDefined();
@@ -7499,20 +7475,50 @@ describe('SearchUIUtils', () => {
         test('Should create transaction thread report and set optimistic data necessary for its preview', () => {
             (createTransactionThreadReport as jest.Mock).mockReturnValue(threadReport);
 
-            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, introSelectedData, backTo, currentUserLogin, currentUserAccountID, threadReportID, undefined, false);
+            SearchUIUtils.createAndOpenSearchTransactionThread(
+                transactionListItem,
+                introSelectedData,
+                backTo,
+                currentUserLogin,
+                currentUserAccountID,
+                undefined,
+                threadReportID,
+                undefined,
+                false,
+            );
 
             expect(setOptimisticDataForTransactionThreadPreview).toHaveBeenCalled();
             // The full reportAction is passed to preserve originalMessage.type for proper expense type detection
-            expect(createTransactionThreadReport).toHaveBeenCalledWith(introSelectedData, currentUserLogin, currentUserAccountID, report1, reportAction1, undefined, undefined);
+            expect(createTransactionThreadReport).toHaveBeenCalledWith(introSelectedData, currentUserLogin, currentUserAccountID, undefined, report1, reportAction1, undefined, undefined);
         });
 
         test('Should not navigate if shouldNavigate = false', () => {
-            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, introSelectedData, backTo, currentUserLogin, currentUserAccountID, threadReportID, undefined, false);
+            SearchUIUtils.createAndOpenSearchTransactionThread(
+                transactionListItem,
+                introSelectedData,
+                backTo,
+                currentUserLogin,
+                currentUserAccountID,
+                undefined,
+                threadReportID,
+                undefined,
+                false,
+            );
             expect(Navigation.navigate).not.toHaveBeenCalled();
         });
 
         test('Should handle navigation if shouldNavigate = true', () => {
-            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, introSelectedData, backTo, currentUserLogin, currentUserAccountID, threadReportID, undefined, true);
+            SearchUIUtils.createAndOpenSearchTransactionThread(
+                transactionListItem,
+                introSelectedData,
+                backTo,
+                currentUserLogin,
+                currentUserAccountID,
+                undefined,
+                threadReportID,
+                undefined,
+                true,
+            );
             // For one-transaction reports (isOneTransactionReport = true), navigation goes to the parent report (item.reportID)
             // instead of the transaction thread report
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: transactionListItem.reportID, backTo}));
@@ -7532,7 +7538,17 @@ describe('SearchUIUtils', () => {
             });
             await waitForBatchedUpdates();
 
-            SearchUIUtils.createAndOpenSearchTransactionThread(multiTransactionItem, introSelectedData, backTo, currentUserLogin, currentUserAccountID, undefined, undefined, true);
+            SearchUIUtils.createAndOpenSearchTransactionThread(
+                multiTransactionItem,
+                introSelectedData,
+                backTo,
+                currentUserLogin,
+                currentUserAccountID,
+                undefined,
+                undefined,
+                undefined,
+                true,
+            );
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo}));
         });
@@ -7541,7 +7557,17 @@ describe('SearchUIUtils', () => {
             (createTransactionThreadReport as jest.Mock).mockReturnValue(threadReport);
             const customIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.PERSONAL_SPEND};
 
-            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, customIntroSelected, backTo, currentUserLogin, currentUserAccountID, threadReportID, undefined, false);
+            SearchUIUtils.createAndOpenSearchTransactionThread(
+                transactionListItem,
+                customIntroSelected,
+                backTo,
+                currentUserLogin,
+                currentUserAccountID,
+                undefined,
+                threadReportID,
+                undefined,
+                false,
+            );
 
             expect(((createTransactionThreadReport as jest.Mock).mock.calls.at(0) as unknown[] | undefined)?.at(0)).toEqual(customIntroSelected);
         });
@@ -7549,7 +7575,7 @@ describe('SearchUIUtils', () => {
         test('Should pass undefined introSelected without bypassing with empty values', () => {
             (createTransactionThreadReport as jest.Mock).mockReturnValue(threadReport);
 
-            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, undefined, backTo, currentUserLogin, currentUserAccountID, threadReportID, undefined, false);
+            SearchUIUtils.createAndOpenSearchTransactionThread(transactionListItem, undefined, backTo, currentUserLogin, currentUserAccountID, undefined, threadReportID, undefined, false);
 
             expect(((createTransactionThreadReport as jest.Mock).mock.calls.at(0) as unknown[] | undefined)?.at(0)).toBeUndefined();
         });
@@ -7612,6 +7638,49 @@ describe('SearchUIUtils', () => {
             const transactionThread = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}456`);
 
             expect(transactionThread).toBeTruthy();
+        });
+    });
+
+    describe('getSearchBulkEditPolicyID', () => {
+        it('returns the active policy when there are no selected transactions', () => {
+            const result = SearchUIUtils.getSearchBulkEditPolicyID([], 'policy-1', undefined, undefined);
+            expect(result).toBe('policy-1');
+        });
+
+        it('returns the shared policy when all selected transactions match', () => {
+            const transaction1 = {transactionID: 't1', reportID: 'r1'} as OnyxTypes.Transaction;
+            const transaction2 = {transactionID: 't2', reportID: 'r2'} as OnyxTypes.Transaction;
+            const transactions: OnyxCollection<OnyxTypes.Transaction> = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
+            };
+            const bulkReport1 = {reportID: 'r1', policyID: 'policy-1'} as OnyxTypes.Report;
+            const bulkReport2 = {reportID: 'r2', policyID: 'policy-1'} as OnyxTypes.Report;
+            const reports: OnyxCollection<OnyxTypes.Report> = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${bulkReport1.reportID}`]: bulkReport1,
+                [`${ONYXKEYS.COLLECTION.REPORT}${bulkReport2.reportID}`]: bulkReport2,
+            };
+
+            const result = SearchUIUtils.getSearchBulkEditPolicyID(['t1', 't2'], 'policy-2', transactions, reports);
+            expect(result).toBe('policy-1');
+        });
+
+        it('falls back to the active policy when selected transactions are from different policies', () => {
+            const transaction1 = {transactionID: 't1', reportID: 'r1'} as OnyxTypes.Transaction;
+            const transaction2 = {transactionID: 't2', reportID: 'r2'} as OnyxTypes.Transaction;
+            const transactions: OnyxCollection<OnyxTypes.Transaction> = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
+            };
+            const bulkReport1 = {reportID: 'r1', policyID: 'policy-1'} as OnyxTypes.Report;
+            const bulkReport2 = {reportID: 'r2', policyID: 'policy-2'} as OnyxTypes.Report;
+            const reports: OnyxCollection<OnyxTypes.Report> = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${bulkReport1.reportID}`]: bulkReport1,
+                [`${ONYXKEYS.COLLECTION.REPORT}${bulkReport2.reportID}`]: bulkReport2,
+            };
+
+            const result = SearchUIUtils.getSearchBulkEditPolicyID(['t1', 't2'], 'policy-3', transactions, reports);
+            expect(result).toBe('policy-3');
         });
     });
 

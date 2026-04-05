@@ -1,6 +1,7 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback} from 'react';
 import type {ValueOf} from 'type-fest';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
@@ -57,6 +58,7 @@ function SageIntacctNonReimbursableExpensesDestinationPage({policy}: WithPolicyC
             displayName="SageIntacctNonReimbursableExpensesDestinationPage"
             title="workspace.accounting.exportAs"
             data={data}
+            listItem={RadioListItem}
             onSelectRow={(selection: SelectorType) => selectDestination(selection as MenuListItem)}
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}
             policyID={policyID}

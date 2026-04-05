@@ -16,8 +16,8 @@ type ListItemRendererProps<TItem extends ListItem> = Omit<BaseListItemProps<TIte
         singleExecution: ReturnType<typeof useSingleExecution>['singleExecution'];
         titleStyles?: StyleProp<TextStyle>;
         titleContainerStyles?: StyleProp<ViewStyle>;
-        shouldHighlightSelectedItem?: boolean;
-        shouldShowRadioButton?: boolean;
+        shouldHighlightSelectedItem: boolean;
+        shouldPreventEnterKeySubmit?: boolean;
     };
 
 function ListItemRenderer<TItem extends ListItem>({
@@ -53,8 +53,8 @@ function ListItemRenderer<TItem extends ListItem>({
     shouldHighlightSelectedItem,
     shouldDisableHoverStyle,
     shouldShowRightCaret,
-    shouldShowRadioButton,
     errorRowStyles,
+    shouldPreventEnterKeySubmit = true,
 }: ListItemRendererProps<TItem>) {
     const handleOnCheckboxPress = () => {
         if (isTransactionGroupListItemType(item)) {
@@ -83,8 +83,7 @@ function ListItemRenderer<TItem extends ListItem>({
                 onCheckboxPress={handleOnCheckboxPress()}
                 onDismissError={() => onDismissError?.(item)}
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
-                // We're already handling the Enter key press in the useKeyboardShortcut hook, so we don't want the list item to submit the form
-                shouldPreventEnterKeySubmit
+                shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
                 rightHandSideComponent={rightHandSideComponent}
                 keyForList={item.keyForList}
                 shouldUseDefaultRightHandSideComponent={shouldUseDefaultRightHandSideComponent}
@@ -113,7 +112,6 @@ function ListItemRenderer<TItem extends ListItem>({
                 shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                 shouldDisableHoverStyle={shouldDisableHoverStyle}
                 shouldShowRightCaret={shouldShowRightCaret}
-                shouldShowRadioButton={shouldShowRadioButton}
             />
             {item.footerContent && item.footerContent}
         </>
