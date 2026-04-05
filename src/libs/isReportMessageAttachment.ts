@@ -36,10 +36,11 @@ function isReportMessageAttachment(message: Message | undefined): boolean {
         return true;
     }
 
-    // For document attachments (.docx, .pdf, etc.), message.text is the filename rather than [Attachment].
-    // Check if the text matches the original filename attribute — if so, it's attachment-only.
+    // For document attachments (.docx, .pdf, etc.), message.text contains the filename followed by the URL
+    // (e.g., "Sample.docx https://staging.expensify.com/chat-attachments/...").
+    // Check if the text starts with the original filename attribute — if so, it's attachment-only.
     const filenameMatch = message.html.match(originalFilenameRegex);
-    if (filenameMatch && filenameMatch[1] === message.text) {
+    if (filenameMatch && message.text.startsWith(filenameMatch[1])) {
         return true;
     }
 

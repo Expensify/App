@@ -21,6 +21,15 @@ describe('isReportMessageAttachment', () => {
         expect(isReportMessageAttachment(message)).toBe(true);
     });
 
+    it('returns true for document attachment-only (.docx) where text is filename followed by URL', () => {
+        const message: Message = {
+            text: 'Sample.docx https://staging.expensify.com/chat-attachments/8260136212361587477/w_5586f35116d3e3cbb98b95a51bfbac3bb921d804.docx',
+            html: '<a href="https://staging.expensify.com/chat-attachments/8260136212361587477/w_5586f35116d3e3cbb98b95a51bfbac3bb921d804.docx" data-expensify-source="https://staging.expensify.com/chat-attachments/8260136212361587477/w_5586f35116d3e3cbb98b95a51bfbac3bb921d804.docx" data-name="Sample.docx">Sample.docx</a>',
+            type: '',
+        };
+        expect(isReportMessageAttachment(message)).toBe(true);
+    });
+
     it('returns true for PDF attachment-only where text is the filename', () => {
         const message: Message = {
             text: 'report.pdf',
