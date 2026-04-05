@@ -3,7 +3,10 @@ import CONST from '@src/CONST';
 import type {Message} from '@src/types/onyx/ReportAction';
 
 const attachmentRegex = new RegExp(` ${CONST.ATTACHMENT_SOURCE_ATTRIBUTE}="(.*)"`, 'i');
-const originalFilenameRegex = new RegExp(` ${CONST.ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE}="([^"]*)"`, 'i');
+
+// Extracts the source URL and anchor text (filename) from attachment HTML like:
+// <a ... data-expensify-source="URL" ...>Filename.docx</a>
+const attachmentAnchorRegex = new RegExp(` ${CONST.ATTACHMENT_SOURCE_ATTRIBUTE}="([^"]*)"[^>]*>([^<]+)</a>`, 'i');
 
 /**
  * Check whether a report action is Attachment-only or not.
@@ -36,12 +39,17 @@ function isReportMessageAttachment(message: Message | undefined): boolean {
         return true;
     }
 
-    // For document attachments (.docx, .pdf, etc.), message.text contains the filename followed by the URL
+    // For document attachments (.docx, .pdf, etc.), message.text is "filename URL"
     // (e.g., "Sample.docx https://staging.expensify.com/chat-attachments/...").
-    // Check if the text starts with the original filename attribute — if so, it's attachment-only.
-    const filenameMatch = message.html.match(originalFilenameRegex);
-    if (filenameMatch && message.text.startsWith(filenameMatch[1])) {
-        return true;
+    // Extract the filename and source URL from the anchor HTML, then check if message.text
+    // is exactly "filename URL" — meaning no additional user-typed content.
+    const anchorMatch = message.html.match(attachmentAnchorRegex);
+    if (anchorMatch) {
+        const sourceUrl = anchorMatch[1];
+        const anchorText = anchorMatch[2];
+        if (message.text === `${anchorText} ${sourceUrl}` || message.text === anchorText) {
+            return true;
+        }
     }
 
     return false;
