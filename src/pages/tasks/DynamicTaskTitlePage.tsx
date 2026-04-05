@@ -31,9 +31,9 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/EditTaskForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type TaskTitlePageProps = WithReportOrNotFoundProps & WithCurrentUserPersonalDetailsProps;
+type DynamicTaskTitlePageProps = WithReportOrNotFoundProps & WithCurrentUserPersonalDetailsProps;
 
-function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps) {
+function DynamicTaskTitlePage({report, currentUserPersonalDetails}: DynamicTaskTitlePageProps) {
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.TASK_TITLE.path);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -89,7 +89,7 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
                 inputRef?.current?.focus();
             }}
             shouldEnableMaxHeight
-            testID="TaskTitlePage"
+            testID="DynamicTaskTitlePage"
         >
             {({didScreenTransitionEnd}) => (
                 <FullPageNotFoundView shouldShow={isTaskNonEditable}>
@@ -137,6 +137,6 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
     );
 }
 
-const ComponentWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(TaskTitlePage);
+const ComponentWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(DynamicTaskTitlePage);
 
 export default withReportOrNotFound()(ComponentWithCurrentUserPersonalDetails);

@@ -289,7 +289,7 @@ const WorkspaceDuplicateModalStackNavigator = createModalStackNavigator<Workspac
 });
 
 const TaskModalStackNavigator = createModalStackNavigator<TaskDetailsNavigatorParamList>({
-    [SCREENS.TASK.TITLE]: () => require<ReactComponentModule>('../../../../pages/tasks/TaskTitlePage').default,
+    [SCREENS.TASK.DYNAMIC_TASK_TITLE]: () => require<ReactComponentModule>('../../../../pages/tasks/DynamicTaskTitlePage').default,
     [SCREENS.TASK.ASSIGNEE]: () => require<ReactComponentModule>('../../../../pages/tasks/TaskAssigneeSelectorModal').default,
 });
 
