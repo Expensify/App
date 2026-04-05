@@ -4188,6 +4188,7 @@ const translations = {
             clientID: 'Client ID',
             clientIDInputHint: "Enter the client's unique identifier",
             mustBeOnlineToViewMembers: 'You need to be online in order to view members of this workspace.',
+            hr: 'HR',
             moreFeatures: 'More features',
             requested: 'Requested',
             distanceRates: 'Distance rates',
@@ -5570,6 +5571,15 @@ const translations = {
                 title: 'Accounting',
                 subtitle: 'Sync your chart of accounts and more.',
             },
+            hr: {
+                title: 'HR',
+                subtitle: 'Sync employees and approval chains from Gusto.',
+                warningModal: {
+                    title: 'Keep HR visible',
+                    prompt: 'The HR page can’t be hidden while Gusto is connected. Disconnect Gusto first.',
+                    confirmText: 'Got it',
+                },
+            },
             receiptPartners: {
                 title: 'Receipt partners',
                 subtitle: 'Automatically import receipts.',
@@ -5970,6 +5980,8 @@ const translations = {
                         return 'NetSuite';
                     case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
                         return 'Sage Intacct';
+                    case CONST.POLICY.CONNECTIONS.NAME.GUSTO:
+                        return 'Gusto';
                     default: {
                         return '';
                     }
@@ -6005,6 +6017,8 @@ const translations = {
                         return "Can't connect to NetSuite";
                     case CONST.POLICY.CONNECTIONS.NAME.QBD:
                         return "Can't connect to QuickBooks Desktop";
+                    case CONST.POLICY.CONNECTIONS.NAME.GUSTO:
+                        return "Can't connect to Gusto";
                     default: {
                         return "Can't connect to integration";
                     }
@@ -6085,6 +6099,8 @@ const translations = {
                         case 'startingImportQBD':
                         case 'quickbooksDesktopImportMore':
                             return 'Importing QuickBooks Desktop data';
+                        case 'startingImportGusto':
+                            return 'Importing Gusto data';
                         case 'quickbooksDesktopImportTitle':
                             return 'Importing title';
                         case 'quickbooksDesktopImportApproveCertificate':
@@ -6176,6 +6192,14 @@ const translations = {
                             return 'Importing Sage Intacct dimensions';
                         case 'intacctImportTitle':
                             return 'Importing Sage Intacct data';
+                        case 'gustoSyncLoadCompany':
+                            return 'Loading Gusto company data';
+                        case 'gustoSyncImportEmployees':
+                            return 'Importing employees';
+                        case 'gustoSyncBuildApprovalChains':
+                            return 'Building approval chains';
+                        case 'gustoSyncFinalize':
+                            return 'Finalizing sync';
                         default: {
                             // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
                             return `Translation missing for stage: ${stage}`;
@@ -6206,6 +6230,70 @@ const translations = {
                 chooseBankAccount: 'Choose the bank account that your Expensify Card payments will be reconciled against.',
                 settlementAccountReconciliation: (settlementAccountUrl: string, lastFourPAN: string) =>
                     `Make sure this account matches your <a href="${settlementAccountUrl}">Expensify Card settlement account</a> (ending in ${lastFourPAN}) so Continuous Reconciliation works properly.`,
+            },
+        },
+        hr: {
+            title: 'HR',
+            subtitle: 'Connect HR tools and keep employee approvals in sync.',
+            connect: 'Connect',
+            settingsTitle: 'Gusto settings',
+            syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
+                switch (stage) {
+                    case 'startingImportGusto':
+                        return 'Importing Gusto data';
+                    case 'gustoSyncLoadCompany':
+                        return 'Loading Gusto company data';
+                    case 'gustoSyncImportEmployees':
+                        return 'Importing employees';
+                    case 'gustoSyncBuildApprovalChains':
+                        return 'Building approval chains';
+                    case 'gustoSyncFinalize':
+                        return 'Finalizing sync';
+                    case 'jobDone':
+                        return 'Waiting for imported data to load';
+                    default: {
+                        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+                        return `Translation missing for stage: ${stage}`;
+                    }
+                }
+            },
+            gusto: {
+                title: 'Gusto',
+                description: 'Sync employees and approval chains from Gusto.',
+                approvalMode: 'Approval mode',
+                finalApprover: 'Final approver',
+                noFinalApprover: 'Not selected',
+                menu: {
+                    syncNow: 'Sync now',
+                    disconnect: 'Disconnect',
+                },
+                approvalModes: {
+                    basic: 'Basic',
+                    manager: 'Manager',
+                    custom: 'Custom',
+                },
+                approvalModeDescription: 'Choose how approvers are mapped from Gusto.',
+                finalApproverDescription: 'Choose the workspace member who should approve requests when the manager chain ends.',
+                approvalModeWarningModal: {
+                    title: 'Change approval mode?',
+                    prompt: 'Saving this change will sync Gusto again and may reset approval chains.',
+                    confirmText: 'Save',
+                },
+                disconnectTitle: 'Disconnect Gusto',
+                disconnectPrompt: 'Are you sure you want to disconnect Gusto?',
+                syncResults: {
+                    title: 'Gusto sync complete',
+                    added: 'Added',
+                    removed: 'Removed',
+                    skipped: 'Skipped',
+                    empty: 'No changes were needed.',
+                    confirmText: 'Done',
+                    skippedReasons: {
+                        missingManager: 'Missing manager in Gusto',
+                        missingFinalApprover: 'Missing final approver',
+                        alreadyExists: 'Already in this workspace',
+                    },
+                },
             },
         },
         export: {
@@ -6433,6 +6521,12 @@ const translations = {
                 description: `Need to add more card feeds? Unlock unlimited company cards to sync transactions from all major card issuers.`,
                 onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>This is only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
+            },
+            hr: {
+                title: 'HR integrations',
+                description: 'Sync employees and approval chains from Gusto, right inside your workspace.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>HR integrations are only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
             rules: {
                 title: 'Rules',

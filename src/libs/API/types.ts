@@ -10,6 +10,21 @@ import type UpdateBeneficialOwnersForBankAccountParams from './parameters/Update
 
 type ApiRequestType = ValueOf<typeof CONST.API_REQUEST_TYPE>;
 
+type GustoSyncResultUser = {
+    email: string;
+    displayName?: string;
+};
+
+type GustoSyncSkippedResultUser = GustoSyncResultUser & {
+    reason: string;
+};
+
+type GustoSyncResult = {
+    added?: GustoSyncResultUser[];
+    removed?: GustoSyncResultUser[];
+    skipped?: GustoSyncSkippedResultUser[];
+};
+
 const WRITE_COMMANDS = {
     IMPORT_CSV_TRANSACTIONS: 'ImportCSVTransactions',
     CLEAN_POLICY_TAGS: 'ClearPolicyTags',
@@ -252,6 +267,7 @@ const WRITE_COMMANDS = {
     TRACK_EXPENSE: 'TrackExpense',
     ENABLE_POLICY_CATEGORIES: 'EnablePolicyCategories',
     ENABLE_POLICY_CONNECTIONS: 'EnablePolicyConnections',
+    ENABLE_POLICY_HR: 'EnablePolicyHR',
     TOGGLE_RECEIPT_PARTNERS: 'TogglePolicyReceiptPartners',
     INVITE_WORKSPACE_EMPLOYEES_TO_UBER: 'InviteWorkspaceEmployeesToUber',
     ENABLE_POLICY_DISTANCE_RATES: 'EnablePolicyDistanceRates',
@@ -336,6 +352,8 @@ const WRITE_COMMANDS = {
     UPDATE_QUICKBOOKS_DESKTOP_SYNC_CLASSES: 'UpdateQuickbooksDesktopSyncClasses',
     UPDATE_QUICKBOOKS_DESKTOP_SYNC_CUSTOMERS: 'UpdateQuickbooksDesktopSyncCustomers',
     UPDATE_QUICKBOOKS_DESKTOP_SYNC_ITEMS: 'UpdateQuickbooksDesktopSyncItems',
+    UPDATE_GUSTO_APPROVAL_MODE: 'UpdateGustoApprovalMode',
+    UPDATE_GUSTO_FINAL_APPROVER: 'UpdateGustoFinalApprover',
     REMOVE_POLICY_CONNECTION: 'RemovePolicyConnection',
     DISCONNECT_WORKSPACE_RECEIPT_PARTNER: 'DisconnectWorkspaceReceiptPartner',
     SET_POLICY_TAXES_ENABLED: 'SetPolicyTaxesEnabled',
@@ -829,6 +847,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.TRACK_EXPENSE]: Parameters.TrackExpenseParams;
     [WRITE_COMMANDS.ENABLE_POLICY_CATEGORIES]: Parameters.EnablePolicyCategoriesParams;
     [WRITE_COMMANDS.ENABLE_POLICY_CONNECTIONS]: Parameters.EnablePolicyConnectionsParams;
+    [WRITE_COMMANDS.ENABLE_POLICY_HR]: Parameters.EnablePolicyHRParams;
     [WRITE_COMMANDS.TOGGLE_RECEIPT_PARTNERS]: Parameters.TogglePolicyReceiptPartnersParams;
     [WRITE_COMMANDS.INVITE_WORKSPACE_EMPLOYEES_TO_UBER]: Parameters.InviteWorkspaceEmployeesToUberParams;
     [WRITE_COMMANDS.ENABLE_POLICY_DISTANCE_RATES]: Parameters.EnablePolicyDistanceRatesParams;
@@ -927,6 +946,8 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_SYNC_CLASSES]: Parameters.UpdateQuickbooksDesktopGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_SYNC_CUSTOMERS]: Parameters.UpdateQuickbooksDesktopGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_SYNC_ITEMS]: Parameters.UpdateQuickbooksDesktopGenericTypeParams;
+    [WRITE_COMMANDS.UPDATE_GUSTO_APPROVAL_MODE]: Parameters.UpdateGustoApprovalModeParams;
+    [WRITE_COMMANDS.UPDATE_GUSTO_FINAL_APPROVER]: Parameters.UpdateGustoFinalApproverParams;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_EXPORT]: Parameters.UpdateQuickbooksDesktopGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_MANY_POLICY_CONNECTION_CONFIGS]: Parameters.UpdateManyPolicyConnectionConfigurationsParams;
     [WRITE_COMMANDS.REMOVE_POLICY_CONNECTION]: Parameters.RemovePolicyConnectionParams;
@@ -1165,8 +1186,10 @@ const READ_COMMANDS = {
     GET_CORPAY_BANK_ACCOUNT_FIELDS: 'GetCorpayBankAccountFields',
     CONNECT_POLICY_TO_QUICKBOOKS_ONLINE: 'ConnectPolicyToQuickbooksOnline',
     CONNECT_POLICY_TO_XERO: 'ConnectPolicyToXero',
+    CONNECT_POLICY_TO_GUSTO: 'ConnectPolicyToGusto',
     SYNC_POLICY_TO_QUICKBOOKS_ONLINE: 'SyncPolicyToQuickbooksOnline',
     SYNC_POLICY_TO_XERO: 'SyncPolicyToXero',
+    SYNC_GUSTO: 'SyncGusto',
     SYNC_POLICY_TO_NETSUITE: 'SyncPolicyToNetSuite',
     SYNC_POLICY_TO_SAGE_INTACCT: 'SyncPolicyToSageIntacct',
     SYNC_POLICY_TO_QUICKBOOKS_DESKTOP: 'SyncPolicyToQuickbooksDesktop',
@@ -1228,6 +1251,7 @@ const READ_COMMANDS = {
     OPEN_POLICY_PER_DIEM_RATES_PAGE: 'OpenPolicyPerDiemRatesPage',
     OPEN_POLICY_MORE_FEATURES_PAGE: 'OpenPolicyMoreFeaturesPage',
     OPEN_POLICY_ACCOUNTING_PAGE: 'OpenPolicyAccountingPage',
+    OPEN_POLICY_HR_PAGE: 'OpenPolicyHRPage',
     OPEN_POLICY_PROFILE_PAGE: 'OpenPolicyProfilePage',
     OPEN_DUPLICATE_POLICY_PAGE: 'OpenDuplicatePolicyPage',
     OPEN_POLICY_INITIAL_PAGE: 'OpenPolicyInitialPage',
@@ -1255,8 +1279,10 @@ type ReadCommand = ValueOf<typeof READ_COMMANDS>;
 type ReadCommandParameters = {
     [READ_COMMANDS.CONNECT_POLICY_TO_QUICKBOOKS_ONLINE]: Parameters.ConnectPolicyToAccountingIntegrationParams;
     [READ_COMMANDS.CONNECT_POLICY_TO_XERO]: Parameters.ConnectPolicyToAccountingIntegrationParams;
+    [READ_COMMANDS.CONNECT_POLICY_TO_GUSTO]: Parameters.ConnectPolicyToGustoParams;
     [READ_COMMANDS.SYNC_POLICY_TO_QUICKBOOKS_ONLINE]: Parameters.SyncPolicyToQuickbooksOnlineParams;
     [READ_COMMANDS.SYNC_POLICY_TO_XERO]: Parameters.SyncPolicyToXeroParams;
+    [READ_COMMANDS.SYNC_GUSTO]: Parameters.SyncGustoParams;
     [READ_COMMANDS.SYNC_POLICY_TO_NETSUITE]: Parameters.SyncPolicyToNetSuiteParams;
     [READ_COMMANDS.SYNC_POLICY_TO_SAGE_INTACCT]: Parameters.SyncPolicyToNetSuiteParams;
     [READ_COMMANDS.SYNC_POLICY_TO_QUICKBOOKS_DESKTOP]: Parameters.SyncPolicyToQuickbooksDesktopParams;
@@ -1309,6 +1335,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_POLICY_PER_DIEM_RATES_PAGE]: Parameters.OpenPolicyPerDiemRatesPageParams;
     [READ_COMMANDS.OPEN_POLICY_MORE_FEATURES_PAGE]: Parameters.OpenPolicyMoreFeaturesPageParams;
     [READ_COMMANDS.OPEN_POLICY_ACCOUNTING_PAGE]: Parameters.OpenPolicyAccountingPageParams;
+    [READ_COMMANDS.OPEN_POLICY_HR_PAGE]: Parameters.OpenPolicyHRPageParams;
     [READ_COMMANDS.OPEN_POLICY_EXPENSIFY_CARDS_PAGE]: Parameters.OpenPolicyExpensifyCardsPageParams;
     [READ_COMMANDS.OPEN_POLICY_TRAVEL_PAGE]: Parameters.OpenPolicyTravelPageParams;
     [READ_COMMANDS.GET_TRAVEL_INVOICE_STATEMENT_PDF]: Parameters.GetTravelInvoiceStatementPDFParams;
@@ -1433,4 +1460,15 @@ type CommandOfType<TRequestType extends ApiRequestType> = TRequestType extends t
       ? ReadCommand
       : SideEffectRequestCommand;
 
-export type {ApiCommand, ApiRequestType, ApiRequestCommandParameters, CommandOfType, WriteCommand, ReadCommand, SideEffectRequestCommand};
+export type {
+    ApiCommand,
+    ApiRequestType,
+    ApiRequestCommandParameters,
+    CommandOfType,
+    GustoSyncResult,
+    GustoSyncResultUser,
+    GustoSyncSkippedResultUser,
+    WriteCommand,
+    ReadCommand,
+    SideEffectRequestCommand,
+};

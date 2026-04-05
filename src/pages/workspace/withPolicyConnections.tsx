@@ -5,9 +5,9 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {openPolicyAccountingPage} from '@libs/actions/PolicyConnections';
+import {hasAccountingConnections} from '@libs/PolicyUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import withPolicy from './withPolicy';
 import type {WithPolicyProps} from './withPolicy';
@@ -32,7 +32,7 @@ function withPolicyConnections<TProps extends WithPolicyConnectionsProps>(Wrappe
         const [hasConnectionsDataBeenFetched, hasConnectionsDataBeenFetchedResult] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${props.policy?.id}`);
         const isOnyxDataLoading = isLoadingOnyxValue(hasConnectionsDataBeenFetchedResult);
         const isConnectionDataFetchNeeded =
-            !isOnyxDataLoading && !isOffline && !!props.policy && (!!props.policy.areConnectionsEnabled || !isEmptyObject(props.policy.connections)) && !hasConnectionsDataBeenFetched;
+            !isOnyxDataLoading && !isOffline && !!props.policy && (!!props.policy.areConnectionsEnabled || hasAccountingConnections(props.policy)) && !hasConnectionsDataBeenFetched;
 
         const isFetchingData = isConnectionDataFetchNeeded && !!props.policy?.id && !isBoolean(hasConnectionsDataBeenFetched);
 

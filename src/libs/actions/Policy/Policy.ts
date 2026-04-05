@@ -25,6 +25,7 @@ import type {
     EnablePolicyCompanyCardsParams,
     EnablePolicyConnectionsParams,
     EnablePolicyExpensifyCardsParams,
+    EnablePolicyHRParams,
     EnablePolicyInvoicingParams,
     EnablePolicyReportFieldsParams,
     EnablePolicyTaxesParams,
@@ -4473,6 +4474,54 @@ function enablePolicyConnections(policyID: string, enabled: boolean) {
     }
 }
 
+function enablePolicyHR(policyID: string, enabled: boolean) {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    isHREnabled: enabled,
+                    pendingFields: {
+                        isHREnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    pendingFields: {
+                        isHREnabled: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    isHREnabled: !enabled,
+                    pendingFields: {
+                        isHREnabled: null,
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters: EnablePolicyHRParams = {policyID, enabled};
+
+    API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_HR, parameters, onyxData);
+
+    if (enabled && getIsNarrowLayout()) {
+        goBackWhenEnableFeature();
+    }
+}
+
 function enablePolicyReceiptPartners(policyID: string, enabled: boolean) {
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
@@ -7080,6 +7129,7 @@ export {
     openPolicyWorkflowsPage,
     enableCompanyCards,
     enablePolicyConnections,
+    enablePolicyHR,
     enablePolicyReceiptPartners,
     enablePolicyReportFields,
     enablePolicyTaxes,

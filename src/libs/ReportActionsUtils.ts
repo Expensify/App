@@ -4479,8 +4479,13 @@ function getIntegrationSyncFailedMessage(translate: LocalizedTranslate, action: 
     const {label, errorMessage} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED>) ?? {label: '', errorMessage: ''};
 
     const param = encodeURIComponent(`{"policyID": "${policyID}"}`);
-    const workspaceAccountingLink = shouldShowOldDotLink ? `${oldDotEnvironmentURL}/policy?param=${param}#connections` : `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`;
-    return translate('report.actions.type.integrationSyncFailed', label, errorMessage, workspaceAccountingLink);
+    const isGustoSyncFailure = label === CONST.POLICY.CONNECTIONS.NAME.GUSTO || label === CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.gusto;
+    const workspaceSettingsLink = isGustoSyncFailure
+        ? `${environmentURL}/${ROUTES.WORKSPACE_HR.getRoute(policyID)}`
+        : shouldShowOldDotLink
+          ? `${oldDotEnvironmentURL}/policy?param=${param}#connections`
+          : `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`;
+    return translate('report.actions.type.integrationSyncFailed', label, errorMessage, workspaceSettingsLink);
 }
 
 function getCompanyCardConnectionBrokenMessage(translate: LocalizedTranslate, action: OnyxEntry<ReportAction>): string {

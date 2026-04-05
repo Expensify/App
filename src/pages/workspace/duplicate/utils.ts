@@ -73,7 +73,7 @@ function getWorkflowRules(policy: Policy | undefined, translate: LocaleContextPr
 }
 
 function getAllValidConnectedIntegration(policy: Policy | undefined, accountingIntegrations?: ConnectionName[]) {
-    return (accountingIntegrations ?? Object.values(CONST.POLICY.CONNECTIONS.NAME)).filter(
+    return (accountingIntegrations ?? [...CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES]).filter(
         (integration) => !!policy?.connections?.[integration] && !isAuthenticationError(policy, integration),
     );
 }
