@@ -27,11 +27,6 @@ declare module '*.lottie' {
     export default value;
 }
 
-declare module '*?raw' {
-    const content: string;
-    export default content;
-}
-
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 interface Window {
     setSupportToken: (token: string, email: string, accountID: number) => void;
