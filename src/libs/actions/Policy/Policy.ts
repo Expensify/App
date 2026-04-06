@@ -2971,11 +2971,6 @@ function createWorkspace(options: CreateWorkspaceDataOptions): CreateWorkspacePa
 
 /**
  * Creates a draft workspace for various money request flows
- *
- * @param [policyOwnerEmail] the email of the account to make the owner of the policy
- * @param [makeMeAdmin] leave the calling account as an admin on the policy
- * @param [workspaceName] policy name we will use for created workspace
- * @param [policyID] custom policy id we will use for created workspace
  */
 function createDraftWorkspace(
     introSelected: OnyxEntry<IntroSelected>,
