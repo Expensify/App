@@ -1095,13 +1095,13 @@ function MoneyRequestConfirmationList({
                     return;
                 }
 
-                if (isTimeRequest && !isValidTimeExpenseAmount(iouAmount, iouCurrencyCode, decimals)) {
+                if (isTimeRequest && !isValidTimeExpenseAmount(iouAmount, decimals)) {
                     setFormError('iou.timeTracking.amountTooLargeError');
                     return;
                 }
 
                 if (isPerDiemRequest) {
-                    if (!isValidPerDiemExpenseAmount(transaction.comment?.customUnit ?? {}, iouCurrencyCode, decimals)) {
+                    if (!isValidPerDiemExpenseAmount(transaction.comment?.customUnit ?? {}, decimals)) {
                         setFormError('iou.error.invalidQuantity');
                         return;
                     }
