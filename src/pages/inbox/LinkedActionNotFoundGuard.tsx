@@ -144,8 +144,8 @@ function LinkedActionNotFoundGate({reportActionIDFromRoute, children}: LinkedAct
         if (!isActionGone) {
             return;
         }
-        Navigation.setParams({reportActionID: ''});
-    }, [isLinkedActionDeleted, wasEverVisible, linkedAction, isLoadingInitialReportActions]);
+        Navigation.setParams({reportActionID: ''}, route.key);
+    }, [isLinkedActionDeleted, wasEverVisible, linkedAction, isLoadingInitialReportActions, route.key]);
 
     // Handle inaccessible whisper
     useEffect(() => {
@@ -157,15 +157,15 @@ function LinkedActionNotFoundGate({reportActionIDFromRoute, children}: LinkedAct
             if (ignore) {
                 return;
             }
-            Navigation.setParams({reportActionID: ''});
+            Navigation.setParams({reportActionID: ''}, route.key);
         });
         return () => {
             ignore = true;
         };
-    }, [isLinkedActionInaccessibleWhisper]);
+    }, [isLinkedActionInaccessibleWhisper, route.key]);
 
     const navigateToEndOfReport = () => {
-        Navigation.setParams({reportActionID: ''});
+        Navigation.setParams({reportActionID: ''}, route.key);
     };
 
     return (
