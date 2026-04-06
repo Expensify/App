@@ -1,6 +1,7 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {useCallback, useMemo} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
+import isSidePanelReportSupported from '@components/SidePanel/isSidePanelReportSupported';
 import Log from '@libs/Log';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import {createDisplayName} from '@libs/PersonalDetailsUtils';
@@ -86,7 +87,9 @@ function useAutoCreateTrackWorkspace() {
                   })
                 : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
 
-            let rhpVariant: OnboardingRHPVariant | undefined;
+            // On mobile, hardcode trackExpensesWithConcierge since the web flow already works
+            // with the CompleteGuidedSetup response and side panel isn't supported on native.
+            let rhpVariant: OnboardingRHPVariant | undefined = isSidePanelReportSupported ? undefined : CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE;
             try {
                 const response = await completeOnboarding({
                     engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
@@ -95,13 +98,15 @@ function useAutoCreateTrackWorkspace() {
                     lastName,
                     adminsChatReportID: newAdminsChatReportID,
                     onboardingPolicyID: newPolicyID,
-                    shouldWaitForRHPVariantInitialization: true,
+                    shouldWaitForRHPVariantInitialization: isSidePanelReportSupported,
                     introSelected,
                     isSelfTourViewed,
                     betas,
                 });
 
-                rhpVariant = extractRHPVariantFromResponse(response);
+                if (isSidePanelReportSupported) {
+                    rhpVariant = extractRHPVariantFromResponse(response);
+                }
             } catch (error) {
                 Log.warn('[useAutoCreateTrackWorkspace] Error completing onboarding', {error});
             } finally {
