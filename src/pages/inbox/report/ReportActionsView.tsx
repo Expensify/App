@@ -35,7 +35,6 @@ import {
     getOneTransactionThreadReportID,
     getOriginalMessage,
     getSortedReportActionsForDisplay,
-    isActionOfType,
     isCreatedAction,
     isDeletedParentAction,
     isIOUActionMatchingTransactionList,
