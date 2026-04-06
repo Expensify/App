@@ -80,9 +80,7 @@ function createTrie(lang: FullySupportedLocale = CONST.LOCALES.DEFAULT): Trie<Em
         if (isNew) {
             node.metaData = {code: emoji.code, types: emoji.types, name: localeName, suggestions: []};
         } else {
-            node.metaData.code = emoji.code;
-            node.metaData.types = emoji.types;
-            node.metaData.name = localeName;
+            node.metaData = {suggestions: [...((node.metaData.suggestions as Emoji[] | undefined) ?? [])], code: emoji.code, types: emoji.types, name: localeName};
         }
         if (normalizedName !== localeName) {
             const {node: normNode} = trie.getOrCreate(normalizedName);
