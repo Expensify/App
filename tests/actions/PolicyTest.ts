@@ -4657,6 +4657,84 @@ describe('actions/Policy', () => {
         });
     });
 
+    describe('createPolicyExpenseChats', () => {
+        it('should create optimistic expense chat reports for new members with correct participants and currentUserAccountID', async () => {
+            const policyID = 'testPolicyID';
+            const newMemberEmail = 'newmember@example.com';
+            const newMemberAccountID = 42;
+
+            // Given a signed-in user session
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            // When creating policy expense chats for a new member
+            const result = Policy.createPolicyExpenseChats(policyID, {[newMemberEmail]: newMemberAccountID});
+
+            // Then optimistic data should be generated
+            expect(result.onyxOptimisticData.length).toBeGreaterThan(0);
+
+            // Then a report creation entry should exist for the new member
+            const reportCreationEntry = result.reportCreationData[newMemberEmail];
+            expect(reportCreationEntry).toBeTruthy();
+            expect(reportCreationEntry.reportID).toBeTruthy();
+            expect(reportCreationEntry.reportActionID).toBeTruthy();
+
+            // Then the optimistic report should have the correct participants (session user + new member)
+            const reportOnyxData = result.onyxOptimisticData.find((data) => data.key === `${ONYXKEYS.COLLECTION.REPORT}${reportCreationEntry.reportID}`);
+            expect(reportOnyxData).toBeTruthy();
+
+            const reportValue = reportOnyxData?.value as Report;
+            expect(reportValue?.participants).toBeTruthy();
+            expect(reportValue?.participants?.[ESH_ACCOUNT_ID]).toBeTruthy();
+            expect(reportValue?.participants?.[newMemberAccountID]).toBeTruthy();
+
+            // Then the chat type should be policy expense chat
+            expect(reportValue?.chatType).toBe(CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+            expect(reportValue?.policyID).toBe(policyID);
+
+            // Then the owner should be the new member
+            expect(reportValue?.ownerAccountID).toBe(newMemberAccountID);
+
+            // Then workspace chat participants should not have roles assigned (roles are only for non-workspace chats)
+            expect(reportValue?.participants?.[ESH_ACCOUNT_ID]?.role).toBeUndefined();
+            expect(reportValue?.participants?.[newMemberAccountID]?.role).toBeUndefined();
+
+            // Then the new member's notification preference should be overridden to ALWAYS (submitter visibility)
+            expect(reportValue?.participants?.[newMemberAccountID]?.notificationPreference).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS);
+        });
+
+        it('should reuse existing chat report if one already exists for the member', async () => {
+            const policyID = 'testPolicyID';
+            const existingMemberEmail = 'existing@example.com';
+            const existingMemberAccountID = 99;
+            const existingReportID = 'existingReport123';
+
+            // Given a signed-in user session
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+
+            // Given an existing policy expense chat for this member
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${existingReportID}`, {
+                reportID: existingReportID,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID,
+                ownerAccountID: existingMemberAccountID,
+                participants: {
+                    [ESH_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
+                    [existingMemberAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            });
+            await waitForBatchedUpdates();
+
+            // When creating policy expense chats for the existing member
+            const result = Policy.createPolicyExpenseChats(policyID, {[existingMemberEmail]: existingMemberAccountID});
+
+            // Then the existing report should be reused (no new reportActionID)
+            const reportCreationEntry = result.reportCreationData[existingMemberEmail];
+            expect(reportCreationEntry).toBeTruthy();
+            expect(reportCreationEntry.reportID).toBe(existingReportID);
+            expect(reportCreationEntry.reportActionID).toBeUndefined();
+        });
+    });
     describe('setPolicyCustomTaxName', () => {
         it('should set custom tax name optimistically and succeed', async () => {
             // Given a policy with a custom tax name
