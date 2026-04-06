@@ -91,19 +91,7 @@ function SpendRuleMerchantEditPage({route}: SpendRuleMerchantEditPageProps) {
     ];
 
     const onSelectMatchType = (item: MatchTypeItem) => {
-        const nextMatchType = item.value;
-        setMatchType(nextMatchType);
-
-        if (isNew) {
-            return;
-        }
-
-        if (!merchantMatchTypes.at(index)) {
-            return;
-        }
-
-        const updatedMerchantMatchTypes = merchantMatchTypes.map((type, merchantArrayIndex) => (merchantArrayIndex === index ? nextMatchType : type));
-        updateDraftSpendRule({merchantMatchTypes: updatedMerchantMatchTypes});
+        setMatchType(item.value);
     };
 
     return (
