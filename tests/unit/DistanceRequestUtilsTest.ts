@@ -211,7 +211,7 @@ describe('DistanceRequestUtils', () => {
     });
 
     describe('getTaxableAmount', () => {
-        it('should return 0 if tax claimable percentage is undefined', () => {
+        it('should return 0 if tax reclaimable percentage is undefined', () => {
             const result = DistanceRequestUtils.getTaxableAmount(FAKE_POLICY, customUnitRateIDWithOutTaxClaimablePercentage, totalDistance);
             expect(result).toBe(0);
         });
