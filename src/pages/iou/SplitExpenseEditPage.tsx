@@ -355,7 +355,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                                 style={[styles.w100, styles.mb4]}
                                 text={translate('iou.removeSplit')}
                                 onPress={() => {
-                                    removeSplitExpenseField(draftTransactionWithSplitExpenses, splitExpenseTransactionID);
+                                    removeSplitExpenseField(draftTransactionWithSplitExpenses, splitExpenseTransactionID, currentPolicy);
                                     Navigation.goBack(backTo);
                                 }}
                                 pressOnEnter
