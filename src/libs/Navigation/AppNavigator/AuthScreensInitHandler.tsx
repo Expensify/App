@@ -64,7 +64,10 @@ function AuthScreensInitHandler() {
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [lastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
     const [isLoadingApp] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_APP);
-    const lastWorkspaceNumberWithEmailSelector = useCallback((policies: OnyxCollection<Policy>) => lastWorkspaceNumberSelector(policies, session?.email ?? ''), [session?.email]);
+    const lastWorkspaceNumberWithEmailSelector = useCallback((policies: OnyxCollection<Policy>) => {
+        const policyOwnerEmail = getSearchParamFromUrl(currentUrl, 'ownerEmail') ?? session?.email ?? '';
+        return lastWorkspaceNumberSelector(policies, policyOwnerEmail);
+    }, [currentUrl, session?.email]);
     const [lastWorkspaceNumber] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: lastWorkspaceNumberWithEmailSelector});
     const lastUpdateIDAppliedToClientRef = useRef(lastUpdateIDAppliedToClient);
     const isLoadingAppRef = useRef(isLoadingApp);
