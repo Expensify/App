@@ -546,10 +546,10 @@ function BasePopoverMenu({
             return shouldEnableMaxHeight ? [{maxHeight: CONST.POPOVER_MENU_MAX_HEIGHT_MOBILE}] : [];
         }
 
-        const stylesArray: ViewStyle[] = [StyleSheet.flatten(styles.createMenuContainer)];
+        const stylesArray: ViewStyle[] = [StyleSheet.flatten(styles.createMenuContainer), {width: 280}];
 
         if (shouldUseScrollView && shouldEnableMaxHeight) {
-            stylesArray.push({maxHeight: CONST.POPOVER_MENU_MAX_HEIGHT});
+            stylesArray.push({maxHeight: 560});
         }
 
         return stylesArray;
