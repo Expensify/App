@@ -19,8 +19,8 @@ import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import getQuickbooksDesktopSetupEntryRoute from './utils';
 
 type QuickbooksDesktopExistingConnectionsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_REUSE_EXISTING_CONNECTIONS>;
 
@@ -75,7 +75,7 @@ function QuickbooksDesktopExistingConnectionsPage({route}: QuickbooksDesktopExis
                     icon={icons.LinkCopy}
                     iconStyles={{borderRadius: variables.componentBorderRadiusNormal}}
                     shouldShowRightIcon
-                    onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_SETUP_MODAL.getRoute(policyID))}
+                    onPress={() => Navigation.navigate(getQuickbooksDesktopSetupEntryRoute(policyID))}
                 />
                 <Text style={[styles.sectionTitle, styles.pl5, styles.pr5, styles.pb2, styles.mt3]}>{translate('workspace.common.existingConnections')}</Text>
                 <MenuItemList
