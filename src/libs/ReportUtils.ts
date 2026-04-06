@@ -5840,7 +5840,10 @@ function getReportActionMessage({
         });
     }
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED) {
-        return translate('violations.smartscanFailed', {canEdit: wasActionTakenByCurrentUser(reportAction)});
+        // RECEIPT_SCAN_FAILED is submitted by Concierge, so use the IOU action to determine edit permission
+        const report = getReportOrDraftReport(reportID, reports);
+        const iouAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
+        return translate('violations.smartscanFailed', {canEdit: wasActionTakenByCurrentUser(iouAction)});
     }
 
     if (isReimbursementDeQueuedOrCanceledAction(reportAction)) {
