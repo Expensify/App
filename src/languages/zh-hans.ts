@@ -3032,7 +3032,8 @@ ${
         error: {
             dateShouldBeBefore: (dateString: string) => `日期应早于 ${dateString}`,
             dateShouldBeAfter: (dateString: string) => `日期应晚于 ${dateString}`,
-            hasInvalidCharacter: '名称不能包含逗号或分号',
+            hasInvalidCharacter: '姓名只能包含拉丁字符',
+            cannotIncludeCommaOrSemicolon: '名称不能包含逗号或分号',
             incorrectZipFormat: (zipFormat?: string) => `邮政编码格式不正确${zipFormat ? `可接受的格式：${zipFormat}` : ''}`,
             invalidPhoneNumber: `请确保电话号码有效（例如：${CONST.EXAMPLE_PHONE_NUMBER}）`,
         },

@@ -55,7 +55,7 @@ function validateLegalName(values: FormOnyxValues<typeof ONYXKEYS.FORMS.LEGAL_NA
     if (!firstName) {
         errors[INPUT_IDS.LEGAL_FIRST_NAME] = translate('common.error.fieldRequired');
     } else if (!isValidDisplayName(firstName)) {
-        errors[INPUT_IDS.LEGAL_FIRST_NAME] = translate('privatePersonalDetails.error.hasInvalidCharacter');
+        errors[INPUT_IDS.LEGAL_FIRST_NAME] = translate('privatePersonalDetails.error.cannotIncludeCommaOrSemicolon');
     } else if (firstName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
         appendErrorMessage(errors, INPUT_IDS.LEGAL_FIRST_NAME, translate('common.error.characterLimitExceedCounter', firstName.length, CONST.LEGAL_NAME.MAX_LENGTH));
     }
@@ -66,7 +66,7 @@ function validateLegalName(values: FormOnyxValues<typeof ONYXKEYS.FORMS.LEGAL_NA
     if (!lastName) {
         errors[INPUT_IDS.LEGAL_LAST_NAME] = translate('common.error.fieldRequired');
     } else if (!isValidDisplayName(lastName)) {
-        errors[INPUT_IDS.LEGAL_LAST_NAME] = translate('privatePersonalDetails.error.hasInvalidCharacter');
+        errors[INPUT_IDS.LEGAL_LAST_NAME] = translate('privatePersonalDetails.error.cannotIncludeCommaOrSemicolon');
     } else if (lastName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
         appendErrorMessage(errors, INPUT_IDS.LEGAL_LAST_NAME, translate('common.error.characterLimitExceedCounter', lastName.length, CONST.LEGAL_NAME.MAX_LENGTH));
     }
