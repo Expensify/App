@@ -42,7 +42,7 @@ function PopoverDownloadItem({reportAction, encryptedAuthToken, download, isFocu
                     const html = getActionHtml(reportAction);
                     const {originalFileName, sourceURL} = getAttachmentDetails(html);
                     const sourceURLWithAuth = addEncryptedAuthTokenToURL(sourceURL ?? '', encryptedAuthToken);
-                    const sourceID = (sourceURL?.match(CONST.REGEX.ATTACHMENT_ID) ?? [])[1];
+                    const sourceID = (sourceURL?.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_SOURCE_ID) ?? [])[1];
                     setDownload(sourceID, true);
                     const anchorRegex = CONST.REGEX_LINK_IN_ANCHOR;
                     const isAnchorTag = anchorRegex.test(html);
@@ -81,7 +81,7 @@ function MiniDownloadItem({reportAction, encryptedAuthToken}: MiniDownloadItemPr
                     const html = getActionHtml(reportAction);
                     const {originalFileName, sourceURL} = getAttachmentDetails(html);
                     const sourceURLWithAuth = addEncryptedAuthTokenToURL(sourceURL ?? '', encryptedAuthToken);
-                    const sourceID = (sourceURL?.match(CONST.REGEX.ATTACHMENT_ID) ?? [])[1];
+                    const sourceID = (sourceURL?.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_SOURCE_ID) ?? [])[1];
                     setDownload(sourceID, true);
                     const anchorRegex = CONST.REGEX_LINK_IN_ANCHOR;
                     const isAnchorTag = anchorRegex.test(html);

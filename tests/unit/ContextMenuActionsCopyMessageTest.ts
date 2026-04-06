@@ -47,6 +47,8 @@ const createParams = (selection: string) => ({
     transaction: undefined,
     selection,
     report: undefined,
+    conciergeReportID: undefined,
+    bankAccountList: undefined,
     card: undefined,
     originalReport: undefined,
     isHarvestReport: false,

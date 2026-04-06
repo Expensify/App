@@ -4,6 +4,7 @@ import type {RefObject} from 'react';
 import {StyleSheet, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
 import Hoverable from '@components/Hoverable';
 import MiniContextMenuItem from '@components/MiniContextMenuItem';
@@ -33,6 +34,7 @@ import type {ContextMenuAnchor} from '@pages/inbox/report/ContextMenu/ReportActi
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import useReportActionContextMenuData from '@pages/inbox/report/ContextMenu/useReportActionContextMenuData';
 import CONST from '@src/CONST';
+import type {BankAccountList} from '@src/types/onyx';
 
 function MiniReportActionContextMenu() {
     const {
@@ -116,7 +118,9 @@ function MiniReportActionContextMenu() {
         moneyRequestPolicy,
         iouTransaction,
         transaction,
+        bankAccountList,
         card,
+        conciergeReportID,
         currentUserPersonalDetails,
         encryptedAuthToken,
         isArchivedRoom,
@@ -129,6 +133,8 @@ function MiniReportActionContextMenu() {
         areHoldRequirementsMet,
         transactions,
         introSelected,
+        isSelfTourViewed,
+        betas,
         movedFromReport,
         movedToReport,
         harvestReport,
@@ -194,7 +200,7 @@ function MiniReportActionContextMenu() {
         });
     const showMarkAsUnread = !isDisabledAction(ACTION_IDS.MARK_AS_UNREAD) && shouldShowMarkAsUnreadForReportAction({reportAction});
     const showExplain = !isDisabledAction(ACTION_IDS.EXPLAIN) && shouldShowExplainAction({reportAction, isArchivedRoom});
-    const showEdit = !isDisabledAction(ACTION_IDS.EDIT) && shouldShowEditAction({reportAction, isArchivedRoom, isChronosReport, moneyRequestAction});
+    const showEdit = !isDisabledAction(ACTION_IDS.EDIT) && shouldShowEditAction({reportAction, isArchivedRoom, isChronosReport, moneyRequestAction, iouTransaction});
     const showUnhold =
         !isDisabledAction(ACTION_IDS.UNHOLD) &&
         shouldShowUnholdAction({
@@ -258,6 +264,7 @@ function MiniReportActionContextMenu() {
                     originalReport={originalReport}
                     currentUserAccountID={currentUserAccountID}
                     introSelected={introSelected}
+                    betas={betas}
                     hideAndRun={hideAndRun}
                 />,
             );
@@ -283,6 +290,7 @@ function MiniReportActionContextMenu() {
                     reportAction={reportAction}
                     currentUserPersonalDetails={currentUserPersonalDetails}
                     introSelected={introSelected}
+                    betas={betas}
                     hideAndRun={hideAndRun}
                 />,
             );
@@ -296,6 +304,7 @@ function MiniReportActionContextMenu() {
                     moneyRequestAction={moneyRequestAction}
                     draftMessage={resolvedDraftMessage}
                     introSelected={introSelected}
+                    betas={betas}
                     hideAndRun={hideAndRun}
                 />,
             );
@@ -305,6 +314,8 @@ function MiniReportActionContextMenu() {
                 <MiniUnholdItem
                     key="unhold"
                     moneyRequestAction={moneyRequestAction}
+                    iouTransaction={iouTransaction}
+                    isOffline={isOffline}
                     isDelegateAccessRestricted={isDelegateAccessRestricted}
                     showDelegateNoAccessModal={showDelegateNoAccessModal}
                     hideAndRun={hideAndRun}
@@ -316,6 +327,8 @@ function MiniReportActionContextMenu() {
                 <MiniHoldItem
                     key="hold"
                     moneyRequestAction={moneyRequestAction}
+                    iouTransaction={iouTransaction}
+                    isOffline={isOffline}
                     isDelegateAccessRestricted={isDelegateAccessRestricted}
                     showDelegateNoAccessModal={showDelegateNoAccessModal}
                     hideAndRun={hideAndRun}
@@ -330,6 +343,8 @@ function MiniReportActionContextMenu() {
                     originalReport={originalReport}
                     currentUserAccountID={currentUserAccountID}
                     introSelected={introSelected}
+                    isSelfTourViewed={isSelfTourViewed}
+                    betas={betas}
                     hideAndRun={hideAndRun}
                 />,
             );
@@ -342,6 +357,8 @@ function MiniReportActionContextMenu() {
                     originalReport={originalReport}
                     currentUserAccountID={currentUserAccountID}
                     introSelected={introSelected}
+                    isSelfTourViewed={isSelfTourViewed}
+                    betas={betas}
                     hideAndRun={hideAndRun}
                 />,
             );
@@ -354,6 +371,8 @@ function MiniReportActionContextMenu() {
                     transaction={transaction}
                     selection={resolvedSelection}
                     report={report}
+                    conciergeReportID={conciergeReportID}
+                    bankAccountList={bankAccountList as OnyxEntry<BankAccountList>}
                     card={card}
                     originalReport={originalReport}
                     isHarvestReport={isHarvestReport}

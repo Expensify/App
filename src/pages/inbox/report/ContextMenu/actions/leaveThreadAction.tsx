@@ -13,20 +13,33 @@ import {isActionableTrackExpense, isCreatedAction, isCreatedTaskReportAction, is
 import {getChildReportNotificationPreference, shouldDisplayThreadReplies} from '@libs/ReportUtils';
 import {toggleSubscribeToChildReport} from '@userActions/Report';
 import CONST from '@src/CONST';
-import type {IntroSelected, ReportAction, Report as ReportType} from '@src/types/onyx';
+import type {Beta, IntroSelected, ReportAction, Report as ReportType} from '@src/types/onyx';
 
 type PopoverLeaveThreadItemProps = {
     reportAction: ReportAction;
     originalReport: OnyxEntry<ReportType>;
     currentUserAccountID: number;
     introSelected: OnyxEntry<IntroSelected>;
+    isSelfTourViewed: boolean | undefined;
+    betas: OnyxEntry<Beta[]>;
     hideAndRun: (callback?: () => void) => void;
     isFocused?: boolean;
     onFocus?: () => void;
     onBlur?: () => void;
 };
 
-function PopoverLeaveThreadItem({reportAction, originalReport, currentUserAccountID, introSelected, hideAndRun, isFocused, onFocus, onBlur}: PopoverLeaveThreadItemProps) {
+function PopoverLeaveThreadItem({
+    reportAction,
+    originalReport,
+    currentUserAccountID,
+    introSelected,
+    isSelfTourViewed,
+    betas,
+    hideAndRun,
+    isFocused,
+    onFocus,
+    onBlur,
+}: PopoverLeaveThreadItemProps) {
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Exit'] as const);
     const styles = useThemeStyles();
@@ -42,7 +55,16 @@ function PopoverLeaveThreadItem({reportAction, originalReport, currentUserAccoun
                     const childReportNotificationPreference = getChildReportNotificationPreference(reportAction);
                     hideAndRun(() => {
                         ReportActionComposeFocusManager.focus();
-                        toggleSubscribeToChildReport(reportAction?.childReportID, currentUserAccountID, reportAction, originalReport, introSelected, childReportNotificationPreference);
+                        toggleSubscribeToChildReport(
+                            reportAction?.childReportID,
+                            currentUserAccountID,
+                            reportAction,
+                            originalReport,
+                            introSelected,
+                            isSelfTourViewed,
+                            betas,
+                            childReportNotificationPreference,
+                        );
                     });
                 }, false)
             }
@@ -62,10 +84,12 @@ type MiniLeaveThreadItemProps = {
     originalReport: OnyxEntry<ReportType>;
     currentUserAccountID: number;
     introSelected: OnyxEntry<IntroSelected>;
+    isSelfTourViewed: boolean | undefined;
+    betas: OnyxEntry<Beta[]>;
     hideAndRun: (callback?: () => void) => void;
 };
 
-function MiniLeaveThreadItem({reportAction, originalReport, currentUserAccountID, introSelected, hideAndRun}: MiniLeaveThreadItemProps) {
+function MiniLeaveThreadItem({reportAction, originalReport, currentUserAccountID, introSelected, isSelfTourViewed, betas, hideAndRun}: MiniLeaveThreadItemProps) {
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Exit'] as const);
 
@@ -78,7 +102,16 @@ function MiniLeaveThreadItem({reportAction, originalReport, currentUserAccountID
                     const childReportNotificationPreference = getChildReportNotificationPreference(reportAction);
                     hideAndRun(() => {
                         ReportActionComposeFocusManager.focus();
-                        toggleSubscribeToChildReport(reportAction?.childReportID, currentUserAccountID, reportAction, originalReport, introSelected, childReportNotificationPreference);
+                        toggleSubscribeToChildReport(
+                            reportAction?.childReportID,
+                            currentUserAccountID,
+                            reportAction,
+                            originalReport,
+                            introSelected,
+                            isSelfTourViewed,
+                            betas,
+                            childReportNotificationPreference,
+                        );
                     });
                 }, false)
             }

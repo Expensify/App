@@ -11,7 +11,7 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {shouldDisableThread} from '@libs/ReportUtils';
 import {navigateToAndOpenChildReport} from '@userActions/Report';
 import CONST from '@src/CONST';
-import type {IntroSelected, ReportAction, Report as ReportType} from '@src/types/onyx';
+import type {Beta, IntroSelected, ReportAction, Report as ReportType} from '@src/types/onyx';
 import KeyboardUtils from '@src/utils/keyboard';
 
 type PopoverReplyInThreadItemProps = {
@@ -20,13 +20,25 @@ type PopoverReplyInThreadItemProps = {
     originalReport: OnyxEntry<ReportType>;
     currentUserAccountID: number;
     introSelected: OnyxEntry<IntroSelected>;
+    betas: OnyxEntry<Beta[]>;
     hideAndRun: (callback?: () => void) => void;
     isFocused?: boolean;
     onFocus?: () => void;
     onBlur?: () => void;
 };
 
-function PopoverReplyInThreadItem({childReport, reportAction, originalReport, currentUserAccountID, introSelected, hideAndRun, isFocused, onFocus, onBlur}: PopoverReplyInThreadItemProps) {
+function PopoverReplyInThreadItem({
+    childReport,
+    reportAction,
+    originalReport,
+    currentUserAccountID,
+    introSelected,
+    betas,
+    hideAndRun,
+    isFocused,
+    onFocus,
+    onBlur,
+}: PopoverReplyInThreadItemProps) {
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ChatBubbleReply'] as const);
     const styles = useThemeStyles();
@@ -40,7 +52,7 @@ function PopoverReplyInThreadItem({childReport, reportAction, originalReport, cu
             onPress={() =>
                 interceptAnonymousUser(() => {
                     hideAndRun(() => {
-                        KeyboardUtils.dismiss().then(() => navigateToAndOpenChildReport(childReport, reportAction, originalReport, currentUserAccountID, introSelected));
+                        KeyboardUtils.dismiss().then(() => navigateToAndOpenChildReport(childReport, reportAction, originalReport, currentUserAccountID, introSelected, betas));
                     });
                 }, false)
             }
@@ -61,10 +73,11 @@ type MiniReplyInThreadItemProps = {
     originalReport: OnyxEntry<ReportType>;
     currentUserAccountID: number;
     introSelected: OnyxEntry<IntroSelected>;
+    betas: OnyxEntry<Beta[]>;
     hideAndRun: (callback?: () => void) => void;
 };
 
-function MiniReplyInThreadItem({childReport, reportAction, originalReport, currentUserAccountID, introSelected, hideAndRun}: MiniReplyInThreadItemProps) {
+function MiniReplyInThreadItem({childReport, reportAction, originalReport, currentUserAccountID, introSelected, betas, hideAndRun}: MiniReplyInThreadItemProps) {
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ChatBubbleReply'] as const);
 
@@ -75,7 +88,7 @@ function MiniReplyInThreadItem({childReport, reportAction, originalReport, curre
             onPress={() =>
                 interceptAnonymousUser(() => {
                     hideAndRun(() => {
-                        KeyboardUtils.dismiss().then(() => navigateToAndOpenChildReport(childReport, reportAction, originalReport, currentUserAccountID, introSelected));
+                        KeyboardUtils.dismiss().then(() => navigateToAndOpenChildReport(childReport, reportAction, originalReport, currentUserAccountID, introSelected, betas));
                     });
                 }, false)
             }

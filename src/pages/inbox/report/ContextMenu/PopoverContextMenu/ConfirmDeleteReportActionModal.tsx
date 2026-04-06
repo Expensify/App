@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import {useRef, useState} from 'react';
 import {DeviceEventEmitter, InteractionManager} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import type {ModalProps} from '@components/Modal/Global/ModalContext';
@@ -11,10 +11,9 @@ import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactio
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
-import {deleteTrackExpense} from '@libs/actions/IOU';
+import {deleteTrackExpense} from '@libs/actions/IOU/TrackExpense';
 import {deleteAppReport, deleteReportComment} from '@libs/actions/Report';
 import {getOriginalMessage, isMoneyRequestAction, isReportPreviewAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {getOriginalReportID} from '@libs/ReportUtils';
@@ -27,12 +26,14 @@ type ConfirmDeleteReportActionModalProps = ModalProps & {
 };
 
 function ConfirmDeleteReportActionModal({closeModal, reportID, reportActionID, actionSourceReportID}: ConfirmDeleteReportActionModalProps) {
-    const {translate, toLocaleDigit} = useLocalize();
-    const personalPolicy = usePersonalPolicy();
+    const {translate} = useLocalize();
     const {email, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {currentSearchHash} = useSearchStateContext();
 
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+    const reportActionsRef = useRef(reportActions);
+    // eslint-disable-next-line react-hooks/refs
+    reportActionsRef.current = reportActions;
     const [sourceReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${actionSourceReportID}`);
     const actionReportActions = reportActions?.[reportActionID] ? reportActions : sourceReportActions;
     const reportAction = actionReportActions?.[reportActionID];
@@ -93,7 +94,7 @@ function ConfirmDeleteReportActionModal({closeModal, reportID, reportActionID, a
                     currentUserAccountID,
                 });
             } else if (originalMessage?.IOUTransactionID) {
-                deleteTransactions([originalMessage.IOUTransactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash);
+                deleteTransactions([originalMessage.IOUTransactionID], duplicateTransactions, duplicateTransactionViolations, undefined);
             }
         } else if (isReportPreviewAction(reportAction)) {
             deleteAppReport({
@@ -104,15 +105,21 @@ function ConfirmDeleteReportActionModal({closeModal, reportID, reportActionID, a
                 reportTransactions,
                 allTransactionViolations,
                 bankAccountList,
-                personalPolicy,
-                translate,
-                toLocaleDigit,
                 hash: currentSearchHash,
             });
         } else if (reportAction) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
-                deleteReportComment(report, reportAction, ancestors, isReportArchived, isOriginalReportArchived, email ?? '', visibleReportActionsData ?? undefined);
+                deleteReportComment(
+                    report,
+                    reportAction,
+                    ancestors,
+                    isReportArchived,
+                    isOriginalReportArchived,
+                    email ?? '',
+                    visibleReportActionsData ?? undefined,
+                    reportActionsRef.current ?? undefined,
+                );
             });
         }
 

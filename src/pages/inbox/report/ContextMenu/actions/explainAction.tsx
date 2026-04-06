@@ -12,7 +12,7 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {hasReasoning} from '@libs/ReportActionsUtils';
 import {explain} from '@userActions/Report';
 import CONST from '@src/CONST';
-import type {IntroSelected, ReportAction, Report as ReportType} from '@src/types/onyx';
+import type {Beta, IntroSelected, ReportAction, Report as ReportType} from '@src/types/onyx';
 import KeyboardUtils from '@src/utils/keyboard';
 
 type PopoverExplainItemProps = {
@@ -21,13 +21,14 @@ type PopoverExplainItemProps = {
     reportAction: ReportAction;
     currentUserPersonalDetails: ReturnType<typeof useCurrentUserPersonalDetails>;
     introSelected: OnyxEntry<IntroSelected>;
+    betas: OnyxEntry<Beta[]>;
     hideAndRun: (callback?: () => void) => void;
     isFocused?: boolean;
     onFocus?: () => void;
     onBlur?: () => void;
 };
 
-function PopoverExplainItem({childReport, originalReport, reportAction, currentUserPersonalDetails, introSelected, hideAndRun, isFocused, onFocus, onBlur}: PopoverExplainItemProps) {
+function PopoverExplainItem({childReport, originalReport, reportAction, currentUserPersonalDetails, introSelected, betas, hideAndRun, isFocused, onFocus, onBlur}: PopoverExplainItemProps) {
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Concierge'] as const);
     const styles = useThemeStyles();
@@ -52,6 +53,7 @@ function PopoverExplainItem({childReport, originalReport, reportAction, currentU
                                 translate,
                                 currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                                 introSelected,
+                                betas,
                                 currentUserPersonalDetails?.timezone,
                             ),
                         );
@@ -75,10 +77,11 @@ type MiniExplainItemProps = {
     reportAction: ReportAction;
     currentUserPersonalDetails: ReturnType<typeof useCurrentUserPersonalDetails>;
     introSelected: OnyxEntry<IntroSelected>;
+    betas: OnyxEntry<Beta[]>;
     hideAndRun: (callback?: () => void) => void;
 };
 
-function MiniExplainItem({childReport, originalReport, reportAction, currentUserPersonalDetails, introSelected, hideAndRun}: MiniExplainItemProps) {
+function MiniExplainItem({childReport, originalReport, reportAction, currentUserPersonalDetails, introSelected, betas, hideAndRun}: MiniExplainItemProps) {
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Concierge'] as const);
 
@@ -100,6 +103,7 @@ function MiniExplainItem({childReport, originalReport, reportAction, currentUser
                                 translate,
                                 currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                                 introSelected,
+                                betas,
                                 currentUserPersonalDetails?.timezone,
                             ),
                         );

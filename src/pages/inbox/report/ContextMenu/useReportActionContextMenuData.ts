@@ -1,3 +1,4 @@
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import type {RefObject} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
@@ -72,6 +73,10 @@ function useReportActionContextMenuData({reportID, reportActionID, originalRepor
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
 
     const hasValidReportAction = !isEmptyObject(originalReportActions) && reportActionID && reportActionID !== '0' && reportActionID !== '-1';
     const reportAction: OnyxEntry<ReportAction> = hasValidReportAction ? originalReportActions[reportActionID] : undefined;
@@ -168,6 +173,10 @@ function useReportActionContextMenuData({reportID, reportActionID, originalRepor
         isDebugModeEnabled,
         transactions,
         introSelected,
+        isSelfTourViewed,
+        betas,
+        bankAccountList,
+        conciergeReportID,
         movedFromReport,
         movedToReport,
         harvestReport,

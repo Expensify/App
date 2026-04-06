@@ -3,6 +3,7 @@ import React from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, View as ViewType} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import FocusableMenuItem from '@components/FocusableMenuItem';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import QuickEmojiReactions from '@components/Reactions/QuickEmojiReactions';
@@ -33,6 +34,7 @@ import {PopoverUnholdItem, shouldShowUnholdAction} from '@pages/inbox/report/Con
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import useReportActionContextMenuData from '@pages/inbox/report/ContextMenu/useReportActionContextMenuData';
 import CONST from '@src/CONST';
+import type {BankAccountList} from '@src/types/onyx';
 
 type PopoverReportActionContentProps = {
     reportID: string | undefined;
@@ -82,7 +84,9 @@ function PopoverReportActionContent({
         moneyRequestPolicy,
         iouTransaction,
         transaction,
+        bankAccountList,
         card,
+        conciergeReportID,
         currentUserPersonalDetails,
         encryptedAuthToken,
         isArchivedRoom,
@@ -96,6 +100,8 @@ function PopoverReportActionContent({
         isDebugModeEnabled,
         transactions,
         introSelected,
+        isSelfTourViewed,
+        betas,
         movedFromReport,
         movedToReport,
         harvestReport,
@@ -156,7 +162,7 @@ function PopoverReportActionContent({
         });
     const showMarkAsUnread = !isDisabled(ACTION_IDS.MARK_AS_UNREAD) && shouldShowMarkAsUnreadForReportAction({reportAction});
     const showExplain = !isDisabled(ACTION_IDS.EXPLAIN) && shouldShowExplainAction({reportAction, isArchivedRoom});
-    const showEdit = !isDisabled(ACTION_IDS.EDIT) && shouldShowEditAction({reportAction, isArchivedRoom, isChronosReport, moneyRequestAction});
+    const showEdit = !isDisabled(ACTION_IDS.EDIT) && shouldShowEditAction({reportAction, isArchivedRoom, isChronosReport, moneyRequestAction, iouTransaction});
     const showUnhold =
         !isDisabled(ACTION_IDS.UNHOLD) &&
         shouldShowUnholdAction({
@@ -239,6 +245,7 @@ function PopoverReportActionContent({
                     originalReport={originalReport}
                     currentUserAccountID={currentUserAccountID}
                     introSelected={introSelected}
+                    betas={betas}
                     hideAndRun={hideAndRun}
                 />,
             );
@@ -264,6 +271,7 @@ function PopoverReportActionContent({
                     reportAction={reportAction}
                     currentUserPersonalDetails={currentUserPersonalDetails}
                     introSelected={introSelected}
+                    betas={betas}
                     hideAndRun={hideAndRun}
                 />,
             );
@@ -277,6 +285,7 @@ function PopoverReportActionContent({
                     moneyRequestAction={moneyRequestAction}
                     draftMessage={resolvedDraftMessage}
                     introSelected={introSelected}
+                    betas={betas}
                     hideAndRun={hideAndRun}
                 />,
             );
@@ -286,6 +295,8 @@ function PopoverReportActionContent({
                 <PopoverUnholdItem
                     key="unhold"
                     moneyRequestAction={moneyRequestAction}
+                    iouTransaction={iouTransaction}
+                    isOffline={isOffline}
                     isDelegateAccessRestricted={isDelegateAccessRestricted}
                     showDelegateNoAccessModal={showDelegateNoAccessModal}
                     hideAndRun={hideAndRun}
@@ -297,6 +308,8 @@ function PopoverReportActionContent({
                 <PopoverHoldItem
                     key="hold"
                     moneyRequestAction={moneyRequestAction}
+                    iouTransaction={iouTransaction}
+                    isOffline={isOffline}
                     isDelegateAccessRestricted={isDelegateAccessRestricted}
                     showDelegateNoAccessModal={showDelegateNoAccessModal}
                     hideAndRun={hideAndRun}
@@ -311,6 +324,8 @@ function PopoverReportActionContent({
                     originalReport={originalReport}
                     currentUserAccountID={currentUserAccountID}
                     introSelected={introSelected}
+                    isSelfTourViewed={isSelfTourViewed}
+                    betas={betas}
                     hideAndRun={hideAndRun}
                 />,
             );
@@ -323,6 +338,8 @@ function PopoverReportActionContent({
                     originalReport={originalReport}
                     currentUserAccountID={currentUserAccountID}
                     introSelected={introSelected}
+                    isSelfTourViewed={isSelfTourViewed}
+                    betas={betas}
                     hideAndRun={hideAndRun}
                 />,
             );
@@ -335,6 +352,8 @@ function PopoverReportActionContent({
                     transaction={transaction}
                     selection={resolvedSelection}
                     report={report}
+                    conciergeReportID={conciergeReportID}
+                    bankAccountList={bankAccountList as OnyxEntry<BankAccountList>}
                     card={card}
                     originalReport={originalReport}
                     isHarvestReport={isHarvestReport}

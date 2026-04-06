@@ -15,7 +15,7 @@ import {canEditReportAction} from '@libs/ReportUtils';
 import {deleteReportActionDraft, openReport, saveReportActionDraft} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {IntroSelected, ReportAction} from '@src/types/onyx';
+import type {Beta, IntroSelected, ReportAction, Transaction} from '@src/types/onyx';
 import {getActionHtml} from './actionConfig';
 
 type PopoverEditItemProps = {
@@ -24,13 +24,14 @@ type PopoverEditItemProps = {
     moneyRequestAction: ReportAction | undefined;
     draftMessage: string;
     introSelected: OnyxEntry<IntroSelected>;
+    betas: OnyxEntry<Beta[]>;
     hideAndRun: (callback?: () => void) => void;
     isFocused?: boolean;
     onFocus?: () => void;
     onBlur?: () => void;
 };
 
-function PopoverEditItem({reportID, reportAction, moneyRequestAction, draftMessage, introSelected, hideAndRun, isFocused, onFocus, onBlur}: PopoverEditItemProps) {
+function PopoverEditItem({reportID, reportAction, moneyRequestAction, draftMessage, introSelected, betas, hideAndRun, isFocused, onFocus, onBlur}: PopoverEditItemProps) {
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Pencil'] as const);
     const styles = useThemeStyles();
@@ -46,7 +47,7 @@ function PopoverEditItem({reportID, reportAction, moneyRequestAction, draftMessa
                     if (isMoneyRequestAction(reportAction) || isMoneyRequestAction(moneyRequestAction)) {
                         hideAndRun(() => {
                             const childReportID = reportAction?.childReportID;
-                            openReport({reportID: childReportID, introSelected});
+                            openReport({reportID: childReportID, introSelected, betas});
                             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
                         });
                         return;
@@ -77,10 +78,11 @@ type MiniEditItemProps = {
     moneyRequestAction: ReportAction | undefined;
     draftMessage: string;
     introSelected: OnyxEntry<IntroSelected>;
+    betas: OnyxEntry<Beta[]>;
     hideAndRun: (callback?: () => void) => void;
 };
 
-function MiniEditItem({reportID, reportAction, moneyRequestAction, draftMessage, introSelected, hideAndRun}: MiniEditItemProps) {
+function MiniEditItem({reportID, reportAction, moneyRequestAction, draftMessage, introSelected, betas, hideAndRun}: MiniEditItemProps) {
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Pencil'] as const);
 
@@ -93,7 +95,7 @@ function MiniEditItem({reportID, reportAction, moneyRequestAction, draftMessage,
                     if (isMoneyRequestAction(reportAction) || isMoneyRequestAction(moneyRequestAction)) {
                         hideAndRun(() => {
                             const childReportID = reportAction?.childReportID;
-                            openReport({reportID: childReportID, introSelected});
+                            openReport({reportID: childReportID, introSelected, betas});
                             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
                         });
                         return;
@@ -117,13 +119,15 @@ function shouldShowEditAction({
     isArchivedRoom,
     isChronosReport,
     moneyRequestAction,
+    iouTransaction,
 }: {
     reportAction: OnyxEntry<ReportAction>;
     isArchivedRoom: boolean;
     isChronosReport: boolean;
     moneyRequestAction: ReportAction | undefined;
+    iouTransaction: OnyxEntry<Transaction>;
 }): boolean {
-    return (canEditReportAction(reportAction) || canEditReportAction(moneyRequestAction)) && !isArchivedRoom && !isChronosReport;
+    return (canEditReportAction(reportAction, iouTransaction) || canEditReportAction(moneyRequestAction, iouTransaction)) && !isArchivedRoom && !isChronosReport;
 }
 
 export {shouldShowEditAction, PopoverEditItem, MiniEditItem};

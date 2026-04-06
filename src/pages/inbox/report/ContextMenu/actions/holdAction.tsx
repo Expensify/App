@@ -16,6 +16,8 @@ import type {Policy, ReportAction, Report as ReportType, Transaction} from '@src
 
 type PopoverHoldItemProps = {
     moneyRequestAction: ReportAction | undefined;
+    iouTransaction: OnyxEntry<Transaction>;
+    isOffline: boolean;
     isDelegateAccessRestricted: boolean;
     showDelegateNoAccessModal: (() => void) | undefined;
     hideAndRun: (callback?: () => void) => void;
@@ -24,7 +26,17 @@ type PopoverHoldItemProps = {
     onBlur?: () => void;
 };
 
-function PopoverHoldItem({moneyRequestAction, isDelegateAccessRestricted, showDelegateNoAccessModal, hideAndRun, isFocused, onFocus, onBlur}: PopoverHoldItemProps) {
+function PopoverHoldItem({
+    moneyRequestAction,
+    iouTransaction,
+    isOffline,
+    isDelegateAccessRestricted,
+    showDelegateNoAccessModal,
+    hideAndRun,
+    isFocused,
+    onFocus,
+    onBlur,
+}: PopoverHoldItemProps) {
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Stopwatch'] as const);
     const styles = useThemeStyles();
@@ -41,7 +53,7 @@ function PopoverHoldItem({moneyRequestAction, isDelegateAccessRestricted, showDe
                         hideContextMenu(false, showDelegateNoAccessModal);
                         return;
                     }
-                    hideAndRun(() => changeMoneyRequestHoldStatus(moneyRequestAction));
+                    hideAndRun(() => changeMoneyRequestHoldStatus(moneyRequestAction, iouTransaction, isOffline));
                 }, false)
             }
             wrapperStyle={[styles.pr8]}
@@ -57,12 +69,14 @@ function PopoverHoldItem({moneyRequestAction, isDelegateAccessRestricted, showDe
 
 type MiniHoldItemProps = {
     moneyRequestAction: ReportAction | undefined;
+    iouTransaction: OnyxEntry<Transaction>;
+    isOffline: boolean;
     isDelegateAccessRestricted: boolean;
     showDelegateNoAccessModal: (() => void) | undefined;
     hideAndRun: (callback?: () => void) => void;
 };
 
-function MiniHoldItem({moneyRequestAction, isDelegateAccessRestricted, showDelegateNoAccessModal, hideAndRun}: MiniHoldItemProps) {
+function MiniHoldItem({moneyRequestAction, iouTransaction, isOffline, isDelegateAccessRestricted, showDelegateNoAccessModal, hideAndRun}: MiniHoldItemProps) {
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Stopwatch'] as const);
 
@@ -76,7 +90,7 @@ function MiniHoldItem({moneyRequestAction, isDelegateAccessRestricted, showDeleg
                         hideContextMenu(false, showDelegateNoAccessModal);
                         return;
                     }
-                    hideAndRun(() => changeMoneyRequestHoldStatus(moneyRequestAction));
+                    hideAndRun(() => changeMoneyRequestHoldStatus(moneyRequestAction, iouTransaction, isOffline));
                 }, false)
             }
             sentryLabel={CONST.SENTRY_LABEL.CONTEXT_MENU.HOLD}

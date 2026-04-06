@@ -11,17 +11,20 @@ import Clipboard from '@libs/Clipboard';
 import getClipboardText from '@libs/Clipboard/getClipboardText';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from '@libs/LocalePhoneNumber';
-import {getForReportActionTemp} from '@libs/ModifiedExpenseMessage';
+import {getForReportAction} from '@libs/ModifiedExpenseMessage';
 import Parser from '@libs/Parser';
 import {getCleanedTagName, isPolicyAdmin} from '@libs/PolicyUtils';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import stripFollowupListFromHtml from '@libs/ReportActionFollowupUtils/stripFollowupListFromHtml';
 import {
+    getActionableCard3DSTransactionApprovalMessage,
     getActionableCardFraudAlertMessage,
     getActionableMentionWhisperMessage,
     getAddedApprovalRuleMessage,
     getAddedBudgetMessage,
+    getAddedCardFeedMessage,
     getAddedConnectionMessage,
+    getAssignedCompanyCardMessage,
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
     getCardIssuedMessage,
@@ -35,7 +38,9 @@ import {
     getDeletedApprovalRuleMessage,
     getDeletedBudgetMessage,
     getDismissedViolationMessageText,
+    getDynamicExternalWorkflowApproveFailedActionMessage,
     getDynamicExternalWorkflowRoutedMessage,
+    getDynamicExternalWorkflowSubmitFailedActionMessage,
     getExportIntegrationMessageHTML,
     getForeignCurrencyDefaultTaxUpdateMessage,
     getForwardsToUpdateMessage,
@@ -60,8 +65,10 @@ import {
     getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
     getPolicyChangeLogUpdateEmployee,
     getReimburserUpdateMessage,
+    getRemovedCardFeedMessage,
     getRemovedConnectionMessage,
     getRenamedAction,
+    getRenamedCardFeedMessage,
     getReportActionMessageText,
     getRoomAvatarUpdatedMessage,
     getSetAutoJoinMessage,
@@ -71,11 +78,14 @@ import {
     getTagListUpdatedMessage,
     getTagListUpdatedRequiredMessage,
     getTravelUpdateMessage,
+    getUnassignedCompanyCardMessage,
     getUpdateACHAccountMessage,
     getUpdatedApprovalRuleMessage,
     getUpdatedAuditRateMessage,
     getUpdatedAutoHarvestingMessage,
     getUpdatedBudgetMessage,
+    getUpdatedCardFeedLiabilityMessage,
+    getUpdatedCardFeedStatementPeriodMessage,
     getUpdatedDefaultTitleMessage,
     getUpdatedIndividualBudgetNotificationMessage,
     getUpdatedManualApprovalThresholdMessage,
@@ -113,6 +123,8 @@ import {
     isActionOfType,
     isCardIssuedAction,
     isCreatedTaskReportAction,
+    isDynamicExternalWorkflowApproveFailedAction,
+    isDynamicExternalWorkflowSubmitFailedAction,
     isMarkAsClosedAction,
     isMemberChangeAction,
     isMessageDeleted,
@@ -151,7 +163,7 @@ import {
 import {getTaskCreatedMessage, getTaskReportActionMessage} from '@libs/TaskUtils';
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
-import type {Card, Policy, PolicyTagLists, ReportAction, Report as ReportType, Transaction} from '@src/types/onyx';
+import type {BankAccountList, Card, Policy, PolicyTagLists, ReportAction, Report as ReportType, Transaction} from '@src/types/onyx';
 import {getActionHtml} from './actionConfig';
 
 type CopyMessageClipboardParams = {
@@ -159,6 +171,8 @@ type CopyMessageClipboardParams = {
     transaction: OnyxEntry<Transaction>;
     selection: string;
     report: OnyxEntry<ReportType>;
+    conciergeReportID: string | undefined;
+    bankAccountList: OnyxEntry<BankAccountList>;
     card: Card | undefined;
     originalReport: OnyxEntry<ReportType>;
     isHarvestReport: boolean;
@@ -179,14 +193,15 @@ function shouldShowCopyMessageAction({reportAction}: {reportAction: OnyxEntry<Re
 }
 
 function setClipboardMessage(content: string | undefined) {
-    if (!content) {
+    const strippedContent = stripFollowupListFromHtml(content);
+    if (!strippedContent) {
         return;
     }
-    const clipboardText = getClipboardText(content);
+    const clipboardText = getClipboardText(strippedContent);
     if (!Clipboard.canSetHtml()) {
         Clipboard.setString(clipboardText);
     } else {
-        Clipboard.setHtml(content, clipboardText);
+        Clipboard.setHtml(strippedContent, clipboardText);
     }
 }
 
@@ -196,6 +211,8 @@ function copyMessageToClipboard(params: CopyMessageClipboardParams) {
         transaction,
         selection,
         report,
+        conciergeReportID,
+        bankAccountList,
         card,
         originalReport,
         isHarvestReport = false,
@@ -220,14 +237,14 @@ function copyMessageToClipboard(params: CopyMessageClipboardParams) {
         const content = selection || messageHtml;
         if (isReportPreviewAction) {
             const iouReportID = getIOUReportIDFromReportActionPreview(reportAction);
-            const displayMessage = getReportPreviewMessage(iouReportID, reportAction, undefined, undefined, undefined, undefined, undefined, true);
+            const displayMessage = getReportPreviewMessage(iouReportID, conciergeReportID, reportAction, undefined, undefined, undefined, undefined, undefined, true);
             Clipboard.setString(displayMessage);
         } else if (isTaskActionReportActionsUtils(reportAction)) {
             const {text, html} = getTaskReportActionMessage(translate, reportAction);
             const displayMessage = html ?? text;
             setClipboardMessage(displayMessage);
         } else if (isModifiedExpenseAction(reportAction)) {
-            const modifyExpenseMessage = getForReportActionTemp({
+            const modifyExpenseMessageWithHTML = getForReportAction({
                 translate,
                 reportAction,
                 policy,
@@ -236,12 +253,13 @@ function copyMessageToClipboard(params: CopyMessageClipboardParams) {
                 policyTags,
                 currentUserLogin: (currentUserPersonalDetails as {email?: string})?.email ?? (currentUserPersonalDetails as {login?: string})?.login ?? '',
             });
+            const modifyExpenseMessage = Parser.htmlToMarkdown(modifyExpenseMessageWithHTML);
             Clipboard.setString(modifyExpenseMessage);
         } else if (isReimbursementDeQueuedOrCanceledAction(reportAction)) {
             const displayMessage = getReimbursementDeQueuedOrCanceledActionMessage(translate, reportAction, report);
             Clipboard.setString(displayMessage);
         } else if (isMoneyRequestAction(reportAction)) {
-            const displayMessage = getIOUReportActionDisplayMessage(translate, reportAction, transaction, report);
+            const displayMessage = getIOUReportActionDisplayMessage(translate, reportAction, transaction, report, bankAccountList);
             if (displayMessage === Parser.htmlToText(displayMessage)) {
                 Clipboard.setString(displayMessage);
             } else {
@@ -454,6 +472,20 @@ function copyMessageToClipboard(params: CopyMessageClipboardParams) {
             setClipboardMessage(getAddedConnectionMessage(translate, reportAction));
         } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_INTEGRATION)) {
             setClipboardMessage(getRemovedConnectionMessage(translate, reportAction));
+        } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CARD_FEED)) {
+            setClipboardMessage(getAddedCardFeedMessage(translate, reportAction));
+        } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CARD_FEED)) {
+            setClipboardMessage(getRemovedCardFeedMessage(translate, reportAction));
+        } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.RENAME_CARD_FEED)) {
+            setClipboardMessage(getRenamedCardFeedMessage(translate, reportAction));
+        } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ASSIGN_COMPANY_CARD)) {
+            setClipboardMessage(getAssignedCompanyCardMessage(translate, reportAction));
+        } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UNASSIGN_COMPANY_CARD)) {
+            setClipboardMessage(getUnassignedCompanyCardMessage(translate, reportAction));
+        } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_LIABILITY)) {
+            setClipboardMessage(getUpdatedCardFeedLiabilityMessage(translate, reportAction));
+        } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_STATEMENT_PERIOD)) {
+            setClipboardMessage(getUpdatedCardFeedStatementPeriodMessage(translate, reportAction));
         } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {
             setClipboardMessage(getTravelUpdateMessage(translate, reportAction));
         } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUDIT_RATE)) {
@@ -498,6 +530,8 @@ function copyMessageToClipboard(params: CopyMessageClipboardParams) {
             setClipboardMessage(getMovedActionMessage(translate, reportAction, originalReport));
         } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT)) {
             setClipboardMessage(getActionableCardFraudAlertMessage(translate, reportAction, getLocalDateFromDatetime));
+        } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_3DS_TRANSACTION_APPROVAL)) {
+            setClipboardMessage(getActionableCard3DSTransactionApprovalMessage(translate, reportAction));
         } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY) {
             const displayMessage = getPolicyChangeMessage(translate, reportAction);
             Clipboard.setString(displayMessage);
@@ -523,10 +557,13 @@ function copyMessageToClipboard(params: CopyMessageClipboardParams) {
                 translate,
             );
             setClipboardMessage(displayMessage);
+        } else if (isDynamicExternalWorkflowSubmitFailedAction(reportAction)) {
+            setClipboardMessage(getDynamicExternalWorkflowSubmitFailedActionMessage(translate, reportAction));
+        } else if (isDynamicExternalWorkflowApproveFailedAction(reportAction)) {
+            setClipboardMessage(getDynamicExternalWorkflowApproveFailedActionMessage(translate, reportAction));
         } else if (content) {
-            const contentWithoutFollowups = stripFollowupListFromHtml(content) ?? content;
             setClipboardMessage(
-                contentWithoutFollowups.replaceAll(/(<mention-user>)(.*?)(<\/mention-user>)/gi, (match, openTag: string, innerContent: string, closeTag: string): string => {
+                content.replaceAll(/(<mention-user>)(.*?)(<\/mention-user>)/gi, (match, openTag: string, innerContent: string, closeTag: string): string => {
                     const modifiedContent = Str.removeSMSDomain(innerContent) || '';
                     return openTag + modifiedContent + closeTag || '';
                 }),
@@ -550,6 +587,8 @@ function PopoverCopyMessageItem({
     transaction,
     selection,
     report,
+    conciergeReportID,
+    bankAccountList,
     card,
     originalReport,
     isHarvestReport,
@@ -582,6 +621,8 @@ function PopoverCopyMessageItem({
                         transaction,
                         selection,
                         report,
+                        conciergeReportID,
+                        bankAccountList,
                         card,
                         originalReport,
                         isHarvestReport,
@@ -615,6 +656,8 @@ function MiniCopyMessageItem({
     transaction,
     selection,
     report,
+    conciergeReportID,
+    bankAccountList,
     card,
     originalReport,
     isHarvestReport,
@@ -644,6 +687,8 @@ function MiniCopyMessageItem({
                         transaction,
                         selection,
                         report,
+                        conciergeReportID,
+                        bankAccountList,
                         card,
                         originalReport,
                         isHarvestReport,
