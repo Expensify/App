@@ -93,18 +93,19 @@ function LinkedActionNotFoundGate({reportActionIDFromRoute, children}: LinkedAct
         setHasSeenLoadingCycle(true);
     }
 
-    // Show "comment not found" when:
-    // 1. The linked action doesn't exist in the report's actions collection (after loading completes)
-    // 2. The linked action exists but is deleted/hidden, and was never visible during this mount
-    //    (if it gets deleted while viewing, the effect below navigates away instead)
-    // Note: the inaccessible whisper case is handled separately by the whisper effect.
+    // Show "comment not found" when the linked action was NEVER visible during this mount:
+    // 1. The action exists but is deleted/hidden (and was never visible)
+    // 2. The action doesn't exist in the collection after loading completes (and was never visible)
     //
-    // This intentionally does NOT guard against "report actions exist but the filtered/paginated
-    // view is empty" — that's a report view concern, not a linked-action-not-found concern.
-    // Showing "comment not found" for an action that exists in the collection is incorrect.
+    // When wasEverVisible is true and the action disappears, the cleanup effect below
+    // handles navigation via setParams instead. Gating on !wasEverVisible here prevents
+    // a flash of the "not found" page on mobile (NativeStackView commits UI synchronously
+    // before the effect can fire).
+    //
+    // Note: the inaccessible whisper case is handled separately by the whisper effect.
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundLinkedAction =
-        (!isLinkedActionInaccessibleWhisper && isLinkedActionDeleted && !wasEverVisible) || (hasSeenLoadingCycle && !isLoadingInitialReportActions && !linkedAction);
+        !wasEverVisible && !isLinkedActionInaccessibleWhisper && (isLinkedActionDeleted || (hasSeenLoadingCycle && !isLoadingInitialReportActions && !linkedAction));
 
     useEffect(() => {
         if (!shouldShowNotFoundLinkedAction) {
