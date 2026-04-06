@@ -2310,25 +2310,16 @@ function buildOptimisticDistanceRateCustomUnits(reportCurrency?: string): Optimi
 
 /**
  * Optimistically creates a Policy Draft for a new workspace
- *
- * @param [policyOwnerEmail] the email of the account to make the owner of the policy
- * @param [policyName] custom policy name we will use for created workspace
- * @param [policyID] custom policy id we will use for created workspace
- * @param [makeMeAdmin] leave the calling account as an admin on the policy
- * @param [currency] Optional, selected currency for the workspace
- * @param [file], avatar file for workspace
  */
 function createDraftInitialWorkspace(
     introSelected: OnyxEntry<IntroSelected>,
-    policyOwnerEmail = '',
-    policyName = '',
+    workspaceName: string,
     policyID = generatePolicyID(),
     makeMeAdmin = false,
     currency = '',
     file?: File,
     type: typeof CONST.POLICY.TYPE.TEAM | typeof CONST.POLICY.TYPE.CORPORATE = CONST.POLICY.TYPE.TEAM,
 ) {
-    const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
     const {customUnits, outputCurrency} = buildOptimisticDistanceRateCustomUnits(currency);
     const shouldEnableWorkflowsByDefault =
         !introSelected?.choice || introSelected.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM || introSelected.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
