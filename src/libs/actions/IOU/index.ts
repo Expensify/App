@@ -679,6 +679,7 @@ type SubmitReportFunctionParams = {
     amountOwed: OnyxEntry<number>;
     onSubmitted?: () => void;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
+    delegateEmail: string | undefined;
 };
 
 let allTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
@@ -2507,6 +2508,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         chatReport = buildOptimisticChatReport({
             participantList: [payerAccountID, payeeAccountID],
             optimisticReportID: optimisticChatReportID,
+            currentUserAccountID: currentUserAccountIDParam,
         });
     }
 
@@ -4444,6 +4446,7 @@ function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string 
             reportName: '',
             chatType: CONST.REPORT.CHAT_TYPE.GROUP,
             notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+            currentUserAccountID,
         });
 
         return {existingSplitChatReport: null, splitChatReport};
@@ -4452,6 +4455,7 @@ function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string 
     // Otherwise, create a new 1:1 chat report
     const splitChatReport = buildOptimisticChatReport({
         participantList: participantAccountIDs,
+        currentUserAccountID,
     });
     return {existingSplitChatReport: null, splitChatReport};
 }
@@ -4771,6 +4775,7 @@ function createSplitsAndOnyxData({
                 existingChatReport ??
                 buildOptimisticChatReport({
                     participantList: [accountID, currentUserAccountID],
+                    currentUserAccountID,
                 });
         }
 
@@ -7118,7 +7123,7 @@ function canIOUBePaid(
 
     const isPayer = isPayerReportUtils(deprecatedUserAccountID, deprecatedCurrentUserEmail, iouReport, bankAccountList, policy, onlyShowPayElsewhere);
 
-    const {reimbursableSpend} = getMoneyRequestSpendBreakdown(iouReport);
+    const {reimbursableSpend, nonReimbursableSpend} = getMoneyRequestSpendBreakdown(iouReport);
     const isAutoReimbursable = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES ? false : canBeAutoReimbursed(iouReport, policy);
     const isPayAtEndExpenseReport = isPayAtEndExpenseReportReportUtils(iouReport ?? undefined, transactions);
     const isProcessing = isProcessingReport(iouReport);
@@ -7129,7 +7134,7 @@ function canIOUBePaid(
     const isReportFinished = (isApproved || isClosed) && !iouReport?.isWaitingOnBankAccount;
     const isIOU = isIOUReport(iouReport);
     const canShowMarkedAsPaidForNegativeAmount = onlyShowPayElsewhere && reimbursableSpend < 0;
-    const isOnlyNonReimbursablePayElsewhere = onlyShowPayElsewhere && hasOnlyNonReimbursableTransactions(iouReport?.reportID, transactions);
+    const isOnlyNonReimbursablePayElsewhere = onlyShowPayElsewhere && nonReimbursableSpend !== 0 && hasOnlyNonReimbursableTransactions(iouReport?.reportID, transactions);
 
     if (isIOU && isPayer && !iouSettled && reimbursableSpend > 0) {
         return true;
@@ -7807,12 +7812,13 @@ function retractReport(
     hasViolations: boolean,
     isASAPSubmitBetaEnabled: boolean,
     expenseReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
+    delegateEmail: string | undefined,
 ) {
     if (!expenseReport) {
         return;
     }
 
-    const optimisticRetractReportAction = buildOptimisticRetractedReportAction();
+    const optimisticRetractReportAction = buildOptimisticRetractedReportAction(delegateEmail);
     const predictedNextState = CONST.REPORT.STATE_NUM.OPEN;
     const predictedNextStatus = CONST.REPORT.STATUS_NUM.OPEN;
 
@@ -7980,12 +7986,13 @@ function unapproveExpenseReport(
     hasViolations: boolean,
     isASAPSubmitBetaEnabled: boolean,
     expenseReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
+    delegateEmail: string | undefined,
 ) {
     if (isEmptyObject(expenseReport)) {
         return;
     }
 
-    const optimisticUnapprovedReportAction = buildOptimisticUnapprovedReportAction(expenseReport.total ?? 0, expenseReport.currency ?? '', expenseReport.reportID);
+    const optimisticUnapprovedReportAction = buildOptimisticUnapprovedReportAction(expenseReport.total ?? 0, expenseReport.currency ?? '', expenseReport.reportID, delegateEmail);
 
     // buildOptimisticNextStep is used in parallel
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -8147,6 +8154,7 @@ function submitReport({
     amountOwed,
     onSubmitted,
     ownerBillingGracePeriodEnd,
+    delegateEmail,
 }: SubmitReportFunctionParams) {
     if (!expenseReport) {
         return;
@@ -8166,6 +8174,7 @@ function submitReport({
         expenseReport.reportID,
         adminAccountID,
         policy?.approvalMode,
+        delegateEmail,
     );
     const isDEWPolicy = hasDynamicExternalWorkflow(policy);
     // For DEW policies, only add optimistic submit action when offline
