@@ -6,6 +6,7 @@ import type ONYXKEYS from '@src/ONYXKEYS';
 import type {InputID} from '@src/types/form/WorkspaceReportFieldForm';
 import type {PolicyReportField, PolicyReportFieldType} from '@src/types/onyx/Policy';
 import {addErrorMessage} from './ErrorUtils';
+import type {FormulaPart} from './Formula';
 import {isRequiredFulfilled} from './ValidationUtils';
 
 /**
@@ -96,7 +97,7 @@ function hasFormulaPartsInInitialValue(initialValue?: string): boolean {
 
     // Dynamically require to avoid circular dependency with ReportActionsUtils
     const {parse, FORMULA_PART_TYPES} = require('./Formula') as {
-        parse: (formula?: string) => Array<{type: string}>;
+        parse: (formula?: string) => FormulaPart[];
         FORMULA_PART_TYPES: {FREETEXT: string};
     };
     return parse(initialValue).some((part) => part.type !== FORMULA_PART_TYPES.FREETEXT);
@@ -109,13 +110,6 @@ function isReportFieldNameExisting(fieldList: Record<string, PolicyReportField> 
     return Object.values(fieldList ?? {}).some((reportField) => reportField.name.toLowerCase() === fieldName.toLowerCase());
 }
 
-type FormulaParsePart = {
-    definition: string;
-    type: string;
-    fieldPath: string[];
-    functions: string[];
-};
-
 /**
  * Returns the list of unsupported {report:*} formula parts in the initial value.
  * Used to validate formula report fields so unsupported tokens (e.g. {report:i}) are rejected with a clear error.
@@ -127,7 +121,7 @@ function getUnsupportedReportFieldFormulaParts(initialValue?: string): string[] 
 
     // Dynamically require to avoid circular dependency with ReportActionsUtils
     const {parse, FORMULA_PART_TYPES} = require('./Formula') as {
-        parse: (formula?: string) => FormulaParsePart[];
+        parse: (formula?: string) => FormulaPart[];
         FORMULA_PART_TYPES: {REPORT: string};
     };
 
