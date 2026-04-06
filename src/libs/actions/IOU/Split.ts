@@ -48,7 +48,6 @@ import {
     generateReportID,
     getChatByParticipants,
     getParsedComment,
-    getPolicyExpenseChat,
     getReportOrDraftReport,
     getTransactionDetails,
     hasViolations as hasViolationsReportUtils,
@@ -1084,14 +1083,14 @@ function updateSplitTransactions({
     expenseReport,
 }: UpdateSplitTransactionsParams) {
     const chatReport = allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${expenseReport?.chatReportID}`];
+    const expenseReportParentChat = getReportOrDraftReport(chatReport?.parentReportID);
     const originalTransactionID = transactionData?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const originalTransaction = allTransactionsList?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
     const originalTransactionDetails = getTransactionDetails(originalTransaction);
-    const ownerPolicyExpenseChat = getPolicyExpenseChat(expenseReport?.ownerAccountID, expenseReport?.policyID);
-    const expenseReportChat = getReportOrDraftReport(expenseReport?.chatReportID);
-    const policyExpenseChatReport = ownerPolicyExpenseChat ?? (expenseReportChat && isPolicyExpenseChatReportUtil(expenseReportChat) ? expenseReportChat : undefined);
+    const autoParticipants = getMoneyRequestParticipantsFromReport(expenseReport, currentUserPersonalDetails.accountID);
+    // Delegate split edit can reach this flow without the workspace expense chat in Onyx.
     const fallbackPolicyParticipant =
-        expenseReport?.chatReportID && expenseReport?.policyID
+        autoParticipants.length === 0 && !chatReport && expenseReport?.chatReportID && expenseReport?.policyID
             ? {
                   accountID: 0,
                   reportID: expenseReport.chatReportID,
@@ -1100,24 +1099,20 @@ function updateSplitTransactions({
                   policyID: expenseReport.policyID,
               }
             : undefined;
-    const autoParticipants = getMoneyRequestParticipantsFromReport(expenseReport, currentUserPersonalDetails.accountID);
-    let participants = autoParticipants;
-    if (policyExpenseChatReport) {
-        participants = [{accountID: 0, reportID: policyExpenseChatReport.reportID, isPolicyExpenseChat: true, selected: true, policyID: policyExpenseChatReport.policyID}];
-    } else if (participants.length === 0 && fallbackPolicyParticipant) {
-        participants = [fallbackPolicyParticipant];
+    const participants = fallbackPolicyParticipant ? [fallbackPolicyParticipant] : autoParticipants;
+    let fallbackPolicyParentChatReport = expenseReportParentChat;
+    if (!fallbackPolicyParentChatReport && chatReport && isPolicyExpenseChatReportUtil(chatReport)) {
+        fallbackPolicyParentChatReport = chatReport;
     }
-    const fallbackPolicyParentChatReport =
-        policyExpenseChatReport ??
-        (fallbackPolicyParticipant
-            ? ({
-                  reportID: fallbackPolicyParticipant.reportID,
-                  type: CONST.REPORT.TYPE.CHAT,
-                  chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
-                  policyID: fallbackPolicyParticipant.policyID,
-                  ownerAccountID: expenseReport?.ownerAccountID,
-              } as OnyxTypes.Report)
-            : undefined);
+    if (!fallbackPolicyParentChatReport && fallbackPolicyParticipant) {
+        fallbackPolicyParentChatReport = {
+            reportID: fallbackPolicyParticipant.reportID,
+            type: CONST.REPORT.TYPE.CHAT,
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            policyID: fallbackPolicyParticipant.policyID,
+            ownerAccountID: expenseReport?.ownerAccountID,
+        } as OnyxTypes.Report;
+    }
     const splitExpenses = transactionData?.splitExpenses ?? [];
 
     // Get all children once (including orphaned), then filter for non-orphaned
@@ -1356,7 +1351,7 @@ function updateSplitTransactions({
                 odometerStart: splitExpense.odometerStart,
                 odometerEnd: splitExpense.odometerEnd,
             },
-            parentChatReport: fallbackPolicyParentChatReport ?? getReportOrDraftReport(getReportOrDraftReport(expenseReport?.chatReportID)?.parentReportID),
+            parentChatReport: fallbackPolicyParentChatReport,
             existingTransaction: originalTransaction,
             isASAPSubmitBetaEnabled,
             currentUserAccountIDParam: currentUserPersonalDetails?.accountID,
