@@ -75,7 +75,7 @@ function ModalProvider({children}: {children: React.ReactNode}) {
 
     // Resolves the modal promise without closing the modal
     // Used for async confirmation flows where the modal stays open with loading state
-    const resolveModal: ModalContextType['resolveModal'] = (data = {action: 'CONFIRM'}) => {
+    const resolveModal: ModalContextType['resolveModal'] = (data = {action: ModalActions.CONFIRM}) => {
         const lastModalId = modalStack.modals.at(-1)?.id;
 
         if (!lastModalId) {
@@ -89,7 +89,7 @@ function ModalProvider({children}: {children: React.ReactNode}) {
         }
     };
 
-    const closeModal: ModalContextType['closeModal'] = (data = {action: 'CLOSE'}) => {
+    const closeModal: ModalContextType['closeModal'] = (data = {action: ModalActions.CLOSE}) => {
         setModalStack((prevState) => {
             const lastModalId = prevState.modals.at(-1)?.id;
 
