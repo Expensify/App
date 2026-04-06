@@ -234,7 +234,7 @@ function DateFilterBase({
                     <Button
                         text={translate('common.reset')}
                         onPress={reset}
-                        style={[styles.mh4, shouldShowRangeError ? styles.mt3 : styles.mt4]}
+                        style={[styles.mh4, styles.mt4]}
                         large
                     />
                     <FormAlertWithSubmitButton
