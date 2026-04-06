@@ -1,4 +1,5 @@
-import React, {useState} from 'react';
+import React, {useCallback, useState} from 'react';
+import type {OnyxCollection} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
@@ -11,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionViolation from '@hooks/useTransactionViolation';
 import {convertToDisplayStringWithoutCurrency} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -22,6 +24,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {Report, Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type WorkspacePerDiemDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.PER_DIEM_DETAILS>;
@@ -37,6 +40,7 @@ function WorkspacePerDiemDetailsPage({route}: WorkspacePerDiemDetailsPageProps) 
     const {translate} = useLocalize();
     const {getCurrencySymbol} = useCurrencyListActions();
     const customUnit = getPerDiemCustomUnit(policy);
+    const customUnitID = customUnit?.customUnitID;
 
     const selectedRate = customUnit?.rates?.[rateID];
     const fetchedSubRate = selectedRate?.subRates?.find((subRate) => subRate.id === subRateID);
@@ -48,17 +52,69 @@ function WorkspacePerDiemDetailsPage({route}: WorkspacePerDiemDetailsPageProps) 
     const amountValue = selectedSubRate?.rate ? convertToDisplayStringWithoutCurrency(Number(selectedSubRate.rate)) : undefined;
     const currencyValue = selectedRate?.currency ? `${selectedRate.currency} - ${getCurrencySymbol(selectedRate.currency)}` : undefined;
 
+    // Check if deleting this subrate will fully remove the rate (last subrate)
+    const willFullyDeleteRate = (selectedRate?.subRates?.length ?? 0) <= 1;
+
+    const policyReportsSelector = useCallback(
+        (reports: OnyxCollection<Report>) => {
+            return Object.values(reports ?? {}).reduce((reportIDs, report) => {
+                if (report && report.policyID === policyID) {
+                    reportIDs.add(report.reportID);
+                }
+                return reportIDs;
+            }, new Set<string>());
+        },
+        [policyID],
+    );
+
+    const [policyReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        selector: policyReportsSelector,
+    });
+
+    const transactionsSelector = useCallback(
+        (transactions: OnyxCollection<Transaction>) => {
+            return Object.values(transactions ?? {}).reduce((transactionIDs, transaction) => {
+                if (
+                    transaction &&
+                    transaction.reportID &&
+                    policyReports?.has(transaction.reportID) &&
+                    customUnitID &&
+                    transaction?.comment?.customUnit?.customUnitID === customUnitID &&
+                    transaction?.comment?.customUnit?.customUnitRateID === rateID
+                ) {
+                    transactionIDs.add(transaction.transactionID);
+                }
+                return transactionIDs;
+            }, new Set<string>());
+        },
+        [customUnitID, rateID, policyReports],
+    );
+
+    const [eligibleTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+        selector: transactionsSelector,
+    });
+
+    const transactionViolations = useTransactionViolation(eligibleTransactionIDs);
+
     const handleDeletePerDiemRate = () => {
-        deleteWorkspacePerDiemRates(policyID, customUnit, [
-            {
-                destination: selectedRate?.name ?? '',
-                subRateName: selectedSubRate?.name ?? '',
-                rate: selectedSubRate?.rate ?? 0,
-                currency: selectedRate?.currency ?? '',
-                rateID,
-                subRateID,
-            },
-        ]);
+        const transactionIDsAffected = willFullyDeleteRate ? Array.from(eligibleTransactionIDs ?? []) : [];
+
+        deleteWorkspacePerDiemRates(
+            policyID,
+            customUnit,
+            [
+                {
+                    destination: selectedRate?.name ?? '',
+                    subRateName: selectedSubRate?.name ?? '',
+                    rate: selectedSubRate?.rate ?? 0,
+                    currency: selectedRate?.currency ?? '',
+                    rateID,
+                    subRateID,
+                },
+            ],
+            transactionIDsAffected,
+            transactionViolations,
+        );
         setDeletePerDiemConfirmModalVisible(false);
         Navigation.goBack();
     };

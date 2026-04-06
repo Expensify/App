@@ -1,5 +1,5 @@
 import lodashDeepClone from 'lodash/cloneDeep';
-import type {NullishDeep} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import * as API from '@libs/API';
@@ -13,7 +13,7 @@ import {goBackWhenEnableFeature} from '@libs/PolicyUtils';
 import {findPolicyExpenseChatByPolicyID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {QuickAction} from '@src/types/onyx';
+import type {QuickAction, TransactionViolation} from '@src/types/onyx';
 import type {ErrorFields, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -236,31 +236,64 @@ function prepareNewCustomUnit(customUnit: CustomUnit, subRatesToBeDeleted: SubRa
     return {newCustomUnit, customUnitOnyxUpdate};
 }
 
-function deleteWorkspacePerDiemRates(policyID: string, customUnit: CustomUnit | undefined, subRatesToBeDeleted: SubRateData[]) {
+function deleteWorkspacePerDiemRates(
+    policyID: string,
+    customUnit: CustomUnit | undefined,
+    subRatesToBeDeleted: SubRateData[],
+    transactionIDsAffected: string[] = [],
+    transactionViolations: OnyxCollection<TransactionViolation[]> = {},
+) {
     if (!policyID || isEmptyObject(customUnit) || !subRatesToBeDeleted.length) {
         return;
     }
     const {newCustomUnit, customUnitOnyxUpdate} = prepareNewCustomUnit(customUnit, subRatesToBeDeleted);
-    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                value: {
-                    customUnits: {
-                        [customUnit.customUnitID]: customUnitOnyxUpdate,
-                    },
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                customUnits: {
+                    [customUnit.customUnitID]: customUnitOnyxUpdate,
                 },
             },
-        ],
-    };
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = [];
+
+    for (const transactionID of transactionIDsAffected) {
+        const currentTransactionViolations = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
+        if (currentTransactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY)) {
+            continue;
+        }
+
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+            value: [
+                ...currentTransactionViolations,
+                {
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
+                    showInReview: true,
+                },
+            ],
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+            value: currentTransactionViolations,
+        });
+    }
 
     const parameters = {
         policyID,
         customUnit: JSON.stringify(newCustomUnit),
     };
 
-    API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT, parameters, onyxData);
+    API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT, parameters, {optimisticData, failureData});
 }
 
 function editPerDiemRateDestination(policyID: string, rateID: string, customUnit: CustomUnit | undefined, newDestination: string) {
