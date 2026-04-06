@@ -165,6 +165,8 @@ type ComputeReportName = {
     reportActions?: OnyxCollection<ReportActions>;
     currentUserAccountID?: number;
     currentUserLogin: string;
+    // TODO: Make this required when https://github.com/Expensify/App/issues/66411 is done
+    conciergeReportID?: string;
 };
 
 let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
@@ -413,6 +415,8 @@ function computeReportNameBasedOnReportAction(
     report: Report | undefined,
     reportPolicy: Policy | undefined,
     parentReport: Report | undefined,
+    // TODO: Make this required when https://github.com/Expensify/App/issues/66411 is done
+    conciergeReportID?: string,
 ): string | undefined {
     if (!parentReportAction) {
         return undefined;
@@ -492,7 +496,7 @@ function computeReportNameBasedOnReportAction(
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
-        return Parser.htmlToText(getUnreportedTransactionMessage(translate, parentReportAction));
+        return Parser.htmlToText(getUnreportedTransactionMessage(translate, parentReportAction, conciergeReportID));
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION)) {
@@ -835,6 +839,7 @@ function computeReportName({
     currentUserAccountID,
     currentUserLogin,
     allPolicyTags,
+    conciergeReportID,
 }: ComputeReportName): string {
     if (!report || !report.reportID) {
         return '';
@@ -845,7 +850,7 @@ function computeReportName({
     const parentReportAction = isThread(report) ? reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`]?.[report.parentReportActionID] : undefined;
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const parentReportActionBasedName = computeReportNameBasedOnReportAction(translateLocal, parentReportAction, report, reportPolicy, parentReport);
+    const parentReportActionBasedName = computeReportNameBasedOnReportAction(translateLocal, parentReportAction, report, reportPolicy, parentReport, conciergeReportID);
 
     if (parentReportActionBasedName) {
         return parentReportActionBasedName;
@@ -868,6 +873,7 @@ function computeReportName({
             reportActions,
             currentUserAccountID,
             currentUserLogin,
+            conciergeReportID,
         });
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return getCreatedReportForUnapprovedTransactionsMessage(originalID, reportName, isOriginalReportDeleted(parentReportAction, originalReport), translateLocal);
@@ -879,13 +885,13 @@ function computeReportName({
         return Parser.isHTML(taskName) ? Parser.htmlToText(taskName).trim() : taskName.trim();
     }
 
-    const privateIsArchivedValue = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]?.private_isArchived;
+    const privateIsArchivedValue = !!allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]?.private_isArchived;
 
     const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report.policyID}`];
     const chatThreadReportName = computeChatThreadReportName(
         // eslint-disable-next-line @typescript-eslint/no-deprecated -- translateLocal is deprecated; computeReportName is non-React code that cannot use the translate hook
         translateLocal,
-        !!privateIsArchivedValue,
+        privateIsArchivedValue,
         report,
         reports ?? {},
         currentUserLogin ?? '',
@@ -956,7 +962,7 @@ function computeReportName({
         formattedName = CONST.CONCIERGE_DISPLAY_NAME;
     }
 
-    const isArchivedNonExpense = isArchivedNonExpenseReport(report, !!privateIsArchivedValue);
+    const isArchivedNonExpense = isArchivedNonExpenseReport(report, privateIsArchivedValue);
 
     if (formattedName) {
         return formatReportLastMessageText(isArchivedNonExpense ? generateArchivedReportName(formattedName) : formattedName);
