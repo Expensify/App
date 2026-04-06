@@ -2179,9 +2179,7 @@ function getDisplayNameForWorkspace(email: string, displayNameOverride?: string)
 }
 
 /**
- * Generate a policy name based on an email and policy list.
- * @param [email] the email to base the workspace name on. If not passed, will use the logged-in user's email instead
- * @param [lastWorkspaceNumber] the last workspace number
+ * Generate a policy name based on an email and the last workspace number.
  */
 function newGenerateDefaultWorkspaceName(email: string, lastWorkspaceNumber: number | undefined, localeTranslate: LocalizedTranslate, displayNameOverride?: string): string {
     const emailParts = email.split('@');
