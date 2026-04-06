@@ -16,7 +16,7 @@ The script uses `@babel/core`'s `transformSync` with `babel-plugin-react-compile
 
 ### CI enforcement (two rules)
 
-The CI check (`check-changed`) enforces two rules on changed `.ts`, `.tsx`, and `.jsx` files:
+The CI check (`check-changed`) enforces two rules on changed `.ts` and `.tsx` files:
 
 1. **New files**: If a new file contains components or hooks that fail to compile, the check fails.
 2. **Modified files**: If a file compiled successfully on `main` but fails on the PR branch, the check fails (regression).

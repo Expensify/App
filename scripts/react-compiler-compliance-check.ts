@@ -21,7 +21,7 @@ const ReactCompilerConfig = require('./utils/reactCompilerConfig');
 
 type CompilationResult = 'compiled' | 'failed' | 'no-components';
 
-const FILE_EXTENSIONS = ['.ts', '.tsx', '.jsx'];
+const FILE_EXTENSIONS = ['.ts', '.tsx'];
 
 /**
  * Check if a source string compiles with React Compiler.
@@ -88,7 +88,7 @@ function checkFiles(files: string[], verbose: boolean): boolean {
     for (const file of files) {
         if (!isReactFile(file)) {
             if (verbose) {
-                logInfo(`SKIPPED  ${file} (not a .ts/.tsx/.jsx file)`);
+                logInfo(`SKIPPED  ${file} (not a .ts/.tsx file)`);
             }
             continue;
         }
