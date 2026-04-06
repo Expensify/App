@@ -148,9 +148,7 @@ const translations: TranslationDeepObject<typeof en> = {
         selectMultiple: '多选',
         saveChanges: '保存更改',
         submit: '提交',
-        markAsDone: '标记为完成',
         submitted: '已提交',
-        markedAsDoneStatus: '已标记为完成',
         rotate: '旋转',
         zoom: '缩放',
         password: '密码',
@@ -799,6 +797,9 @@ const translations: TranslationDeepObject<typeof en> = {
         emoji: '表情符号',
         collapse: '折叠',
         expand: '展开',
+        askConciergeToUpdate: '试试“更新一笔报销”…',
+        askConciergeToCorrect: '尝试搜索“更正一笔报销”…',
+        askConciergeForHelp: '向 Concierge AI 寻求帮助…',
     },
     reportActionContextMenu: {
         copyMessage: '复制消息',
@@ -853,8 +854,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `此聊天用于 <strong>${invoicePayer}</strong> 与 <strong>${invoiceReceiver}</strong> 之间的发票。请使用 + 按钮发送发票。`,
         beginningOfChatHistory: (users: string) => `此聊天对象为 ${users}。`,
         beginningOfChatHistoryPolicyExpenseChat: (workspaceName: string, submitterDisplayName: string) =>
-            `这是 <strong>${submitterDisplayName}</strong> 向 <strong>${workspaceName}</strong> 提交报销的地方。只需使用”+”按钮即可。`,
-        beginningOfChatHistoryPolicyExpenseChatTrack: '在这里跟踪你的报销费用',
+            `这是 <strong>${submitterDisplayName}</strong> 向 <strong>${workspaceName}</strong> 提交报销的地方。只需使用“+”按钮即可。`,
         beginningOfChatHistorySelfDM: '这是你的个人空间。可在此记录笔记、任务、草稿和提醒事项。',
         beginningOfChatHistorySystemDM: '欢迎！让我们帮你完成设置。',
         chatWithAccountManager: '在这里与您的客户经理聊天',
@@ -1126,7 +1126,6 @@ const translations: TranslationDeepObject<typeof en> = {
         flash: '闪光',
         multiScan: '多重扫描',
         shutter: '快门',
-        flipCamera: '切换摄像头',
         gallery: '图库',
         deleteReceipt: '删除收据',
         deleteConfirmation: '确定要删除这张收据吗？',
@@ -1310,7 +1309,6 @@ const translations: TranslationDeepObject<typeof en> = {
         sendInvoice: (amount: string) => `发送 ${amount} 发票`,
         expenseAmount: (formattedAmount: string, comment?: string) => `${formattedAmount}${comment ? `用于 ${comment}` : ''}`,
         submitted: (memo?: string) => `已提交${memo ? `，备注为 ${memo}` : ''}`,
-        markedAsDone: (memo) => `标记为已完成${memo ? `，说明：${memo}` : ''}`,
         automaticallySubmitted: `通过<a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">延迟提交</a>提交`,
         queuedToSubmitViaDEW: '已排队，待通过自定义审批流程提交',
         queuedToApproveViaDEW: '已排队，等待通过自定义审批流程批准',
@@ -1490,6 +1488,7 @@ const translations: TranslationDeepObject<typeof en> = {
         bookingArchived: '此预订已归档',
         bookingArchivedDescription: '此预订已归档，因为行程日期已过。如有需要，请为最终金额添加一笔报销。',
         attendees: '参与者',
+        totalPerAttendee: '每位参与者',
         whoIsYourAccountant: '你的会计是谁？',
         paymentComplete: '付款完成',
         time: '时间',
@@ -1560,7 +1559,9 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             addApprover: {
                 subtitle: '在将此报表提交到其余审批流程之前，请选择一位额外的审批人。',
+                bulkSubtitle: '在我们将这些报表提交给其余审批流程之前，请为其选择一位额外审批人。',
             },
+            bulkSubtitle: '选择一个选项来更改这些报表的审批人。',
         },
         chooseWorkspace: '选择工作区',
         routedDueToDEW: (to: string, reason?: string) => `报销单已转交给 ${to}${reason ? ` 因为 ${reason}` : ''}`,
@@ -1961,7 +1962,7 @@ const translations: TranslationDeepObject<typeof en> = {
         accountSettings: '账户设置',
         account: '账户',
         general: '常规',
-        helpPage: {title: '帮助与支持', description: '我们全天候 24/7 为您提供帮助', helpSite: '帮助网站'},
+        helpPage: {title: '帮助与支持', description: '我们全天候 24/7 为您提供帮助', helpSite: '帮助网站', conciergeChat: 'Concierge', conciergeChatDescription: '你的个人 AI 助理'},
     },
     closeAccountPage: {
         closeAccount: '关闭账户',
@@ -2236,6 +2237,7 @@ const translations: TranslationDeepObject<typeof en> = {
         enableWallet: '启用钱包',
         addBankAccountToSendAndReceive: '添加银行账户以进行或接收付款。',
         addDebitOrCreditCard: '添加借记卡或信用卡',
+        cardInactive: '未激活',
         assignedCards: '已分配的卡片',
         assignedCardsDescription: '这些银行卡的交易会自动同步。',
         expensifyCard: 'Expensify 卡',
@@ -2416,6 +2418,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             title: '没有可显示的成员',
             expensesFromSubtitle: '所有工作区成员已经属于现有的审批流程。',
             approverSubtitle: '所有审批人都属于一个现有的工作流。',
+            bulkApproverSubtitle: '所选报表中没有符合条件的审批人。',
         },
     },
     workflowsDelayedSubmissionPage: {
@@ -3704,6 +3707,9 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         youCanChange: '您可以在您的中更改工作区货币',
         findCountry: '查找国家',
         selectCountry: '选择国家',
+        error: {
+            connectToWorkspace: (workspaceRoute: string) => `请将此银行账户连接到<a href="${workspaceRoute}">工作区</a>，以便您在后续步骤中邀请董事签名。`,
+        },
     },
     bankInfoStep: {
         whatAreYour: '您的企业银行账户信息是什么？',
@@ -3751,6 +3757,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             `正在连接一 个以 ${bankAccountLastFour} 结尾的 ${currency} 企业银行账户到 Expensify，以便以 ${currency} 支付员工。下一步需要一位董事的签署人信息。`,
         error: {
             emailsMustBeDifferent: '电子邮箱地址必须不同',
+            connectToWorkspace: (workspaceRoute: string) => `请将此银行账户关联到<a href="${workspaceRoute}">工作区</a>以邀请董事签署。`,
         },
     },
     agreementsStep: {
@@ -6517,6 +6524,24 @@ ${reportName}
             customRules: {
                 title: '报销政策',
                 cardSubtitle: '这是你们团队的报销政策所在之处，让所有人都清楚哪些内容在报销范围之内。',
+            },
+            spendRules: {
+                title: '支出',
+                subtitle: '实时批准或拒绝 Expensify 卡交易。',
+                defaultRuleDescription: '所有卡片',
+                block: '屏蔽',
+                defaultRuleTitle: '类别：成人服务、ATM、赌博、转账',
+                builtInProtectionModal: {
+                    title: 'Expensify 卡始终提供内置保护',
+                    description: `Expensify 始终会拒绝以下消费：
+
+  • 成人服务
+  • ATM
+  • 赌博
+  • 转账
+
+添加更多消费规则以保护公司现金流。`,
+                },
             },
         },
         planTypePage: {

@@ -132,6 +132,10 @@ function isSubmitAction(
         return false;
     }
 
+    if (!isPaidGroupPolicy(policy)) {
+        return false;
+    }
+
     if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPending(transaction))) {
         return false;
     }
@@ -273,8 +277,8 @@ function isPrimaryPayAction({
     const isApprovalEnabled = policy ? policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
     const isSubmittedWithoutApprovalsEnabled = !isApprovalEnabled && isProcessingReport;
 
-    const isReportFinished = (isReportApproved || isSubmittedWithoutApprovalsEnabled || isReportClosed) && !report.isWaitingOnBankAccount;
-    const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
+    const isReportFinished = (isReportApproved && !report.isWaitingOnBankAccount) || isSubmittedWithoutApprovalsEnabled || isReportClosed;
+    const {reimbursableSpend, nonReimbursableSpend} = getMoneyRequestSpendBreakdown(report);
     const isAutoReimbursable = canBeAutoReimbursed(report, policy);
     const isPayAtEnd = isPayAtEndExpenseReportUtils(report, reportTransactions);
 
@@ -284,7 +288,7 @@ function isPrimaryPayAction({
         arePaymentsEnabled &&
         isReportFinished &&
         !isReportSettled &&
-        (reimbursableSpend > 0 || (isPayElsewhere && (reimbursableSpend < 0 || hasOnlyNonReimbursableTransactions(report?.reportID, reportTransactions)))) &&
+        (reimbursableSpend > 0 || (nonReimbursableSpend !== 0 && hasOnlyNonReimbursableTransactions(report?.reportID, reportTransactions))) &&
         !isAutoReimbursable &&
         !isPayAtEnd
     ) {
