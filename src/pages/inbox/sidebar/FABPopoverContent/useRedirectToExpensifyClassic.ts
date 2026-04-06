@@ -4,6 +4,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {openOldDotLink} from '@libs/actions/Link';
+import {isOldAppRedirectBlocked} from '@libs/TryNewDotUtils';
 import {closeReactNativeApp} from '@userActions/HybridApp';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -30,14 +31,20 @@ function useRedirectToExpensifyClassic() {
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const [isTrackingGPS = false] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {selector: isTrackingSelector});
+    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     /**
      * There are scenarios where users who have not yet had their group workspace-chats in NewDot (isPolicyExpenseChatEnabled). In those scenarios, things can get confusing if they try to submit/track expenses. To address this, we block them from Creating, Tracking, Submitting expenses from NewDot if they are:
      * 1. on at least one group policy
      * 2. none of the group policies they are a member of have isPolicyExpenseChatEnabled=true
      */
     const [shouldRedirectToExpensifyClassic = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: shouldRedirectToExpensifyClassicSelector});
+    const canRedirectToExpensifyClassic = shouldRedirectToExpensifyClassic && !isOldAppRedirectBlocked(tryNewDot, CONFIG.IS_HYBRID_APP);
 
     const showRedirectToExpensifyClassicModal = async () => {
+        if (!canRedirectToExpensifyClassic) {
+            return;
+        }
+
         const {action} = await showConfirmModal({
             title: translate('sidebarScreen.redirectToExpensifyClassicModal.title'),
             prompt: translate('sidebarScreen.redirectToExpensifyClassicModal.description'),
@@ -54,7 +61,7 @@ function useRedirectToExpensifyClassic() {
         openOldDotLink(CONST.OLDDOT_URLS.INBOX);
     };
 
-    return {shouldRedirectToExpensifyClassic, showRedirectToExpensifyClassicModal};
+    return {shouldRedirectToExpensifyClassic, canRedirectToExpensifyClassic, showRedirectToExpensifyClassicModal};
 }
 
 export type {PolicySelector};
