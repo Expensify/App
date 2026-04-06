@@ -200,6 +200,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     selectedTransactionIDs: transactionIDs,
                     allTransactionViolationsParam: transactionViolations,
                     currentUserAccountID: currentUserPersonalDetails.accountID,
+                    currentUserEmail: currentUserPersonalDetails.email ?? '',
                 });
                 deletedTransactionIDs.push(transactionID);
                 if (action.childReportID) {
