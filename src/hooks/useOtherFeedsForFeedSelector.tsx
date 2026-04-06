@@ -64,7 +64,8 @@ function useOtherFeedsForFeedSelector(policyID: string): CardFeedListItem[] {
                     country: feed?.country,
                     alternateText: domainName ?? feedPolicy?.name,
                     text: getCustomOrFormattedFeedName(translate, feedName, feed.name),
-                    keyForList: feed.id,
+                    // Composite key so rows stay distinct if the same feed id appears under multiple policies
+                    keyForList: `${feedPolicyID}_${feed.id}`,
                     isSelected: feed.id === selectedFeedName,
                     brickRoadIndicator: shouldShowRBR ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                     canShowSeveralIndicators: shouldShowRBR,
