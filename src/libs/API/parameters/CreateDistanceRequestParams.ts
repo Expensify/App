@@ -32,6 +32,9 @@ type CreateDistanceRequestParams = {
     odometerEnd?: number;
     gpsCoordinates?: string;
     customUnitPolicyID?: string;
+
+    /** When true, the backend defers auto-submit so batch expense creation (e.g. duplicate report) can finish before the report is submitted */
+    shouldDeferAutoSubmit?: boolean;
 };
 
 export default CreateDistanceRequestParams;

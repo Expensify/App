@@ -9,6 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchPageSetup from '@hooks/useSearchPageSetup';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {searchInServer} from '@libs/actions/Report';
@@ -36,6 +37,7 @@ function SearchPage({route}: SearchPageProps) {
     const lastNonEmptySearchResults = useRef<SearchResults | undefined>(undefined);
 
     useConfirmReadyToOpenApp();
+    useSearchPageSetup(currentSearchQueryJSON);
 
     useEffect(() => {
         if (!currentSearchResults?.search?.type) {
@@ -55,7 +57,7 @@ function SearchPage({route}: SearchPageProps) {
     const [isSorting, setIsSorting] = useState(false);
 
     let searchResults: SearchResults | undefined;
-    if (currentSearchResults?.data) {
+    if (currentSearchResults?.data !== undefined) {
         searchResults = currentSearchResults;
     } else if (isSorting) {
         searchResults = lastNonEmptySearchResults.current;

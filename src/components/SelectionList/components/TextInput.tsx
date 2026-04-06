@@ -9,6 +9,7 @@ import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Accessibility from '@libs/Accessibility';
 import mergeRefs from '@libs/mergeRefs';
 import CONST from '@src/CONST';
 
@@ -66,13 +67,36 @@ function TextInput({
 }: TextInputProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {label, value, onChangeText, errorText, headerMessage, hint, disableAutoFocus, placeholder, maxLength, inputMode, ref: optionsRef, style, disableAutoCorrect} = options ?? {};
+    const {
+        label,
+        value,
+        onChangeText,
+        errorText,
+        headerMessage,
+        hint,
+        disableAutoFocus,
+        placeholder,
+        maxLength,
+        inputMode,
+        ref: optionsRef,
+        style,
+        disableAutoCorrect,
+        shouldInterceptSwipe,
+    } = options ?? {};
     const noResultsFoundText = translate('common.noResultsFound');
     const isNoResultsFoundMessage = headerMessage === noResultsFoundText;
+    const isScreenReaderEnabled = Accessibility.useScreenReaderStatus();
     const noData = dataLength === 0 && !shouldShowLoadingPlaceholder;
     const shouldShowHeaderMessage = !!shouldShowTextInput && !!headerMessage && (!isLoadingNewOptions || !isNoResultsFoundMessage || noData);
+    const trimmedSearchValue = value?.trim() ?? '';
+    const suggestionsCount = dataLength ?? 0;
+    const suggestionsAnnouncement =
+        !!shouldShowTextInput && !shouldShowLoadingPlaceholder && !isLoadingNewOptions && suggestionsCount > 0
+            ? translate('search.suggestionsAvailable', {count: suggestionsCount}, trimmedSearchValue)
+            : '';
 
     useDebouncedAccessibilityAnnouncement(headerMessage ?? '', shouldShowHeaderMessage, value ?? '');
+    useDebouncedAccessibilityAnnouncement(suggestionsAnnouncement, !!suggestionsAnnouncement, value ?? '');
 
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const mergedRef = mergeRefs<BaseTextInputRef>(ref, optionsRef);
@@ -86,7 +110,7 @@ function TextInput({
 
     useFocusEffect(
         useCallback(() => {
-            if (!shouldShowTextInput || disableAutoFocus) {
+            if (!shouldShowTextInput || disableAutoFocus || isScreenReaderEnabled) {
                 return;
             }
 
@@ -99,7 +123,7 @@ function TextInput({
                 clearTimeout(focusTimeoutRef.current);
                 focusTimeoutRef.current = null;
             };
-        }, [shouldShowTextInput, disableAutoFocus, focusTextInput]),
+        }, [shouldShowTextInput, disableAutoFocus, focusTextInput, isScreenReaderEnabled]),
     );
 
     const handleFocus = useCallback(() => {
@@ -138,8 +162,8 @@ function TextInput({
                     isLoading={isLoading}
                     testID="selection-list-text-input"
                     errorText={errorText}
-                    shouldInterceptSwipe={false}
                     autoCorrect={!disableAutoCorrect}
+                    shouldInterceptSwipe={shouldInterceptSwipe ?? false}
                 />
             </View>
             {shouldShowHeaderMessage && (

@@ -1,10 +1,11 @@
-import {findFocusedRoute} from '@react-navigation/native';
+import findFocusedRouteWithOnyxTabGuard from '@libs/Navigation/helpers/findFocusedRouteWithOnyxTabGuard';
 import {getMatchingFullScreenRoute} from '@libs/Navigation/helpers/getAdaptedStateFromPath';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import SCREENS from '@src/SCREENS';
 
 jest.mock('@libs/Navigation/linkingConfig/config', () => ({
     normalizedConfigs: {},
+    screensWithOnyxTabNavigator: new Set(),
 }));
 
 jest.mock('@libs/ReportUtils', () => ({
@@ -12,9 +13,7 @@ jest.mock('@libs/ReportUtils', () => ({
 }));
 
 jest.mock('@libs/Navigation/helpers/getStateFromPath', () => jest.fn());
-jest.mock('@react-navigation/native', () => ({
-    findFocusedRoute: jest.fn(),
-}));
+jest.mock('@libs/Navigation/helpers/findFocusedRouteWithOnyxTabGuard', () => jest.fn());
 
 jest.mock('@libs/Navigation/linkingConfig/RELATIONS', () => {
     const SIDEBAR_TO_SPLIT = {SETTINGS_ROOT: 'SettingsSplitNavigator'};
@@ -43,7 +42,7 @@ jest.mock('@src/ROUTES', () => ({
 
 describe('getMatchingFullScreenRoute - dynamic suffix', () => {
     const mockGetStateFromPath = getStateFromPath as jest.Mock;
-    const mockFindFocusedRoute = findFocusedRoute as jest.Mock;
+    const mockFindFocusedRouteWithOnyxTabGuard = findFocusedRouteWithOnyxTabGuard as jest.Mock;
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -128,12 +127,12 @@ describe('getMatchingFullScreenRoute - dynamic suffix', () => {
         };
 
         mockGetStateFromPath.mockImplementation((path: string) => (path === '/base' ? basePathState : undefined));
-        mockFindFocusedRoute.mockReturnValue(nestedFocusedRoute);
+        mockFindFocusedRouteWithOnyxTabGuard.mockReturnValue(nestedFocusedRoute);
 
         const result = getMatchingFullScreenRoute(route);
 
         expect(mockGetStateFromPath).toHaveBeenCalledWith('/base');
-        expect(mockFindFocusedRoute).toHaveBeenCalledWith(basePathState);
+        expect(mockFindFocusedRouteWithOnyxTabGuard).toHaveBeenCalledWith(basePathState);
         expect(result).toBeDefined();
         expect(result?.name).toBe(SCREENS.HOME);
     });

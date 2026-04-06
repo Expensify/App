@@ -31,7 +31,7 @@ type FullScreenLoadingIndicatorProps = {
     extraLoadingContext?: ExtraLoadingContext;
 
     /** Reason attributes for skeleton span telemetry */
-    reasonAttributes?: SkeletonSpanReasonAttributes;
+    reasonAttributes: SkeletonSpanReasonAttributes;
 };
 
 function FullScreenLoadingIndicator({

@@ -9,7 +9,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import getPlatform from '@libs/getPlatform';
-import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import Backdrop from './Backdrop';
@@ -48,6 +47,7 @@ function ReanimatedModal({
     initialFocus,
     shouldIgnoreBackHandlerDuringTransition = false,
     shouldEnableNewFocusManagement,
+    shouldReturnFocus,
     ...props
 }: ReanimatedModalProps) {
     const [isVisibleState, setIsVisibleState] = useState(isVisible);
@@ -103,7 +103,6 @@ function ReanimatedModal({
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.clearInteractionHandle(handleRef.current);
             }
-            TransitionTracker.endTransition();
 
             setIsVisibleState(false);
             setIsContainerOpen(false);
@@ -116,7 +115,6 @@ function ReanimatedModal({
         if (isVisible && !isContainerOpen && !isTransitioning) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             handleRef.current = InteractionManager.createInteractionHandle();
-            TransitionTracker.startTransition();
             onModalWillShow();
 
             setIsVisibleState(true);
@@ -124,7 +122,6 @@ function ReanimatedModal({
         } else if (!isVisible && isContainerOpen && !isTransitioning) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             handleRef.current = InteractionManager.createInteractionHandle();
-            TransitionTracker.startTransition();
             onModalWillHide();
 
             blurActiveElement();
@@ -145,7 +142,6 @@ function ReanimatedModal({
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.clearInteractionHandle(handleRef.current);
         }
-        TransitionTracker.endTransition();
         onModalShow();
     }, [onModalShow]);
 
@@ -156,7 +152,6 @@ function ReanimatedModal({
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.clearInteractionHandle(handleRef.current);
         }
-        TransitionTracker.endTransition();
 
         // Because on Android, the Modal's onDismiss callback does not work reliably. There's a reported issue at:
         // https://stackoverflow.com/questions/58937956/react-native-modal-ondismiss-not-invoked
@@ -248,7 +243,7 @@ function ReanimatedModal({
                     <FocusTrapForModal
                         active={modalVisibility}
                         initialFocus={initialFocus}
-                        shouldReturnFocus={!shouldEnableNewFocusManagement}
+                        shouldReturnFocus={shouldReturnFocus ?? !shouldEnableNewFocusManagement}
                         shouldPreventScroll={shouldPreventScrollOnFocus}
                     >
                         {isVisibleState && containerView}

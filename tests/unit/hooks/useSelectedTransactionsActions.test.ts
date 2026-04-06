@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {renderHook, waitFor} from '@testing-library/react-native';
+import {act, renderHook, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {SelectedTransactions} from '@components/Search/types';
@@ -58,6 +58,14 @@ jest.mock('@hooks/useLocalize', () => ({
     }),
 }));
 
+const mockGetCurrencyDecimals = jest.fn(() => 2);
+
+jest.mock('@hooks/useCurrencyList', () => ({
+    useCurrencyListActions: () => ({
+        getCurrencyDecimals: mockGetCurrencyDecimals,
+    }),
+}));
+
 const mockClearSelectedTransactions = jest.fn();
 const mockSelectedTransactionIDs: string[] = [];
 const mockSelectedTransactions: SelectedTransactions = {};
@@ -90,6 +98,13 @@ const mockIsReportArchived = false;
 jest.mock('@hooks/useReportIsArchived', () => ({
     __esModule: true,
     default: () => mockIsReportArchived,
+}));
+
+jest.mock('@hooks/usePermissions', () => ({
+    __esModule: true,
+    default: () => ({
+        isBetaEnabled: () => true,
+    }),
 }));
 
 const mockDeleteTransactions = jest.fn(() => []);
@@ -190,6 +205,48 @@ describe('useSelectedTransactionsActions', () => {
         const exportOption = result.current.options.find((option) => option.value === CONST.REPORT.SECONDARY_ACTIONS.EXPORT);
         expect(exportOption).toBeDefined();
         expect(exportOption?.text).toBe('common.export');
+    });
+
+    it('should show edit multiple option when multiple transactions are editable', async () => {
+        const transactionID1 = '123';
+        const transactionID2 = '456';
+        const report = createRandomReport(1, undefined);
+        const reportActions: ReportAction[] = [];
+        const transaction1 = createRandomTransaction(1);
+        transaction1.transactionID = transactionID1;
+        transaction1.amount = 1000;
+        const transaction2 = createRandomTransaction(2);
+        transaction2.transactionID = transactionID2;
+        transaction2.amount = 2000;
+
+        mockSelectedTransactionIDs.push(transactionID1, transactionID2);
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID1}`, transaction1);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID2}`, transaction2);
+        });
+
+        jest.spyOn(require('@libs/ReportUtils'), 'canEditMultipleTransactions').mockReturnValue(true);
+
+        const {result} = renderHook(() =>
+            useSelectedTransactionsActions({
+                report,
+                reportActions,
+                allTransactionsLength: 2,
+                beginExportWithTemplate: mockBeginExportWithTemplate,
+            }),
+        );
+
+        await waitFor(() => {
+            expect(result.current.options.length).toBeGreaterThan(0);
+        });
+
+        const editOption = result.current.options.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EDIT);
+        expect(editOption).toBeDefined();
+
+        editOption?.onSelected?.();
+
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_EDIT_MULTIPLE_TRANSACTIONS_RHP);
     });
 
     it('should handle basic export when online', async () => {
@@ -354,12 +411,45 @@ describe('useSelectedTransactionsActions', () => {
             }),
         );
 
-        result.current.handleDeleteTransactions();
+        act(() => {
+            result.current.handleDeleteTransactions();
+        });
 
-        expect(mockDeleteTransactions).toHaveBeenCalledWith([transactionID], mockDuplicateTransactions, mockDuplicateTransactionViolations, mockCurrentSearchHash, false);
+        expect(mockDeleteTransactions).toHaveBeenCalledWith([transactionID], mockDuplicateTransactions, mockDuplicateTransactionViolations, undefined, false);
         expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
         expect(Navigation.removeReportScreen).toHaveBeenCalledWith(new Set(['report1', 'report2']));
         expect(result.current.isDeleteModalVisible).toBe(false);
+    });
+
+    it('should pass currentSearchHash to delete transactions when on search', async () => {
+        const transactionID = '123';
+        const report = createRandomReport(1, undefined);
+        const reportActions: ReportAction[] = [];
+        const transaction = createRandomTransaction(1);
+        transaction.transactionID = transactionID;
+
+        mockSelectedTransactionIDs.push(transactionID);
+        (mockDeleteTransactions as jest.Mock<string[]>).mockReturnValue(['report1']);
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+
+        const {result} = renderHook(() =>
+            useSelectedTransactionsActions({
+                report,
+                reportActions,
+                allTransactionsLength: 1,
+                beginExportWithTemplate: mockBeginExportWithTemplate,
+                isOnSearch: true,
+            }),
+        );
+
+        act(() => {
+            result.current.handleDeleteTransactions();
+        });
+
+        expect(mockDeleteTransactions).toHaveBeenCalledWith([transactionID], mockDuplicateTransactions, mockDuplicateTransactionViolations, mockCurrentSearchHash, false);
+        expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
+        expect(Navigation.removeReportScreen).toHaveBeenCalledWith(new Set(['report1']));
     });
 
     it('should show and hide delete modal', async () => {
@@ -534,7 +624,61 @@ describe('useSelectedTransactionsActions', () => {
 
         unholdOption?.onSelected?.();
 
-        expect(unholdRequest).toHaveBeenCalledWith(transactionID, 'child123', undefined);
+        expect(unholdRequest).toHaveBeenCalledWith(transactionID, 'child123', undefined, false);
+        expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
+    });
+
+    it('should pass isOffline=true to unholdRequest when offline', async () => {
+        const transactionID = '123';
+        const report = createRandomReport(1, undefined);
+        report.type = CONST.REPORT.TYPE.EXPENSE;
+        const reportActions: ReportAction[] = [
+            {
+                ...createRandomReportAction(1),
+                reportActionID: 'action1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                childReportID: 'child123',
+                originalMessage: {
+                    IOUReportID: 'iou123',
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    transactionID,
+                },
+            },
+        ];
+        const transaction = createRandomTransaction(1);
+        transaction.transactionID = transactionID;
+
+        mockSelectedTransactionIDs.push(transactionID);
+        mockIsOffline = true;
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+
+        jest.spyOn(require('@libs/ReportUtils'), 'isMoneyRequestReport').mockReturnValue(true);
+        jest.spyOn(require('@libs/ReportUtils'), 'canHoldUnholdReportAction').mockReturnValue({
+            canHoldRequest: false,
+            canUnholdRequest: true,
+        });
+        jest.spyOn(require('@libs/ReportActionsUtils'), 'getIOUActionForTransactionID').mockReturnValue(reportActions.at(0) as OnyxEntry<ReportAction>);
+
+        const {result} = renderHook(() =>
+            useSelectedTransactionsActions({
+                report,
+                reportActions,
+                allTransactionsLength: 1,
+                beginExportWithTemplate: mockBeginExportWithTemplate,
+            }),
+        );
+
+        await waitFor(() => {
+            expect(result.current.options.length).toBeGreaterThan(0);
+        });
+
+        const unholdOption = result.current.options.find((option) => option.value === 'UNHOLD');
+        expect(unholdOption).toBeDefined();
+
+        unholdOption?.onSelected?.();
+
+        expect(unholdRequest).toHaveBeenCalledWith(transactionID, 'child123', undefined, true);
         expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
     });
 
@@ -584,6 +728,53 @@ describe('useSelectedTransactionsActions', () => {
 
         const moveOption = result.current.options.find((option) => option.value === 'MOVE');
         expect(moveOption?.text).toBe('iou.moveExpenses');
+    });
+
+    it('should forward transaction when calling canEditFieldOfMoneyRequest for move eligibility', async () => {
+        const transactionID = '123';
+        const report = createRandomReport(1, undefined);
+        report.type = CONST.REPORT.TYPE.EXPENSE;
+        const reportActions: ReportAction[] = [
+            {
+                ...createRandomReportAction(1),
+                reportActionID: 'action1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: 'iou123',
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    transactionID,
+                },
+            },
+        ];
+        const transaction = createRandomTransaction(1);
+        transaction.transactionID = transactionID;
+        transaction.reportID = report.reportID;
+
+        mockSelectedTransactionIDs.push(transactionID);
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+
+        const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+        jest.spyOn(require('@libs/ReportUtils'), 'canUserPerformWriteAction').mockReturnValue(true);
+
+        const {result} = renderHook(() =>
+            useSelectedTransactionsActions({
+                report,
+                reportActions,
+                allTransactionsLength: 1,
+                beginExportWithTemplate: mockBeginExportWithTemplate,
+            }),
+        );
+
+        await waitFor(() => {
+            const moveOption = result.current.options.find((option) => option.value === 'MOVE');
+            expect(moveOption).toBeDefined();
+        });
+
+        // Verify canEditFieldOfMoneyRequest was called with the transaction in the object argument
+        const lastCall = canEditFieldSpy.mock.calls.at(canEditFieldSpy.mock.calls.length - 1)?.at(0) as Record<string, unknown>;
+        expect(lastCall.fieldToEdit).toBe(CONST.EDIT_REQUEST_FIELD.REPORT);
+        expect(lastCall.transaction).toEqual(expect.objectContaining({transactionID}));
     });
 
     it('should show split option when transaction can be split', async () => {
@@ -694,6 +885,6 @@ describe('useSelectedTransactionsActions', () => {
 
         mergeOption?.onSelected?.();
 
-        expect(setupMergeTransactionDataAndNavigate).toHaveBeenCalledWith(transaction.transactionID, [transaction], mockLocalCompare, [], false, false, undefined);
+        expect(setupMergeTransactionDataAndNavigate).toHaveBeenCalledWith(transaction.transactionID, [transaction], mockLocalCompare, mockGetCurrencyDecimals, [], false, false, undefined);
     });
 });
