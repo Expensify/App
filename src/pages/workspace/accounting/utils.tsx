@@ -9,7 +9,6 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import {isAuthenticationError} from '@libs/actions/connections';
-import getPlatform from '@libs/getPlatform';
 import {canUseTaxNetSuite} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {ThemeStyles} from '@styles/index';
@@ -37,10 +36,8 @@ import {
     shouldHideTaxPostingAccountSelect,
     shouldShowInvoiceItemMenuItem,
 } from './netsuite/utils';
+import getQuickbooksDesktopSetupEntryRoute from './qbd/utils';
 import type {AccountingIntegration} from './types';
-
-const platform = getPlatform(true);
-const isMobile = [CONST.PLATFORM.MOBILE_WEB, CONST.PLATFORM.IOS, CONST.PLATFORM.ANDROID].some((value) => value === platform);
 
 function getAccountingIntegrationData(
     connectionName: PolicyConnectionName,
@@ -73,10 +70,7 @@ function getAccountingIntegrationData(
         if (existingConnections.qbd) {
             return ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXISTING_CONNECTIONS.getRoute(policyID);
         }
-        if (isMobile) {
-            return ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_SETUP_REQUIRED_DEVICE_MODAL.getRoute(policyID);
-        }
-        return ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_SETUP_MODAL.getRoute(policyID);
+        return getQuickbooksDesktopSetupEntryRoute(policyID);
     };
 
     switch (connectionName) {
