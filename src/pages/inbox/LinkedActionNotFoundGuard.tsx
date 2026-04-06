@@ -146,7 +146,12 @@ function LinkedActionNotFoundGate({reportActionIDFromRoute, children}: LinkedAct
             return;
         }
         Navigation.setParams({reportActionID: ''}, route.key);
-    }, [isLinkedActionDeleted, wasEverVisible, linkedAction, isLoadingInitialReportActions, route.key]);
+        // Also strip the stale reportActionID from any `backTo` params on sibling routes
+        // (e.g. the IOU report screen that was navigated to FROM this deep link).
+        if (reportIDFromRoute) {
+            Navigation.cleanStaleBackToParam(reportIDFromRoute, reportActionIDFromRoute);
+        }
+    }, [isLinkedActionDeleted, wasEverVisible, linkedAction, isLoadingInitialReportActions, route.key, reportIDFromRoute, reportActionIDFromRoute]);
 
     // Handle inaccessible whisper
     useEffect(() => {
