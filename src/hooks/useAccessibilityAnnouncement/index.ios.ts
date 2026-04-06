@@ -8,6 +8,7 @@ const DELAY_FOR_ACCESSIBILITY_TREE_SYNC = 100;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function useAccessibilityAnnouncement(message: string | ReactNode, shouldAnnounceMessage: boolean, _options?: UseAccessibilityAnnouncementOptions) {
     const previousAnnouncedMessageRef = useRef('');
+    const previousKeyRef = useRef(_options?.announcementKey);
 
     useEffect(() => {
         if (!shouldAnnounceMessage || typeof message !== 'string' || !message.trim()) {
@@ -15,7 +16,10 @@ function useAccessibilityAnnouncement(message: string | ReactNode, shouldAnnounc
             return;
         }
 
-        if (previousAnnouncedMessageRef.current === message) {
+        const keyChanged = _options?.announcementKey !== undefined && _options.announcementKey !== previousKeyRef.current;
+        previousKeyRef.current = _options?.announcementKey;
+
+        if (!keyChanged && previousAnnouncedMessageRef.current === message) {
             return;
         }
 
@@ -26,8 +30,9 @@ function useAccessibilityAnnouncement(message: string | ReactNode, shouldAnnounc
             AccessibilityInfo.announceForAccessibility(message);
         }, DELAY_FOR_ACCESSIBILITY_TREE_SYNC);
 
+        // eslint-disable-next-line consistent-return
         return () => clearTimeout(timeout);
-    }, [message, shouldAnnounceMessage]);
+    }, [message, shouldAnnounceMessage, _options?.announcementKey]);
 }
 
 export default useAccessibilityAnnouncement;

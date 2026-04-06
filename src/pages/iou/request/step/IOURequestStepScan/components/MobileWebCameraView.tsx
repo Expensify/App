@@ -43,10 +43,10 @@ type MobileWebCameraViewProps = {
     iouType: IOUType;
     currentUserPersonalDetails: CurrentUserPersonalDetails;
     reportID: string;
-    isMultiScanEnabled?: boolean;
-    isStartingScan?: boolean;
+    isMultiScanEnabled: boolean;
+    isStartingScan: boolean;
     updateScanAndNavigate: (file: FileObject, source: string) => void;
-    setIsMultiScanEnabled?: (value: boolean) => void;
+    setIsMultiScanEnabled: (value: boolean) => void;
     PDFValidationComponent: React.ReactNode;
     shouldAcceptMultipleFiles: boolean;
     receiptFiles: ReceiptFile[];
@@ -56,9 +56,9 @@ type MobileWebCameraViewProps = {
     navigateToConfirmationStep: (files: ReceiptFile[], locationPermissionGranted?: boolean, isTestTransaction?: boolean) => void;
     shouldSkipConfirmation: boolean;
     setStartLocationPermissionFlow: (value: boolean) => void;
-    onLayout?: () => void;
     onBackButtonPress: () => void;
     shouldShowWrapper: boolean;
+    onLayout?: () => void;
 };
 
 /**
@@ -103,7 +103,7 @@ function MobileWebCameraView({
     iouType,
     currentUserPersonalDetails,
     reportID,
-    isMultiScanEnabled = false,
+    isMultiScanEnabled,
     isStartingScan,
     updateScanAndNavigate,
     setIsMultiScanEnabled,
@@ -116,9 +116,9 @@ function MobileWebCameraView({
     navigateToConfirmationStep,
     shouldSkipConfirmation,
     setStartLocationPermissionFlow,
-    onLayout,
     onBackButtonPress,
     shouldShowWrapper,
+    onLayout,
 }: MobileWebCameraViewProps) {
     const {blinkStyle, canUseMultiScan, shouldShowMultiScanEducationalPopup, showBlink, toggleMultiScan, dismissMultiScanEducationalPopup, submitReceipts, submitMultiScanReceipts} =
         useMobileReceiptScan({
@@ -131,6 +131,7 @@ function MobileWebCameraView({
             shouldSkipConfirmation,
             setStartLocationPermissionFlow,
             setIsMultiScanEnabled,
+            setReceiptFiles,
         });
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -317,6 +318,13 @@ function MobileWebCameraView({
 
         const originalFileName = `receipt_${Date.now()}.png`;
         const originalFile = base64ToFile(imageBase64 ?? '', originalFileName);
+
+        if (originalFile.size === 0) {
+            cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
+            cancelSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION);
+            return;
+        }
+
         const imageObject: ImageObject = {file: originalFile, filename: originalFile.name, source: URL.createObjectURL(originalFile)};
         // Some browsers center-crop the viewfinder inside the video element (due to object-position: center),
         // while other browsers let the video element overflow and the container crops it from the top.
@@ -444,7 +452,7 @@ function MobileWebCameraView({
                                 ) : null}
                                 <Animated.View
                                     pointerEvents="none"
-                                    style={[StyleSheet.absoluteFillObject, styles.backgroundWhite, blinkStyle, styles.zIndex10]}
+                                    style={[StyleSheet.absoluteFill, styles.backgroundWhite, blinkStyle, styles.zIndex10]}
                                 />
                             </View>
                         )}

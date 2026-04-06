@@ -4,9 +4,9 @@ import {pendingChatMembersSelector} from '@selectors/ReportMetaData';
 import {isPast} from 'date-fns';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import CaretWrapper from '@components/CaretWrapper';
+import ChronosTimerHeaderButton from '@components/ChronosTimerHeaderButton';
 import DisplayNames from '@components/DisplayNames';
 import HeaderLoadingBar from '@components/HeaderLoadingBar';
 import Icon from '@components/Icon';
@@ -42,6 +42,7 @@ import {getReportName} from '@libs/ReportNameUtils';
 import {
     canJoinChat,
     canUserPerformWriteAction,
+    chatIncludesChronos,
     getChatRoomSubtitle,
     getDisplayNamesWithTooltips,
     getParentNavigationSubtitle,
@@ -83,30 +84,23 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import reportsSelector from '@src/selectors/Attributes';
-import type {Report, ReportAction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type HeaderViewProps = {
     /** Toggles the navigationMenu open and closed */
     onNavigationMenuButtonClicked: () => void;
 
-    /** The report currently being looked at */
-    report: OnyxEntry<Report>;
-
-    /** The report action the transaction is tied to from the parent report */
-    parentReportAction: OnyxEntry<ReportAction> | null;
-
     /** The reportID of the current report */
     reportID: string | undefined;
-
-    /** Whether we should display the header as in narrow layout */
-    shouldUseNarrowLayout?: boolean;
 };
 
-function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, shouldUseNarrowLayout = false}: HeaderViewProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['BackArrow', 'Close', 'DotIndicator'] as const);
+function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) {
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const parentReportAction = useParentReportAction(report);
+
+    const icons = useMemoizedLazyExpensifyIcons(['BackArrow', 'Close', 'DotIndicator']);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const isInSidePanel = useIsInSidePanel();
     const route = useRoute();
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID) ?? getNonEmptyStringOnyxID(report?.reportID)}`);
@@ -160,7 +154,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
         : undefined;
     const statusColorForInvoiceReport = isParentInvoiceAndIsChatThread ? getReportStatusColorStyle(theme, reportHeaderData?.stateNum, reportHeaderData?.statusNum) : {};
     const isParentReportHeaderDataArchived = useReportIsArchived(reportHeaderData?.parentReportID);
-    const parentNavigationSubtitleData = getParentNavigationSubtitle(parentNavigationReport, conciergeReportID, isParentReportHeaderDataArchived);
+    const parentNavigationSubtitleData = getParentNavigationSubtitle(parentNavigationReport, policy, conciergeReportID, isParentReportHeaderDataArchived);
     const reportDescription = Parser.htmlToText(getReportDescription(report));
     const policyName = getPolicyName({report, returnEmptyIfNotFound: true});
     const policyDescription = getPolicyDescriptionText(policy);
@@ -392,6 +386,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                             success={!hasActiveScheduledCall}
                                         />
                                     )}
+                                    {!shouldUseNarrowLayout && chatIncludesChronos(report) && <ChronosTimerHeaderButton report={report} />}
                                     {!shouldUseNarrowLayout && isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton report={report} />}
                                     {!isParentReportLoading && canJoin && !shouldUseNarrowLayout && joinButton}
                                 </View>
@@ -431,6 +426,13 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                         />
                     )}
                 </View>
+                {!!report && shouldUseNarrowLayout && chatIncludesChronos(report) && (
+                    <View style={[styles.appBG, styles.pl0]}>
+                        <View style={[styles.ph5, styles.pb3]}>
+                            <ChronosTimerHeaderButton report={report} />
+                        </View>
+                    </View>
+                )}
                 {!!report && shouldUseNarrowLayout && isOpenTaskReport(report, parentReportAction) && (
                     <View style={[styles.appBG, styles.pl0]}>
                         <View style={[styles.ph5, styles.pb3]}>

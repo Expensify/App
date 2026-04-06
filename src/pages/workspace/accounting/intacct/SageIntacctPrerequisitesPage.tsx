@@ -51,6 +51,7 @@ function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps
                         selection: CONST.EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT,
                         contextMenuAnchor: popoverAnchor.current,
                     }),
+                shouldShowContextMenuHint: true,
                 numberOfLinesTitle: 2,
             },
             {
@@ -69,6 +70,7 @@ function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps
                         selection: CONST.HOW_TO_CONNECT_TO_SAGE_INTACCT,
                         contextMenuAnchor: popoverAnchor.current,
                     }),
+                shouldShowContextMenuHint: true,
                 numberOfLinesTitle: 3,
             },
         ],
