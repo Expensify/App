@@ -35,7 +35,7 @@ function SearchFiltersWorkspacePage() {
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const [policies, policiesResult] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_APP);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
     const selectionListRef = useRef<SelectionListHandle<WorkspaceListItem>>(null);
@@ -108,7 +108,10 @@ function SearchFiltersWorkspacePage() {
                         }}
                     />
                     {shouldShowLoadingIndicator ? (
-                        <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                        <FullScreenLoadingIndicator
+                            style={[styles.flex1, styles.pRelative]}
+                            reasonAttributes={{context: 'SearchFiltersWorkspacePage', shouldShowLoadingIndicator}}
+                        />
                     ) : (
                         <SelectionList<WorkspaceListItem>
                             ref={selectionListRef}

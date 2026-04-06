@@ -32,6 +32,8 @@ jest.mock('@hooks/useLocalize', () =>
     })),
 );
 
+jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
+
 jest.mock('@react-navigation/native', () => ({
     ...((): typeof NativeNavigation => {
         return jest.requireActual('@react-navigation/native');

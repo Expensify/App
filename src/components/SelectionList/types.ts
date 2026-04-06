@@ -1,5 +1,6 @@
-import type {ReactElement, RefObject} from 'react';
+import type {ReactElement, Ref} from 'react';
 import type {GestureResponderEvent, InputModeOptions, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {ListItem, ValidListItem} from './ListItem/types';
@@ -133,7 +134,7 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> &
         onSelectAll?: () => void;
 
         /** Callback to fire when the item is long pressed */
-        onLongPressRow?: (item: TItem) => void;
+        onLongPressRow?: (item: TItem, itemTransactions?: TransactionListItemType[]) => void;
 
         /** Custom header content to render instead of the default select all header */
         customListHeader?: React.ReactNode;
@@ -250,6 +251,9 @@ type TextInputOptions = {
     /** Whether the text input auto correct should be disabled */
     disableAutoCorrect?: boolean;
 
+    /** Whether the text input should intercept swipes */
+    shouldInterceptSwipe?: boolean;
+
     /** Styles for the text input */
     style?: {
         /** Styles for the text input container */
@@ -260,7 +264,7 @@ type TextInputOptions = {
     };
 
     /** Reference to the text input component */
-    ref?: RefObject<BaseTextInputRef | null>;
+    ref?: Ref<BaseTextInputRef | null>;
 };
 
 type ConfirmButtonOptions<TItem extends ListItem> = {
@@ -280,7 +284,7 @@ type ConfirmButtonOptions<TItem extends ListItem> = {
     isDisabled?: boolean;
 };
 
-type ButtonOrCheckBoxRoles = 'button' | 'checkbox';
+type InteractiveElementRoles = 'button' | 'checkbox' | 'switch';
 
 type SelectionListHandle<TItem extends ListItem> = {
     /** Scrolls to and highlights the specified items */
@@ -327,7 +331,7 @@ export type {
     TextInputOptions,
     ConfirmButtonOptions,
     ListItem,
-    ButtonOrCheckBoxRoles,
+    InteractiveElementRoles,
     SelectionListStyle,
     SelectionListWithSectionsHandle,
     SelectionListWithSectionsProps,

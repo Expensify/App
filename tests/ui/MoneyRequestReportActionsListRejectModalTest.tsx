@@ -1,3 +1,4 @@
+import type * as CoreNavigation from '@react-navigation/core';
 import * as NativeNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
@@ -20,7 +21,21 @@ const FAKE_ACCOUNT_ID = 15593135;
 const FAKE_TRANSACTION_ID = 'FAKE_TXN_001';
 const FAKE_EMAIL = 'testuser@example.com';
 
-jest.mock('@react-navigation/native');
+jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<typeof NativeNavigation>('@react-navigation/native'),
+    useNavigationState: () => true,
+    usePreventRemove: jest.fn(),
+    useRoute: () => ({
+        params: {},
+    }),
+}));
+
+jest.mock('@react-navigation/core', () => ({
+    ...jest.requireActual<typeof CoreNavigation>('@react-navigation/core'),
+    useNavigation: jest.fn(() => ({getState: jest.fn(() => undefined)})),
+}));
+
+jest.mock('@hooks/useRootNavigationState', () => jest.fn((selector: (state: undefined) => unknown) => selector(undefined)));
 
 jest.mock('@rnmapbox/maps', () => ({
     default: jest.fn(),
@@ -36,6 +51,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
         getState: jest.fn(() => ({})),
     },
     getActiveRoute: jest.fn(() => 'activeRoute'),
+    getDeepestFocusedScreen: jest.fn(() => undefined),
 }));
 
 jest.mock('@components/MoneyRequestReportView/MoneyRequestReportTransactionList', () => {

@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import {Keyboard} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -7,9 +7,9 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
-import useOnyx from '@hooks/useOnyx';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
@@ -31,51 +31,73 @@ type WorkspaceCreateTagPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.SETTINGS_TAG_CREATE>;
 
 function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
-    const policyID = route.params.policyID;
+    const {policyID, backTo} = route.params;
     const policyData = usePolicyData(policyID);
     const {tags: policyTagLists, categories: policyCategories} = policyData;
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const setupTagsTaskReportID = introSelected?.setupTags;
-    const [setupTagsTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${setupTagsTaskReportID}`);
-    const {taskReport: setupCategoriesAndTagsTaskReport} = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES_AND_TAGS);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
-    const backTo = route.params.backTo;
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAG_CREATE;
 
     const policyHasCustomCategories = hasCustomCategories(policyCategories);
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM> = {};
-            const tagName = escapeTagName(values.tagName.trim());
-            const {tags} = getTagList(policyTagLists, 0);
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM> = {};
+        const tagName = escapeTagName(values.tagName.trim());
+        const {tags} = getTagList(policyTagLists, 0);
 
-            if (!isRequiredFulfilled(tagName)) {
-                errors.tagName = translate('workspace.tags.tagRequiredError');
-            } else if (tagName === '0') {
-                errors.tagName = translate('workspace.tags.invalidTagNameError');
-            } else if (tags?.[tagName]) {
-                errors.tagName = translate('workspace.tags.existingTagError');
-            } else if ([...tagName].length > CONST.API_TRANSACTION_TAG_MAX_LENGTH) {
-                // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
-                addErrorMessage(errors, 'tagName', translate('common.error.characterLimitExceedCounter', [...tagName].length, CONST.API_TRANSACTION_TAG_MAX_LENGTH));
-            }
+        if (!isRequiredFulfilled(tagName)) {
+            errors.tagName = translate('workspace.tags.tagRequiredError');
+        } else if (tagName === '0') {
+            errors.tagName = translate('workspace.tags.invalidTagNameError');
+        } else if (tags?.[tagName]) {
+            errors.tagName = translate('workspace.tags.existingTagError');
+        } else if ([...tagName].length > CONST.API_TRANSACTION_TAG_MAX_LENGTH) {
+            // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
+            addErrorMessage(errors, 'tagName', translate('common.error.characterLimitExceedCounter', [...tagName].length, CONST.API_TRANSACTION_TAG_MAX_LENGTH));
+        }
 
-            return errors;
-        },
-        [policyTagLists, translate],
-    );
+        return errors;
+    };
 
-    const createTag = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
-            createPolicyTag(policyData, values.tagName.trim(), setupTagsTaskReport, setupCategoriesAndTagsTaskReport, policyHasCustomCategories);
-            Keyboard.dismiss();
-            Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : undefined);
-        },
-        [policyID, policyData, isQuickSettingsFlow, backTo, setupTagsTaskReport, setupCategoriesAndTagsTaskReport, policyHasCustomCategories],
-    );
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+
+    const {
+        taskReport: setupTagsTaskReport,
+        taskParentReport: setupTagsTaskParentReport,
+        isOnboardingTaskParentReportArchived: isSetupTagsTaskParentReportArchived,
+        hasOutstandingChildTask: setupTagsHasOutstandingChildTask,
+        parentReportAction: setupTagsParentReportAction,
+    } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.SETUP_TAGS);
+
+    const {
+        taskReport: setupCategoriesAndTagsTaskReport,
+        taskParentReport: setupCategoriesAndTagsTaskParentReport,
+        isOnboardingTaskParentReportArchived: isSetupCategoriesAndTagsTaskParentReportArchived,
+        hasOutstandingChildTask: setupCategoriesAndTagsHasOutstandingChildTask,
+        parentReportAction: setupCategoriesAndTagsParentReportAction,
+    } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES_AND_TAGS);
+
+    const createTag = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
+        createPolicyTag({
+            policyData,
+            tagName: values.tagName.trim(),
+            setupTagsTaskReport,
+            setupTagsTaskParentReport,
+            isSetupTagsTaskParentReportArchived,
+            setupTagsHasOutstandingChildTask,
+            setupTagsParentReportAction,
+            setupCategoriesAndTagsTaskReport,
+            setupCategoriesAndTagsTaskParentReport,
+            isSetupCategoriesAndTagsTaskParentReportArchived,
+            setupCategoriesAndTagsHasOutstandingChildTask,
+            setupCategoriesAndTagsParentReportAction,
+            currentUserAccountID: currentUserPersonalDetails.accountID,
+            policyHasCustomCategories,
+        });
+        Keyboard.dismiss();
+        Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : undefined);
+    };
 
     return (
         <AccessOrNotFoundWrapper
@@ -102,6 +124,7 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
                     enabledWhenOffline
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
+                    shouldUseStrictHtmlTagValidation
                 >
                     <InputWrapper
                         InputComponent={TextInput}

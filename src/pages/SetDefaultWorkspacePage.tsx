@@ -31,7 +31,7 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
     const {translate, localeCompare} = useLocalize();
 
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_APP);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
 
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
@@ -92,7 +92,10 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
                         onBackButtonPress={Navigation.goBack}
                     />
                     {shouldShowLoadingIndicator ? (
-                        <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                        <FullScreenLoadingIndicator
+                            style={[styles.flex1, styles.pRelative]}
+                            reasonAttributes={{context: 'SetDefaultWorkspacePage', isLoadingApp: !!isLoadingApp}}
+                        />
                     ) : (
                         <SelectionList<WorkspaceListItemType>
                             data={data}

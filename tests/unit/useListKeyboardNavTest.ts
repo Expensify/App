@@ -1,0 +1,358 @@
+import {act, renderHook} from '@testing-library/react-native';
+import useListKeyboardNav from '@hooks/useListKeyboardNav';
+import type Navigation from '@libs/Navigation/Navigation';
+
+type ShortcutCallback = () => void;
+type ShortcutConfig = {isActive?: boolean};
+
+const shortcuts: Record<string, {callback: ShortcutCallback; isActive: boolean}> = {};
+
+jest.mock('@react-navigation/native', () => {
+    const actualNav = jest.requireActual<typeof Navigation>('@react-navigation/native');
+    return {
+        ...actualNav,
+        useIsFocused: () => true,
+    };
+});
+
+jest.mock('@hooks/useKeyboardShortcut', () => (key: {shortcutKey: string}, callback: ShortcutCallback, config?: ShortcutConfig) => {
+    shortcuts[key.shortcutKey] = {callback, isActive: config?.isActive ?? true};
+});
+
+function pressArrowDown() {
+    act(() => {
+        if (!shortcuts.ArrowDown?.isActive) {
+            return;
+        }
+        shortcuts.ArrowDown.callback();
+    });
+}
+
+function pressArrowUp() {
+    act(() => {
+        if (!shortcuts.ArrowUp?.isActive) {
+            return;
+        }
+        shortcuts.ArrowUp.callback();
+    });
+}
+
+function createContainerRef() {
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+    return {ref: {current: container}, cleanup: () => container.remove()};
+}
+
+function simulateFocusIn(container: HTMLElement) {
+    act(() => {
+        container.dispatchEvent(new FocusEvent('focusin', {bubbles: true}));
+    });
+}
+
+function simulateFocusOut(container: HTMLElement, relatedTarget: EventTarget | null = document.body) {
+    act(() => {
+        container.dispatchEvent(new FocusEvent('focusout', {bubbles: true, relatedTarget}));
+    });
+}
+
+describe('useListKeyboardNav', () => {
+    afterEach(() => {
+        for (const key of Object.keys(shortcuts)) {
+            delete shortcuts[key];
+        }
+    });
+
+    it('should navigate with arrow keys after focusin', () => {
+        const {ref, cleanup} = createContainerRef();
+        const {result} = renderHook(() =>
+            useListKeyboardNav({
+                isActive: true,
+                itemKeys: ['a', 'b', 'c'],
+                disabledIndexes: [],
+                containerRef: ref,
+            }),
+        );
+
+        expect(result.current.focusedIndex).toBe(-1);
+
+        // Arrow keys should work on fresh mount (isFocused && !hasBeenFocused)
+        pressArrowDown();
+        expect(result.current.focusedIndex).toBe(0);
+
+        pressArrowDown();
+        expect(result.current.focusedIndex).toBe(1);
+
+        pressArrowUp();
+        expect(result.current.focusedIndex).toBe(0);
+
+        cleanup();
+    });
+
+    it('should wrap from last item to first on ArrowDown', () => {
+        const {ref, cleanup} = createContainerRef();
+        const {result} = renderHook(() =>
+            useListKeyboardNav({
+                isActive: true,
+                itemKeys: ['a', 'b', 'c'],
+                disabledIndexes: [],
+                containerRef: ref,
+            }),
+        );
+
+        // Navigate to last item
+        pressArrowDown();
+        pressArrowDown();
+        pressArrowDown();
+        expect(result.current.focusedIndex).toBe(2);
+
+        // ArrowDown at last item should wrap to first
+        pressArrowDown();
+        expect(result.current.focusedIndex).toBe(0);
+
+        cleanup();
+    });
+
+    it('should wrap from first item to last on ArrowUp', () => {
+        const {ref, cleanup} = createContainerRef();
+        const {result} = renderHook(() =>
+            useListKeyboardNav({
+                isActive: true,
+                itemKeys: ['a', 'b', 'c'],
+                disabledIndexes: [],
+                containerRef: ref,
+            }),
+        );
+
+        // Navigate to first item
+        pressArrowDown();
+        expect(result.current.focusedIndex).toBe(0);
+
+        // ArrowUp at first item should wrap to last
+        pressArrowUp();
+        expect(result.current.focusedIndex).toBe(2);
+
+        cleanup();
+    });
+
+    it('should disable arrow keys when isActive is false', () => {
+        const {ref, cleanup} = createContainerRef();
+        const {result} = renderHook(() =>
+            useListKeyboardNav({
+                isActive: false,
+                itemKeys: ['a', 'b', 'c'],
+                disabledIndexes: [],
+                containerRef: ref,
+            }),
+        );
+
+        pressArrowDown();
+        expect(result.current.focusedIndex).toBe(-1);
+
+        cleanup();
+    });
+
+    it('should disable arrow keys after focusout and re-enable after focusin', () => {
+        const {ref, cleanup} = createContainerRef();
+        const {result} = renderHook(() =>
+            useListKeyboardNav({
+                isActive: true,
+                itemKeys: ['a', 'b', 'c'],
+                disabledIndexes: [],
+                containerRef: ref,
+            }),
+        );
+
+        // Focus in and navigate
+        simulateFocusIn(ref.current);
+        pressArrowDown();
+        expect(result.current.focusedIndex).toBe(0);
+
+        // Focus out resets focusedIndex and disables arrows
+        simulateFocusOut(ref.current);
+        expect(result.current.focusedIndex).toBe(-1);
+
+        pressArrowDown();
+        // After focusout, hasBeenFocused=true and hasFocus=false, so isArrowKeyActive=false
+        expect(result.current.focusedIndex).toBe(-1);
+
+        // Focus back in re-enables arrows
+        simulateFocusIn(ref.current);
+        pressArrowDown();
+        expect(result.current.focusedIndex).toBe(0);
+
+        cleanup();
+    });
+
+    it('should keep focusedIndex at same position when data reorders', () => {
+        const {ref, cleanup} = createContainerRef();
+        const {result, rerender} = renderHook(
+            ({itemKeys}: {itemKeys: string[]}) =>
+                useListKeyboardNav({
+                    isActive: true,
+                    itemKeys,
+                    disabledIndexes: [],
+                    containerRef: ref,
+                }),
+            {initialProps: {itemKeys: ['a', 'b', 'c']}},
+        );
+
+        // Navigate to 'b' (index 1)
+        pressArrowDown();
+        pressArrowDown();
+        expect(result.current.focusedIndex).toBe(1);
+
+        // Reorder: 'b' moves to index 2, focus stays at index 1 (now 'c')
+        rerender({itemKeys: ['a', 'c', 'b']});
+        expect(result.current.focusedIndex).toBe(1);
+
+        cleanup();
+    });
+
+    it('should clamp focusedIndex when list shrinks', () => {
+        const {ref, cleanup} = createContainerRef();
+        const {result, rerender} = renderHook(
+            ({itemKeys}: {itemKeys: string[]}) =>
+                useListKeyboardNav({
+                    isActive: true,
+                    itemKeys,
+                    disabledIndexes: [],
+                    containerRef: ref,
+                }),
+            {initialProps: {itemKeys: ['a', 'b', 'c']}},
+        );
+
+        // Navigate to 'c' (index 2)
+        pressArrowDown();
+        pressArrowDown();
+        pressArrowDown();
+        expect(result.current.focusedIndex).toBe(2);
+
+        // Shrink list — focusedIndex should clamp to last item
+        rerender({itemKeys: ['a', 'b']});
+        expect(result.current.focusedIndex).toBe(1);
+
+        cleanup();
+    });
+
+    it('should preserve focusedIndex when focusout has null relatedTarget (React re-render)', () => {
+        const {ref, cleanup} = createContainerRef();
+        const {result} = renderHook(() =>
+            useListKeyboardNav({
+                isActive: true,
+                itemKeys: ['a', 'b', 'c'],
+                disabledIndexes: [],
+                containerRef: ref,
+            }),
+        );
+
+        simulateFocusIn(ref.current);
+        pressArrowDown();
+        expect(result.current.focusedIndex).toBe(0);
+
+        // focusout with null relatedTarget (DOM element destroyed by React re-render)
+        simulateFocusOut(ref.current, null);
+        expect(result.current.focusedIndex).toBe(0);
+
+        cleanup();
+    });
+
+    it('should skip disabled indexes', () => {
+        const {ref, cleanup} = createContainerRef();
+        const {result} = renderHook(() =>
+            useListKeyboardNav({
+                isActive: true,
+                itemKeys: ['a', 'b', 'c'],
+                disabledIndexes: [1],
+                containerRef: ref,
+            }),
+        );
+
+        pressArrowDown();
+        expect(result.current.focusedIndex).toBe(0);
+
+        // Should skip index 1 (disabled) and go to index 2
+        pressArrowDown();
+        expect(result.current.focusedIndex).toBe(2);
+
+        cleanup();
+    });
+
+    it('should skip forward past disabled index when reorder lands focus on disabled item', () => {
+        const {ref, cleanup} = createContainerRef();
+        const {result, rerender} = renderHook(
+            ({itemKeys, disabledIndexes}: {itemKeys: string[]; disabledIndexes: number[]}) =>
+                useListKeyboardNav({
+                    isActive: true,
+                    itemKeys,
+                    disabledIndexes,
+                    containerRef: ref,
+                }),
+            {initialProps: {itemKeys: ['disabled', 'a', 'b'], disabledIndexes: [0]}},
+        );
+
+        // Navigate to 'a' (index 1)
+        pressArrowDown();
+        expect(result.current.focusedIndex).toBe(1);
+
+        // Reorder: 'a' moves away, disabled item shifts to index 1
+        rerender({itemKeys: ['a', 'disabled', 'b'], disabledIndexes: [1]});
+        // Focus should skip past disabled index 1 to index 2
+        expect(result.current.focusedIndex).toBe(2);
+
+        cleanup();
+    });
+
+    it('should sync focusedIndex when Tab focuses an item (focusin with matching id)', () => {
+        const {ref, cleanup} = createContainerRef();
+        const {result} = renderHook(() =>
+            useListKeyboardNav({
+                isActive: true,
+                itemKeys: ['a', 'b', 'c'],
+                disabledIndexes: [],
+                containerRef: ref,
+            }),
+        );
+
+        expect(result.current.focusedIndex).toBe(-1);
+
+        // Simulate Tab-focusing the item with id='b' (index 1)
+        const child = document.createElement('button');
+        child.id = 'b';
+        ref.current.appendChild(child);
+
+        act(() => {
+            child.dispatchEvent(new FocusEvent('focusin', {bubbles: true}));
+        });
+
+        expect(result.current.focusedIndex).toBe(1);
+
+        child.remove();
+        cleanup();
+    });
+
+    it('should scan backward when all items after focused index are disabled', () => {
+        const {ref, cleanup} = createContainerRef();
+        const {result, rerender} = renderHook(
+            ({itemKeys, disabledIndexes}: {itemKeys: string[]; disabledIndexes: number[]}) =>
+                useListKeyboardNav({
+                    isActive: true,
+                    itemKeys,
+                    disabledIndexes,
+                    containerRef: ref,
+                }),
+            {initialProps: {itemKeys: ['a', 'b', 'disabled'], disabledIndexes: [2]}},
+        );
+
+        // Navigate to 'b' (index 1)
+        pressArrowDown();
+        pressArrowDown();
+        expect(result.current.focusedIndex).toBe(1);
+
+        // Reorder: disabled item moves to index 1, 'b' moves to index 2 (also disabled)
+        rerender({itemKeys: ['a', 'disabled', 'disabled2'], disabledIndexes: [1, 2]});
+        // Focus should scan backward from index 1 to index 0
+        expect(result.current.focusedIndex).toBe(0);
+
+        cleanup();
+    });
+});

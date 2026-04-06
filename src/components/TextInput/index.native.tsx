@@ -44,4 +44,10 @@ function TextInput({ref, navigation, ...props}: BaseTextInputProps) {
     );
 }
 
+// No-op on native — keyboard restoration is only needed on mobile Chrome (web)
+function getIsRestoringKeyboardFocus() {
+    return false;
+}
+
 export default TextInput;
+export {getIsRestoringKeyboardFocus};
