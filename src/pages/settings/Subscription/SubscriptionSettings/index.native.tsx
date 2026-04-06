@@ -112,8 +112,8 @@ function SubscriptionSettings() {
                         <Text style={styles.mutedNormalTextLabel}>{translate('subscription.subscriptionSettings.pricing')}</Text>
                         <Text style={styles.mv1}>{translate('subscription.yourPlan.pricePerMemberPerMonth', collectPriceDisplay)}</Text>
                         <OptionItem
-                            title="subscription.details.payPerUse"
-                            icon={illustrations.SubscriptionPPU}
+                            title={isAnnual ? 'subscription.details.annual' : 'subscription.details.payPerUse'}
+                            icon={isAnnual ? illustrations.SubscriptionAnnual : illustrations.SubscriptionPPU}
                             style={[styles.mt5, styles.flex0]}
                             isDisabled
                         />
