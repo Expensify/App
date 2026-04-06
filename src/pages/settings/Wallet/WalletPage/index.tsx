@@ -74,6 +74,7 @@ const fundListSelector = (allFunds: OnyxEntry<OnyxTypes.FundList>) =>
 
 function WalletPage() {
     const [bankAccountList = getEmptyObject<OnyxTypes.BankAccountList>()] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [cardList = getEmptyObject<OnyxTypes.CardList>()] = useOnyx(ONYXKEYS.CARD_LIST);
     const [fundList = getEmptyObject<OnyxTypes.FundList>()] = useOnyx(ONYXKEYS.FUND_LIST, {
         selector: fundListSelector,
@@ -195,7 +196,7 @@ function WalletPage() {
     };
 
     const onBankAccountRowPressed = ({accountData}: PaymentMethodPressHandlerParams) => {
-        if (isPersonalBankAccountMissingInfo(accountData) && accountData?.bankAccountID) {
+        if (isPersonalBankAccountMissingInfo(accountData, privatePersonalDetails) && accountData?.bankAccountID) {
             const additionalData = accountData?.additionalData;
             const [street1, street2] = additionalData?.addressStreet ? getStreetLines(additionalData.addressStreet) : [];
             resetPersonalBankAccountForUpdate(
@@ -219,7 +220,7 @@ function WalletPage() {
                     country: CONST.COUNTRY.US,
                 },
             );
-            Navigation.navigate(ROUTES.SETTINGS_UPDATE_PERSONAL_BANK_ACCOUNT.getRoute(getFirstPageName(bankAccountList, accountData.bankAccountID)));
+            Navigation.navigate(ROUTES.SETTINGS_UPDATE_PERSONAL_BANK_ACCOUNT.getRoute(getFirstPageName(bankAccountList, accountData.bankAccountID, privatePersonalDetails)));
             return;
         }
 

@@ -11,6 +11,7 @@ import {
 import CONST from '@src/CONST';
 import type {Account, BankAccountList, Session} from '@src/types/onyx';
 import type AccountData from '@src/types/onyx/AccountData';
+import type PrivatePersonalDetails from '@src/types/onyx/PrivatePersonalDetails';
 
 describe('BankAccountUtils', () => {
     describe('isPersonalBankAccountMissingInfo', () => {
@@ -139,6 +140,102 @@ describe('BankAccountUtils', () => {
 
         it('returns false when all info is present', () => {
             expect(isPersonalBankAccountMissingInfo(completeAccountData)).toBe(false);
+        });
+
+        describe('privatePersonalDetails fallback', () => {
+            const accountMissingName: AccountData = {
+                type: CONST.BANK_ACCOUNT.TYPE.PERSONAL,
+                state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                additionalData: {
+                    country: CONST.COUNTRY.US,
+                    addressStreet: '123 Main St',
+                    addressCity: 'New York',
+                    addressState: 'NY',
+                    addressZipCode: '10001',
+                    companyPhone: '+15551234567',
+                },
+            } as AccountData;
+
+            const accountMissingAll: AccountData = {
+                type: CONST.BANK_ACCOUNT.TYPE.PERSONAL,
+                state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                additionalData: {country: CONST.COUNTRY.US},
+            } as AccountData;
+
+            const completeProfile: PrivatePersonalDetails = {
+                legalFirstName: 'Jane',
+                legalLastName: 'Smith',
+                phoneNumber: '+15559876543',
+                addresses: [{addressLine1: '456 Oak Ave', street: '456 Oak Ave', city: 'Boston', state: 'MA', zipPostCode: '02101', country: 'US', current: true}],
+            };
+
+            it('returns false when additionalData missing name but profile has it', () => {
+                expect(isPersonalBankAccountMissingInfo(accountMissingName, completeProfile)).toBe(false);
+            });
+
+            it('returns false when additionalData missing address but profile has it', () => {
+                const accountMissingAddress: AccountData = {
+                    type: CONST.BANK_ACCOUNT.TYPE.PERSONAL,
+                    state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                    additionalData: {
+                        country: CONST.COUNTRY.US,
+                        firstName: 'John',
+                        lastName: 'Doe',
+                        companyPhone: '+15551234567',
+                    },
+                } as AccountData;
+                expect(isPersonalBankAccountMissingInfo(accountMissingAddress, completeProfile)).toBe(false);
+            });
+
+            it('returns false when additionalData missing phone but profile has it', () => {
+                const accountMissingPhone: AccountData = {
+                    type: CONST.BANK_ACCOUNT.TYPE.PERSONAL,
+                    state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                    additionalData: {
+                        country: CONST.COUNTRY.US,
+                        firstName: 'John',
+                        lastName: 'Doe',
+                        addressStreet: '123 Main St',
+                        addressCity: 'New York',
+                        addressState: 'NY',
+                        addressZipCode: '10001',
+                    },
+                } as AccountData;
+                expect(isPersonalBankAccountMissingInfo(accountMissingPhone, completeProfile)).toBe(false);
+            });
+
+            it('returns false when additionalData missing all fields but profile has them all', () => {
+                expect(isPersonalBankAccountMissingInfo(accountMissingAll, completeProfile)).toBe(false);
+            });
+
+            it('returns true when both additionalData and profile are missing name', () => {
+                const profileNoName: PrivatePersonalDetails = {
+                    phoneNumber: '+15559876543',
+                    addresses: [{addressLine1: '456 Oak Ave', street: '456 Oak Ave', city: 'Boston', state: 'MA', zipPostCode: '02101', country: 'US', current: true}],
+                };
+                expect(isPersonalBankAccountMissingInfo(accountMissingName, profileNoName)).toBe(true);
+            });
+
+            it('returns true when profile has only firstName but no lastName', () => {
+                const profilePartialName: PrivatePersonalDetails = {
+                    legalFirstName: 'Jane',
+                    phoneNumber: '+15559876543',
+                    addresses: [{addressLine1: '456 Oak Ave', street: '456 Oak Ave', city: 'Boston', state: 'MA', zipPostCode: '02101', country: 'US', current: true}],
+                };
+                expect(isPersonalBankAccountMissingInfo(accountMissingName, profilePartialName)).toBe(true);
+            });
+
+            it('returns true when privatePersonalDetails is undefined (not loaded yet)', () => {
+                expect(isPersonalBankAccountMissingInfo(accountMissingName, undefined)).toBe(true);
+            });
+
+            it('returns true when privatePersonalDetails is empty object (no data)', () => {
+                expect(isPersonalBankAccountMissingInfo(accountMissingName, {} as PrivatePersonalDetails)).toBe(true);
+            });
+
+            it('still returns false with additionalData alone when no profile is passed', () => {
+                expect(isPersonalBankAccountMissingInfo(completeAccountData)).toBe(false);
+            });
         });
     });
 

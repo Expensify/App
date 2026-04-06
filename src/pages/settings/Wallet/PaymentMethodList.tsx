@@ -459,7 +459,7 @@ function PaymentMethodList({
                 methodID: paymentMethod.methodID,
                 description: paymentMethod.description,
             };
-            const isMissingPersonalInfo = isPersonalBankAccountMissingInfo(paymentMethod.accountData);
+            const isMissingPersonalInfo = isPersonalBankAccountMissingInfo(paymentMethod.accountData, privatePersonalDetails);
 
             return {
                 ...paymentMethod,

@@ -74,7 +74,8 @@ function useAccountIndicatorChecks(): AccountIndicatorChecksResult {
             amountOwed,
             ownerBillingGracePeriodEnd,
         ),
-        [CONST.INDICATOR_STATUS.HAS_PARTIALLY_SETUP_BANK_ACCOUNT_INFO]: hasPartiallySetupBankAccount(bankAccountList) || hasPersonalBankAccountMissingInfo(bankAccountList),
+        [CONST.INDICATOR_STATUS.HAS_PARTIALLY_SETUP_BANK_ACCOUNT_INFO]:
+            hasPartiallySetupBankAccount(bankAccountList) || hasPersonalBankAccountMissingInfo(bankAccountList, privatePersonalDetails),
     };
 
     const [accountStatus] = Object.entries(accountChecks).find(([, value]) => value) ?? [];
