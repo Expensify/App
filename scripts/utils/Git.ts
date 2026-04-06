@@ -458,22 +458,42 @@ class Git {
         }
     }
 
-    static async getChangedFileNames(fromRef: string, toRef?: string, shouldIncludeUntrackedFiles = false): Promise<string[]> {
+    /**
+     * Get changed files with their status (added, modified, removed, renamed).
+     * In CI, uses the GitHub API with pagination for accuracy.
+     * Locally, uses git diff against the provided ref.
+     */
+    static async getChangedFilesWithStatus(
+        fromRef: string,
+        toRef?: string,
+        shouldIncludeUntrackedFiles = false,
+    ): Promise<Array<{filename: string; status: 'added' | 'modified' | 'removed' | 'renamed'}>> {
         if (IS_CI) {
-            const {data: changedFiles} = await GitHubUtils.octokit.pulls.listFiles({
+            const files = await GitHubUtils.paginate(GitHubUtils.octokit.pulls.listFiles, {
                 owner: CONST.GITHUB_OWNER,
                 repo: CONST.APP_REPO,
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 pull_number: context.payload.pull_request?.number ?? 0,
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                per_page: 100,
             });
 
-            return changedFiles.map((file) => file.filename);
+            return files.map((file) => ({
+                filename: file.filename,
+                status: file.status as 'added' | 'modified' | 'removed' | 'renamed',
+            }));
         }
 
-        // Get the diff output and check status
         const diffResult = this.diff(fromRef, toRef, undefined, shouldIncludeUntrackedFiles);
-        const files = diffResult.files.map((file) => file.filePath);
-        return files;
+        return diffResult.files.map((file) => ({
+            filename: file.filePath,
+            status: file.diffType,
+        }));
+    }
+
+    static async getChangedFileNames(fromRef: string, toRef?: string, shouldIncludeUntrackedFiles = false): Promise<string[]> {
+        const files = await this.getChangedFilesWithStatus(fromRef, toRef, shouldIncludeUntrackedFiles);
+        return files.map((file) => file.filename);
     }
 
     /**
@@ -582,5 +602,7 @@ class Git {
     }
 }
 
+type ChangedFile = {filename: string; status: 'added' | 'modified' | 'removed' | 'renamed'};
+
 export default Git;
-export type {DiffResult, FileDiff, DiffHunk, DiffLine};
+export type {DiffResult, FileDiff, DiffHunk, DiffLine, ChangedFile};
