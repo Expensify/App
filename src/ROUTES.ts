@@ -125,7 +125,7 @@ const DYNAMIC_ROUTES = {
         queryParams: ['country'],
     },
     SETTINGS_CATEGORY_EDIT: {
-        path: 'edit',
+        path: 'category-edit',
         entryScreens: [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS],
     },
     WORKSPACE_OVERVIEW_PLAN: {
@@ -170,10 +170,6 @@ const DYNAMIC_ROUTES = {
                 policyID,
             }),
         queryParams: ['fieldName', 'fieldValue', 'policyID'],
-    },
-    WORKSPACE_TAG_CREATE: {
-        path: 'workspace-tag-create',
-        entryScreens: [SCREENS.WORKSPACE.TAGS, SCREENS.WORKSPACE.TAG_SETTINGS],
     },
 } as const satisfies DynamicRoutes;
 
@@ -2312,6 +2308,10 @@ const ROUTES = {
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (policyID: string, orderWeight: number, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/tags/${orderWeight}/edit` as const, backTo),
+    },
+    WORKSPACE_TAG_CREATE: {
+        route: 'workspaces/:policyID/tags/new',
+        getRoute: (policyID: string) => `workspaces/${policyID}/tags/new` as const,
     },
     WORKSPACE_TAG_EDIT: {
         route: 'workspaces/:policyID/tag/:orderWeight/:tagName/edit',
