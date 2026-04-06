@@ -429,9 +429,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_AVATAR,
                             exact: true,
                         },
-                        [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_DETAILS]: {
-                            path: ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.route,
-                        },
+                        [SCREENS.SETTINGS.PROFILE.DYNAMIC_CONTACT_METHOD_DETAILS]: DYNAMIC_ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.path,
                         [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD]: {
                             path: ROUTES.SETTINGS_NEW_CONTACT_METHOD.route,
                             exact: true,
