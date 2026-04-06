@@ -11,6 +11,7 @@
  */
 import {transformSync} from '@babel/core';
 import fs from 'fs';
+import {globSync} from 'glob';
 import path from 'path';
 import CLI from './utils/CLI';
 import Git from './utils/Git';
@@ -76,27 +77,54 @@ function checkReactCompilerCompliance(source: string, filename: string): Compila
 }
 
 /**
- * Check specific files and report per-file status.
+ * Resolve a list of inputs (file paths, directories, or glob patterns)
+ * to concrete .ts/.tsx file paths.
  */
-function checkFiles(files: string[], verbose: boolean): boolean {
-    let hasFailure = false;
+function resolveFilePaths(inputs: string[]): string[] {
+    const resolved = new Set<string>();
 
-    for (const file of files) {
-        if (!FILE_EXTENSIONS.some((ext) => file.endsWith(ext))) {
-            if (verbose) {
-                logInfo(`SKIPPED  ${file} (not a .ts/.tsx file)`);
+    for (const input of inputs) {
+        const absoluteInput = path.resolve(input);
+
+        if (fs.existsSync(absoluteInput) && fs.statSync(absoluteInput).isDirectory()) {
+            const pattern = path.join(absoluteInput, '**', `*{${FILE_EXTENSIONS.join(',')}}`);
+            for (const file of globSync(pattern)) {
+                resolved.add(file);
             }
             continue;
         }
 
-        const absolutePath = path.resolve(file);
-        if (!fs.existsSync(absolutePath)) {
-            logWarn(`SKIPPED  ${file} (file not found)`);
+        if (fs.existsSync(absoluteInput) && fs.statSync(absoluteInput).isFile()) {
+            resolved.add(absoluteInput);
             continue;
         }
 
-        const source = fs.readFileSync(absolutePath, 'utf8');
-        const result = checkReactCompilerCompliance(source, absolutePath);
+        for (const file of globSync(input, {absolute: true})) {
+            if (FILE_EXTENSIONS.some((ext) => file.endsWith(ext))) {
+                resolved.add(file);
+            }
+        }
+    }
+
+    return Array.from(resolved);
+}
+
+/**
+ * Check specific files and report per-file status.
+ */
+function checkFiles(inputs: string[], verbose: boolean): boolean {
+    const files = resolveFilePaths(inputs);
+
+    if (files.length === 0) {
+        logWarn('No .ts/.tsx files found matching the provided paths.');
+        return true;
+    }
+
+    let hasFailure = false;
+
+    for (const file of files) {
+        const source = fs.readFileSync(file, 'utf8');
+        const result = checkReactCompilerCompliance(source, file);
 
         switch (result) {
             case 'compiled':
@@ -216,7 +244,7 @@ async function main() {
             },
             {
                 name: 'files',
-                description: 'File paths to check (only for "check" command)',
+                description: 'File paths, directories, or glob patterns to check (only for "check" command)',
                 variadic: true,
                 default: [],
             },
@@ -244,7 +272,7 @@ async function main() {
     switch (command) {
         case 'check':
             if (files.length === 0) {
-                logError('No files specified. Usage: npm run react-compiler-compliance-check check <files...>');
+                logError('No paths specified. Usage: npm run react-compiler-compliance-check check <files|dirs|globs...>');
                 process.exit(1);
             }
             passed = checkFiles(files, verbose);
@@ -264,5 +292,5 @@ if (require.main === module) {
     main();
 }
 
-export {checkReactCompilerCompliance};
+export {checkReactCompilerCompliance, resolveFilePaths};
 export type {CompilationResult};
