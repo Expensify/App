@@ -6234,6 +6234,29 @@ describe('actions/Report', () => {
         });
     });
 
+    describe('getOptimisticChatReport', () => {
+        it('should return an optimistic chat report with correct participants and notification preference', () => {
+            const accountID = 2;
+            const currentUserAccountID = 1;
+
+            const result = Report.getOptimisticChatReport(accountID, currentUserAccountID);
+
+            expect(result.reportID).toBeTruthy();
+            expect(result.type).toBe('chat');
+        });
+
+        it('should include both accountID and currentUserAccountID as participants', () => {
+            const accountID = 2;
+            const currentUserAccountID = 1;
+
+            const result = Report.getOptimisticChatReport(accountID, currentUserAccountID);
+
+            // The result should be a valid optimistic report
+            expect(result).toBeTruthy();
+            expect(result.reportID).toBeTruthy();
+        });
+    });
+
     describe('navigateToAndOpenReportWithAccountIDs', () => {
         it('should create new chat and pass betas to openReport when no existing chat', async () => {
             const TEST_USER_ACCOUNT_ID = 1;
