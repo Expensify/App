@@ -279,6 +279,13 @@ const CONST = {
     MAX_IMAGE_PIXEL_COUNT: 50000000,
     CHUNK_LOAD_ERROR: 'ChunkLoadError',
 
+    CHRONOS: {
+        TIMER_COMMAND: {
+            START: 'start',
+            STOP: 'stop',
+        },
+    },
+
     RECEIPT_CAMERA: {
         PHOTO_WIDTH: 4032,
         PHOTO_HEIGHT: 3024,
@@ -8715,6 +8722,7 @@ const CONST = {
         },
         HEADER_VIEW: {
             BACK_BUTTON: 'HeaderView-BackButton',
+            CHRONOS_TIMER_BUTTON: 'HeaderView-ChronosTimerButton',
             DETAILS_BUTTON: 'HeaderView-DetailsButton',
         },
         SEARCH: {
