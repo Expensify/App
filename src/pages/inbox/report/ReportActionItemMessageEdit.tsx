@@ -54,9 +54,9 @@ import type * as OnyxTypes from '@src/types/onyx';
 import findNodeHandle from '@src/utils/findNodeHandle';
 import KeyboardUtils from '@src/utils/keyboard';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
+import type {SuggestionsRef} from './ReportActionCompose/ComposerContext';
 import getCursorPosition from './ReportActionCompose/getCursorPosition';
 import getScrollPosition from './ReportActionCompose/getScrollPosition';
-import type {SuggestionsRef} from './ReportActionCompose/ReportActionCompose';
 import Suggestions from './ReportActionCompose/Suggestions';
 import shouldUseEmojiPickerSelection from './shouldUseEmojiPickerSelection';
 
@@ -72,9 +72,6 @@ type ReportActionItemMessageEditProps = {
 
     /** ID of the original report from which the given reportAction is first created */
     originalReportID: string;
-
-    /** PolicyID of the policy the report belongs to */
-    policyID?: string;
 
     /** Position index of the report action in the overall report FlatList view */
     index: number;
@@ -104,7 +101,6 @@ function ReportActionItemMessageEdit({
     draftMessage,
     reportID,
     originalReportID,
-    policyID,
     index,
     isGroupPolicyReport,
     shouldDisableEmojiPicker = false,
@@ -594,8 +590,6 @@ function ReportActionItemMessageEdit({
                         isComposerFocused={textInputRef.current?.isFocused()}
                         updateComment={updateDraft}
                         measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
-                        isGroupPolicyReport={isGroupPolicyReport}
-                        policyID={policyID}
                         value={draft}
                         selection={selection}
                         setSelection={setSelection}

@@ -36,7 +36,7 @@ import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {forceClearInput} from '@libs/ComponentUtils';
 import {canSkipTriggerHotkeys, findCommonSuffixLength, insertText, insertWhiteSpaceAtIndex} from '@libs/ComposerUtils';
 import convertToLTRForComposer from '@libs/convertToLTRForComposer';
-import {containsOnlyEmojis, extractEmojis, getAddedEmojis, getTextVSCursorOffset, insertTextVSBetweenDigitAndEmoji, replaceAndExtractEmojis} from '@libs/EmojiUtils';
+import {containsOnlyEmojis, getAddedEmojis, getTextVSCursorOffset, insertTextVSBetweenDigitAndEmoji, replaceAndExtractEmojis} from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import getPlatform from '@libs/getPlatform';
@@ -47,11 +47,13 @@ import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManag
 import {isValidReportIDFromPath, shouldAutoFocusOnKeyPress} from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
+import type {SuggestionsRef} from '@pages/inbox/report/ReportActionCompose/ComposerContext';
+import {useComposerActions, useComposerText} from '@pages/inbox/report/ReportActionCompose/ComposerContext';
 import getCursorPosition from '@pages/inbox/report/ReportActionCompose/getCursorPosition';
 import getScrollPosition from '@pages/inbox/report/ReportActionCompose/getScrollPosition';
-import type {SuggestionsRef} from '@pages/inbox/report/ReportActionCompose/ReportActionCompose';
 import SilentCommentUpdater from '@pages/inbox/report/ReportActionCompose/SilentCommentUpdater';
 import Suggestions from '@pages/inbox/report/ReportActionCompose/Suggestions';
+import useLastEditableAction from '@pages/inbox/report/ReportActionCompose/useLastEditableAction';
 import {isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
 import type {OnEmojiSelected} from '@userActions/EmojiPickerAction';
 import {inputFocusChange} from '@userActions/InputFocus';
@@ -60,7 +62,6 @@ import {broadcastUserIsTyping, saveReportActionDraft, saveReportDraftComment} fr
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import type * as OnyxTypes from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 // eslint-disable-next-line no-restricted-imports
@@ -111,9 +112,6 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> &
         /** Whether the input is disabled, defaults to false */
         disabled?: boolean;
 
-        /** Function to set whether the comment is empty */
-        setIsCommentEmpty: (isCommentEmpty: boolean) => void;
-
         /** Function to handle sending a message */
         onEnterKeyPress: () => void;
 
@@ -135,9 +133,6 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> &
         /** The ref to the next modal will open */
         isNextModalWillOpenRef: RefObject<boolean | null>;
 
-        /** The last report action */
-        lastReportAction?: OnyxEntry<OnyxTypes.ReportAction>;
-
         /** Whether to include chronos */
         includeChronos?: boolean;
 
@@ -146,9 +141,6 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> &
 
         /** policy ID of the report */
         policyID?: string;
-
-        /** Whether the main composer was hidden */
-        didHideComposerInput?: boolean;
 
         /** Reference to the outer element */
         ref?: Ref<ComposerRef | null>;
@@ -213,7 +205,6 @@ function ComposerWithSuggestions({
     // Props: Report
     reportID,
     includeChronos,
-    lastReportAction,
     isGroupPolicyReport,
     policyID,
 
@@ -229,7 +220,6 @@ function ComposerWithSuggestions({
     inputPlaceholder,
     onPasteFile,
     disabled,
-    setIsCommentEmpty,
     onEnterKeyPress,
     shouldShowComposeInput,
     measureParentContainer = () => {},
@@ -245,11 +235,11 @@ function ComposerWithSuggestions({
 
     // For testing
     children,
-    didHideComposerInput,
 
     // Fullstory
     forwardedFSClass,
 }: ComposerWithSuggestionsProps) {
+    const lastReportAction = useLastEditableAction(reportID);
     const route = useRoute();
     const {isKeyboardShown} = useKeyboardState();
     const theme = useTheme();
@@ -263,13 +253,8 @@ function ComposerWithSuggestions({
     const mobileInputScrollPosition = useRef(0);
     const cursorPositionValue = useSharedValue({x: 0, y: 0});
     const tag = useSharedValue(-1);
-    const [draftComment = ''] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`);
-    const [value, setValue] = useState(() => {
-        if (draftComment) {
-            emojisPresentBefore.current = extractEmojis(draftComment);
-        }
-        return draftComment;
-    });
+    const value = useComposerText();
+    const {setValue} = useComposerActions();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const commentRef = useRef(value);
@@ -291,7 +276,7 @@ function ComposerWithSuggestions({
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const maxComposerLines = shouldUseNarrowLayout ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
-    const shouldAutoFocus = (shouldFocusInputOnScreenFocus || !!draftComment) && shouldShowComposeInput && areAllModalsHidden() && isFocused && !didHideComposerInput;
+    const shouldAutoFocus = (shouldFocusInputOnScreenFocus || !!value) && shouldShowComposeInput && areAllModalsHidden() && isFocused;
     const delayedAutoFocusRouteKeyRef = useRef<string | null>(null);
 
     const valueRef = useRef(value);
@@ -453,13 +438,6 @@ function ComposerWithSuggestions({
                 }
             }
             const newCommentConverted = convertToLTRForComposer(newComment);
-            const isNewCommentEmpty = !!newCommentConverted.match(/^(\s)*$/);
-            const isPrevCommentEmpty = !!commentRef.current.match(/^(\s)*$/);
-
-            /** Only update isCommentEmpty state if it's different from previous one */
-            if (isNewCommentEmpty !== isPrevCommentEmpty) {
-                setIsCommentEmpty(isNewCommentEmpty);
-            }
             emojisPresentBefore.current = emojis;
 
             setValue(newCommentConverted);
@@ -495,7 +473,7 @@ function ComposerWithSuggestions({
             preferredLocale,
             preferredSkinTone,
             reportID,
-            setIsCommentEmpty,
+            setValue,
             suggestionsRef,
             raiseIsScrollLikelyLayoutTriggered,
             debouncedSaveReportComment,
@@ -805,7 +783,7 @@ function ComposerWithSuggestions({
         // We want to focus or refocus the input when a modal has been closed or the underlying screen is refocused.
         // We avoid doing this on native platforms since the software keyboard popping
         // open creates a jarring and broken UX.
-        if (!((willBlurTextInputOnTapOutside || shouldAutoFocus) && !isNextModalWillOpenRef.current && !isModalVisible && (!!prevIsModalVisible || !prevIsFocused))) {
+        if (!(willBlurTextInputOnTapOutside && !isNextModalWillOpenRef.current && !isModalVisible && (!!prevIsModalVisible || !prevIsFocused))) {
             return;
         }
 
@@ -814,7 +792,7 @@ function ComposerWithSuggestions({
             return;
         }
         focus(true);
-    }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal?.isVisible, isNextModalWillOpenRef, shouldAutoFocus, isSidePanelHiddenOrLargeScreen]);
+    }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal?.isVisible, isNextModalWillOpenRef, isSidePanelHiddenOrLargeScreen]);
 
     useEffect(() => {
         // Scrolls the composer to the bottom and sets the selection to the end, so that longer drafts are easier to edit
@@ -988,8 +966,6 @@ function ComposerWithSuggestions({
                 isComposerFocused={textInputRef.current?.isFocused()}
                 updateComment={updateComment}
                 measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
-                isGroupPolicyReport={isGroupPolicyReport}
-                policyID={policyID}
                 // Input
                 value={value}
                 selection={selection}

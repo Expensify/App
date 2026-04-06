@@ -7,7 +7,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {forceClearInput} from '@libs/ComponentUtils';
 import type {ReportActionComposeProps} from '@pages/inbox/report/ReportActionCompose/ReportActionCompose';
-import ReportActionCompose, {onSubmitAction} from '@pages/inbox/report/ReportActionCompose/ReportActionCompose';
+import ReportActionCompose from '@pages/inbox/report/ReportActionCompose/ReportActionCompose';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
@@ -387,8 +387,8 @@ describe('ReportActionCompose Integration Tests', () => {
             const validMessage = 'x'.repeat(CONST.MAX_COMMENT_LENGTH);
             fireEvent.changeText(composer, validMessage);
 
-            // When the message is submitted
-            act(onSubmitAction);
+            // When the message is submitted via Enter key
+            fireEvent(composer, 'keyPress', {key: 'Enter', shiftKey: false, preventDefault: jest.fn()});
 
             // scheduleOnUI mock uses setTimeout(() => ..., 0)
             act(() => {
@@ -407,8 +407,8 @@ describe('ReportActionCompose Integration Tests', () => {
             const invalidMessage = 'x'.repeat(CONST.MAX_COMMENT_LENGTH + 1);
             fireEvent.changeText(composer, invalidMessage);
 
-            // When the message is submitted
-            act(onSubmitAction);
+            // When the message is submitted via Enter key
+            fireEvent(composer, 'keyPress', {key: 'Enter', shiftKey: false, preventDefault: jest.fn()});
 
             // Then the message should NOT be sent
             expect(mockForceClearInput).toHaveBeenCalledTimes(0);

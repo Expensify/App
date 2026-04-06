@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {Emoji} from '@assets/emojis/types';
 import EmojiSuggestions from '@components/EmojiSuggestions';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
@@ -68,134 +68,118 @@ function SuggestionEmoji({
 
     /**
      * Replace the code of emoji and update selection
-     * @param {Number} selectedEmoji
      */
-    const insertSelectedEmoji = useCallback(
-        (highlightedEmojiIndexInner: number) => {
-            const emojiObject = highlightedEmojiIndexInner !== -1 ? suggestionValues.suggestedEmojis.at(highlightedEmojiIndexInner) : undefined;
-            if (!emojiObject) {
-                return;
-            }
+    const insertSelectedEmoji = (highlightedEmojiIndexInner: number) => {
+        const emojiObject = highlightedEmojiIndexInner !== -1 ? suggestionValues.suggestedEmojis.at(highlightedEmojiIndexInner) : undefined;
+        if (!emojiObject) {
+            return;
+        }
 
-            const commentBeforeColon = value.slice(0, suggestionValues.colonIndex);
-            const commentAfterColonWithEmojiNameRemoved = value.slice(selection.end);
-            const isInsideCodeBlock = isPositionInsideCodeBlock(value, suggestionValues.colonIndex);
-            const emojiOrShortcode = getEmojiCodeForInsertion(emojiObject, preferredSkinTone, isInsideCodeBlock);
+        const commentBeforeColon = value.slice(0, suggestionValues.colonIndex);
+        const commentAfterColonWithEmojiNameRemoved = value.slice(selection.end);
+        const isInsideCodeBlock = isPositionInsideCodeBlock(value, suggestionValues.colonIndex);
+        const emojiOrShortcode = getEmojiCodeForInsertion(emojiObject, preferredSkinTone, isInsideCodeBlock);
 
-            updateComment(`${commentBeforeColon}${emojiOrShortcode} ${trimLeadingSpace(commentAfterColonWithEmojiNameRemoved)}`, true);
+        updateComment(`${commentBeforeColon}${emojiOrShortcode} ${trimLeadingSpace(commentAfterColonWithEmojiNameRemoved)}`, true);
 
-            // In some Android phones keyboard, the text to search for the emoji is not cleared
-            // will be added after the user starts typing again on the keyboard. This package is
-            // a workaround to reset the keyboard natively.
-            resetKeyboardInput?.();
+        // In some Android phones keyboard, the text to search for the emoji is not cleared
+        // will be added after the user starts typing again on the keyboard. This package is
+        // a workaround to reset the keyboard natively.
+        resetKeyboardInput?.();
 
-            setSelection({
-                start: suggestionValues.colonIndex + emojiOrShortcode.length + CONST.SPACE_LENGTH,
-                end: suggestionValues.colonIndex + emojiOrShortcode.length + CONST.SPACE_LENGTH,
-            });
-            setSuggestionValues((prevState) => ({...prevState, suggestedEmojis: []}));
-        },
-        [preferredSkinTone, resetKeyboardInput, selection.end, setSelection, suggestionValues.colonIndex, suggestionValues.suggestedEmojis, updateComment, value],
-    );
+        setSelection({
+            start: suggestionValues.colonIndex + emojiOrShortcode.length + CONST.SPACE_LENGTH,
+            end: suggestionValues.colonIndex + emojiOrShortcode.length + CONST.SPACE_LENGTH,
+        });
+        setSuggestionValues((prevState) => ({...prevState, suggestedEmojis: []}));
+    };
 
     /**
      * Clean data related to suggestions
      */
-    const resetSuggestions = useCallback(() => {
+    const resetSuggestions = () => {
         setSuggestionValues(defaultSuggestionsValues);
-    }, []);
+    };
 
-    const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
+    const updateShouldShowSuggestionMenuToFalse = () => {
         setSuggestionValues((prevState) => {
             if (prevState.shouldShowSuggestionMenu) {
                 return {...prevState, shouldShowSuggestionMenu: false};
             }
             return prevState;
         });
-    }, []);
+    };
 
     /**
      * Listens for keyboard shortcuts and applies the action
      */
-    const triggerHotkeyActions = useCallback(
-        (e: KeyboardEvent) => {
-            const suggestionsExist = suggestionValues.suggestedEmojis.length > 0;
+    const triggerHotkeyActions = (e: KeyboardEvent) => {
+        const suggestionsExist = suggestionValues.suggestedEmojis.length > 0;
 
-            if (((!e.shiftKey && e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) || e.key === CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) && suggestionsExist) {
-                e.preventDefault();
-                if (suggestionValues.suggestedEmojis.length > 0) {
-                    insertSelectedEmoji(highlightedEmojiIndex);
-                }
-                return true;
+        if (((!e.shiftKey && e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) || e.key === CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) && suggestionsExist) {
+            e.preventDefault();
+            if (suggestionValues.suggestedEmojis.length > 0) {
+                insertSelectedEmoji(highlightedEmojiIndex);
+            }
+            return true;
+        }
+
+        if (e.key === CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey) {
+            e.preventDefault();
+
+            if (suggestionsExist) {
+                resetSuggestions();
             }
 
-            if (e.key === CONST.KEYBOARD_SHORTCUTS.ESCAPE.shortcutKey) {
-                e.preventDefault();
-
-                if (suggestionsExist) {
-                    resetSuggestions();
-                }
-
-                return true;
-            }
-        },
-        [highlightedEmojiIndex, insertSelectedEmoji, resetSuggestions, suggestionValues.suggestedEmojis.length],
-    );
+            return true;
+        }
+    };
 
     /**
      * Calculates and cares about the content of an Emoji Suggester
      */
-    const calculateEmojiSuggestion = useCallback(
-        (newValue: string, selectionStart?: number, selectionEnd?: number) => {
-            if (selectionStart !== selectionEnd || !selectionEnd || shouldBlockCalc.current || !newValue || (selectionStart === 0 && selectionEnd === 0)) {
-                shouldBlockCalc.current = false;
-                resetSuggestions();
-                return;
-            }
-            const leftString = newValue.substring(0, selectionEnd);
-            const colonIndex = leftString.lastIndexOf(':');
+    const calculateEmojiSuggestion = (newValue: string, selectionStart?: number, selectionEnd?: number) => {
+        if (selectionStart !== selectionEnd || !selectionEnd || shouldBlockCalc.current || !newValue || (selectionStart === 0 && selectionEnd === 0)) {
+            shouldBlockCalc.current = false;
+            resetSuggestions();
+            return;
+        }
+        const leftString = newValue.substring(0, selectionEnd);
+        const colonIndex = leftString.lastIndexOf(':');
 
-            // Skip emoji suggestions if cursor is inside a code block
-            if (colonIndex !== -1 && isPositionInsideCodeBlock(newValue, colonIndex)) {
-                resetSuggestions();
-                return;
-            }
+        // Skip emoji suggestions if cursor is inside a code block
+        if (colonIndex !== -1 && isPositionInsideCodeBlock(newValue, colonIndex)) {
+            resetSuggestions();
+            return;
+        }
 
-            const isCurrentlyShowingEmojiSuggestion = isEmojiCode(newValue, selectionEnd);
+        const isCurrentlyShowingEmojiSuggestion = isEmojiCode(newValue, selectionEnd);
 
-            const nextState: SuggestionsValue = {
-                suggestedEmojis: [],
-                colonIndex,
-                shouldShowSuggestionMenu: false,
-            };
-            const newSuggestedEmojis = suggestEmojis(leftString, preferredLocale);
+        const nextState: SuggestionsValue = {
+            suggestedEmojis: [],
+            colonIndex,
+            shouldShowSuggestionMenu: false,
+        };
+        const newSuggestedEmojis = suggestEmojis(leftString, preferredLocale);
 
-            if (newSuggestedEmojis?.length && isCurrentlyShowingEmojiSuggestion) {
-                nextState.suggestedEmojis = newSuggestedEmojis;
-                nextState.shouldShowSuggestionMenu = !isEmptyObject(newSuggestedEmojis);
-            }
+        if (newSuggestedEmojis?.length && isCurrentlyShowingEmojiSuggestion) {
+            nextState.suggestedEmojis = newSuggestedEmojis;
+            nextState.shouldShowSuggestionMenu = !isEmptyObject(newSuggestedEmojis);
+        }
 
-            // Early return if there is no update
-            const currentState = suggestionValuesRef.current;
-            if (nextState.suggestedEmojis.length === 0 && currentState.suggestedEmojis.length === 0) {
-                return;
-            }
+        // Early return if there is no update
+        const currentState = suggestionValuesRef.current;
+        if (nextState.suggestedEmojis.length === 0 && currentState.suggestedEmojis.length === 0) {
+            return;
+        }
 
-            setSuggestionValues((prevState) => ({...prevState, ...nextState}));
-            setHighlightedEmojiIndex(0);
-        },
-        [preferredLocale, setHighlightedEmojiIndex, resetSuggestions],
-    );
+        setSuggestionValues((prevState) => ({...prevState, ...nextState}));
+        setHighlightedEmojiIndex(0);
+    };
 
-    const debouncedCalculateEmojiSuggestion = useDebounce(
-        useCallback(
-            (newValue: string, selectionStart?: number, selectionEnd?: number) => {
-                calculateEmojiSuggestion(newValue, selectionStart, selectionEnd);
-            },
-            [calculateEmojiSuggestion],
-        ),
-        CONST.TIMING.SUGGESTION_DEBOUNCE_TIME,
-    );
+    const debouncedCalculateEmojiSuggestion = useDebounce((newValue: string, selectionStart?: number, selectionEnd?: number) => {
+        calculateEmojiSuggestion(newValue, selectionStart, selectionEnd);
+    }, CONST.TIMING.SUGGESTION_DEBOUNCE_TIME);
 
     useEffect(() => {
         if (!isComposerFocused) {
@@ -205,29 +189,22 @@ function SuggestionEmoji({
         debouncedCalculateEmojiSuggestion(value, selection.start, selection.end);
     }, [value, selection.start, selection.end, debouncedCalculateEmojiSuggestion, isComposerFocused]);
 
-    const setShouldBlockSuggestionCalc = useCallback(
-        (shouldBlockSuggestionCalc: boolean) => {
-            shouldBlockCalc.current = shouldBlockSuggestionCalc;
-        },
-        [shouldBlockCalc],
-    );
+    const setShouldBlockSuggestionCalc = (shouldBlockSuggestionCalc: boolean) => {
+        shouldBlockCalc.current = shouldBlockSuggestionCalc;
+    };
 
-    const getSuggestions = useCallback(() => suggestionValues.suggestedEmojis, [suggestionValues.suggestedEmojis]);
+    const getSuggestions = () => suggestionValues.suggestedEmojis;
 
-    const getIsSuggestionsMenuVisible = useCallback(() => isEmojiSuggestionsMenuVisible, [isEmojiSuggestionsMenuVisible]);
+    const getIsSuggestionsMenuVisible = () => isEmojiSuggestionsMenuVisible;
 
-    useImperativeHandle(
-        ref,
-        () => ({
-            resetSuggestions,
-            triggerHotkeyActions,
-            setShouldBlockSuggestionCalc,
-            updateShouldShowSuggestionMenuToFalse,
-            getSuggestions,
-            getIsSuggestionsMenuVisible,
-        }),
-        [resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse, getSuggestions, getIsSuggestionsMenuVisible],
-    );
+    useImperativeHandle(ref, () => ({
+        resetSuggestions,
+        triggerHotkeyActions,
+        setShouldBlockSuggestionCalc,
+        updateShouldShowSuggestionMenuToFalse,
+        getSuggestions,
+        getIsSuggestionsMenuVisible,
+    }));
 
     if (!isEmojiSuggestionsMenuVisible) {
         return null;
