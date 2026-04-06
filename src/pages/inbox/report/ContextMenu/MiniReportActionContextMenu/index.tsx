@@ -6,30 +6,28 @@ import {StyleSheet, View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native';
 import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
 import Hoverable from '@components/Hoverable';
-import Icon from '@components/Icon';
 import MiniContextMenuItem from '@components/MiniContextMenuItem';
 import MiniQuickEmojiReactions from '@components/Reactions/MiniQuickEmojiReactions';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
-import getButtonState from '@libs/getButtonState';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import {ACTION_IDS, CONTEXT_MENU_ICON_NAMES} from '@pages/inbox/report/ContextMenu/actions/actionConfig';
-import type {ContextMenuAction} from '@pages/inbox/report/ContextMenu/actions/actionConfig';
-import createCopyLinkAction, {shouldShowCopyLinkAction} from '@pages/inbox/report/ContextMenu/actions/copyLinkAction';
-import createCopyMessageAction, {shouldShowCopyMessageAction} from '@pages/inbox/report/ContextMenu/actions/copyMessageAction';
-import createDeleteAction, {shouldShowDeleteAction} from '@pages/inbox/report/ContextMenu/actions/deleteAction';
-import createDownloadAction, {shouldShowDownloadAction} from '@pages/inbox/report/ContextMenu/actions/downloadAction';
-import createEditAction, {shouldShowEditAction} from '@pages/inbox/report/ContextMenu/actions/editAction';
+import {ACTION_IDS} from '@pages/inbox/report/ContextMenu/actions/actionConfig';
+import {MiniCopyLinkItem, shouldShowCopyLinkAction} from '@pages/inbox/report/ContextMenu/actions/copyLinkAction';
+import {MiniCopyMessageItem, shouldShowCopyMessageAction} from '@pages/inbox/report/ContextMenu/actions/copyMessageAction';
+import {MiniDeleteItem, shouldShowDeleteAction} from '@pages/inbox/report/ContextMenu/actions/deleteAction';
+import {MiniDownloadItem, shouldShowDownloadAction} from '@pages/inbox/report/ContextMenu/actions/downloadAction';
+import {MiniEditItem, shouldShowEditAction} from '@pages/inbox/report/ContextMenu/actions/editAction';
 import createEmojiReactionData, {shouldShowEmojiReaction} from '@pages/inbox/report/ContextMenu/actions/emojiReactionAction';
-import createExplainAction, {shouldShowExplainAction} from '@pages/inbox/report/ContextMenu/actions/explainAction';
-import createFlagAsOffensiveAction, {shouldShowFlagAsOffensiveAction} from '@pages/inbox/report/ContextMenu/actions/flagAsOffensiveAction';
-import createHoldAction, {shouldShowHoldAction} from '@pages/inbox/report/ContextMenu/actions/holdAction';
-import createJoinThreadAction, {shouldShowJoinThreadAction} from '@pages/inbox/report/ContextMenu/actions/joinThreadAction';
-import createLeaveThreadAction, {shouldShowLeaveThreadAction} from '@pages/inbox/report/ContextMenu/actions/leaveThreadAction';
-import createMarkAsUnreadAction, {shouldShowMarkAsUnreadForReportAction} from '@pages/inbox/report/ContextMenu/actions/markAsUnreadAction';
-import createReplyInThreadAction, {shouldShowReplyInThreadAction} from '@pages/inbox/report/ContextMenu/actions/replyInThreadAction';
-import createUnholdAction, {shouldShowUnholdAction} from '@pages/inbox/report/ContextMenu/actions/unholdAction';
+import {MiniExplainItem, shouldShowExplainAction} from '@pages/inbox/report/ContextMenu/actions/explainAction';
+import {MiniFlagAsOffensiveItem, shouldShowFlagAsOffensiveAction} from '@pages/inbox/report/ContextMenu/actions/flagAsOffensiveAction';
+import {MiniHoldItem, shouldShowHoldAction} from '@pages/inbox/report/ContextMenu/actions/holdAction';
+import {MiniJoinThreadItem, shouldShowJoinThreadAction} from '@pages/inbox/report/ContextMenu/actions/joinThreadAction';
+import {MiniLeaveThreadItem, shouldShowLeaveThreadAction} from '@pages/inbox/report/ContextMenu/actions/leaveThreadAction';
+import {MiniMarkAsUnreadItem, shouldShowMarkAsUnreadForReportAction} from '@pages/inbox/report/ContextMenu/actions/markAsUnreadAction';
+import {MiniReplyInThreadItem, shouldShowReplyInThreadAction} from '@pages/inbox/report/ContextMenu/actions/replyInThreadAction';
+import {MiniUnholdItem, shouldShowUnholdAction} from '@pages/inbox/report/ContextMenu/actions/unholdAction';
 import {useMiniContextMenuActions, useMiniContextMenuState} from '@pages/inbox/report/ContextMenu/MiniContextMenuProvider';
 import type {ContextMenuAnchor} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
@@ -52,9 +50,10 @@ function MiniReportActionContextMenu() {
     const {hideMiniContextMenu, keepOpen, release} = useMiniContextMenuActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const StyleUtils = useStyleUtils();
+    const {translate} = useLocalize();
     ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
 
-    const icons = useMemoizedLazyExpensifyIcons(CONTEXT_MENU_ICON_NAMES);
+    const overflowIcons = useMemoizedLazyExpensifyIcons(['ThreeDots'] as const);
     const threeDotRef = useRef<View>(null);
     const overlayRef = useRef<View>(null);
     const menuContainerRef = useRef<View>(null);
@@ -133,10 +132,8 @@ function MiniReportActionContextMenu() {
         movedFromReport,
         movedToReport,
         harvestReport,
-        download,
         disabledActionIDs,
         showDelegateNoAccessModal,
-        translate,
         getLocalDateFromDatetime,
         reportID: resolvedReportID,
         originalReportID: resolvedOriginalReportID,
@@ -185,21 +182,21 @@ function MiniReportActionContextMenu() {
 
     const currentUserAccountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
 
-    const isDisabled = (id: string) => disabledActionIDs.has(id);
+    const isDisabledAction = (id: string) => disabledActionIDs.has(id);
 
     const showReplyInThread =
-        !isDisabled(ACTION_IDS.REPLY_IN_THREAD) &&
+        !isDisabledAction(ACTION_IDS.REPLY_IN_THREAD) &&
         shouldShowReplyInThreadAction({
             reportAction,
             reportID: resolvedReportID,
             isThreadReportParentAction,
             isArchivedRoom,
         });
-    const showMarkAsUnread = !isDisabled(ACTION_IDS.MARK_AS_UNREAD) && shouldShowMarkAsUnreadForReportAction({reportAction});
-    const showExplain = !isDisabled(ACTION_IDS.EXPLAIN) && shouldShowExplainAction({reportAction, isArchivedRoom});
-    const showEdit = !isDisabled(ACTION_IDS.EDIT) && shouldShowEditAction({reportAction, isArchivedRoom, isChronosReport, moneyRequestAction});
+    const showMarkAsUnread = !isDisabledAction(ACTION_IDS.MARK_AS_UNREAD) && shouldShowMarkAsUnreadForReportAction({reportAction});
+    const showExplain = !isDisabledAction(ACTION_IDS.EXPLAIN) && shouldShowExplainAction({reportAction, isArchivedRoom});
+    const showEdit = !isDisabledAction(ACTION_IDS.EDIT) && shouldShowEditAction({reportAction, isArchivedRoom, isChronosReport, moneyRequestAction});
     const showUnhold =
-        !isDisabled(ACTION_IDS.UNHOLD) &&
+        !isDisabledAction(ACTION_IDS.UNHOLD) &&
         shouldShowUnholdAction({
             moneyRequestReport,
             moneyRequestAction,
@@ -208,7 +205,7 @@ function MiniReportActionContextMenu() {
             iouTransaction,
         });
     const showHold =
-        !isDisabled(ACTION_IDS.HOLD) &&
+        !isDisabledAction(ACTION_IDS.HOLD) &&
         shouldShowHoldAction({
             moneyRequestReport,
             moneyRequestAction,
@@ -217,7 +214,7 @@ function MiniReportActionContextMenu() {
             iouTransaction,
         });
     const showJoinThread =
-        !isDisabled(ACTION_IDS.JOIN_THREAD) &&
+        !isDisabledAction(ACTION_IDS.JOIN_THREAD) &&
         shouldShowJoinThreadAction({
             reportAction,
             isArchivedRoom,
@@ -225,19 +222,20 @@ function MiniReportActionContextMenu() {
             isHarvestReport,
         });
     const showLeaveThread =
-        !isDisabled(ACTION_IDS.LEAVE_THREAD) &&
+        !isDisabledAction(ACTION_IDS.LEAVE_THREAD) &&
         shouldShowLeaveThreadAction({
             reportAction,
             isArchivedRoom,
             isThreadReportParentAction,
             isHarvestReport,
         });
-    const showCopyMessage = !isDisabled(ACTION_IDS.COPY_MESSAGE) && shouldShowCopyMessageAction({reportAction});
-    const showCopyLink = !isDisabled(ACTION_IDS.COPY_LINK) && shouldShowCopyLinkAction({reportAction, menuTarget: resolvedAnchor});
-    const showFlagAsOffensive = !isDisabled(ACTION_IDS.FLAG_AS_OFFENSIVE) && shouldShowFlagAsOffensiveAction({reportAction, isArchivedRoom, isChronosReport, reportID: resolvedReportID});
-    const showDownload = !isDisabled(ACTION_IDS.DOWNLOAD) && shouldShowDownloadAction({reportAction, isOffline});
+    const showCopyMessage = !isDisabledAction(ACTION_IDS.COPY_MESSAGE) && shouldShowCopyMessageAction({reportAction});
+    const showCopyLink = !isDisabledAction(ACTION_IDS.COPY_LINK) && shouldShowCopyLinkAction({reportAction, menuTarget: resolvedAnchor});
+    const showFlagAsOffensive =
+        !isDisabledAction(ACTION_IDS.FLAG_AS_OFFENSIVE) && shouldShowFlagAsOffensiveAction({reportAction, isArchivedRoom, isChronosReport, reportID: resolvedReportID});
+    const showDownload = !isDisabledAction(ACTION_IDS.DOWNLOAD) && shouldShowDownloadAction({reportAction, isOffline});
     const showDelete =
-        !isDisabled(ACTION_IDS.DELETE) &&
+        !isDisabledAction(ACTION_IDS.DELETE) &&
         shouldShowDeleteAction({
             reportAction,
             isArchivedRoom,
@@ -249,155 +247,171 @@ function MiniReportActionContextMenu() {
             childReportActions,
         });
 
-    const allVisibleActions: ContextMenuAction[] = [];
+    const allVisibleItems: React.ReactElement[] = [];
     if (reportAction) {
         if (showReplyInThread) {
-            allVisibleActions.push(
-                createReplyInThreadAction({
-                    childReport,
-                    reportAction,
-                    originalReport,
-                    currentUserAccountID,
-                    introSelected,
-                    hideAndRun,
-                    translate,
-                    chatBubbleReplyIcon: icons.ChatBubbleReply,
-                }),
+            allVisibleItems.push(
+                <MiniReplyInThreadItem
+                    key="replyInThread"
+                    childReport={childReport}
+                    reportAction={reportAction}
+                    originalReport={originalReport}
+                    currentUserAccountID={currentUserAccountID}
+                    introSelected={introSelected}
+                    hideAndRun={hideAndRun}
+                />,
             );
         }
         if (showMarkAsUnread) {
-            allVisibleActions.push(
-                createMarkAsUnreadAction({
-                    reportID: resolvedReportID,
-                    reportActions: reportActionsMap,
-                    reportAction,
-                    currentUserAccountID,
-                    hideAndRun,
-                    translate,
-                    chatBubbleUnreadIcon: icons.ChatBubbleUnread,
-                    checkmarkIcon: icons.Checkmark,
-                }),
+            allVisibleItems.push(
+                <MiniMarkAsUnreadItem
+                    key="markAsUnread"
+                    reportID={resolvedReportID}
+                    reportActions={reportActionsMap}
+                    reportAction={reportAction}
+                    currentUserAccountID={currentUserAccountID}
+                    hideAndRun={hideAndRun}
+                />,
             );
         }
         if (showExplain) {
-            allVisibleActions.push(
-                createExplainAction({
-                    childReport,
-                    originalReport,
-                    reportAction,
-                    currentUserPersonalDetails,
-                    introSelected,
-                    hideAndRun,
-                    translate,
-                    conciergeIcon: icons.Concierge,
-                }),
+            allVisibleItems.push(
+                <MiniExplainItem
+                    key="explain"
+                    childReport={childReport}
+                    originalReport={originalReport}
+                    reportAction={reportAction}
+                    currentUserPersonalDetails={currentUserPersonalDetails}
+                    introSelected={introSelected}
+                    hideAndRun={hideAndRun}
+                />,
             );
         }
         if (showEdit) {
-            allVisibleActions.push(
-                createEditAction({
-                    reportID: resolvedReportID,
-                    reportAction,
-                    moneyRequestAction,
-                    draftMessage: resolvedDraftMessage,
-                    introSelected,
-                    hideAndRun,
-                    translate,
-                    pencilIcon: icons.Pencil,
-                }),
+            allVisibleItems.push(
+                <MiniEditItem
+                    key="edit"
+                    reportID={resolvedReportID}
+                    reportAction={reportAction}
+                    moneyRequestAction={moneyRequestAction}
+                    draftMessage={resolvedDraftMessage}
+                    introSelected={introSelected}
+                    hideAndRun={hideAndRun}
+                />,
             );
         }
         if (showUnhold) {
-            allVisibleActions.push(
-                createUnholdAction({
-                    moneyRequestAction,
-                    isDelegateAccessRestricted,
-                    showDelegateNoAccessModal,
-                    hideAndRun,
-                    translate,
-                    stopwatchIcon: icons.Stopwatch,
-                }),
+            allVisibleItems.push(
+                <MiniUnholdItem
+                    key="unhold"
+                    moneyRequestAction={moneyRequestAction}
+                    isDelegateAccessRestricted={isDelegateAccessRestricted}
+                    showDelegateNoAccessModal={showDelegateNoAccessModal}
+                    hideAndRun={hideAndRun}
+                />,
             );
         }
         if (showHold) {
-            allVisibleActions.push(
-                createHoldAction({
-                    moneyRequestAction,
-                    isDelegateAccessRestricted,
-                    showDelegateNoAccessModal,
-                    hideAndRun,
-                    translate,
-                    stopwatchIcon: icons.Stopwatch,
-                }),
+            allVisibleItems.push(
+                <MiniHoldItem
+                    key="hold"
+                    moneyRequestAction={moneyRequestAction}
+                    isDelegateAccessRestricted={isDelegateAccessRestricted}
+                    showDelegateNoAccessModal={showDelegateNoAccessModal}
+                    hideAndRun={hideAndRun}
+                />,
             );
         }
         if (showJoinThread) {
-            allVisibleActions.push(
-                createJoinThreadAction({
-                    reportAction,
-                    originalReport,
-                    currentUserAccountID,
-                    introSelected,
-                    hideAndRun,
-                    translate,
-                    bellIcon: icons.Bell,
-                }),
+            allVisibleItems.push(
+                <MiniJoinThreadItem
+                    key="joinThread"
+                    reportAction={reportAction}
+                    originalReport={originalReport}
+                    currentUserAccountID={currentUserAccountID}
+                    introSelected={introSelected}
+                    hideAndRun={hideAndRun}
+                />,
             );
         }
         if (showLeaveThread) {
-            allVisibleActions.push(
-                createLeaveThreadAction({
-                    reportAction,
-                    originalReport,
-                    currentUserAccountID,
-                    introSelected,
-                    hideAndRun,
-                    translate,
-                    exitIcon: icons.Exit,
-                }),
+            allVisibleItems.push(
+                <MiniLeaveThreadItem
+                    key="leaveThread"
+                    reportAction={reportAction}
+                    originalReport={originalReport}
+                    currentUserAccountID={currentUserAccountID}
+                    introSelected={introSelected}
+                    hideAndRun={hideAndRun}
+                />,
             );
         }
         if (showCopyMessage) {
-            allVisibleActions.push(
-                createCopyMessageAction({
-                    reportAction,
-                    transaction,
-                    selection: resolvedSelection,
-                    report,
-                    card,
-                    originalReport,
-                    isHarvestReport,
-                    isTryNewDotNVPDismissed,
-                    movedFromReport,
-                    movedToReport,
-                    childReport,
-                    policy,
-                    getLocalDateFromDatetime,
-                    policyTags,
-                    translate,
-                    harvestReport,
-                    currentUserPersonalDetails,
-                    copyIcon: icons.Copy,
-                    checkmarkIcon: icons.Checkmark,
-                }),
+            allVisibleItems.push(
+                <MiniCopyMessageItem
+                    key="copyMessage"
+                    reportAction={reportAction}
+                    transaction={transaction}
+                    selection={resolvedSelection}
+                    report={report}
+                    card={card}
+                    originalReport={originalReport}
+                    isHarvestReport={isHarvestReport}
+                    isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
+                    movedFromReport={movedFromReport}
+                    movedToReport={movedToReport}
+                    childReport={childReport}
+                    policy={policy}
+                    getLocalDateFromDatetime={getLocalDateFromDatetime}
+                    policyTags={policyTags}
+                    harvestReport={harvestReport}
+                    currentUserPersonalDetails={currentUserPersonalDetails}
+                />,
             );
         }
         if (showCopyLink) {
-            allVisibleActions.push(createCopyLinkAction({reportAction, originalReportID: resolvedOriginalReportID, translate, linkCopyIcon: icons.LinkCopy, checkmarkIcon: icons.Checkmark}));
+            allVisibleItems.push(
+                <MiniCopyLinkItem
+                    key="copyLink"
+                    reportAction={reportAction}
+                    originalReportID={resolvedOriginalReportID}
+                />,
+            );
         }
         if (showFlagAsOffensive) {
-            allVisibleActions.push(createFlagAsOffensiveAction({reportID: resolvedReportID, reportAction, hideAndRun, translate, flagIcon: icons.Flag}));
+            allVisibleItems.push(
+                <MiniFlagAsOffensiveItem
+                    key="flagAsOffensive"
+                    reportID={resolvedReportID}
+                    reportAction={reportAction}
+                    hideAndRun={hideAndRun}
+                />,
+            );
         }
         if (showDownload) {
-            allVisibleActions.push(createDownloadAction({reportAction, encryptedAuthToken, download, translate, downloadIcon: icons.Download}));
+            allVisibleItems.push(
+                <MiniDownloadItem
+                    key="download"
+                    reportAction={reportAction}
+                    encryptedAuthToken={encryptedAuthToken}
+                />,
+            );
         }
         if (showDelete) {
-            allVisibleActions.push(createDeleteAction({reportID: resolvedReportID, reportAction, moneyRequestAction, hideAndRun, translate, trashcanIcon: icons.Trashcan}));
+            allVisibleItems.push(
+                <MiniDeleteItem
+                    key="delete"
+                    reportID={resolvedReportID}
+                    reportAction={reportAction}
+                    moneyRequestAction={moneyRequestAction}
+                    hideAndRun={hideAndRun}
+                />,
+            );
         }
     }
 
-    const needsOverflow = allVisibleActions.length > CONST.MINI_CONTEXT_MENU_MAX_ITEMS;
-    const displayedActions = needsOverflow ? allVisibleActions.slice(0, CONST.MINI_CONTEXT_MENU_MAX_ITEMS - 1) : allVisibleActions;
+    const needsOverflow = allVisibleItems.length > CONST.MINI_CONTEXT_MENU_MAX_ITEMS;
+    const displayedItems = needsOverflow ? allVisibleItems.slice(0, CONST.MINI_CONTEXT_MENU_MAX_ITEMS - 1) : allVisibleItems;
 
     const emojiData = createEmojiReactionData({
         reportID: resolvedReportID,
@@ -449,27 +463,12 @@ function MiniReportActionContextMenu() {
                                     reportAction={emojiData.reportAction}
                                 />
                             )}
-                            {displayedActions.map((action) => (
-                                <MiniContextMenuItem
-                                    key={action.id}
-                                    tooltipText={action.text}
-                                    onPress={action.onPress}
-                                    isDelayButtonStateComplete={false}
-                                    sentryLabel={action.sentryLabel}
-                                >
-                                    {({hovered, pressed}) => (
-                                        <Icon
-                                            small
-                                            src={action.icon}
-                                            fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
-                                        />
-                                    )}
-                                </MiniContextMenuItem>
-                            ))}
+                            {displayedItems}
                             {needsOverflow && (
                                 <MiniContextMenuItem
                                     ref={threeDotRef}
                                     tooltipText={translate('reportActionContextMenu.menu')}
+                                    icon={overflowIcons.ThreeDots}
                                     onPress={() =>
                                         interceptAnonymousUser(() => {
                                             openOverflowMenu(new MouseEvent('click'), threeDotRef);
@@ -479,15 +478,7 @@ function MiniReportActionContextMenu() {
                                     isDelayButtonStateComplete={false}
                                     shouldPreventDefaultFocusOnPress={false}
                                     sentryLabel={CONST.SENTRY_LABEL.CONTEXT_MENU.MENU}
-                                >
-                                    {({hovered, pressed}) => (
-                                        <Icon
-                                            small
-                                            src={icons.ThreeDots}
-                                            fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
-                                        />
-                                    )}
-                                </MiniContextMenuItem>
+                                />
                             )}
                         </View>
                     </View>

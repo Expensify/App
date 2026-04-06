@@ -8,28 +8,28 @@ import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import QuickEmojiReactions from '@components/Reactions/QuickEmojiReactions';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import {ACTION_IDS, CONTEXT_MENU_ICON_NAMES} from '@pages/inbox/report/ContextMenu/actions/actionConfig';
-import type {ContextMenuAction} from '@pages/inbox/report/ContextMenu/actions/actionConfig';
-import createCopyLinkAction, {shouldShowCopyLinkAction} from '@pages/inbox/report/ContextMenu/actions/copyLinkAction';
-import createCopyMessageAction, {shouldShowCopyMessageAction} from '@pages/inbox/report/ContextMenu/actions/copyMessageAction';
-import createDebugAction, {shouldShowDebugAction} from '@pages/inbox/report/ContextMenu/actions/debugAction';
-import createDeleteAction, {shouldShowDeleteAction} from '@pages/inbox/report/ContextMenu/actions/deleteAction';
-import createDownloadAction, {shouldShowDownloadAction} from '@pages/inbox/report/ContextMenu/actions/downloadAction';
-import createEditAction, {shouldShowEditAction} from '@pages/inbox/report/ContextMenu/actions/editAction';
+import {ACTION_IDS} from '@pages/inbox/report/ContextMenu/actions/actionConfig';
+import {PopoverCopyLinkItem, shouldShowCopyLinkAction} from '@pages/inbox/report/ContextMenu/actions/copyLinkAction';
+import {PopoverCopyMessageItem, shouldShowCopyMessageAction} from '@pages/inbox/report/ContextMenu/actions/copyMessageAction';
+import {PopoverDebugItem, shouldShowDebugAction} from '@pages/inbox/report/ContextMenu/actions/debugAction';
+import {PopoverDeleteItem, shouldShowDeleteAction} from '@pages/inbox/report/ContextMenu/actions/deleteAction';
+import {PopoverDownloadItem, shouldShowDownloadAction} from '@pages/inbox/report/ContextMenu/actions/downloadAction';
+import {PopoverEditItem, shouldShowEditAction} from '@pages/inbox/report/ContextMenu/actions/editAction';
 import createEmojiReactionData, {shouldShowEmojiReaction} from '@pages/inbox/report/ContextMenu/actions/emojiReactionAction';
-import createExplainAction, {shouldShowExplainAction} from '@pages/inbox/report/ContextMenu/actions/explainAction';
-import createFlagAsOffensiveAction, {shouldShowFlagAsOffensiveAction} from '@pages/inbox/report/ContextMenu/actions/flagAsOffensiveAction';
-import createHoldAction, {shouldShowHoldAction} from '@pages/inbox/report/ContextMenu/actions/holdAction';
-import createJoinThreadAction, {shouldShowJoinThreadAction} from '@pages/inbox/report/ContextMenu/actions/joinThreadAction';
-import createLeaveThreadAction, {shouldShowLeaveThreadAction} from '@pages/inbox/report/ContextMenu/actions/leaveThreadAction';
-import createMarkAsUnreadAction, {shouldShowMarkAsUnreadForReportAction} from '@pages/inbox/report/ContextMenu/actions/markAsUnreadAction';
-import createReplyInThreadAction, {shouldShowReplyInThreadAction} from '@pages/inbox/report/ContextMenu/actions/replyInThreadAction';
-import createUnholdAction, {shouldShowUnholdAction} from '@pages/inbox/report/ContextMenu/actions/unholdAction';
+import {PopoverExplainItem, shouldShowExplainAction} from '@pages/inbox/report/ContextMenu/actions/explainAction';
+import {PopoverFlagAsOffensiveItem, shouldShowFlagAsOffensiveAction} from '@pages/inbox/report/ContextMenu/actions/flagAsOffensiveAction';
+import {PopoverHoldItem, shouldShowHoldAction} from '@pages/inbox/report/ContextMenu/actions/holdAction';
+import {PopoverJoinThreadItem, shouldShowJoinThreadAction} from '@pages/inbox/report/ContextMenu/actions/joinThreadAction';
+import {PopoverLeaveThreadItem, shouldShowLeaveThreadAction} from '@pages/inbox/report/ContextMenu/actions/leaveThreadAction';
+import {PopoverMarkAsUnreadItem, shouldShowMarkAsUnreadForReportAction} from '@pages/inbox/report/ContextMenu/actions/markAsUnreadAction';
+import {PopoverReplyInThreadItem, shouldShowReplyInThreadAction} from '@pages/inbox/report/ContextMenu/actions/replyInThreadAction';
+import {PopoverUnholdItem, shouldShowUnholdAction} from '@pages/inbox/report/ContextMenu/actions/unholdAction';
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import useReportActionContextMenuData from '@pages/inbox/report/ContextMenu/useReportActionContextMenuData';
 import CONST from '@src/CONST';
@@ -65,7 +65,8 @@ function PopoverReportActionContent({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {windowWidth} = useWindowDimensions();
-    const icons = useMemoizedLazyExpensifyIcons(CONTEXT_MENU_ICON_NAMES);
+    const {translate} = useLocalize();
+    const overflowIcons = useMemoizedLazyExpensifyIcons(['ThreeDots'] as const);
 
     const {
         report,
@@ -101,7 +102,6 @@ function PopoverReportActionContent({
         download,
         disabledActionIDs,
         showDelegateNoAccessModal,
-        translate,
         getLocalDateFromDatetime,
         reportID: resolvedReportID,
         originalReportID: resolvedOriginalReportID,
@@ -209,169 +209,195 @@ function PopoverReportActionContent({
             childReportActions,
         });
 
-    const overflowAction: ContextMenuAction = {
-        id: 'overflowMenu',
-        icon: icons.ThreeDots,
-        text: translate('reportActionContextMenu.menu'),
-        isAnonymousAction: true,
-        shouldPreventDefaultFocusOnPress: false,
-        onPress: (event) =>
-            interceptAnonymousUser(() => {
-                openOverflowMenu(event as GestureResponderEvent | MouseEvent);
-                setLocalShouldKeepOpen(true);
-            }, true),
-        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.MENU,
-    };
-
-    const visibleActions: ContextMenuAction[] = [];
+    const visibleItems: React.ReactElement[] = [];
     if (!reportAction) {
-        visibleActions.push(overflowAction);
+        visibleItems.push(
+            <FocusableMenuItem
+                key="overflow"
+                title={translate('reportActionContextMenu.menu')}
+                icon={overflowIcons.ThreeDots}
+                onPress={(event) =>
+                    interceptAnonymousUser(() => {
+                        openOverflowMenu(event as GestureResponderEvent | MouseEvent);
+                        setLocalShouldKeepOpen(true);
+                    }, true)
+                }
+                isAnonymousAction
+                wrapperStyle={[styles.pr8]}
+                style={StyleUtils.getContextMenuItemStyles(windowWidth)}
+                interactive
+                sentryLabel={CONST.SENTRY_LABEL.CONTEXT_MENU.MENU}
+            />,
+        );
     } else {
         if (showReplyInThread) {
-            visibleActions.push(
-                createReplyInThreadAction({
-                    childReport,
-                    reportAction,
-                    originalReport,
-                    currentUserAccountID,
-                    introSelected,
-                    hideAndRun,
-                    translate,
-                    chatBubbleReplyIcon: icons.ChatBubbleReply,
-                }),
+            visibleItems.push(
+                <PopoverReplyInThreadItem
+                    key="replyInThread"
+                    childReport={childReport}
+                    reportAction={reportAction}
+                    originalReport={originalReport}
+                    currentUserAccountID={currentUserAccountID}
+                    introSelected={introSelected}
+                    hideAndRun={hideAndRun}
+                />,
             );
         }
         if (showMarkAsUnread) {
-            visibleActions.push(
-                createMarkAsUnreadAction({
-                    reportID: resolvedReportID,
-                    reportActions: reportActionsMap,
-                    reportAction,
-                    currentUserAccountID,
-                    hideAndRun,
-                    translate,
-                    chatBubbleUnreadIcon: icons.ChatBubbleUnread,
-                    checkmarkIcon: icons.Checkmark,
-                }),
+            visibleItems.push(
+                <PopoverMarkAsUnreadItem
+                    key="markAsUnread"
+                    reportID={resolvedReportID}
+                    reportActions={reportActionsMap}
+                    reportAction={reportAction}
+                    currentUserAccountID={currentUserAccountID}
+                    hideAndRun={hideAndRun}
+                />,
             );
         }
         if (showExplain) {
-            visibleActions.push(
-                createExplainAction({
-                    childReport,
-                    originalReport,
-                    reportAction,
-                    currentUserPersonalDetails,
-                    introSelected,
-                    hideAndRun,
-                    translate,
-                    conciergeIcon: icons.Concierge,
-                }),
+            visibleItems.push(
+                <PopoverExplainItem
+                    key="explain"
+                    childReport={childReport}
+                    originalReport={originalReport}
+                    reportAction={reportAction}
+                    currentUserPersonalDetails={currentUserPersonalDetails}
+                    introSelected={introSelected}
+                    hideAndRun={hideAndRun}
+                />,
             );
         }
         if (showEdit) {
-            visibleActions.push(
-                createEditAction({
-                    reportID: resolvedReportID,
-                    reportAction,
-                    moneyRequestAction,
-                    draftMessage: resolvedDraftMessage,
-                    introSelected,
-                    hideAndRun,
-                    translate,
-                    pencilIcon: icons.Pencil,
-                }),
+            visibleItems.push(
+                <PopoverEditItem
+                    key="edit"
+                    reportID={resolvedReportID}
+                    reportAction={reportAction}
+                    moneyRequestAction={moneyRequestAction}
+                    draftMessage={resolvedDraftMessage}
+                    introSelected={introSelected}
+                    hideAndRun={hideAndRun}
+                />,
             );
         }
         if (showUnhold) {
-            visibleActions.push(
-                createUnholdAction({
-                    moneyRequestAction,
-                    isDelegateAccessRestricted,
-                    showDelegateNoAccessModal,
-                    hideAndRun,
-                    translate,
-                    stopwatchIcon: icons.Stopwatch,
-                }),
+            visibleItems.push(
+                <PopoverUnholdItem
+                    key="unhold"
+                    moneyRequestAction={moneyRequestAction}
+                    isDelegateAccessRestricted={isDelegateAccessRestricted}
+                    showDelegateNoAccessModal={showDelegateNoAccessModal}
+                    hideAndRun={hideAndRun}
+                />,
             );
         }
         if (showHold) {
-            visibleActions.push(
-                createHoldAction({
-                    moneyRequestAction,
-                    isDelegateAccessRestricted,
-                    showDelegateNoAccessModal,
-                    hideAndRun,
-                    translate,
-                    stopwatchIcon: icons.Stopwatch,
-                }),
+            visibleItems.push(
+                <PopoverHoldItem
+                    key="hold"
+                    moneyRequestAction={moneyRequestAction}
+                    isDelegateAccessRestricted={isDelegateAccessRestricted}
+                    showDelegateNoAccessModal={showDelegateNoAccessModal}
+                    hideAndRun={hideAndRun}
+                />,
             );
         }
         if (showJoinThread) {
-            visibleActions.push(
-                createJoinThreadAction({
-                    reportAction,
-                    originalReport,
-                    currentUserAccountID,
-                    introSelected,
-                    hideAndRun,
-                    translate,
-                    bellIcon: icons.Bell,
-                }),
+            visibleItems.push(
+                <PopoverJoinThreadItem
+                    key="joinThread"
+                    reportAction={reportAction}
+                    originalReport={originalReport}
+                    currentUserAccountID={currentUserAccountID}
+                    introSelected={introSelected}
+                    hideAndRun={hideAndRun}
+                />,
             );
         }
         if (showLeaveThread) {
-            visibleActions.push(
-                createLeaveThreadAction({
-                    reportAction,
-                    originalReport,
-                    currentUserAccountID,
-                    introSelected,
-                    hideAndRun,
-                    translate,
-                    exitIcon: icons.Exit,
-                }),
+            visibleItems.push(
+                <PopoverLeaveThreadItem
+                    key="leaveThread"
+                    reportAction={reportAction}
+                    originalReport={originalReport}
+                    currentUserAccountID={currentUserAccountID}
+                    introSelected={introSelected}
+                    hideAndRun={hideAndRun}
+                />,
             );
         }
         if (showCopyMessage) {
-            visibleActions.push(
-                createCopyMessageAction({
-                    reportAction,
-                    transaction,
-                    selection: resolvedSelection,
-                    report,
-                    card,
-                    originalReport,
-                    isHarvestReport,
-                    isTryNewDotNVPDismissed,
-                    movedFromReport,
-                    movedToReport,
-                    childReport,
-                    policy,
-                    getLocalDateFromDatetime,
-                    policyTags,
-                    translate,
-                    harvestReport,
-                    currentUserPersonalDetails,
-                    copyIcon: icons.Copy,
-                    checkmarkIcon: icons.Checkmark,
-                }),
+            visibleItems.push(
+                <PopoverCopyMessageItem
+                    key="copyMessage"
+                    reportAction={reportAction}
+                    transaction={transaction}
+                    selection={resolvedSelection}
+                    report={report}
+                    card={card}
+                    originalReport={originalReport}
+                    isHarvestReport={isHarvestReport}
+                    isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
+                    movedFromReport={movedFromReport}
+                    movedToReport={movedToReport}
+                    childReport={childReport}
+                    policy={policy}
+                    getLocalDateFromDatetime={getLocalDateFromDatetime}
+                    policyTags={policyTags}
+                    harvestReport={harvestReport}
+                    currentUserPersonalDetails={currentUserPersonalDetails}
+                />,
             );
         }
         if (showCopyLink) {
-            visibleActions.push(createCopyLinkAction({reportAction, originalReportID: resolvedOriginalReportID, translate, linkCopyIcon: icons.LinkCopy, checkmarkIcon: icons.Checkmark}));
+            visibleItems.push(
+                <PopoverCopyLinkItem
+                    key="copyLink"
+                    reportAction={reportAction}
+                    originalReportID={resolvedOriginalReportID}
+                />,
+            );
         }
         if (showFlagAsOffensive) {
-            visibleActions.push(createFlagAsOffensiveAction({reportID: resolvedReportID, reportAction, hideAndRun, translate, flagIcon: icons.Flag}));
+            visibleItems.push(
+                <PopoverFlagAsOffensiveItem
+                    key="flagAsOffensive"
+                    reportID={resolvedReportID}
+                    reportAction={reportAction}
+                    hideAndRun={hideAndRun}
+                />,
+            );
         }
         if (showDownload) {
-            visibleActions.push(createDownloadAction({reportAction, encryptedAuthToken, download, translate, downloadIcon: icons.Download}));
+            visibleItems.push(
+                <PopoverDownloadItem
+                    key="download"
+                    reportAction={reportAction}
+                    encryptedAuthToken={encryptedAuthToken}
+                    download={download}
+                />,
+            );
         }
         if (showDebug) {
-            visibleActions.push(createDebugAction({reportID: resolvedReportID, reportAction, translate, bugIcon: icons.Bug}));
+            visibleItems.push(
+                <PopoverDebugItem
+                    key="debug"
+                    reportID={resolvedReportID}
+                    reportAction={reportAction}
+                />,
+            );
         }
         if (showDelete) {
-            visibleActions.push(createDeleteAction({reportID: resolvedReportID, reportAction, moneyRequestAction, hideAndRun, translate, trashcanIcon: icons.Trashcan}));
+            visibleItems.push(
+                <PopoverDeleteItem
+                    key="delete"
+                    reportID={resolvedReportID}
+                    reportAction={reportAction}
+                    moneyRequestAction={moneyRequestAction}
+                    hideAndRun={hideAndRun}
+                />,
+            );
         }
     }
 
@@ -387,7 +413,7 @@ function PopoverReportActionContent({
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: -1,
         disabledIndexes: [],
-        maxIndex: visibleActions.length - 1,
+        maxIndex: visibleItems.length - 1,
         isActive: shouldEnableArrowNavigation,
     });
 
@@ -417,26 +443,14 @@ function PopoverReportActionContent({
                             }}
                         />
                     )}
-                    {visibleActions.map((action: ContextMenuAction, i: number) => (
-                        <FocusableMenuItem
-                            key={action.id}
-                            title={action.text}
-                            icon={action.icon}
-                            onPress={action.onPress}
-                            wrapperStyle={[styles.pr8]}
-                            description={action.description ?? ''}
-                            descriptionTextStyle={styles.breakWord}
-                            style={StyleUtils.getContextMenuItemStyles(windowWidth)}
-                            isAnonymousAction={action.isAnonymousAction}
-                            focused={focusedIndex === i}
-                            interactive
-                            onFocus={() => setFocusedIndex(i)}
-                            onBlur={() => (i === visibleActions.length - 1 || i === 1) && setFocusedIndex(-1)}
-                            disabled={action.disabled}
-                            shouldShowLoadingSpinnerIcon={action.shouldShowLoadingSpinnerIcon}
-                            sentryLabel={action.sentryLabel}
-                        />
-                    ))}
+                    {visibleItems.map((item, i) =>
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        React.cloneElement(item as React.ReactElement<any>, {
+                            isFocused: focusedIndex === i,
+                            onFocus: () => setFocusedIndex(i),
+                            onBlur: () => (i === visibleItems.length - 1 || i === 1) && setFocusedIndex(-1),
+                        }),
+                    )}
                 </View>
             </FocusTrapForModal>
         </View>

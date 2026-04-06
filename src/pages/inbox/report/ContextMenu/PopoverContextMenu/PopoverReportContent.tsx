@@ -4,26 +4,20 @@ import React from 'react';
 import type {View as ViewType} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import FocusableMenuItem from '@components/FocusableMenuItem';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useEnvironment from '@hooks/useEnvironment';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import {canWriteInReport, isUnread} from '@libs/ReportUtils';
-import {ACTION_IDS, CONTEXT_MENU_ICON_NAMES, RESTRICTED_READONLY_ACTION_IDS} from '@pages/inbox/report/ContextMenu/actions/actionConfig';
-import type {ContextMenuAction} from '@pages/inbox/report/ContextMenu/actions/actionConfig';
-import createCopyOnyxDataAction, {shouldShowCopyOnyxDataAction} from '@pages/inbox/report/ContextMenu/actions/copyOnyxDataAction';
-import createDebugAction, {shouldShowDebugAction} from '@pages/inbox/report/ContextMenu/actions/debugAction';
-import createMarkAsReadAction, {shouldShowMarkAsReadAction} from '@pages/inbox/report/ContextMenu/actions/markAsReadAction';
-import createMarkAsUnreadAction, {shouldShowMarkAsUnreadForReport} from '@pages/inbox/report/ContextMenu/actions/markAsUnreadAction';
-import createPinAction, {shouldShowPinAction} from '@pages/inbox/report/ContextMenu/actions/pinAction';
-import createUnpinAction, {shouldShowUnpinAction} from '@pages/inbox/report/ContextMenu/actions/unpinAction';
+import {ACTION_IDS, RESTRICTED_READONLY_ACTION_IDS} from '@pages/inbox/report/ContextMenu/actions/actionConfig';
+import {PopoverCopyOnyxDataItem, shouldShowCopyOnyxDataAction} from '@pages/inbox/report/ContextMenu/actions/copyOnyxDataAction';
+import {PopoverDebugItem, shouldShowDebugAction} from '@pages/inbox/report/ContextMenu/actions/debugAction';
+import {PopoverMarkAsReadItem, shouldShowMarkAsReadAction} from '@pages/inbox/report/ContextMenu/actions/markAsReadAction';
+import {PopoverMarkAsUnreadItem, shouldShowMarkAsUnreadForReport} from '@pages/inbox/report/ContextMenu/actions/markAsUnreadAction';
+import {PopoverPinItem, shouldShowPinAction} from '@pages/inbox/report/ContextMenu/actions/pinAction';
+import {PopoverUnpinItem, shouldShowUnpinAction} from '@pages/inbox/report/ContextMenu/actions/unpinAction';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
 
@@ -40,13 +34,8 @@ const EMPTY_SET = new Set<string>();
 
 function PopoverReportContent({reportID, reportActionID, originalReportID, hideAndRun, contentRef, shouldEnableArrowNavigation}: PopoverReportContentProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {windowWidth} = useWindowDimensions();
-    const {translate} = useLocalize();
     const {isProduction} = useEnvironment();
-
-    const icons = useMemoizedLazyExpensifyIcons(CONTEXT_MENU_ICON_NAMES);
 
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {canEvict: false});
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
@@ -70,49 +59,68 @@ function PopoverReportContent({reportID, reportActionID, originalReportID, hideA
     const showCopyOnyxData = shouldShowCopyOnyxDataAction({isProduction}) && !isDisabled(ACTION_IDS.COPY_ONYX_DATA);
     const showDebug = shouldShowDebugAction({isDebugModeEnabled}) && !isDisabled(ACTION_IDS.DEBUG);
 
-    const markAsReadActionItem = showMarkAsRead ? createMarkAsReadAction({reportID, hideAndRun, translate, mailIcon: icons.Mail, checkmarkIcon: icons.Checkmark}) : undefined;
-    const markAsUnreadActionItem =
-        showMarkAsUnread && reportAction
-            ? createMarkAsUnreadAction({
-                  reportID,
-                  reportActions,
-                  reportAction,
-                  currentUserAccountID: 0,
-                  hideAndRun,
-                  translate,
-                  chatBubbleUnreadIcon: icons.ChatBubbleUnread,
-                  checkmarkIcon: icons.Checkmark,
-              })
-            : undefined;
-    const pinActionItem = showPin ? createPinAction({reportID, hideAndRun, translate, pinIcon: icons.Pin}) : undefined;
-    const unpinActionItem = showUnpin ? createUnpinAction({reportID, hideAndRun, translate, pinIcon: icons.Pin}) : undefined;
-    const copyOnyxDataActionItem = showCopyOnyxData ? createCopyOnyxDataAction({report, translate, copyIcon: icons.Copy, checkmarkIcon: icons.Checkmark}) : undefined;
-    const debugActionItem = showDebug && reportAction ? createDebugAction({reportID, reportAction, translate, bugIcon: icons.Bug}) : undefined;
-
-    const visibleActions: ContextMenuAction[] = [];
-    if (markAsReadActionItem) {
-        visibleActions.push(markAsReadActionItem);
+    const visibleItems: React.ReactElement[] = [];
+    if (showMarkAsRead) {
+        visibleItems.push(
+            <PopoverMarkAsReadItem
+                key="markAsRead"
+                reportID={reportID}
+                hideAndRun={hideAndRun}
+            />,
+        );
     }
-    if (markAsUnreadActionItem) {
-        visibleActions.push(markAsUnreadActionItem);
+    if (showMarkAsUnread && reportAction) {
+        visibleItems.push(
+            <PopoverMarkAsUnreadItem
+                key="markAsUnread"
+                reportID={reportID}
+                reportActions={reportActions}
+                reportAction={reportAction}
+                currentUserAccountID={0}
+                hideAndRun={hideAndRun}
+            />,
+        );
     }
-    if (pinActionItem) {
-        visibleActions.push(pinActionItem);
+    if (showPin) {
+        visibleItems.push(
+            <PopoverPinItem
+                key="pin"
+                reportID={reportID}
+                hideAndRun={hideAndRun}
+            />,
+        );
     }
-    if (unpinActionItem) {
-        visibleActions.push(unpinActionItem);
+    if (showUnpin) {
+        visibleItems.push(
+            <PopoverUnpinItem
+                key="unpin"
+                reportID={reportID}
+                hideAndRun={hideAndRun}
+            />,
+        );
     }
-    if (copyOnyxDataActionItem) {
-        visibleActions.push(copyOnyxDataActionItem);
+    if (showCopyOnyxData) {
+        visibleItems.push(
+            <PopoverCopyOnyxDataItem
+                key="copyOnyxData"
+                report={report}
+            />,
+        );
     }
-    if (debugActionItem) {
-        visibleActions.push(debugActionItem);
+    if (showDebug && reportAction) {
+        visibleItems.push(
+            <PopoverDebugItem
+                key="debug"
+                reportID={reportID}
+                reportAction={reportAction}
+            />,
+        );
     }
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: -1,
         disabledIndexes: [],
-        maxIndex: visibleActions.length - 1,
+        maxIndex: visibleItems.length - 1,
         isActive: shouldEnableArrowNavigation,
     });
 
@@ -123,26 +131,14 @@ function PopoverReportContent({reportID, reportActionID, originalReportID, hideA
             ref={contentRef}
             style={wrapperStyle}
         >
-            {visibleActions.map((action: ContextMenuAction, i: number) => (
-                <FocusableMenuItem
-                    key={action.id}
-                    title={action.text}
-                    icon={action.icon}
-                    onPress={action.onPress}
-                    wrapperStyle={[styles.pr8]}
-                    description={action.description ?? ''}
-                    descriptionTextStyle={styles.breakWord}
-                    style={StyleUtils.getContextMenuItemStyles(windowWidth)}
-                    isAnonymousAction={action.isAnonymousAction}
-                    focused={focusedIndex === i}
-                    interactive
-                    onFocus={() => setFocusedIndex(i)}
-                    onBlur={() => (i === visibleActions.length - 1 || i === 1) && setFocusedIndex(-1)}
-                    disabled={action.disabled}
-                    shouldShowLoadingSpinnerIcon={action.shouldShowLoadingSpinnerIcon}
-                    sentryLabel={action.sentryLabel}
-                />
-            ))}
+            {visibleItems.map((item, i) =>
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                React.cloneElement(item as React.ReactElement<any>, {
+                    isFocused: focusedIndex === i,
+                    onFocus: () => setFocusedIndex(i),
+                    onBlur: () => (i === visibleItems.length - 1 || i === 0) && setFocusedIndex(-1),
+                }),
+            )}
         </View>
     );
 }

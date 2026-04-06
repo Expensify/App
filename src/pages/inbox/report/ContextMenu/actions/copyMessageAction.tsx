@@ -1,7 +1,12 @@
 import {Str} from 'expensify-common';
+import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
+import ContextMenuItem from '@components/ContextMenuItem';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+import MiniContextMenuItem from '@components/MiniContextMenuItem';
 import type useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import Clipboard from '@libs/Clipboard';
 import getClipboardText from '@libs/Clipboard/getClipboardText';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
@@ -147,9 +152,7 @@ import {getTaskCreatedMessage, getTaskReportActionMessage} from '@libs/TaskUtils
 import {hideContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import type {Card, Policy, PolicyTagLists, ReportAction, Report as ReportType, Transaction} from '@src/types/onyx';
-import type IconAsset from '@src/types/utils/IconAsset';
 import {getActionHtml} from './actionConfig';
-import type {BaseContextMenuActionParams, ContextMenuAction} from './actionConfig';
 
 type CopyMessageClipboardParams = {
     reportAction: ReportAction;
@@ -170,12 +173,6 @@ type CopyMessageClipboardParams = {
     harvestReport: OnyxEntry<ReportType>;
     currentUserPersonalDetails: ReturnType<typeof useCurrentUserPersonalDetails>;
 };
-
-type CopyMessageActionParams = BaseContextMenuActionParams &
-    CopyMessageClipboardParams & {
-        copyIcon: IconAsset;
-        checkmarkIcon: IconAsset;
-    };
 
 function shouldShowCopyMessageAction({reportAction}: {reportAction: OnyxEntry<ReportAction>}): boolean {
     return !isReportActionAttachment(reportAction) && !isMessageDeleted(reportAction) && !isTripPreview(reportAction);
@@ -542,22 +539,132 @@ function copyMessageToClipboard(params: CopyMessageClipboardParams) {
     }
 }
 
-function createCopyMessageAction({translate, copyIcon, checkmarkIcon, ...clipboardParams}: CopyMessageActionParams): ContextMenuAction {
-    return {
-        id: 'copyMessage',
-        icon: copyIcon,
-        text: translate('reportActionContextMenu.copyMessage'),
-        successText: translate('reportActionContextMenu.copied'),
-        successIcon: checkmarkIcon,
-        isAnonymousAction: true,
-        onPress: () =>
-            interceptAnonymousUser(() => {
-                copyMessageToClipboard({...clipboardParams, translate});
-                hideContextMenu(true, ReportActionComposeFocusManager.focus);
-            }, true),
-        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.COPY_MESSAGE,
-    };
+type PopoverCopyMessageItemProps = Omit<CopyMessageClipboardParams, 'translate'> & {
+    isFocused?: boolean;
+    onFocus?: () => void;
+    onBlur?: () => void;
+};
+
+function PopoverCopyMessageItem({
+    reportAction,
+    transaction,
+    selection,
+    report,
+    card,
+    originalReport,
+    isHarvestReport,
+    isTryNewDotNVPDismissed,
+    movedFromReport,
+    movedToReport,
+    childReport,
+    policy,
+    getLocalDateFromDatetime,
+    policyTags,
+    harvestReport,
+    currentUserPersonalDetails,
+    isFocused,
+    onFocus,
+    onBlur,
+}: PopoverCopyMessageItemProps) {
+    const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['Copy', 'Checkmark'] as const);
+
+    return (
+        <ContextMenuItem
+            text={translate('reportActionContextMenu.copyMessage')}
+            icon={icons.Copy}
+            successIcon={icons.Checkmark}
+            successText={translate('reportActionContextMenu.copied')}
+            onPress={() =>
+                interceptAnonymousUser(() => {
+                    copyMessageToClipboard({
+                        reportAction,
+                        transaction,
+                        selection,
+                        report,
+                        card,
+                        originalReport,
+                        isHarvestReport,
+                        isTryNewDotNVPDismissed,
+                        movedFromReport,
+                        movedToReport,
+                        childReport,
+                        policy,
+                        getLocalDateFromDatetime,
+                        policyTags,
+                        translate,
+                        harvestReport,
+                        currentUserPersonalDetails,
+                    });
+                    hideContextMenu(true, ReportActionComposeFocusManager.focus);
+                }, true)
+            }
+            isAnonymousAction
+            isFocused={isFocused}
+            onFocus={onFocus}
+            onBlur={onBlur}
+            sentryLabel={CONST.SENTRY_LABEL.CONTEXT_MENU.COPY_MESSAGE}
+        />
+    );
 }
 
-export default createCopyMessageAction;
-export {shouldShowCopyMessageAction, copyMessageToClipboard};
+type MiniCopyMessageItemProps = Omit<CopyMessageClipboardParams, 'translate'>;
+
+function MiniCopyMessageItem({
+    reportAction,
+    transaction,
+    selection,
+    report,
+    card,
+    originalReport,
+    isHarvestReport,
+    isTryNewDotNVPDismissed,
+    movedFromReport,
+    movedToReport,
+    childReport,
+    policy,
+    getLocalDateFromDatetime,
+    policyTags,
+    harvestReport,
+    currentUserPersonalDetails,
+}: MiniCopyMessageItemProps) {
+    const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['Copy', 'Checkmark'] as const);
+
+    return (
+        <MiniContextMenuItem
+            tooltipText={translate('reportActionContextMenu.copyMessage')}
+            icon={icons.Copy}
+            successIcon={icons.Checkmark}
+            successTooltipText={translate('reportActionContextMenu.copied')}
+            onPress={() =>
+                interceptAnonymousUser(() => {
+                    copyMessageToClipboard({
+                        reportAction,
+                        transaction,
+                        selection,
+                        report,
+                        card,
+                        originalReport,
+                        isHarvestReport,
+                        isTryNewDotNVPDismissed,
+                        movedFromReport,
+                        movedToReport,
+                        childReport,
+                        policy,
+                        getLocalDateFromDatetime,
+                        policyTags,
+                        translate,
+                        harvestReport,
+                        currentUserPersonalDetails,
+                    });
+                    hideContextMenu(true, ReportActionComposeFocusManager.focus);
+                }, true)
+            }
+            sentryLabel={CONST.SENTRY_LABEL.CONTEXT_MENU.COPY_MESSAGE}
+        />
+    );
+}
+
+export {shouldShowCopyMessageAction, copyMessageToClipboard, PopoverCopyMessageItem, MiniCopyMessageItem};
+export type {CopyMessageClipboardParams};
