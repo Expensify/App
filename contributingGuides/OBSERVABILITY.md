@@ -64,21 +64,7 @@ The difference is that the latter adds a `canceled` attribute to the span indica
 
 ### Debugging Spans
 
-Sentry is disabled in development by default. To enable it, add `ENABLE_SENTRY_ON_DEV=true` to your `.env` file. This activates an internal debug transport that logs span data locally instead of sending it to Sentry.
-
-To view spans in the DevConsole, go to **Account → Troubleshoot → Log Sentry requests to console**.
-
-In rare cases where you need to inspect spans directly in the Sentry dashboard, comment out the `transport` line in [`src/setup/telemetry/index.ts`](../src/setup/telemetry/index.ts):
-
-```typescript
-Sentry.init({
-    dsn: CONFIG.SENTRY_DSN,
-    // transport: isDevelopment() ? makeDebugTransport : undefined,
-    ...
-});
-```
-
-This sends spans to the real Sentry project instead of the local console.
+In development, Sentry is always initialized but does not send data by default. To start sending data to the Sentry dashboard, go to **Account → Troubleshoot** and toggle **Send data to Sentry** ON. To view spans in the DevConsole, toggle **Log Sentry to console** ON.
 
 ### Constants
 

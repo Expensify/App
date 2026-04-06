@@ -26,6 +26,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
 import type Platform from '@libs/getPlatform/types';
+import GoogleTagManager from '@libs/GoogleTagManager';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import {
@@ -97,7 +98,6 @@ function IOURequestStartPage({
     });
 
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
-    const [isMultiScanEnabled, setIsMultiScanEnabled] = useState(false);
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE);
     const {isOffline} = useNetwork();
     const [hasUserSubmittedExpenseOrScannedReceipt] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {selector: isTestReceiptTooltipDismissedSelector});
@@ -129,6 +129,7 @@ function IOURequestStartPage({
 
     const isFromGlobalCreate = isEmptyObject(report?.reportID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const accountID = currentUserPersonalDetails.accountID;
     const policiesWithPerDiemEnabledAndHasRates = useMemo(
         () => getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates(allPolicies, currentUserPersonalDetails.login),
         [allPolicies, currentUserPersonalDetails.login],
@@ -186,7 +187,6 @@ function IOURequestStartPage({
             if (transaction?.iouRequestType === newIOUType) {
                 return;
             }
-            setIsMultiScanEnabled(false);
             initMoneyRequest({
                 reportID,
                 policy,
@@ -262,11 +262,16 @@ function IOURequestStartPage({
         // The test receipt image is served via our server on web so it requires internet connection
         !hasUserSubmittedExpenseOrScannedReceipt && isBetaEnabled(CONST.BETAS.NEWDOT_MANAGER_MCTEST) && selectedTab === CONST.TAB_REQUEST.SCAN && !(isOffline && isWeb),
         {
+            onShown: () => {
+                GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.PRODUCT_TRAINING_SCAN_TEST_TOOLTIP_SHOWN, accountID);
+            },
             onConfirm: () => {
                 setTestReceiptAndNavigateRef?.current?.();
+                GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.PRODUCT_TRAINING_SCAN_TEST_TOOLTIP_CONFIRMED, accountID);
             },
             onDismiss: () => {
                 dismissProductTraining(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP, true);
+                GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.PRODUCT_TRAINING_SCAN_TEST_TOOLTIP_DISMISSED, accountID);
             },
         },
     );
@@ -340,14 +345,12 @@ function IOURequestStartPage({
                                     {() => (
                                         <TabScreenWithFocusTrapWrapper>
                                             <IOURequestStepScan
+                                                key={transactionRequestType}
                                                 route={route}
                                                 navigation={navigation}
                                                 onLayout={(setTestReceiptAndNavigate) => {
                                                     setTestReceiptAndNavigateRef.current = setTestReceiptAndNavigate;
                                                 }}
-                                                isMultiScanEnabled={isMultiScanEnabled}
-                                                setIsMultiScanEnabled={setIsMultiScanEnabled}
-                                                isStartingScan
                                             />
                                         </TabScreenWithFocusTrapWrapper>
                                     )}
