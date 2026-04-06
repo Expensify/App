@@ -26,6 +26,7 @@ function useNewTransactions(
 
     // We need to skip the first transactions change, to avoid highlighting transactions on the first load.
     const skipFirstTransactionsChange = useRef(!hasOnceLoadedReportActions);
+
     const newTransactions = useMemo(() => {
         // If isFocused is not passed (=undefined) we will not return empty.
         if (isFocused === false) {
