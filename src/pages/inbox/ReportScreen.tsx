@@ -70,6 +70,7 @@ import AccountManagerBanner from './AccountManagerBanner';
 import {AgentZeroStatusProvider} from './AgentZeroStatusContext';
 import DeleteTransactionNavigateBackHandler from './DeleteTransactionNavigateBackHandler';
 import HeaderView from './HeaderView';
+import useAutoNavigateForDeletedLinkedAction from './hooks/useAutoNavigateForDeletedLinkedAction';
 import useReportWasDeleted from './hooks/useReportWasDeleted';
 import LinkedActionNotFoundGuard from './LinkedActionNotFoundGuard';
 import ReactionListWrapper from './ReactionListWrapper';
@@ -430,6 +431,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     }, [reportWasDeleted, isFocused, deletedReportParentID, conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas]);
 
     const actionListValue = useActionListContextValue();
+
+    useAutoNavigateForDeletedLinkedAction(shouldShowNotFoundPage, shouldShowNotFoundLinkedAction, navigateToEndOfReport);
 
     // wrapping into useMemo to stabilize children re-renders as reportMetadata is changed frequently
     const showReportActionsLoadingState = useMemo(
