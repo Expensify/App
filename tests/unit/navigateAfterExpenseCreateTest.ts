@@ -1,0 +1,151 @@
+import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
+import Navigation from '@libs/Navigation/Navigation';
+import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
+
+const mockIsReportTopmostSplitNavigator = jest.fn();
+const mockIsSearchTopmostFullScreenRoute = jest.fn();
+const mockIsReportOpenInRHP = jest.fn();
+const mockGetIsNarrowLayout = jest.fn();
+const mockGetSpan = jest.fn();
+// Declared but assigned after jest.mock hoisting — use require() to access the mock in tests
+let mockSetPendingSubmitFollowUpAction: jest.Mock;
+const mockGetCurrentSearchQueryJSON = jest.fn();
+
+jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => () => mockIsReportTopmostSplitNavigator() as boolean);
+jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => () => mockIsSearchTopmostFullScreenRoute() as boolean);
+jest.mock('@libs/Navigation/helpers/isReportOpenInRHP', () => () => mockIsReportOpenInRHP() as boolean);
+jest.mock('@libs/Navigation/helpers/isReportOpenInSuperWideRHP', () => () => false as boolean);
+jest.mock('@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue', () => (callback: () => void) => {
+    callback();
+});
+jest.mock('@libs/getIsNarrowLayout', () => () => mockGetIsNarrowLayout() as boolean);
+jest.mock('@libs/telemetry/activeSpans', () => ({
+    getSpan: (...args: unknown[]) => mockGetSpan(...args) as boolean,
+}));
+jest.mock('@libs/telemetry/submitFollowUpAction', () => ({
+    setPendingSubmitFollowUpAction: jest.fn(),
+    endSubmitFollowUpActionSpan: jest.fn(),
+}));
+jest.mock('@libs/SearchQueryUtils', () => ({
+    buildCannedSearchQuery: jest.fn(({type}: {type: string}) => `type:${type}`),
+    getCurrentSearchQueryJSON: () => mockGetCurrentSearchQueryJSON() as undefined,
+}));
+
+jest.mock('@libs/Navigation/Navigation', () => ({
+    dismissModal: jest.fn(),
+    dismissToPreviousRHP: jest.fn(),
+    dismissModalWithReport: jest.fn(),
+    pop: jest.fn(),
+    navigate: jest.fn(),
+    revealRouteBeforeDismissingModal: jest.fn(),
+    isNavigationReady: jest.fn(() => Promise.resolve()),
+    navigationRef: {
+        getRootState: jest.fn(() => ({
+            routes: [],
+        })),
+    },
+}));
+
+jest.mock('@react-navigation/native');
+
+describe('navigateAfterExpenseCreate', () => {
+    beforeAll(() => {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const telemetryMock = require('@libs/telemetry/submitFollowUpAction') as {setPendingSubmitFollowUpAction: jest.Mock};
+        mockSetPendingSubmitFollowUpAction = telemetryMock.setPendingSubmitFollowUpAction;
+    });
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+        mockIsReportTopmostSplitNavigator.mockReturnValue(false);
+        mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
+        mockIsReportOpenInRHP.mockReturnValue(false);
+        mockGetSpan.mockReturnValue(false);
+        mockGetCurrentSearchQueryJSON.mockReturnValue(undefined);
+    });
+
+    it('should dismiss to report when not from global create', () => {
+        navigateAfterExpenseCreate({
+            activeReportID: 'report-123',
+            transactionID: 'txn-1',
+            isFromGlobalCreate: false,
+            hasMultipleTransactions: false,
+        });
+
+        expect(Navigation.dismissModalWithReport).toHaveBeenCalledWith({reportID: 'report-123'});
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+    });
+
+    it('should dismiss to report when user is on inbox tab', () => {
+        mockIsReportTopmostSplitNavigator.mockReturnValue(true);
+
+        navigateAfterExpenseCreate({
+            activeReportID: 'report-123',
+            transactionID: 'txn-1',
+            isFromGlobalCreate: true,
+            hasMultipleTransactions: false,
+        });
+
+        expect(Navigation.dismissModalWithReport).toHaveBeenCalledWith({reportID: 'report-123'});
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+    });
+
+    it('should dismiss to report when transactionID is missing', () => {
+        navigateAfterExpenseCreate({
+            activeReportID: 'report-123',
+            isFromGlobalCreate: true,
+            hasMultipleTransactions: false,
+        });
+
+        expect(Navigation.dismissModalWithReport).toHaveBeenCalledWith({reportID: 'report-123'});
+    });
+
+    it('should navigate to search on narrow layout when from global create and not on inbox', async () => {
+        mockGetIsNarrowLayout.mockReturnValue(true);
+
+        navigateAfterExpenseCreate({
+            activeReportID: 'report-123',
+            transactionID: 'txn-1',
+            isFromGlobalCreate: true,
+            hasMultipleTransactions: false,
+        });
+
+        // Flush the Navigation.isNavigationReady().then() promise
+        await Promise.resolve();
+
+        expect(mockSetPendingSubmitFollowUpAction).toHaveBeenCalledWith(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH);
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense'}), {forceReplace: true});
+    });
+
+    it('should reveal route before dismissing modal on wide layout when from global create', async () => {
+        mockGetIsNarrowLayout.mockReturnValue(false);
+
+        navigateAfterExpenseCreate({
+            activeReportID: 'report-123',
+            transactionID: 'txn-1',
+            isFromGlobalCreate: true,
+            hasMultipleTransactions: false,
+        });
+
+        await Promise.resolve();
+
+        expect(Navigation.revealRouteBeforeDismissingModal).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense'}));
+    });
+
+    it('should use invoice data type when isInvoice is true', async () => {
+        mockGetIsNarrowLayout.mockReturnValue(true);
+
+        navigateAfterExpenseCreate({
+            activeReportID: 'report-123',
+            transactionID: 'txn-1',
+            isFromGlobalCreate: true,
+            isInvoice: true,
+            hasMultipleTransactions: false,
+        });
+
+        await Promise.resolve();
+
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: 'type:invoice'}), {forceReplace: true});
+    });
+});
