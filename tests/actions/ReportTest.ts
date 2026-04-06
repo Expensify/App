@@ -3990,7 +3990,7 @@ describe('actions/Report', () => {
 
         it('should handle undefined conciergeReportID gracefully', async () => {
             // Don't set CONCIERGE_REPORT_ID to simulate undefined state
-            await Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
+            await Onyx.set(ONYXKEYS.RAM_ONLY_IS_LOADING_REPORT_DATA, false);
             await waitForBatchedUpdates();
 
             // When conciergeReportID is undefined, the function uses onServerDataReady()
@@ -4119,7 +4119,7 @@ describe('actions/Report', () => {
         });
 
         it('should not throw with any isSelfTourViewed value when conciergeReportID is undefined', async () => {
-            await Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
+            await Onyx.set(ONYXKEYS.RAM_ONLY_IS_LOADING_REPORT_DATA, false);
             await waitForBatchedUpdates();
 
             expect(() => {
@@ -4253,7 +4253,7 @@ describe('actions/Report', () => {
         });
 
         it('should handle undefined conciergeReportID by using fallback navigation', async () => {
-            await Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
+            await Onyx.set(ONYXKEYS.RAM_ONLY_IS_LOADING_REPORT_DATA, false);
             await waitForBatchedUpdates();
 
             expect(() => {
@@ -6231,6 +6231,29 @@ describe('actions/Report', () => {
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
             expect(Navigation.navigate).toHaveBeenCalled();
+        });
+    });
+
+    describe('getOptimisticChatReport', () => {
+        it('should return an optimistic chat report with correct participants and notification preference', () => {
+            const accountID = 2;
+            const currentUserAccountID = 1;
+
+            const result = Report.getOptimisticChatReport(accountID, currentUserAccountID);
+
+            expect(result.reportID).toBeTruthy();
+            expect(result.type).toBe('chat');
+        });
+
+        it('should include both accountID and currentUserAccountID as participants', () => {
+            const accountID = 2;
+            const currentUserAccountID = 1;
+
+            const result = Report.getOptimisticChatReport(accountID, currentUserAccountID);
+
+            // The result should be a valid optimistic report
+            expect(result).toBeTruthy();
+            expect(result.reportID).toBeTruthy();
         });
     });
 

@@ -289,6 +289,8 @@ const ROUTES = {
             return `search/move-transactions/search/${encodeURIComponent(backTo)}` as const;
         },
     },
+    CHANGE_APPROVER_SEARCH_RHP: 'search/change-approver',
+    CHANGE_APPROVER_ADD_APPROVER_SEARCH_RHP: 'search/change-approver/add',
 
     // This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated
     CONCIERGE: 'concierge',
