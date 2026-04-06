@@ -253,7 +253,7 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
                     }
                     accessibilityLabel={`${rule.summaryParts.map((part) => `${part.badgeLabel}. ${part.text}`).join('. ')}. ${rule.cardSummary}`}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_ITEM}
-                    interactive={false}
+                    shouldShowRightIcon
                 />
             ))}
             {!isProduction && (
