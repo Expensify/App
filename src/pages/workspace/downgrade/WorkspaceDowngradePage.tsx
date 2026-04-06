@@ -68,7 +68,7 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
     };
 
     const onDowngradeToTeam = async () => {
-        if (!canPerformDowngrade || !policy || !policyID) {
+        if (!canPerformDowngrade() || !policy || !policyID) {
             return;
         }
         if (Object.keys(companyFeeds).length > 1) {
@@ -94,7 +94,7 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
         downgradeToTeam(policy.id, policy.type, policy.isAttendeeTrackingEnabled);
     };
 
-    if (!canPerformDowngrade) {
+    if (!canPerformDowngrade()) {
         return <NotFoundPage />;
     }
 
