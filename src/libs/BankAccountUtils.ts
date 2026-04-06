@@ -53,7 +53,7 @@ function hasOwnerAddress(additionalData: AdditionalData, privatePersonalDetails?
         return true;
     }
     const currentAddress = getCurrentAddress(privatePersonalDetails);
-    return !!(currentAddress?.street || currentAddress?.addressLine1) && !!currentAddress?.city && !!currentAddress?.state && !!(currentAddress?.zip || currentAddress?.zipPostCode);
+    return !!(currentAddress?.street ?? currentAddress?.addressLine1) && !!currentAddress?.city && !!currentAddress?.state && !!(currentAddress?.zip ?? currentAddress?.zipPostCode);
 }
 
 function hasOwnerPhone(additionalData: AdditionalData, privatePersonalDetails?: OnyxEntry<PrivatePersonalDetails>): boolean {
