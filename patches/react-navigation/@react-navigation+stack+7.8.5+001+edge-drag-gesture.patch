@@ -1,26 +1,20 @@
 diff --git a/node_modules/@react-navigation/stack/lib/module/utils/edgeDragGestureMonitor.js b/node_modules/@react-navigation/stack/lib/module/utils/edgeDragGestureMonitor.js
 new file mode 100644
-index 0000000..f6edb80
+index 0000000..de3a4e8
 --- /dev/null
 +++ b/node_modules/@react-navigation/stack/lib/module/utils/edgeDragGestureMonitor.js
-@@ -0,0 +1,46 @@
+@@ -0,0 +1,38 @@
 +"use strict";
 +
 +let isInitialized = false;
 +let justFinishedEdgeGestureFromLeft = false;
-+let expectingTouchend = false;
++let touchStartPositionX = 0;
 +
 +/// This returns information if the user just performed edge gesture on iOS safari to navigate in the browser history.
 +export const getIsEdgeDragGesture = () => {
-+  return expectingTouchend || justFinishedEdgeGestureFromLeft;
++  return justFinishedEdgeGestureFromLeft;
 +};
 +
-+// We need to manualy reset this flag after deciding if there should be animation for navigation.
-+export const resetExpectingTouchendWithDelay = () => {
-+  setTimeout(() => {
-+    expectingTouchend = false;
-+  }, 100);
-+};
 +export const maybeInitializeEdgeDragGestureMonitor = () => {
 +  if (isInitialized) {
 +    return;
@@ -28,23 +22,20 @@ index 0000000..f6edb80
 +  isInitialized = true;
 +  let timer;
 +
-+  // Gestures that would trigger navigation forward are broken on iOS safari.
-+  // They don't have touchend event fired so we can look at expectingTouchEnd flag to detect if we should run animation.
-+  const handleTouchStart = () => {
-+    expectingTouchend = true;
++  const handleTouchStart = e => {
++    touchStartPositionX = e.changedTouches[0].pageX;
 +  };
 +  const handleTouchEnd = e => {
 +    let changedTouches;
 +    const pageX = (changedTouches = e.changedTouches[0]) === null || changedTouches === void 0 ? void 0 : changedTouches.pageX;
-+    // PageX for gesture that would trigger navigation back is negative.
-+    if (pageX < 0) {
++    // A left-to-right swipe with sufficient travel distance triggers browser back navigation on iOS Safari.
++    if ((pageX - touchStartPositionX) > 20) {
 +      if (timer) {
 +        clearTimeout(timer);
 +      }
 +      justFinishedEdgeGestureFromLeft = true;
 +      timer = setTimeout(() => justFinishedEdgeGestureFromLeft = false, 100);
 +    }
-+    expectingTouchend = false;
 +  };
 +  document.addEventListener('touchstart', handleTouchStart);
 +  document.addEventListener('touchend', handleTouchEnd);
@@ -53,16 +44,15 @@ index 0000000..f6edb80
 \ No newline at end of file
 diff --git a/node_modules/@react-navigation/stack/lib/module/utils/edgeDragGestureMonitor.native.js b/node_modules/@react-navigation/stack/lib/module/utils/edgeDragGestureMonitor.native.js
 new file mode 100644
-index 0000000..9c7b703
+index 0000000..5a2bb2d
 --- /dev/null
 +++ b/node_modules/@react-navigation/stack/lib/module/utils/edgeDragGestureMonitor.native.js
-@@ -0,0 +1,8 @@
+@@ -0,0 +1,6 @@
 +"use strict";
 +
 +// We don't need edgeDragGestureMonitor for native platforms.
 +
 +export const getIsEdgeDragGesture = () => false;
-+export const resetExpectingTouchendWithDelay = () => {};
 +export const maybeInitializeEdgeDragGestureMonitor = () => {};
 +//# sourceMappingURL=edgeDragGestureMonitor.native.js.map
 \ No newline at end of file
@@ -74,31 +64,31 @@ index 0000000..0000000 100644
  import useLatestCallback from 'use-latest-callback';
  import { CardAnimationContext } from "../../utils/CardAnimationContext.js";
  import { gestureActivationCriteria } from "../../utils/gestureActivationCriteria.js";
-+import { getIsEdgeDragGesture, resetExpectingTouchendWithDelay } from '../../utils/edgeDragGestureMonitor';
++import { getIsEdgeDragGesture } from '../../utils/edgeDragGestureMonitor';
  import { getDistanceForDirection } from "../../utils/getDistanceForDirection.js";
  import { getInvertedMultiplier } from "../../utils/getInvertedMultiplier.js";
  import { getShadowStyle } from "../../utils/getShadowStyle.js";
-@@ -134,7 +135,9 @@ export function Card({
+@@ -111,7 +112,10 @@ export function Card({
+     lastToValueRef.current = toValue;
+     isClosing.setValue(isClosingParam ? TRUE : FALSE);
+     const spec = isClosingParam ? transitionSpec.close : transitionSpec.open;
+-    const animation = spec.animation === 'spring' ? Animated.spring : Animated.timing;
++    const isEdgeDragGesture = getIsEdgeDragGesture();
++    // Switch to timing animation when an edge gesture is detected, as spring animations ignore the duration config.
++    const animation = spec.animation === 'spring' && !isEdgeDragGesture ? Animated.spring : Animated.timing;
+     clearTimeout(pendingGestureCallbackRef.current);
+     if (animationHandleRef.current !== undefined) {
+       cancelAnimationFrame(animationHandleRef.current);
+@@ -134,7 +138,8 @@ export function Card({
      if (animated) {
        onStartInteraction();
        animation(gesture, {
          ...spec.config,
 +        // Detecting if the user used swipe gesture on iOS safari to trigger navigation in the browser history.
-+        duration: getIsEdgeDragGesture() ? 0 : spec.config && 'duration' in spec.config ? spec.config.duration : undefined,
++        duration: isEdgeDragGesture ? 0 : spec.config && 'duration' in spec.config ? spec.config.duration : undefined,
          velocity,
          toValue,
          useNativeDriver,
-@@ -143,7 +145,10 @@ export function Card({
-         finished
-       }) => {
-         onEndInteraction();
-         clearTimeout(pendingGestureCallbackRef.current);
-+
-+        // We need to reset edgeDragGestureMonitor manually because of broken events on iOS safari.
-+        resetExpectingTouchendWithDelay();
-         if (finished) {
-           onFinish();
-         }
 diff --git a/node_modules/@react-navigation/stack/lib/module/views/Stack/CardStack.js b/node_modules/@react-navigation/stack/lib/module/views/Stack/CardStack.js
 index 0000000..0000000 100644
 --- a/node_modules/@react-navigation/stack/lib/module/views/Stack/CardStack.js
