@@ -215,13 +215,13 @@ function DateFilterBase({
                     onRangeValidationErrorChange={setShouldShowRangeError}
                     forceVerticalCalendars
                 />
-                {shouldShowRangeSummary && (
-                    <Text style={[styles.textLabelSupporting, styles.mh5, styles.mt2]}>
-                        {`${translate('common.range')}: `}
-                        <Text style={[styles.textLabel]}>{rangeDisplayText}</Text>
-                    </Text>
-                )}
             </ScrollView>
+            {shouldShowRangeSummary && (
+                <Text style={[styles.textLabelSupporting, styles.mh5, styles.mt2]}>
+                    {`${translate('common.range')}: `}
+                    <Text style={[styles.textLabel]}>{rangeDisplayText}</Text>
+                </Text>
+            )}
             {shouldShowActionButtons && (
                 <>
                     <Button
