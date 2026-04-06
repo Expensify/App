@@ -213,6 +213,7 @@ describe('MoneyRequestReceiptView', () => {
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${TEST_POLICY_ID}`, {id: TEST_POLICY_ID, role: CONST.POLICY.ROLE.ADMIN, type: CONST.POLICY.TYPE.TEAM});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${TEST_POLICY_ID}`, {});
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: 1});
         });
         await waitForBatchedUpdatesWithAct();
     });
