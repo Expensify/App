@@ -40,7 +40,7 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
         return Object.values(CONST.ONBOARDING_COMPANY_SIZE)
             .filter(
                 (size) =>
-                    // Always hide the legacy 1-10 bucket; granular SMB-only sizes apply only when the signup qualifier is SMB.
+                    // Always hide the deprecated 1-10 option. For SMB-qualified users, also hide 1-4 and 5-10 since they already indicated they manage a team.
                     size !== CONST.ONBOARDING_COMPANY_SIZE.MICRO && (!isSmb || (size !== CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL && size !== CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM)),
             )
             .map((companySize): OnboardingListItem => {
