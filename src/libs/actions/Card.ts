@@ -1624,7 +1624,10 @@ function buildSpendRuleAST(spendRuleValues: SpendRuleForm): ExpensifyCardRule | 
         maxAmount !== ''
             ? {
                   left: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
-                  operator: spendRuleValues.restrictionAction === CONST.SPEND_RULES.ACTION.BLOCK ? CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN : CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO,
+                  operator:
+                      spendRuleValues.restrictionAction === CONST.SPEND_RULES.ACTION.BLOCK
+                          ? CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN
+                          : CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO,
                   right: [maxAmount],
               }
             : undefined;
