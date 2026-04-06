@@ -228,7 +228,7 @@ function DateFilterBase({
                         <FormHelpMessage
                             isError
                             message={translate('search.errors.pleaseSelectDatesForBothFromAndTo')}
-                            style={[styles.mh5, styles.mt4]}
+                            style={[styles.mh5, styles.mt2]}
                         />
                     )}
                     <Button
