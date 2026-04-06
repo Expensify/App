@@ -279,6 +279,13 @@ const CONST = {
     MAX_IMAGE_PIXEL_COUNT: 50000000,
     CHUNK_LOAD_ERROR: 'ChunkLoadError',
 
+    CHRONOS: {
+        TIMER_COMMAND: {
+            START: 'start',
+            STOP: 'stop',
+        },
+    },
+
     RECEIPT_CAMERA: {
         PHOTO_WIDTH: 4032,
         PHOTO_HEIGHT: 3024,
@@ -1088,6 +1095,7 @@ const CONST = {
         NZD: 'NZD',
         EUR: 'EUR',
     },
+    DEFAULT_CURRENCY_DECIMALS: 2,
     SCA_CURRENCIES: new Set(['GBP', 'EUR']),
     get DIRECT_REIMBURSEMENT_CURRENCIES() {
         return [this.CURRENCY.USD, this.CURRENCY.AUD, this.CURRENCY.CAD, this.CURRENCY.GBP, this.CURRENCY.EUR];
@@ -1394,6 +1402,8 @@ const CONST = {
                 CARD_REPLACED_VIRTUAL: 'CARDREPLACEDVIRTUAL',
                 CARD_REPLACED: 'CARDREPLACED',
                 CARD_ASSIGNED: 'CARDASSIGNED',
+                CARD_FROZEN: 'CARDFROZEN',
+                CARD_UNFROZEN: 'CARDUNFROZEN',
                 PERSONAL_CARD_CONNECTION_BROKEN: 'PERSONALCARDCONNECTIONBROKEN',
                 CHANGE_FIELD: 'CHANGEFIELD', // OldDot Action
                 CHANGE_POLICY: 'CHANGEPOLICY',
@@ -6533,6 +6543,7 @@ const CONST = {
     ONBOARDING_RHP_VARIANT: {
         RHP_CONCIERGE_DM: 'rhpConciergeDm',
         RHP_ADMINS_ROOM: 'rhpAdminsRoom',
+        RHP_HOME_PAGE: 'rhpHomePage',
         CONTROL: 'control',
     },
     ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE: 'What would you like to do with this expense?',
@@ -7380,6 +7391,7 @@ const CONST = {
             VIEW: 'view',
             SUBMIT: 'submit',
             APPROVE: 'approve',
+            CHANGE_APPROVER: 'changeApprover',
             PAY: 'pay',
             DONE: 'done',
             EXPORT_TO_ACCOUNTING: 'exportToAccounting',
@@ -7396,6 +7408,7 @@ const CONST = {
             EDIT: 'edit',
             EXPORT: 'export',
             APPROVE: 'approve',
+            CHANGE_APPROVER: 'changeApprover',
             PAY: 'pay',
             SUBMIT: 'submit',
             HOLD: 'hold',
@@ -8420,6 +8433,9 @@ const CONST = {
             SIGN_UP: 'sign_up',
             WORKSPACE_CREATED: 'workspace_created',
             PAID_ADOPTION: 'paid_adoption',
+            PRODUCT_TRAINING_SCAN_TEST_TOOLTIP_SHOWN: 'prod_training_scan_test_tooltip_shown',
+            PRODUCT_TRAINING_SCAN_TEST_TOOLTIP_DISMISSED: 'prod_training_scan_test_tooltip_dismissed',
+            PRODUCT_TRAINING_SCAN_TEST_TOOLTIP_CONFIRMED: 'prod_training_scan_test_tooltip_confirmed',
         },
     },
 
@@ -8707,6 +8723,7 @@ const CONST = {
         },
         HEADER_VIEW: {
             BACK_BUTTON: 'HeaderView-BackButton',
+            CHRONOS_TIMER_BUTTON: 'HeaderView-ChronosTimerButton',
             DETAILS_BUTTON: 'HeaderView-DetailsButton',
         },
         SEARCH: {
@@ -9439,22 +9456,22 @@ const CONST = {
     HOME: {
         ANNOUNCEMENTS: [
             {
-                title: 'Expensify and Xero partner to support SMBs',
-                subtitle: 'Press Release',
-                url: 'https://www.businesswire.com/news/home/20260212641796/en/Expensify-and-Xero-Enhance-Partnership-to-Support-Small-Businesses',
-                publishedDate: '2026-02-12',
-            },
-            {
-                title: 'New Home page & upgraded Insights analytics',
-                subtitle: 'Product update',
-                url: 'https://use.expensify.com/blog/expensify-home-and-insights-update',
-                publishedDate: '2026-02-18',
-            },
-            {
                 title: 'Smarter spend controls & Concierge anywhere',
                 subtitle: 'Product update',
                 url: 'https://use.expensify.com/blog/expensify-february-2026-product-update',
                 publishedDate: '2026-02-19',
+            },
+            {
+                title: 'More power, right where you need it',
+                subtitle: 'Product update',
+                url: 'https://use.expensify.com/blog/expensify-march-2026-product-update',
+                publishedDate: '2026-03-23',
+            },
+            {
+                title: 'New global partnerships: banking, travel, accounting, & more',
+                subtitle: 'Newsletter',
+                url: 'https://use.expensify.com/blog/expensify-new-integrations-march-2026',
+                publishedDate: '2026-03-25',
             },
         ],
     },
