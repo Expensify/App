@@ -1296,7 +1296,7 @@ function leaveWorkspace(currentUserAccountID: number, currentUserEmail: string, 
     ];
 
     const currentTime = DateUtils.getDBTime();
-    const pendingChatMembers = ReportUtils.getPendingChatMembers([deprecatedSessionAccountID], [], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const pendingChatMembers = ReportUtils.getPendingChatMembers([currentUserAccountID], [], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
     for (const report of workspaceChats) {
         if (!report?.reportID) {
@@ -3942,6 +3942,7 @@ function dismissAddedWithPrimaryLoginMessages(policyID: string) {
 function createWorkspaceFromIOUPayment(
     iouReport: OnyxEntry<Report>,
     reportPreviewAction: ReportAction | undefined,
+    currentUserAccountID: number,
     currentUserEmail: string,
     iouReportOwnerEmail: string,
     conciergeReportID: string | undefined,
@@ -3985,7 +3986,7 @@ function createWorkspaceFromIOUPayment(
         name: workspaceName,
         role: CONST.POLICY.ROLE.ADMIN,
         owner: currentUserEmail,
-        ownerAccountID: deprecatedSessionAccountID,
+        ownerAccountID: currentUserAccountID,
         isPolicyExpenseChatEnabled: true,
 
         // Setting the new workspace currency to the currency of the iouReport
