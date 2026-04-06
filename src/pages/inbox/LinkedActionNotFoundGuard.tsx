@@ -133,13 +133,19 @@ function LinkedActionNotFoundGate({reportActionIDFromRoute, children}: LinkedAct
         linkedAction,
     ]);
 
-    // Action was deleted while we were viewing it — navigate away
+    // Action was deleted or completely removed while we were viewing it — navigate away.
+    // This handles both: (1) action exists but is hidden/deleted, and (2) action was
+    // removed from Onyx entirely (e.g. REPORT_PREVIEW nulled out when moving IOU to workspace).
     useEffect(() => {
-        if (!isLinkedActionDeleted || !wasEverVisible) {
+        if (!wasEverVisible) {
+            return;
+        }
+        const isActionGone = isLinkedActionDeleted || (!linkedAction && !isLoadingInitialReportActions);
+        if (!isActionGone) {
             return;
         }
         Navigation.setParams({reportActionID: ''});
-    }, [isLinkedActionDeleted, wasEverVisible]);
+    }, [isLinkedActionDeleted, wasEverVisible, linkedAction, isLoadingInitialReportActions]);
 
     // Handle inaccessible whisper
     useEffect(() => {
