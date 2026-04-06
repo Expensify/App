@@ -70,11 +70,14 @@ function BankInfo({onBackButtonPress, policyID, setUSDBankAccountStep}: BankInfo
                 policyID,
             );
         } else if (setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
-            if (bankAccountID) {
+            const previousPlaidAccountID = reimbursementAccount?.achData?.plaidAccountID;
+            const newPlaidAccountID = data[BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID];
+            const plaidAccountIDChanged = !!bankAccountID && !!previousPlaidAccountID && previousPlaidAccountID !== newPlaidAccountID;
+            if (plaidAccountIDChanged) {
                 deletePaymentBankAccount(bankAccountID, undefined);
             }
             connectBankAccountWithPlaid(
-                CONST.DEFAULT_NUMBER_ID,
+                plaidAccountIDChanged ? CONST.DEFAULT_NUMBER_ID : bankAccountID,
                 {
                     [BANK_INFO_STEP_KEYS.ROUTING_NUMBER]: data[BANK_INFO_STEP_KEYS.ROUTING_NUMBER] ?? '',
                     [BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER]: data[BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER] ?? '',
