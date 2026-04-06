@@ -79,53 +79,13 @@ function isPersonalBankAccountMissingInfo(accountData: AccountData | undefined, 
 
     const {additionalData} = accountData;
     const currentAddress = getCurrentAddress(privatePersonalDetails);
-    const nameOnAccount = hasOwnerName(additionalData);
-    const nameOnProfile = !!privatePersonalDetails?.legalFirstName && !!privatePersonalDetails?.legalLastName;
-    const addressOnAccount = hasOwnerAddress(additionalData);
-    const addressOnProfile =
-        !!(currentAddress?.street || currentAddress?.addressLine1) && !!currentAddress?.city && !!currentAddress?.state && !!(currentAddress?.zip || currentAddress?.zipPostCode);
-    const phoneOnAccount = hasOwnerPhone(additionalData);
-    const phoneOnProfile = !!privatePersonalDetails?.phoneNumber;
+    const namePresent = hasOwnerName(additionalData) || (!!privatePersonalDetails?.legalFirstName && !!privatePersonalDetails?.legalLastName);
+    const addressPresent =
+        hasOwnerAddress(additionalData) ||
+        (!!(currentAddress?.street || currentAddress?.addressLine1) && !!currentAddress?.city && !!currentAddress?.state && !!(currentAddress?.zip || currentAddress?.zipPostCode));
+    const phonePresent = hasOwnerPhone(additionalData) || !!privatePersonalDetails?.phoneNumber;
 
-    const namePresent = nameOnAccount || nameOnProfile;
-    const addressPresent = addressOnAccount || addressOnProfile;
-    const phonePresent = phoneOnAccount || phoneOnProfile;
-    const isMissing = !namePresent || !addressPresent || !phonePresent;
-
-    // eslint-disable-next-line no-console
-    console.log(
-        `[DEBUG-86803] isPersonalBankAccountMissingInfo bankAccountID=${accountData.bankAccountID} result=${isMissing}`,
-        JSON.stringify({
-            type: accountData.type,
-            state: accountData.state,
-            country,
-            name: {onAccount: nameOnAccount, onProfile: nameOnProfile, present: namePresent},
-            address: {onAccount: addressOnAccount, onProfile: addressOnProfile, present: addressPresent},
-            phone: {onAccount: phoneOnAccount, onProfile: phoneOnProfile, present: phonePresent},
-            additionalData: {
-                firstName: additionalData?.firstName,
-                lastName: additionalData?.lastName,
-                addressStreet: additionalData?.addressStreet,
-                addressCity: additionalData?.addressCity,
-                addressState: additionalData?.addressState,
-                addressZipCode: additionalData?.addressZipCode,
-                companyPhone: additionalData?.companyPhone,
-            },
-            profile: {
-                legalFirstName: privatePersonalDetails?.legalFirstName,
-                legalLastName: privatePersonalDetails?.legalLastName,
-                phoneNumber: privatePersonalDetails?.phoneNumber,
-                addressLine1: currentAddress?.addressLine1,
-                city: currentAddress?.city,
-                state: currentAddress?.state,
-                zipPostCode: currentAddress?.zipPostCode,
-            },
-            privatePersonalDetailsIsNull: privatePersonalDetails === null,
-            privatePersonalDetailsIsUndefined: privatePersonalDetails === undefined,
-        }),
-    );
-
-    return isMissing;
+    return !namePresent || !addressPresent || !phonePresent;
 }
 
 /**
