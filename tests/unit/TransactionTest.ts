@@ -1,5 +1,5 @@
 import {act, renderHook, waitFor} from '@testing-library/react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry, OnyxKey} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import useOnyx from '@hooks/useOnyx';
@@ -14,6 +14,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {TransactionViolation} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
+import type SearchResults from '@src/types/onyx/SearchResults';
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
 import type {PersonalDetails, RecentWaypoint, Report, ReportAction, ReportActions, Transaction} from '../../src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
@@ -49,6 +50,22 @@ const FAKE_NEW_REPORT_ID = '2';
 const FAKE_OLD_REPORT_ID = '3';
 const FAKE_SELF_DM_REPORT_ID = '4';
 
+function generateIOUAction(transaction: Transaction, reportID: string): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> {
+    return {
+        reportActionID: rand64(),
+        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+        actorAccountID: CURRENT_USER_ID,
+        created: DateUtils.getDBTime(),
+        originalMessage: {
+            IOUReportID: reportID,
+            IOUTransactionID: transaction.transactionID,
+            amount: transaction.amount,
+            currency: transaction.currency,
+            type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+        },
+    };
+}
+
 const newReport = {
     reportID: FAKE_NEW_REPORT_ID,
     ownerAccountID: CURRENT_USER_ID,
@@ -79,6 +96,7 @@ describe('Transaction', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
+            snapshotMergeKeys: ['pendingAction', 'pendingFields'],
             initialKeyStates: {
                 [ONYXKEYS.SESSION]: {accountID: CURRENT_USER_ID},
                 ...reportCollectionDataSet,
@@ -825,7 +843,7 @@ describe('Transaction', () => {
                 ...generateTransaction({
                     reportID: oldExpenseReport.reportID,
                 }),
-                amount: -100,
+                amount: -200,
                 reimbursable: false,
             };
             const oldIOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
@@ -876,7 +894,7 @@ describe('Transaction', () => {
             expect(report?.nonReimbursableTotal).toBe(oldExpenseReport.nonReimbursableTotal - transaction.amount);
         });
 
-        it('should not update the old report total when the currency is different', async () => {
+        it('should reset the old report total to 0 when no expenses remain, even if the currencies differ', async () => {
             const oldExpenseReport = {
                 ...createRandomReport(1, undefined),
                 total: -200,
@@ -934,8 +952,131 @@ describe('Transaction', () => {
                 });
             });
 
-            expect(report?.total).toBe(oldExpenseReport.total);
-            expect(report?.nonReimbursableTotal).toBe(oldExpenseReport.nonReimbursableTotal);
+            expect(report?.total).toBe(0);
+            expect(report?.nonReimbursableTotal).toBe(0);
+        });
+
+        it('should keep both reports stale and preserve pending total fields for mixed-currency partial moves', async () => {
+            const sourceExpenseReport = {
+                ...createRandomReport(1, undefined),
+                total: -6700,
+                nonReimbursableTotal: 0,
+                unheldNonReimbursableTotal: 0,
+                currency: 'BGN',
+            };
+            const destinationExpenseReport = {
+                ...createRandomReport(2, undefined),
+                total: 0,
+                nonReimbursableTotal: 0,
+                unheldNonReimbursableTotal: 0,
+                currency: 'BGN',
+                pendingFields: {
+                    createReport: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+            };
+            const usdTransaction = {
+                ...generateTransaction({
+                    reportID: sourceExpenseReport.reportID,
+                }),
+                currency: 'USD',
+                amount: -1000,
+                convertedAmount: -3200,
+                reimbursable: true,
+            };
+            const movedBgnTransaction = {
+                ...generateTransaction({
+                    reportID: sourceExpenseReport.reportID,
+                }),
+                currency: 'BGN',
+                amount: -1500,
+                reimbursable: true,
+            };
+            const remainingBgnTransaction = {
+                ...generateTransaction({
+                    reportID: sourceExpenseReport.reportID,
+                }),
+                currency: 'BGN',
+                amount: -2000,
+                reimbursable: true,
+            };
+            const snapshotHash = 123;
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${usdTransaction.transactionID}`]: usdTransaction,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${movedBgnTransaction.transactionID}`]: movedBgnTransaction,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${remainingBgnTransaction.transactionID}`]: remainingBgnTransaction,
+            };
+            const usdIOUAction = generateIOUAction(usdTransaction, sourceExpenseReport.reportID);
+            const movedBgnIOUAction = generateIOUAction(movedBgnTransaction, sourceExpenseReport.reportID);
+            const sourceIOUActions: ReportActions = {
+                [usdIOUAction.reportActionID]: usdIOUAction,
+                [movedBgnIOUAction.reportActionID]: movedBgnIOUAction,
+            };
+
+            mockFetch.pause();
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${usdTransaction.transactionID}`, usdTransaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${movedBgnTransaction.transactionID}`, movedBgnTransaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${remainingBgnTransaction.transactionID}`, remainingBgnTransaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${sourceExpenseReport.reportID}`, sourceExpenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${destinationExpenseReport.reportID}`, destinationExpenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${sourceExpenseReport.reportID}`, sourceIOUActions);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}`, {
+                // @ts-expect-error: Allow partial record in snapshot update for testing
+                data: {
+                    [`${ONYXKEYS.COLLECTION.REPORT}${sourceExpenseReport.reportID}`]: sourceExpenseReport,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${destinationExpenseReport.reportID}`]: destinationExpenseReport,
+                },
+            });
+
+            changeTransactionsReport({
+                transactionIDs: [usdTransaction.transactionID, movedBgnTransaction.transactionID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: CURRENT_USER_ID,
+                email: 'test@example.com',
+                newReport: destinationExpenseReport,
+                policy: undefined,
+                allTransactions,
+                translate: TestHelper.translateLocal,
+                toLocaleDigit: TestHelper.toLocaleDigit,
+            });
+
+            await waitForBatchedUpdates();
+
+            const sourceReportKey = `${ONYXKEYS.COLLECTION.REPORT}${sourceExpenseReport.reportID}` as const;
+            const destinationReportKey = `${ONYXKEYS.COLLECTION.REPORT}${destinationExpenseReport.reportID}` as const;
+            const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}` as OnyxKey;
+            const updatedSourceReport = (await getOnyxValue(sourceReportKey as OnyxKey)) as OnyxEntry<Report>;
+            const updatedDestinationReport = (await getOnyxValue(destinationReportKey as OnyxKey)) as OnyxEntry<Report>;
+            const snapshot = (await getOnyxValue(snapshotKey)) as OnyxEntry<SearchResults>;
+            const snapshotSourceReport = snapshot?.data?.[sourceReportKey];
+            const snapshotDestinationReport = snapshot?.data?.[destinationReportKey];
+
+            expect(updatedSourceReport?.total).toBe(sourceExpenseReport.total);
+            expect(updatedDestinationReport?.total).toBe(destinationExpenseReport.total);
+            expect(updatedSourceReport?.pendingFields).toMatchObject({
+                preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                total: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            });
+            expect(updatedDestinationReport?.pendingFields).toMatchObject({
+                createReport: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                total: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            });
+            expect(snapshotSourceReport?.pendingFields).toMatchObject({
+                preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                total: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            });
+            expect(snapshotDestinationReport?.pendingFields).toMatchObject({
+                createReport: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                total: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            });
+
+            await mockFetch.resume();
         });
 
         it('should show "waiting for you to submit expense" next step message when moving expense to a new report ', async () => {
