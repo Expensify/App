@@ -72,6 +72,7 @@ function getSendMoneyParams({
     merchant,
     receipt,
     optimisticChatReportID,
+    currentUserAccountID,
 }: {
     report: OnyxEntry<OnyxTypes.Report>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
@@ -85,6 +86,7 @@ function getSendMoneyParams({
     merchant?: string;
     receipt?: Receipt;
     optimisticChatReportID?: string;
+    currentUserAccountID: number;
 }): SendMoneyParamsData {
     const recipientEmail = addSMSDomainIfPhoneNumber(recipient.login ?? '');
     const recipientAccountID = Number(recipient.accountID);
@@ -106,6 +108,7 @@ function getSendMoneyParams({
         chatReport = buildOptimisticChatReport({
             participantList: [recipientAccountID, managerID],
             optimisticReportID: optimisticChatReportID,
+            currentUserAccountID,
         });
         isNewChat = true;
     }
@@ -505,6 +508,7 @@ function sendMoneyElsewhere({report, quickAction, amount, currency, comment, cur
         merchant,
         receipt,
         optimisticChatReportID,
+        currentUserAccountID,
     });
     startSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE, {
         name: 'submit-to-destination-visible',
@@ -537,6 +541,7 @@ function sendMoneyWithWallet({report, quickAction, amount, currency, comment, cu
         merchant,
         receipt,
         optimisticChatReportID,
+        currentUserAccountID,
     });
     startSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE, {
         name: 'submit-to-destination-visible',

@@ -278,6 +278,7 @@ function IOURequestStepConfirmation({
     const receiverAccountID = receiverParticipant && 'accountID' in receiverParticipant && receiverParticipant.accountID ? receiverParticipant.accountID : CONST.DEFAULT_NUMBER_ID;
     const receiverType = getReceiverType(receiverParticipant);
     const senderWorkspaceID = transaction?.participants?.find((participant) => participant?.isSender)?.policyID;
+    const [senderWorkspacePolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${senderWorkspaceID}`);
 
     const existingInvoiceReport = useParticipantsInvoiceReport(receiverAccountID, receiverType, senderWorkspaceID);
 
@@ -1374,6 +1375,7 @@ function IOURequestStepConfirmation({
                     policyRecentlyUsedCategories,
                     isFromGlobalCreate: transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate,
                     policyRecentlyUsedTags,
+                    senderPolicyTags: senderWorkspacePolicyTags ?? {},
                 });
                 markSubmitExpenseEnd();
                 return;
@@ -1470,6 +1472,7 @@ function IOURequestStepConfirmation({
             existingInvoiceReport,
             policy,
             policyTags,
+            senderWorkspacePolicyTags,
             policyCategories,
             trackExpense,
             userLocation,

@@ -342,6 +342,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         chatReport = buildOptimisticChatReport({
             participantList: [payerAccountID, payeeAccountID],
             optimisticReportID: optimisticChatReportID,
+            currentUserAccountID: currentUserAccountIDParam,
         });
     }
 
