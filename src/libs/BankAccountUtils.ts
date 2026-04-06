@@ -44,16 +44,20 @@ const PERSONAL_INFO_STEP = {
 
 type AdditionalData = AccountData['additionalData'];
 
-function hasOwnerName(additionalData: AdditionalData): boolean {
-    return !!additionalData?.firstName && !!additionalData?.lastName;
+function hasOwnerName(additionalData: AdditionalData, privatePersonalDetails?: OnyxEntry<PrivatePersonalDetails>): boolean {
+    return (!!additionalData?.firstName && !!additionalData?.lastName) || (!!privatePersonalDetails?.legalFirstName && !!privatePersonalDetails?.legalLastName);
 }
 
-function hasOwnerAddress(additionalData: AdditionalData): boolean {
-    return !!additionalData?.addressStreet && !!additionalData?.addressCity && !!additionalData?.addressState && !!additionalData?.addressZipCode;
+function hasOwnerAddress(additionalData: AdditionalData, privatePersonalDetails?: OnyxEntry<PrivatePersonalDetails>): boolean {
+    if (!!additionalData?.addressStreet && !!additionalData?.addressCity && !!additionalData?.addressState && !!additionalData?.addressZipCode) {
+        return true;
+    }
+    const currentAddress = getCurrentAddress(privatePersonalDetails);
+    return !!(currentAddress?.street || currentAddress?.addressLine1) && !!currentAddress?.city && !!currentAddress?.state && !!(currentAddress?.zip || currentAddress?.zipPostCode);
 }
 
-function hasOwnerPhone(additionalData: AdditionalData): boolean {
-    return !!additionalData?.companyPhone;
+function hasOwnerPhone(additionalData: AdditionalData, privatePersonalDetails?: OnyxEntry<PrivatePersonalDetails>): boolean {
+    return !!additionalData?.companyPhone || !!privatePersonalDetails?.phoneNumber;
 }
 
 /**
@@ -78,14 +82,8 @@ function isPersonalBankAccountMissingInfo(accountData: AccountData | undefined, 
     }
 
     const {additionalData} = accountData;
-    const currentAddress = getCurrentAddress(privatePersonalDetails);
-    const namePresent = hasOwnerName(additionalData) || (!!privatePersonalDetails?.legalFirstName && !!privatePersonalDetails?.legalLastName);
-    const addressPresent =
-        hasOwnerAddress(additionalData) ||
-        (!!(currentAddress?.street || currentAddress?.addressLine1) && !!currentAddress?.city && !!currentAddress?.state && !!(currentAddress?.zip || currentAddress?.zipPostCode));
-    const phonePresent = hasOwnerPhone(additionalData) || !!privatePersonalDetails?.phoneNumber;
 
-    return !namePresent || !addressPresent || !phonePresent;
+    return !hasOwnerName(additionalData, privatePersonalDetails) || !hasOwnerAddress(additionalData, privatePersonalDetails) || !hasOwnerPhone(additionalData, privatePersonalDetails);
 }
 
 /**
@@ -99,19 +97,15 @@ function getCompletedStepsForBankAccount(bankAccountList: OnyxEntry<OnyxTypes.Ba
     }
 
     const {additionalData} = bankAccount.accountData ?? {};
-    const currentAddress = getCurrentAddress(privatePersonalDetails);
     const completedSteps: number[] = [];
 
-    if (hasOwnerName(additionalData) || (!!privatePersonalDetails?.legalFirstName && !!privatePersonalDetails?.legalLastName)) {
+    if (hasOwnerName(additionalData, privatePersonalDetails)) {
         completedSteps.push(PERSONAL_INFO_STEP.NAME);
     }
-    if (
-        hasOwnerAddress(additionalData) ||
-        (!!(currentAddress?.street || currentAddress?.addressLine1) && !!currentAddress?.city && !!currentAddress?.state && !!(currentAddress?.zip || currentAddress?.zipPostCode))
-    ) {
+    if (hasOwnerAddress(additionalData, privatePersonalDetails)) {
         completedSteps.push(PERSONAL_INFO_STEP.ADDRESS);
     }
-    if (hasOwnerPhone(additionalData) || !!privatePersonalDetails?.phoneNumber) {
+    if (hasOwnerPhone(additionalData, privatePersonalDetails)) {
         completedSteps.push(PERSONAL_INFO_STEP.PHONE);
     }
 
