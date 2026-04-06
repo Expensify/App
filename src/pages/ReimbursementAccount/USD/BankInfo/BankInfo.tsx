@@ -7,7 +7,7 @@ import type {SubStepProps} from '@hooks/useSubStep/types';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import {getBankAccountIDAsNumber} from '@libs/ReimbursementAccountUtils';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
-import {connectBankAccountManually, connectBankAccountWithPlaid} from '@userActions/BankAccounts';
+import {connectBankAccountManually, connectBankAccountWithPlaid, deletePaymentBankAccount} from '@userActions/BankAccounts';
 import {hideBankAccountErrors} from '@userActions/ReimbursementAccount';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -70,8 +70,11 @@ function BankInfo({onBackButtonPress, policyID, setUSDBankAccountStep}: BankInfo
                 policyID,
             );
         } else if (setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
+            if (bankAccountID) {
+                deletePaymentBankAccount(bankAccountID, undefined);
+            }
             connectBankAccountWithPlaid(
-                bankAccountID,
+                CONST.DEFAULT_NUMBER_ID,
                 {
                     [BANK_INFO_STEP_KEYS.ROUTING_NUMBER]: data[BANK_INFO_STEP_KEYS.ROUTING_NUMBER] ?? '',
                     [BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER]: data[BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER] ?? '',
