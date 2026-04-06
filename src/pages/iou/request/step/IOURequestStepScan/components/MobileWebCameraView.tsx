@@ -317,6 +317,13 @@ function MobileWebCameraView({
 
         const originalFileName = `receipt_${Date.now()}.png`;
         const originalFile = base64ToFile(imageBase64 ?? '', originalFileName);
+
+        if (originalFile.size === 0) {
+            cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
+            cancelSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION);
+            return;
+        }
+
         const imageObject: ImageObject = {file: originalFile, filename: originalFile.name, source: URL.createObjectURL(originalFile)};
         // Some browsers center-crop the viewfinder inside the video element (due to object-position: center),
         // while other browsers let the video element overflow and the container crops it from the top.
@@ -444,7 +451,7 @@ function MobileWebCameraView({
                                 ) : null}
                                 <Animated.View
                                     pointerEvents="none"
-                                    style={[StyleSheet.absoluteFillObject, styles.backgroundWhite, blinkStyle, styles.zIndex10]}
+                                    style={[StyleSheet.absoluteFill, styles.backgroundWhite, blinkStyle, styles.zIndex10]}
                                 />
                             </View>
                         )}

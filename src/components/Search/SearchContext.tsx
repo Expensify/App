@@ -175,15 +175,33 @@ function SearchContextProvider({children}: SearchContextProps) {
                     }
                     return item.transactions.every(({keyForList}) => transactionIDs[keyForList]?.isSelected);
                 })
-                .map(({reportID, action = CONST.SEARCH.ACTION_TYPES.VIEW, total = CONST.DEFAULT_NUMBER_ID, policyID, allActions = [action], currency, chatReportID}) => ({
-                    reportID,
-                    action,
-                    total,
-                    policyID,
-                    allActions,
-                    currency,
-                    chatReportID,
-                }));
+                .map(
+                    ({
+                        reportID,
+                        action = CONST.SEARCH.ACTION_TYPES.VIEW,
+                        total = CONST.DEFAULT_NUMBER_ID,
+                        policyID,
+                        allActions = [action],
+                        currency,
+                        chatReportID,
+                        managerID,
+                        ownerAccountID,
+                        parentReportActionID,
+                        parentReportID,
+                    }) => ({
+                        reportID,
+                        action,
+                        total,
+                        policyID,
+                        allActions,
+                        currency,
+                        chatReportID,
+                        managerID,
+                        ownerAccountID,
+                        parentReportActionID,
+                        parentReportID,
+                    }),
+                );
         } else if (data.length && data.every(isTransactionListItemType)) {
             matchingReports = data
                 .filter(({keyForList}) => !!keyForList && transactionIDs[keyForList]?.isSelected)
@@ -199,6 +217,11 @@ function SearchContextProvider({children}: SearchContextProps) {
                         allActions: item.allActions ?? [action],
                         currency: item.currency,
                         chatReportID: item.report?.chatReportID,
+                        managerID: item.report?.managerID,
+                        ownerAccountID: item.report?.ownerAccountID,
+                        parentReportActionID: item.report?.parentReportActionID,
+                        parentReportID: item.report?.parentReportID,
+                        type: item.report?.type,
                     };
                 });
         }

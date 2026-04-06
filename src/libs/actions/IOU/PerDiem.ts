@@ -48,7 +48,6 @@ import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {BasePolicyParams, MoneyRequestInformation, RequestMoneyParticipantParams} from '.';
 import {
     buildMinimalTransactionForFormula,
     buildOnyxDataForMoneyRequest,
@@ -64,6 +63,8 @@ import {
     mergePolicyRecentlyUsedCategories,
     mergePolicyRecentlyUsedCurrencies,
 } from '.';
+import type {BaseTransactionParams, MoneyRequestInformation, RequestMoneyParticipantParams} from './index';
+import type BasePolicyParams from './types/BasePolicyParams';
 
 function removeSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentIndex: string) {
     // Index comes from the route params and is a string
@@ -205,23 +206,6 @@ function computeDefaultPerDiemExpenseComment(customUnit: TransactionCustomUnit, 
     return subRateComments.join(', ');
 }
 
-type BaseTransactionParams = {
-    amount: number;
-    modifiedAmount?: number;
-    currency: string;
-    created: string;
-    merchant: string;
-    comment: string;
-    category?: string;
-    tag?: string;
-    taxCode?: string;
-    taxAmount?: number;
-    billable?: boolean;
-    reimbursable?: boolean;
-    customUnitRateID?: string;
-    isFromGlobalCreate?: boolean;
-};
-
 type PerDiemExpenseTransactionParams = Omit<BaseTransactionParams, 'amount' | 'merchant' | 'customUnitRateID' | 'taxAmount' | 'taxCode' | 'comment'> & {
     attendees?: Attendee[];
     customUnit: TransactionCustomUnit;
@@ -356,6 +340,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         isNewChatReport = true;
         chatReport = buildOptimisticChatReport({
             participantList: [payerAccountID, payeeAccountID],
+            currentUserAccountID: currentUserAccountIDParam,
         });
     }
 

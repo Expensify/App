@@ -1,3 +1,3 @@
-import useNativeBiometrics from '@components/MultifactorAuthentication/biometrics/useNativeBiometrics';
+import useNativeBiometricsHSM from '@components/MultifactorAuthentication/biometrics/useNativeBiometricsHSM';
 
-export default useNativeBiometrics;
+export default useNativeBiometricsHSM;
