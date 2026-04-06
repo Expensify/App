@@ -36,6 +36,7 @@ const WRITE_COMMANDS = {
     RECONNECT_APP: 'ReconnectApp',
     HANDLE_RESTRICTED_EVENT: 'HandleRestrictedEvent',
     OPEN_REPORT: 'OpenReport',
+    OPEN_BULK_CHANGE_APPROVER_PAGE: 'OpenBulkChangeApproverPage',
     DELETE_PAYMENT_BANK_ACCOUNT: 'DeletePaymentBankAccount',
     UPDATE_PERSONAL_INFORMATION_FOR_BANK_ACCOUNT: 'UpdatePersonalInformationForBankAccount',
     VALIDATE_BANK_ACCOUNT_WITH_TRANSACTIONS: 'ValidateBankAccountWithTransactions',
@@ -586,6 +587,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.OPEN_APP]: Parameters.OpenAppParams;
     [WRITE_COMMANDS.HANDLE_RESTRICTED_EVENT]: Parameters.HandleRestrictedEventParams;
     [WRITE_COMMANDS.OPEN_REPORT]: Parameters.OpenReportParams;
+    [WRITE_COMMANDS.OPEN_BULK_CHANGE_APPROVER_PAGE]: Parameters.OpenBulkChangeApproverPageParams;
     [WRITE_COMMANDS.DELETE_PAYMENT_BANK_ACCOUNT]: Parameters.DeletePaymentBankAccountParams;
     [WRITE_COMMANDS.UPDATE_PERSONAL_INFORMATION_FOR_BANK_ACCOUNT]: Parameters.UpdatePersonalInformationForBankAccountParams;
     [WRITE_COMMANDS.VALIDATE_BANK_ACCOUNT_WITH_TRANSACTIONS]: Parameters.ValidateBankAccountWithTransactionsParams;

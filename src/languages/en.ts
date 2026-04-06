@@ -508,6 +508,7 @@ const translations = {
         on: 'On',
         before: 'Before',
         after: 'After',
+        range: 'Range',
         reschedule: 'Reschedule',
         general: 'General',
         workspacesTabTitle: 'Workspaces',
@@ -843,6 +844,9 @@ const translations = {
         addAttachment: 'Add attachment',
         writeSomething: 'Write something...',
         blockedFromConcierge: 'Communication is barred',
+        askConciergeToUpdate: 'Try "Update an expense"...',
+        askConciergeToCorrect: 'Try "Correct an expense"...',
+        askConciergeForHelp: 'Ask Concierge AI for help...',
         fileUploadFailed: 'Upload failed. File is not supported.',
         localTime: (user: string, time: string) => `It's ${time} for ${user}`,
         edited: '(edited)',
@@ -1216,7 +1220,6 @@ const translations = {
         flash: 'flash',
         multiScan: 'multi-scan',
         shutter: 'shutter',
-        flipCamera: 'flip camera',
         gallery: 'gallery',
         deleteReceipt: 'Delete receipt',
         deleteConfirmation: 'Are you sure you want to delete this receipt?',
@@ -1377,7 +1380,6 @@ const translations = {
         }),
         settledExpensify: 'Paid',
         done: 'Done',
-        deleted: 'Deleted',
         settledElsewhere: 'Paid elsewhere',
         individual: 'Individual',
         business: 'Business',
@@ -1589,6 +1591,7 @@ const translations = {
         bookingArchived: 'This booking is archived',
         bookingArchivedDescription: 'This booking is archived because the trip date has passed. Add an expense for the final amount if needed.',
         attendees: 'Attendees',
+        totalPerAttendee: 'Per attendee',
         whoIsYourAccountant: 'Who is your accountant?',
         paymentComplete: 'Payment complete',
         time: 'Time',
@@ -1660,7 +1663,9 @@ const translations = {
             },
             addApprover: {
                 subtitle: 'Choose an additional approver for this report before we route through the rest of the approval workflow.',
+                bulkSubtitle: 'Choose an additional approver for these reports before we route through the rest of the approval workflow.',
             },
+            bulkSubtitle: 'Choose an option to change the approver for these reports.',
         },
         chooseWorkspace: 'Choose a workspace',
         routedDueToDEW: (to: string, reason?: string) => `report routed to ${to}${reason ? ` because ${reason}` : ''}`,
@@ -1808,7 +1813,7 @@ const translations = {
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Waiting for <strong>your</strong> expenses to automatically submit${formattedETA}.`;
+                        return `Waiting for your expenses to automatically submit${formattedETA}.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `Waiting for <strong>${actor}'s</strong> expenses to automatically submit${formattedETA}.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
@@ -2085,6 +2090,8 @@ const translations = {
             title: 'Help and support',
             description: 'We are here to help you 24/7',
             helpSite: 'Help site',
+            conciergeChat: 'Concierge',
+            conciergeChatDescription: 'Your personal AI agent',
         },
         whatIsNew: "What's new",
         accountSettings: 'Account settings',
@@ -2371,6 +2378,7 @@ const translations = {
         enableWallet: 'Enable wallet',
         addBankAccountToSendAndReceive: 'Add a bank account to make or receive payments.',
         addDebitOrCreditCard: 'Add debit or credit card',
+        cardInactive: 'Inactive',
         assignedCards: 'Assigned cards',
         assignedCardsDescription: 'Transactions from these cards sync automatically.',
         expensifyCard: 'Expensify Card',
@@ -2547,6 +2555,7 @@ const translations = {
             title: 'No members to display',
             expensesFromSubtitle: 'All workspace members already belong to an existing approval workflow.',
             approverSubtitle: 'All approvers belong to an existing workflow.',
+            bulkApproverSubtitle: 'No approvers match the criteria for selected reports.',
         },
     },
     workflowsDelayedSubmissionPage: {
@@ -3862,6 +3871,10 @@ const translations = {
         youCanChange: 'You can change your workspace currency in your',
         findCountry: 'Find country',
         selectCountry: 'Select country',
+        error: {
+            connectToWorkspace: (workspaceRoute: string) =>
+                `Please connect this bank account to a <a href="${workspaceRoute}">workspace</a> so you can invite a director to sign in a later step.`,
+        },
     },
     bankInfoStep: {
         whatAreYour: 'What are your business bank account details?',
@@ -3909,6 +3922,7 @@ const translations = {
             `is connecting a ${currency} business bank account ending in ${bankAccountLastFour} to Expensify to pay employees in ${currency}. The next step requires signer info from a director.`,
         error: {
             emailsMustBeDifferent: 'Emails must be different',
+            connectToWorkspace: (workspaceRoute: string) => `Please connect this bank account to a <a href="${workspaceRoute}">workspace</a> to invite a director to sign.`,
         },
     },
     agreementsStep: {
@@ -6704,6 +6718,17 @@ const translations = {
                 title: 'Expense policy',
                 cardSubtitle: "Here's where your team's expense policy lives, so everyone's on the same page about what's covered.",
             },
+            spendRules: {
+                title: 'Spend',
+                subtitle: 'Approve or decline Expensify Card transactions in realtime.',
+                defaultRuleDescription: 'All cards',
+                block: 'Block',
+                defaultRuleTitle: 'Categories: Adult services, ATMs, gambling, money transfers',
+                builtInProtectionModal: {
+                    title: 'Expensify Cards offer built-in protection - always',
+                    description: `Expensify always declines these charges:\n\n  • Adult services\n  • ATMs\n  • Gambling\n  • Money transfers\n\nAdd more spend rules to protect company cash flow.`,
+                },
+            },
         },
         planTypePage: {
             planTypes: {
@@ -7408,7 +7433,6 @@ const translations = {
             hold: 'Hold',
             unhold: 'Remove hold',
             reject: 'Reject',
-            undelete: 'Undelete',
             noOptionsAvailable: 'No options available for the selected group of expenses.',
         },
         filtersHeader: 'Filters',
@@ -7417,6 +7441,8 @@ const translations = {
                 before: (date?: string) => `Before ${date ?? ''}`,
                 after: (date?: string) => `After ${date ?? ''}`,
                 on: (date?: string) => `On ${date ?? ''}`,
+                customDate: 'Custom date',
+                customRange: 'Custom range',
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Never',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Last month',
@@ -7537,6 +7563,9 @@ const translations = {
         exportAll: {
             selectAllMatchingItems: 'Select all matching items',
             allMatchingItemsSelected: 'All matching items selected',
+        },
+        errors: {
+            pleaseSelectDatesForBothFromAndTo: 'Please select dates for both From and To',
         },
     },
     genericErrorPage: {

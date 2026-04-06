@@ -30,6 +30,7 @@ import type Platform from '@libs/getPlatform/types';
 import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Log from '@libs/Log';
+import moveReceiptToDurableStorage from '@libs/moveReceiptToDurableStorage';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOdometerImageUri} from '@libs/OdometerImageUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
@@ -68,6 +69,7 @@ function IOURequestStepOdometerImage({
     route: {
         params: {action, iouType, transactionID, reportID, backToReport, imageType, isEditingConfirmation},
     },
+    transaction,
 }: IOURequestStepOdometerImageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -187,7 +189,7 @@ function IOURequestStepOdometerImage({
         if (!file) {
             return;
         }
-        setMoneyRequestOdometerImage(transactionID, imageType, getOdometerImageUri(file), isTransactionDraft, false);
+        setMoneyRequestOdometerImage(transaction, imageType, getOdometerImageUri(file), isTransactionDraft, false);
         navigateBack();
     };
 
@@ -240,9 +242,10 @@ function IOURequestStepOdometerImage({
                     .then((photo: PhotoFile) => {
                         const imageObject: ImageObject = {file: photo, filename: photo.path, source: getPhotoSource(photo.path)};
                         cropImageToAspectRatio(imageObject, viewfinderLayout.current?.width, viewfinderLayout.current?.height, undefined, photo.orientation)
+                            .then(({file, filename, source}) => moveReceiptToDurableStorage(source, filename).then((durableSource) => ({file, filename, source: durableSource})))
                             .then(({file, filename, source}) => {
                                 setMoneyRequestOdometerImage(
-                                    transactionID,
+                                    transaction,
                                     imageType,
                                     {
                                         uri: source,

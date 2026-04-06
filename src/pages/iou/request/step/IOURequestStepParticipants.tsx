@@ -34,11 +34,12 @@ import {
     setMoneyRequestTag,
 } from '@userActions/IOU';
 import {setSplitShares} from '@userActions/IOU/Split';
-import {createDraftWorkspace} from '@userActions/Policy/Policy';
+import {createDraftWorkspace, newGenerateDefaultWorkspaceName} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {lastWorkspaceNumberSelector} from '@src/selectors/Policy';
 import type {Policy} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
@@ -328,7 +329,9 @@ function IOURequestStepParticipants({
                 }
             }
             if ((isCategorizing || isShareAction) && numberOfParticipants.current === 0) {
-                const {expenseChatReportID, policyID, policyName} = createDraftWorkspace(introSelected);
+                const email = currentUserPersonalDetails.email ?? '';
+                const lastWorkspaceNumber = lastWorkspaceNumberSelector(allPolicies, email);
+                const {expenseChatReportID, policyID, policyName} = createDraftWorkspace(introSelected, newGenerateDefaultWorkspaceName(email, lastWorkspaceNumber, translate));
                 for (const transaction of draftTransactions) {
                     setMoneyRequestParticipants(transaction.transactionID, [
                         {
@@ -394,6 +397,7 @@ function IOURequestStepParticipants({
             introSelected,
             backTo,
             selfDMReportID,
+            translate,
         ],
     );
 
