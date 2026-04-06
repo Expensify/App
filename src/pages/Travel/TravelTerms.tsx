@@ -24,13 +24,14 @@ import {addComment} from '@libs/actions/Report';
 import {acceptSpotnanaTerms, cleanupTravelProvisioningSession} from '@libs/actions/Travel';
 import asyncOpenURL from '@libs/asyncOpenURL';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 import colors from '@styles/theme/colors';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {TravelProvisioning} from '@src/types/onyx';
 
@@ -76,7 +77,7 @@ function TravelTerms({route}: TravelTermsPageProps) {
 
                 // Handle permission denied error
                 if (errorCode === CONST.TRAVEL.PROVISIONING.ERROR_PERMISSION_DENIED && domain) {
-                    Navigation.navigate(ROUTES.TRAVEL_DOMAIN_PERMISSION_INFO.getRoute(domain));
+                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_DOMAIN_PERMISSION_INFO.path));
                     cleanupTravelProvisioningSession();
                     return Promise.reject(new Error('Permission denied'));
                 }

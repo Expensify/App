@@ -12,7 +12,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 import type SCREENS from '@src/SCREENS';
 
-type DomainPermissionInfoPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.DOMAIN_PERMISSION_INFO>;
+type DomainPermissionInfoPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.DYNAMIC_DOMAIN_PERMISSION_INFO>;
 
 function DomainPermissionInfoPage({route}: DomainPermissionInfoPageProps) {
     const styles = useThemeStyles();

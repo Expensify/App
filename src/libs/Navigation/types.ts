@@ -2544,7 +2544,7 @@ type TravelNavigatorParamList = {
         domain?: string;
         policyID?: string;
     };
-    [SCREENS.TRAVEL.DOMAIN_PERMISSION_INFO]: {
+    [SCREENS.TRAVEL.DYNAMIC_DOMAIN_PERMISSION_INFO]: {
         domain: string;
     };
     [SCREENS.TRAVEL.WORKSPACE_CONFIRMATION]: {
