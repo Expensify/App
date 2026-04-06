@@ -147,6 +147,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
     const [emptyReportsCount, setEmptyReportsCount] = useState<number>(0);
 
+    const pendingPaymentDataRef = useRef<{paymentData: PaymentData[]; hash: string} | undefined>(undefined);
+
     const [dismissedRejectUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_REJECT_USE_EXPLANATION);
     const [dismissedHoldUseExplanation] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION);
 
@@ -671,11 +673,33 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 };
             }) as PaymentData[];
 
-            payMoneyRequestOnSearch(hash, paymentData);
+            // Store the pending payment data for confirmation modal
+            pendingPaymentDataRef.current = {paymentData, hash};
 
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            InteractionManager.runAfterInteractions(() => {
-                clearSelectedTransactions();
+            const itemCount = paymentData.length;
+            const formattedAmount = getTotalFormattedAmount(selectedReports, selectedTransactions);
+
+            // Show confirmation modal before executing payment
+            showConfirmModal({
+                title: translate('common.areYouSure'),
+                prompt: `Are you sure you want to pay ${formattedAmount} for ${itemCount} ${itemCount === 1 ? 'expense' : 'expenses'}?`,
+                confirmText: translate('common.confirm'),
+                cancelText: translate('common.cancel'),
+                danger: true,
+                onConfirm: () => {
+                    const pendingData = pendingPaymentDataRef.current;
+                    if (pendingData) {
+                        payMoneyRequestOnSearch(pendingData.hash, pendingData.paymentData);
+                        pendingPaymentDataRef.current = undefined;
+                    }
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
+                    InteractionManager.runAfterInteractions(() => {
+                        clearSelectedTransactions();
+                    });
+                },
+                onCancel: () => {
+                    pendingPaymentDataRef.current = undefined;
+                },
             });
         },
         [
