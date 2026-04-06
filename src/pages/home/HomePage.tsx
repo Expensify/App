@@ -20,6 +20,8 @@ import AnnouncementSection from './AnnouncementSection';
 import AssignedCardsSection from './AssignedCardsSection';
 import DiscoverSection from './DiscoverSection';
 import ForYouSection from './ForYouSection';
+import FreeTrialSection from './FreeTrialSection';
+import SpendOverTimeSection from './SpendOverTimeSection';
 import TimeSensitiveSection from './TimeSensitiveSection';
 import UpcomingTravelSection from './UpcomingTravelSection';
 
@@ -29,8 +31,8 @@ function HomePage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     useDocumentTitle(translate('common.home'));
-    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const [isLoadingReportData = false] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
+    const [isLoadingApp = true] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_APP);
+    const [isLoadingReportData = false] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_REPORT_DATA);
     const isForYouLoading = !!(isLoadingApp || isLoadingReportData);
     const receiptDropTargetRef = useRef<View>(null);
 
@@ -76,9 +78,11 @@ function HomePage() {
                             <View style={styles.homePageLeftColumn(shouldUseNarrowLayout)}>
                                 <TimeSensitiveSection />
                                 <ForYouSection />
+                                <SpendOverTimeSection />
                                 <DiscoverSection />
                             </View>
                             <View style={styles.homePageRightColumn(shouldUseNarrowLayout)}>
+                                <FreeTrialSection />
                                 <UpcomingTravelSection />
                                 <AssignedCardsSection />
                                 <AnnouncementSection />

@@ -26,7 +26,6 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
 import type Platform from '@libs/getPlatform/types';
-import GoogleTagManager from '@libs/GoogleTagManager';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import {
@@ -80,7 +79,6 @@ function IOURequestStartPage({
 }: IOURequestStartPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {accountID} = useCurrentUserPersonalDetails();
     const shouldUseTab = iouType !== CONST.IOU.TYPE.SEND && iouType !== CONST.IOU.TYPE.PAY && iouType !== CONST.IOU.TYPE.INVOICE;
     const personalPolicy = usePersonalPolicy();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
@@ -121,14 +119,12 @@ function IOURequestStartPage({
     };
 
     const onTabSelectFocusHandler = ({index}: {index: number}) => {
-        // We requestAnimationFrame since the function is called in the animate block in the web implementation
-        // which fixes a locked animation glitch when swiping between tabs, and aligns with the native implementation internal delay
-        requestAnimationFrame(() => {
-            if (index !== PER_DIEM_TAB_INDEX) {
-                return;
-            }
+        if (index !== PER_DIEM_TAB_INDEX) {
+            return;
+        }
+        setTimeout(() => {
             perDiemInputRef.current?.focus?.();
-        });
+        }, CONST.ANIMATED_TRANSITION);
     };
 
     const isFromGlobalCreate = isEmptyObject(report?.reportID);
@@ -184,7 +180,9 @@ function IOURequestStartPage({
 
     const resetIOUTypeIfChanged = useCallback(
         (newIOUType: IOURequestType) => {
-            Keyboard.dismiss();
+            if (newIOUType !== CONST.IOU.REQUEST_TYPE.PER_DIEM) {
+                Keyboard.dismiss();
+            }
             if (transaction?.iouRequestType === newIOUType) {
                 return;
             }
@@ -264,16 +262,11 @@ function IOURequestStartPage({
         // The test receipt image is served via our server on web so it requires internet connection
         !hasUserSubmittedExpenseOrScannedReceipt && isBetaEnabled(CONST.BETAS.NEWDOT_MANAGER_MCTEST) && selectedTab === CONST.TAB_REQUEST.SCAN && !(isOffline && isWeb),
         {
-            onShown: () => {
-                GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.PRODUCT_TRAINING_SCAN_TEST_TOOLTIP_SHOWN, accountID);
-            },
             onConfirm: () => {
                 setTestReceiptAndNavigateRef?.current?.();
-                GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.PRODUCT_TRAINING_SCAN_TEST_TOOLTIP_CONFIRMED, accountID);
             },
             onDismiss: () => {
                 dismissProductTraining(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP, true);
-                GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.PRODUCT_TRAINING_SCAN_TEST_TOOLTIP_DISMISSED, accountID);
             },
         },
     );

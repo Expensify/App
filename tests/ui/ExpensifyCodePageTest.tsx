@@ -100,7 +100,7 @@ describe('ExpensifyCodePage', () => {
         jest.clearAllMocks();
         await act(async () => {
             await Onyx.clear();
-            await Onyx.set(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION, {expensifyCode: null});
+            await Onyx.set(ONYXKEYS.NVP_PRIVATE_PROMO_CODE, null);
         });
         await waitForBatchedUpdatesWithAct();
     });
@@ -155,7 +155,7 @@ describe('ExpensifyCodePage', () => {
     it('show NotFoundPage when subscription already has expensifyCode', async () => {
         await TestHelper.signInWithTestUser();
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION, {expensifyCode: 'APPLIED_CODE'});
+            await Onyx.set(ONYXKEYS.NVP_PRIVATE_PROMO_CODE, 'APPLIED_CODE');
         });
         await waitForBatchedUpdatesWithAct();
 
@@ -182,7 +182,7 @@ describe('ExpensifyCodePage', () => {
         expect(applyExpensifyCode).toHaveBeenCalledWith('2026EarlyAdoption50');
 
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION, {expensifyCode: '2026EarlyAdoption50'});
+            await Onyx.set(ONYXKEYS.NVP_PRIVATE_PROMO_CODE, '2026EarlyAdoption50');
         });
         await waitFor(() => {
             expect(Navigation.goBack).toHaveBeenCalled();
