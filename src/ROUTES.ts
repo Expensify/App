@@ -2299,6 +2299,10 @@ const ROUTES = {
             return `workspaces/${policyID}/tags` as const;
         },
     },
+    WORKSPACE_TAG_CREATE: {
+        route: 'workspaces/:policyID/tags/new',
+        getRoute: (policyID: string) => `workspaces/${policyID}/tags/new` as const,
+    },
     WORKSPACE_TAGS_SETTINGS: {
         route: 'workspaces/:policyID/tags/settings',
         getRoute: (policyID: string) => `workspaces/${policyID}/tags/settings` as const,
@@ -2308,10 +2312,6 @@ const ROUTES = {
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (policyID: string, orderWeight: number, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/tags/${orderWeight}/edit` as const, backTo),
-    },
-    WORKSPACE_TAG_CREATE: {
-        route: 'workspaces/:policyID/tags/new',
-        getRoute: (policyID: string) => `workspaces/${policyID}/tags/new` as const,
     },
     WORKSPACE_TAG_EDIT: {
         route: 'workspaces/:policyID/tag/:orderWeight/:tagName/edit',
