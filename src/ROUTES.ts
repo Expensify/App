@@ -744,8 +744,12 @@ const ROUTES = {
 
     NEW_REPORT_WORKSPACE_SELECTION: {
         route: 'new-report-workspace-selection',
-        getRoute: (isMovingExpenses?: boolean, backTo?: string) => {
-            const baseRoute = `new-report-workspace-selection${isMovingExpenses ? '?isMovingExpenses=true' : ''}` as const;
+        getRoute: (isMovingExpenses?: boolean, backTo?: string, createReportOrigin?: 'home' | 'search' | 'default', createReportSourceRoute?: string) => {
+            const baseRoute = getUrlWithParams('new-report-workspace-selection', {
+                isMovingExpenses: isMovingExpenses ? 'true' : undefined,
+                createReportOrigin,
+                createReportSourceRoute,
+            });
 
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             return getUrlWithBackToParam(baseRoute, backTo);

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useRef} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -10,6 +10,8 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {createNewReport} from '@libs/actions/Report';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
+import getExpenseReportRouteForCreateReport from '@libs/Navigation/helpers/getExpenseReportRouteForCreateReport';
+import isHomeTopmostFullScreenRoute from '@libs/Navigation/helpers/isHomeTopmostFullScreenRoute';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultChatEnabledPolicy, isPaidGroupPolicy, shouldShowPolicy} from '@libs/PolicyUtils';
@@ -50,6 +52,13 @@ const chatEnabledPaidGroupPoliciesSelector = (policies: OnyxCollection<OnyxTypes
 };
 
 function CreateReportMenuItem() {
+    const pendingCreateReportNavigationContextRef = useRef<{
+        createReportOrigin: 'home' | 'search' | 'default';
+        createReportSourceRoute?: string;
+    }>({
+        createReportOrigin: 'default',
+        createReportSourceRoute: undefined,
+    });
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -100,9 +109,11 @@ function CreateReportMenuItem() {
         );
         Navigation.setNavigationActionToMicrotaskQueue(() => {
             Navigation.navigate(
-                isSearchTopmostFullScreenRoute()
-                    ? ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()})
-                    : ROUTES.REPORT_WITH_ID.getRoute(createdReportID, undefined, undefined, Navigation.getActiveRoute()),
+                getExpenseReportRouteForCreateReport({
+                    reportID: createdReportID,
+                    shouldUseNarrowLayout,
+                    ...pendingCreateReportNavigationContextRef.current,
+                }),
                 {forceReplace: isReportInSearch},
             );
         });
@@ -129,6 +140,18 @@ function CreateReportMenuItem() {
                         return;
                     }
 
+                    let createReportOrigin: 'home' | 'search' | 'default' = 'default';
+                    if (isSearchTopmostFullScreenRoute()) {
+                        createReportOrigin = 'search';
+                    } else if (isHomeTopmostFullScreenRoute()) {
+                        createReportOrigin = 'home';
+                    }
+                    const createReportSourceRoute = createReportOrigin === 'home' ? undefined : Navigation.getActiveRoute();
+                    pendingCreateReportNavigationContextRef.current = {
+                        createReportOrigin,
+                        createReportSourceRoute,
+                    };
+
                     const workspaceIDForReportCreation = defaultChatEnabledPolicyID;
 
                     // If we couldn't guess the workspace to create the report, or a guessed workspace is past its grace period and we have other workspaces to choose from
@@ -136,7 +159,7 @@ function CreateReportMenuItem() {
                         !workspaceIDForReportCreation ||
                         (shouldRestrictUserBillableActions(workspaceIDForReportCreation, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds) && groupPoliciesWithChatEnabled.length > 1)
                     ) {
-                        Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
+                        Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute(undefined, undefined, createReportOrigin, createReportSourceRoute));
                         return;
                     }
 

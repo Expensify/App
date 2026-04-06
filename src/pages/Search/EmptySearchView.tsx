@@ -30,6 +30,7 @@ import {openOldDotLink} from '@libs/actions/Link';
 import {createNewReport} from '@libs/actions/Report';
 import {startTestDrive} from '@libs/actions/Tour';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
+import getExpenseReportRouteForCreateReport from '@libs/Navigation/helpers/getExpenseReportRouteForCreateReport';
 import Navigation from '@libs/Navigation/Navigation';
 import {areAllGroupPoliciesExpenseChatDisabled, getDefaultChatEnabledPolicy, getGroupPaidPoliciesWithExpenseChatEnabled} from '@libs/PolicyUtils';
 import {generateReportID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
@@ -178,9 +179,10 @@ function EmptySearchViewContent({
         );
         Navigation.setNavigationActionToMicrotaskQueue(() => {
             Navigation.navigate(
-                ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({
+                getExpenseReportRouteForCreateReport({
                     reportID: createdReportID,
-                    backTo: Navigation.getActiveRoute(),
+                    createReportOrigin: 'search',
+                    createReportSourceRoute: Navigation.getActiveRoute(),
                 }),
             );
         });
@@ -190,6 +192,7 @@ function EmptySearchViewContent({
         policyID: defaultChatEnabledPolicyID,
         policyName: defaultChatEnabledPolicy?.name ?? '',
         onConfirm: handleCreateWorkspaceReport,
+        shouldHandleNavigationBack: false,
     });
 
     const handleCreateReportClick = () => {

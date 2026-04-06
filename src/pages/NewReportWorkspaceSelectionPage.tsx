@@ -21,7 +21,7 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {createNewReport} from '@libs/actions/Report';
-import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
+import getExpenseReportRouteForCreateReport from '@libs/Navigation/helpers/getExpenseReportRouteForCreateReport';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import Navigation from '@libs/Navigation/Navigation';
 import type {NewReportWorkspaceSelectionNavigatorParamList} from '@libs/Navigation/types';
@@ -51,7 +51,7 @@ type WorkspaceListItem = {
 type NewReportWorkspaceSelectionPageProps = PlatformStackScreenProps<NewReportWorkspaceSelectionNavigatorParamList, typeof SCREENS.NEW_REPORT_WORKSPACE_SELECTION.ROOT>;
 
 function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPageProps) {
-    const {isMovingExpenses, backTo} = route.params ?? {};
+    const {isMovingExpenses, backTo, createReportOrigin = 'default', createReportSourceRoute} = route.params ?? {};
     const {isOffline} = useNetwork();
     const icons = useMemoizedLazyExpensifyIcons(['FallbackWorkspaceAvatar']);
     const {selectedTransactions, selectedTransactionIDs} = useSearchStateContext();
@@ -100,7 +100,12 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
 
         Navigation.setNavigationActionToMicrotaskQueue(() => {
             Navigation.navigate(
-                isSearchTopmostFullScreenRoute() ? ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: optimisticReportID}) : ROUTES.REPORT_WITH_ID.getRoute(optimisticReportID),
+                getExpenseReportRouteForCreateReport({
+                    reportID: optimisticReportID,
+                    createReportOrigin,
+                    createReportSourceRoute,
+                    shouldUseNarrowLayout,
+                }),
                 {forceReplace: isRHPOnReportInSearch || shouldUseNarrowLayout},
             );
         });

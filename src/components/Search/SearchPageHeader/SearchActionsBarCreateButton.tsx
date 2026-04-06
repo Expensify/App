@@ -23,7 +23,7 @@ import {openOldDotLink} from '@libs/actions/Link';
 import {createNewReport} from '@libs/actions/Report';
 import getIconForAction from '@libs/getIconForAction';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
+import getExpenseReportRouteForCreateReport from '@libs/Navigation/helpers/getExpenseReportRouteForCreateReport';
 import Navigation from '@libs/Navigation/Navigation';
 import {areAllGroupPoliciesExpenseChatDisabled, getDefaultChatEnabledPolicy} from '@libs/PolicyUtils';
 import {generateReportID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
@@ -40,6 +40,7 @@ function SearchActionsBarCreateButton() {
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus', 'Location', 'Document', 'Receipt', 'Coins', 'Cash', 'Transfer', 'MoneyCircle']);
 
     const createButtonRef = useRef<View>(null);
+    const pendingCreateReportSourceRouteRef = useRef(Navigation.getActiveRoute());
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
     const [createMenuPosition, setCreateMenuPosition] = useState<{horizontal: number; vertical: number}>({horizontal: 0, vertical: 0});
     const {calculatePopoverPosition} = usePopoverPosition();
@@ -107,9 +108,11 @@ function SearchActionsBarCreateButton() {
             );
             Navigation.setNavigationActionToMicrotaskQueue(() => {
                 Navigation.navigate(
-                    isSearchTopmostFullScreenRoute()
-                        ? ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()})
-                        : ROUTES.REPORT_WITH_ID.getRoute(createdReportID, undefined, undefined, Navigation.getActiveRoute()),
+                    getExpenseReportRouteForCreateReport({
+                        reportID: createdReportID,
+                        createReportOrigin: 'search',
+                        createReportSourceRoute: pendingCreateReportSourceRouteRef.current,
+                    }),
                 );
             });
         },
@@ -120,6 +123,7 @@ function SearchActionsBarCreateButton() {
         policyID: defaultChatEnabledPolicyID,
         policyName: defaultChatEnabledPolicy?.name ?? '',
         onConfirm: handleCreateWorkspaceReport,
+        shouldHandleNavigationBack: false,
     });
 
     const hideCreateMenu = useCallback(() => setIsCreateMenuActive(false), []);
@@ -181,6 +185,7 @@ function SearchActionsBarCreateButton() {
                         }
 
                         const workspaceIDForReportCreation = defaultChatEnabledPolicyID;
+                        pendingCreateReportSourceRouteRef.current = Navigation.getActiveRoute();
 
                         // No default or restricted with multiple workspaces → workspace selector
                         if (
@@ -188,7 +193,9 @@ function SearchActionsBarCreateButton() {
                             (shouldRestrictUserBillableActions(workspaceIDForReportCreation, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds) &&
                                 groupPoliciesWithChatEnabled.length > 1)
                         ) {
-                            Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute());
+                            Navigation.navigate(
+                                ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute(undefined, undefined, 'search', pendingCreateReportSourceRouteRef.current),
+                            );
                             return;
                         }
 
