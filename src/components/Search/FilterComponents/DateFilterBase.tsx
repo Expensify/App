@@ -216,6 +216,13 @@ function DateFilterBase({
                     forceVerticalCalendars
                 />
             </ScrollView>
+            {shouldShowRangeError && (
+                <FormHelpMessage
+                    isError
+                    message={translate('search.errors.pleaseSelectDatesForBothFromAndTo')}
+                    style={[styles.mh5, styles.mt2]}
+                />
+            )}
             {shouldShowRangeSummary && (
                 <Text style={[styles.textLabelSupporting, styles.mh5, styles.mt2]}>
                     {`${translate('common.range')}: `}
@@ -224,13 +231,6 @@ function DateFilterBase({
             )}
             {shouldShowActionButtons && (
                 <>
-                    {shouldShowRangeError && (
-                        <FormHelpMessage
-                            isError
-                            message={translate('search.errors.pleaseSelectDatesForBothFromAndTo')}
-                            style={[styles.mh5, styles.mt2]}
-                        />
-                    )}
                     <Button
                         text={translate('common.reset')}
                         onPress={reset}
