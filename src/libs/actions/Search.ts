@@ -14,6 +14,7 @@ import {waitForWrites} from '@libs/API';
 import type {
     ExportSearchItemsToCSVParams,
     ExportSearchWithTemplateParams,
+    OpenBulkChangeApproverPageParams,
     OpenSearchPageParams,
     ReportExportParams,
     RevertSplitTransactionParams,
@@ -36,6 +37,7 @@ import {
     buildOptimisticExportIntegrationAction,
     buildOptimisticIOUReportAction,
     generateReportID,
+    getParsedComment,
     getReportOrDraftReport,
     getReportTransactions,
     hasHeldExpenses,
@@ -460,6 +462,26 @@ function openSearchCardFiltersPage() {
     API.read(READ_COMMANDS.OPEN_SEARCH_CARD_FILTERS_PAGE, null, {finallyData});
 }
 
+function openBulkChangeApproverPage(reportIDList: OpenBulkChangeApproverPageParams['reportIDList']) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_BULK_CHANGE_APPROVER_PAGE>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_BULK_CHANGE_APPROVER_PAGE,
+            value: true,
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_BULK_CHANGE_APPROVER_PAGE>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_BULK_CHANGE_APPROVER_PAGE,
+            value: false,
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.OPEN_BULK_CHANGE_APPROVER_PAGE, {reportIDList}, {optimisticData, successData});
+}
+
 // Tracks in-flight search requests by hash+offset to prevent duplicate API calls
 // when both page-level (useSearchPageSetup) and Search-internal (handleSearch) effects
 // fire for the same query. Cleared when the request completes.
@@ -496,6 +518,7 @@ function search({
     isOffline = false,
     isLoading,
     shouldUpdateLastSearchParams = true,
+    skipWaitForWrites = false,
 }: {
     queryJSON: SearchQueryJSON;
     searchKey: SearchKey | undefined;
@@ -505,6 +528,14 @@ function search({
     isOffline?: boolean;
     isLoading: boolean;
     shouldUpdateLastSearchParams?: boolean;
+    /**
+     * When true, fires the search API immediately without waiting for pending
+     * writes in the sequential queue. Use for the post-expense-creation flow
+     * where the expense write is deferred and search snapshot data lives in
+     * separate Onyx keys, so there is no risk of the response overwriting
+     * optimistic write data.
+     */
+    skipWaitForWrites?: boolean;
 }) {
     if (isLoading || shouldPreventSearchAPI) {
         return;
@@ -537,9 +568,9 @@ function search({
         });
     }
 
-    return waitForWrites(READ_COMMANDS.SEARCH).then(() => {
+    const startRequest = () =>
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        return API.makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData})
+        API.makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData})
             .then((result) => {
                 if (shouldUpdateLastSearchParams) {
                     const response = result?.onyxData?.[0]?.value as OnyxSearchResponse;
@@ -575,7 +606,12 @@ function search({
             .finally(() => {
                 inFlightSearchRequests.delete(dedupeKey);
             });
-    });
+
+    if (skipWaitForWrites) {
+        return startRequest();
+    }
+
+    return waitForWrites(READ_COMMANDS.SEARCH).then(startRequest);
 }
 
 function submitMoneyRequestOnSearch(hash: number, reportList: Report[], policy: Policy[], currentSearchKey?: SearchKey) {
@@ -933,6 +969,7 @@ function bulkDeleteReports({
             selectedTransactionIDs: batchTransactionIDsForReport.length > 0 ? batchTransactionIDsForReport : undefined,
             allTransactionViolationsParam: transactionsViolations,
             currentUserAccountID: currentUserAccountIDParam,
+            currentUserEmail: currentUserEmailParam,
         });
     }
 
@@ -1150,7 +1187,11 @@ function rejectMoneyRequestInBulk(
 
     API.write(
         WRITE_COMMANDS.REJECT_MONEY_REQUEST_IN_BULK,
-        {reportID, comment, transactionIDToRejectReportAction: JSON.stringify(transactionIDToRejectReportAction)},
+        {
+            reportID,
+            comment: getParsedComment(comment),
+            transactionIDToRejectReportAction: JSON.stringify(transactionIDToRejectReportAction),
+        },
         {optimisticData, successData, failureData, finallyData},
     );
 }
@@ -1679,6 +1720,7 @@ export {
     handleActionButtonPress,
     submitMoneyRequestOnSearch,
     openSearchPage as openSearch,
+    openBulkChangeApproverPage,
     getLastPolicyPaymentMethod,
     getLastPolicyBankAccountID,
     exportToIntegrationOnSearch,
