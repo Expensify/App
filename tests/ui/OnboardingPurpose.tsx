@@ -15,13 +15,13 @@ import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
 import OnboardingPurpose from '@pages/OnboardingPurpose';
 import {completeOnboarding} from '@userActions/Report';
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
-import IntlStore from '@src/languages/IntlStore';
 
 const mockCompleteOnboarding = jest.mocked(completeOnboarding);
 
