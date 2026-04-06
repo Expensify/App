@@ -2974,7 +2974,7 @@ function createWorkspace(options: CreateWorkspaceDataOptions): CreateWorkspacePa
  *
  * @param [policyOwnerEmail] the email of the account to make the owner of the policy
  * @param [makeMeAdmin] leave the calling account as an admin on the policy
- * @param [policyName] custom policy name we will use for created workspace
+ * @param [workspaceName] policy name we will use for created workspace
  * @param [policyID] custom policy id we will use for created workspace
  */
 function createDraftWorkspace(
