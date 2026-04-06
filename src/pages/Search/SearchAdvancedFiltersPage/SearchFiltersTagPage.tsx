@@ -40,12 +40,12 @@ function SearchFiltersTagPage() {
         const items = [{name: translate('search.noTag'), value: CONST.SEARCH.TAG_EMPTY_VALUE as string}];
         const uniqueTagNames = new Set<string>();
 
-        if (!selectedPoliciesTagLists || selectedPoliciesTagLists.length === 0) {
+        if (policyIDs.length === 0) {
             const tagListsUnpacked = Object.values(allPolicyTagLists ?? {}).filter((item) => !!item);
             for (const tag of tagListsUnpacked.map(getTagNamesFromTagsLists).flat()) {
                 uniqueTagNames.add(tag);
             }
-        } else {
+        } else if (selectedPoliciesTagLists.length > 0) {
             for (const tag of selectedPoliciesTagLists) {
                 uniqueTagNames.add(tag);
             }
@@ -53,7 +53,7 @@ function SearchFiltersTagPage() {
         items.push(...Array.from(uniqueTagNames).map((tagName) => ({name: getCleanedTagName(tagName), value: tagName})));
 
         return items;
-    }, [allPolicyTagLists, selectedPoliciesTagLists, translate]);
+    }, [allPolicyTagLists, policyIDs.length, selectedPoliciesTagLists, translate]);
 
     const updateTagFilter = useCallback((values: string[]) => updateAdvancedFilters({tag: values}), []);
 

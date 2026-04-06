@@ -69,6 +69,44 @@ describe('Base64URL', () => {
         });
     });
 
+    describe('base64ToBase64url', () => {
+        it('should replace + with -', () => {
+            // Given a base64 string containing '+' characters, which are not URL-safe
+            // When converting to base64url format
+            // Then '+' should be replaced with '-' because base64url encoding requires URL-safe characters for use in credential IDs
+            expect(Base64URL.base64ToBase64url('abc+def')).toBe('abc-def');
+        });
+
+        it('should replace / with _', () => {
+            // Given a base64 string containing '/' characters, which are not URL-safe
+            // When converting to base64url format
+            // Then '/' should be replaced with '_' because base64url encoding requires URL-safe characters for use in credential IDs
+            expect(Base64URL.base64ToBase64url('abc/def')).toBe('abc_def');
+        });
+
+        it('should strip trailing = padding', () => {
+            // Given a base64 string with trailing '=' padding characters
+            // When converting to base64url format
+            // Then padding should be stripped because base64url omits padding per RFC 4648 §5
+            expect(Base64URL.base64ToBase64url('abc==')).toBe('abc');
+            expect(Base64URL.base64ToBase64url('abcd=')).toBe('abcd');
+        });
+
+        it('should handle all replacements together', () => {
+            // Given a base64 string with '+', '/', and '=' characters combined
+            // When converting to base64url format
+            // Then all unsafe characters should be replaced in a single pass to produce a valid base64url credential ID
+            expect(Base64URL.base64ToBase64url('abc+def/ghi==')).toBe('abc-def_ghi');
+        });
+
+        it('should leave already-safe strings unchanged', () => {
+            // Given a base64 string that already contains only URL-safe characters
+            // When converting to base64url format
+            // Then the string should remain unchanged because no substitution is needed
+            expect(Base64URL.base64ToBase64url('abcdef')).toBe('abcdef');
+        });
+    });
+
     describe('decode', () => {
         it('should decode a Base64URL string back to Buffer', () => {
             const encoded = Base64URL.encode('hello');
