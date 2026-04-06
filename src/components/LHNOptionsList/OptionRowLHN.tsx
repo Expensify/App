@@ -407,7 +407,6 @@ function OptionRowLHN({
                                                         <Badge
                                                             text={actionBadgeText}
                                                             error
-                                                            isCondensed
                                                             isStrong
                                                         />
                                                     ) : (
@@ -427,7 +426,6 @@ function OptionRowLHN({
                                                 <Badge
                                                     text={actionBadgeText}
                                                     success
-                                                    isCondensed
                                                     isStrong
                                                 />
                                             ) : (
@@ -448,31 +446,25 @@ function OptionRowLHN({
                                                     testID="Pencil Icon"
                                                     fill={theme.icon}
                                                     src={expensifyIcons.Pencil}
+                                                    width={variables.iconSizeSmall}
+                                                    height={variables.iconSizeSmall}
                                                 />
                                             </View>
                                         )}
-                                        {!brickRoadIndicator &&
-                                            !!optionItem.isPinned &&
-                                            (isProduction ? (
-                                                <View
-                                                    style={styles.ml2}
-                                                    accessibilityLabel={translate('sidebarScreen.chatPinned')}
-                                                >
-                                                    <Icon
-                                                        testID="Pin Icon"
-                                                        fill={theme.icon}
-                                                        src={expensifyIcons.Pin}
-                                                    />
-                                                </View>
-                                            ) : (
-                                                <Badge
-                                                    icon={expensifyIcons.Pin}
-                                                    text=""
-                                                    badgeStyles={isOptionFocused && styles.badgeDefaultActive}
-                                                    isCondensed
-                                                    isStrong
+                                        {!brickRoadIndicator && !!optionItem.isPinned && (
+                                            <View
+                                                style={styles.ml2}
+                                                accessibilityLabel={translate('sidebarScreen.chatPinned')}
+                                            >
+                                                <Icon
+                                                    testID="Pin Icon"
+                                                    fill={theme.icon}
+                                                    src={expensifyIcons.Pin}
+                                                    width={variables.iconSizeSmall}
+                                                    height={variables.iconSizeSmall}
                                                 />
-                                            ))}
+                                            </View>
+                                        )}
                                     </View>
                                 </PressableWithSecondaryInteraction>
                             );
