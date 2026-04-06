@@ -7,7 +7,6 @@ import type {ListItem} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -44,6 +43,9 @@ type MemberListItemHeaderProps<TItem extends ListItem> = {
 
     /** The visible columns for the header */
     columns?: SearchColumnType[];
+
+    /** Whether the screen is large */
+    isLargeScreenWidth?: boolean;
 };
 
 function MemberListItemHeader<TItem extends ListItem>({
@@ -56,10 +58,10 @@ function MemberListItemHeader<TItem extends ListItem>({
     isExpanded,
     onDownArrowClick,
     columns,
+    isLargeScreenWidth,
 }: MemberListItemHeaderProps<TItem>) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {isLargeScreenWidth} = useResponsiveLayout();
     const {translate, formatPhoneNumber} = useLocalize();
     const formattedDisplayName = formatPhoneNumber(getDisplayNameOrDefault(memberItem));
     const formattedLogin = formatPhoneNumber(memberItem.login ?? '');
@@ -141,7 +143,7 @@ function MemberListItemHeader<TItem extends ListItem>({
                             </View>
                         </View>
                     )}
-                    {isLargeScreenWidth && (
+                    {!!isLargeScreenWidth && (
                         <>
                             <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR)}>
                                 <UserDetailsTooltip accountID={memberItem.accountID}>

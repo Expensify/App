@@ -20,7 +20,6 @@ import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -147,6 +146,7 @@ type TransactionItemRowProps = {
     customCardNames?: Record<number, string>;
     reportActions?: ReportAction[];
     checkboxSentryLabel?: string;
+    isLargeScreenWidth?: boolean;
 };
 
 const EMPTY_ACTIVE_STYLE: StyleProp<ViewStyle> = [];
@@ -199,12 +199,13 @@ function TransactionItemRow({
     customCardNames,
     reportActions,
     checkboxSentryLabel,
+    isLargeScreenWidth: isLargeScreenWidthProp,
 }: TransactionItemRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
-    const {isLargeScreenWidth} = useResponsiveLayout();
+    const isLargeScreenWidth = isLargeScreenWidthProp ?? !shouldUseNarrowLayout;
     const hasCategoryOrTag = !isCategoryMissing(transactionItem?.category) || !!transactionItem.tag;
     const createdAt = getTransactionCreated(transactionItem);
     const expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
@@ -490,6 +491,7 @@ function TransactionItemRow({
                                 accountID={transactionItem.to.accountID}
                                 avatar={transactionItem.to.avatar}
                                 displayName={transactionItem.formattedTo ?? transactionItem.to.displayName ?? ''}
+                                isLargeScreenWidth={isLargeScreenWidth}
                             />
                         )}
                     </View>
@@ -505,6 +507,7 @@ function TransactionItemRow({
                                 accountID={transactionItem.from.accountID}
                                 avatar={transactionItem.from.avatar}
                                 displayName={transactionItem.formattedFrom ?? transactionItem.from.displayName ?? ''}
+                                isLargeScreenWidth={isLargeScreenWidth}
                             />
                         )}
                     </View>

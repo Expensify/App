@@ -259,6 +259,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     isIndeterminate={isIndeterminate}
                     onDownArrowClick={onExpandIconPress}
                     isExpanded={isExpanded}
+                    isLargeScreenWidth={isLargeScreenWidth}
                 />
             ),
             [CONST.SEARCH.GROUP_BY.CARD]: (

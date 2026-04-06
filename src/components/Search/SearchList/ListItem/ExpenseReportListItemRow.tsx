@@ -10,7 +10,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -49,6 +48,7 @@ type ExpenseReportListItemRowProps = {
     isFocused?: boolean;
     isPendingDelete?: boolean;
     columns?: SearchColumnType[];
+    isLargeScreenWidth?: boolean;
 };
 
 function ExpenseReportListItemRow({
@@ -67,13 +67,14 @@ function ExpenseReportListItemRow({
     isHovered = false,
     isFocused = false,
     isPendingDelete = false,
+    isLargeScreenWidth = false,
 }: ExpenseReportListItemRowProps) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const shouldUseNarrowLayout = !isLargeScreenWidth;
     const policy = usePolicy(item.policyID);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
@@ -141,6 +142,7 @@ function ExpenseReportListItemRow({
                         accountID={item.from.accountID}
                         avatar={item.from.avatar}
                         displayName={item.formattedFrom ?? ''}
+                        isLargeScreenWidth={isLargeScreenWidth}
                     />
                 )}
             </View>
@@ -152,6 +154,7 @@ function ExpenseReportListItemRow({
                         accountID={item.to.accountID}
                         avatar={item.to.avatar}
                         displayName={item.formattedTo ?? ''}
+                        isLargeScreenWidth={isLargeScreenWidth}
                     />
                 )}
             </View>

@@ -232,6 +232,7 @@ function TransactionListItem<TItem extends ListItem>({
                             onButtonPress={handleActionButtonPress}
                             onCheckboxPress={() => onCheckboxPress?.(item)}
                             shouldUseNarrowLayout={!isLargeScreenWidth}
+                            isLargeScreenWidth={isLargeScreenWidth}
                             columns={columns}
                             isActionLoading={isLoading ?? isActionLoading}
                             isSelected={!!transactionItem.isSelected}
