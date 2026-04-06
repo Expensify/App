@@ -98,7 +98,7 @@ function HelpPage() {
                       onPress: () => navigateToAndOpenReportWithAccountIDs([guideDetails.accountID], currentUserAccountID, introSelected, betas),
                       shouldShowRightIcon: true,
                       wrapperStyle: [styles.sectionMenuItemTopDescription],
-                      sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.PARTNER_MANAGER,
+                      sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.GUIDE,
                   },
               ]
             : []),
