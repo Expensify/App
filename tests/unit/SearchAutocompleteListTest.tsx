@@ -121,10 +121,10 @@ const mockedOptions = createOptionList(mockedPersonalDetails, EMPTY_PRIVATE_IS_A
 
 const mockOnClose = jest.fn();
 
-function SearchRouterWrapper() {
+function SearchRouterWrapper({options = mockedOptions}: {options?: ReturnType<typeof createOptionList>}) {
     return (
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            <OptionsListStateContext.Provider value={useMemo(() => ({options: mockedOptions, areOptionsInitialized: true}), [])}>
+            <OptionsListStateContext.Provider value={useMemo(() => ({options, areOptionsInitialized: true}), [options])}>
                 <OptionsListActionsContext.Provider value={useMemo(() => ({initializeOptions: () => {}, resetOptions: () => {}}), [])}>
                     <SearchRouter onRouterClose={mockOnClose} />
                 </OptionsListActionsContext.Provider>
