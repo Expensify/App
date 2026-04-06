@@ -1,14 +1,11 @@
 import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import FocusableMenuItem from '@components/FocusableMenuItem';
-import MiniContextMenuItem from '@components/MiniContextMenuItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
-import {canFlagReportAction} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {ReportAction} from '@src/types/onyx';
@@ -23,7 +20,7 @@ type PopoverFlagAsOffensiveItemProps = {
     onBlur?: () => void;
 };
 
-function PopoverFlagAsOffensiveItem({reportID, reportAction, hideAndRun, isFocused, onFocus, onBlur}: PopoverFlagAsOffensiveItemProps) {
+export default function PopoverFlagAsOffensiveItem({reportID, reportAction, hideAndRun, isFocused, onFocus, onBlur}: PopoverFlagAsOffensiveItemProps) {
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Flag'] as const);
     const styles = useThemeStyles();
@@ -55,49 +52,3 @@ function PopoverFlagAsOffensiveItem({reportID, reportAction, hideAndRun, isFocus
         />
     );
 }
-
-type MiniFlagAsOffensiveItemProps = {
-    reportID: string | undefined;
-    reportAction: ReportAction;
-    hideAndRun: (callback?: () => void) => void;
-};
-
-function MiniFlagAsOffensiveItem({reportID, reportAction, hideAndRun}: MiniFlagAsOffensiveItemProps) {
-    const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Flag'] as const);
-
-    return (
-        <MiniContextMenuItem
-            tooltipText={translate('reportActionContextMenu.flagAsOffensive')}
-            icon={icons.Flag}
-            onPress={() => {
-                if (!reportID) {
-                    return;
-                }
-                const activeRoute = Navigation.getActiveRoute();
-                hideAndRun(() => {
-                    KeyboardUtils.dismiss().then(() => {
-                        Navigation.navigate(ROUTES.FLAG_COMMENT.getRoute(reportID, reportAction?.reportActionID, activeRoute));
-                    });
-                });
-            }}
-            sentryLabel={CONST.SENTRY_LABEL.CONTEXT_MENU.FLAG_AS_OFFENSIVE}
-        />
-    );
-}
-
-function shouldShowFlagAsOffensiveAction({
-    reportAction,
-    isArchivedRoom,
-    isChronosReport,
-    reportID,
-}: {
-    reportAction: OnyxEntry<ReportAction>;
-    isArchivedRoom: boolean;
-    isChronosReport: boolean;
-    reportID: string | undefined;
-}): boolean {
-    return canFlagReportAction(reportAction, reportID) && !isArchivedRoom && !isChronosReport && reportAction?.actorAccountID !== CONST.ACCOUNT_ID.CONCIERGE;
-}
-
-export {shouldShowFlagAsOffensiveAction, PopoverFlagAsOffensiveItem, MiniFlagAsOffensiveItem};

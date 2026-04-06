@@ -1,7 +1,7 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import Clipboard from '@libs/Clipboard';
 import getClipboardText from '@libs/Clipboard/getClipboardText';
-import {copyMessageToClipboard} from '@pages/inbox/report/ContextMenu/actions/copyMessageAction';
+import {copyMessageToClipboard} from '@pages/inbox/report/ContextMenu/actions/CopyMessageAction/copyMessageAction';
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
 
