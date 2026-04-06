@@ -12,6 +12,8 @@ import CONST from '../../src/CONST';
 import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
 import {
     findLastReportActions,
+    getAddedCardFeedMessage,
+    getAssignedCompanyCardMessage,
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
     getCardIssuedMessage,
@@ -27,11 +29,16 @@ import {
     getPolicyChangeLogMaxExpenseAgeMessage,
     getPolicyChangeLogMaxExpenseAmountMessage,
     getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
+    getRemovedCardFeedMessage,
+    getRenamedCardFeedMessage,
     getReportActionActorAccountID,
     getSendMoneyFlowAction,
     getSortedReportActions,
     getSortedReportActionsForDisplay,
+    getUnassignedCompanyCardMessage,
     getUpdateACHAccountMessage,
+    getUpdatedCardFeedLiabilityMessage,
+    getUpdatedCardFeedStatementPeriodMessage,
     hasNextActionMadeBySameActor,
     hasReasoning,
     isConsecutiveActionMadeByPreviousActor,
@@ -1380,6 +1387,109 @@ describe('ReportActionsUtils', () => {
             const expectedHtml = `<muted-text>${expectedText}</muted-text>`;
             expect(fragments).toEqual([{text: expectedText, html: expectedHtml, type: 'COMMENT'}]);
         });
+
+        it('should preserve backend-provided CARDFROZEN fragments', () => {
+            const cardFrozenMessage = 'A A froze their Expensify Card (ending in 1384). New transactions will be declined until the card is unfrozen.';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN,
+                reportActionID: 'card-frozen-action-123',
+                actorAccountID: 21052128,
+                created: '2026-03-12 01:58:43.479',
+                message: [
+                    {
+                        html: cardFrozenMessage,
+                        text: cardFrozenMessage,
+                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                        whisperedTo: [],
+                    },
+                ],
+                originalMessage: {
+                    html: cardFrozenMessage,
+                    isNewDot: true,
+                    lastModified: '2026-03-12 01:58:43.479',
+                },
+            };
+
+            expect(ReportActionsUtils.getReportActionMessageFragments(translateLocal, action)).toEqual(action.message);
+        });
+
+        it('should preserve backend-provided CARDUNFROZEN fragments', () => {
+            const cardUnfrozenMessage = 'A A unfroze their Expensify Card (ending in 1384). This card can now be used for transactions.';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CARD_UNFROZEN> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_UNFROZEN,
+                reportActionID: 'card-unfrozen-action-123',
+                actorAccountID: 21052128,
+                created: '2026-03-12 02:08:08.128',
+                message: [
+                    {
+                        html: cardUnfrozenMessage,
+                        text: cardUnfrozenMessage,
+                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                        whisperedTo: [],
+                    },
+                ],
+                originalMessage: {
+                    html: cardUnfrozenMessage,
+                    isNewDot: true,
+                    lastModified: '2026-03-12 02:08:08.128',
+                },
+            };
+
+            expect(ReportActionsUtils.getReportActionMessageFragments(translateLocal, action)).toEqual(action.message);
+        });
+    });
+
+    describe('getReportActionText', () => {
+        it('should return the backend-provided CARDFROZEN text', () => {
+            const cardFrozenMessage = 'A A froze their Expensify Card (ending in 1384). New transactions will be declined until the card is unfrozen.';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN,
+                reportActionID: 'card-frozen-action-123',
+                actorAccountID: 21052128,
+                created: '2026-03-12 01:58:43.479',
+                message: [
+                    {
+                        html: cardFrozenMessage,
+                        text: cardFrozenMessage,
+                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                        whisperedTo: [],
+                    },
+                ],
+                originalMessage: {
+                    html: cardFrozenMessage,
+                    isNewDot: true,
+                    lastModified: '2026-03-12 01:58:43.479',
+                },
+            };
+
+            expect(ReportActionsUtils.getReportActionText(action)).toBe(cardFrozenMessage);
+        });
+
+        it('should return the backend-provided CARDUNFROZEN text', () => {
+            const cardUnfrozenMessage = 'A A unfroze their Expensify Card (ending in 1384). This card can now be used for transactions.';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CARD_UNFROZEN> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_UNFROZEN,
+                reportActionID: 'card-unfrozen-action-123',
+                actorAccountID: 21052128,
+                created: '2026-03-12 02:08:08.128',
+                message: [
+                    {
+                        html: cardUnfrozenMessage,
+                        text: cardUnfrozenMessage,
+                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                        whisperedTo: [],
+                    },
+                ],
+                originalMessage: {
+                    html: cardUnfrozenMessage,
+                    isNewDot: true,
+                    lastModified: '2026-03-12 02:08:08.128',
+                },
+            };
+
+            expect(ReportActionsUtils.getReportActionText(action)).toBe(cardUnfrozenMessage);
+            expect(ReportActionsUtils.shouldReportActionBeVisible(action, action.reportActionID, true)).toBe(true);
+        });
     });
 
     describe('getMessageOfOldDotReportAction', () => {
@@ -1485,7 +1595,7 @@ describe('ReportActionsUtils', () => {
             const res = ReportActionsUtils.shouldShowAddMissingDetails(CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS, mockPersonalDetail);
             expect(res).toEqual(true);
         });
-        it('should return false if personal detail is completed', () => {
+        it('should still return true when personal detail is completed but has not been confirmed yet', () => {
             const mockPersonalDetail = {
                 addresses: [
                     {
@@ -1500,7 +1610,27 @@ describe('ReportActionsUtils', () => {
                 phoneNumber: '+162992973',
                 dob: '9-9-2000',
             };
-            const res = ReportActionsUtils.shouldShowAddMissingDetails(CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS, mockPersonalDetail);
+            const cardState = CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED;
+            const res = ReportActionsUtils.shouldShowAddMissingDetails(CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS, mockPersonalDetail, cardState);
+            expect(res).toEqual(true);
+        });
+        it('should return false if personal detail is completed and has been confirmed by the user', () => {
+            const mockPersonalDetail = {
+                addresses: [
+                    {
+                        street: '123 Main St',
+                        city: 'New York',
+                        state: 'NY',
+                        postalCode: '10001',
+                    },
+                ],
+                legalFirstName: 'John',
+                legalLastName: 'David',
+                phoneNumber: '+162992973',
+                dob: '9-9-2000',
+            };
+            const cardState = CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED;
+            const res = ReportActionsUtils.shouldShowAddMissingDetails(CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS, mockPersonalDetail, cardState);
             expect(res).toEqual(false);
         });
     });
@@ -1638,6 +1768,30 @@ describe('ReportActionsUtils', () => {
             const reportAction = buildOptimisticCreatedReportForUnapprovedAction('123456', '789012');
             expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(false);
         });
+
+        it('should return false for CARDFROZEN action with a backend-provided message fragment', () => {
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN,
+                reportActionID: 'card-frozen-action-123',
+                actorAccountID: 21052128,
+                created: '2026-03-12 01:58:43.479',
+                message: [
+                    {
+                        html: 'A A froze their Expensify Card (ending in 1384). New transactions will be declined until the card is unfrozen.',
+                        text: 'A A froze their Expensify Card (ending in 1384). New transactions will be declined until the card is unfrozen.',
+                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                        whisperedTo: [],
+                    },
+                ],
+                originalMessage: {
+                    html: 'A A froze their Expensify Card (ending in 1384). New transactions will be declined until the card is unfrozen.',
+                    isNewDot: true,
+                    lastModified: '2026-03-12 01:58:43.479',
+                },
+            };
+
+            expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(false);
+        });
     });
 
     describe('getRenamedAction', () => {
@@ -1701,7 +1855,6 @@ describe('ReportActionsUtils', () => {
         } as Card;
 
         const testPolicyID = 'test-policy-123';
-
         describe('render virtual card issued messages', () => {
             it('should render a plain text message without card link when no card data is available', () => {
                 const messageResult = getCardIssuedMessage({
@@ -3147,6 +3300,149 @@ describe('ReportActionsUtils', () => {
             } as ReportAction;
             const result = getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(translateLocal, action);
             expect(result).toBe('changed receipt required amount to "$75.00" (previously "$25.00")');
+        });
+    });
+
+    describe('getAddedCardFeedMessage', () => {
+        it('should return translated message when feedName is present', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CARD_FEED,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    feedName: 'Visa Commercial',
+                },
+            } as ReportAction;
+            const result = getAddedCardFeedMessage(translateLocal, action);
+            expect(result).toBe('added card feed "Visa Commercial"');
+        });
+    });
+
+    describe('getRemovedCardFeedMessage', () => {
+        it('should return translated message when feedName is present', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CARD_FEED,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    feedName: 'Amex Corporate',
+                },
+            } as ReportAction;
+            const result = getRemovedCardFeedMessage(translateLocal, action);
+            expect(result).toBe('removed card feed "Amex Corporate"');
+        });
+    });
+
+    describe('getRenamedCardFeedMessage', () => {
+        it('should return translated message when oldName and newName are present', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.RENAME_CARD_FEED,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldName: 'Old Feed Name',
+                    newName: 'New Feed Name',
+                },
+            } as ReportAction;
+            const result = getRenamedCardFeedMessage(translateLocal, action);
+            expect(result).toBe('renamed card feed to "New Feed Name" (previously "Old Feed Name")');
+        });
+    });
+
+    describe('getAssignedCompanyCardMessage', () => {
+        it('should return translated message when email and cardLastFour are present', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ASSIGN_COMPANY_CARD,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    email: 'user@example.com',
+                    feedName: 'US Bank',
+                    cardLastFour: '1234',
+                },
+            } as ReportAction;
+            const result = getAssignedCompanyCardMessage(translateLocal, action);
+            expect(result).toBe('assigned user@example.com "US Bank" company card ending in 1234');
+        });
+    });
+
+    describe('getUnassignedCompanyCardMessage', () => {
+        it('should return translated message when email and cardLastFour are present', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UNASSIGN_COMPANY_CARD,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    email: 'user@example.com',
+                    feedName: 'US Bank',
+                    cardLastFour: '5678',
+                },
+            } as ReportAction;
+            const result = getUnassignedCompanyCardMessage(translateLocal, action);
+            expect(result).toBe('unassigned user@example.com "US Bank" company card ending in 5678');
+        });
+    });
+
+    describe('getUpdatedCardFeedLiabilityMessage', () => {
+        it('should return enabled message when liabilityType is ALLOW', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_LIABILITY,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    feedName: 'Visa Commercial',
+                    liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.ALLOW,
+                },
+            } as ReportAction;
+            const result = getUpdatedCardFeedLiabilityMessage(translateLocal, action);
+            expect(result).toBe('enabled cardholders to delete card transactions for card feed "Visa Commercial"');
+        });
+    });
+
+    describe('getUpdatedCardFeedStatementPeriodMessage', () => {
+        it('should return translated message with numeric day values', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_STATEMENT_PERIOD,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    feedName: 'Visa Commercial',
+                    statementPeriodEndDay: '15',
+                    previousStatementPeriodEndDay: '20',
+                },
+            } as ReportAction;
+            const result = getUpdatedCardFeedStatementPeriodMessage(translateLocal, action);
+            expect(result).toBe('changed card feed "Visa Commercial" statement period end day to "15" (previously "20")');
+        });
+
+        it('should translate LAST_DAY_OF_MONTH value', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_STATEMENT_PERIOD,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    feedName: 'Amex Corporate',
+                    statementPeriodEndDay: CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH,
+                    previousStatementPeriodEndDay: '10',
+                },
+            } as ReportAction;
+            const result = getUpdatedCardFeedStatementPeriodMessage(translateLocal, action);
+            expect(result).toBe('changed card feed "Amex Corporate" statement period end day to "Last day of the month" (previously "10")');
+        });
+
+        it('should translate LAST_BUSINESS_DAY_OF_MONTH value', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_STATEMENT_PERIOD,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    feedName: 'Mastercard',
+                    statementPeriodEndDay: CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_BUSINESS_DAY_OF_MONTH,
+                    previousStatementPeriodEndDay: CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH,
+                },
+            } as ReportAction;
+            const result = getUpdatedCardFeedStatementPeriodMessage(translateLocal, action);
+            expect(result).toBe('changed card feed "Mastercard" statement period end day to "Last business day of the month" (previously "Last day of the month")');
         });
     });
 

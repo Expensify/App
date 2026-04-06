@@ -98,6 +98,7 @@ function MenuItemList({menuItems = [], shouldUseSingleExecution = false, wrapper
                     key={key ?? menuItemProps.title}
                     wrapperStyle={wrapperStyle}
                     onSecondaryInteraction={menuItemProps.link !== undefined ? (e) => secondaryInteraction(menuItemProps.link, e) : undefined}
+                    shouldShowContextMenuHint={menuItemProps.shouldShowContextMenuHint ?? menuItemProps.link !== undefined}
                     ref={mergeRefs(ref, popoverAnchor)}
                     shouldBlockSelection={!!menuItemProps.link}
                     icon={icon}
