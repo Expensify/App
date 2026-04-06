@@ -1,7 +1,7 @@
 import type {ImageSource} from 'expo-image';
 import {useContext, useEffect, useState} from 'react';
-import {useOnyx} from 'react-native-onyx';
 import {AttachmentIDContext} from '@components/Attachments/AttachmentIDContext';
+import useOnyx from '@hooks/useOnyx';
 import {getCachedAttachment} from '@libs/actions/Attachment';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
