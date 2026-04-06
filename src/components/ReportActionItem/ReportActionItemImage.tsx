@@ -152,10 +152,7 @@ function ReportActionItemImage({
         propsObj = {
             shouldUseThumbnailImage: shouldUseThumbnailImage ?? true,
 
-            // PDF won't have originalImage that we can use. Use thumbnail instead
-            // We explicitly want to use || instead of nullish-coalescing because shouldUseThumbnailImage can be false.
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            source: shouldUseThumbnailImage || isPDF ? thumbnailSource : originalImageSource,
+            source: thumbnailSource,
             fallbackIcon: icons.Receipt,
             fallbackIconSize: isSingleImage ? variables.iconSizeSuperLarge : variables.iconSizeExtraLarge,
             isAuthTokenRequired: true,
