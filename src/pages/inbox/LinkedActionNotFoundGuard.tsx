@@ -145,7 +145,7 @@ function LinkedActionNotFoundGate({reportActionIDFromRoute, children}: LinkedAct
         if (!isActionGone) {
             return;
         }
-        Navigation.setParams({reportActionID: ''}, route.key);
+        Navigation.setParams({reportActionID: undefined}, route.key);
         // Also strip the stale reportActionID from any `backTo` params on sibling routes
         // (e.g. the IOU report screen that was navigated to FROM this deep link).
         if (reportIDFromRoute) {
@@ -163,7 +163,7 @@ function LinkedActionNotFoundGate({reportActionIDFromRoute, children}: LinkedAct
             if (ignore) {
                 return;
             }
-            Navigation.setParams({reportActionID: ''}, route.key);
+            Navigation.setParams({reportActionID: undefined}, route.key);
         });
         return () => {
             ignore = true;
@@ -171,7 +171,7 @@ function LinkedActionNotFoundGate({reportActionIDFromRoute, children}: LinkedAct
     }, [isLinkedActionInaccessibleWhisper, route.key]);
 
     const navigateToEndOfReport = () => {
-        Navigation.setParams({reportActionID: ''}, route.key);
+        Navigation.setParams({reportActionID: undefined}, route.key);
     };
 
     return (

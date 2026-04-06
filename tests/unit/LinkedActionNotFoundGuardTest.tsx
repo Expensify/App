@@ -147,7 +147,7 @@ describe('LinkedActionNotFoundGuard', () => {
         );
 
         // The cleanup effect should clear reportActionID with the route key
-        expect(mockSetParams).toHaveBeenCalledWith({reportActionID: ''}, ROUTE_KEY);
+        expect(mockSetParams).toHaveBeenCalledWith({reportActionID: undefined}, ROUTE_KEY);
     });
 
     it('does not navigate away when action disappears but was never visible', () => {
@@ -185,7 +185,7 @@ describe('LinkedActionNotFoundGuard', () => {
 
         expect(mockSetParams).toHaveBeenCalledTimes(1);
         // Verify route.key is the second argument (needed for split navigator targeting)
-        expect(mockSetParams).toHaveBeenCalledWith({reportActionID: ''}, ROUTE_KEY);
+        expect(mockSetParams).toHaveBeenCalledWith({reportActionID: undefined}, ROUTE_KEY);
     });
 
     it('renders children without guard when no reportActionID in route', () => {
