@@ -490,6 +490,7 @@ const translations: TranslationDeepObject<typeof en> = {
         on: 'Attivo',
         before: 'Prima',
         after: 'Dopo',
+        range: 'Intervallo',
         reschedule: 'Ripianifica',
         general: 'Generale',
         workspacesTabTitle: 'Area di lavoro',
@@ -820,6 +821,9 @@ const translations: TranslationDeepObject<typeof en> = {
         emoji: 'Emoji',
         collapse: 'Comprimi',
         expand: 'Espandi',
+        askConciergeToUpdate: 'Prova con "Aggiorna una spesa"...',
+        askConciergeToCorrect: 'Prova con "Correggi una spesa"...',
+        askConciergeForHelp: 'Chiedi aiuto a Concierge AI...',
     },
     reportActionContextMenu: {
         copyMessage: 'Copia messaggio',
@@ -1163,7 +1167,6 @@ const translations: TranslationDeepObject<typeof en> = {
         flash: 'flash',
         multiScan: 'scansione multipla',
         shutter: 'otturatore',
-        flipCamera: 'cambia fotocamera',
         gallery: 'galleria',
         deleteReceipt: 'Elimina ricevuta',
         deleteConfirmation: 'Sei sicuro di voler eliminare questa ricevuta?',
@@ -1538,6 +1541,7 @@ const translations: TranslationDeepObject<typeof en> = {
         bookingArchived: 'Questa prenotazione è archiviata',
         bookingArchivedDescription: 'Questa prenotazione è archiviata perché la data del viaggio è passata. Aggiungi una spesa per l’importo finale, se necessario.',
         attendees: 'Partecipanti',
+        totalPerAttendee: 'Per partecipante',
         whoIsYourAccountant: 'Chi è il tuo commercialista?',
         paymentComplete: 'Pagamento completato',
         time: 'Ora',
@@ -1609,7 +1613,9 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             addApprover: {
                 subtitle: 'Scegli un approvatore aggiuntivo per questo report prima che venga instradato attraverso il resto del flusso di approvazione.',
+                bulkSubtitle: 'Scegli un approvatore aggiuntivo per questi report prima che li instradiamo attraverso il resto del flusso di approvazione.',
             },
+            bulkSubtitle: "Scegli un'opzione per cambiare l'approvatore di questi report.",
         },
         chooseWorkspace: 'Scegli uno spazio di lavoro',
         routedDueToDEW: (to: string, reason?: string) => `report indirizzato a ${to}${reason ? ` perché ${reason}` : ''}`,
@@ -1641,7 +1647,6 @@ const translations: TranslationDeepObject<typeof en> = {
             `approvazione non riuscita tramite le <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regole dello spazio di lavoro</a>. ${reason}`,
         failedToApproveViaDEW: (reason: string) => `approvazione non riuscita. ${reason}`,
         cannotDuplicateDistanceExpense: 'Non puoi duplicare le spese chilometriche tra diversi spazi di lavoro perché le tariffe potrebbero essere diverse.',
-        deleted: 'Eliminato',
     },
     transactionMerge: {
         listPage: {
@@ -2014,7 +2019,13 @@ const translations: TranslationDeepObject<typeof en> = {
         accountSettings: 'Impostazioni account',
         account: 'Account',
         general: 'Generale',
-        helpPage: {title: 'Aiuto e supporto', description: 'Siamo qui per aiutarti 24 ore su 24, 7 giorni su 7', helpSite: 'Sito di assistenza'},
+        helpPage: {
+            title: 'Aiuto e supporto',
+            description: 'Siamo qui per aiutarti 24 ore su 24, 7 giorni su 7',
+            helpSite: 'Sito di assistenza',
+            conciergeChat: 'Concierge',
+            conciergeChatDescription: 'Il tuo assistente IA personale',
+        },
     },
     closeAccountPage: {
         closeAccount: 'Chiudi account',
@@ -2296,6 +2307,7 @@ const translations: TranslationDeepObject<typeof en> = {
         enableWallet: 'Abilita portafoglio',
         addBankAccountToSendAndReceive: 'Aggiungi un conto bancario per effettuare o ricevere pagamenti.',
         addDebitOrCreditCard: 'Aggiungi carta di debito o di credito',
+        cardInactive: 'Inattivo',
         assignedCards: 'Carte assegnate',
         assignedCardsDescription: 'Le transazioni di queste carte si sincronizzano automaticamente.',
         expensifyCard: 'Carta Expensify',
@@ -2484,6 +2496,7 @@ ${amount} per ${merchant} - ${date}`,
             title: 'Nessun membro da visualizzare',
             expensesFromSubtitle: 'Tutti i membri dello spazio di lavoro appartengono già a un flusso di approvazione esistente.',
             approverSubtitle: 'Tutti gli approvatori appartengono a un workflow esistente.',
+            bulkApproverSubtitle: 'Nessun approvatore corrisponde ai criteri per i report selezionati.',
         },
     },
     workflowsDelayedSubmissionPage: {
@@ -3791,6 +3804,10 @@ ${amount} per ${merchant} - ${date}`,
         youCanChange: 'Puoi cambiare la valuta dello spazio di lavoro nelle tue',
         findCountry: 'Trova paese',
         selectCountry: 'Seleziona paese',
+        error: {
+            connectToWorkspace: (workspaceRoute: string) =>
+                `Collega questo conto bancario a un <a href="${workspaceRoute}">spazio di lavoro</a> per poter invitare un direttore a firmare in un passaggio successivo.`,
+        },
     },
     bankInfoStep: {
         whatAreYour: 'Quali sono i dati del tuo conto bancario aziendale?',
@@ -3838,6 +3855,7 @@ ${amount} per ${merchant} - ${date}`,
             `sta collegando un conto bancario aziendale in ${currency} che termina con ${bankAccountLastFour} a Expensify per pagare i dipendenti in ${currency}. Il prossimo passaggio richiede le informazioni del firmatario da un direttore.`,
         error: {
             emailsMustBeDifferent: 'Le email devono essere diverse',
+            connectToWorkspace: (workspaceRoute: string) => `Per favore, collega questo conto bancario a un <a href="${workspaceRoute}">workspace</a> per invitare un direttore a firmare.`,
         },
     },
     agreementsStep: {
@@ -6706,6 +6724,24 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 title: 'Politica di spesa',
                 cardSubtitle: 'Qui trovi il regolamento spese del tuo team, così tutti sono allineati su cosa è coperto.',
             },
+            spendRules: {
+                title: 'Spesa',
+                subtitle: 'Approva o rifiuta le transazioni della Carta Expensify in tempo reale.',
+                defaultRuleDescription: 'Tutte le carte',
+                block: 'Blocca',
+                defaultRuleTitle: 'Categorie: servizi per adulti, sportelli bancomat, gioco d’azzardo, trasferimenti di denaro',
+                builtInProtectionModal: {
+                    title: 'Le Carte Expensify offrono sempre una protezione integrata',
+                    description: `Expensify rifiuta sempre questi addebiti:
+
+  • Servizi per adulti
+  • Bancomat
+  • Gioco d’azzardo
+  • Trasferimenti di denaro
+
+Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
+                },
+            },
         },
         planTypePage: {
             planTypes: {
@@ -7403,7 +7439,6 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             unhold: 'Rimuovi blocco',
             reject: 'Rifiuta',
             noOptionsAvailable: 'Nessuna opzione disponibile per il gruppo di spese selezionato.',
-            undelete: 'Ripristina',
         },
         filtersHeader: 'Filtri',
         filters: {
@@ -7411,6 +7446,8 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 before: (date?: string) => `Prima di ${date ?? ''}`,
                 after: (date?: string) => `Dopo ${date ?? ''}`,
                 on: (date?: string) => `Su ${date ?? ''}`,
+                customDate: 'Data personalizzata',
+                customRange: 'Intervallo personalizzato',
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Mai',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Il mese scorso',
@@ -7538,6 +7575,9 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
         exportAll: {
             selectAllMatchingItems: 'Seleziona tutti gli elementi corrispondenti',
             allMatchingItemsSelected: 'Tutti gli elementi corrispondenti selezionati',
+        },
+        errors: {
+            pleaseSelectDatesForBothFromAndTo: 'Seleziona le date per Da e A',
         },
         spendOverTime: 'Spesa nel tempo',
     },
