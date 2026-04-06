@@ -6818,7 +6818,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     [CONST.SPEND_RULES.CATEGORIES.CAR_RENTALS]: 'Locations de voiture',
                     [CONST.SPEND_RULES.CATEGORIES.DINING]: 'Restauration',
                     [CONST.SPEND_RULES.CATEGORIES.FUEL_AND_GAS]: 'Carburant et gaz',
-                    [CONST.SPEND_RULES.CATEGORIES.GOVERNMENT_AND_NON_PROFIT]: 'Secteur public et organisations à but non lucratif',
+                    [CONST.SPEND_RULES.CATEGORIES.GOVERNMENT_AND_NON_PROFITS]: 'Secteur public et organisations à but non lucratif',
                     [CONST.SPEND_RULES.CATEGORIES.GROCERIES]: 'Courses',
                     [CONST.SPEND_RULES.CATEGORIES.GYMS_AND_FITNESS]: 'Salles de sport et fitness',
                     [CONST.SPEND_RULES.CATEGORIES.HEALTHCARE]: 'Santé',

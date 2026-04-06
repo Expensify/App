@@ -6794,7 +6794,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     [CONST.SPEND_RULES.CATEGORIES.CAR_RENTALS]: 'Mietwagen',
                     [CONST.SPEND_RULES.CATEGORIES.DINING]: 'Essen',
                     [CONST.SPEND_RULES.CATEGORIES.FUEL_AND_GAS]: 'Kraftstoff und Gas',
-                    [CONST.SPEND_RULES.CATEGORIES.GOVERNMENT_AND_NON_PROFIT]: 'Behörden und Non-Profit-Organisationen',
+                    [CONST.SPEND_RULES.CATEGORIES.GOVERNMENT_AND_NON_PROFITS]: 'Behörden und Non-Profit-Organisationen',
                     [CONST.SPEND_RULES.CATEGORIES.GROCERIES]: 'Lebensmittel',
                     [CONST.SPEND_RULES.CATEGORIES.GYMS_AND_FITNESS]: 'Fitnessstudios und Fitness',
                     [CONST.SPEND_RULES.CATEGORIES.HEALTHCARE]: 'Gesundheitswesen',

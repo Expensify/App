@@ -6705,7 +6705,7 @@ ${reportName}
                     [CONST.SPEND_RULES.CATEGORIES.CAR_RENTALS]: 'レンタカー',
                     [CONST.SPEND_RULES.CATEGORIES.DINING]: '外食',
                     [CONST.SPEND_RULES.CATEGORIES.FUEL_AND_GAS]: '燃料とガス',
-                    [CONST.SPEND_RULES.CATEGORIES.GOVERNMENT_AND_NON_PROFIT]: '官公庁・非営利団体',
+                    [CONST.SPEND_RULES.CATEGORIES.GOVERNMENT_AND_NON_PROFITS]: '官公庁・非営利団体',
                     [CONST.SPEND_RULES.CATEGORIES.GROCERIES]: '食料品',
                     [CONST.SPEND_RULES.CATEGORIES.GYMS_AND_FITNESS]: 'ジム・フィットネス',
                     [CONST.SPEND_RULES.CATEGORIES.HEALTHCARE]: '医療',

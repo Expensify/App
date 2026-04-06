@@ -4252,7 +4252,7 @@ const CONST = {
             CAR_RENTALS: 'carRentals',
             DINING: 'dining',
             FUEL_AND_GAS: 'fuelAndGas',
-            GOVERNMENT_AND_NON_PROFIT: 'governmentAndNonProfit',
+            GOVERNMENT_AND_NON_PROFITS: 'governmentAndNonProfits',
             GROCERIES: 'groceries',
             GYMS_AND_FITNESS: 'gymsAndFitness',
             HEALTHCARE: 'healthcare',

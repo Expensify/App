@@ -6583,7 +6583,7 @@ ${reportName}
                     [CONST.SPEND_RULES.CATEGORIES.CAR_RENTALS]: '汽车租赁',
                     [CONST.SPEND_RULES.CATEGORIES.DINING]: '餐饮',
                     [CONST.SPEND_RULES.CATEGORIES.FUEL_AND_GAS]: '燃料和汽油',
-                    [CONST.SPEND_RULES.CATEGORIES.GOVERNMENT_AND_NON_PROFIT]: '政府和非营利组织',
+                    [CONST.SPEND_RULES.CATEGORIES.GOVERNMENT_AND_NON_PROFITS]: '政府和非营利组织',
                     [CONST.SPEND_RULES.CATEGORIES.GROCERIES]: '杂货',
                     [CONST.SPEND_RULES.CATEGORIES.GYMS_AND_FITNESS]: '健身房和健身',
                     [CONST.SPEND_RULES.CATEGORIES.HEALTHCARE]: '医疗保健',
