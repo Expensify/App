@@ -5,6 +5,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import {ModalProvider} from '@components/Modal/Global/ModalContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
@@ -21,6 +22,32 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
 
+// ReanimatedModal calls onModalHide via the native Modal's onDismiss callback,
+// which doesn't fire in tests because animations are disabled.
+// This mock simulates that behavior synchronously so that the showConfirmModal
+// promise resolves correctly in tests.
+jest.mock('@components/Modal/ReanimatedModal', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-require-imports
+    const {useEffect, useRef}: {useEffect: typeof React.useEffect; useRef: typeof React.useRef} = require('react');
+
+    return function MockReanimatedModal({isVisible, onModalHide, children}: {isVisible: boolean; onModalHide?: () => void; children: React.ReactNode}) {
+        const wasVisible = useRef<boolean>(isVisible);
+
+        useEffect(() => {
+            if (wasVisible.current && !isVisible) {
+                onModalHide?.();
+            }
+            wasVisible.current = isVisible;
+        }, [isVisible, onModalHide]);
+
+        if (!isVisible) {
+            return null;
+        }
+
+        return children as React.ReactElement;
+    };
+});
+
 TestHelper.setupGlobalFetchMock();
 
 const Stack = createPlatformStackNavigator<WorkspaceSplitNavigatorParamList>();
@@ -29,15 +56,17 @@ const renderPage = (initialRouteName: typeof SCREENS.WORKSPACE.CATEGORIES, initi
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <PortalProvider>
-                <NavigationContainer>
-                    <Stack.Navigator initialRouteName={initialRouteName}>
-                        <Stack.Screen
-                            name={SCREENS.WORKSPACE.CATEGORIES}
-                            component={WorkspaceCategoriesPage}
-                            initialParams={initialParams}
-                        />
-                    </Stack.Navigator>
-                </NavigationContainer>
+                <ModalProvider>
+                    <NavigationContainer>
+                        <Stack.Navigator initialRouteName={initialRouteName}>
+                            <Stack.Screen
+                                name={SCREENS.WORKSPACE.CATEGORIES}
+                                component={WorkspaceCategoriesPage}
+                                initialParams={initialParams}
+                            />
+                        </Stack.Navigator>
+                    </NavigationContainer>
+                </ModalProvider>
             </PortalProvider>
         </ComposeProviders>,
     );

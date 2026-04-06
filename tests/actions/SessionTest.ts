@@ -1,3 +1,4 @@
+// cspell:ignore SOMESECRETKEY
 import {beforeEach, jest, test} from '@jest/globals';
 import {openAuthSessionAsync} from 'expo-web-browser';
 import Onyx from 'react-native-onyx';
@@ -395,6 +396,69 @@ describe('Session', () => {
             expect(mockedOpenAuthSessionAsync).not.toHaveBeenCalled();
             expect(makeRequestSpy).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.LOG_OUT, expect.objectContaining({authToken: 'testAuthToken', partnerUserID: 'testLogin'}), {});
             makeRequestSpy.mockRestore();
+        });
+    });
+
+    describe('replaceTwoFactorDevice', () => {
+        test('sets isLoading and clears errors optimistically for both steps', () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            SessionUtil.replaceTwoFactorDevice('verify_old', '123456');
+
+            const onyxData = writeSpy.mock.calls.at(0)?.at(2) as {optimisticData: Array<{key: string; value: unknown}>};
+            const accountOptimistic = onyxData.optimisticData.find((d) => d.key === ONYXKEYS.ACCOUNT);
+            expect(accountOptimistic?.value).toStrictEqual({isLoading: true, errors: null});
+
+            writeSpy.mockRestore();
+        });
+
+        test('verify_old success data does not clear twoFactorAuthSecretKey', () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            SessionUtil.replaceTwoFactorDevice('verify_old', '123456');
+
+            const onyxData = writeSpy.mock.calls.at(0)?.at(2) as {successData: Array<{key: string; value: Record<string, unknown>}>};
+            const accountSuccess = onyxData.successData.find((d) => d.key === ONYXKEYS.ACCOUNT);
+            expect(accountSuccess?.value).not.toHaveProperty('twoFactorAuthSecretKey');
+
+            writeSpy.mockRestore();
+        });
+
+        test('verify_new success data clears twoFactorAuthSecretKey to signal step completion', () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            SessionUtil.replaceTwoFactorDevice('verify_new', '654321');
+
+            const onyxData = writeSpy.mock.calls.at(0)?.at(2) as {successData: Array<{key: string; value: Record<string, unknown>}>};
+            const accountSuccess = onyxData.successData.find((d) => d.key === ONYXKEYS.ACCOUNT);
+            expect(accountSuccess?.value.twoFactorAuthSecretKey).toBeNull();
+
+            writeSpy.mockRestore();
+        });
+    });
+
+    describe('clearTwoFactorAuthSecretKey', () => {
+        test('removes twoFactorAuthSecretKey from account state', async () => {
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {twoFactorAuthSecretKey: 'SOMESECRETKEY123'});
+            await waitForBatchedUpdates();
+
+            let account: Record<string, unknown> | null | undefined;
+            Onyx.connect({
+                key: ONYXKEYS.ACCOUNT,
+                callback: (val) => {
+                    account = val as Record<string, unknown> | null | undefined;
+                },
+            });
+            await waitForBatchedUpdates();
+            expect(account?.twoFactorAuthSecretKey).toBe('SOMESECRETKEY123');
+
+            SessionUtil.clearTwoFactorAuthSecretKey();
+            await waitForBatchedUpdates();
+
+            expect(account).not.toHaveProperty('twoFactorAuthSecretKey');
         });
     });
 

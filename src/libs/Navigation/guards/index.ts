@@ -6,7 +6,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session} from '@src/types/onyx';
 import MigratedUserWelcomeModalGuard from './MigratedUserWelcomeModalGuard';
 import OnboardingGuard from './OnboardingGuard';
-import TestDriveModalGuard from './TestDriveModalGuard';
 import type {GuardContext, GuardResult, NavigationGuard} from './types';
 
 /**
@@ -24,7 +23,7 @@ Onyx.connectWithoutView({
 });
 
 Onyx.connectWithoutView({
-    key: ONYXKEYS.IS_LOADING_APP,
+    key: ONYXKEYS.RAM_ONLY_IS_LOADING_APP,
     callback: (value) => {
         isLoadingApp = value ?? true;
     },
@@ -102,7 +101,6 @@ function clearGuards(): void {
 
 registerGuard(OnboardingGuard);
 registerGuard(MigratedUserWelcomeModalGuard);
-registerGuard(TestDriveModalGuard);
 
 export {registerGuard, createGuardContext, evaluateGuards, getRegisteredGuards, clearGuards};
 export type {NavigationGuard, GuardResult, GuardContext};

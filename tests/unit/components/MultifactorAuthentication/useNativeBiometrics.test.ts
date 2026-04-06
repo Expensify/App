@@ -1,8 +1,9 @@
 import {act, renderHook} from '@testing-library/react-native';
-import useNativeBiometrics from '@components/MultifactorAuthentication/Context/useNativeBiometrics';
-import {generateKeyPair, signToken as signTokenED25519} from '@libs/MultifactorAuthentication/Biometrics/ED25519';
-import {PrivateKeyStore, PublicKeyStore} from '@libs/MultifactorAuthentication/Biometrics/KeyStore';
-import VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
+import useNativeBiometrics from '@components/MultifactorAuthentication/biometrics/useNativeBiometrics';
+import {generateKeyPair, signToken as signTokenED25519} from '@libs/MultifactorAuthentication/NativeBiometrics/ED25519';
+import {PrivateKeyStore, PublicKeyStore} from '@libs/MultifactorAuthentication/NativeBiometrics/KeyStore';
+import type {AuthenticationChallenge} from '@libs/MultifactorAuthentication/shared/challengeTypes';
+import VALUES from '@libs/MultifactorAuthentication/VALUES';
 import CONST from '@src/CONST';
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
@@ -30,8 +31,8 @@ jest.mock('@hooks/useOnyx', () => ({
 }));
 
 jest.mock('@userActions/MultifactorAuthentication');
-jest.mock('@libs/MultifactorAuthentication/Biometrics/ED25519');
-jest.mock('@libs/MultifactorAuthentication/Biometrics/KeyStore', () => ({
+jest.mock('@libs/MultifactorAuthentication/NativeBiometrics/ED25519');
+jest.mock('@libs/MultifactorAuthentication/NativeBiometrics/KeyStore', () => ({
     PublicKeyStore: {
         supportedAuthentication: {biometrics: true, deviceCredentials: true},
         set: jest.fn(),
@@ -86,35 +87,34 @@ describe('useNativeBiometrics hook', () => {
             const {result} = renderHook(() => useNativeBiometrics());
 
             expect(result.current).toHaveProperty('serverKnownCredentialIDs');
-            expect(result.current).toHaveProperty('doesDeviceSupportBiometrics');
-            expect(result.current).toHaveProperty('getLocalPublicKey');
+            expect(result.current).toHaveProperty('doesDeviceSupportAuthenticationMethod');
+            expect(result.current).toHaveProperty('getLocalCredentialID');
             expect(result.current).toHaveProperty('areLocalCredentialsKnownToServer');
             expect(result.current).toHaveProperty('register');
             expect(result.current).toHaveProperty('authorize');
-            expect(result.current).toHaveProperty('resetKeysForAccount');
+            expect(result.current).toHaveProperty('deleteLocalKeysForAccount');
         });
 
         it('should initialize info with biometrics status', async () => {
             const {result} = renderHook(() => useNativeBiometrics());
 
-            expect(result.current.doesDeviceSupportBiometrics()).toBe(true);
-            await expect(result.current.getLocalPublicKey()).resolves.toBeUndefined();
+            await expect(result.current.doesDeviceSupportAuthenticationMethod()).resolves.toBe(true);
+            await expect(result.current.getLocalCredentialID()).resolves.toBeUndefined();
             await expect(result.current.areLocalCredentialsKnownToServer()).resolves.toBe(false);
         });
     });
 
-    describe('doesDeviceSupportBiometrics', () => {
-        it('should return true when device supports biometrics', () => {
+    describe('doesDeviceSupportAuthenticationMethod', () => {
+        it('should return true when device supports biometrics', async () => {
             const {result} = renderHook(() => useNativeBiometrics());
 
-            expect(typeof result.current.doesDeviceSupportBiometrics()).toBe('boolean');
-            expect(result.current.doesDeviceSupportBiometrics()).toBe(true);
+            await expect(result.current.doesDeviceSupportAuthenticationMethod()).resolves.toBe(true);
         });
 
-        it('should return boolean based on supportedAuthentication', () => {
+        it('should return boolean based on supportedAuthentication', async () => {
             const {result} = renderHook(() => useNativeBiometrics());
 
-            const support = result.current.doesDeviceSupportBiometrics();
+            const support = await result.current.doesDeviceSupportAuthenticationMethod();
             const {biometrics, credentials} = PublicKeyStore.supportedAuthentication;
             const expectedValue = biometrics || credentials;
 
@@ -122,11 +122,11 @@ describe('useNativeBiometrics hook', () => {
         });
     });
 
-    describe('getLocalPublicKey', () => {
+    describe('getLocalCredentialID', () => {
         it('should return undefined when no local key exists', async () => {
             const {result} = renderHook(() => useNativeBiometrics());
 
-            const key = await result.current.getLocalPublicKey();
+            const key = await result.current.getLocalCredentialID();
             expect(key).toBeUndefined();
         });
 
@@ -138,7 +138,7 @@ describe('useNativeBiometrics hook', () => {
 
             const {result} = renderHook(() => useNativeBiometrics());
 
-            const key = await result.current.getLocalPublicKey();
+            const key = await result.current.getLocalCredentialID();
             expect(key).toBe('public-key-123');
         });
     });
@@ -205,6 +205,14 @@ describe('useNativeBiometrics hook', () => {
     });
 
     describe('register', () => {
+        const mockRegistrationChallenge = {
+            challenge: 'test-challenge-string',
+            rp: {id: 'expensify.com'},
+            user: {id: 'user-123', displayName: 'Test User'},
+            pubKeyCredParams: [{type: 'public-key' as const, alg: -8}],
+            timeout: 60000,
+        };
+
         beforeEach(() => {
             (generateKeyPair as jest.Mock).mockReturnValue({
                 publicKey: 'public-key-123',
@@ -225,15 +233,12 @@ describe('useNativeBiometrics hook', () => {
             });
         });
 
-        // Note: Challenge fetching is now done in Main.tsx, not in useNativeBiometrics
-        // These tests verify the register function with challenge passed as a parameter
-
         it('should generate key pair', async () => {
             const {result} = renderHook(() => useNativeBiometrics());
             const onResult = jest.fn();
 
             await act(async () => {
-                await result.current.register(onResult);
+                await result.current.register(onResult, mockRegistrationChallenge);
             });
 
             expect(generateKeyPair).toHaveBeenCalled();
@@ -244,7 +249,7 @@ describe('useNativeBiometrics hook', () => {
             const onResult = jest.fn();
 
             await act(async () => {
-                await result.current.register(onResult);
+                await result.current.register(onResult, mockRegistrationChallenge);
             });
 
             // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -256,32 +261,38 @@ describe('useNativeBiometrics hook', () => {
             const onResult = jest.fn();
 
             await act(async () => {
-                await result.current.register(onResult);
+                await result.current.register(onResult, mockRegistrationChallenge);
             });
 
-            // Verify both stores were called
             // eslint-disable-next-line @typescript-eslint/unbound-method
             expect(PrivateKeyStore.set).toHaveBeenCalled();
             // eslint-disable-next-line @typescript-eslint/unbound-method
             expect(PublicKeyStore.set).toHaveBeenCalled();
         });
 
-        it('should handle successful registration flow', async () => {
+        it('should handle successful registration flow and return keyInfo', async () => {
             const {result} = renderHook(() => useNativeBiometrics());
             const onResult = jest.fn();
 
             await act(async () => {
-                await result.current.register(onResult);
+                await result.current.register(onResult, mockRegistrationChallenge);
             });
 
-            // Verify the full flow was triggered
             // eslint-disable-next-line @typescript-eslint/unbound-method
             expect(generateKeyPair).toHaveBeenCalled();
             // eslint-disable-next-line @typescript-eslint/unbound-method
             expect(PrivateKeyStore.set).toHaveBeenCalled();
             // eslint-disable-next-line @typescript-eslint/unbound-method
             expect(PublicKeyStore.set).toHaveBeenCalled();
-            expect(onResult).toHaveBeenCalled();
+            expect(onResult).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    success: true,
+                    keyInfo: expect.objectContaining({
+                        rawId: 'public-key-123',
+                        type: 'biometric',
+                    }),
+                }),
+            );
         });
     });
 
@@ -306,7 +317,7 @@ describe('useNativeBiometrics hook', () => {
         // Note: Challenge fetching is now done in Main.tsx, not in useNativeBiometrics
         // These tests verify the authorize function with challenge passed as a parameter
 
-        const mockChallenge = {
+        const mockChallenge: AuthenticationChallenge = {
             allowCredentials: [{id: 'public-key-123', type: 'public-key'}],
             rpId: 'expensify.com',
             challenge: 'test-challenge',
@@ -346,7 +357,7 @@ describe('useNativeBiometrics hook', () => {
         });
 
         it('should verify public key is in allowCredentials', async () => {
-            const challengeWithOtherKey = {
+            const challengeWithOtherKey: AuthenticationChallenge = {
                 allowCredentials: [{id: 'other-public-key', type: 'public-key'}],
                 rpId: 'expensify.com',
                 challenge: 'test-challenge',
@@ -402,12 +413,12 @@ describe('useNativeBiometrics hook', () => {
         });
     });
 
-    describe('resetKeysForAccount', () => {
+    describe('deleteLocalKeysForAccount', () => {
         it('should delete keys', async () => {
             const {result} = renderHook(() => useNativeBiometrics());
 
             await act(async () => {
-                await result.current.resetKeysForAccount();
+                await result.current.deleteLocalKeysForAccount();
             });
 
             expect(publicKeyStoreDelete).toHaveBeenCalledWith(12345);

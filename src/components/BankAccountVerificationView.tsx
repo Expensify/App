@@ -4,6 +4,7 @@ import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddi
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import Accessibility from '@libs/Accessibility';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -24,7 +25,8 @@ type BankAccountVerificationViewProps = {
 function BankAccountVerificationView({verificationState, children, onVerifiedButtonPress, verifiedButtonText, verifiedTitle, verifiedSubtitle}: BankAccountVerificationViewProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['Puzzle']);
+    const isReduceMotionEnabled = Accessibility.useReducedMotion();
+    const illustrations = useMemoizedLazyIllustrations(['Puzzle', 'Fireworks']);
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true});
 
     if (!verificationState) {
@@ -69,14 +71,25 @@ function BankAccountVerificationView({verificationState, children, onVerifiedBut
         case CONST.EXPENSIFY_CARD.VERIFICATION_STATE.VERIFIED:
             return (
                 <>
-                    <BlockingView
-                        title={verifiedTitle ?? translate('workspace.expensifyCard.bankAccountVerified')}
-                        subtitle={verifiedSubtitle ?? translate('workspace.expensifyCard.bankAccountVerifiedDescription')}
-                        animation={LottieAnimations.Fireworks}
-                        animationStyles={styles.loadingVBAAnimation}
-                        animationWebStyle={styles.loadingVBAAnimationWeb}
-                        subtitleStyle={styles.textLabelSupporting}
-                    />
+                    {isReduceMotionEnabled ? (
+                        <BlockingView
+                            title={verifiedTitle ?? translate('workspace.expensifyCard.bankAccountVerified')}
+                            subtitle={verifiedSubtitle ?? translate('workspace.expensifyCard.bankAccountVerifiedDescription')}
+                            icon={illustrations.Fireworks}
+                            iconWidth={Number(styles.loadingVBAAnimation.width)}
+                            iconHeight={Number(styles.loadingVBAAnimation.height)}
+                            subtitleStyle={styles.textLabelSupporting}
+                        />
+                    ) : (
+                        <BlockingView
+                            title={verifiedTitle ?? translate('workspace.expensifyCard.bankAccountVerified')}
+                            subtitle={verifiedSubtitle ?? translate('workspace.expensifyCard.bankAccountVerifiedDescription')}
+                            animation={LottieAnimations.Fireworks}
+                            animationStyles={styles.loadingVBAAnimation}
+                            animationWebStyle={styles.loadingVBAAnimationWeb}
+                            subtitleStyle={styles.textLabelSupporting}
+                        />
+                    )}
                     <Button
                         success
                         large

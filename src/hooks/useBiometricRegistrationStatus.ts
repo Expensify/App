@@ -1,20 +1,20 @@
 /**
- * Hook that derives the current device's biometric registration status by combining the local public key with
+ * Hook that derives the current device's biometric registration status by combining the local credential ID with
  * the server-known credential list.
  */
 import {useEffect, useState} from 'react';
 import type {ValueOf} from 'type-fest';
-import useNativeBiometrics from '@components/MultifactorAuthentication/Context/useNativeBiometrics';
+import useBiometrics from '@components/MultifactorAuthentication/biometrics/useBiometrics';
 import Log from '@libs/Log';
-import MULTIFACTOR_AUTHENTICATION_VALUES from '@libs/MultifactorAuthentication/Biometrics/VALUES';
+import MULTIFACTOR_AUTHENTICATION_VALUES from '@libs/MultifactorAuthentication/VALUES';
 
 const REGISTRATION_STATUS = MULTIFACTOR_AUTHENTICATION_VALUES.REGISTRATION_STATUS;
 
 type RegistrationStatus = ValueOf<typeof REGISTRATION_STATUS>;
 
 type BiometricRegistrationStatus = {
-    /** Public key stored locally on this device, or undefined if none exists */
-    localPublicKey: string | undefined;
+    /** Credential ID stored locally on this device, or undefined if none exists */
+    localCredentialID: string | undefined;
 
     /** Whether this device's local key is registered with the server */
     isCurrentDeviceRegistered: boolean;
@@ -30,27 +30,27 @@ type BiometricRegistrationStatus = {
 };
 
 function useBiometricRegistrationStatus(): BiometricRegistrationStatus {
-    const {getLocalPublicKey, serverKnownCredentialIDs, haveCredentialsEverBeenConfigured} = useNativeBiometrics();
-    const [localPublicKey, setLocalPublicKey] = useState<string | undefined>();
+    const {getLocalCredentialID, serverKnownCredentialIDs, haveCredentialsEverBeenConfigured} = useBiometrics();
+    const [localCredentialID, setLocalCredentialID] = useState<string | undefined>();
 
     useEffect(() => {
         let cancelled = false;
-        getLocalPublicKey()
+        getLocalCredentialID()
             .then((key) => {
                 if (cancelled) {
                     return;
                 }
-                setLocalPublicKey(key);
+                setLocalCredentialID(key);
             })
             .catch((error: unknown) => {
-                Log.hmmm('[useBiometricRegistrationStatus] Failed to get local public key', {error: String(error)});
+                Log.hmmm('[useBiometricRegistrationStatus] Failed to get local credential ID', {error: String(error)});
             });
         return () => {
             cancelled = true;
         };
-    }, [getLocalPublicKey, serverKnownCredentialIDs]);
+    }, [getLocalCredentialID, serverKnownCredentialIDs]);
 
-    const isCurrentDeviceRegistered = !!localPublicKey && serverKnownCredentialIDs.includes(localPublicKey);
+    const isCurrentDeviceRegistered = !!localCredentialID && serverKnownCredentialIDs.includes(localCredentialID);
     const totalDeviceCount = serverKnownCredentialIDs.length;
     const otherDeviceCount = totalDeviceCount - (isCurrentDeviceRegistered ? 1 : 0);
 
@@ -66,7 +66,7 @@ function useBiometricRegistrationStatus(): BiometricRegistrationStatus {
     }
 
     return {
-        localPublicKey,
+        localCredentialID,
         isCurrentDeviceRegistered,
         totalDeviceCount,
         otherDeviceCount,

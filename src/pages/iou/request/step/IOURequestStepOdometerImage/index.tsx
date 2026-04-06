@@ -25,9 +25,9 @@ import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import NavigationAwareCamera from '@pages/iou/request/step/IOURequestStepScan/components/NavigationAwareCamera/WebCamera';
 import {cropImageToAspectRatio} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
 import type {ImageObject} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
-import NavigationAwareCamera from '@pages/iou/request/step/IOURequestStepScan/NavigationAwareCamera/WebCamera';
 import StepScreenDragAndDropWrapper from '@pages/iou/request/step/StepScreenDragAndDropWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import type {WithFullTransactionOrNotFoundProps} from '@pages/iou/request/step/withFullTransactionOrNotFound';
@@ -46,6 +46,7 @@ function IOURequestStepOdometerImage({
     route: {
         params: {action, iouType, transactionID, reportID, backToReport, imageType, isEditingConfirmation},
     },
+    transaction,
 }: IOURequestStepOdometerImageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -88,15 +89,12 @@ function IOURequestStepOdometerImage({
     };
 
     const handleImageSelected = (file: FileObject) => {
-        setMoneyRequestOdometerImage(transactionID, imageType, file as File, isTransactionDraft);
+        setMoneyRequestOdometerImage(transaction, imageType, file as File, isTransactionDraft, isEditingConfirmation !== 'true');
         shouldRevokeOnUnmountRef.current = false;
         navigateBack();
     };
 
     const {validateFiles, ErrorModal} = useFilesValidation((files: FileObject[]) => {
-        if (files.length === 0) {
-            return;
-        }
         const file = files.at(0);
         if (!file) {
             return;
@@ -229,11 +227,11 @@ function IOURequestStepOdometerImage({
         const viewFinderHeight = viewfinderLayout.current?.height ?? NaN;
         const shouldAlignTop = videoHeight > viewFinderHeight;
         cropImageToAspectRatio(imageObject, viewfinderLayout.current?.width, viewfinderLayout.current?.height, shouldAlignTop)
-            .then(({source}) => {
+            .then(({file, source}) => {
                 if (source !== imageObject.source) {
                     URL.revokeObjectURL(imageObject.source);
                 }
-                setMoneyRequestOdometerImage(transactionID, imageType, source, isTransactionDraft);
+                setMoneyRequestOdometerImage(transaction, imageType, file ?? source, isTransactionDraft, isEditingConfirmation !== 'true');
                 navigateBack();
             })
             .catch((error: unknown) => {

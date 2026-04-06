@@ -160,6 +160,7 @@ modules/*/lib/
 
 # Playwright
 .playwright-output/
+.playwright-mcp/
 
 # cspell cache
 .cspellcache

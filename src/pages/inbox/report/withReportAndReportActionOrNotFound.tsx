@@ -13,6 +13,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {FlagCommentNavigatorParamList, SplitDetailsNavigatorParamList} from '@libs/Navigation/types';
 import {canAccessReport} from '@libs/ReportUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -42,7 +43,7 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
         const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${props.route.params.reportID}`);
-        const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
+        const [isLoadingReportData] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_REPORT_DATA);
         const [betas] = useOnyx(ONYXKEYS.BETAS);
         const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${props.route.params.reportID}`, {canEvict: false});
         const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -67,7 +68,7 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
             if (!shouldUseNarrowLayout || (!isEmptyObject(report) && !isEmptyObject(linkedReportAction))) {
                 return;
             }
-            openReport({reportID: props.route.params.reportID, introSelected});
+            openReport({reportID: props.route.params.reportID, introSelected, betas});
             // eslint-disable-next-line react-hooks/exhaustive-deps
         }, [shouldUseNarrowLayout, props.route.params.reportID]);
 
@@ -79,7 +80,12 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if ((isLoadingReport || isLoadingReportAction) && !shouldHideReport) {
-            return <FullscreenLoadingIndicator />;
+            const reasonAttributes: SkeletonSpanReasonAttributes = {
+                context: 'withReportAndReportActionOrNotFound',
+                isLoadingReport,
+                isLoadingReportAction,
+            };
+            return <FullscreenLoadingIndicator reasonAttributes={reasonAttributes} />;
         }
 
         // Perform the access/not found checks

@@ -10,6 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {isMobileSafari} from '@libs/Browser';
 import fileDownload from '@libs/fileDownload';
+import {isArchivedNonExpenseReport} from '@libs/ReportUtils';
 import {setDownload} from '@userActions/Download';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -25,7 +26,7 @@ type BaseAnchorForAttachmentsOnlyProps = AnchorForAttachmentsOnlyProps & {
 };
 
 function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onPressIn, onPressOut, isDeleted}: BaseAnchorForAttachmentsOnlyProps) {
-    const sourceID = (source.match(CONST.REGEX.ATTACHMENT_ID) ?? [])[1];
+    const sourceID = (source.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_SOURCE_ID) ?? [])[1];
 
     const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${sourceID}`);
     const session = useSession();
@@ -38,7 +39,7 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onP
     const encryptedAuthToken = session?.encryptedAuthToken ?? '';
     const sourceURLWithAuth = addEncryptedAuthTokenToURL(source, encryptedAuthToken);
 
-    const {anchor, report, action, isDisabled, shouldDisplayContextMenu} = useShowContextMenuState();
+    const {anchor, report, isReportArchived, action, isDisabled, shouldDisplayContextMenu, originalReportID} = useShowContextMenuState();
     const {checkIfContextMenuActive} = useShowContextMenuActions();
 
     return (
@@ -57,7 +58,7 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onP
                 if (isDisabled || !shouldDisplayContextMenu) {
                     return;
                 }
-                showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive);
+                showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, isArchivedNonExpenseReport(report, isReportArchived), originalReportID);
             }}
             shouldUseHapticsOnLongPress
             accessibilityLabel={displayName}
