@@ -43,7 +43,6 @@ import type {GpsPoint} from './index';
 import {
     createDistanceRequest,
     getMoneyRequestParticipantsFromReport,
-    requestMoney,
     setCustomUnitRateID,
     setMoneyRequestDistance,
     setMoneyRequestMerchant,
@@ -51,9 +50,9 @@ import {
     setMoneyRequestParticipantsFromReport,
     setMoneyRequestPendingFields,
     setMultipleMoneyRequestParticipantsFromReport,
-    trackExpense,
 } from './index';
 import {resetSplitShares, startSplitBill} from './Split';
+import {requestMoney, trackExpense} from './TrackExpense';
 
 type CreateTransactionParams = {
     transactions: Transaction[];
@@ -143,7 +142,6 @@ type MoneyRequestStepDistanceNavigationParams = {
     reportAttributesDerived?: Record<string, ReportAttributes>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     waypoints?: WaypointCollection;
-    customUnitRateID: string;
     manualDistance?: number;
     currentUserLogin?: string;
     currentUserAccountID: number;
@@ -162,7 +160,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     policyRecentlyUsedCurrencies?: string[];
     introSelected?: IntroSelected;
     activePolicyID?: string;
-    privateIsArchived?: string;
+    privateIsArchived?: boolean;
     draftTransactionIDs: string[] | undefined;
     selfDMReport: OnyxEntry<Report>;
     gpsCoordinates?: string;
@@ -291,7 +289,7 @@ function getMoneyRequestParticipantOptions(
     report: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
     personalDetails: OnyxEntry<PersonalDetailsList>,
-    privateIsArchived?: string,
+    privateIsArchived?: boolean,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
 ): Array<Participant | OptionData> {
     const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserAccountID);
@@ -563,7 +561,6 @@ function handleMoneyRequestStepDistanceNavigation({
     reportAttributesDerived,
     personalDetails,
     waypoints,
-    customUnitRateID,
     manualDistance,
     currentUserLogin,
     currentUserAccountID,
@@ -673,7 +670,7 @@ function handleMoneyRequestStepDistanceNavigation({
                         participant,
                     },
                     policyParams: {
-                        policy,
+                        policy: policyForMovingExpenses,
                     },
                     transactionParams: {
                         amount,
@@ -685,7 +682,12 @@ function handleMoneyRequestStepDistanceNavigation({
                         billable: false,
                         reimbursable: defaultReimbursable,
                         validWaypoints,
-                        customUnitRateID,
+                        customUnitRateID: DistanceRequestUtils.getCustomUnitRateID({
+                            reportID: report.reportID,
+                            isTrackDistanceExpense: true,
+                            policy: policyForMovingExpenses,
+                            isPolicyExpenseChat: false,
+                        }),
                         attendees: transaction?.comment?.attendees,
                         gpsCoordinates,
                         odometerStart,
@@ -757,10 +759,12 @@ function handleMoneyRequestStepDistanceNavigation({
 
         const rateID = DistanceRequestUtils.getCustomUnitRateID({
             reportID: transactionReportID,
-            isPolicyExpenseChat: true,
-            policy: defaultExpensePolicy,
+            isPolicyExpenseChat: !isSelfDMReport,
+            policy: isSelfDMReport ? policyForMovingExpenses : defaultExpensePolicy,
             lastSelectedDistanceRates,
+            isTrackDistanceExpense: isSelfDMReport,
         });
+
         setTransactionReport(transactionID, {reportID: transactionReportID}, true);
         // Do not pass transaction and policy so it only updates customUnitRateID without changing distance and distance unit
         // as it is set for Manual requests before this function is called and transaction may have
@@ -771,11 +775,14 @@ function handleMoneyRequestStepDistanceNavigation({
         // defaultExpensePolicy data which is not accurate in this case as defaultExpensePolicy has autoReporting set to false
         // and because of this this report is converted to selfDM here
         if (isSelfDMReport && distance !== undefined && unit) {
-            const personalCurrency = personalOutputCurrency ?? CONST.CURRENCY.USD;
-            const personalDistanceUnit = DistanceRequestUtils.getRateForP2P(personalCurrency, transaction).unit;
+            const ratePolicyForMovingExpenses = policyForMovingExpenses
+                ? DistanceRequestUtils.getRateByCustomUnitRateID({customUnitRateID: rateID, policy: policyForMovingExpenses})
+                : undefined;
+            const currency = ratePolicyForMovingExpenses?.currency ?? personalOutputCurrency ?? CONST.CURRENCY.USD;
+            const distanceUnit = ratePolicyForMovingExpenses?.unit ?? DistanceRequestUtils.getRateForP2P(currency, transaction).unit;
             const distanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(distance, unit);
-            const distanceUsingPersonalDistanceUnit = roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(distanceInMeters, personalDistanceUnit));
-            setMoneyRequestDistance(transactionID, distanceUsingPersonalDistanceUnit, true, personalDistanceUnit);
+            const distanceInDistanceUnit = roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(distanceInMeters, distanceUnit));
+            setMoneyRequestDistance(transactionID, distanceInDistanceUnit, true, distanceUnit);
         }
 
         setMoneyRequestParticipantsFromReport(transactionID, targetReport, currentUserAccountID).then(() => {

@@ -3,7 +3,7 @@ GEM
   specs:
     CFPropertyList (3.0.8)
     abbrev (0.1.2)
-    activesupport (7.2.3)
+    activesupport (7.2.3.1)
       base64
       benchmark (>= 0.3)
       bigdecimal
@@ -322,7 +322,7 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
-  activesupport (>= 6.1.7.5, != 7.1.0)
+  activesupport (>= 7.2.3.1)
   benchmark
   bigdecimal
   cocoapods (= 1.16.2)
