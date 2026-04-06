@@ -632,7 +632,7 @@ function MoneyRequestView({
             title: translate('iou.taxDisabledAlert.title'),
             prompt: translate('iou.taxDisabledAlert.prompt'),
             confirmText: translate('iou.taxDisabledAlert.confirmText'),
-            cancelText: translate('common.buttonConfirm'),
+            cancelText: translate('common.cancel'),
         }).then(({action}) => {
             if (action !== ModalActions.CONFIRM || !canEditTaxFields) {
                 return;
