@@ -24,18 +24,6 @@
 - E/App issue: 🛑
 - PR introducing patch: https://github.com/Expensify/App/pull/32843
 
-### [react-native-web+0.21.2+003+image-header-support.patch](react-native-web+0.21.2+003+image-header-support.patch)
-
-- Reason:
-  
-    ```
-    Adds support for Image component with HTTP headers.
-    ```
-  
-- Upstream PR/issue: https://github.com/necolas/react-native-web/pull/2442
-- E/App issue: 🛑
-- PR introducing patch: https://github.com/Expensify/App/pull/13036
-
 ### [react-native-web+0.21.2+004+fixPointerEventDown.patch](react-native-web+0.21.2+004+fixPointerEventDown.patch)
 
 - Reason:
@@ -146,3 +134,17 @@
 - Upstream PR/issue: https://github.com/necolas/react-native-web/issues/2817
 - E/App issue: https://github.com/Expensify/App/issues/73782
 - PR introducing patch: https://github.com/Expensify/App/pull/76332
+
+### [react-native-web+0.21.2+013+fix-non-interactive-pressable-a11y.patch](react-native-web+0.21.2+013+fix-non-interactive-pressable-a11y.patch)
+
+- Reason:
+    ```
+    Removes the onClick handler from Pressable when no onPress or onLongPress callbacks
+    are configured. TalkBack on Android mWeb uses the presence of a click event listener
+    to determine whether an element is actionable, causing it to announce "double tap to
+    activate" on non-interactive Pressables. Removing onClick when there are no press
+    handlers prevents this incorrect announcement.
+    ```
+- Upstream PR/issue: 🛑
+- E/App issue: https://github.com/Expensify/App/issues/79243
+- PR introducing patch: https://github.com/Expensify/App/pull/86731

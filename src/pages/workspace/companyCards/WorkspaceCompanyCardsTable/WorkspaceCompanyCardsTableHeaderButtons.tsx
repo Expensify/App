@@ -10,7 +10,7 @@ import RenderHTML from '@components/RenderHTML';
 import Table from '@components/Table';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useCardFeeds from '@hooks/useCardFeeds';
-import useCurrencyList from '@hooks/useCurrencyList';
+import {useCurrencyListState} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -18,7 +18,9 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getLinkedPolicyName} from '@libs/CardFeedUtils';
 import {getCompanyFeeds, getCustomOrFormattedFeedName, getPlaidCountry, getPlaidInstitutionId, isCustomFeed} from '@libs/CardUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import Navigation from '@navigation/Navigation';
 import {setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
@@ -50,10 +52,9 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
 
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
-    const {currencyList} = useCurrencyList();
+    const {currencyList} = useCurrencyListState();
     const theme = useTheme();
-    const icons = useMemoizedLazyExpensifyIcons(['Gear']);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
+    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'DotIndicator']);
 
     const [cardFeeds] = useCardFeeds(policyID);
     const policy = usePolicy(policyID);
@@ -62,8 +63,9 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
     const isCommercialFeed = isCustomFeed(feedName);
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const currentFeedData = feedName ? companyFeeds?.[feedName] : undefined;
-    const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${currentFeedData?.domainID}`, {canBeMissing: true});
-    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
+    const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${currentFeedData?.domainID}`);
+    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const {cardFeedErrors} = useCardFeedErrors();
     const feedErrors = cardFeedErrors[feedName];
@@ -108,10 +110,16 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
     const isCsvFeed = feedName?.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV);
     const firstPart = translate(isCommercialFeed ? 'workspace.companyCards.commercialFeed' : 'workspace.companyCards.directFeed');
     const domainName = domain?.email ? Str.extractEmailDomain(domain.email) : undefined;
-    const secondPart = ` (${domainName ?? policy?.name})`;
+    const policyName = getLinkedPolicyName(allPolicies, currentFeedData?.preferredPolicy, policyID, policy?.name);
+    const secondPart = ` (${domainName ?? policyName})`;
     const supportingText = isCsvFeed ? translate('cardPage.csvCardDescription') : `${firstPart}${secondPart}`;
 
     const shouldShowNarrowLayout = shouldUseNarrowLayout || isMediumScreenWidth;
+
+    const skeletonReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'WorkspaceCompanyCardsTableHeaderButtons',
+        isLoading,
+    };
 
     return (
         <View>
@@ -129,6 +137,7 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
                         avatarSize={CONST.AVATAR_SIZE.DEFAULT}
                         width={FEED_SELECTOR_SKELETON_WIDTH}
                         style={[shouldShowNarrowLayout ? [styles.mb2, styles.mt2] : [styles.mb11, styles.mt2], styles.mw100]}
+                        reasonAttributes={skeletonReasonAttributes}
                     />
                 ) : (
                     <FeedSelector
@@ -161,6 +170,7 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
                                     options={secondaryActions}
                                     isSplitButton={false}
                                     wrapperStyle={shouldShowNarrowLayout ? styles.flex1 : styles.flexGrow0}
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.MORE_DROPDOWN}
                                 />
                             </>
                         )}
@@ -170,7 +180,7 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
             {!isLoading && (isFeedConnectionBroken || hasFeedErrors) && (
                 <View style={[styles.flexRow, styles.ph5, styles.alignItemsCenter]}>
                     <Icon
-                        src={expensifyIcons.DotIndicator}
+                        src={icons.DotIndicator}
                         fill={theme.danger}
                         additionalStyles={styles.mr1}
                     />

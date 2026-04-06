@@ -1,5 +1,5 @@
 import {addYears, endOfMonth, format, isAfter, isBefore, isSameDay, isValid, isWithinInterval, parse, parseISO, startOfDay, subYears} from 'date-fns';
-import {PUBLIC_DOMAINS_SET, Str, Url} from 'expensify-common';
+import {PUBLIC_DOMAINS_SET, Str, TLD_REGEX, Url} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
 import isObject from 'lodash/isObject';
 import type {OnyxCollection} from 'react-native-onyx';
@@ -321,7 +321,11 @@ function isValidUSPhone(phoneNumber = '', isCountryCodeOptional?: boolean): bool
     }
 
     const parsedPhoneNumber = parsePhoneNumber(phone, {regionCode});
-    return parsedPhoneNumber.possible && parsedPhoneNumber.regionCode === CONST.COUNTRY.US;
+
+    // US territories share the +1 country calling code but have their own ISO region codes.
+    // We accept these as valid US phone numbers for wallet/bank account verification.
+    const validUSRegionCodes: string[] = [CONST.COUNTRY.US, CONST.COUNTRY.PR, CONST.COUNTRY.GU, CONST.COUNTRY.VI, CONST.COUNTRY.AS, CONST.COUNTRY.MP];
+    return parsedPhoneNumber.possible && validUSRegionCodes.includes(parsedPhoneNumber.regionCode ?? '');
 }
 
 function isValidPhoneNumber(phoneNumber: string): boolean {
@@ -543,6 +547,24 @@ function isValidSubscriptionSize(subscriptionSize: string): boolean {
  */
 function isValidEmail(email: string): boolean {
     return Str.isValidEmail(email);
+}
+
+const VALID_TLD_REGEX = new RegExp(`^(${TLD_REGEX})$`, 'i');
+
+/**
+ * Validates the given value if it is correct email address including TLD check against IANA list.
+ * @param email
+ */
+function isValidEmailWithTLD(email: string): boolean {
+    if (!Str.isValidEmail(email)) {
+        return false;
+    }
+    const domain = Str.extractEmailDomain(email);
+    if (!domain) {
+        return false;
+    }
+    const tld = domain.split('.').pop() ?? '';
+    return VALID_TLD_REGEX.test(tld);
 }
 
 /**
@@ -772,6 +794,17 @@ function isInvalidMerchantValue(merchant?: string): boolean {
     return merchant === '' || merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || merchant === CONST.TRANSACTION.DEFAULT_MERCHANT;
 }
 
+/**
+ * Validates a 4-digit PIN for UK/EU Expensify Card.
+ * PIN must be exactly 4 digits and not in the list of invalid/weak PINs.
+ */
+function isValidPIN(pin: string): boolean {
+    if (!/^\d{4}$/.test(pin)) {
+        return false;
+    }
+    return !(CONST.EXPENSIFY_CARD.PIN.INVALID_PINS as readonly string[]).includes(pin);
+}
+
 export {
     meetsMinimumAgeRequirement,
     meetsMaximumAgeRequirement,
@@ -819,6 +852,7 @@ export {
     isExistingTaxCode,
     isPublicDomain,
     isValidEmail,
+    isValidEmailWithTLD,
     isValidPhoneInternational,
     isValidZipCodeInternational,
     isValidOwnershipPercentage,
@@ -826,4 +860,5 @@ export {
     isValidInputLength,
     isValidTaxIDEINNumber,
     isInvalidMerchantValue,
+    isValidPIN,
 };

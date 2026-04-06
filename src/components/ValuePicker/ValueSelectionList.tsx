@@ -10,6 +10,7 @@ function ValueSelectionList({
     shouldShowTooltips = true,
     addBottomSafeAreaPadding = true,
     disableKeyboardShortcuts = false,
+    alternateNumberOfSupportedLines,
 }: ValueSelectionListProps) {
     const options = useMemo(
         () => items.map((item) => ({value: item.value, alternateText: item.description, text: item.label ?? '', isSelected: item === selectedItem, keyForList: item.value ?? ''})),
@@ -27,6 +28,7 @@ function ValueSelectionList({
             ListItem={RadioListItem}
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}
             disableKeyboardShortcuts={disableKeyboardShortcuts}
+            alternateNumberOfSupportedLines={alternateNumberOfSupportedLines}
         />
     );
 }

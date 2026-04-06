@@ -5,13 +5,15 @@ keywords: [New Expensify, workspace rules, expense rules, receipt requirements, 
 internalScope: Audience is Workspace Admins on the Control plan. Covers enabling and managing workspace-level rules such as expense rules, prohibited expenses, category rules, tag rules, and report rules. Does not cover personal expense rules, Workspace Merchant Rules setup details, or troubleshooting specific rule outcomes.
 ---
 
+# Workspace Rules 
+
 Workspace Rules let Admins enforce expense policies by setting custom requirements for receipts, spending limits, category behavior, auto-approvals, and more. These rules help ensure compliance and streamline the approval process.
 
 **Note:** Rules are only available on the **Control** plan. You must be a **Workspace Admin** to enable or manage them.
 
 ---
 
-# How to enable Workspace Rules
+## How to enable Workspace Rules
 
 To activate Rules for your workspace:
 
@@ -38,14 +40,15 @@ Once enabled, go to the **Rules** tab in the left menu to manage expense-level s
 - **eReceipts** – Enable automatic receipt generation for all USD card transactions up to $75 (requires USD as default currency).
 - **Merchant-based automation** – Automatically apply categories, tags, and other fields using Workspace Merchant Rules.
 
- 
-![Rules page showing all available workspace-level expense rules]({{site.url}}/assets/images/new-expensify-rules.png){:width="100%"}
+![]({{site.url}}/assets/images/ExpensifyHelp-FlagExpensesMissingItemizedReceipts_01.png){:width="100%"}
 
 ---
 
 # What happens if Expense Rules are broken 
 
 When an expense breaks a Workspace Rule or Category Rule, the expense is flagged with a violation and the approver is prompted to manually review it before approval.
+
+![Expense showing violations]({{site.url}}/assets/images/ExpensifyHelp-FlagExpensesMissing|temizedReceipts_02.png){:width="100%"}
 
 ---
 
@@ -56,7 +59,7 @@ Workspace Merchant Rules let Workspace Admins automatically apply consistent cod
 Workspace Merchant Rules:
 - Apply when an expense is created
 - Work at the workspace level (not per member)
-- Don’t change how employees submit expenses
+- Don't change how members submit expenses
 
 To learn how to set up and manage Workspace Merchant Rules, see:
 [**Workspace Merchant Rules**](https://help.expensify.com/articles/new-expensify/workspaces/Workspace-Merchant-Rules)
@@ -106,14 +109,14 @@ To manage them:
 
 Available options:
 
-- **Enable category** – Make it visible to members.
-- **Require description** – Force members to enter a reason when using the category.
 - **Approver** – Assign a specific approver for expenses in this category.
-- **Default tax rate** – Set a default tax percentage.
-- **Max amount** – Set a spending cap for this category.
+- **Default tax rate** – Set a default tax percentage ([Taxes](https://help.expensify.com/articles/new-expensify/workspaces/Track-Taxes) must be enabled on the workspace).
+- **Flag amounts over** - Set a spending cap for this category.
 - **Require receipts over** – Set a threshold for when receipts are required.
 - **Require itemized receipts over** – Require itemized receipts for expenses over a specific amount.
-
+- **Require fields** - Require specific fields be completed for this category. The options are:
+   - **Require description** - Force members to enter a reason when using the category.
+   - **Require attendees** - Force members to add additional attendees when using the category.
 
 ---
 

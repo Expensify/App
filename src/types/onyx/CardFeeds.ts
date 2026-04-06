@@ -33,6 +33,12 @@ type CardFeedWithDomainID = `${CardFeedWithNumber}${typeof CONST.COMPANY_CARD.FE
 type BankName = ValueOf<typeof CONST.COMPANY_CARDS.BANKS>;
 
 /**
+ * Bank name for card feeds that can be displayed in NewDot but cannot be added
+ * as a new connection (e.g. banks without an OAuth or Plaid integration).
+ */
+type NonConnectableBankName = ValueOf<typeof CONST.COMPANY_CARDS.NON_CONNECTABLE_BANKS>;
+
+/**
  *
  */
 type CardType = ValueOf<typeof CONST.COMPANY_CARDS.CARD_TYPE>;
@@ -92,6 +98,9 @@ type CustomCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Preferred policy */
     preferredPolicy?: string;
+
+    /** Linked policy IDs */
+    linkedPolicyIDs?: string[];
 
     /** Country associated with this feed (ISO 3166-1 alpha-2 code) */
     country?: string;
@@ -226,6 +235,9 @@ type CardFeeds = {
 
         /** Whether 2FA is required for all members */
         twoFactorAuthRequired?: boolean;
+
+        /** List of member emails exempt from the domain's 2FA requirement */
+        twoFactorAuthExemptEmails?: string[];
     };
 } & CardFeedsStatus &
     DomainSettings;
@@ -270,6 +282,15 @@ type AddNewCardFeedData = {
 
     /** Feed name from Plaid connection */
     plaidConnectedFeedName?: string;
+
+    /** Name of the CSV layout template */
+    companyCardLayoutName?: string;
+
+    /** Identifier for the CSV layout template */
+    layoutType?: string;
+
+    /** Whether to use advanced fields in the CSV layout */
+    useAdvancedFields?: boolean;
 
     /** Plaid accounts */
     plaidAccounts?: LinkAccount[] | PlaidAccount[];
@@ -318,6 +339,7 @@ export type {
     CardFeedWithNumber,
     CardFeedWithDomainID,
     BankName,
+    NonConnectableBankName,
     CardType,
     CardTypeName,
     CompanyCardFeed,

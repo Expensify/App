@@ -7,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {clearPaymentCard3dsVerification, verifySetupIntent} from '@userActions/PaymentMethods';
 import {verifySetupIntentAndRequestPolicyOwnerChange} from '@userActions/Policy/Policy';
 import CONFIG from '@src/CONFIG';
@@ -27,10 +28,11 @@ function CardAuthenticationModal({headerTitle, policyID}: CardAuthenticationModa
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to be consistent with BaseModal component
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const [authenticationLink] = useOnyx(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [authenticationLink] = useOnyx(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const [isLoading, setIsLoading] = useState(true);
     const [isVisible, setIsVisible] = useState(false);
+    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'CardAuthenticationModal', isLoading};
 
     const onModalClose = useCallback(() => {
         setIsVisible(false);
@@ -90,7 +92,7 @@ function CardAuthenticationModal({headerTitle, policyID}: CardAuthenticationModa
                     onBackButtonPress={onModalClose}
                     shouldDisplayHelpButton={false}
                 />
-                {isLoading && <FullScreenLoadingIndicator />}
+                {isLoading && <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />}
                 <View style={[styles.flex1]}>
                     <iframe
                         src={authenticationLink}

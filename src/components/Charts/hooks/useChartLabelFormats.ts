@@ -1,54 +1,47 @@
-import {useCallback} from 'react';
-import type {ChartDataPoint, YAxisUnitPosition} from '@components/Charts/types';
+import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
+import {LABEL_ROTATIONS} from '@components/Charts/constants';
+import type {ChartDataPoint, LabelRotation, UnitPosition, UnitWithFallback} from '@components/Charts/types';
+import {canFontRenderText} from '@components/Charts/utils';
 import useLocalize from '@hooks/useLocalize';
-import {LABEL_ROTATIONS} from './useChartLabelLayout';
 
 type UseChartLabelFormatsProps = {
     data: ChartDataPoint[];
-    yAxisUnit?: string;
-    yAxisUnitPosition?: YAxisUnitPosition;
+    unit?: UnitWithFallback | string;
+    unitPosition?: UnitPosition;
     labelSkipInterval?: number;
-    labelRotation?: number;
+    labelRotation?: LabelRotation;
     truncatedLabels?: string[];
+    fontMgr?: SkTypefaceFontProvider | null;
 };
 
-export default function useChartLabelFormats({data, yAxisUnit, yAxisUnitPosition = 'left', labelSkipInterval = 1, labelRotation = 0, truncatedLabels}: UseChartLabelFormatsProps) {
+export default function useChartLabelFormats({data, unit, unitPosition = 'left', labelSkipInterval = 1, labelRotation = 0, truncatedLabels, fontMgr}: UseChartLabelFormatsProps) {
     const {numberFormat} = useLocalize();
 
-    const formatYAxisLabel = useCallback(
-        (value: number) => {
-            const formatted = numberFormat(value);
-            if (!yAxisUnit) {
-                return formatted;
-            }
-            // Add space for multi-character codes (e.g., "PLN 100") but not for symbols (e.g., "$100")
-            const separator = yAxisUnit.length > 1 ? ' ' : '';
-            return yAxisUnitPosition === 'left' ? `${yAxisUnit}${separator}${formatted}` : `${formatted}${separator}${yAxisUnit}`;
-        },
-        [yAxisUnit, yAxisUnitPosition, numberFormat],
-    );
+    const displayUnit = typeof unit === 'string' ? unit : unit?.value;
+    const unitToDisplay = fontMgr && !canFontRenderText(displayUnit, fontMgr) ? (unit as UnitWithFallback)?.fallback : displayUnit;
+    const formatValue = (value: number) => {
+        const formatted = numberFormat(value);
+        if (!unitToDisplay) {
+            return formatted;
+        }
+        const separator = unitToDisplay.length > 1 ? ' ' : '';
+        return unitPosition === 'left' ? `${unitToDisplay}${separator}${formatted}` : `${formatted}${separator}${unitToDisplay}`;
+    };
 
-    const formatXAxisLabel = useCallback(
-        (value: number) => {
-            const index = Math.round(value);
+    const formatLabel = (value: number) => {
+        const index = Math.round(value);
 
-            // Skip labels based on calculated interval
-            if (index % labelSkipInterval !== 0) {
-                return '';
-            }
+        if (index % labelSkipInterval !== 0) {
+            return '';
+        }
 
-            // Use pre-truncated labels
-            // If rotation is vertical (-90), we usually want full labels
-            // because they have more space vertically.
-            const sourceToUse = labelRotation === -LABEL_ROTATIONS.VERTICAL || !truncatedLabels ? data.map((p) => p.label) : truncatedLabels;
+        const sourceToUse = labelRotation === LABEL_ROTATIONS.VERTICAL || !truncatedLabels ? data.map((p) => p.label) : truncatedLabels;
 
-            return sourceToUse.at(index) ?? '';
-        },
-        [labelSkipInterval, labelRotation, truncatedLabels, data],
-    );
+        return sourceToUse.at(index) ?? '';
+    };
 
     return {
-        formatXAxisLabel,
-        formatYAxisLabel,
+        formatLabel,
+        formatValue,
     };
 }

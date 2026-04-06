@@ -20,6 +20,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -37,6 +38,7 @@ function HeaderWithBackButton({
     onRotateButtonPress = () => {},
     onThreeDotsButtonPress = () => {},
     report,
+    policy,
     policyAvatar,
     shouldShowReportAvatarWithDisplay = false,
     shouldDisplayStatus,
@@ -68,7 +70,7 @@ function HeaderWithBackButton({
     shouldOverlayDots = false,
     shouldOverlay = false,
     shouldNavigateToTopMostReport = false,
-    shouldDisplayHelpButton = true,
+    shouldDisplayHelpButton = false,
     shouldDisplaySearchRouter = false,
     progressBarPercentage,
     style,
@@ -83,8 +85,25 @@ function HeaderWithBackButton({
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
 
+    const downloadReasonAttributes = useMemo<SkeletonSpanReasonAttributes>(
+        () => ({
+            context: 'HeaderWithBackButton.Download',
+            isDownloading,
+        }),
+        [isDownloading],
+    );
+
+    const rotateReasonAttributes = useMemo<SkeletonSpanReasonAttributes>(
+        () => ({
+            context: 'HeaderWithBackButton.Rotate',
+            isRotating,
+        }),
+        [isRotating],
+    );
+
     const middleContent = useMemo(() => {
         if (progressBarPercentage) {
+            const progressBarLabel = stepCounter ? `${translate('common.progressBarLabel')}, ${translate('stepCounter', stepCounter)}` : undefined;
             return (
                 <>
                     {/* Reserves as much space for the middleContent as possible */}
@@ -92,8 +111,17 @@ function HeaderWithBackButton({
                     {/* Uses absolute positioning so that it's always centered instead of being affected by the
                     presence or absence of back/close buttons to the left/right of it */}
                     <View style={styles.headerProgressBarContainer}>
-                        <View style={styles.headerProgressBar}>
-                            <View style={[{width: `${progressBarPercentage}%`}, styles.headerProgressBarFill]} />
+                        <View
+                            style={styles.headerProgressBar}
+                            accessible={!!progressBarLabel}
+                            accessibilityLabel={progressBarLabel}
+                            role={CONST.ROLE.PROGRESSBAR}
+                            aria-valuetext={progressBarLabel}
+                        >
+                            <View
+                                aria-hidden
+                                style={[{width: `${progressBarPercentage}%`}, styles.headerProgressBarFill]}
+                            />
                         </View>
                     </View>
                 </>
@@ -103,6 +131,7 @@ function HeaderWithBackButton({
             return (
                 <AvatarWithDisplayName
                     report={report}
+                    policy={policy}
                     shouldDisplayStatus={shouldDisplayStatus}
                     shouldEnableDetailPageNavigation={shouldEnableDetailPageNavigation}
                     openParentReportInCurrentTab={openParentReportInCurrentTab}
@@ -125,6 +154,7 @@ function HeaderWithBackButton({
         shouldUseHeadlineHeader,
         progressBarPercentage,
         report,
+        policy,
         shouldEnableDetailPageNavigation,
         shouldShowReportAvatarWithDisplay,
         stepCounter,
@@ -280,7 +310,10 @@ function HeaderWithBackButton({
                                     </PressableWithoutFeedback>
                                 </Tooltip>
                             ) : (
-                                <ActivityIndicator style={[styles.touchableButtonImage]} />
+                                <ActivityIndicator
+                                    style={[styles.touchableButtonImage]}
+                                    reasonAttributes={downloadReasonAttributes}
+                                />
                             ))}
                         {shouldShowRotateButton &&
                             (!isRotating ? (
@@ -299,7 +332,10 @@ function HeaderWithBackButton({
                                     </PressableWithoutFeedback>
                                 </Tooltip>
                             ) : (
-                                <ActivityIndicator style={[styles.touchableButtonImage]} />
+                                <ActivityIndicator
+                                    style={[styles.touchableButtonImage]}
+                                    reasonAttributes={rotateReasonAttributes}
+                                />
                             ))}
                         {shouldShowPinButton && !!report && <PinButton report={report} />}
                     </View>
@@ -321,8 +357,8 @@ function HeaderWithBackButton({
                         </Tooltip>
                     )}
                 </View>
-                {shouldDisplayHelpButton && <SidePanelButton />}
                 {shouldDisplaySearchRouter && <SearchButton />}
+                {shouldDisplayHelpButton && <SidePanelButton />}
             </View>
         </View>
     );

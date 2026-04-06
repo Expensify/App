@@ -1,6 +1,7 @@
 import {hasStartedLocationUpdatesAsync, reverseGeocodeAsync, stopLocationUpdatesAsync} from 'expo-location';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import {BACKGROUND_LOCATION_TRACKING_TASK_NAME} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
+import {stopGpsTripNotification} from '@pages/iou/request/step/IOURequestStepDistanceGPS/GPSNotifications';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {GpsDraftDetails} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
@@ -62,7 +63,7 @@ function getGPSCoordinates(gpsDraftDetails: GpsDraftDetails | undefined): string
 }
 
 function calculateGPSDistance(distanceInMeters: number, unit: Unit): number {
-    return roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(distanceInMeters, unit));
+    return DistanceRequestUtils.convertDistanceUnit(distanceInMeters, unit);
 }
 
 function getGPSConvertedDistance(gpsDraftDetails: GpsDraftDetails | undefined, unit: Unit): number {
@@ -91,7 +92,13 @@ function coordinatesToString(gpsPoint: {lat: number; long: number}): string {
     return `${gpsPoint.lat},${gpsPoint.long}`;
 }
 
-async function stopGpsTrip(isOffline: boolean) {
+async function getLastPoint() {
+    const gpsTrip = await OnyxUtils.get(ONYXKEYS.GPS_DRAFT_DETAILS);
+
+    return gpsTrip?.gpsPoints?.at(-1);
+}
+
+async function stopGpsTrip(isOffline: boolean, skipLastPointAddressFetching = false) {
     const isBackgroundTaskRunning = await hasStartedLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME);
 
     if (isBackgroundTaskRunning) {
@@ -99,10 +106,21 @@ async function stopGpsTrip(isOffline: boolean) {
     }
 
     setIsTracking(false);
+    stopGpsTripNotification();
 
-    const gpsTrip = await OnyxUtils.get(ONYXKEYS.GPS_DRAFT_DETAILS);
+    if (skipLastPointAddressFetching) {
+        const lastPoint = await getLastPoint();
 
-    const lastPoint = gpsTrip?.gpsPoints?.at(-1);
+        if (!lastPoint) {
+            return;
+        }
+
+        const formattedCoordinates = coordinatesToString(lastPoint);
+        setEndAddress({value: formattedCoordinates, type: 'coordinates'});
+        return;
+    }
+
+    const lastPoint = await getLastPoint();
 
     if (!lastPoint) {
         return;

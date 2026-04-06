@@ -1,10 +1,47 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {areAllExpensifyCardsShipped, defaultExpensifyCardSelector, filterCardsHiddenFromSearch, filterOutPersonalCards, timeSensitiveCardsSelector} from '@selectors/Card';
+import {areAllExpensifyCardsShipped, defaultExpensifyCardSelector, filterCardsHiddenFromSearch, filterOutPersonalCards} from '@selectors/Card';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import {isCard, isCardPendingActivate, isCardPendingIssue, isCardWithPotentialFraud, isExpensifyCard} from '@libs/CardUtils';
 import CONST from '@src/CONST';
 import type {Card, CardList} from '@src/types/onyx';
 import createRandomCard, {createRandomCompanyCard, createRandomExpensifyCard} from '../../utils/collections/card';
-import {translateLocal} from '../../utils/TestHelper';
+
+/**
+ * Test helper replicating the logic that was moved inline into useTimeSensitiveCards hook.
+ */
+function timeSensitiveCardsSelector(cards: OnyxEntry<CardList>) {
+    const result: {cardsNeedingShippingAddress: Card[]; cardsNeedingActivation: Card[]; cardsWithFraud: Card[]} = {
+        cardsNeedingShippingAddress: [],
+        cardsNeedingActivation: [],
+        cardsWithFraud: [],
+    };
+
+    for (const card of Object.values(cards ?? {})) {
+        if (!isCard(card) || !isExpensifyCard(card)) {
+            continue;
+        }
+
+        if (isCardWithPotentialFraud(card) && card.nameValuePairs?.possibleFraud?.fraudAlertReportID) {
+            result.cardsWithFraud.push(card);
+        }
+
+        const isPhysicalCard = !card.nameValuePairs?.isVirtual;
+        if (!isPhysicalCard) {
+            continue;
+        }
+
+        if (isCardPendingIssue(card)) {
+            result.cardsNeedingShippingAddress.push(card);
+        }
+
+        if (isCardPendingActivate(card)) {
+            result.cardsNeedingActivation.push(card);
+        }
+    }
+
+    return result;
+}
 
 describe('filterCardsHiddenFromSearch', () => {
     it('returns empty object when cardList is undefined or empty', () => {
@@ -122,8 +159,8 @@ describe('filterCardsHiddenFromSearch', () => {
 
 describe('defaultExpensifyCardSelector', () => {
     it('Should return undefined if allCards is undefined or empty', () => {
-        expect(defaultExpensifyCardSelector(undefined, translateLocal)).toBeUndefined();
-        expect(defaultExpensifyCardSelector({}, translateLocal)).toBeUndefined();
+        expect(defaultExpensifyCardSelector(undefined)).toBeUndefined();
+        expect(defaultExpensifyCardSelector({})).toBeUndefined();
     });
 
     it('Should return undefined if cards do not have Expensify Card bank', () => {
@@ -132,7 +169,7 @@ describe('defaultExpensifyCardSelector', () => {
             '2': createRandomCompanyCard(2, {bank: 'stripe'}),
         };
 
-        expect(defaultExpensifyCardSelector(allCards, translateLocal)).toBeUndefined();
+        expect(defaultExpensifyCardSelector(allCards)).toBeUndefined();
     });
 
     it('Should return undefined if Expensify Card does not have fundID', () => {
@@ -141,7 +178,7 @@ describe('defaultExpensifyCardSelector', () => {
             '2': createRandomExpensifyCard(2, {fundID: ''}),
         };
 
-        expect(defaultExpensifyCardSelector(allCards, translateLocal)).toBeUndefined();
+        expect(defaultExpensifyCardSelector(allCards)).toBeUndefined();
     });
 
     it('Should return the first Expensify Card feed when multiple Expensify Cards exist', () => {
@@ -149,7 +186,7 @@ describe('defaultExpensifyCardSelector', () => {
             '1': createRandomExpensifyCard(1, {fundID: '5555'}),
             '2': createRandomExpensifyCard(2, {fundID: '6666'}),
         };
-        const result = defaultExpensifyCardSelector(allCards, translateLocal);
+        const result = defaultExpensifyCardSelector(allCards);
         expect(result).toEqual({
             id: '5555_Expensify Card',
             feed: CONST.EXPENSIFY_CARD.BANK,
@@ -165,7 +202,7 @@ describe('defaultExpensifyCardSelector', () => {
             '3': createRandomExpensifyCard(3, {fundID: '6666'}),
         };
 
-        const result = defaultExpensifyCardSelector(allCards, translateLocal);
+        const result = defaultExpensifyCardSelector(allCards);
         expect(result).toEqual({
             id: '5555_Expensify Card',
             feed: CONST.EXPENSIFY_CARD.BANK,
@@ -179,7 +216,7 @@ describe('defaultExpensifyCardSelector', () => {
             '1': createRandomExpensifyCard(1, {fundID: undefined}),
             '2': createRandomExpensifyCard(2, {fundID: '5555'}),
         };
-        const result = defaultExpensifyCardSelector(allCards, translateLocal);
+        const result = defaultExpensifyCardSelector(allCards);
         expect(result).toEqual({
             id: '5555_Expensify Card',
             feed: CONST.EXPENSIFY_CARD.BANK,
@@ -500,6 +537,116 @@ describe('timeSensitiveCardsSelector', () => {
         expect(result.cardsWithFraud.at(0)?.cardID).toBe(1);
         expect(result.cardsWithFraud.at(0)?.nameValuePairs?.possibleFraud?.triggerAmount).toBe(5663);
     });
+
+    it('excludes fraud cards that have fraud flag but no possibleFraud data (prevents empty Time Sensitive section)', () => {
+        // This is the exact scenario that caused the empty "Time sensitive" block:
+        // card.fraud is set (e.g., 'domain') but possibleFraud is missing from nameValuePairs
+        const cardWithDomainFraudNoPossibleFraud = createRandomExpensifyCard(1, {
+            state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+            fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN,
+        });
+        const cardWithIndividualFraudNoPossibleFraud = createRandomExpensifyCard(2, {
+            state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+            fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL,
+        });
+
+        const cardList: CardList = {
+            '1': cardWithDomainFraudNoPossibleFraud,
+            '2': cardWithIndividualFraudNoPossibleFraud,
+        };
+
+        const result = timeSensitiveCardsSelector(cardList);
+
+        // Both cards should be excluded because they lack possibleFraud data needed for rendering
+        expect(result.cardsWithFraud).toHaveLength(0);
+    });
+
+    it('excludes fraud cards that have possibleFraud but no fraudAlertReportID', () => {
+        const cardWithFraudNoReportID = createRandomExpensifyCard(1, {
+            state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+            fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN,
+            possibleFraud: {triggerAmount: 5000, triggerMerchant: 'Test Merchant', currency: 'USD'},
+        });
+
+        const cardList: CardList = {
+            '1': cardWithFraudNoReportID,
+        };
+
+        const result = timeSensitiveCardsSelector(cardList);
+
+        // Card should be excluded because fraudAlertReportID is missing
+        expect(result.cardsWithFraud).toHaveLength(0);
+    });
+
+    it('excludes fraud cards that have possibleFraud with fraudAlertReportID of 0', () => {
+        const cardWithFraudZeroReportID = createRandomExpensifyCard(1, {
+            state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+            fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN,
+            possibleFraud: {triggerAmount: 5000, triggerMerchant: 'Test Merchant', currency: 'USD', fraudAlertReportID: 0},
+        });
+
+        const cardList: CardList = {
+            '1': cardWithFraudZeroReportID,
+        };
+
+        const result = timeSensitiveCardsSelector(cardList);
+
+        // Card should be excluded because fraudAlertReportID is 0 (falsy)
+        expect(result.cardsWithFraud).toHaveLength(0);
+    });
+
+    it('only includes fraud cards with complete data for rendering when mixed with incomplete ones', () => {
+        // Card with complete fraud data (should be included)
+        const completeCard = createRandomExpensifyCard(1, {
+            state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+            fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN,
+            possibleFraud: {triggerAmount: 5000, triggerMerchant: 'Store A', currency: 'USD', fraudAlertReportID: 123},
+        });
+
+        // Card with fraud flag but no possibleFraud (should be excluded)
+        const incompleteFraudFlag = createRandomExpensifyCard(2, {
+            state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+            fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL,
+        });
+
+        // Card with possibleFraud but missing fraudAlertReportID (should be excluded)
+        const incompletePossibleFraud = createRandomExpensifyCard(3, {
+            state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+            fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN,
+            possibleFraud: {triggerAmount: 3000, triggerMerchant: 'Store B', currency: 'USD'},
+        });
+
+        const cardList: CardList = {
+            '1': completeCard,
+            '2': incompleteFraudFlag,
+            '3': incompletePossibleFraud,
+        };
+
+        const result = timeSensitiveCardsSelector(cardList);
+
+        // Only the card with complete data should be included
+        expect(result.cardsWithFraud).toHaveLength(1);
+        expect(result.cardsWithFraud.at(0)?.cardID).toBe(1);
+    });
+
+    it('returns completely empty result when only fraud cards exist but none have sufficient data to render', () => {
+        // This is the scenario that would cause an empty "Time sensitive" section
+        const cardWithFraudFlagOnly = createRandomExpensifyCard(1, {
+            state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+            fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN,
+        });
+
+        const cardList: CardList = {
+            '1': cardWithFraudFlagOnly,
+        };
+
+        const result = timeSensitiveCardsSelector(cardList);
+
+        // All arrays should be empty, ensuring hasAnyTimeSensitiveContent would be false
+        expect(result.cardsWithFraud).toHaveLength(0);
+        expect(result.cardsNeedingShippingAddress).toHaveLength(0);
+        expect(result.cardsNeedingActivation).toHaveLength(0);
+    });
 });
 
 describe('areAllExpensifyCardsShipped', () => {
@@ -526,7 +673,7 @@ describe('areAllExpensifyCardsShipped', () => {
 
     // CRITICAL: This test ensures the personal cards should not affect the result
     it('returns true when Expensify cards are shipped even if user has personal cards', () => {
-        const personalCard = createRandomCard(1, {bank: CONST.PERSONAL_CARD.BANK_NAME.CSV});
+        const personalCard = createRandomCard(1, {bank: CONST.PERSONAL_CARDS.BANK_NAME.CSV});
         const expensifyCard = createRandomExpensifyCard(2, {state: CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED});
 
         const cardList: CardList = {
@@ -562,7 +709,7 @@ describe('areAllExpensifyCardsShipped', () => {
     it('returns true when only non-Expensify cards exist', () => {
         const cardList: CardList = {
             '1': createRandomCompanyCard(1, {bank: 'vcf'}),
-            '2': createRandomCard(2, {bank: CONST.PERSONAL_CARD.BANK_NAME.CSV}),
+            '2': createRandomCard(2, {bank: CONST.PERSONAL_CARDS.BANK_NAME.CSV}),
         };
         expect(areAllExpensifyCardsShipped(cardList)).toBe(true);
     });

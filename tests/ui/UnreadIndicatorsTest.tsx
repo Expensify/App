@@ -37,7 +37,6 @@ jest.setTimeout(120000);
 
 jest.mock('@react-navigation/native');
 jest.mock('../../src/libs/Notification/LocalNotification');
-jest.mock('../../src/components/Icon/Expensicons');
 jest.mock('../../src/components/ConfirmedRoute.tsx');
 jest.mock('@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators', () => jest.fn());
 
@@ -176,7 +175,7 @@ async function signInAndGetAppWithUnreadChat(): Promise<void> {
     renderAppOnce();
     await waitForBatchedUpdatesWithAct();
 
-    subscribeToUserEvents(USER_A_ACCOUNT_ID);
+    subscribeToUserEvents(USER_A_ACCOUNT_ID, undefined);
 
     await waitForBatchedUpdates();
 
@@ -215,6 +214,7 @@ async function signInAndGetAppWithUnreadChat(): Promise<void> {
     };
 
     await Promise.all([
+        Onyx.merge(ONYXKEYS.RAM_ONLY_IS_LOADING_APP, false),
         Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails),
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report),
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, reportActions),
@@ -271,7 +271,7 @@ describe('Unread Indicators', () => {
                 const createdAction = screen.queryByLabelText(welcomeMessageHintText);
                 expect(createdAction).toBeTruthy();
                 const reportCommentsHintText = TestHelper.translateLocal('accessibilityHints.chatMessage');
-                const reportComments = screen.queryAllByLabelText(reportCommentsHintText);
+                const reportComments = screen.queryAllByAccessibilityHint(reportCommentsHintText);
                 expect(reportComments).toHaveLength(9);
                 // Since the last read timestamp is the timestamp of action 3 we should have an unread indicator above the next "unread" action which will
                 // have actionID of 4
@@ -337,7 +337,7 @@ describe('Unread Indicators', () => {
                 const NEW_REPORT_FIST_MESSAGE_CREATED_DATE = addSeconds(NEW_REPORT_CREATED_DATE, 1);
                 const createdReportActionIDLocal = rand64();
                 const commentReportActionID = rand64();
-                PusherHelper.emitOnyxUpdate([
+                PusherHelper.emitOnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.PERSONAL_DETAILS_LIST>([
                     {
                         onyxMethod: Onyx.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.REPORT}${NEW_REPORT_ID}`,
@@ -672,7 +672,7 @@ describe('Unread Indicators', () => {
         // Given a read report
         await signInAndGetAppWithUnreadChat();
 
-        readNewestAction(REPORT_ID, true);
+        readNewestAction(REPORT_ID, true, true);
 
         await waitForBatchedUpdates();
 
@@ -761,6 +761,8 @@ describe('Unread Indicators', () => {
             quickAction: undefined,
             recentWaypoints,
             betas: [CONST.BETAS.ALL],
+            draftTransactionIDs: [fakeTransaction.transactionID],
+            isSelfTourViewed: false,
         });
         await waitForBatchedUpdates();
 

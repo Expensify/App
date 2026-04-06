@@ -6,6 +6,7 @@ import {
     convertPolicyEmployeesToApprovalWorkflows,
     getApprovalLimitDescription,
     getOpenConnectedToPolicyBusinessBankAccounts,
+    mergeWorkflowMembersWithAvailableMembers,
     updateWorkflowDataOnApproverRemoval,
 } from '@src/libs/WorkflowUtils';
 import type {Policy} from '@src/types/onyx';
@@ -468,6 +469,116 @@ describe('WorkflowUtils', () => {
                 secondApprover.forwardsTo = '6@example.com';
             }
             expect(approvalWorkflows).toEqual([defaultWorkflow, secondWorkflow]);
+        });
+
+        it('Should include all workspace members in availableMembers', () => {
+            // Simulates ADVANCED approval mode: Alex and Hannah submit to Carolyn (custom workflow),
+            // others submit to Hannah (default). Previously availableMembers only had default workflow
+            // members, excluding Alex and Hannah.
+            const employees: PolicyEmployeeList = {
+                'alex@htc.us': {
+                    email: 'alex@htc.us',
+                    submitsTo: 'carolyn@htc.us',
+                },
+                'hannahw@htc.us': {
+                    email: 'hannahw@htc.us',
+                    submitsTo: 'carolyn@htc.us',
+                },
+                'carolyn@htc.us': {
+                    email: 'carolyn@htc.us',
+                    submitsTo: 'carolyn@htc.us',
+                },
+                'gio@htc.us': {
+                    email: 'gio@htc.us',
+                    submitsTo: 'hannahw@htc.us',
+                },
+            };
+            const policy = createMockPolicy(employees, 'hannahw@htc.us');
+            (policy as Policy).approvalMode = CONST.POLICY.APPROVAL_MODE.ADVANCED;
+            const personalDetailsForTest: PersonalDetailsList = {
+                'alex@htc.us': {accountID: 1, login: 'alex@htc.us', displayName: 'Alex Walker'},
+                'hannahw@htc.us': {accountID: 2, login: 'hannahw@htc.us', displayName: 'Hannah Walker'},
+                'carolyn@htc.us': {accountID: 3, login: 'carolyn@htc.us', displayName: 'Carolyn Smith'},
+                'gio@htc.us': {accountID: 4, login: 'gio@htc.us', displayName: 'Gio'},
+            };
+
+            const {availableMembers} = convertPolicyEmployeesToApprovalWorkflows({
+                policy,
+                personalDetails: personalDetailsForTest,
+                localeCompare,
+            });
+
+            const memberEmails = availableMembers.map((m) => m.email).sort();
+            expect(memberEmails).toEqual(['alex@htc.us', 'carolyn@htc.us', 'gio@htc.us', 'hannahw@htc.us']);
+        });
+
+        it('Should include members with orphaned submitsTo in availableMembers', () => {
+            // Member with submitsTo pointing to non-member (not in employeeList) won't appear in any
+            // workflow, but should still appear in availableMembers so admins can fix the chain.
+            const employees: PolicyEmployeeList = {
+                'alice@example.com': {
+                    email: 'alice@example.com',
+                    submitsTo: 'nonexistent@example.com',
+                },
+                'bob@example.com': {
+                    email: 'bob@example.com',
+                    submitsTo: 'bob@example.com',
+                },
+            };
+            const policy = createMockPolicy(employees, 'bob@example.com');
+            const personalDetailsForTest: PersonalDetailsList = {
+                'alice@example.com': {accountID: 1, login: 'alice@example.com', displayName: 'Alice'},
+                'bob@example.com': {accountID: 2, login: 'bob@example.com', displayName: 'Bob'},
+            };
+
+            const {approvalWorkflows, availableMembers} = convertPolicyEmployeesToApprovalWorkflows({
+                policy,
+                personalDetails: personalDetailsForTest,
+                localeCompare,
+            });
+
+            expect(approvalWorkflows).toHaveLength(1);
+            expect(approvalWorkflows.at(0)?.members).toHaveLength(1);
+            const memberEmails = availableMembers.map((m) => m.email).sort();
+            expect(memberEmails).toEqual(['alice@example.com', 'bob@example.com']);
+        });
+    });
+
+    describe('mergeWorkflowMembersWithAvailableMembers', () => {
+        it('Should deduplicate members when workflow members overlap with available members', () => {
+            const workflowMembers = [buildMember(1)];
+            const allAvailableMembers = [buildMember(1), buildMember(2), buildMember(3)];
+            const result = mergeWorkflowMembersWithAvailableMembers(workflowMembers, allAvailableMembers);
+
+            expect(result).toHaveLength(3);
+            expect(result.map((m) => m.email)).toEqual(['1@example.com', '2@example.com', '3@example.com']);
+        });
+
+        it('Should not duplicate when editing self-approval workflow (user A submits to user A)', () => {
+            const userA = buildMember(1);
+            const workflowMembers = [userA];
+            const allAvailableMembers = [userA];
+            const result = mergeWorkflowMembersWithAvailableMembers(workflowMembers, allAvailableMembers);
+
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.email).toBe('1@example.com');
+        });
+
+        it('Should preserve workflow member order and append additional members', () => {
+            const workflowMembers = [buildMember(2), buildMember(3)];
+            const allAvailableMembers = [buildMember(1), buildMember(2), buildMember(3), buildMember(4)];
+            const result = mergeWorkflowMembersWithAvailableMembers(workflowMembers, allAvailableMembers);
+
+            expect(result.map((m) => m.email)).toEqual(['2@example.com', '3@example.com', '1@example.com', '4@example.com']);
+        });
+
+        it('Should return workflow members only when all available are already in workflow', () => {
+            const workflowMembers = [buildMember(1), buildMember(2)];
+            const allAvailableMembers = [buildMember(1), buildMember(2)];
+            const result = mergeWorkflowMembersWithAvailableMembers(workflowMembers, allAvailableMembers);
+
+            expect(result).toHaveLength(2);
+            expect(result.map((m) => m.email)).toEqual(['1@example.com', '2@example.com']);
         });
     });
 

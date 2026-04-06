@@ -1,4 +1,3 @@
-import reportsSelector from '@selectors/Attributes';
 import lodashPick from 'lodash/pick';
 import React, {memo, useCallback, useEffect, useMemo} from 'react';
 import type {GestureResponderEvent} from 'react-native';
@@ -12,7 +11,10 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
+import useUserToInviteReports from '@hooks/useUserToInviteReports';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import memoize from '@libs/memoize';
 import {
@@ -27,7 +29,7 @@ import {
     orderOptions,
 } from '@libs/OptionsListUtils';
 import type {SelectionListSections} from '@libs/OptionsListUtils/types';
-import {searchInServer} from '@userActions/Report';
+import {searchUserInServer} from '@userActions/Report';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -55,24 +57,25 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
-    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
-    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
-    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const reportAttributesDerived = useReportAttributes();
+    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
+    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
     const currentUserAccountID = currentUserPersonalDetails.accountID;
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const privateIsArchivedMap = usePrivateIsArchivedMap();
 
     useEffect(() => {
-        searchInServer(debouncedSearchTerm.trim());
+        searchUserInServer(debouncedSearchTerm.trim());
     }, [debouncedSearchTerm]);
 
     const defaultOptions = useMemo(() => {
@@ -96,8 +99,8 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 action,
                 personalDetails,
+                countryCode,
             },
-            countryCode,
         );
 
         const orderedOptions = orderOptions(optionList);
@@ -140,6 +143,9 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         return newOptions;
     }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, countryCode, loginList, currentUserAccountID, currentUserEmail, personalDetails]);
 
+    const {userToInviteExpenseReport} = useUserToInviteReports(chatOptions?.userToInvite);
+    const userToInviteExpenseReportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${userToInviteExpenseReport?.policyID}`];
+
     /**
      * Returns the sections needed for the OptionsSelector
      */
@@ -157,7 +163,9 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             [],
             chatOptions.recentReports,
             chatOptions.personalDetails,
+            privateIsArchivedMap,
             currentUserAccountID,
+            allPolicies,
             personalDetails,
             true,
             undefined,
@@ -186,11 +194,11 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             )
         ) {
             newSections.push({
-                title: undefined,
                 data: [chatOptions.userToInvite].map((participant) => {
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
+                    const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${userToInviteExpenseReport?.reportID}`];
                     return isPolicyExpenseChat
-                        ? getPolicyExpenseReportOption(participant, currentUserAccountID, personalDetails, reportAttributesDerived)
+                        ? getPolicyExpenseReportOption(participant, privateIsArchived, personalDetails, userToInviteExpenseReport, userToInviteExpenseReportPolicy, reportAttributesDerived)
                         : getParticipantsOption(participant, personalDetails);
                 }),
                 sectionIndex: 3,
@@ -214,12 +222,16 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         chatOptions.userToInvite,
         debouncedSearchTerm,
         personalDetails,
+        userToInviteExpenseReport,
+        userToInviteExpenseReportPolicy,
         reportAttributesDerived,
         translate,
         loginList,
         countryCode,
+        privateIsArchivedMap,
         currentUserAccountID,
         currentUserEmail,
+        allPolicies,
     ]);
 
     const selectAccountant = useCallback(
@@ -241,7 +253,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         [selectAccountant],
     );
 
-    const showLoadingPlaceholder = useMemo(() => !areOptionsInitialized || !didScreenTransitionEnd, [areOptionsInitialized, didScreenTransitionEnd]);
+    const shouldShowLoadingPlaceholder = useMemo(() => !areOptionsInitialized || !didScreenTransitionEnd, [areOptionsInitialized, didScreenTransitionEnd]);
 
     const optionLength = useMemo(() => {
         if (!areOptionsInitialized) {
@@ -250,7 +262,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         return sections.reduce((acc, section) => acc + section.data.length, 0);
     }, [areOptionsInitialized, sections]);
 
-    const shouldShowListEmptyContent = useMemo(() => optionLength === 0 && !showLoadingPlaceholder, [optionLength, showLoadingPlaceholder]);
+    const shouldShowListEmptyContent = useMemo(() => optionLength === 0 && !shouldShowLoadingPlaceholder, [optionLength, shouldShowLoadingPlaceholder]);
 
     const textInputOptions = {
         value: searchTerm,
@@ -273,10 +285,9 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             shouldSingleExecuteRowSelect
             textInputOptions={textInputOptions}
             listEmptyContent={<EmptySelectionListContent contentType={iouType} />}
-            showLoadingPlaceholder={showLoadingPlaceholder}
+            shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
             isLoadingNewOptions={!!isSearchingForReports}
-            showListEmptyContent={shouldShowListEmptyContent}
-            disableMaintainingScrollPosition
+            shouldShowListEmptyContent={shouldShowListEmptyContent}
         />
     );
 }

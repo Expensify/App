@@ -1,0 +1,135 @@
+import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
+import React, {useMemo} from 'react';
+import {setTransactionReport} from '@libs/actions/Transaction';
+import {navigateToParticipantPage} from '@libs/IOUUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {generateReportID, getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
+import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
+import {initMoneyRequest, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt} from '@userActions/IOU';
+import {buildOptimisticTransactionAndCreateDraft} from '@userActions/TransactionEdit';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import type {Transaction} from '@src/types/onyx';
+import type {FileObject} from '@src/types/utils/Attachment';
+import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useFilesValidation from './useFilesValidation';
+import useIsAnonymousUser from './useIsAnonymousUser';
+import useOnyx from './useOnyx';
+import useSelfDMReport from './useSelfDMReport';
+
+/**
+ * Encapsulates the receipt scan drag-and-drop logic used by SearchPage and HomePage.
+ * Returns the drop handler and sibling-safe auxiliary UI needed for receipt scanning.
+ */
+function useReceiptScanDrop() {
+    const isAnonymousUser = useIsAnonymousUser();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const selfDMReport = useSelfDMReport();
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [hasOnlyPersonalPolicies = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasOnlyPersonalPoliciesUtil});
+    const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
+    const [personalPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`);
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+
+    // Memoize the new report ID to avoid re-generating it on every render and cause the hook to change, which leads to performance issues.
+    const newReportID = useMemo(() => generateReportID(), []);
+
+    const saveFileAndInitMoneyRequest = (files: FileObject[]) => {
+        const initialTransaction = initMoneyRequest({
+            isFromGlobalCreate: true,
+            isFromFloatingActionButton: true,
+            reportID: newReportID,
+            personalPolicy,
+            report: undefined,
+            parentReport: undefined,
+            newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+            currentDate,
+            currentUserPersonalDetails,
+            hasOnlyPersonalPolicies,
+            draftTransactionIDs,
+        });
+
+        const newReceiptFiles: ReceiptFile[] = [];
+
+        for (const [index, file] of files.entries()) {
+            const source = URL.createObjectURL(file as Blob);
+            const transaction =
+                index === 0
+                    ? (initialTransaction as Partial<Transaction>)
+                    : buildOptimisticTransactionAndCreateDraft({
+                          initialTransaction: initialTransaction as Partial<Transaction>,
+                          currentUserPersonalDetails,
+                          reportID: newReportID,
+                      });
+            const transactionID = transaction.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
+            newReceiptFiles.push({
+                file,
+                source,
+                transactionID,
+            });
+            setMoneyRequestReceipt(transactionID, source, file.name ?? '', true, file.type);
+        }
+
+        if (
+            isPaidGroupPolicy(activePolicy) &&
+            activePolicy?.isPolicyExpenseChatEnabled &&
+            !shouldRestrictUserBillableActions(activePolicy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, activePolicy)
+        ) {
+            const shouldAutoReport = !!activePolicy?.autoReporting || !!personalPolicy?.autoReporting;
+            const report = shouldAutoReport ? getPolicyExpenseChat(currentUserPersonalDetails.accountID, activePolicy?.id) : selfDMReport;
+            const transactionReportID = isSelfDM(report) ? CONST.REPORT.UNREPORTED_REPORT_ID : report?.reportID;
+            const iouTypeTrackOrSubmit = transactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
+            const setParticipantsPromises = newReceiptFiles.map((receiptFile) => {
+                setTransactionReport(receiptFile.transactionID, {reportID: transactionReportID}, true);
+                return setMoneyRequestParticipantsFromReport(receiptFile.transactionID, report, currentUserPersonalDetails.accountID);
+            });
+            Promise.all(setParticipantsPromises).then(() =>
+                Navigation.navigate(
+                    ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
+                        CONST.IOU.ACTION.CREATE,
+                        iouTypeTrackOrSubmit,
+                        initialTransaction?.transactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                        report?.reportID,
+                    ),
+                ),
+            );
+        } else {
+            navigateToParticipantPage(CONST.IOU.TYPE.CREATE, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, newReportID);
+        }
+    };
+
+    const {validateFiles, PDFValidationComponent, ErrorModal} = useFilesValidation(saveFileAndInitMoneyRequest);
+
+    const initScanRequest = (e: DragEvent) => {
+        const files = Array.from(e?.dataTransfer?.files ?? []);
+
+        if (files.length === 0) {
+            return;
+        }
+        for (const file of files) {
+            // eslint-disable-next-line no-param-reassign -- Attach blob URI to file object for downstream receipt processing
+            file.uri = URL.createObjectURL(file);
+        }
+
+        validateFiles(files, Array.from(e.dataTransfer?.items ?? []));
+    };
+
+    const auxiliaryUI = (
+        <>
+            {PDFValidationComponent}
+            {ErrorModal}
+        </>
+    );
+
+    return {initScanRequest, auxiliaryUI, isDragDisabled: isAnonymousUser};
+}
+
+export default useReceiptScanDrop;

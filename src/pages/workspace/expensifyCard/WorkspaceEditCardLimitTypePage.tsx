@@ -1,5 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
-import {toZonedTime} from 'date-fns-tz';
+import {format, toZonedTime} from 'date-fns-tz';
 import React, {useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -53,7 +53,7 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
     const {isBetaEnabled} = usePermissions();
     const policy = usePolicy(policyID);
     const defaultFundID = useDefaultFundID(policyID);
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards, canBeMissing: true});
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
 
     const card = cardsList?.[cardID];
     const areApprovalsConfigured = getApprovalWorkflow(policy) !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
@@ -86,10 +86,10 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
     const validFromDefaultValue = useMemo(() => {
         const validFrom = card?.nameValuePairs?.validFrom;
         if (!validFrom) {
-            return undefined;
+            return format(minDate, CONST.DATE.FNS_FORMAT_STRING);
         }
         return DateUtils.formatUTCDateTimeToDateInTimezone(validFrom, assigneeTimeZone);
-    }, [card?.nameValuePairs?.validFrom, assigneeTimeZone]);
+    }, [card?.nameValuePairs?.validFrom, assigneeTimeZone, minDate]);
 
     const validThruDefaultValue = useMemo(() => {
         const validThru = card?.nameValuePairs?.validThru;
@@ -199,7 +199,7 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
             });
         }
 
-        if (card?.nameValuePairs?.isVirtual && isBetaEnabled(CONST.BETAS.SINGLE_USE_AND_EXPIRE_BY_CARDS)) {
+        if (card?.nameValuePairs?.isVirtual) {
             options.push({
                 value: CONST.EXPENSIFY_CARD.LIMIT_TYPES.SINGLE_USE,
                 label: translate('workspace.card.issueNewCard.singleUse'),
@@ -275,43 +275,45 @@ function WorkspaceEditCardLimitTypePage({route}: WorkspaceEditCardLimitTypePageP
                             }}
                             shouldShowModal={false}
                             addBottomSafeAreaPadding={false}
+                            alternateNumberOfSupportedLines={2}
                         />
 
-                        <View style={[styles.threadDividerLine, styles.flexGrow0, styles.ml5, styles.mr5, styles.mv3]} />
-
                         {!!card?.nameValuePairs?.isVirtual && (
-                            <View style={[styles.ph5]}>
-                                <ToggleSettingOptionRow
-                                    title={translate('workspace.card.issueNewCard.setExpiryDate')}
-                                    subtitle={!expirationToggle ? translate('workspace.card.issueNewCard.setExpiryDateDescription') : ''}
-                                    isActive={expirationToggle}
-                                    onToggle={setExpirationToggle}
-                                    switchAccessibilityLabel={translate('workspace.card.issueNewCard.setExpiryDate')}
-                                    shouldPlaceSubtitleBelowSwitch
-                                    wrapperStyle={[styles.mv3]}
-                                />
-                                {expirationToggle && (
-                                    <>
-                                        <Text style={[styles.textLabelSupporting, styles.mb1, styles.mt2]}>{translate('workspace.card.issueNewCard.validFrom')}</Text>
-                                        <InputWrapper
-                                            InputComponent={DatePicker}
-                                            inputID={INPUT_IDS.VALID_FROM}
-                                            label={translate('workspace.card.issueNewCard.startDate')}
-                                            maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
-                                            minDate={minDate}
-                                            defaultValue={validFromDefaultValue}
-                                        />
-                                        <InputWrapper
-                                            InputComponent={DatePicker}
-                                            inputID={INPUT_IDS.VALID_THRU}
-                                            label={translate('workspace.card.issueNewCard.endDate')}
-                                            maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
-                                            minDate={minDate}
-                                            defaultValue={validThruDefaultValue}
-                                        />
-                                    </>
-                                )}
-                            </View>
+                            <>
+                                <View style={[styles.threadDividerLine, styles.flexGrow0, styles.ml5, styles.mr5, styles.mv3]} />
+                                <View style={[styles.ph5]}>
+                                    <ToggleSettingOptionRow
+                                        title={translate('workspace.card.issueNewCard.setExpiryDate')}
+                                        subtitle={!expirationToggle ? translate('workspace.card.issueNewCard.setExpiryDateDescription') : ''}
+                                        isActive={expirationToggle}
+                                        onToggle={setExpirationToggle}
+                                        switchAccessibilityLabel={translate('workspace.card.issueNewCard.setExpiryDate')}
+                                        shouldPlaceSubtitleBelowSwitch
+                                        wrapperStyle={[styles.mv3]}
+                                    />
+                                    {expirationToggle && (
+                                        <>
+                                            <Text style={[styles.textLabelSupporting, styles.mb1, styles.mt2]}>{translate('workspace.card.issueNewCard.validFrom')}</Text>
+                                            <InputWrapper
+                                                InputComponent={DatePicker}
+                                                inputID={INPUT_IDS.VALID_FROM}
+                                                label={translate('workspace.card.issueNewCard.startDate')}
+                                                maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
+                                                minDate={minDate}
+                                                defaultValue={validFromDefaultValue}
+                                            />
+                                            <InputWrapper
+                                                InputComponent={DatePicker}
+                                                inputID={INPUT_IDS.VALID_THRU}
+                                                label={translate('workspace.card.issueNewCard.endDate')}
+                                                maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
+                                                minDate={minDate}
+                                                defaultValue={validThruDefaultValue}
+                                            />
+                                        </>
+                                    )}
+                                </View>
+                            </>
                         )}
                     </FormProvider>
                     <ConfirmModal

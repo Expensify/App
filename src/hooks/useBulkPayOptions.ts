@@ -5,7 +5,8 @@ import type {BankAccountMenuItem} from '@components/Search/types';
 import {isCurrencySupportedForGlobalReimbursement} from '@libs/actions/Policy/Policy';
 import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {formatPaymentMethods} from '@libs/PaymentUtils';
+import {formatPaymentMethods, getBusinessBankAccountOptions} from '@libs/PaymentUtils';
+import {sortPoliciesByName} from '@libs/PolicyUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {
     getBankAccountRoute,
@@ -17,12 +18,13 @@ import {
 import {useSettlementButtonPaymentMethods} from '@libs/SettlementButtonUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {AccountData, Policy} from '@src/types/onyx';
+import type {AccountData} from '@src/types/onyx';
+import useActiveAdminPolicies from './useActiveAdminPolicies';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
-import usePolicy from './usePolicy';
+import usePermissions from './usePermissions';
 import useThemeStyles from './useThemeStyles';
 
 type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
@@ -31,7 +33,6 @@ type UseBulkPayOptionProps = {
     selectedPolicyID: string | undefined;
     selectedReportID: string | undefined;
     lastPaymentMethod?: string | undefined;
-    activeAdminPolicies: Policy[];
     isCurrencySupportedWallet?: boolean;
     currency: string | undefined;
     formattedAmount: string;
@@ -40,7 +41,8 @@ type UseBulkPayOptionProps = {
 
 type UseBulkPayOptionReturnType = {
     bulkPayButtonOptions: PopoverMenuItem[] | undefined;
-    latestBankItems: BankAccountMenuItem[] | undefined;
+    businessBankAccountOptions: BankAccountMenuItem[] | undefined;
+    shouldShowBusinessBankAccountOptions: boolean;
 };
 
 /**
@@ -49,24 +51,25 @@ type UseBulkPayOptionReturnType = {
 function useBulkPayOptions({
     selectedPolicyID,
     selectedReportID,
-    activeAdminPolicies,
     isCurrencySupportedWallet,
     currency,
     formattedAmount,
     onlyShowPayElsewhere,
 }: UseBulkPayOptionProps): UseBulkPayOptionReturnType {
     const icons = useMemoizedLazyExpensifyIcons(['Building', 'User', 'Bank', 'Cash', 'Wallet']);
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {accountID} = useCurrentUserPersonalDetails();
-    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
     const paymentMethods = useSettlementButtonPaymentMethods(hasActivatedWallet, translate);
-    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
-    const policy = usePolicy(selectedPolicyID);
-    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`, {canBeMissing: true});
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`, {canBeMissing: true});
+    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`);
+    const {isBetaEnabled} = usePermissions();
+    const isPayInvoiceViaExpensifyBetaEnabled = isBetaEnabled(CONST.BETAS.PAY_INVOICE_VIA_EXPENSIFY);
+    const activeAdminPolicies = useActiveAdminPolicies();
     const isIOUReport = isIOUReportUtil(selectedReportID);
     const isExpenseReport = isExpenseReportUtil(selectedReportID);
     const isInvoiceReport = isInvoiceReportUtil(selectedReportID);
@@ -79,25 +82,6 @@ function useBulkPayOptions({
     const canUseWallet = !isExpenseReport && !isInvoiceReport && isCurrencySupportedWallet;
     const hasSinglePolicy = !isExpenseReport && activeAdminPolicies.length === 1;
     const hasMultiplePolicies = !isExpenseReport && activeAdminPolicies.length > 1;
-
-    function getLatestBankAccountItem() {
-        if (!policy?.achAccount?.bankAccountID) {
-            return;
-        }
-        const policyBankAccounts = formattedPaymentMethods.filter((method) => method.methodID === policy?.achAccount?.bankAccountID);
-
-        return policyBankAccounts.map((formattedPaymentMethod) => {
-            const {icon, title, description, methodID} = formattedPaymentMethod ?? {};
-
-            return {
-                text: title ?? '',
-                description: description ?? '',
-                icon: typeof icon === 'number' ? icons.Bank : icon,
-                methodID,
-                value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
-            };
-        });
-    }
 
     const getPaymentSubItems = (payAsBusiness: boolean) => {
         const requiredAccountType = payAsBusiness ? CONST.BANK_ACCOUNT.TYPE.BUSINESS : CONST.BANK_ACCOUNT.TYPE.PERSONAL;
@@ -118,13 +102,23 @@ function useBulkPayOptions({
                 key: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
                 additionalData: {
                     payAsBusiness,
-                    methodID: formattedPaymentMethod.methodID,
+                    bankAccountID: formattedPaymentMethod.methodID,
                     paymentMethod: formattedPaymentMethod.accountType,
                 },
             }));
     };
 
-    const latestBankItems = getLatestBankAccountItem();
+    const businessBankAccountOptionList = getBusinessBankAccountOptions(formattedPaymentMethods);
+    const businessBankAccountOptions =
+        shouldShowBusinessBankAccountOptions && businessBankAccountOptionList.length
+            ? businessBankAccountOptionList.map((account) => ({
+                  text: account.text,
+                  description: account.description,
+                  icon: account.icon,
+                  methodID: account.methodID,
+                  value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+              }))
+            : undefined;
     const personalBankAccountList = formattedPaymentMethods.filter((ba) => (ba.accountData as AccountData)?.type === CONST.BANK_ACCOUNT.TYPE.PERSONAL);
 
     let bulkPayButtonOptions;
@@ -136,7 +130,26 @@ function useBulkPayOptions({
         bulkPayButtonOptions = [];
 
         if (shouldShowBusinessBankAccountOptions) {
-            bulkPayButtonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]);
+            if (businessBankAccountOptionList.length === 0) {
+                bulkPayButtonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]);
+            } else {
+                for (const account of businessBankAccountOptionList) {
+                    bulkPayButtonOptions.push({
+                        text: account.text,
+                        description: account.description,
+                        icon: typeof account.icon === 'number' ? icons.Bank : account.icon,
+                        iconStyles: account.iconStyles,
+                        iconWidth: typeof account.icon === 'number' ? undefined : account.iconSize,
+                        iconHeight: typeof account.icon === 'number' ? undefined : account.iconSize,
+                        key: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+                        shouldIgnoreKeyForRendering: true,
+                        additionalData: {
+                            bankAccountID: account.methodID,
+                            paymentMethod: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+                        },
+                    });
+                }
+            }
         }
 
         if (canUseWallet) {
@@ -156,7 +169,8 @@ function useBulkPayOptions({
         }
 
         if ((hasMultiplePolicies || hasSinglePolicy) && canUseWallet && !isPersonalOnlyOption) {
-            for (const activePolicy of activeAdminPolicies) {
+            const sortedActiveAdminPolicies = sortPoliciesByName(activeAdminPolicies, localeCompare);
+            for (const activePolicy of sortedActiveAdminPolicies) {
                 const policyName = activePolicy.name;
                 bulkPayButtonOptions.push({
                     text: translate('iou.payWithPolicy', truncate(policyName, {length: CONST.ADDITIONAL_ALLOWED_CHARACTERS}), ''),
@@ -172,7 +186,7 @@ function useBulkPayOptions({
         }
 
         if (isInvoiceReport) {
-            const isCurrencySupported = isCurrencySupportedForGlobalReimbursement(currency as CurrencyType);
+            const showPayViaExpensifyOptions = isPayInvoiceViaExpensifyBetaEnabled && isCurrencySupportedForGlobalReimbursement(currency as CurrencyType);
             const getInvoicesOptions = (payAsBusiness: boolean) => {
                 const addBankAccountItem = {
                     text: translate('bankAccount.addBankAccount'),
@@ -183,8 +197,8 @@ function useBulkPayOptions({
                     },
                 };
                 return [
-                    ...(isCurrencySupported ? getPaymentSubItems(payAsBusiness) : []),
-                    ...(isCurrencySupported ? [addBankAccountItem] : []),
+                    ...(showPayViaExpensifyOptions ? getPaymentSubItems(payAsBusiness) : []),
+                    ...(showPayViaExpensifyOptions ? [addBankAccountItem] : []),
                     {
                         text: translate('iou.payElsewhere', ''),
                         icon: icons.Cash,
@@ -218,7 +232,8 @@ function useBulkPayOptions({
 
     return {
         bulkPayButtonOptions,
-        latestBankItems,
+        businessBankAccountOptions,
+        shouldShowBusinessBankAccountOptions,
     };
 }
 
