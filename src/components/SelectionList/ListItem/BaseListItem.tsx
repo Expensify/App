@@ -53,7 +53,7 @@ function getAccessibilityProps<TItem extends ListItem>({
     // Chrome on macOS doesn't expose aria-selected to VoiceOver, so we bake "selected"
     // into the label as a workaround. Other browser/OS combos handle aria-selected natively.
     let accessibilityLabel = getAccessibilityLabel(item);
-    if (isSelectableOption && item.isSelected && getBrowser() === 'chrome' && getOperatingSystem() === CONST.OS.MAC_OS) {
+    if (isSelectableOption && item.isSelected && getBrowser() === CONST.BROWSER.CHROME && getOperatingSystem() === CONST.OS.MAC_OS) {
         accessibilityLabel = `${accessibilityLabel}, ${selectedLabel}`;
     }
 
