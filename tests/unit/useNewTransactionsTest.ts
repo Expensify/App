@@ -307,7 +307,7 @@ describe('useNewTransactions with pendingNewTransactionIDs (cross-navigation)', 
         // 1. Component mounts, report not loaded yet, but transaction is already in Onyx
         const {rerender, result} = renderHook<
             Transaction[],
-            {transactions: Transaction[]; hasOnceLoadedReportActions: boolean; pendingNewTransactionIDs: Record<string, boolean> | undefined; isFocused?: boolean}
+            {transactions: Transaction[]; hasOnceLoadedReportActions: boolean; pendingNewTransactionIDs: Record<string, true | null> | undefined; isFocused?: boolean}
         >((props) => useNewTransactions(props.hasOnceLoadedReportActions, props.transactions, props.pendingNewTransactionIDs, '1', props.isFocused), {
             initialProps: {
                 hasOnceLoadedReportActions: false,
@@ -342,7 +342,7 @@ describe('useNewTransactions with pendingNewTransactionIDs (cross-navigation)', 
         // Normal navigation to a report (no cross-navigation pending IDs)
         const {rerender, result} = renderHook<
             Transaction[],
-            {transactions: Transaction[]; hasOnceLoadedReportActions: boolean; pendingNewTransactionIDs: Record<string, boolean> | undefined}
+            {transactions: Transaction[]; hasOnceLoadedReportActions: boolean; pendingNewTransactionIDs: Record<string, true | null> | undefined}
         >((props) => useNewTransactions(props.hasOnceLoadedReportActions, props.transactions, props.pendingNewTransactionIDs), {
             initialProps: {
                 hasOnceLoadedReportActions: false,
