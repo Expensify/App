@@ -2,6 +2,7 @@ import {useEffect, useMemo, useRef} from 'react';
 import {deletePendingNewTransactionIDs} from '@libs/actions/IOU';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import usePrevious from './usePrevious';
 
 /**
@@ -17,24 +18,27 @@ function useNewTransactions(
     transactions: Transaction[] | undefined,
     pendingNewTransactionIDs?: Record<string, boolean | null>,
     reportID?: string,
-    isFocused = false,
+    isFocused?: boolean,
 ) {
-    // If we haven't loaded report yet we set previous transactions to undefined.
-    const prevTransactions = usePrevious(hasOnceLoadedReportActions ? transactions : undefined);
+    const transactionIDs = transactions?.map((transaction) => transaction.transactionID);
+    // If we haven't loaded report yet we set previous transaction ids to undefined.
+    const prevTransactionIDs = usePrevious(hasOnceLoadedReportActions ? transactionIDs : undefined);
 
     // We need to skip the first transactions change, to avoid highlighting transactions on the first load.
     const skipFirstTransactionsChange = useRef(!hasOnceLoadedReportActions);
-
     const newTransactions = useMemo(() => {
-        if (transactions === undefined || prevTransactions === undefined || transactions.length <= prevTransactions.length) {
+        // If isFocused is not passed (=undefined) we will not return empty.
+        if (isFocused === false) {
+            return CONST.EMPTY_ARRAY as unknown as Transaction[];
+        }
+
+        if (transactions === undefined || prevTransactionIDs === undefined || transactions.length <= prevTransactionIDs.length) {
             // When a transaction is submitted from another report (e.g., Self DM → workspace), it is
-            // already in the transactions list by the time this component mounts. The delta
-            // detection above cannot detect it because prevTransactions starts as undefined and then
-            // becomes equal to transactions. So we use pendingNewTransactionIDs from report metadata to
-            // identify these transactions on first load.
-            if (isFocused && reportID && pendingNewTransactionIDs && transactions?.length) {
+            // already in the transactions list by the time this component mounts.
+            // So we use pendingNewTransactionIDs from report metadata to identify these transactions on first load.
+            if (isFocused && reportID && !isEmptyObject(pendingNewTransactionIDs) && transactions?.length) {
                 const pendingSet = new Set(Object.keys(pendingNewTransactionIDs));
-                const pendingTransactions = transactions.filter((transaction) => pendingSet.has(transaction.transactionID) && pendingNewTransactionIDs[transaction.transactionID]);
+                const pendingTransactions = transactions.filter(({transactionID}) => pendingSet.has(transactionID) && pendingNewTransactionIDs[transactionID]);
                 return pendingTransactions;
             }
             return CONST.EMPTY_ARRAY as unknown as Transaction[];
@@ -43,15 +47,18 @@ function useNewTransactions(
             skipFirstTransactionsChange.current = false;
             return CONST.EMPTY_ARRAY as unknown as Transaction[];
         }
-        return transactions.filter((transaction) => !prevTransactions?.some((prevTransaction) => prevTransaction.transactionID === transaction.transactionID));
-    }, [transactions, prevTransactions, pendingNewTransactionIDs, reportID, isFocused]);
+        return transactions.filter((transaction) => !prevTransactionIDs?.some((prevTransactionID) => prevTransactionID === transaction.transactionID));
+
+        // We only need to recalculate on transactionIDs or reportID change.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [transactionIDs, reportID]);
 
     useEffect(() => {
         if (!pendingNewTransactionIDs) {
             return;
         }
         const pendingSet = new Set(Object.keys(pendingNewTransactionIDs));
-        const pendingTransactions = newTransactions.filter((transaction) => pendingSet.has(transaction.transactionID) && pendingNewTransactionIDs[transaction.transactionID]);
+        const pendingTransactions = newTransactions.filter(({transactionID}) => pendingSet.has(transactionID) && pendingNewTransactionIDs[transactionID]);
         if (!pendingTransactions.length) {
             return;
         }
