@@ -1,5 +1,4 @@
 import {useEffect, useRef} from 'react';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import CONST from './CONST';
 import useNetwork from './hooks/useNetwork';
 import useOnyx from './hooks/useOnyx';
@@ -8,6 +7,7 @@ import {disconnect} from './libs/actions/Delegate';
 import Log from './libs/Log';
 import ONYXKEYS from './ONYXKEYS';
 import {accountIDSelector, emailSelector} from './selectors/Session';
+import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue';
 
 /**
  * Component that does not render anything but isolates delegate-access–related Onyx subscriptions
