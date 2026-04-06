@@ -238,7 +238,8 @@ async function main() {
         },
     });
 
-    const {command, files} = cli.positionalArgs;
+    const {command} = cli.positionalArgs;
+    const files = cli.positionalArgs.files as string[];
     const {remote} = cli.namedArgs;
     const {verbose} = cli.flags;
 

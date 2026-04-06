@@ -38,7 +38,7 @@ type StringArg<T = unknown> = CLIArg & {
  */
 type PositionalArg<T = unknown> = StringArg<T> & {
     name: string;
-    variadic?: boolean;
+    variadic?: true;
 };
 
 /**
