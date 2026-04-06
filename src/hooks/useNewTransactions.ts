@@ -16,7 +16,7 @@ import usePrevious from './usePrevious';
 function useNewTransactions(
     hasOnceLoadedReportActions: boolean | undefined,
     transactions: Transaction[] | undefined,
-    pendingNewTransactionIDs?: Record<string, boolean | null>,
+    pendingNewTransactionIDs?: Record<string, true | null>,
     reportID?: string,
     isFocused?: boolean,
 ) {
