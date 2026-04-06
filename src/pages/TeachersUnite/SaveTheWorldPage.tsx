@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
@@ -84,13 +85,19 @@ function SaveTheWorldPage() {
         openSaveTheWorldPage();
     }, []);
 
+    const isFocused = useIsFocused();
+
     useEffect(() => {
-        if (!pendingPersonalKarmaEnableRef.current || !billingCard) {
+        if (!isFocused || !pendingPersonalKarmaEnableRef.current) {
             return;
         }
+
         pendingPersonalKarmaEnableRef.current = false;
-        updatePersonalKarma(true);
-    }, [billingCard]);
+
+        if (billingCard) {
+            updatePersonalKarma(true);
+        }
+    }, [isFocused, billingCard]);
 
     const handleDisablePersonalKarma = () => {
         setIsDisablePersonalKarmaModalVisible(false);

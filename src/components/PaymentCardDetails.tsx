@@ -1,5 +1,5 @@
 import type {ReactNode} from 'react';
-import React, {useMemo} from 'react';
+import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -30,7 +30,7 @@ function PaymentCardDetails({card, rightComponent, wrapperStyle}: PaymentCardDet
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['CreditCard']);
 
-    const cardMonth = useMemo(() => DateUtils.getMonthNames()[(card?.accountData?.cardMonth ?? 1) - 1], [card?.accountData?.cardMonth]);
+    const cardMonth = DateUtils.getMonthNames()[(card?.accountData?.cardMonth ?? 1) - 1];
 
     if (!card?.accountData || isEmptyObject(card?.accountData)) {
         return null;
