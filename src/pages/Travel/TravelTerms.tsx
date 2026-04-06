@@ -35,7 +35,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {TravelProvisioning} from '@src/types/onyx';
 
-type TravelTermsPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.TCS>;
+type TravelTermsPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.DYNAMIC_TCS>;
 
 function TravelTerms({route}: TravelTermsPageProps) {
     const styles = useThemeStyles();

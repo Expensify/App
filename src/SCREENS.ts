@@ -29,7 +29,7 @@ const SCREENS = {
     SETTINGS_CENTRAL_PANE: 'SettingsCentralPane',
     TRAVEL: {
         MY_TRIPS: 'Travel_MyTrips',
-        TCS: 'Travel_TCS',
+        DYNAMIC_TCS: 'Dynamic_Travel_TCS',
         TRIP_SUMMARY: 'Travel_TripSummary',
         TRIP_DETAILS: 'Travel_TripDetails',
         DYNAMIC_UPGRADE: 'Dynamic_Travel_Upgrade',

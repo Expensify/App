@@ -49,7 +49,10 @@ const navigateToAcceptTerms = (domain: string, isUserValidated?: boolean, policy
     // Remove the previous provision session information if any is cached.
     cleanupTravelProvisioningSession();
     if (isUserValidated) {
-        Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(domain, policyID, Navigation.getActiveRoute()));
+        const activeRouteParams = new URLSearchParams(Navigation.getActiveRoute().split('?').at(1));
+        const travelTCSRoute = activeRouteParams.has('policyID') ? DYNAMIC_ROUTES.TRAVEL_TCS.getRoute(domain) : DYNAMIC_ROUTES.TRAVEL_TCS.getRoute(domain, policyID);
+
+        Navigation.navigate(createDynamicRoute(travelTCSRoute));
         return;
     }
     Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(domain, policyID, Navigation.getActiveRoute()));
@@ -177,9 +180,11 @@ function BookTravelButton({
             // Always validate OTP first before proceeding to address details or terms acceptance
             if (!isUserValidated) {
                 // Determine where to redirect after OTP validation
+                const activeRouteParams = new URLSearchParams(Navigation.getActiveRoute().split('?').at(1));
+                const nextStepRoute = activeRouteParams.has('policyID') ? DYNAMIC_ROUTES.TRAVEL_TCS.getRoute(domain) : DYNAMIC_ROUTES.TRAVEL_TCS.getRoute(domain, activePolicyID);
                 const nextStep = isEmptyObject(policy?.address)
                     ? ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, activePolicyID, Navigation.getActiveRoute())
-                    : ROUTES.TRAVEL_TCS.getRoute(domain, activePolicyID);
+                    : createDynamicRoute(nextStepRoute);
                 setTravelProvisioningNextStep(nextStep);
                 Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(domain, activePolicyID, Navigation.getActiveRoute()));
                 return;

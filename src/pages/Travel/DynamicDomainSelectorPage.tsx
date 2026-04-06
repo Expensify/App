@@ -15,6 +15,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {cleanupTravelProvisioningSession, setTravelProvisioningNextStep} from '@libs/actions/Travel';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TravelNavigatorParamList} from '@libs/Navigation/types';
 import {getAdminsPrivateEmailDomains, getMostFrequentEmailDomain} from '@libs/PolicyUtils';
@@ -60,12 +61,13 @@ function DynamicDomainSelectorPage({route}: DynamicDomainSelectorPageProps) {
 
     const provisionTravelForDomain = () => {
         const domain = selectedDomain ?? CONST.TRAVEL.DEFAULT_DOMAIN;
+        const activeRouteParams = new URLSearchParams(Navigation.getActiveRoute().split('?').at(1));
+        const travelTCSRoute = activeRouteParams.has('policyID') ? DYNAMIC_ROUTES.TRAVEL_TCS.getRoute(domain) : DYNAMIC_ROUTES.TRAVEL_TCS.getRoute(domain, policyID);
+
         // Always validate OTP first before proceeding to address details or terms acceptance
         if (!isUserValidated) {
             // Determine where to redirect after OTP validation
-            const nextStep = isEmptyObject(policy?.address)
-                ? ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, policyID, Navigation.getActiveRoute())
-                : ROUTES.TRAVEL_TCS.getRoute(domain, policyID);
+            const nextStep = isEmptyObject(policy?.address) ? ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, policyID, Navigation.getActiveRoute()) : createDynamicRoute(travelTCSRoute);
             setTravelProvisioningNextStep(nextStep);
             Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(domain, policyID));
             return;
@@ -75,7 +77,7 @@ function DynamicDomainSelectorPage({route}: DynamicDomainSelectorPageProps) {
             Navigation.navigate(ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, policyID, Navigation.getActiveRoute()));
         } else {
             cleanupTravelProvisioningSession();
-            Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(domain, policyID));
+            Navigation.navigate(createDynamicRoute(travelTCSRoute));
         }
     };
 

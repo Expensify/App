@@ -132,11 +132,24 @@ const DYNAMIC_ROUTES = {
     },
     TRAVEL_DOMAIN_PERMISSION_INFO: {
         path: 'domain-permission-info',
-        entryScreens: [SCREENS.TRAVEL.TCS],
+        entryScreens: [SCREENS.TRAVEL.DYNAMIC_TCS],
     },
     TRAVEL_DOMAIN_SELECTOR: {
         path: 'domain-selector',
         entryScreens: [SCREENS.TRAVEL.MY_TRIPS, SCREENS.WORKSPACE.TRAVEL, SCREENS.SEARCH.ROOT],
+    },
+    TRAVEL_TCS: {
+        path: 'terms-and-conditions',
+        entryScreens: [
+            SCREENS.TRAVEL.MY_TRIPS,
+            SCREENS.WORKSPACE.TRAVEL,
+            SCREENS.SEARCH.ROOT,
+            SCREENS.TRAVEL.DYNAMIC_DOMAIN_SELECTOR,
+            SCREENS.TRAVEL.WORKSPACE_ADDRESS,
+            SCREENS.TRAVEL.VERIFY_ACCOUNT,
+        ],
+        getRoute: (domain = '', policyID?: string) => getUrlWithParams('terms-and-conditions', {domain, policyID}),
+        queryParams: ['domain', 'policyID'],
     },
     TRAVEL_UPGRADE: {
         path: 'travel-upgrade',
@@ -3065,12 +3078,6 @@ const ROUTES = {
             const redirectURL = postLoginPath ? `&redirectUrl=${encodeURIComponent(postLoginPath)}` : '';
             return `travel-dot-link?token=${token}&isTestAccount=${isTestAccount}${redirectURL}` as const;
         },
-    },
-    TRAVEL_TCS: {
-        route: 'travel/terms/:domain/accept',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (domain: string, policyID?: string, backTo?: string) => getUrlWithBackToParam(`travel/terms/${domain}/accept?${policyID ? `policyID=${policyID}` : ''}`, backTo),
     },
     TRACK_TRAINING_MODAL: 'track-training',
     TRAVEL_TRIP_SUMMARY: {
