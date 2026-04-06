@@ -7366,8 +7366,8 @@ function buildOptimisticApprovedReportAction(amount: number, currency: string, e
 /**
  * Builds an optimistic APPROVED report action with a randomly generated reportActionID.
  */
-function buildOptimisticUnapprovedReportAction(amount: number, currency: string, expenseReportID: string): OptimisticUnapprovedReportAction {
-    const delegateAccountDetails = getPersonalDetailByEmail(delegateEmail);
+function buildOptimisticUnapprovedReportAction(amount: number, currency: string, expenseReportID: string, delegateEmailParam: string | undefined): OptimisticUnapprovedReportAction {
+    const delegateAccountDetails = delegateEmailParam ? getPersonalDetailByEmail(delegateEmailParam) : undefined;
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.UNAPPROVED,
         actorAccountID: deprecatedCurrentUserAccountID,
@@ -7599,6 +7599,7 @@ function buildOptimisticSubmittedReportAction(
     expenseReportID: string,
     adminAccountID: number | undefined,
     workflow: ValueOf<typeof CONST.POLICY.APPROVAL_MODE> | undefined,
+    delegateEmailParam: string | undefined,
 ): OptimisticSubmittedReportAction {
     const originalMessage = {
         amount,
@@ -7607,7 +7608,7 @@ function buildOptimisticSubmittedReportAction(
         workflow,
     };
 
-    const delegateAccountDetails = getPersonalDetailByEmail(delegateEmail);
+    const delegateAccountDetails = delegateEmailParam ? getPersonalDetailByEmail(delegateEmailParam) : undefined;
 
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
@@ -8271,7 +8272,7 @@ function buildOptimisticUnHoldReportAction(created = DateUtils.getDBTime()): Opt
     };
 }
 
-function buildOptimisticRetractedReportAction(created = DateUtils.getDBTime()): OptimisticRetractedReportAction {
+function buildOptimisticRetractedReportAction(delegateEmailParam: string | undefined, created = DateUtils.getDBTime()): OptimisticRetractedReportAction {
     return {
         reportActionID: rand64(),
         actionName: CONST.REPORT.ACTIONS.TYPE.RETRACTED,
@@ -8295,7 +8296,7 @@ function buildOptimisticRetractedReportAction(created = DateUtils.getDBTime()): 
         avatar: getCurrentUserAvatar(),
         created,
         shouldShow: true,
-        delegateAccountID: getPersonalDetailByEmail(delegateEmail)?.accountID,
+        delegateAccountID: delegateEmailParam ? getPersonalDetailByEmail(delegateEmailParam)?.accountID : undefined,
     };
 }
 
