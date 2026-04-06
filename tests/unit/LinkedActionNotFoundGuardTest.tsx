@@ -12,12 +12,14 @@ const ROUTE_KEY = 'test-route-key';
 
 const mockSetParams = jest.fn();
 const mockIsNavigationReady = jest.fn(() => Promise.resolve());
+const mockCleanStaleBackToParam = jest.fn();
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
     default: {
         setParams: (...args: unknown[]) => mockSetParams(...args),
         isNavigationReady: () => mockIsNavigationReady(),
+        cleanStaleBackToParam: (...args: unknown[]) => mockCleanStaleBackToParam(...args),
     },
 }));
 
@@ -106,6 +108,7 @@ describe('LinkedActionNotFoundGuard', () => {
     beforeEach(() => {
         mockSetParams.mockClear();
         mockIsNavigationReady.mockClear();
+        mockCleanStaleBackToParam.mockClear();
         mockRouteParams.reportID = REPORT_ID;
         mockRouteParams.reportActionID = REPORT_ACTION_ID;
         mockLinkedAction = createReportAction();
