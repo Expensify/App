@@ -1128,6 +1128,61 @@ describe('Transaction', () => {
 
             expect(nextStepMessage).toEqual('Waiting for You to submit %expenses.');
         });
+
+        it('should decrement source and increment destination transactionCount on cross-currency move', async () => {
+            const sourceReportID = '901';
+            const destinationReportID = '902';
+            const transaction = generateTransaction({reportID: sourceReportID, currency: 'CAD'});
+
+            const sourceReport: Report = {
+                ...createExpenseReport(Number(sourceReportID)),
+                reportID: sourceReportID,
+                ownerAccountID: CURRENT_USER_ID,
+                currency: 'USD',
+                transactionCount: 1,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            const destinationReport: Report = {
+                ...createExpenseReport(Number(destinationReportID)),
+                reportID: destinationReportID,
+                ownerAccountID: CURRENT_USER_ID,
+                currency: 'EUR',
+                transactionCount: 0,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${sourceReportID}`, sourceReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`, destinationReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+            };
+
+            changeTransactionsReport({
+                transactionIDs: [transaction.transactionID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: CURRENT_USER_ID,
+                email: 'test@gmail.com',
+                newReport: destinationReport,
+                policy: undefined,
+                reportNextStep: undefined,
+                policyCategories: undefined,
+                allTransactions,
+                translate: TestHelper.translateLocal,
+                toLocaleDigit: TestHelper.toLocaleDigit,
+            });
+
+            await waitForBatchedUpdates();
+
+            const updatedSourceReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${sourceReportID}`);
+            const updatedDestinationReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`);
+
+            expect(updatedSourceReport?.transactionCount).toBe(0);
+            expect(updatedDestinationReport?.transactionCount).toBe(1);
+        });
     });
 
     describe('getAllNonDeletedTransactions', () => {

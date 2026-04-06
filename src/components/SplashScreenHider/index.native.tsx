@@ -9,7 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import BootSplash from '@libs/BootSplash';
 import type {SplashScreenHiderProps, SplashScreenHiderReturnType} from './types';
 
-function SplashScreenHider({shouldHideSplash, onHide}: SplashScreenHiderProps): SplashScreenHiderReturnType {
+function SplashScreenHider({onHide, shouldHideSplash}: SplashScreenHiderProps): SplashScreenHiderReturnType {
     const styles = useThemeStyles();
     const logoSizeRatio = BootSplash.logoSizeRatio || 1;
 
