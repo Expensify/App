@@ -50,13 +50,7 @@ import usePermissions from './usePermissions';
 import useReportIsArchived from './useReportIsArchived';
 import {shouldShowBulkDuplicateOption} from './useSearchBulkActions';
 
-// We do not use PRIMARY_REPORT_ACTIONS or SECONDARY_REPORT_ACTIONS because they weren't meant to be used in this situation. `value` property of returned options is later ignored.
-const HOLD = 'HOLD';
-const UNHOLD = 'UNHOLD';
-const MOVE = 'MOVE';
-const MERGE = 'MERGE';
-const SPLIT = 'SPLIT';
-const DUPLICATE = 'DUPLICATE';
+const {HOLD, UNHOLD, MOVE, MERGE, SPLIT, DUPLICATE} = CONST.REPORT.SELECTED_TRANSACTIONS_BULK_ACTION_TYPES;
 
 function useSelectedTransactionsActions({
     report,
@@ -481,7 +475,7 @@ function useSelectedTransactionsActions({
         }
 
         if (isDuplicateOptionVisible) {
-            // eslint-disable-next-line react-hooks/refs
+            // eslint-disable-next-line react-hooks/refs -- invokeDuplicateHandler reads a ref, but only at event-handler time (onSelected), never during render
             options.push({
                 text: translate('search.bulkActions.duplicateExpense', {count: selectedTransactionIDs.length}),
                 icon: expensifyIcons.ExpenseCopy,
