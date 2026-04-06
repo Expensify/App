@@ -886,8 +886,8 @@ function MenuItem({
                                                         <View
                                                             style={[
                                                                 styles.popoverMenuIcon,
-                                                                iconStyles,
                                                                 shouldIconUseAutoWidthStyle ? styles.wAuto : StyleUtils.getAvatarWidthStyle(avatarSize),
+                                                                iconStyles,
                                                             ]}
                                                         />
                                                     )}
@@ -895,8 +895,8 @@ function MenuItem({
                                                         <View
                                                             style={[
                                                                 styles.popoverMenuIcon,
-                                                                iconStyles,
                                                                 shouldIconUseAutoWidthStyle ? styles.wAuto : StyleUtils.getAvatarWidthStyle(avatarSize),
+                                                                iconStyles,
                                                             ]}
                                                         >
                                                             {typeof icon !== 'string' &&

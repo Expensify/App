@@ -1,5 +1,6 @@
 import React from 'react';
 import type {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
@@ -86,6 +87,7 @@ function ContextMenuItem({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {windowWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [isThrottledButtonActive, setThrottledButtonInactive] = useThrottledButtonState();
 
     const triggerPressAndUpdateSuccess = (event?: GestureResponderEvent | MouseEvent | KeyboardEvent) => {
@@ -126,7 +128,8 @@ function ContextMenuItem({
             title={itemText}
             icon={itemIcon}
             onPress={triggerPressAndUpdateSuccess}
-            wrapperStyle={[styles.pr8, wrapperStyle]}
+            wrapperStyle={[styles.pr8, !shouldUseNarrowLayout && {height: 44, paddingHorizontal: 16, paddingVertical: 4, alignItems: 'center'}, wrapperStyle]}
+            iconStyles={!shouldUseNarrowLayout ? [{width: 20}] : undefined}
             success={!isThrottledButtonActive}
             description={description}
             descriptionTextStyle={styles.breakWord}
