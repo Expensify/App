@@ -5,10 +5,11 @@ import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LoadingIndicator from '@components/LoadingIndicator';
-import {useMultifactorAuthentication, useMultifactorAuthenticationState, usePromptContent} from '@components/MultifactorAuthentication/Context';
+import {DefaultCancelConfirmModal} from '@components/MultifactorAuthentication/components/Modals';
+import {useMultifactorAuthentication, useMultifactorAuthenticationActions, useMultifactorAuthenticationState, usePromptContent} from '@components/MultifactorAuthentication/Context';
 import MultifactorAuthenticationPromptContent from '@components/MultifactorAuthentication/PromptContent';
-import MultifactorAuthenticationTriggerCancelConfirmModal from '@components/MultifactorAuthentication/TriggerCancelConfirmModal';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -16,6 +17,7 @@ import {markHasAcceptedSoftPrompt} from '@libs/actions/MultifactorAuthentication
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MultifactorAuthenticationParamList} from '@libs/Navigation/types';
 import Navigation from '@navigation/Navigation';
+import variables from '@styles/variables';
 import type SCREENS from '@src/SCREENS';
 
 type MultifactorAuthenticationPromptPageProps = PlatformStackScreenProps<MultifactorAuthenticationParamList, typeof SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT>;
@@ -24,15 +26,17 @@ function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationP
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {cancel} = useMultifactorAuthentication();
-    const {state, dispatch} = useMultifactorAuthenticationState();
+    const state = useMultifactorAuthenticationState();
+    const {dispatch} = useMultifactorAuthenticationActions();
+    const {accountID} = useCurrentUserPersonalDetails();
     const {isOffline} = useNetwork();
 
-    const {animation, title, subtitle, shouldDisplayConfirmButton} = usePromptContent(route.params.promptType);
+    const {illustration, title, subtitle, shouldDisplayConfirmButton} = usePromptContent(route.params.promptType);
 
     const [isCancelModalVisible, setCancelModalVisibility] = useState(false);
 
     const onConfirm = () => {
-        markHasAcceptedSoftPrompt();
+        markHasAcceptedSoftPrompt(accountID);
         dispatch({type: 'SET_SOFT_PROMPT_APPROVED', payload: true});
     };
 
@@ -60,6 +64,8 @@ function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationP
         return false;
     };
 
+    const CancelConfirmModal = state.scenario?.modals.cancelConfirmation ?? DefaultCancelConfirmModal;
+
     return (
         <ScreenWrapper
             testID={MultifactorAuthenticationPromptPage.displayName}
@@ -78,7 +84,7 @@ function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationP
             />
             <FullPageOfflineBlockingView>
                 <MultifactorAuthenticationPromptContent
-                    animation={animation}
+                    illustration={illustration}
                     title={title}
                     subtitle={subtitle}
                 />
@@ -91,14 +97,13 @@ function MultifactorAuthenticationPromptPage({route}: MultifactorAuthenticationP
                             text={translate('common.buttonConfirm')}
                         />
                     ) : (
-                        <View style={[styles.w100, styles.h10]}>
-                            <LoadingIndicator />
+                        <View style={[styles.w100, styles.justifyContentCenter, {height: variables.componentSizeLarge}]}>
+                            <LoadingIndicator iconSize={28} />
                         </View>
                     )}
                 </FixedFooter>
 
-                <MultifactorAuthenticationTriggerCancelConfirmModal
-                    scenario={state.scenario}
+                <CancelConfirmModal
                     isVisible={isCancelModalVisible}
                     onConfirm={cancelFlow}
                     onCancel={hideCancelModal}

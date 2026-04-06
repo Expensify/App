@@ -46,7 +46,7 @@ function WorkspaceCreateReportFieldsPage({
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const formRef = useRef<FormRef>(null);
-    const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {canBeMissing: true});
+    const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
 
     const policyExpenseReportIDsSelector = useCallback(
         (reports: OnyxCollection<Report>) =>
@@ -57,7 +57,6 @@ function WorkspaceCreateReportFieldsPage({
     );
 
     const [policyExpenseReportIDs] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
-        canBeMissing: true,
         selector: policyExpenseReportIDsSelector,
     });
 
@@ -183,6 +182,7 @@ function WorkspaceCreateReportFieldsPage({
                     enabledWhenOffline
                     shouldValidateOnBlur={false}
                     addBottomSafeAreaPadding
+                    shouldUseStrictHtmlTagValidation
                 >
                     {({inputValues}) => (
                         <View style={styles.mhn5}>
@@ -199,6 +199,7 @@ function WorkspaceCreateReportFieldsPage({
                                 role={CONST.ROLE.PRESENTATION}
                                 required
                                 customValidate={validateName}
+                                shouldUseStrictHtmlTagValidation
                             />
                             <InputWrapper
                                 InputComponent={TypeSelector}

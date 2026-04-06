@@ -16,24 +16,7 @@ import {PressableWithFeedback} from '@components/Pressable';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
 import type {SearchColumnType, SearchGroupBy, SearchQueryJSON, SelectedTransactions} from '@components/Search/types';
-import type ChatListItem from '@components/SelectionListWithSections/ChatListItem';
-import type TaskListItem from '@components/SelectionListWithSections/Search/TaskListItem';
-import type TransactionGroupListItem from '@components/SelectionListWithSections/Search/TransactionGroupListItem';
-import type TransactionListItem from '@components/SelectionListWithSections/Search/TransactionListItem';
-import type {
-    ExtendedTargetedEvent,
-    ReportActionListItemType,
-    TaskListItemType,
-    TransactionCardGroupListItemType,
-    TransactionCategoryGroupListItemType,
-    TransactionGroupListItemType,
-    TransactionListItemType,
-    TransactionMerchantGroupListItemType,
-    TransactionMonthGroupListItemType,
-    TransactionQuarterGroupListItemType,
-    TransactionWeekGroupListItemType,
-    TransactionYearGroupListItemType,
-} from '@components/SelectionListWithSections/types';
+import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
 import Text from '@components/Text';
 import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -48,13 +31,30 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import DateUtils from '@libs/DateUtils';
 import navigationRef from '@libs/Navigation/navigationRef';
-import {getTableMinWidth, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
+import {applySelectionToItem, getTableMinWidth} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import type {TransactionPreviewData} from '@userActions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction, TransactionViolations} from '@src/types/onyx';
 import BaseSearchList from './BaseSearchList';
+import type ChatListItem from './ListItem/ChatListItem';
+import type TaskListItem from './ListItem/TaskListItem';
+import type TransactionGroupListItem from './ListItem/TransactionGroupListItem';
+import type TransactionListItem from './ListItem/TransactionListItem';
+import type {
+    ReportActionListItemType,
+    TaskListItemType,
+    TransactionCardGroupListItemType,
+    TransactionCategoryGroupListItemType,
+    TransactionGroupListItemType,
+    TransactionListItemType,
+    TransactionMerchantGroupListItemType,
+    TransactionMonthGroupListItemType,
+    TransactionQuarterGroupListItemType,
+    TransactionWeekGroupListItemType,
+    TransactionYearGroupListItemType,
+} from './ListItem/types';
 
 const easing = Easing.bezier(0.76, 0.0, 0.24, 1.0);
 
@@ -125,12 +125,6 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
 
     /** Custom card names */
     customCardNames?: Record<number, string>;
-
-    /** Callback to fire when DEW modal should be opened */
-    onDEWModalOpen?: () => void;
-
-    /** Whether the DEW beta flag is enabled */
-    isDEWBetaEnabled?: boolean;
 
     /** Selected transactions for determining isSelected state */
     selectedTransactions: SelectedTransactions;
@@ -220,8 +214,6 @@ function SearchList({
     newTransactions = [],
     violations,
     customCardNames,
-    onDEWModalOpen,
-    isDEWBetaEnabled,
     selectedTransactions,
     hasLoadedAllTransactions,
     ref,
@@ -285,55 +277,6 @@ function SearchList({
         return selectableTransactions.length;
     }, [data, type, flattenedItems, emptyReports]);
 
-    const itemsWithSelection = useMemo(() => {
-        return data.map((item) => {
-            let isSelected = false;
-            let itemWithSelection: SearchListItem = item;
-
-            if ('transactions' in item && item.transactions) {
-                if (!canSelectMultiple) {
-                    itemWithSelection = {...item, isSelected: false};
-                } else {
-                    const isEmptyReportSelected =
-                        item.transactions.length === 0 && isTransactionReportGroupListItemType(item) && !!(item.keyForList && selectedTransactions[item.keyForList]?.isSelected);
-
-                    const hasAnySelected = item.transactions.some((t) => t.keyForList && selectedTransactions[t.keyForList]?.isSelected) || isEmptyReportSelected;
-
-                    if (!hasAnySelected) {
-                        itemWithSelection = {...item, isSelected: false};
-                    } else if (isEmptyReportSelected) {
-                        isSelected = true;
-                        itemWithSelection = {...item, isSelected};
-                    } else {
-                        let allNonDeletedSelected = true;
-                        let hasNonDeletedTransactions = false;
-
-                        const mappedTransactions = item.transactions.map((transaction) => {
-                            const isTransactionSelected = !!(transaction.keyForList && selectedTransactions[transaction.keyForList]?.isSelected);
-
-                            if (transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                                hasNonDeletedTransactions = true;
-                                if (!isTransactionSelected) {
-                                    allNonDeletedSelected = false;
-                                }
-                            }
-
-                            return {...transaction, isSelected: isTransactionSelected};
-                        });
-
-                        isSelected = hasNonDeletedTransactions && allNonDeletedSelected;
-                        itemWithSelection = {...item, isSelected, transactions: mappedTransactions};
-                    }
-                }
-            } else {
-                isSelected = !!(canSelectMultiple && item.keyForList && selectedTransactions[item.keyForList]?.isSelected);
-                itemWithSelection = {...item, isSelected};
-            }
-
-            return {originalItem: item, itemWithSelection, isSelected};
-        });
-    }, [data, canSelectMultiple, selectedTransactions]);
-
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const listRef = useRef<FlashListRef<SearchListItem>>(null);
@@ -348,23 +291,38 @@ function SearchList({
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [longPressedItem, setLongPressedItem] = useState<SearchListItem>();
 
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        canBeMissing: true,
-    });
-
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const hasItemsBeingRemoved = prevDataLength && prevDataLength > data.length;
     const personalDetails = usePersonalDetails();
 
-    const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: tierNameSelector, canBeMissing: false});
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
-    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
+    const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: tierNameSelector});
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
+    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
+    const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
 
     const route = useRoute();
     const {getScrollOffset} = useContext(ScrollOffsetContext);
 
     const [longPressedItemTransactions, setLongPressedItemTransactions] = useState<TransactionListItemType[]>();
+
+    const newTransactionIDByItemKey = useMemo(() => {
+        if (newTransactions.length === 0) {
+            return CONST.EMPTY_MAP;
+        }
+
+        // Precompute the per-row highlight lookup once so renderItem can stay O(1) during list renders.
+        const mappedTransactionIDs = new Map<string, string>();
+        for (const item of data) {
+            const matchedTransactionID = newTransactions.find((transaction) => isTransactionMatchWithGroupItem(transaction, item, groupBy))?.transactionID;
+            if (matchedTransactionID && item.keyForList) {
+                mappedTransactionIDs.set(item.keyForList, matchedTransactionID);
+            }
+        }
+
+        return mappedTransactionIDs;
+    }, [data, groupBy, newTransactions]);
 
     const {windowWidth} = useWindowDimensions();
     const minTableWidth = getTableMinWidth(columns);
@@ -455,10 +413,9 @@ function SearchList({
             const isDisabled = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
             const shouldApplyAnimation = shouldAnimate && index < data.length - 1;
 
-            const newTransactionID = newTransactions.find((transaction) => isTransactionMatchWithGroupItem(transaction, item, groupBy))?.transactionID;
-
-            const itemData = itemsWithSelection.at(index);
-            const itemWithSelection = itemData?.itemWithSelection ?? item;
+            const newTransactionID = item.keyForList ? newTransactionIDByItemKey.get(item.keyForList) : undefined;
+            // Apply selection lazily per row so we don't rebuild a list-wide wrapper structure on every render.
+            const {itemWithSelection} = applySelectionToItem(item, canSelectMultiple, selectedTransactions);
 
             return (
                 <Animated.View
@@ -480,11 +437,10 @@ function SearchList({
                         columns={columns}
                         policies={policies}
                         isDisabled={isDisabled}
-                        allReports={allReports}
                         groupBy={groupBy}
                         searchType={type}
-                        onDEWModalOpen={onDEWModalOpen}
-                        isDEWBetaEnabled={isDEWBetaEnabled}
+                        lastPaymentMethod={lastPaymentMethod}
+                        personalPolicyID={personalPolicyID}
                         userWalletTierName={userWalletTierName}
                         isUserValidated={isUserValidated}
                         personalDetails={personalDetails}
@@ -494,6 +450,7 @@ function SearchList({
                         customCardNames={customCardNames}
                         onFocus={onFocus}
                         newTransactionID={newTransactionID}
+                        keyForList={item.keyForList}
                     />
                 </Animated.View>
             );
@@ -501,10 +458,9 @@ function SearchList({
         [
             type,
             groupBy,
-            newTransactions,
+            newTransactionIDByItemKey,
             shouldAnimate,
             data.length,
-            itemsWithSelection,
             styles.overflowHidden,
             hasItemsBeingRemoved,
             ListItem,
@@ -516,16 +472,16 @@ function SearchList({
             hash,
             columns,
             policies,
-            allReports,
             userWalletTierName,
             isUserValidated,
             personalDetails,
             userBillingFundID,
             isOffline,
             violations,
-            onDEWModalOpen,
-            isDEWBetaEnabled,
+            lastPaymentMethod,
+            personalPolicyID,
             customCardNames,
+            selectedTransactions,
         ],
     );
 
@@ -539,13 +495,14 @@ function SearchList({
                 <View style={[styles.searchListHeaderContainerStyle, styles.listTableHeader]}>
                     {canSelectMultiple && (
                         <Checkbox
-                            accessibilityLabel={translate('workspace.people.selectAll')}
+                            accessibilityLabel={translate('accessibilityHints.selectAllItems')}
                             isChecked={isSelectAllChecked}
                             isIndeterminate={selectedItemsLength > 0 && (selectedItemsLength !== totalItems || !hasLoadedAllTransactions)}
                             onPress={() => {
                                 onAllCheckboxPress();
                             }}
                             disabled={totalItems === 0}
+                            sentryLabel={CONST.SENTRY_LABEL.SEARCH.SELECT_ALL_CHECKBOX}
                         />
                     )}
 
@@ -555,7 +512,7 @@ function SearchList({
                         <PressableWithFeedback
                             style={[styles.userSelectNone, styles.alignItemsCenter]}
                             onPress={onAllCheckboxPress}
-                            accessibilityLabel={translate('workspace.people.selectAll')}
+                            accessibilityLabel={translate('accessibilityHints.selectAllItems')}
                             role="button"
                             accessibilityState={{checked: isSelectAllChecked}}
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH.SELECT_ALL_BUTTON}
@@ -597,6 +554,7 @@ function SearchList({
                     title={translate('common.select')}
                     icon={expensifyIcons.CheckSquare}
                     onPress={turnOnSelectionMode}
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.SELECTION_MODE_MENU_ITEM}
                 />
             </Modal>
         </View>
@@ -612,7 +570,7 @@ function SearchList({
                 contentContainerStyle={{width: minTableWidth}}
                 contentOffset={{x: savedHorizontalScrollOffset, y: 0}}
                 onScroll={handleHorizontalScroll}
-                scrollEventThrottle={16}
+                scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
             >
                 {content}
             </ScrollView>

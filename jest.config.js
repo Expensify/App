@@ -37,5 +37,6 @@ module.exports = {
         '^group-ib-fp$': '<rootDir>/__mocks__/group-ib-fp.ts',
         '@noble/ed25519': '<rootDir>/node_modules/@noble/ed25519/index.ts',
         '@noble/hashes/(.*)': '<rootDir>/node_modules/@noble/hashes/src/$1.ts',
+        '^parse-imports-exports$': '<rootDir>/node_modules/parse-imports-exports/index.cjs',
     },
 };

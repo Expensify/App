@@ -1,7 +1,7 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
-import type {Card} from '.';
+import type {Card, ReportAction} from '.';
 import type {CardList} from './Card';
 import type {CardFeedWithDomainID, CompanyCardFeedWithNumber} from './CardFeeds';
 import type {Errors} from './OnyxCommon';
@@ -30,9 +30,21 @@ type ReportAttributes = {
      */
     requiresAttention: boolean;
     /**
+     * The action badge to display instead of the GBR/RBR dot (e.g. 'submit', 'approve', 'pay').
+     */
+    actionBadge?: ValueOf<typeof CONST.REPORT.ACTION_BADGE>;
+    /**
+     * The reportActionID that the action badge refers to, used for deep linking when the LHN row is pressed.
+     */
+    actionTargetReportActionID?: string;
+    /**
      * The errors of the report.
      */
     reportErrors: Errors;
+    /**
+     * The reportID of the one-transaction thread report, if applicable.
+     */
+    oneTransactionThreadReportID?: string;
 };
 
 /**
@@ -72,6 +84,11 @@ type ReportTransactionsAndViolationsDerivedValue = Record<string, ReportTransact
  * The derived value for report outstanding reports.
  */
 type OutstandingReportsByPolicyIDDerivedValue = Record<string, OnyxCollection<Report>>;
+
+/**
+ * The derived value for visible report actions.
+ */
+type VisibleReportActionsDerivedValue = Record<string, Record<string, boolean>>;
 
 /**
  * The errors of a card.
@@ -169,6 +186,11 @@ type CardFeedErrors = {
     cardsWithBrokenFeedConnection: Record<string, Card>;
 
     /**
+     * The personal cards with a broken connection.
+     */
+    personalCardsWithBrokenConnection: Record<string, Card>;
+
+    /**
      * Whether to show the RBR for each workspace account ID.
      */
     shouldShowRbrForWorkspaceAccountID: Record<number, boolean>;
@@ -192,6 +214,11 @@ type CardFeedErrors = {
      * The errors of expensify card.
      */
     expensifyCard: CardFeedErrorState;
+
+    /**
+     * The errors of personal card.
+     */
+    personalCard: CardFeedErrorState;
 };
 
 /**
@@ -232,6 +259,23 @@ type TodosDerivedValue = {
     transactionsByReportID: Record<string, Transaction[]>;
 };
 
+/**
+ * The derived value for sorted report actions, last report actions, and cached transaction thread report IDs.
+ */
+type SortedReportActionsDerivedValue = {
+    /** Sorted report actions keyed by report ID */
+    sortedActions: Record<string, ReportAction[]>;
+    /** Last report action for each report, keyed by report ID */
+    lastActions: Record<string, ReportAction>;
+    /** Transaction thread report IDs keyed by parent report action ID */
+    transactionThreadIDs: Record<string, string | undefined>;
+};
+
+/**
+ * The derived value for merged personal and workspace card feeds.
+ */
+type PersonalAndWorkspaceCardListDerivedValue = CardList;
+
 export default ReportAttributesDerivedValue;
 export type {
     ReportAttributes,
@@ -239,7 +283,10 @@ export type {
     ReportTransactionsAndViolationsDerivedValue,
     ReportTransactionsAndViolations,
     OutstandingReportsByPolicyIDDerivedValue,
+    VisibleReportActionsDerivedValue,
+    SortedReportActionsDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
+    PersonalAndWorkspaceCardListDerivedValue,
     CardFeedErrorsDerivedValue,
     TodosDerivedValue,
     TodoMetadata,

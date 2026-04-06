@@ -5,12 +5,27 @@ import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import useParentReport from '@hooks/useParentReport';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-import {canActionTask, canModifyTask, completeTask, completeTestDriveTask, createTaskAndNavigate, getFinishOnboardingTaskOnyxData} from '@libs/actions/Task';
+// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
+import * as ReportModule from '@libs/actions/Report';
+import {
+    canActionTask,
+    canModifyTask,
+    completeTask,
+    completeTestDriveTask,
+    createTaskAndNavigate,
+    deleteTask,
+    editTask,
+    editTaskAssignee,
+    getFinishOnboardingTaskOnyxData,
+    getNavigationUrlOnTaskDelete,
+} from '@libs/actions/Task';
 // eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as API from '@libs/API';
 // eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
+// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 // eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as ReportUtils from '@libs/ReportUtils';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
@@ -31,7 +46,6 @@ jest.mock('@libs/Sound');
 jest.mock('@libs/ErrorUtils');
 jest.mock('@libs/actions/Welcome');
 // Keep OnyxDerived real initialization below
-jest.mock('@components/Icon/Expensicons');
 jest.mock('@components/LocaleContextProvider');
 
 // ReportUtils spies used in createTaskAndNavigate tests
@@ -166,16 +180,23 @@ describe('actions/Task', () => {
                 expect(canActionTask(taskReportArchived, undefined, 0)).toBe(false);
             });
 
-            it('returns false if the user modifying the task is not the author', () => {
-                const {result: parentReport} = renderHook(() => useParentReport(taskReport.reportID));
-                const {result: isParentReportArchived} = renderHook(() => useReportIsArchived(parentReport.current?.reportID));
-                expect(canActionTask(taskReport, undefined, employeeAccountID, parentReport.current, isParentReportArchived.current)).toBe(false);
-            });
-
-            it('returns true if the user modifying the task is the author', () => {
+            it('returns true if the user is the author (no assignee)', () => {
                 const {result: parentReport} = renderHook(() => useParentReport(taskReport.reportID));
                 const {result: isParentReportArchived} = renderHook(() => useReportIsArchived(parentReport.current?.reportID));
                 expect(canActionTask(taskReport, undefined, managerAccountID, parentReport.current, isParentReportArchived.current)).toBe(true);
+            });
+
+            it('returns true if the user is a participant of the parent report and the task has no assignee', () => {
+                const {result: parentReport} = renderHook(() => useParentReport(taskReport.reportID));
+                const {result: isParentReportArchived} = renderHook(() => useReportIsArchived(parentReport.current?.reportID));
+                expect(canActionTask(taskReport, undefined, employeeAccountID, parentReport.current, isParentReportArchived.current)).toBe(true);
+            });
+
+            it('returns false if the user is not a participant of the parent report and the task has no assignee', () => {
+                const {result: parentReport} = renderHook(() => useParentReport(taskReport.reportID));
+                const {result: isParentReportArchived} = renderHook(() => useReportIsArchived(parentReport.current?.reportID));
+                const nonParticipantAccountID = 999;
+                expect(canActionTask(taskReport, undefined, nonParticipantAccountID, parentReport.current, isParentReportArchived.current)).toBe(false);
             });
 
             // Looking up the task assignee is usually based on the report action
@@ -288,13 +309,18 @@ describe('actions/Task', () => {
             global.fetch = getGlobalFetchMock();
 
             // Setup ReportUtils mocks
-            mockBuildOptimisticTaskReport.mockReturnValue({
-                reportID: 'task_report_123',
-                reportName: mockTitle,
-                description: mockDescription,
-                managerID: mockAssigneeAccountID,
-                type: CONST.REPORT.TYPE.TASK,
-                parentReportID: mockParentReportID,
+            mockBuildOptimisticTaskReport.mockImplementation((...args: unknown[]) => {
+                const parentChatType = args.at(7);
+
+                return {
+                    reportID: 'task_report_123',
+                    reportName: mockTitle,
+                    description: mockDescription,
+                    managerID: mockAssigneeAccountID,
+                    type: CONST.REPORT.TYPE.TASK,
+                    parentReportID: mockParentReportID,
+                    ...(parentChatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS && {chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS}),
+                };
             });
 
             mockBuildOptimisticCreatedReportAction.mockReturnValue({
@@ -403,6 +429,60 @@ describe('actions/Task', () => {
                     failureData: expect.any(Array),
                 }),
             );
+        });
+
+        it('should set optimistic task chatType to policyAdmins for tasks created in admins rooms', async () => {
+            // Given a task created in a parent report with policyAdmins chatType
+            createTaskAndNavigate({
+                parentReport: {
+                    reportID: mockParentReportID,
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+                },
+                title: mockTitle,
+                description: mockDescription,
+                assigneeEmail: mockAssigneeEmail,
+                currentUserAccountID: mockCurrentUserAccountID,
+                currentUserEmail: mockCurrentUserEmail,
+                assigneeAccountID: mockAssigneeAccountID,
+                policyID: mockPolicyID,
+                isCreatedUsingMarkdown: false,
+                quickAction: {},
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the optimistic task report should include policyAdmins chatType
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const [, , onyx] = (API.write as jest.Mock).mock.calls.at(0) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT>];
+            const optimisticTaskReportUpdate = onyx.optimisticData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}task_report_123`);
+            expect((optimisticTaskReportUpdate?.value as Report | undefined)?.chatType).toBe(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS);
+        });
+
+        it('should not set optimistic task chatType for tasks created in policy expense chats', async () => {
+            // Given a task created in a parent report with policyExpenseChat chatType
+            createTaskAndNavigate({
+                parentReport: {
+                    reportID: mockParentReportID,
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                },
+                title: mockTitle,
+                description: mockDescription,
+                assigneeEmail: mockAssigneeEmail,
+                currentUserAccountID: mockCurrentUserAccountID,
+                currentUserEmail: mockCurrentUserEmail,
+                assigneeAccountID: mockAssigneeAccountID,
+                policyID: mockPolicyID,
+                isCreatedUsingMarkdown: false,
+                quickAction: {},
+            });
+
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the optimistic task report should keep chatType unset
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const [, , onyx] = (API.write as jest.Mock).mock.calls.at(0) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT>];
+            const optimisticTaskReportUpdate = onyx.optimisticData?.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}task_report_123`);
+            expect((optimisticTaskReportUpdate?.value as Report | undefined)?.chatType).toBeUndefined();
         });
 
         it('should handle task creation without assignee chat report', async () => {
@@ -835,6 +915,440 @@ describe('actions/Task', () => {
             );
 
             expect(parentReportActionUpdate).toBeUndefined();
+        });
+    });
+
+    describe('getNavigationUrlOnTaskDelete', () => {
+        let doesReportHaveVisibleActionsSpy: jest.SpyInstance;
+        let getMostRecentReportIDSpy: jest.SpyInstance;
+
+        beforeEach(() => {
+            doesReportHaveVisibleActionsSpy = jest.spyOn(ReportActionsUtils, 'doesReportHaveVisibleActions');
+            getMostRecentReportIDSpy = jest.spyOn(ReportModule, 'getMostRecentReportID');
+        });
+
+        afterEach(() => {
+            doesReportHaveVisibleActionsSpy.mockRestore();
+            getMostRecentReportIDSpy.mockRestore();
+        });
+
+        it('should return undefined when report is undefined', () => {
+            expect(getNavigationUrlOnTaskDelete(undefined, 'concierge_123')).toBeUndefined();
+        });
+
+        it('should return undefined when report has visible actions (should not delete)', () => {
+            const taskReport = getFakeReport();
+            doesReportHaveVisibleActionsSpy.mockReturnValue(true);
+
+            expect(getNavigationUrlOnTaskDelete(taskReport, 'concierge_123')).toBeUndefined();
+        });
+
+        it('should return parent report route when report has parentReportID and no visible actions', () => {
+            const parentReportID = 'parent_123';
+            const taskReport = {...getFakeReport(), parentReportID};
+            doesReportHaveVisibleActionsSpy.mockReturnValue(false);
+
+            const result = getNavigationUrlOnTaskDelete(taskReport, 'concierge_123');
+            expect(result).toBe(`r/${parentReportID}`);
+        });
+
+        it('should return most recent report route when no parentReportID and getMostRecentReportID returns a value', () => {
+            const taskReport = {...getFakeReport(), parentReportID: undefined};
+            const mostRecentReportID = 'recent_456';
+            doesReportHaveVisibleActionsSpy.mockReturnValue(false);
+            getMostRecentReportIDSpy.mockReturnValue(mostRecentReportID);
+
+            const result = getNavigationUrlOnTaskDelete(taskReport, 'concierge_123');
+            expect(result).toBe(`r/${mostRecentReportID}`);
+            expect(getMostRecentReportIDSpy).toHaveBeenCalledWith(taskReport, 'concierge_123');
+        });
+
+        it('should pass conciergeReportID to getMostRecentReportID as fallback', () => {
+            const taskReport = {...getFakeReport(), parentReportID: undefined};
+            const conciergeReportID = 'concierge_789';
+            doesReportHaveVisibleActionsSpy.mockReturnValue(false);
+            getMostRecentReportIDSpy.mockReturnValue(conciergeReportID);
+
+            const result = getNavigationUrlOnTaskDelete(taskReport, conciergeReportID);
+            expect(result).toBe(`r/${conciergeReportID}`);
+            expect(getMostRecentReportIDSpy).toHaveBeenCalledWith(taskReport, conciergeReportID);
+        });
+
+        it('should return undefined when no parentReportID, no most recent report, and conciergeReportID is undefined', () => {
+            const taskReport = {...getFakeReport(), parentReportID: undefined};
+            doesReportHaveVisibleActionsSpy.mockReturnValue(false);
+            getMostRecentReportIDSpy.mockReturnValue(undefined);
+
+            expect(getNavigationUrlOnTaskDelete(taskReport, undefined)).toBeUndefined();
+        });
+    });
+
+    describe('editTask', () => {
+        const DELEGATE_EMAIL = 'delegate@example.com';
+        const DELEGATE_ACCOUNT_ID = 999;
+        const CURRENT_USER_ACCOUNT_ID = 123;
+
+        beforeEach(async () => {
+            jest.clearAllMocks();
+            writeSpy.mockClear();
+
+            global.fetch = getGlobalFetchMock();
+
+            await act(async () => {
+                await Onyx.clear();
+                await Onyx.set(ONYXKEYS.SESSION, {
+                    email: 'user@example.com',
+                    accountID: CURRENT_USER_ACCOUNT_ID,
+                });
+                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [DELEGATE_ACCOUNT_ID]: {
+                        accountID: DELEGATE_ACCOUNT_ID,
+                        login: DELEGATE_EMAIL,
+                        displayName: 'Delegate User',
+                    },
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should include delegateAccountID in optimistic report action when delegateEmail is provided', () => {
+            const reportID = 'task_report_edit_1';
+            const taskReport = {
+                reportID,
+                type: CONST.REPORT.TYPE.TASK,
+                reportName: 'Original Task Title',
+            };
+
+            editTask(taskReport, {title: 'Updated Title'}, DELEGATE_EMAIL);
+
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
+            const calls = (API.write as jest.Mock).mock.calls;
+            const [, , onyxData] = calls.at(0) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>];
+            const optimisticData = onyxData.optimisticData ?? [];
+
+            const reportActionsUpdate = optimisticData.find((update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+            expect(reportActionsUpdate).toBeDefined();
+
+            const reportAction = Object.values(reportActionsUpdate?.value as Record<string, ReportAction>).at(0);
+            expect(reportAction?.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+        });
+
+        it('should set delegateAccountID to undefined when delegateEmail is undefined', () => {
+            const reportID = 'task_report_edit_2';
+            const taskReport = {
+                reportID,
+                type: CONST.REPORT.TYPE.TASK,
+                reportName: 'Original Task Title',
+            };
+
+            editTask(taskReport, {title: 'Updated Title'}, undefined);
+
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
+            const calls = (API.write as jest.Mock).mock.calls;
+            const [, , onyxData] = calls.at(0) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>];
+            const optimisticData = onyxData.optimisticData ?? [];
+
+            const reportActionsUpdate = optimisticData.find((update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+            expect(reportActionsUpdate).toBeDefined();
+
+            const reportAction = Object.values(reportActionsUpdate?.value as Record<string, ReportAction>).at(0);
+            expect(reportAction?.delegateAccountID).toBeUndefined();
+        });
+    });
+
+    describe('editTaskAssignee', () => {
+        const DELEGATE_EMAIL = 'delegate@example.com';
+        const DELEGATE_ACCOUNT_ID = 999;
+        const CURRENT_USER_ACCOUNT_ID = 123;
+        const ASSIGNEE_ACCOUNT_ID = 456;
+
+        beforeEach(async () => {
+            jest.clearAllMocks();
+            writeSpy.mockClear();
+
+            global.fetch = getGlobalFetchMock();
+
+            await act(async () => {
+                await Onyx.clear();
+                await Onyx.set(ONYXKEYS.SESSION, {
+                    email: 'user@example.com',
+                    accountID: CURRENT_USER_ACCOUNT_ID,
+                });
+                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [DELEGATE_ACCOUNT_ID]: {
+                        accountID: DELEGATE_ACCOUNT_ID,
+                        login: DELEGATE_EMAIL,
+                        displayName: 'Delegate User',
+                    },
+                    [ASSIGNEE_ACCOUNT_ID]: {
+                        accountID: ASSIGNEE_ACCOUNT_ID,
+                        login: 'assignee@example.com',
+                        displayName: 'Assignee User',
+                    },
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should include delegateAccountID in optimistic report action when delegateEmail is provided', () => {
+            const reportID = 'task_report_assignee_1';
+            const taskReport = {
+                reportID,
+                type: CONST.REPORT.TYPE.TASK,
+                reportName: 'Task with assignee',
+            };
+
+            editTaskAssignee(taskReport, undefined, CURRENT_USER_ACCOUNT_ID, 'assignee@example.com', 'user@example.com', CURRENT_USER_ACCOUNT_ID, false, DELEGATE_EMAIL, ASSIGNEE_ACCOUNT_ID);
+
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
+            const calls = (API.write as jest.Mock).mock.calls;
+            const [, , onyxData] = calls.at(0) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>];
+            const optimisticData = onyxData.optimisticData ?? [];
+
+            const reportActionsUpdate = optimisticData.find((update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+            expect(reportActionsUpdate).toBeDefined();
+
+            const reportAction = Object.values(reportActionsUpdate?.value as Record<string, ReportAction>).at(0);
+            expect(reportAction?.delegateAccountID).toBe(DELEGATE_ACCOUNT_ID);
+        });
+
+        it('should set delegateAccountID to undefined when delegateEmail is undefined', () => {
+            const reportID = 'task_report_assignee_2';
+            const taskReport = {
+                reportID,
+                type: CONST.REPORT.TYPE.TASK,
+                reportName: 'Task with assignee',
+            };
+
+            editTaskAssignee(taskReport, undefined, CURRENT_USER_ACCOUNT_ID, 'assignee@example.com', 'user@example.com', CURRENT_USER_ACCOUNT_ID, false, undefined, ASSIGNEE_ACCOUNT_ID);
+
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
+            const calls = (API.write as jest.Mock).mock.calls;
+            const [, , onyxData] = calls.at(0) as [unknown, unknown, OnyxData<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>];
+            const optimisticData = onyxData.optimisticData ?? [];
+
+            const reportActionsUpdate = optimisticData.find((update: {key: string}) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+            expect(reportActionsUpdate).toBeDefined();
+
+            const reportAction = Object.values(reportActionsUpdate?.value as Record<string, ReportAction>).at(0);
+            expect(reportAction?.delegateAccountID).toBeUndefined();
+        });
+    });
+
+    describe('deleteTask', () => {
+        let doesReportHaveVisibleActionsSpy: jest.SpyInstance;
+        let getMostRecentReportIDSpy: jest.SpyInstance;
+        const mockCurrentUserAccountID = 123;
+
+        beforeEach(async () => {
+            jest.clearAllMocks();
+            writeSpy.mockClear();
+
+            global.fetch = getGlobalFetchMock();
+
+            doesReportHaveVisibleActionsSpy = jest.spyOn(ReportActionsUtils, 'doesReportHaveVisibleActions');
+            getMostRecentReportIDSpy = jest.spyOn(ReportModule, 'getMostRecentReportID');
+
+            await act(async () => {
+                await Onyx.clear();
+                await Onyx.set(ONYXKEYS.SESSION, {
+                    email: 'user@example.com',
+                    accountID: mockCurrentUserAccountID,
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        afterEach(() => {
+            doesReportHaveVisibleActionsSpy.mockRestore();
+            getMostRecentReportIDSpy.mockRestore();
+        });
+
+        it('should return early when report is undefined', () => {
+            deleteTask(undefined, undefined, false, mockCurrentUserAccountID, false, undefined, 'concierge_123');
+
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            expect(API.write).not.toHaveBeenCalled();
+        });
+
+        it('should call API.write with CancelTask and pass conciergeReportID through to navigation', async () => {
+            const taskReportID = 'task_report_delete_1';
+            const parentReportID = 'parent_report_delete_1';
+            const parentReportActionID = 'parent_action_delete_1';
+
+            const taskReport = {
+                reportID: taskReportID,
+                type: CONST.REPORT.TYPE.TASK,
+                reportName: 'Test Task',
+                parentReportID,
+                parentReportActionID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: mockCurrentUserAccountID,
+            };
+
+            const parentReport = {
+                reportID: parentReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            const parentReportAction = {
+                reportActionID: parentReportActionID,
+                reportID: parentReportID,
+                childReportID: taskReportID,
+            } as OnyxEntry<ReportAction>;
+
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`, taskReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, parentReport);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            doesReportHaveVisibleActionsSpy.mockReturnValue(true);
+
+            deleteTask(taskReport, parentReport, false, mockCurrentUserAccountID, false, parentReportAction, 'concierge_123');
+
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            expect(API.write).toHaveBeenCalledWith(
+                'CancelTask',
+                expect.objectContaining({
+                    taskReportID,
+                }),
+                expect.objectContaining({
+                    optimisticData: expect.any(Array),
+                    successData: expect.any(Array),
+                    failureData: expect.any(Array),
+                }),
+            );
+        });
+
+        it('should return navigation URL when task report has no visible actions and has parentReportID', async () => {
+            const taskReportID = 'task_report_delete_2';
+            const parentReportID = 'parent_report_delete_2';
+
+            const taskReport = {
+                reportID: taskReportID,
+                type: CONST.REPORT.TYPE.TASK,
+                reportName: 'Test Task To Delete',
+                parentReportID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: mockCurrentUserAccountID,
+            };
+
+            const parentReport = {
+                reportID: parentReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`, taskReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, parentReport);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // No visible actions means the task report should be deleted
+            doesReportHaveVisibleActionsSpy.mockReturnValue(false);
+
+            const result = deleteTask(taskReport, parentReport, false, mockCurrentUserAccountID, false, undefined, 'concierge_123');
+
+            expect(result).toBe(`r/${parentReportID}`);
+            expect(Navigation.goBack).toHaveBeenCalled();
+        });
+
+        it('should return conciergeReportID-based URL when no parentReportID and no recent report', async () => {
+            const taskReportID = 'task_report_delete_3';
+            const conciergeReportID = 'concierge_456';
+
+            const taskReport = {
+                reportID: taskReportID,
+                type: CONST.REPORT.TYPE.TASK,
+                reportName: 'Orphan Task',
+                parentReportID: undefined,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: mockCurrentUserAccountID,
+            };
+
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`, taskReport);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            doesReportHaveVisibleActionsSpy.mockReturnValue(false);
+            getMostRecentReportIDSpy.mockReturnValue(conciergeReportID);
+
+            const result = deleteTask(taskReport, undefined, false, mockCurrentUserAccountID, false, undefined, conciergeReportID);
+
+            expect(result).toBe(`r/${conciergeReportID}`);
+            expect(getMostRecentReportIDSpy).toHaveBeenCalledWith(taskReport, conciergeReportID);
+            expect(Navigation.goBack).toHaveBeenCalled();
+        });
+
+        it('should not return navigation URL when task report has visible actions', async () => {
+            const taskReportID = 'task_report_delete_4';
+            const parentReportID = 'parent_report_delete_4';
+
+            const taskReport = {
+                reportID: taskReportID,
+                type: CONST.REPORT.TYPE.TASK,
+                reportName: 'Task With Visible Actions',
+                parentReportID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: mockCurrentUserAccountID,
+            };
+
+            const parentReport = {
+                reportID: parentReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`, taskReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, parentReport);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Has visible actions, so should not navigate away
+            doesReportHaveVisibleActionsSpy.mockReturnValue(true);
+
+            const result = deleteTask(taskReport, parentReport, false, mockCurrentUserAccountID, false, undefined, 'concierge_123');
+
+            expect(result).toBeUndefined();
+            expect(Navigation.goBack).not.toHaveBeenCalled();
+        });
+
+        it('should return undefined when no parentReportID, no recent report, and conciergeReportID is undefined', async () => {
+            const taskReportID = 'task_report_delete_5';
+
+            const taskReport = {
+                reportID: taskReportID,
+                type: CONST.REPORT.TYPE.TASK,
+                reportName: 'Orphan Task No Fallback',
+                parentReportID: undefined,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: mockCurrentUserAccountID,
+            };
+
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`, taskReport);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            doesReportHaveVisibleActionsSpy.mockReturnValue(false);
+            getMostRecentReportIDSpy.mockReturnValue(undefined);
+
+            const result = deleteTask(taskReport, undefined, false, mockCurrentUserAccountID, false, undefined, undefined);
+
+            // API.write should still be called
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            expect(API.write).toHaveBeenCalledWith('CancelTask', expect.any(Object), expect.any(Object));
+
+            // But no navigation should happen
+            expect(result).toBeUndefined();
+            expect(Navigation.goBack).not.toHaveBeenCalled();
         });
     });
 });

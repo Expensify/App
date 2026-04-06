@@ -11,7 +11,6 @@ Expense rules in Expensify help automate the categorization, tagging, and report
 
 Workspace Admins who need to enforce merchant-based coding across all workspace members can set up [**Workspace Merchant Rules**](https://help.expensify.com/articles/new-expensify/workspaces/Workspace-Merchant-Rules), which apply to all expenses but can only be configured in New Expensify.
 
-
 ---
 
 # Create an Expense Rule  

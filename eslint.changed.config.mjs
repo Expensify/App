@@ -1,31 +1,10 @@
 import {defineConfig} from 'eslint/config';
+import reportNameUtilsPlugin from './eslint-plugin-report-name-utils/index.mjs';
 import mainConfig from './eslint.config.mjs';
 
-const restrictedIconImportPaths = [
-    {
-        name: '@components/Icon/Illustrations',
-        message:
-            'Direct imports from @components/Icon/Illustrations are deprecated. Please use lazy loading hooks instead. Use `useMemoizedLazyIllustrations` from @hooks/useLazyAsset. See docs/LAZY_ICONS_AND_ILLUSTRATIONS.md for details.',
-    },
-    {
-        name: '@components/Icon/Expensicons',
-        message:
-            'Direct imports from @components/Icon/Expensicons are deprecated. Please use lazy loading hooks instead. Use `useMemoizedLazyExpensifyIcons` from @hooks/useLazyAsset. See docs/LAZY_ICONS_AND_ILLUSTRATIONS.md for details.',
-    },
-];
+const restrictedIconImportPaths = [];
 
-const restrictedIconImportPatterns = [
-    {
-        group: ['**/Icon/Illustrations', '**/components/Icon/Illustrations'],
-        message:
-            'Direct imports from Icon/Illustrations are deprecated. Please use lazy loading hooks instead. Use `useMemoizedLazyIllustrations` from @hooks/useLazyAsset. See docs/LAZY_ICONS_AND_ILLUSTRATIONS.md for details.',
-    },
-    {
-        group: ['**/Icon/Expensicons', '**/components/Icon/Expensicons'],
-        message:
-            'Direct imports from Icon/Expensicons are deprecated. Please use lazy loading hooks instead. Use `useMemoizedLazyExpensifyIcons` from @hooks/useLazyAsset. See docs/LAZY_ICONS_AND_ILLUSTRATIONS.md for details.',
-    },
-];
+const restrictedIconImportPatterns = [];
 
 const restrictedReportNameImportPatterns = [
     {
@@ -43,7 +22,6 @@ const config = defineConfig([
         rules: {
             '@typescript-eslint/no-deprecated': 'error',
             'rulesdir/no-default-id-values': 'error',
-            'rulesdir/provide-canBeMissing-in-useOnyx': 'error',
             'rulesdir/no-unstable-hook-defaults': 'error',
             'no-restricted-syntax': [
                 'error',
@@ -106,6 +84,12 @@ const config = defineConfig([
                 },
             ],
         },
+    },
+
+    {
+        files: ['src/libs/ReportNameUtils.ts'],
+        plugins: {'report-name-utils': reportNameUtilsPlugin},
+        rules: {'report-name-utils/no-function-call-in-get-report-name': 'error'},
     },
 ]);
 

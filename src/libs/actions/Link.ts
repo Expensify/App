@@ -28,7 +28,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {IntroSelected, Report} from '@src/types/onyx';
+import type {Beta, IntroSelected, Report} from '@src/types/onyx';
 import {doneCheckingPublicRoom, navigateToConciergeChat, openReport} from './Report';
 import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from './Session';
 import {setOnboardingErrorMessage} from './Welcome';
@@ -45,11 +45,13 @@ Onyx.connectWithoutView({
 });
 
 let currentUserEmail = '';
+let currentUserAccountID = -1;
 // Use connectWithoutView since this is to open an external link and doesn't affect any UI
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         currentUserEmail = value?.email ?? '';
+        currentUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     },
 });
 
@@ -230,7 +232,14 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     openExternalLink(href);
 }
 
-function openReportFromDeepLink(url: string, reports: OnyxCollection<Report>, isAuthenticated: boolean, conciergeReportID: string | undefined, introSelected: OnyxEntry<IntroSelected>) {
+function openReportFromDeepLink(
+    url: string,
+    reports: OnyxCollection<Report>,
+    isAuthenticated: boolean,
+    conciergeReportID: string | undefined,
+    introSelected: OnyxEntry<IntroSelected>,
+    betas: OnyxEntry<Beta[]>,
+) {
     const reportID = getReportIDFromLink(url);
 
     if (reportID && !isAuthenticated) {
@@ -242,7 +251,7 @@ function openReportFromDeepLink(url: string, reports: OnyxCollection<Report>, is
         });
 
         // Call the OpenReport command to check in the server if it's a public room. If so, we'll open it as an anonymous user
-        openReport(reportID, introSelected, undefined, [], undefined, '0', true);
+        openReport({reportID, introSelected, parentReportActionID: '0', isFromDeepLink: true, betas});
 
         // Show the sign-in page if the app is offline
         if (networkStatus === CONST.NETWORK.NETWORK_STATUS.OFFLINE) {
@@ -333,7 +342,8 @@ function openReportFromDeepLink(url: string, reports: OnyxCollection<Report>, is
                                         Navigation.navigate(lastAccessedReportRoute, {forceReplace: Navigation.getTopmostReportId() === reportID});
                                         return;
                                     }
-                                    navigateToConciergeChat(conciergeReportID, false, () => true);
+                                    // TODO: We'll pass isSelfTourViewed in the next PR. Refactor issue: https://github.com/Expensify/App/issues/66424
+                                    navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, undefined, betas, false, () => true);
                                     return;
                                 }
 

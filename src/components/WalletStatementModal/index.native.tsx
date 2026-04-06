@@ -13,14 +13,16 @@ type WebViewMessageType = ValueOf<typeof CONST.WALLET.WEB_MESSAGE_TYPE>;
 
 type WebViewNavigationEvent = WebViewNavigation & {type?: WebViewMessageType};
 
-const renderLoading = () => <FullScreenLoadingIndicator />;
+const renderLoading = () => <FullScreenLoadingIndicator reasonAttributes={{context: 'WalletStatementModal'}} />;
 
 function WalletStatementModal({statementPageURL}: WalletStatementProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const webViewRef = useRef<WebView>(null);
     const authToken = session?.authToken ?? null;
 
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const onMessage = useCallback(
         (event: WebViewMessageEvent) => {
             try {
@@ -30,12 +32,12 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
                     return;
                 }
 
-                handleWalletStatementNavigation(conciergeReportID, type, url);
+                handleWalletStatementNavigation(conciergeReportID, introSelected, session?.accountID, betas, type, url);
             } catch (error) {
                 console.error('Error parsing message from WebView:', error);
             }
         },
-        [conciergeReportID],
+        [conciergeReportID, session?.accountID, introSelected, betas],
     );
 
     return (

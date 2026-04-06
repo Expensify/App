@@ -16,6 +16,7 @@ import goBackFromWorkspaceSettingPages from '@libs/Navigation/helpers/goBackFrom
 import Navigation from '@libs/Navigation/Navigation';
 import {canSendInvoice, isControlPolicy, isPaidGroupPolicy, isPolicyAccessible, isPolicyAdmin, isPolicyFeatureEnabled as isPolicyFeatureEnabledUtil} from '@libs/PolicyUtils';
 import {canCreateRequest} from '@libs/ReportUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -141,16 +142,12 @@ function AccessOrNotFoundWrapper({
     featureName,
     ...props
 }: AccessOrNotFoundWrapperProps) {
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-        canBeMissing: true,
-    });
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-        canBeMissing: true,
-    });
-    const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {canBeMissing: true});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [isLoadingReportData = true] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_REPORT_DATA);
     const {login = ''} = useCurrentUserPersonalDetails();
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
-    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const isPolicyIDInRoute = !!policyID?.length;
     const isMoneyRequest = !!iouType && isValidMoneyRequestType(iouType);
     const isFromGlobalCreate = !!reportID && isEmptyObject(report?.reportID);
@@ -209,7 +206,12 @@ function AccessOrNotFoundWrapper({
     }, [isLoadingReportData, isPolicyNotAccessible]);
 
     if (shouldShowFullScreenLoadingIndicator) {
-        return <FullscreenLoadingIndicator />;
+        const reasonAttributes: SkeletonSpanReasonAttributes = {
+            context: 'AccessOrNotFoundWrapper',
+            isLoadingReportData,
+            isPolicyEmpty: !Object.entries(policy ?? {}).length || !policy?.id,
+        };
+        return <FullscreenLoadingIndicator reasonAttributes={reasonAttributes} />;
     }
 
     if (shouldShowNotFoundPage) {

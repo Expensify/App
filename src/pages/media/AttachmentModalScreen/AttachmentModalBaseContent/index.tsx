@@ -1,15 +1,16 @@
 import React, {memo, useCallback, useContext, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import Animated, {FadeIn, LayoutAnimationConfig, useSharedValue} from 'react-native-reanimated';
+import ActivityIndicator from '@components/ActivityIndicator';
 import AttachmentCarousel from '@components/Attachments/AttachmentCarousel';
-import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
+import {AttachmentCarouselPagerActionsContext, AttachmentCarouselPagerStateContext} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
+import type {AttachmentCarouselPagerActionsContextType, AttachmentCarouselPagerStateContextType} from '@components/Attachments/AttachmentCarousel/Pager/types';
 import AttachmentView from '@components/Attachments/AttachmentView';
 import useAttachmentErrors from '@components/Attachments/AttachmentView/useAttachmentErrors';
 import type {Attachment} from '@components/Attachments/types';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -66,6 +67,9 @@ function AttachmentModalBaseContent({
     onCarouselAttachmentChange = () => {},
     transaction: transactionProp,
     shouldCloseOnSwipeDown = false,
+    footerActionButtons,
+    customAttachmentContent,
+    attachmentViewContainerStyles,
 }: AttachmentModalBaseContentProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -90,7 +94,7 @@ function AttachmentModalBaseContent({
     const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     const transactionID = isMoneyRequestAction(parentReportAction) ? getOriginalMessage(parentReportAction)?.IOUTransactionID : undefined;
-    const [transactionFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
+    const [transactionFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const transaction = transactionProp ?? transactionFromOnyx;
     const [currentAttachmentLink, setCurrentAttachmentLink] = useState(attachmentLink);
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
@@ -206,19 +210,25 @@ function AttachmentModalBaseContent({
 
     // We need to pass a shared value of type boolean to the context, so `falseSV` acts as a default value.
     const falseSV = useSharedValue(false);
-    const context = useMemo(
+    const stateValue = useMemo<AttachmentCarouselPagerStateContextType>(
         () => ({
             pagerItems: [{source: sourceForAttachmentView, index: 0, isActive: true}],
             activePage: 0,
             pagerRef: undefined,
             isPagerScrolling: falseSV,
             isScrollEnabled: falseSV,
+        }),
+        [falseSV, sourceForAttachmentView],
+    );
+
+    const actionsValue = useMemo<AttachmentCarouselPagerActionsContextType>(
+        () => ({
             onTap: () => {},
             onScaleChanged: () => {},
             onAttachmentError: setAttachmentError,
             ...(shouldCloseOnSwipeDown ? {onSwipeDown: onClose} : {}),
         }),
-        [falseSV, sourceForAttachmentView, setAttachmentError, shouldCloseOnSwipeDown, onClose],
+        [setAttachmentError, shouldCloseOnSwipeDown, onClose],
     );
 
     const shouldDisplayContent = !shouldShowNotFoundPage && !isLoading;
@@ -246,30 +256,33 @@ function AttachmentModalBaseContent({
             />
         ) : (
             !!sourceForAttachmentView && (
-                <AttachmentCarouselPagerContext.Provider value={context}>
-                    <AttachmentView
-                        containerStyles={[styles.mh5]}
-                        source={sourceForAttachmentView}
-                        isAuthTokenRequired={isAuthTokenRequiredState}
-                        file={fileToDisplay}
-                        onToggleKeyboard={setIsConfirmButtonDisabled}
-                        isWorkspaceAvatar={isWorkspaceAvatar}
-                        maybeIcon={maybeIcon}
-                        fallbackSource={fallbackSource}
-                        isUsedInAttachmentModal
-                        transactionID={transaction?.transactionID}
-                        transaction={transaction}
-                        isUploaded={!isEmptyObject(report)}
-                        reportID={reportID ?? (!isEmptyObject(report) ? report.reportID : undefined)}
-                    />
-                </AttachmentCarouselPagerContext.Provider>
+                <AttachmentCarouselPagerStateContext.Provider value={stateValue}>
+                    <AttachmentCarouselPagerActionsContext.Provider value={actionsValue}>
+                        <AttachmentView
+                            containerStyles={[styles.mh5]}
+                            source={sourceForAttachmentView}
+                            isAuthTokenRequired={isAuthTokenRequiredState}
+                            file={fileToDisplay}
+                            onToggleKeyboard={setIsConfirmButtonDisabled}
+                            isWorkspaceAvatar={isWorkspaceAvatar}
+                            maybeIcon={maybeIcon}
+                            fallbackSource={fallbackSource}
+                            isUsedInAttachmentModal
+                            transactionID={transaction?.transactionID}
+                            transaction={transaction}
+                            isUploaded={!isEmptyObject(report)}
+                            reportID={reportID ?? (!isEmptyObject(report) ? report.reportID : undefined)}
+                        />
+                    </AttachmentCarouselPagerActionsContext.Provider>
+                </AttachmentCarouselPagerStateContext.Provider>
             )
         );
     }, [
         AttachmentContent,
         accountID,
         attachmentID,
-        context,
+        stateValue,
+        actionsValue,
         currentAttachmentLink,
         fallbackSource,
         fileToDisplay,
@@ -316,8 +329,16 @@ function AttachmentModalBaseContent({
                 shouldOverlayDots
                 subTitleLink={currentAttachmentLink ?? ''}
             />
-            <View style={styles.imageModalImageCenterContainer}>
-                {isLoading && <FullScreenLoadingIndicator testID="attachment-loading-spinner" />}
+            <View style={[styles.imageModalImageCenterContainer, attachmentViewContainerStyles]}>
+                {isLoading && (
+                    <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
+                        <ActivityIndicator
+                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                            testID="attachment-loading-spinner"
+                            reasonAttributes={{context: 'AttachmentModalBaseContent'}}
+                        />
+                    </View>
+                )}
                 {shouldShowNotFoundPage && !isLoading && (
                     <BlockingView
                         icon={illustrations.ToddBehindCloud}
@@ -329,8 +350,18 @@ function AttachmentModalBaseContent({
                         onLinkPress={onClose}
                     />
                 )}
-                {shouldDisplayContent && Content}
+                {shouldDisplayContent && (customAttachmentContent ?? Content)}
             </View>
+            {!!footerActionButtons && (
+                <LayoutAnimationConfig skipEntering>
+                    <Animated.View
+                        style={bottomSafeAreaPaddingStyle}
+                        entering={FadeIn}
+                    >
+                        {footerActionButtons}
+                    </Animated.View>
+                </LayoutAnimationConfig>
+            )}
             {/* If we have an onConfirm method show a confirmation button */}
             {!!onConfirm && !isConfirmButtonDisabled && (
                 <LayoutAnimationConfig skipEntering>

@@ -1,8 +1,8 @@
 import {deepEqual} from 'fast-equals';
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import type {Attachment} from '@components/Attachments/types';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -27,8 +27,8 @@ function AttachmentCarousel({
     attachmentLink,
     onAttachmentError,
 }: AttachmentCarouselProps) {
-    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, {canEvict: false, canBeMissing: true});
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {canEvict: false, canBeMissing: true});
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, {canEvict: false});
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {canEvict: false});
     const canUseTouchScreen = canUseTouchScreenUtil();
     const styles = useThemeStyles();
     const isReportArchived = useReportIsArchived(report.reportID);
@@ -101,8 +101,11 @@ function AttachmentCarousel({
 
     if (page == null) {
         return (
-            <View style={[styles.flex1, styles.attachmentCarouselContainer]}>
-                <FullScreenLoadingIndicator />
+            <View style={[styles.flex1, styles.attachmentCarouselContainer, styles.fullScreenLoading]}>
+                <ActivityIndicator
+                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                    reasonAttributes={{context: 'AttachmentCarousel'}}
+                />
             </View>
         );
     }

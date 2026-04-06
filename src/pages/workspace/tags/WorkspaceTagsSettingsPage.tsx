@@ -43,7 +43,7 @@ function billableExpensesPending(policy: OnyxEntry<Policy>) {
 
 function toggleBillableExpenses(policy: OnyxEntry<Policy>) {
     if (policy?.disabledFields?.defaultBillable) {
-        setPolicyBillableMode(policy.id, false);
+        setPolicyBillableMode(policy.id, false, policy?.defaultBillable, true);
     } else if (policy) {
         disableWorkspaceBillableExpenses(policy.id);
     }
@@ -97,7 +97,13 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
                 errorRowStyles={styles.mh5}
             >
                 <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                    <Text style={[styles.textNormal, styles.flex1, styles.mr2]}>{translate('workspace.tags.requiresTag')}</Text>
+                    <Text
+                        style={[styles.textNormal, styles.flex1, styles.mr2]}
+                        accessible={false}
+                        aria-hidden
+                    >
+                        {translate('workspace.tags.requiresTag')}
+                    </Text>
                     <Switch
                         isOn={policy?.requiresTag ?? false}
                         accessibilityLabel={translate('workspace.tags.requiresTag')}
@@ -108,7 +114,13 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
             </OfflineWithFeedback>
             <OfflineWithFeedback pendingAction={billableExpensesPending(policy)}>
                 <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                    <Text style={[styles.textNormal, styles.flex1, styles.mr2]}>{translate('workspace.tags.trackBillable')}</Text>
+                    <Text
+                        style={[styles.textNormal, styles.flex1, styles.mr2]}
+                        accessible={false}
+                        aria-hidden
+                    >
+                        {translate('workspace.tags.trackBillable')}
+                    </Text>
                     <Switch
                         isOn={!(policy?.disabledFields?.defaultBillable ?? false)}
                         accessibilityLabel={translate('workspace.tags.trackBillable')}

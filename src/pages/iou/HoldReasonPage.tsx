@@ -1,8 +1,11 @@
-import React, {useCallback, useContext, useEffect} from 'react';
-import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
+import {getReportOwnerAccountID} from '@selectors/Report';
+import React, {useCallback, useEffect} from 'react';
+import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import useAncestors from '@hooks/useAncestors';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {putOnHold} from '@libs/actions/IOU/Hold';
 import {addErrorMessage} from '@libs/ErrorUtils';
@@ -24,18 +27,25 @@ type HoldReasonPageProps =
 
 function HoldReasonPage({route}: HoldReasonPageProps) {
     const {translate} = useLocalize();
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const {transactionID, reportID, backTo} = route.params;
 
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+    const {isOffline} = useNetwork();
     const ancestors = useAncestors(report);
+
+    const [parentReportOwnerAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {selector: getReportOwnerAccountID});
 
     // We first check if the report is part of a policy - if not, then it's a personal request (1:1 request)
     // For personal requests, we need to allow both users to put the request on hold
     const isWorkspaceRequest = isReportInGroupPolicy(report);
+    const isSubmitter = parentReportOwnerAccountID === currentUserAccountID;
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
 
-    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+    const {isDelegateAccessRestricted} = useDelegateNoAccessState();
+    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
@@ -45,11 +55,11 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
         // We have extra isWorkspaceRequest condition since, for 1:1 requests, canEditMoneyRequest will rightly return false
         // as we do not allow requestee to edit fields like description and amount.
         // But, we still want the requestee to be able to put the request on hold
-        if (isMoneyRequestAction(parentReportAction) && !canEditMoneyRequest(parentReportAction) && isWorkspaceRequest) {
+        if (isMoneyRequestAction(parentReportAction) && !canEditMoneyRequest(parentReportAction, transaction) && isWorkspaceRequest) {
             return;
         }
 
-        putOnHold(transactionID, values.comment, reportID, ancestors);
+        putOnHold(transactionID, values.comment, reportID, isOffline, ancestors);
         Navigation.goBack(backTo);
     };
 
@@ -63,7 +73,7 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
             // We have extra isWorkspaceRequest condition since, for 1:1 requests, canEditMoneyRequest will rightly return false
             // as we do not allow requestee to edit fields like description and amount.
             // But, we still want the requestee to be able to put the request on hold
-            if (isMoneyRequestAction(parentReportAction) && !canEditMoneyRequest(parentReportAction) && isWorkspaceRequest) {
+            if (isMoneyRequestAction(parentReportAction) && !canEditMoneyRequest(parentReportAction, transaction) && isWorkspaceRequest) {
                 const formErrors = {};
                 addErrorMessage(formErrors, 'reportModified', translate('common.error.requestModified'));
                 setErrors(ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM, formErrors);
@@ -71,7 +81,7 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
 
             return errors;
         },
-        [parentReportAction, isWorkspaceRequest, translate],
+        [parentReportAction, isWorkspaceRequest, translate, transaction],
     );
 
     useEffect(() => {
@@ -84,6 +94,7 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
             onSubmit={onSubmit}
             validate={validate}
             backTo={backTo}
+            isSubmitter={isSubmitter}
         />
     );
 }
