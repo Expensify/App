@@ -7168,7 +7168,10 @@ function getIOUReportActionWithBadge(
         }
         const iouReport = getReportOrDraftReport(action.childReportID);
         // Only show to the actual payer, exclude admins with bank account access
-        if (canIOUBePaid(iouReport, chatReport, policy, undefined, undefined, undefined, undefined, invoiceReceiverPolicy)) {
+        if (
+            canIOUBePaid(iouReport, chatReport, policy, undefined, undefined, undefined, undefined, invoiceReceiverPolicy) ||
+            canIOUBePaid(iouReport, chatReport, policy, undefined, undefined, true, undefined, invoiceReceiverPolicy)
+        ) {
             actionBadge = CONST.REPORT.ACTION_BADGE.PAY;
             return true;
         }
