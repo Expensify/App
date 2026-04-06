@@ -276,14 +276,14 @@ function TransactionItemRow({
 
     const totalPerAttendee = useMemo(() => {
         const attendeesCount = transactionAttendees.length ?? 0;
-        const totalAmount = getAmount(transactionItem);
+        const totalAmount = getAmount(transactionItem, isExpenseReport(report));
 
         if (!attendeesCount || totalAmount === undefined) {
             return undefined;
         }
 
         return totalAmount / attendeesCount;
-    }, [transactionAttendees.length, transactionItem]);
+    }, [report, transactionAttendees.length, transactionItem]);
 
     const renderColumn = (column: SearchColumnType): React.ReactNode => {
         switch (column) {

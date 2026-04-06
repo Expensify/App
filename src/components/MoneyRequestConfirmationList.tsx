@@ -877,6 +877,8 @@ function MoneyRequestConfirmationList({
         ],
     );
 
+    const canEditParticipant = isFromGlobalCreateAndCanEditParticipant && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice);
+
     const sections = useMemo(() => {
         const options: Array<Section<MoneyRequestConfirmationListItem>> = [];
         if (isTypeSplit) {
@@ -898,8 +900,8 @@ function MoneyRequestConfirmationList({
                 ...participant,
                 isSelected: false,
                 keyForList: `${participant.keyForList ?? participant.accountID ?? participant.reportID}`,
-                isInteractive: isFromGlobalCreateAndCanEditParticipant && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice),
-                shouldShowRightCaret: isFromGlobalCreateAndCanEditParticipant && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice),
+                isInteractive: canEditParticipant,
+                shouldShowRightCaret: canEditParticipant,
             }));
 
             options.push({
@@ -910,19 +912,7 @@ function MoneyRequestConfirmationList({
         }
 
         return options;
-    }, [
-        isTypeSplit,
-        translate,
-        payeePersonalDetails,
-        getSplitSectionHeader,
-        splitParticipants,
-        selectedParticipants,
-        isFromGlobalCreateAndCanEditParticipant,
-        isTestReceipt,
-        isRestrictedToPreferredPolicy,
-        isTypeInvoice,
-        shouldHideToSection,
-    ]);
+    }, [isTypeSplit, translate, payeePersonalDetails, getSplitSectionHeader, splitParticipants, selectedParticipants, canEditParticipant, shouldHideToSection]);
 
     useEffect(() => {
         if (!isDistanceRequest || (isMovingTransactionFromTrackExpense && !isPolicyExpenseChat) || !transactionID || isReadOnly) {
@@ -1010,7 +1000,7 @@ function MoneyRequestConfirmationList({
      * Navigate to the participant step
      */
     const navigateToParticipantPage = () => {
-        if (!isFromGlobalCreateAndCanEditParticipant) {
+        if (!canEditParticipant) {
             return;
         }
 

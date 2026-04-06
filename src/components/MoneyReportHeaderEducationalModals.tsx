@@ -1,4 +1,5 @@
 import {shouldFailAllRequestsSelector} from '@selectors/Network';
+import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useNetwork from '@hooks/useNetwork';
