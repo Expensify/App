@@ -58,6 +58,13 @@ function WorkspaceEditTaxPage({
         Navigation.setParams({taxID: currentTaxID});
     }, [taxID, currentTaxID]);
 
+    useEffect(() => {
+        if (currentTaxRate || !policy?.taxRates?.taxes) {
+            return;
+        }
+        Navigation.goBack(ROUTES.WORKSPACE_TAXES.getRoute(policyID));
+    }, [currentTaxRate, policy?.taxRates?.taxes, policyID]);
+
     const deleteTaxRate = () => {
         if (!policyID) {
             return;
