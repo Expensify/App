@@ -586,12 +586,41 @@ function goBackToHome() {
 }
 
 /**
+ * Find the navigator state key that directly contains a route with the given key.
+ * This is needed because SET_PARAMS only searches flat routes arrays, so dispatching
+ * without `target` fails for routes nested inside split navigators.
+ */
+function findParentNavigatorKey(routeKey: string, state?: NavigationState): string | undefined {
+    const navState = state ?? navigationRef.getRootState();
+    if (!navState?.routes) {
+        return undefined;
+    }
+    for (const route of navState.routes) {
+        if (route.key === routeKey) {
+            return navState.key;
+        }
+        if (route.state?.routes) {
+            const found = findParentNavigatorKey(routeKey, route.state as NavigationState);
+            if (found) {
+                return found;
+            }
+        }
+    }
+    return undefined;
+}
+
+/**
  * Update route params for the specified route.
  */
 function setParams(params: Record<string, unknown>, routeKey = '') {
+    // When a routeKey is provided, find its parent navigator and set `target` so the
+    // action is delivered directly to that navigator. Without this, SET_PARAMS fails
+    // for routes nested inside split navigators (e.g. when a modal is focused).
+    const navigatorKey = routeKey ? findParentNavigatorKey(routeKey) : undefined;
     navigationRef.current?.dispatch({
         ...CommonActions.setParams(params),
         source: routeKey,
+        ...(navigatorKey && {target: navigatorKey}),
     });
 }
 
