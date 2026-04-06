@@ -14,6 +14,10 @@ function usePayAndDowngrade(continueAction: () => void) {
         isDeletingPaidWorkspaceRef.current = value;
     }, []);
 
+    // Store continueAction in a ref to avoid stale closures in the useEffect below.
+    // This ensures we always call the latest version of continueAction when the effect runs,
+    // without needing to include it in the dependency array (which would cause unnecessary re-runs
+    // or require callers to memoize their callback).
     const continueActionRef = useRef(continueAction);
     // eslint-disable-next-line react-hooks/refs
     continueActionRef.current = continueAction;
