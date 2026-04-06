@@ -101,6 +101,14 @@ function BookTravelButton({
         setShouldScrollToBottom?.(true);
     }, [errorMessage, setShouldScrollToBottom]);
 
+    const navigateToPublicDomainError = () => {
+        const activeRoute = Navigation.getActiveRoute();
+        const activeRouteParams = new URLSearchParams(activeRoute.split('?').at(1));
+        const route = activeRouteParams.has('policyID') ? DYNAMIC_ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.path : DYNAMIC_ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.getRoute(activePolicyID);
+
+        Navigation.navigate(createDynamicRoute(route));
+    };
+
     const bookATrip = () => {
         setErrorMessage('');
 
@@ -123,13 +131,13 @@ function BookTravelButton({
 
         // Spotnana requires a private domain email for travel booking
         if (isEmailPublicDomain(primaryContactMethod)) {
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.getRoute(activePolicyID)));
+            navigateToPublicDomainError();
             return;
         }
 
         const adminDomains = getAdminsPrivateEmailDomains(policy);
         if (adminDomains.length === 0) {
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.getRoute(activePolicyID)));
+            navigateToPublicDomainError();
             return;
         }
 

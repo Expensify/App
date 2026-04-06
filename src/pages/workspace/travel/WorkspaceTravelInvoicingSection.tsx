@@ -139,6 +139,14 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     const isOnWaitlist = !!cardOnWaitlist;
     const isLoading = !!cardSettings?.isLoading;
 
+    const navigateToPublicDomainError = () => {
+        const activeRoute = Navigation.getActiveRoute();
+        const activeRouteParams = new URLSearchParams(activeRoute.split('?').at(1));
+        const route = activeRouteParams.has('policyID') ? DYNAMIC_ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.path : DYNAMIC_ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.getRoute(policyID);
+
+        Navigation.navigate(createDynamicRoute(route));
+    };
+
     /**
      * Opens the pay balance confirmation modal.
      */
@@ -216,7 +224,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     const handleToggle = (isEnabled: boolean) => {
         // Check if user is on a public domain - Travel Invoicing requires a private domain
         if (account?.isFromPublicDomain) {
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.getRoute(policyID)));
+            navigateToPublicDomainError();
             return;
         }
 
