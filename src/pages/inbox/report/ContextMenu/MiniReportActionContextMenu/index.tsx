@@ -110,6 +110,20 @@ function MiniReportActionContextMenu() {
     }, [hideMiniContextMenu]);
 
     useEffect(() => {
+        if (!isVisible) {
+            return;
+        }
+        const onScroll = () => {
+            release();
+            hideMiniContextMenu();
+        };
+        window.addEventListener('scroll', onScroll, true);
+        return () => {
+            window.removeEventListener('scroll', onScroll, true);
+        };
+    }, [isVisible, release, hideMiniContextMenu]);
+
+    useEffect(() => {
         const el = menuContainerRef.current as unknown as HTMLElement | null;
         if (!el) {
             return;
