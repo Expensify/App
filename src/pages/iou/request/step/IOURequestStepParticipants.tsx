@@ -40,7 +40,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {lastWorkspaceNumberSelector} from '@src/selectors/Policy';
-import {emailSelector} from '@src/selectors/Session';
 import type {Policy} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
@@ -117,7 +116,6 @@ function IOURequestStepParticipants({
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [sessionEmail = ''] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
 
@@ -331,8 +329,9 @@ function IOURequestStepParticipants({
                 }
             }
             if ((isCategorizing || isShareAction) && numberOfParticipants.current === 0) {
-                const lastWorkspaceNumber = lastWorkspaceNumberSelector(allPolicies, sessionEmail);
-                const {expenseChatReportID, policyID, policyName} = createDraftWorkspace(introSelected, newGenerateDefaultWorkspaceName(sessionEmail, lastWorkspaceNumber, translate));
+                const email = currentUserPersonalDetails.email ?? '';
+                const lastWorkspaceNumber = lastWorkspaceNumberSelector(allPolicies, email);
+                const {expenseChatReportID, policyID, policyName} = createDraftWorkspace(introSelected, newGenerateDefaultWorkspaceName(email, lastWorkspaceNumber, translate));
                 for (const transaction of draftTransactions) {
                     setMoneyRequestParticipants(transaction.transactionID, [
                         {
@@ -398,7 +397,6 @@ function IOURequestStepParticipants({
             introSelected,
             backTo,
             selfDMReportID,
-            sessionEmail,
             translate,
         ],
     );
