@@ -64,8 +64,8 @@ function SidebarLinks({insets, optionListItems, priorityMode = CONST.PRIORITY_MO
             const shouldBlockReportNavigation = Navigation.getActiveRoute() !== `/${ROUTES.INBOX}` && shouldUseNarrowLayout;
 
             if (
-                (option.reportID === Navigation.getTopmostReportId() && !reportActionID) ||
-                (shouldUseNarrowLayout && isActiveReport(option.reportID) && !reportActionID) ||
+                (option.reportID === Navigation.getTopmostReportId() && !reportActionID && !actionTargetReportActionID) ||
+                (shouldUseNarrowLayout && isActiveReport(option.reportID) && !reportActionID && !actionTargetReportActionID) ||
                 shouldBlockReportNavigation
             ) {
                 cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${option.reportID}`);
