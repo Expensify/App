@@ -35,6 +35,12 @@ type MiniContextMenuActions = {
     /** Hide the mini context menu immediately. No-op while `keepOpen` is active; the hide intent is deferred until `release`. */
     hideMiniContextMenu: () => void;
 
+    /**
+     * Hide the mini menu without invoking `onMenuHide` (e.g. when opening the full popover context menu while the pointer stays over the row).
+     * Clears the keep-open guard so the menu actually hides.
+     */
+    hideMiniContextMenuWithoutNotification: () => void;
+
     /** Lock the menu open so that `hideMiniContextMenu` calls are deferred until `release` is called. Use when a sub-interaction (overflow menu, emoji picker) needs the menu to stay visible. Also used by the menu's own Hoverable to prevent hide during row-to-menu hover transitions. */
     keepOpen: () => void;
 
@@ -45,6 +51,7 @@ type MiniContextMenuActions = {
 const MiniContextMenuActionsContext = createContext<MiniContextMenuActions>({
     showMiniContextMenu: () => {},
     hideMiniContextMenu: () => {},
+    hideMiniContextMenuWithoutNotification: () => {},
     keepOpen: () => {},
     release: () => {},
 });
@@ -108,6 +115,15 @@ function MiniContextMenuProvider({children}: MiniContextMenuProviderProps) {
                     return;
                 }
                 performHide();
+            },
+            hideMiniContextMenuWithoutNotification: () => {
+                shouldKeepOpenRef.current = false;
+                pendingHideRef.current = false;
+                queueMicrotask(() => {
+                    setState((prev) => (prev ? {...prev, isVisible: false} : null));
+                    onMenuHideRef.current = null;
+                    activeReportActionIDRef.current = undefined;
+                });
             },
             keepOpen: () => {
                 shouldKeepOpenRef.current = true;

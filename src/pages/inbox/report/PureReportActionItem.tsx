@@ -558,7 +558,7 @@ function PureReportActionItem({
     const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
     const {translate, formatPhoneNumber, localeCompare, formatTravelDate, getLocalDateFromDatetime, datetimeToCalendarTime} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
-    const {showMiniContextMenu, hideMiniContextMenu} = useMiniContextMenuActions();
+    const {showMiniContextMenu, hideMiniContextMenu, hideMiniContextMenuWithoutNotification} = useMiniContextMenuActions();
     const personalDetail = useCurrentUserPersonalDetails();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const reportID = report?.reportID ?? action?.reportID;
@@ -578,6 +578,7 @@ function PureReportActionItem({
     const kycWallRef = useContext(KYCWallContext);
     const composerTextInputRef = useRef<TextInput | HTMLTextAreaElement>(null);
     const popoverAnchorRef = useRef<Exclude<ContextMenuAnchor, TextInput>>(null);
+    const isPointerOverReportActionRowRef = useRef(false);
     const downloadedPreviews = useRef<string[]>([]);
     const prevDraftMessage = usePrevious(draftMessage);
     const isReportActionLinked = linkedReportActionID && action.reportActionID && linkedReportActionID === action.reportActionID;
@@ -786,6 +787,7 @@ function PureReportActionItem({
             }
 
             handleShowContextMenu(() => {
+                hideMiniContextMenuWithoutNotification();
                 setIsContextMenuActive(true);
                 const selection = SelectionScraper.getCurrentSelection();
                 showContextMenu({
@@ -803,13 +805,51 @@ function PureReportActionItem({
                     },
                     callbacks: {
                         onShow: toggleContextMenuFromActiveReportAction,
-                        onHide: () => setIsContextMenuActive(false),
+                        onHide: () => {
+                            setIsContextMenuActive(false);
+                            if (isPointerOverReportActionRowRef.current && shouldDisplayContextMenuValue && draftMessage === undefined && isEmptyValueObject(action.errors)) {
+                                const node = popoverAnchorRef.current;
+                                if (!node || !('getBoundingClientRect' in node)) {
+                                    return;
+                                }
+                                const rect = node.getBoundingClientRect();
+                                showMiniContextMenu({
+                                    reportID,
+                                    reportActionID: action.reportActionID,
+                                    originalReportID,
+                                    anchor: popoverAnchorRef,
+                                    displayAsGroup: !!displayAsGroup,
+                                    draftMessage,
+                                    checkIfContextMenuActive: toggleContextMenuFromActiveReportAction,
+                                    setIsEmojiPickerActive,
+                                    rowMeasurements: {
+                                        top: rect.top,
+                                        height: rect.height,
+                                        right: rect.right,
+                                    },
+                                    onMenuHide: () => setIsContextMenuActive(false),
+                                });
+                                setIsContextMenuActive(true);
+                            }
+                        },
                         setIsEmojiPickerActive: setIsEmojiPickerActive as () => void,
                     },
                 });
             });
         },
-        [draftMessage, action.errors, action.reportActionID, reportID, toggleContextMenuFromActiveReportAction, originalReportID, shouldDisplayContextMenuValue, handleShowContextMenu],
+        [
+            draftMessage,
+            action.errors,
+            action.reportActionID,
+            reportID,
+            toggleContextMenuFromActiveReportAction,
+            originalReportID,
+            shouldDisplayContextMenuValue,
+            handleShowContextMenu,
+            hideMiniContextMenuWithoutNotification,
+            showMiniContextMenu,
+            displayAsGroup,
+        ],
     );
 
     const toggleReaction = useCallback(
@@ -2104,6 +2144,7 @@ function PureReportActionItem({
                         if (!shouldDisplayContextMenu || draftMessage !== undefined || hasErrors) {
                             return;
                         }
+                        isPointerOverReportActionRowRef.current = true;
                         const node = popoverAnchorRef.current;
                         if (!node || !('getBoundingClientRect' in node)) {
                             return;
@@ -2128,6 +2169,7 @@ function PureReportActionItem({
                         setIsContextMenuActive(true);
                     }}
                     onHoverOut={() => {
+                        isPointerOverReportActionRowRef.current = false;
                         setIsReportActionActive(!!isReportActionLinked);
                         hideMiniContextMenu();
                     }}
