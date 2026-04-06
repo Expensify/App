@@ -128,6 +128,7 @@ const testParentReportAction = {
     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
     originalMessage: {
         IOUTransactionID: TEST_TRANSACTION_ID,
+        IOUReportID: TEST_REPORT_ID,
         type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
     },
     created: '2025-02-14 08:12:05.165',
@@ -202,7 +203,15 @@ describe('MoneyRequestReceiptView', () => {
                 [TEST_ACTION_ID]: testParentReportAction,
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TEST_TRANSACTION_ID}`, transactionWithoutReceipt);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${TEST_POLICY_ID}`, {id: TEST_POLICY_ID});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${TEST_PARENT_REPORT_ID}`, {
+                reportID: TEST_PARENT_REPORT_ID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: TEST_POLICY_ID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                ownerAccountID: 1,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${TEST_POLICY_ID}`, {id: TEST_POLICY_ID, role: CONST.POLICY.ROLE.ADMIN, type: CONST.POLICY.TYPE.TEAM});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${TEST_POLICY_ID}`, {});
         });
         await waitForBatchedUpdatesWithAct();
