@@ -15,6 +15,7 @@ import type {Participant} from '@src/types/onyx/IOU';
 import type {SplitShares} from '@src/types/onyx/Transaction';
 import * as IOU from '../../../src/libs/actions/IOU';
 import * as Split from '../../../src/libs/actions/IOU/Split';
+import * as TrackExpense from '../../../src/libs/actions/IOU/TrackExpense';
 import * as ReportUtils from '../../../src/libs/ReportUtils';
 import createRandomPolicy from '../../utils/collections/policies';
 import {createRandomReport, createSelfDM} from '../../utils/collections/reports';
@@ -27,9 +28,16 @@ jest.mock('@libs/actions/IOU', () => {
     const actualNav = jest.requireActual<typeof IOU>('@libs/actions/IOU');
     return {
         ...actualNav,
-        requestMoney: jest.fn(),
-        trackExpense: jest.fn(),
         createDistanceRequest: jest.fn(),
+    };
+});
+
+jest.mock('@libs/actions/IOU/TrackExpense', () => {
+    const actual = jest.requireActual<typeof TrackExpense>('@libs/actions/IOU/TrackExpense');
+    return {
+        ...actual,
+        trackExpense: jest.fn(),
+        requestMoney: jest.fn(),
     };
 });
 
@@ -117,10 +125,10 @@ describe('MoneyRequest', () => {
                 allTransactionDrafts: {},
             });
 
-            expect(IOU.trackExpense).toHaveBeenCalledTimes(1);
-            expect(IOU.requestMoney).toHaveBeenCalledTimes(0);
+            expect(TrackExpense.trackExpense).toHaveBeenCalledTimes(1);
+            expect(TrackExpense.requestMoney).toHaveBeenCalledTimes(0);
 
-            expect(IOU.trackExpense).toHaveBeenCalledWith(
+            expect(TrackExpense.trackExpense).toHaveBeenCalledWith(
                 expect.objectContaining({
                     report: fakeReport,
                     isDraftPolicy: false,
@@ -146,7 +154,7 @@ describe('MoneyRequest', () => {
                 }),
             );
 
-            expect(IOU.trackExpense).toHaveBeenLastCalledWith(expect.objectContaining({shouldHandleNavigation: true}));
+            expect(TrackExpense.trackExpense).toHaveBeenLastCalledWith(expect.objectContaining({shouldHandleNavigation: true}));
         });
 
         it('should call requestMoney for non-TRACK (SEND) iouType', () => {
@@ -156,10 +164,10 @@ describe('MoneyRequest', () => {
                 allTransactionDrafts: {},
             });
 
-            expect(IOU.requestMoney).toHaveBeenCalledTimes(1);
-            expect(IOU.trackExpense).toHaveBeenCalledTimes(0);
+            expect(TrackExpense.requestMoney).toHaveBeenCalledTimes(1);
+            expect(TrackExpense.trackExpense).toHaveBeenCalledTimes(0);
 
-            expect(IOU.requestMoney).toHaveBeenCalledWith(
+            expect(TrackExpense.requestMoney).toHaveBeenCalledWith(
                 expect.objectContaining({
                     report: fakeReport,
                     participantParams: expect.objectContaining({
@@ -206,21 +214,21 @@ describe('MoneyRequest', () => {
                 allTransactionDrafts: {},
             });
 
-            expect(IOU.trackExpense).toHaveBeenCalledTimes(files.length);
+            expect(TrackExpense.trackExpense).toHaveBeenCalledTimes(files.length);
 
-            expect(IOU.trackExpense).toHaveBeenNthCalledWith(
+            expect(TrackExpense.trackExpense).toHaveBeenNthCalledWith(
                 1,
                 expect.objectContaining({
                     shouldHandleNavigation: false,
                 }),
             );
-            expect(IOU.trackExpense).toHaveBeenNthCalledWith(
+            expect(TrackExpense.trackExpense).toHaveBeenNthCalledWith(
                 2,
                 expect.objectContaining({
                     shouldHandleNavigation: false,
                 }),
             );
-            expect(IOU.trackExpense).toHaveBeenNthCalledWith(
+            expect(TrackExpense.trackExpense).toHaveBeenNthCalledWith(
                 3,
                 expect.objectContaining({
                     shouldHandleNavigation: true,
@@ -237,7 +245,7 @@ describe('MoneyRequest', () => {
                 allTransactionDrafts: {},
             });
 
-            expect(IOU.requestMoney).toHaveBeenCalledWith(
+            expect(TrackExpense.requestMoney).toHaveBeenCalledWith(
                 expect.objectContaining({
                     transactionParams: expect.objectContaining({
                         receipt: expect.objectContaining({
@@ -256,7 +264,7 @@ describe('MoneyRequest', () => {
                 allTransactionDrafts: {},
             });
 
-            expect(IOU.requestMoney).toHaveBeenCalledWith(
+            expect(TrackExpense.requestMoney).toHaveBeenCalledWith(
                 expect.objectContaining({
                     currentUserEmailParam: '',
                 }),
@@ -288,7 +296,7 @@ describe('MoneyRequest', () => {
                 },
             });
 
-            expect(IOU.requestMoney).toHaveBeenCalledWith(
+            expect(TrackExpense.requestMoney).toHaveBeenCalledWith(
                 expect.objectContaining({
                     existingTransactionDraft: draftTransaction,
                     draftTransactionIDs: [draftTransaction.transactionID],
@@ -302,7 +310,7 @@ describe('MoneyRequest', () => {
                 allTransactionDrafts: undefined,
             });
 
-            expect(IOU.requestMoney).toHaveBeenCalledWith(
+            expect(TrackExpense.requestMoney).toHaveBeenCalledWith(
                 expect.objectContaining({
                     draftTransactionIDs: [],
                 }),
@@ -317,7 +325,7 @@ describe('MoneyRequest', () => {
                 reimbursable: false,
             });
 
-            expect(IOU.trackExpense).toHaveBeenCalledWith(
+            expect(TrackExpense.trackExpense).toHaveBeenCalledWith(
                 expect.objectContaining({
                     transactionParams: expect.objectContaining({
                         billable: true,
@@ -333,7 +341,7 @@ describe('MoneyRequest', () => {
                 allTransactionDrafts: {},
             });
 
-            expect(IOU.requestMoney).toHaveBeenCalledWith(
+            expect(TrackExpense.requestMoney).toHaveBeenCalledWith(
                 expect.objectContaining({
                     existingTransactionDraft: undefined,
                     draftTransactionIDs: [],
@@ -353,7 +361,7 @@ describe('MoneyRequest', () => {
                 },
             });
 
-            expect(IOU.requestMoney).toHaveBeenCalledWith(
+            expect(TrackExpense.requestMoney).toHaveBeenCalledWith(
                 expect.objectContaining({
                     draftTransactionIDs: expect.arrayContaining([draft1.transactionID, draft2.transactionID]),
                 }),
@@ -368,7 +376,7 @@ describe('MoneyRequest', () => {
                 gpsPoint,
             });
 
-            expect(IOU.trackExpense).toHaveBeenCalledWith(
+            expect(TrackExpense.trackExpense).toHaveBeenCalledWith(
                 expect.objectContaining({
                     transactionParams: expect.objectContaining({
                         gpsPoint,
@@ -435,6 +443,7 @@ describe('MoneyRequest', () => {
             participants: [] as Participant[],
             participantsPolicyTags: {} as Record<string, PolicyTagLists>,
             amountOwed: 0,
+            userBillingGracePeriodEnds: undefined,
         };
 
         beforeEach(async () => {
@@ -593,7 +602,7 @@ describe('MoneyRequest', () => {
             });
 
             await waitForBatchedUpdates();
-            expect(IOU.trackExpense).not.toHaveBeenCalled();
+            expect(TrackExpense.trackExpense).not.toHaveBeenCalled();
         });
 
         it('should trackExpense with GPS coordinates when location permission is granted', async () => {
@@ -625,7 +634,7 @@ describe('MoneyRequest', () => {
                 locationPermissionGranted: true,
             });
 
-            expect(IOU.trackExpense).toHaveBeenCalledWith(
+            expect(TrackExpense.trackExpense).toHaveBeenCalledWith(
                 expect.objectContaining({
                     transactionParams: expect.objectContaining({
                         gpsPoint: {
@@ -658,7 +667,7 @@ describe('MoneyRequest', () => {
                 locationPermissionGranted: true,
             });
 
-            expect(IOU.trackExpense).toHaveBeenCalledWith(
+            expect(TrackExpense.trackExpense).toHaveBeenCalledWith(
                 expect.objectContaining({
                     transactionParams: expect.objectContaining({
                         gpsPoint: undefined,
@@ -682,7 +691,7 @@ describe('MoneyRequest', () => {
 
             const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
-            expect(IOU.trackExpense).toHaveBeenCalledWith(
+            expect(TrackExpense.trackExpense).toHaveBeenCalledWith(
                 expect.objectContaining({
                     report: baseParams.report,
                     isDraftPolicy: false,
@@ -714,7 +723,7 @@ describe('MoneyRequest', () => {
                 }),
             );
             // Should not call request money inside createTransaction function
-            expect(IOU.requestMoney).not.toHaveBeenCalled();
+            expect(TrackExpense.requestMoney).not.toHaveBeenCalled();
         });
 
         it(`should assign participants from report and navigate to confirmation page when not from global create menu`, async () => {
@@ -879,13 +888,13 @@ describe('MoneyRequest', () => {
             );
         });
 
-        it('should pass ownerBillingGraceEndPeriod through to shouldUseDefaultExpensePolicy', () => {
+        it('should pass ownerBillingGracePeriodEnd through to shouldUseDefaultExpensePolicy', () => {
             const pastDate = Math.floor(Date.now() / 1000) - 86400 * 30;
             handleMoneyRequestStepScanParticipants({
                 ...baseParams,
                 defaultExpensePolicy: undefined,
                 amountOwed: 100,
-                ownerBillingGraceEndPeriod: pastDate,
+                ownerBillingGracePeriodEnd: pastDate,
             });
 
             expect(Navigation.navigate).toHaveBeenCalledWith(
@@ -939,6 +948,7 @@ describe('MoneyRequest', () => {
             isSelfTourViewed: false,
             amountOwed: 0,
             draftTransactionIDs: undefined,
+            userBillingGracePeriodEnds: undefined,
         };
         const splitShares: SplitShares = {
             [firstSplitParticipantID]: {
@@ -1016,7 +1026,7 @@ describe('MoneyRequest', () => {
 
             expect(Split.resetSplitShares).not.toHaveBeenCalled();
 
-            expect(IOU.trackExpense).toHaveBeenCalledWith({
+            expect(TrackExpense.trackExpense).toHaveBeenCalledWith({
                 report: baseParams.report,
                 isDraftPolicy: false,
                 activePolicyID: undefined,
@@ -1087,7 +1097,7 @@ describe('MoneyRequest', () => {
                 waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             });
 
-            expect(IOU.trackExpense).toHaveBeenCalledWith(
+            expect(TrackExpense.trackExpense).toHaveBeenCalledWith(
                 expect.objectContaining({
                     report: baseParams.report,
                     isDraftPolicy: false,
@@ -1317,7 +1327,7 @@ describe('MoneyRequest', () => {
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.CREATE, baseParams.transactionID, baseParams.reportID));
         });
 
-        it('should pass ownerBillingGraceEndPeriod through to shouldUseDefaultExpensePolicy', () => {
+        it('should pass ownerBillingGracePeriodEnd through to shouldUseDefaultExpensePolicy', () => {
             const pastDate = Math.floor(Date.now() / 1000) - 86400 * 30;
             handleMoneyRequestStepDistanceNavigation({
                 ...baseParams,
@@ -1325,7 +1335,7 @@ describe('MoneyRequest', () => {
                 defaultExpensePolicy: undefined,
                 iouType: CONST.IOU.TYPE.CREATE,
                 amountOwed: 100,
-                ownerBillingGraceEndPeriod: pastDate,
+                ownerBillingGracePeriodEnd: pastDate,
             });
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.CREATE, baseParams.transactionID, baseParams.reportID));
@@ -1342,7 +1352,7 @@ describe('MoneyRequest', () => {
                 isPolicyExpenseChatEnabled: true,
             };
 
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0, undefined)).toBe(true);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0, undefined, undefined)).toBe(true);
         });
 
         it('should return false when iouType is not CREATE', () => {
@@ -1352,9 +1362,9 @@ describe('MoneyRequest', () => {
                 isPolicyExpenseChatEnabled: true,
             };
 
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.SUBMIT, policy, 0, undefined)).toBe(false);
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.TRACK, policy, 0, undefined)).toBe(false);
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.SPLIT, policy, 0, undefined)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.SUBMIT, policy, 0, undefined, undefined)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.TRACK, policy, 0, undefined, undefined)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.SPLIT, policy, 0, undefined, undefined)).toBe(false);
         });
 
         it('should return false when policy is not a paid group policy', () => {
@@ -1364,7 +1374,7 @@ describe('MoneyRequest', () => {
                 isPolicyExpenseChatEnabled: true,
             };
 
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0, undefined)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0, undefined, undefined)).toBe(false);
         });
 
         it('should return false when isPolicyExpenseChatEnabled is false', () => {
@@ -1374,15 +1384,15 @@ describe('MoneyRequest', () => {
                 isPolicyExpenseChatEnabled: false,
             };
 
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0, undefined)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0, undefined, undefined)).toBe(false);
         });
 
         it('should return false when policy is undefined', () => {
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, undefined, 0, undefined)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, undefined, 0, undefined, undefined)).toBe(false);
         });
 
         it('should return false when policy is null', () => {
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, null, 0, undefined)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, null, 0, undefined, undefined)).toBe(false);
         });
 
         it('should handle amountOwed being undefined', () => {
@@ -1392,10 +1402,10 @@ describe('MoneyRequest', () => {
                 isPolicyExpenseChatEnabled: true,
             };
 
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, undefined, undefined)).toBe(true);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, undefined, undefined, undefined)).toBe(true);
         });
 
-        it('should pass ownerBillingGraceEndPeriod through to shouldRestrictUserBillableActions', async () => {
+        it('should pass ownerBillingGracePeriodEnd through to shouldRestrictUserBillableActions', async () => {
             const policy = {
                 ...fakePolicy,
                 type: CONST.POLICY.TYPE.TEAM,
@@ -1407,7 +1417,7 @@ describe('MoneyRequest', () => {
             await Onyx.set(ONYXKEYS.SESSION, {accountID: TEST_USER_ACCOUNT_ID});
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
-            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 100, pastDate)).toBe(false);
+            expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 100, undefined, pastDate)).toBe(false);
 
             await Onyx.clear();
         });
