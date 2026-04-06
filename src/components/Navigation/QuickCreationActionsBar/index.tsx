@@ -131,6 +131,7 @@ function QuickCreationActionsBar() {
         policyID: defaultChatEnabledPolicyID,
         policyName: defaultChatEnabledPolicy?.name ?? '',
         onConfirm: handleCreateWorkspaceReport,
+        shouldHandleNavigationBack: false,
     });
 
     const handleExpense = useCallback(
