@@ -9396,6 +9396,8 @@ const CONST = {
         SETTINGS_HELP: {
             CONCIERGE_CHAT: 'SettingsHelp-ConciergeChat',
             HELP_DOCS: 'SettingsHelp-HelpDocs',
+            ACCOUNT_MANAGER: 'SettingsHelp-AccountManager',
+            PARTNER_MANAGER: 'SettingsHelp-PartnerManager',
         },
         SETTINGS_ABOUT: {
             APP_DOWNLOAD_LINKS: 'SettingsAbout-AppDownloadLinks',

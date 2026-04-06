@@ -15,13 +15,12 @@ import useSidePanelActions from '@hooks/useSidePanelActions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openHelpPage} from '@libs/actions/Help';
 import {openExternalLink} from '@libs/actions/Link';
-import {navigateToConciergeChat} from '@libs/actions/Report';
+import {navigateToAndOpenReportWithAccountIDs, navigateToConciergeChat} from '@libs/actions/Report';
 import getPlatform from '@libs/getPlatform';
 import Navigation from '@libs/Navigation/Navigation';
 import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import {hasSeenTourSelector} from '@src/selectors/Onboarding';
 
 const isWeb = getPlatform() === CONST.PLATFORM.WEB;
@@ -36,6 +35,7 @@ function HelpPage() {
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const isPaidPolicyAdmin = useIsPaidPolicyAdmin();
     const accountManagerDetails = account?.accountManagerAccountID ? personalDetails?.[account.accountManagerAccountID] : null;
+    const partnerManagerDetails = account?.partnerManagerAccountID ? personalDetails?.[account.partnerManagerAccountID] : null;
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
@@ -58,14 +58,28 @@ function HelpPage() {
         ...(accountManagerDetails && isPaidPolicyAdmin
             ? [
                   {
-                      key: accountManagerDetails?.login,
-                      title: accountManagerDetails?.displayName,
-                      icon: accountManagerDetails?.avatar,
+                      key: accountManagerDetails.login,
+                      title: accountManagerDetails.displayName,
+                      icon: accountManagerDetails.avatar,
                       iconType: CONST.ICON_TYPE_AVATAR,
-                      onPress: () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(account?.accountManagerReportID)),
+                      onPress: () => navigateToAndOpenReportWithAccountIDs([accountManagerDetails.accountID], currentUserAccountID, introSelected, betas),
                       shouldShowRightIcon: true,
                       wrapperStyle: [styles.sectionMenuItemTopDescription],
-                      sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.HELP_DOCS,
+                      sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.ACCOUNT_MANAGER,
+                  },
+              ]
+            : []),
+        ...(partnerManagerDetails && isPaidPolicyAdmin
+            ? [
+                  {
+                      key: partnerManagerDetails.login,
+                      title: partnerManagerDetails.displayName,
+                      icon: partnerManagerDetails.avatar,
+                      iconType: CONST.ICON_TYPE_AVATAR,
+                      onPress: () => navigateToAndOpenReportWithAccountIDs([partnerManagerDetails.accountID], currentUserAccountID, introSelected, betas),
+                      shouldShowRightIcon: true,
+                      wrapperStyle: [styles.sectionMenuItemTopDescription],
+                      sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.PARTNER_MANAGER,
                   },
               ]
             : []),
