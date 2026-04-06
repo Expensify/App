@@ -30,9 +30,9 @@ function addKeywordsToTrie(trie: Trie<EmojiMetaData>, keywords: string[], item: 
         if (isNew) {
             node.metaData = {suggestions: [suggestion]};
         } else if (shouldPrependKeyword) {
-            node.metaData = {...node.metaData, suggestions: [suggestion, ...(node.metaData.suggestions ?? [])]};
+            (node.metaData.suggestions ??= []).unshift(suggestion);
         } else {
-            node.metaData = {...node.metaData, suggestions: [...(node.metaData.suggestions ?? []), suggestion]};
+            (node.metaData.suggestions ??= []).push(suggestion);
         }
 
         const normalizedKeyword = StringUtils.normalizeAccents(keyword);
