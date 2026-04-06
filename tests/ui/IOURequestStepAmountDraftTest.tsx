@@ -12,7 +12,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Report, Transaction} from '@src/types/onyx';
-import * as IOU from '../../src/libs/actions/IOU';
+import * as TrackExpense from '../../src/libs/actions/IOU/TrackExpense';
 import createRandomTransaction from '../utils/collections/transaction';
 import {signInWithTestUser} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -45,8 +45,8 @@ jest.mock('@components/LocaleContextProvider', () => {
     };
 });
 
-jest.mock('@libs/actions/IOU', () => {
-    const actual = jest.requireActual<typeof IOU>('@libs/actions/IOU');
+jest.mock('@libs/actions/IOU/TrackExpense', () => {
+    const actual = jest.requireActual<typeof TrackExpense>('@libs/actions/IOU/TrackExpense');
     return {
         ...actual,
         requestMoney: jest.fn(() => ({iouReport: undefined})),
@@ -240,7 +240,7 @@ describe('IOURequestStepAmount - draft transactions coverage', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Verify requestMoney was called with draftTransactionIDs
-        expect(IOU.requestMoney).toHaveBeenCalledWith(
+        expect(TrackExpense.requestMoney).toHaveBeenCalledWith(
             expect.objectContaining({
                 draftTransactionIDs: expect.any(Array),
             }),

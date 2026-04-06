@@ -84,7 +84,7 @@ function RulesReceiptRequiredAmountPage({
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.RULES_REQUIRED_RECEIPT_AMOUNT_FORM}
                     onSubmit={({maxExpenseAmountNoReceipt}) => {
-                        setPolicyMaxExpenseAmountNoReceipt(policyID, maxExpenseAmountNoReceipt);
+                        setPolicyMaxExpenseAmountNoReceipt(policyID, maxExpenseAmountNoReceipt, policy?.maxExpenseAmountNoReceipt);
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                     }}
                     validate={validate}
