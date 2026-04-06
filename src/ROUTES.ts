@@ -124,6 +124,12 @@ const DYNAMIC_ROUTES = {
         getRoute: (country = '') => `country?country=${country}`,
         queryParams: ['country'],
     },
+    TRAVEL_PUBLIC_DOMAIN_ERROR: {
+        path: 'public-domain-error',
+        entryScreens: [SCREENS.TRAVEL.MY_TRIPS, SCREENS.WORKSPACE.TRAVEL, SCREENS.SEARCH.ROOT],
+        getRoute: (policyID?: string) => getUrlWithParams('public-domain-error', {policyID}),
+        queryParams: ['policyID'],
+    },
     WORKSPACE_OVERVIEW_PLAN: {
         path: 'plan',
         entryScreens: [SCREENS.WORKSPACE.PROFILE],
@@ -3094,12 +3100,6 @@ const ROUTES = {
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (domain?: string, backTo?: string) => getUrlWithBackToParam(`travel/domain-permission/${domain}/info`, backTo),
-    },
-    TRAVEL_PUBLIC_DOMAIN_ERROR: {
-        route: 'travel/public-domain-error',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID?: string, backTo?: string) => getUrlWithBackToParam(`travel/public-domain-error?${policyID ? `policyID=${policyID}` : ''}`, backTo),
     },
     TRAVEL_WORKSPACE_CONFIRMATION: {
         route: 'travel/upgrade/workspace/confirmation',

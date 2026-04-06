@@ -2557,10 +2557,8 @@ type TravelNavigatorParamList = {
         backTo?: Routes;
         policyID?: string;
     };
-    [SCREENS.TRAVEL.PUBLIC_DOMAIN_ERROR]: {
+    [SCREENS.TRAVEL.DYNAMIC_PUBLIC_DOMAIN_ERROR]: {
         policyID?: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
     };
     [SCREENS.TRAVEL.UPGRADE]: {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
