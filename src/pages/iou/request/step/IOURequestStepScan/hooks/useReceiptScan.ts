@@ -1,6 +1,6 @@
 import shouldStartLocationPermissionFlowSelector from '@selectors/LocationPermission';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {useEffect, useMemo, useState} from 'react';
+import {useMemo, useState} from 'react';
 import TestReceipt from '@assets/images/fake-receipt.png';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useFilesValidation from '@hooks/useFilesValidation';
@@ -38,8 +38,6 @@ function useReceiptScan({
     currentUserPersonalDetails,
     backTo,
     backToReport,
-    isMultiScanEnabled = false,
-    isStartingScan = false,
     updateScanAndNavigate,
     getSource,
 }: UseReceiptScanParams) {
@@ -70,9 +68,11 @@ function useReceiptScan({
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
+    const [isMultiScanEnabled, setIsMultiScanEnabled] = useState(false);
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isReplacingReceipt = (isEditing && hasReceipt(initialTransaction)) || (!!initialTransaction?.receipt && !!backTo);
+    const isStartingScan = action === CONST.IOU.ACTION.CREATE && !isReplacingReceipt;
     const shouldAcceptMultipleFiles = !isEditing && !backTo;
     const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -89,15 +89,6 @@ function useReceiptScan({
 
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
     const [receiptFiles, setReceiptFiles] = useState<ReceiptFile[]>([]);
-
-    // Clear receipt files when multi-scan is disabled
-    useEffect(() => {
-        if (isMultiScanEnabled) {
-            return;
-        }
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setReceiptFiles([]);
-    }, [isMultiScanEnabled]);
 
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
 
@@ -232,6 +223,9 @@ function useReceiptScan({
     });
     return {
         transactions,
+        isMultiScanEnabled,
+        setIsMultiScanEnabled,
+        isStartingScan,
         isEditing,
         isReplacingReceipt,
         shouldAcceptMultipleFiles,

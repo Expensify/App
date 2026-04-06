@@ -19,12 +19,13 @@ function useMobileReceiptScan({
     initialTransaction,
     iouType,
     isMultiScanEnabled = false,
-    isStartingScan = false,
+    isStartingScan,
     receiptFiles,
     navigateToConfirmationStep,
     shouldSkipConfirmation,
     setStartLocationPermissionFlow,
     setIsMultiScanEnabled,
+    setReceiptFiles,
 }: UseMobileReceiptScanParams) {
     const [shouldStartLocationPermissionFlow] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, {
         selector: shouldStartLocationPermissionFlowSelector,
@@ -78,7 +79,10 @@ function useMobileReceiptScan({
         }
         removeTransactionReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
         removeDraftTransactionsByIDs(draftTransactionIDs, true);
-        setIsMultiScanEnabled?.(!isMultiScanEnabled);
+        if (isMultiScanEnabled) {
+            setReceiptFiles([]);
+        }
+        setIsMultiScanEnabled(!isMultiScanEnabled);
     }
 
     function dismissMultiScanEducationalPopup() {

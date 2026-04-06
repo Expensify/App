@@ -2043,6 +2043,7 @@ function isOldDotLegacyAction(action: OldDotReportAction | PartialReportAction):
         CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_QUICK_BOOKS,
         CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REQUESTED,
         CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP,
+        CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
     ].some((oldDotActionName) => oldDotActionName === action?.actionName);
 }
 
@@ -2073,6 +2074,7 @@ function isOldDotReportAction(action: ReportAction | OldDotReportAction) {
         CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_QUICK_BOOKS,
         CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REQUESTED,
         CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP,
+        CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
     ].some((oldDotActionName) => oldDotActionName === action.actionName);
 }
 
@@ -2338,11 +2340,6 @@ function getReportActionMessageFragments(translate: LocalizedTranslate, action: 
 
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DESCRIPTION)) {
         const message = getWorkspaceDescriptionUpdatedMessage(translate, action);
-        return [{text: message, html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}];
-    }
-
-    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REIMBURSED)) {
-        const message = getReportActionMessageText(action);
         return [{text: message, html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}];
     }
 
