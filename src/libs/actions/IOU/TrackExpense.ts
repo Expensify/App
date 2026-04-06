@@ -1836,15 +1836,15 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
 
     if (!requestMoneyInformation.isRetry) {
         highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transaction.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
+        const navigationReportID = backToReport ?? activeReportID;
+        handleNavigateAfterExpenseCreate({
+            activeReportID: navigationReportID,
+            transactionID: transaction.transactionID,
+            isFromGlobalCreate,
+            shouldHandleNavigation,
+            shouldAddPendingNewTransactionIDs: navigationReportID === chatReport.reportID,
+        });
     }
-    const navigationActiveReportID = backToReport ?? activeReportID;
-    handleNavigateAfterExpenseCreate({
-        activeReportID: navigationActiveReportID,
-        shouldAddPendingNewTransactionIDs: navigationActiveReportID === chatReport.reportID,
-        transactionID: transaction.transactionID,
-        isFromGlobalCreate,
-        shouldHandleNavigation: shouldHandleNavigation && !requestMoneyInformation.isRetry,
-    });
 
     if (activeReportID && !isMoneyRequestReport) {
         Navigation.setNavigationActionToMicrotaskQueue(() =>
