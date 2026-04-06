@@ -818,7 +818,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 <MenuItemWithTopDescription
                     shouldShowRightIcon={!shouldDisableRename}
                     interactive={!shouldDisableRename}
-                    title={StringUtils.lineBreaksToSpaces(reportName)}
+                    title={reportName}
                     titleStyle={styles.newKansasLarge}
                     titleContainerStyle={shouldDisableRename && styles.alignItemsCenter}
                     shouldCheckActionAllowedOnPress={false}

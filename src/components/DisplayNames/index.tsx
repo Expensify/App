@@ -21,8 +21,11 @@ function DisplayNames({
     const {translate} = useLocalize();
     const title = useMemo(() => {
         const processedTitle = shouldParseFullTitle ? Parser.htmlToText(fullTitle) : fullTitle;
-        return StringUtils.lineBreaksToSpaces(processedTitle) || translate('common.hidden');
-    }, [fullTitle, shouldParseFullTitle, translate]);
+        // Only convert line breaks to spaces when numberOfLines is exactly 1 (single-line mode).
+        // For multi-line (numberOfLines > 1) or unlimited (numberOfLines === 0) we preserve line breaks.
+        const finalTitle = numberOfLines === 1 ? StringUtils.lineBreaksToSpaces(processedTitle) : processedTitle;
+        return finalTitle || translate('common.hidden');
+    }, [fullTitle, shouldParseFullTitle, numberOfLines, translate]);
 
     if (!tooltipEnabled) {
         return (
