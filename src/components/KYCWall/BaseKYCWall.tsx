@@ -69,7 +69,7 @@ function KYCWall({
 
     const {formatPhoneNumber} = useLocalize();
     const currentUserDetails = useCurrentUserPersonalDetails();
-    const currentUserAccountID = currentUserDetails.accountID ?? CONST.DEFAULT_NUMBER_ID;
+    const currentUserAccountID = currentUserDetails.accountID;
     const currentUserEmail = currentUserDetails.email ?? '';
     const reportPreviewAction = useParentReportAction(iouReport);
     const personalDetails = usePersonalDetails();
