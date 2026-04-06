@@ -21,6 +21,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
+import IntlStore from '@src/languages/IntlStore';
 
 const mockCompleteOnboarding = jest.mocked(completeOnboarding);
 
@@ -66,6 +67,7 @@ describe('OnboardingPurpose Page', () => {
         Onyx.init({
             keys: ONYXKEYS,
         });
+        return IntlStore.load(CONST.LOCALES.EN);
     });
 
     beforeEach(() => {
