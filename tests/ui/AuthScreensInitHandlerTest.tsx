@@ -18,6 +18,8 @@ import type {ReportAttributesDerivedValue} from '@src/types/onyx';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
+import IntlStore from '@src/languages/IntlStore';
+import CONST from '@src/CONST';
 
 const TEST_ACCOUNT_ID = 1;
 
@@ -135,6 +137,7 @@ function renderAuthScreensInitHandler() {
 describe('AuthScreensInitHandler', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
+        return IntlStore.load(CONST.LOCALES.EN);
     });
 
     beforeEach(async () => {
