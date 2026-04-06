@@ -17,7 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getFormattedCreated} from '@libs/TransactionUtils';
+import {getFormattedCreated, hasReceipt} from '@libs/TransactionUtils';
 import {setMoneyRequestCreated, updateMoneyRequestDate} from '@userActions/IOU';
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
 import CONST from '@src/CONST';
@@ -91,7 +91,7 @@ function IOURequestStepDate({
 
         const isTransactionDraft = shouldUseTransactionDraft(action);
 
-        setMoneyRequestCreated(transactionID, newCreated, isTransactionDraft);
+        setMoneyRequestCreated(transactionID, newCreated, isTransactionDraft, hasReceipt(transaction));
 
         if (isEditing) {
             updateMoneyRequestDate({

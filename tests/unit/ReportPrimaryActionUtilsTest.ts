@@ -152,6 +152,40 @@ describe('getPrimaryAction', () => {
             }),
         ).toBe(CONST.REPORT.PRIMARY_ACTIONS.SUBMIT);
     });
+    it('should return SUBMIT option for zero amount transaction', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        } as unknown as Report;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const policy = {
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
+        };
+        const transaction = {
+            reportID: `${REPORT_ID}`,
+            amount: 0,
+            merchant: 'Merchant',
+            date: '2025-01-01',
+        } as unknown as Transaction;
+
+        expect(
+            getReportPrimaryAction({
+                currentUserLogin: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                report,
+                chatReport,
+                reportTransactions: [transaction],
+                violations: {},
+                bankAccountList: {},
+                policy: policy as Policy,
+                isChatReportArchived: false,
+            }),
+        ).toBe(CONST.REPORT.PRIMARY_ACTIONS.SUBMIT);
+    });
     it('should not return SUBMIT option for admin with only pending transactions', async () => {
         const report = {
             reportID: REPORT_ID,
@@ -469,6 +503,39 @@ describe('getPrimaryAction', () => {
                 isChatReportArchived: false,
             }),
         ).toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
+    });
+
+    it('should not return PAY for expense report with only non-reimbursable transactions when total is 0', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            total: 0,
+            nonReimbursableTotal: 0,
+        } as unknown as Report;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const policy = {
+            role: CONST.POLICY.ROLE.ADMIN,
+        };
+        const transaction = {
+            reportID: `${REPORT_ID}`,
+            reimbursable: false,
+        } as unknown as Transaction;
+
+        expect(
+            getReportPrimaryAction({
+                currentUserLogin: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                report,
+                chatReport,
+                reportTransactions: [transaction],
+                violations: {},
+                bankAccountList: {},
+                policy: policy as Policy,
+                isChatReportArchived: false,
+            }),
+        ).not.toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
     });
 
     it('should return EXPORT TO ACCOUNTING for finished reports', async () => {
@@ -924,6 +991,42 @@ describe('getPrimaryAction', () => {
                 chatReport,
                 reportTransactions: [transaction],
                 violations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [violation]},
+                bankAccountList: {},
+                policy: policy as Policy,
+                isChatReportArchived: false,
+            }),
+        ).toBe('');
+    });
+
+    it('should not return SUBMIT when smartscan failed with missing fields before violation is written', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        } as unknown as Report;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const policy = {
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE,
+        };
+        const TRANSACTION_ID = 'TRANSACTION_ID';
+        const transaction = {
+            transactionID: TRANSACTION_ID,
+            reportID: `${REPORT_ID}`,
+            iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+            receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+            merchant: '',
+        } as unknown as Transaction;
+
+        expect(
+            getReportPrimaryAction({
+                currentUserLogin: CURRENT_USER_EMAIL,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                report,
+                chatReport,
+                reportTransactions: [transaction],
+                violations: {},
                 bankAccountList: {},
                 policy: policy as Policy,
                 isChatReportArchived: false,

@@ -1,0 +1,26 @@
+diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
+index 8b75322..dd2d3bc 100644
+--- a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
++++ b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
+@@ -74,6 +74,10 @@ const RecyclerViewComponent = (props, ref) => {
+         if (internalViewRef.current && firstChildViewRef.current) {
+             // Measure the outer container size and inner container layout
+             const outerViewSize = measureParentSize(internalViewRef.current);
++            if (outerViewSize.width === 0 && outerViewSize.height === 0) {
++                containerViewSizeRef.current = outerViewSize;
++                return;
++            }
+             const firstChildViewLayout = measureFirstChildLayout(firstChildViewRef.current, internalViewRef.current);
+             containerViewSizeRef.current = outerViewSize;
+             // firstChildViewLayout is already relative to the outer container,
+@@ -103,6 +107,10 @@ const RecyclerViewComponent = (props, ref) => {
+         if (pendingChildIds.size > 0) {
+             return;
+         }
++        if (((_a = containerViewSizeRef.current) === null || _a === void 0 ? void 0 : _a.width) === 0 &&
++            ((_b = containerViewSizeRef.current) === null || _b === void 0 ? void 0 : _b.height) === 0) {
++            return;
++        }
+         const layoutInfo = Array.from(refHolder, ([index, viewHolderRef]) => {
+             const layout = measureItemLayout(viewHolderRef.current, recyclerViewManager.tryGetLayout(index));
+             // comapre height with stored layout

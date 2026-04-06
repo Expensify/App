@@ -9,17 +9,23 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import Navigation from '@libs/Navigation/Navigation';
+import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {PersonalDetails} from '@src/types/onyx';
+import type {PersonalDetails, Report, ReportAction} from '@src/types/onyx';
 import {translateLocal} from '../utils/TestHelper';
 
 // Mock Navigation to avoid actual navigation calls
 jest.mock('@libs/Navigation/Navigation', () => ({
     getReportRHPActiveRoute: jest.fn(),
     navigate: jest.fn(),
+}));
+
+// Mock showContextMenu to verify it's called with correct parameters
+jest.mock('@pages/inbox/report/ContextMenu/ReportActionContextMenu', () => ({
+    showContextMenu: jest.fn(),
 }));
 
 // Simplify react-native-render-html children renderer to just echo the provided data
@@ -92,17 +98,26 @@ jest.mock('@libs/Log', () => ({
     info: jest.fn(),
 }));
 
-function withProvider(children: ReactNode) {
+type ContextMenuStateOverrides = {
+    report?: Report;
+    action?: ReportAction;
+    originalReportID?: string;
+    isDisabled?: boolean;
+    shouldDisplayContextMenu?: boolean;
+};
+
+function withProvider(children: ReactNode, overrides: ContextMenuStateOverrides = {}) {
     return (
         <OnyxListItemProvider>
             <ShowContextMenuStateContext.Provider
                 value={{
                     anchor: null,
-                    report: undefined,
+                    report: overrides.report,
                     isReportArchived: false,
-                    action: undefined,
-                    isDisabled: true,
-                    shouldDisplayContextMenu: false,
+                    action: overrides.action,
+                    isDisabled: overrides.isDisabled ?? true,
+                    shouldDisplayContextMenu: overrides.shouldDisplayContextMenu ?? false,
+                    originalReportID: overrides.originalReportID,
                 }}
             >
                 <ShowContextMenuActionsContext.Provider
@@ -265,5 +280,56 @@ describe('MentionUserRenderer', () => {
         const tnode = buildTNode({accountID: '202'});
         renderMention({tnode});
         expect(screen.getByText('@user@test.com')).toBeVisible();
+    });
+
+    test('passes originalReportID to showContextMenu on long press', () => {
+        // Given a MentionUserRenderer with originalReportID in context
+        const mockReportID = '12345';
+        const mockOriginalReportID = '67890';
+        const mockReportActionID = 'action123';
+        const mockReport = {reportID: mockReportID} as Report;
+        const mockAction = {reportActionID: mockReportActionID} as ReportAction;
+
+        mockPersonalDetails = {
+            301: {login: 'test@example.com', displayName: 'Test User'},
+        };
+        const tnode = buildTNode({accountID: '301'});
+
+        const Component = MentionUserRenderer as unknown as ComponentType<{
+            tnode: TText;
+            TDefaultRenderer: () => null;
+            style: Record<string, unknown>;
+        }>;
+
+        render(
+            withProvider(
+                <Component
+                    tnode={tnode}
+                    TDefaultRenderer={() => null}
+                    style={{}}
+                />,
+                {
+                    report: mockReport,
+                    action: mockAction,
+                    originalReportID: mockOriginalReportID,
+                    isDisabled: false,
+                    shouldDisplayContextMenu: true,
+                },
+            ),
+        );
+
+        // When the user long presses the mention
+        const mention = screen.getByTestId('mention-user');
+        fireEvent(mention, 'longPress', {});
+
+        // Then showContextMenu should be called with the originalReportID
+        expect(showContextMenu).toHaveBeenCalledWith(
+            expect.objectContaining({
+                report: expect.objectContaining({
+                    reportID: mockReportID,
+                    originalReportID: mockOriginalReportID,
+                }),
+            }),
+        );
     });
 });

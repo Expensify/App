@@ -1,7 +1,8 @@
 import React, {memo, useCallback, useContext, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import Animated, {FadeIn, LayoutAnimationConfig, useSharedValue} from 'react-native-reanimated';
+import ActivityIndicator from '@components/ActivityIndicator';
 import AttachmentCarousel from '@components/Attachments/AttachmentCarousel';
 import {AttachmentCarouselPagerActionsContext, AttachmentCarouselPagerStateContext} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import type {AttachmentCarouselPagerActionsContextType, AttachmentCarouselPagerStateContextType} from '@components/Attachments/AttachmentCarousel/Pager/types';
@@ -10,7 +11,6 @@ import useAttachmentErrors from '@components/Attachments/AttachmentView/useAttac
 import type {Attachment} from '@components/Attachments/types';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -330,7 +330,15 @@ function AttachmentModalBaseContent({
                 subTitleLink={currentAttachmentLink ?? ''}
             />
             <View style={[styles.imageModalImageCenterContainer, attachmentViewContainerStyles]}>
-                {isLoading && <FullScreenLoadingIndicator testID="attachment-loading-spinner" />}
+                {isLoading && (
+                    <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
+                        <ActivityIndicator
+                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                            testID="attachment-loading-spinner"
+                            reasonAttributes={{context: 'AttachmentModalBaseContent'}}
+                        />
+                    </View>
+                )}
                 {shouldShowNotFoundPage && !isLoading && (
                     <BlockingView
                         icon={illustrations.ToddBehindCloud}

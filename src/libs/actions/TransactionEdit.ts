@@ -1,18 +1,19 @@
 import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
-import type {Connection, OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {Connection, OnyxEntry} from 'react-native-onyx';
 import {formatCurrentUserToAttendee} from '@libs/IOUUtils';
+import revokeOdometerImageUri from '@libs/OdometerImageUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Transaction} from '@src/types/onyx';
-import {generateTransactionID, getDraftTransactions} from './Transaction';
+import {generateTransactionID} from './Transaction';
 
 let connection: Connection;
 
 /**
  * Makes a backup copy of a transaction object that can be restored when the user cancels editing a transaction.
  */
-function createBackupTransaction(transaction: OnyxEntry<Transaction>, isDraft: boolean) {
+function createBackupTransaction(transaction: OnyxEntry<Transaction>, isDraft: boolean, shouldAlwaysCreateFreshBackup = false) {
     if (!transaction) {
         return;
     }
@@ -24,6 +25,15 @@ function createBackupTransaction(transaction: OnyxEntry<Transaction>, isDraft: b
     const newTransaction = {
         ...transaction,
     };
+
+    // When shouldAlwaysCreateFreshBackup is true, skip reading the existing backup entirely and directly overwrite it.
+    // This avoids a race condition where connectWithoutView would fall back to reading from AsyncStorage (which may still
+    // contain a stale backup from a previous session even if the cache entry was dropped), restoring corrupted data.
+    if (shouldAlwaysCreateFreshBackup) {
+        Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transaction.transactionID}`, newTransaction);
+        return;
+    }
+
     // We need to read the old transaction backup first before writing a new one, otherwise we might overwrite an existing backup. It does not update impact UI rendering since this function is called on page mount.
     const conn = Onyx.connectWithoutView({
         key: `${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transaction.transactionID}`,
@@ -99,34 +109,28 @@ function removeDraftSplitTransaction(transactionID: string | undefined) {
     Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, null);
 }
 
-function removeDraftTransactions(shouldExcludeInitialTransaction = false, allTransactionDrafts?: OnyxCollection<Transaction>) {
-    const draftTransactions = getDraftTransactions(allTransactionDrafts);
-    const draftTransactionsSet = draftTransactions.reduce(
-        (acc, item) => {
-            if (shouldExcludeInitialTransaction && item.transactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
-                return acc;
-            }
-            acc[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${item.transactionID}`] = null;
-            return acc;
-        },
-        {} as Record<string, null>,
-    );
-    Onyx.multiSet(draftTransactionsSet);
-}
-
-function removeDraftTransactionsByIDs(transactionIDs: string[]) {
-    if (!transactionIDs.length) {
-        return;
+function getRemoveDraftTransactionsByIDsData(transactionIDs: string[] | undefined, shouldExcludeInitialTransaction = false): Record<string, null> {
+    if (!transactionIDs?.length) {
+        return {};
     }
 
-    const draftTransactionsSet = transactionIDs.reduce(
+    return transactionIDs.reduce(
         (acc, transactionID) => {
+            if (shouldExcludeInitialTransaction && transactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
+                return acc;
+            }
             acc[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`] = null;
             return acc;
         },
         {} as Record<string, null>,
     );
-    Onyx.multiSet(draftTransactionsSet);
+}
+
+function removeDraftTransactionsByIDs(transactionIDs: string[] | undefined, shouldExcludeInitialTransaction = false) {
+    if (!transactionIDs?.length) {
+        return;
+    }
+    Onyx.multiSet(getRemoveDraftTransactionsByIDsData(transactionIDs, shouldExcludeInitialTransaction));
 }
 
 function replaceDefaultDraftTransaction(transaction: OnyxEntry<Transaction>) {
@@ -183,14 +187,61 @@ function buildOptimisticTransactionAndCreateDraft({initialTransaction, currentUs
     return newTransaction;
 }
 
+function removeBackupTransactionWithImageCleanup(transactionID: string | undefined, isDraft: boolean, onComplete?: () => void) {
+    if (!transactionID) {
+        return;
+    }
+    const backupConn = Onyx.connectWithoutView({
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`,
+        callback: (backupTransaction) => {
+            Onyx.disconnect(backupConn);
+            const currentConn = Onyx.connectWithoutView({
+                key: `${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                callback: (currentTransaction) => {
+                    Onyx.disconnect(currentConn);
+                    revokeOdometerImageUri(backupTransaction?.comment?.odometerStartImage, currentTransaction?.comment?.odometerStartImage);
+                    revokeOdometerImageUri(backupTransaction?.comment?.odometerEndImage, currentTransaction?.comment?.odometerEndImage);
+                    removeBackupTransaction(transactionID);
+                    onComplete?.();
+                },
+            });
+        },
+    });
+}
+
+function restoreOriginalTransactionFromBackupWithImageCleanup(transactionID: string | undefined, isDraft: boolean, onComplete?: () => void) {
+    if (!transactionID) {
+        return;
+    }
+    connection = Onyx.connectWithoutView({
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`,
+        callback: (backupTransaction) => {
+            Onyx.disconnect(connection);
+            const currentConn = Onyx.connectWithoutView({
+                key: `${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+                callback: (currentTransaction) => {
+                    Onyx.disconnect(currentConn);
+                    revokeOdometerImageUri(currentTransaction?.comment?.odometerStartImage, backupTransaction?.comment?.odometerStartImage);
+                    revokeOdometerImageUri(currentTransaction?.comment?.odometerEndImage, backupTransaction?.comment?.odometerEndImage);
+                    Onyx.set(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, backupTransaction ?? null);
+                    removeBackupTransaction(transactionID);
+                    onComplete?.();
+                },
+            });
+        },
+    });
+}
+
 export {
     createBackupTransaction,
     removeBackupTransaction,
+    removeBackupTransactionWithImageCleanup,
     restoreOriginalTransactionFromBackup,
+    restoreOriginalTransactionFromBackupWithImageCleanup,
     createDraftTransaction,
     removeDraftTransaction,
     removeTransactionReceipt,
-    removeDraftTransactions,
+    getRemoveDraftTransactionsByIDsData,
     removeDraftTransactionsByIDs,
     removeDraftSplitTransaction,
     replaceDefaultDraftTransaction,
