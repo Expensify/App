@@ -21,7 +21,6 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {createNewReport} from '@libs/actions/Report';
-import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import Navigation from '@libs/Navigation/Navigation';
 import type {NewReportWorkspaceSelectionNavigatorParamList} from '@libs/Navigation/types';
@@ -41,6 +40,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import getCreateReportRoute from '@libs/Navigation/helpers/getCreateReportRoute';
 
 type WorkspaceListItem = {
     text: string;
@@ -99,10 +99,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
         }
 
         Navigation.setNavigationActionToMicrotaskQueue(() => {
-            Navigation.navigate(
-                isSearchTopmostFullScreenRoute() ? ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: optimisticReportID}) : ROUTES.REPORT_WITH_ID.getRoute(optimisticReportID),
-                {forceReplace: isRHPOnReportInSearch || shouldUseNarrowLayout},
-            );
+            Navigation.navigate(getCreateReportRoute({reportID: optimisticReportID, shouldUseNarrowLayout}), {forceReplace: isRHPOnReportInSearch || shouldUseNarrowLayout});
         });
     };
 

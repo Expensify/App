@@ -20,7 +20,6 @@ import {startDistanceRequest, startMoneyRequest} from '@libs/actions/IOU';
 import {openOldDotLink} from '@libs/actions/Link';
 import {createNewReport} from '@libs/actions/Report';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
 import Permissions from '@libs/Permissions';
@@ -33,6 +32,7 @@ import ROUTES from '@src/ROUTES';
 import {primaryLoginSelector} from '@src/selectors/Account';
 import {groupPaidPoliciesWithExpenseChatEnabledSelector} from '@src/selectors/Policy';
 import type * as OnyxTypes from '@src/types/onyx';
+import getCreateReportRoute from '@libs/Navigation/helpers/getCreateReportRoute';
 
 function QuickCreationActionsBar() {
     const styles = useThemeStyles();
@@ -120,11 +120,8 @@ function QuickCreationActionsBar() {
                 shouldDismissEmptyReportsConfirmation,
             );
             Navigation.setNavigationActionToMicrotaskQueue(() => {
-                Navigation.navigate(
-                    isSearchTopmostFullScreenRoute()
-                        ? ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()})
-                        : ROUTES.REPORT_WITH_ID.getRoute(createdReportID, undefined, undefined, Navigation.getActiveRoute()),
-                );
+               Navigation.navigate(getCreateReportRoute({reportID: createdReportID}));
+
             });
         },
         [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicy, isASAPSubmitBetaEnabled, allBetas],

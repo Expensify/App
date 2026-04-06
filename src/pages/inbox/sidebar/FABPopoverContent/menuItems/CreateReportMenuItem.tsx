@@ -10,7 +10,6 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {createNewReport} from '@libs/actions/Report';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultChatEnabledPolicy, isPaidGroupPolicy, shouldShowPolicy} from '@libs/PolicyUtils';
 import {hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
@@ -25,6 +24,7 @@ import ROUTES from '@src/ROUTES';
 import {sessionEmailAndAccountIDSelector} from '@src/selectors/Session';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import getCreateReportRoute from '@libs/Navigation/helpers/getCreateReportRoute';
 
 const ITEM_ID = CONST.FAB_MENU_ITEM_IDS.CREATE_REPORT;
 
@@ -99,12 +99,8 @@ function CreateReportMenuItem() {
             shouldDismissEmptyReportsConfirmation,
         );
         Navigation.setNavigationActionToMicrotaskQueue(() => {
-            Navigation.navigate(
-                isSearchTopmostFullScreenRoute()
-                    ? ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()})
-                    : ROUTES.REPORT_WITH_ID.getRoute(createdReportID, undefined, undefined, Navigation.getActiveRoute()),
-                {forceReplace: isReportInSearch},
-            );
+          Navigation.navigate(getCreateReportRoute({reportID: createdReportID, shouldUseNarrowLayout}), {forceReplace: isReportInSearch});
+
         });
     };
 
