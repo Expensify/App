@@ -17,7 +17,7 @@ import Git from './utils/Git';
 import {log, error as logError, info as logInfo, success as logSuccess, warn as logWarn} from './utils/Logger';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment
-const ReactCompilerConfig = require('./utils/reactCompilerConfig');
+const ReactCompilerConfig = require('../config/babel/reactCompilerConfig');
 
 type CompilationResult = 'compiled' | 'failed' | 'no-components';
 

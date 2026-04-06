@@ -13,7 +13,10 @@
  */
 import {transformSync} from '@babel/core';
 import _ from 'lodash';
-import ReactCompilerConfig from '../scripts/utils/reactCompilerConfig.js';
+import {createRequire} from 'module';
+
+const require = createRequire(import.meta.url);
+const ReactCompilerConfig = require('../config/babel/reactCompilerConfig');
 
 // Rules that are entirely unnecessary when React Compiler successfully compiles
 // all functions in a file. Add more rules here as needed.

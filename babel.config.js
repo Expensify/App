@@ -1,6 +1,6 @@
 require('dotenv').config();
 
-const BaseReactCompilerConfig = require('./scripts/utils/reactCompilerConfig');
+const BaseReactCompilerConfig = require('./config/babel/reactCompilerConfig');
 
 const ReactCompilerConfig = {
     ...BaseReactCompilerConfig,
