@@ -66,6 +66,7 @@ import {
     getRemovedCardFeedMessage,
     getRenamedAction,
     getRenamedCardFeedMessage,
+    getReportAction,
     getReportActionActorAccountID,
     getReportActionHtml,
     getReportActionMessageText,
@@ -819,8 +820,7 @@ function getLastMessageTextForReport({
         lastMessageTextFromReport = getExportIntegrationLastMessageText(translate, lastReportAction);
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED) {
         // RECEIPT_SCAN_FAILED is submitted by Concierge, so use the IOU action to determine edit permission
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const iouAction = reportID ? deprecatedAllSortedReportActions[reportID]?.find((action) => isMoneyRequestAction(action)) : undefined;
+        const iouAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
         lastMessageTextFromReport = translate('violations.smartscanFailed', {canEdit: wasActionTakenByCurrentUser(iouAction)});
     } else if (lastReportAction?.actionName && isOldDotReportAction(lastReportAction)) {
         lastMessageTextFromReport = getMessageOfOldDotReportAction(translate, lastReportAction, false);

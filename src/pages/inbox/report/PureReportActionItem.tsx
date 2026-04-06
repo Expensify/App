@@ -123,6 +123,7 @@ import {
     getRemovedFromApprovalChainMessage,
     getRenamedAction,
     getRenamedCardFeedMessage,
+    getReportAction,
     getReportActionMessage,
     getReportActionText,
     getSetAutoJoinMessage,
@@ -1699,7 +1700,8 @@ function PureReportActionItem({
             children = <ExportIntegration action={action} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED)) {
             // RECEIPT_SCAN_FAILED is submitted by Concierge, so use the IOU action to determine edit permission
-            children = <ReportActionItemBasicMessage message={translate('violations.smartscanFailed', {canEdit: wasActionTakenByCurrentUser(parentReportActionForTransactionThread)})} />;
+            const iouAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
+            children = <ReportActionItemBasicMessage message={translate('violations.smartscanFailed', {canEdit: wasActionTakenByCurrentUser(iouAction)})} />;
         } else if (isRenamedAction(action)) {
             const message = getRenamedAction(translate, action, isExpenseReport(report));
             children = <ReportActionItemBasicMessage message={message} />;
