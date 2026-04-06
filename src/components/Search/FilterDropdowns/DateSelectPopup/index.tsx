@@ -151,14 +151,14 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
                         onDateValuesChange={updateRangeText}
                         onRangeValidationErrorChange={setShouldShowRangeError}
                     />
+                    {shouldShowRangeError && (
+                        <FormHelpMessage
+                            isError
+                            message={translate('search.errors.pleaseSelectDatesForBothFromAndTo')}
+                            style={[styles.mh5, styles.mt2]}
+                        />
+                    )}
                 </View>
-                {shouldShowRangeError && (
-                    <FormHelpMessage
-                        isError
-                        message={translate('search.errors.pleaseSelectDatesForBothFromAndTo')}
-                        style={[styles.mh5, styles.mt2]}
-                    />
-                )}
                 <View style={[styles.flexRow, styles.gap2, useRangeLayout ? styles.mh5 : styles.ph5, useRangeLayout && styles.alignItemsCenter, useRangeLayout && styles.pt1]}>
                     {useRangeLayout && (
                         <View style={[styles.flex1, styles.mr2]}>
