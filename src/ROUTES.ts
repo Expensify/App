@@ -126,13 +126,17 @@ const DYNAMIC_ROUTES = {
     },
     SETTINGS_CONTACT_METHOD_DETAILS: {
         path: 'details',
-        entryScreens: [SCREENS.SETTINGS.PROFILE.CONTACT_METHODS, SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD],
+        entryScreens: [SCREENS.SETTINGS.PROFILE.CONTACT_METHODS, SCREENS.SETTINGS.PROFILE.DYNAMIC_NEW_CONTACT_METHOD],
         getRoute: (contactMethod: string, shouldSkipInitialValidation?: boolean) =>
             getUrlWithParams('details', {
                 contactMethod,
                 shouldSkipInitialValidation: shouldSkipInitialValidation ? 'true' : undefined,
             }),
         queryParams: ['contactMethod', 'shouldSkipInitialValidation'],
+    },
+    SETTINGS_NEW_CONTACT_METHOD: {
+        path: 'new-contact-method',
+        entryScreens: [SCREENS.SETTINGS.PROFILE.CONTACT_METHODS, SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE],
     },
     WORKSPACE_OVERVIEW_PLAN: {
         path: 'plan',
@@ -669,12 +673,6 @@ const ROUTES = {
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (backTo?: string) => getUrlWithBackToParam('settings/profile/contact-methods', backTo),
-    },
-    SETTINGS_NEW_CONTACT_METHOD: {
-        route: 'settings/profile/contact-methods/new',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/profile/contact-methods/new', backTo),
     },
     SETTINGS_NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE: {
         route: 'settings/profile/contact-methods/new/confirm-magic-code',

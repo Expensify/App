@@ -10,6 +10,7 @@ import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -17,21 +18,16 @@ import {addErrorMessage, getLatestErrorField} from '@libs/ErrorUtils';
 import {getPhoneLogin, validateNumber} from '@libs/LoginUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {addNewContactMethod, clearContactMethod, clearUnvalidatedNewContactMethodAction, setServerErrorsOnForm, updateIsVerifiedValidateActionCode} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewContactMethodForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type NewContactMethodPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD>;
-
-function NewContactMethodPage({route}: NewContactMethodPageProps) {
+function NewContactMethodPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const loginInputRef = useRef<AnimatedTextInputRef>(null);
@@ -39,7 +35,7 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [pendingContactAction] = useOnyx(ONYXKEYS.PENDING_CONTACT_ACTION);
     const [validateActionCode] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
-    const navigateBackTo = route?.params?.backTo;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.SETTINGS_NEW_CONTACT_METHOD.path);
     const loginData = pendingContactAction?.contactMethod ? loginList?.[pendingContactAction?.contactMethod] : undefined;
     const validateLoginError = getLatestErrorField(loginData, 'addedLogin');
     const validateActionCodeError = getLatestErrorField(validateActionCode, 'addedLogin');
@@ -111,8 +107,8 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
     );
 
     const onBackButtonPress = useCallback(() => {
-        Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(navigateBackTo));
-    }, [navigateBackTo]);
+        Navigation.goBack(backPath);
+    }, [backPath]);
 
     useEffect(() => {
         if (!pendingContactAction?.actionVerified || !pendingContactAction?.contactMethod) {
@@ -120,7 +116,7 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
         }
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(addSMSDomainIfPhoneNumber(pendingContactAction?.contactMethod), true)));
         clearUnvalidatedNewContactMethodAction();
-    }, [pendingContactAction?.actionVerified, pendingContactAction?.contactMethod, navigateBackTo]);
+    }, [pendingContactAction?.actionVerified, pendingContactAction?.contactMethod]);
 
     return (
         <ScreenWrapper

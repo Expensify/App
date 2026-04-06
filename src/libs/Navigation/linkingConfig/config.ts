@@ -430,10 +430,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             exact: true,
                         },
                         [SCREENS.SETTINGS.PROFILE.DYNAMIC_CONTACT_METHOD_DETAILS]: DYNAMIC_ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.path,
-                        [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD]: {
-                            path: ROUTES.SETTINGS_NEW_CONTACT_METHOD.route,
-                            exact: true,
-                        },
+                        [SCREENS.SETTINGS.PROFILE.DYNAMIC_NEW_CONTACT_METHOD]: DYNAMIC_ROUTES.SETTINGS_NEW_CONTACT_METHOD.path,
                         [SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE]: {
                             path: ROUTES.SETTINGS_NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE.route,
                             exact: true,
