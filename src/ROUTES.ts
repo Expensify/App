@@ -129,7 +129,7 @@ const DYNAMIC_ROUTES = {
         entryScreens: [SCREENS.WORKSPACE.PROFILE],
     },
     WORKSPACE_OVERVIEW_ADDRESS: {
-        path: 'address',
+        path: 'workspace-address',
         entryScreens: [SCREENS.WORKSPACE.PROFILE],
     },
     WORKSPACE_INVITE: {
