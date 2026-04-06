@@ -75,10 +75,6 @@ function checkReactCompilerCompliance(source: string, filename: string): Compila
     return 'no-components';
 }
 
-function isReactFile(filePath: string): boolean {
-    return FILE_EXTENSIONS.some((ext) => filePath.endsWith(ext));
-}
-
 /**
  * Check specific files and report per-file status.
  */
@@ -86,7 +82,7 @@ function checkFiles(files: string[], verbose: boolean): boolean {
     let hasFailure = false;
 
     for (const file of files) {
-        if (!isReactFile(file)) {
+        if (!FILE_EXTENSIONS.some((ext) => file.endsWith(ext))) {
             if (verbose) {
                 logInfo(`SKIPPED  ${file} (not a .ts/.tsx file)`);
             }
@@ -131,7 +127,7 @@ async function checkChangedFiles(remote: string, verbose: boolean): Promise<bool
     const mainBaseCommitHash = await Git.getMainBranchCommitHash(remote);
     const changedFiles = await Git.getChangedFilesWithStatus(mainBaseCommitHash);
 
-    const reactFiles = changedFiles.filter((f) => isReactFile(f.filename) && f.status !== 'removed');
+    const reactFiles = changedFiles.filter((f) => FILE_EXTENSIONS.some((ext) => f.filename.endsWith(ext)) && f.status !== 'removed');
 
     if (reactFiles.length === 0) {
         logSuccess('No React files changed, skipping check.');
