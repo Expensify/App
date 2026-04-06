@@ -344,7 +344,7 @@ function MoneyRequestConfirmationListFooter({
 
     const currency = isDistanceRequest ? distanceRateCurrency : (iouCurrencyCode ?? CONST.CURRENCY.USD); // TO DO: Unify currency source once we remove the old flow
     const decimals = getCurrencyDecimals(currency);
-    const transactionAmount = convertToFrontendAmountAsString(amount, currency);
+    const transactionAmount = convertToFrontendAmountAsString(amount, decimals);
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
 
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
