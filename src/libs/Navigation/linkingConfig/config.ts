@@ -1892,7 +1892,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 reservationIndex: (reservationIndex: string) => parseInt(reservationIndex, 10),
                             },
                         },
-                        [SCREENS.TRAVEL.DOMAIN_SELECTOR]: ROUTES.TRAVEL_DOMAIN_SELECTOR.route,
+                        [SCREENS.TRAVEL.DYNAMIC_DOMAIN_SELECTOR]: DYNAMIC_ROUTES.TRAVEL_DOMAIN_SELECTOR.path,
                         [SCREENS.TRAVEL.DYNAMIC_DOMAIN_PERMISSION_INFO]: DYNAMIC_ROUTES.TRAVEL_DOMAIN_PERMISSION_INFO.path,
                         [SCREENS.TRAVEL.DYNAMIC_PUBLIC_DOMAIN_ERROR]: DYNAMIC_ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR.path,
                         [SCREENS.TRAVEL.WORKSPACE_CONFIRMATION]: ROUTES.TRAVEL_WORKSPACE_CONFIRMATION.route,
