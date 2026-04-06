@@ -3495,6 +3495,7 @@ function getParticipantsAccountIDsForDisplay(
     shouldExcludeDeleted = false,
     shouldForceExcludeCurrentUser = false,
     reportMetadataParam?: OnyxEntry<ReportMetadata>,
+    personalDetailsParam: OnyxEntry<PersonalDetailsList> = allPersonalDetails,
 ): number[] {
     const reportParticipants = report?.participants ?? {};
     const reportMetadata = reportMetadataParam ?? getReportMetadata(report?.reportID);
@@ -3505,14 +3506,14 @@ function getParticipantsAccountIDsForDisplay(
 
     for (const entry of participantsEntries) {
         const [accountID] = entry;
-        const personalDetail = allPersonalDetails?.[accountID];
+        const personalDetail = personalDetailsParam?.[accountID];
         if (personalDetail?.login && !personalDetail.isOptimisticPersonalDetail) {
             nonOptimisticLoginMap[personalDetail.login] = true;
         }
     }
 
     participantsEntries = participantsEntries.filter(([accountID]) => {
-        const personalDetail = allPersonalDetails?.[accountID];
+        const personalDetail = personalDetailsParam?.[accountID];
         if (personalDetail?.login && personalDetail.isOptimisticPersonalDetail) {
             return !nonOptimisticLoginMap[personalDetail.login];
         }
@@ -3534,7 +3535,7 @@ function getParticipantsAccountIDsForDisplay(
 
 function getParticipantsList(report: Report, personalDetails: OnyxEntry<PersonalDetailsList>, isRoomMembersList = false, reportMetadata: OnyxEntry<ReportMetadata> = undefined): number[] {
     const shouldExcludeHiddenParticipants = !isGroupChat(report) && !isInvoiceReport(report) && !isMoneyRequestReport(report) && !isMoneyRequest(report) && !isPolicyExpenseChat(report);
-    const chatParticipants = getParticipantsAccountIDsForDisplay(report, isRoomMembersList || shouldExcludeHiddenParticipants, false, false, reportMetadata);
+    const chatParticipants = getParticipantsAccountIDsForDisplay(report, isRoomMembersList || shouldExcludeHiddenParticipants, false, false, reportMetadata, personalDetails);
 
     return chatParticipants.filter((accountID) => {
         const details = personalDetails?.[accountID];
@@ -12969,15 +12970,43 @@ function generateReportAttributes({
     };
 }
 
+type ReportParticipantForDisplay = {
+    accountID: number;
+    details: PersonalDetails;
+    isDisabled: boolean;
+    isPendingDelete: boolean;
+    pendingAction?: PendingAction;
+    role?: ValueOf<typeof CONST.REPORT.ROLE>;
+};
+
 function getReportPersonalDetailsParticipants(report: Report, personalDetailsParam: OnyxEntry<PersonalDetailsList>, reportMetadata: OnyxEntry<ReportMetadata>, isRoomMembersList = false) {
     const chatParticipants = getParticipantsList(report, personalDetailsParam, isRoomMembersList, reportMetadata);
+    const participantsForDisplay = chatParticipants.reduce<ReportParticipantForDisplay[]>((acc, accountID) => {
+        const details = personalDetailsParam?.[accountID];
+        if (!details) {
+            return acc;
+        }
+
+        const pendingChatMember = reportMetadata?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
+        const pendingAction = pendingChatMember?.pendingAction ?? report?.participants?.[accountID]?.pendingAction;
+
+        acc.push({
+            accountID,
+            details,
+            pendingAction,
+            isPendingDelete: pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            isDisabled: !!details.isOptimisticPersonalDetail || pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            role: report?.participants?.[accountID]?.role,
+        });
+
+        return acc;
+    }, []);
+
     return {
         chatParticipants,
-        personalDetailsParticipants: chatParticipants.reduce<Record<number, PersonalDetails>>((acc, accountID) => {
-            const details = personalDetailsParam?.[accountID];
-            if (details) {
-                acc[accountID] = details;
-            }
+        participantsForDisplay,
+        personalDetailsParticipants: participantsForDisplay.reduce<Record<number, PersonalDetails>>((acc, participant) => {
+            acc[participant.accountID] = participant.details;
             return acc;
         }, {}),
     };
