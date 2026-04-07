@@ -6,10 +6,7 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {AuthorizeTransactionCancelConfirmModal} from '@components/MultifactorAuthentication/components/Modals';
 import ScenarioConfigs from '@components/MultifactorAuthentication/config/scenarios';
-import {
-    DeniedTransactionServerFailureScreen,
-    DeniedTransactionSuccessScreen,
-} from '@components/MultifactorAuthentication/config/scenarios/AuthorizeTransaction';
+import {DeniedTransactionServerFailureScreen, DeniedTransactionSuccessScreen} from '@components/MultifactorAuthentication/config/scenarios/AuthorizeTransaction';
 import {useMultifactorAuthentication} from '@components/MultifactorAuthentication/Context';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useBeforeRemove from '@hooks/useBeforeRemove';
@@ -119,7 +116,7 @@ function MultifactorAuthenticationScenarioAuthorizeTransactionPage({route}: Mult
 
     // Automatically navigate away if transaction becomes nullish and we didn't deny it here
     // User must have actioned it on a different device.
-    // Disabling prefer-early-return because I think the affirmative conditional is much easier 
+    // Disabling prefer-early-return because I think the affirmative conditional is much easier
     // to read than inverting it for an early return.
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
