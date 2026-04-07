@@ -4,14 +4,20 @@ import * as API from '@libs/API';
 import type {DetachReceiptParams, ReplaceReceiptParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import {readFileAsync} from '@libs/fileDownload/FileUtils';
+import {navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import {hasDependentTags, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {buildOptimisticDetachReceipt, isInvoiceReport as isInvoiceReportReportUtils} from '@libs/ReportUtils';
 import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import {resolveDetachReceiptConflicts} from '@userActions/RequestConflictUtils';
+import type {IOURequestType, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {ReceiptSource} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {ReplaceReceipt} from '.';
 import {getAllReports, getAllTransactions, getAllTransactionViolations, getPolicyTags, getReceiptError} from '.';
@@ -284,4 +290,57 @@ function replaceReceipt({transactionID, file, source, state, transactionPolicy, 
     API.write(WRITE_COMMANDS.REPLACE_RECEIPT, parameters, {optimisticData, successData, failureData});
 }
 
-export {detachReceipt, replaceReceipt};
+function setMoneyRequestReceipt(transactionID: string, source: string, filename: string, isDraft: boolean, type?: string, isTestReceipt = false, isTestDriveReceipt = false) {
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+        // isTestReceipt = false and isTestDriveReceipt = false are being converted to null because we don't really need to store it in Onyx in those cases
+        receipt: {source, filename, type: type ?? '', isTestReceipt: isTestReceipt ? true : null, isTestDriveReceipt: isTestDriveReceipt ? true : null},
+    });
+}
+
+// eslint-disable-next-line rulesdir/no-negated-variables
+function navigateToStartStepIfScanFileCannotBeRead(
+    receiptFilename: string | undefined,
+    receiptPath: ReceiptSource | undefined,
+    onSuccess: (file: File) => void,
+    requestType: IOURequestType,
+    iouType: IOUType,
+    transactionID: string,
+    reportID: string,
+    receiptType: string | undefined,
+    onFailureCallback?: () => void,
+) {
+    if (!receiptFilename || !receiptPath) {
+        return;
+    }
+
+    const onFailure = () => {
+        setMoneyRequestReceipt(transactionID, '', '', true, '');
+        if (requestType === CONST.IOU.REQUEST_TYPE.MANUAL) {
+            if (onFailureCallback) {
+                onFailureCallback();
+                return;
+            }
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
+            return;
+        }
+        navigateToStartMoneyRequestStep(requestType, iouType, transactionID, reportID);
+    };
+    readFileAsync(receiptPath.toString(), receiptFilename, onSuccess, onFailure, receiptType);
+}
+
+function checkIfScanFileCanBeRead(
+    receiptFilename: string | undefined,
+    receiptPath: ReceiptSource | undefined,
+    receiptType: string | undefined,
+    onSuccess: (file: File) => void,
+    onFailure: () => void,
+) {
+    if (!receiptFilename || !receiptPath) {
+        onFailure();
+        return Promise.resolve();
+    }
+
+    return readFileAsync(receiptPath.toString(), receiptFilename, onSuccess, onFailure, receiptType);
+}
+
+export {checkIfScanFileCanBeRead, detachReceipt, navigateToStartStepIfScanFileCannotBeRead, replaceReceipt, setMoneyRequestReceipt};

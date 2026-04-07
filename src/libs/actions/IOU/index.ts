@@ -36,11 +36,11 @@ import DateUtils from '@libs/DateUtils';
 import {registerDeferredWrite} from '@libs/deferredLayoutWrite';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
-import {isLocalFile, readFileAsync} from '@libs/fileDownload/FileUtils';
+import {isLocalFile} from '@libs/fileDownload/FileUtils';
 import type {MinimalTransaction} from '@libs/Formula';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {getGPSRoutes, getGPSWaypoints} from '@libs/GPSDraftDetailsUtils';
-import {calculateAmount as calculateIOUAmount, formatCurrentUserToAttendee, navigateToStartMoneyRequestStep, updateIOUOwnerAndTotal} from '@libs/IOUUtils';
+import {calculateAmount as calculateIOUAmount, formatCurrentUserToAttendee, updateIOUOwnerAndTotal} from '@libs/IOUUtils';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
@@ -1355,13 +1355,6 @@ function setMoneyRequestParticipants(transactionID: string, participants: Partic
 
 function setMoneyRequestReportID(transactionID: string, reportID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {reportID});
-}
-
-function setMoneyRequestReceipt(transactionID: string, source: string, filename: string, isDraft: boolean, type?: string, isTestReceipt = false, isTestDriveReceipt = false) {
-    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
-        // isTestReceipt = false and isTestDriveReceipt = false are being converted to null because we don't really need to store it in Onyx in those cases
-        receipt: {source, filename, type: type ?? '', isTestReceipt: isTestReceipt ? true : null, isTestDriveReceipt: isTestDriveReceipt ? true : null},
-    });
 }
 
 /**
@@ -8855,52 +8848,6 @@ function setMoneyRequestTaxRateValues(transactionID: string, taxRateValues: TaxR
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {...taxRateValues});
 }
 
-// eslint-disable-next-line rulesdir/no-negated-variables
-function navigateToStartStepIfScanFileCannotBeRead(
-    receiptFilename: string | undefined,
-    receiptPath: ReceiptSource | undefined,
-    onSuccess: (file: File) => void,
-    requestType: IOURequestType,
-    iouType: IOUType,
-    transactionID: string,
-    reportID: string,
-    receiptType: string | undefined,
-    onFailureCallback?: () => void,
-) {
-    if (!receiptFilename || !receiptPath) {
-        return;
-    }
-
-    const onFailure = () => {
-        setMoneyRequestReceipt(transactionID, '', '', true, '');
-        if (requestType === CONST.IOU.REQUEST_TYPE.MANUAL) {
-            if (onFailureCallback) {
-                onFailureCallback();
-                return;
-            }
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
-            return;
-        }
-        navigateToStartMoneyRequestStep(requestType, iouType, transactionID, reportID);
-    };
-    readFileAsync(receiptPath.toString(), receiptFilename, onSuccess, onFailure, receiptType);
-}
-
-function checkIfScanFileCanBeRead(
-    receiptFilename: string | undefined,
-    receiptPath: ReceiptSource | undefined,
-    receiptType: string | undefined,
-    onSuccess: (file: File) => void,
-    onFailure: () => void,
-) {
-    if (!receiptFilename || !receiptPath) {
-        onFailure();
-        return Promise.resolve();
-    }
-
-    return readFileAsync(receiptPath.toString(), receiptFilename, onSuccess, onFailure, receiptType);
-}
-
 /** Save the preferred payment method for a policy or personal DM */
 function savePreferredPaymentMethod(
     policyID: string | undefined,
@@ -10983,9 +10930,7 @@ export {
     getIOURequestPolicyID,
     getReportOriginalCreationTimestamp,
     initMoneyRequest,
-    checkIfScanFileCanBeRead,
     dismissModalAndOpenReportInInboxTab,
-    navigateToStartStepIfScanFileCannotBeRead,
     completePaymentOnboarding,
     payInvoice,
     payMoneyRequest,
@@ -11015,7 +10960,6 @@ export {
     setMoneyRequestReportID,
     setMoneyRequestPendingFields,
     setMultipleMoneyRequestParticipantsFromReport,
-    setMoneyRequestReceipt,
     setMoneyRequestTag,
     setMoneyRequestTaxAmount,
     setMoneyRequestTaxRate,
