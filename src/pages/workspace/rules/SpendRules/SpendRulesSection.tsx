@@ -1,5 +1,6 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
@@ -10,13 +11,15 @@ import useDefaultFundID from '@hooks/useDefaultFundID';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getSpendRuleFormValuesFromCardRule} from '@libs/actions/Card';
-import {filterInactiveCards, getCardDescriptionForSearchTable, isCard} from '@libs/CardUtils';
+import {openPolicyExpensifyCardsPage} from '@libs/actions/Policy/Policy';
+import {filterInactiveCards, getCardDescriptionForSearchTable, getSelectedCardsCurrency, isCard} from '@libs/CardUtils';
 import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -25,7 +28,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SpendRuleForm} from '@src/types/form';
-import type {WorkspaceCardsList} from '@src/types/onyx';
 
 type SpendRulesSectionProps = {
     policyID: string;
@@ -68,27 +70,6 @@ function getSpendRuleSummaryParts(
     return summaryParts;
 }
 
-function getSelectedCardsCurrency(cardIDs: string[], cardsList: WorkspaceCardsList | undefined): string | undefined {
-    const currencies = new Set<string>();
-
-    for (const cardID of cardIDs) {
-        const card = cardsList?.[cardID];
-        if (!card || !isCard(card)) {
-            continue;
-        }
-
-        if (typeof card.nameValuePairs?.currency === 'string' && card.nameValuePairs.currency) {
-            currencies.add(String(card.nameValuePairs.currency));
-        }
-    }
-
-    if (currencies.size !== 1) {
-        return undefined;
-    }
-
-    return Array.from(currencies).at(0);
-}
-
 function SpendRulesSection({policyID}: SpendRulesSectionProps) {
     const {preferredLocale, translate} = useLocalize();
     const styles = useThemeStyles();
@@ -99,10 +80,17 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
     const {showConfirmModal} = useConfirmModal();
     const illustrations = useMemoizedLazyIllustrations(['ExpensifyCardProtectionIllustration']);
     const {isProduction} = useEnvironment();
+    const {isOffline} = useNetwork();
     const defaultFundID = useDefaultFundID(policyID);
     const [expensifyCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+
+    useEffect(() => {
+        openPolicyExpensifyCardsPage(policyID, defaultFundID);
+    }, [policyID, defaultFundID]);
+
+    const isCardSettingsLoading = !isOffline && (!expensifyCardSettings || expensifyCardSettings.isLoading) && !expensifyCardSettings?.hasOnceLoaded;
 
     const showBuiltInProtectionModal = () => {
         showConfirmModal({
@@ -217,46 +205,59 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
                 onPress={showBuiltInProtectionModal}
                 shouldShowRightIcon
             />
-            {createdRules.map((rule) => (
-                <MenuItem
-                    key={rule.ruleID}
-                    wrapperStyle={[styles.borderedContentCard, styles.mt2, styles.ph4, styles.pv4]}
-                    titleComponent={
-                        <View>
-                            {rule.summaryParts.map((part) => (
-                                <View
-                                    key={part.text}
-                                    style={[styles.flexRow, styles.gap2, styles.alignItemsStart, styles.mb2]}
-                                >
-                                    <Badge
-                                        text={part.badgeLabel}
-                                        badgeStyles={[styles.ml0, styles.justifyContentCenter, StyleUtils.getMinimumWidth(40)]}
-                                        error={!part.isNeutral && rule.isBlock}
-                                        success={!part.isNeutral && !rule.isBlock}
-                                        isCondensed
-                                    />
-                                    <Text
-                                        style={[styles.flex1, styles.flexShrink1, styles.themeTextColor]}
-                                        numberOfLines={2}
+            {isCardSettingsLoading ? (
+                <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.mt5, styles.mb3]}>
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                        reasonAttributes={{
+                            context: 'SpendRulesSection',
+                            isOffline,
+                            hasOnceLoaded: !!expensifyCardSettings?.hasOnceLoaded,
+                        }}
+                    />
+                </View>
+            ) : (
+                createdRules.map((rule) => (
+                    <MenuItem
+                        key={rule.ruleID}
+                        wrapperStyle={[styles.borderedContentCard, styles.mt2, styles.ph4, styles.pv4]}
+                        titleComponent={
+                            <View>
+                                {rule.summaryParts.map((part) => (
+                                    <View
+                                        key={part.text}
+                                        style={[styles.flexRow, styles.gap2, styles.alignItemsStart, styles.mb2]}
                                     >
-                                        {part.text}
-                                    </Text>
-                                </View>
-                            ))}
-                            <Text
-                                style={[styles.textLabelSupporting, styles.fontSizeLabel]}
-                                numberOfLines={2}
-                            >
-                                {rule.cardSummary}
-                            </Text>
-                        </View>
-                    }
-                    accessibilityLabel={`${rule.summaryParts.map((part) => `${part.badgeLabel}. ${part.text}`).join('. ')}. ${rule.cardSummary}`}
-                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_ITEM}
-                    onPress={() => Navigation.navigate(ROUTES.RULES_SPEND_EDIT.getRoute(policyID, rule.ruleID))}
-                    shouldShowRightIcon
-                />
-            ))}
+                                        <Badge
+                                            text={part.badgeLabel}
+                                            badgeStyles={[styles.ml0, styles.justifyContentCenter, StyleUtils.getMinimumWidth(40)]}
+                                            error={!part.isNeutral && rule.isBlock}
+                                            success={!part.isNeutral && !rule.isBlock}
+                                            isCondensed
+                                        />
+                                        <Text
+                                            style={[styles.flex1, styles.flexShrink1, styles.themeTextColor]}
+                                            numberOfLines={2}
+                                        >
+                                            {part.text}
+                                        </Text>
+                                    </View>
+                                ))}
+                                <Text
+                                    style={[styles.textLabelSupporting, styles.fontSizeLabel]}
+                                    numberOfLines={2}
+                                >
+                                    {rule.cardSummary}
+                                </Text>
+                            </View>
+                        }
+                        accessibilityLabel={`${rule.summaryParts.map((part) => `${part.badgeLabel}. ${part.text}`).join('. ')}. ${rule.cardSummary}`}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_ITEM}
+                        shouldShowRightIcon
+                        onPress={() => Navigation.navigate(ROUTES.RULES_SPEND_EDIT.getRoute(policyID, rule.ruleID))}
+                    />
+                ))
+            )}
             {!isProduction && (
                 <MenuItem
                     title={translate('workspace.rules.spendRules.addSpendRule')}

@@ -867,6 +867,7 @@ const CONST = {
         PERSONAL_CARD_IMPORT: 'personalCardImport',
         SUGGESTED_FOLLOWUPS: 'suggestedFollowups',
         FREEZE_CARD: 'freezeCard',
+        GUSTO: 'gustoNewDot',
         BULK_EDIT: 'bulkEdit',
         NEW_MANUAL_EXPENSE_FLOW: 'newManualExpenseFlow',
     },
@@ -4552,7 +4553,7 @@ const CONST = {
     FORM_CHARACTER_LIMIT: 50,
     STANDARD_LENGTH_LIMIT: 100,
     STANDARD_LIST_ITEM_LIMIT: 12,
-    APPROVAL_WORKFLOW_SEARCH_LIMIT: 3,
+    SEARCH_BAR_THRESHOLD: 3,
     LEGAL_NAMES_CHARACTER_LIMIT: 150,
     LOGIN_CHARACTER_LIMIT: 254,
     CATEGORY_NAME_LIMIT: 256,
@@ -6028,11 +6029,13 @@ const CONST = {
         FLAG_SEVERITY_ASSAULT: 'assault',
     },
     EMOJI_PICKER_TEXT_INPUT_SIZES: 152,
+    EMOJI_PICKER_SKIN_TONE_LIST_HEIGHT: 56,
     TEXT_INPUT_SYMBOL_POSITION: {
         PREFIX: 'prefix',
         SUFFIX: 'suffix',
     },
     QR: {
+        DEFAULT_LOGO_SIZE: 120,
         DEFAULT_LOGO_SIZE_RATIO: 0.25,
         DEFAULT_LOGO_MARGIN_RATIO: 0.02,
         EXPENSIFY_LOGO_SIZE_RATIO: 0.22,
@@ -6118,6 +6121,8 @@ const CONST = {
         NAVIGATION: 'navigation',
         /** Use for Tooltips */
         TOOLTIP: 'tooltip',
+        /** Use for dialog/modal elements */
+        DIALOG: 'dialog',
         /** Use for data table containers. */
         TABLE: 'table',
         /** Use for table rows. */
@@ -8472,9 +8477,9 @@ const CONST = {
             SIGN_UP: 'sign_up',
             WORKSPACE_CREATED: 'workspace_created',
             PAID_ADOPTION: 'paid_adoption',
-            PRODUCT_TRAINING_SCAN_TEST_TOOLTIP_SHOWN: 'prod_training_scan_test_tooltip_shown',
-            PRODUCT_TRAINING_SCAN_TEST_TOOLTIP_DISMISSED: 'prod_training_scan_test_tooltip_dismissed',
-            PRODUCT_TRAINING_SCAN_TEST_TOOLTIP_CONFIRMED: 'prod_training_scan_test_tooltip_confirmed',
+            PRODUCT_TRAINING_SCAN_TEST_TOOLTIP_SHOWN: 'training_scan_test_tooltip_shown',
+            PRODUCT_TRAINING_SCAN_TEST_TOOLTIP_DISMISSED: 'training_scan_test_tooltip_dismissed',
+            PRODUCT_TRAINING_SCAN_TEST_TOOLTIP_CONFIRMED: 'training_scan_test_tooltip_confirmed',
         },
     },
 
@@ -8558,6 +8563,7 @@ const CONST = {
             isExtraSmallScreenWidth: false,
             isSmallScreen: false,
             onboardingIsMediumOrLargerScreenWidth: false,
+            isInLandscapeMode: false,
         } as ResponsiveLayoutResult,
     },
 
@@ -9467,6 +9473,9 @@ const CONST = {
         PROFILE_PAGE: {
             AVATAR: 'ProfilePage-Avatar',
         },
+        SAFE_AREA: {
+            DISMISS_KEYBOARD_LANDSCAPE_MODE: 'SafeArea-DismissKeyboardLandscapeMode',
+        },
     },
 
     DOMAIN: {
@@ -9527,6 +9536,8 @@ const CONST = {
     CACHE_NAME: {
         AUTH_IMAGES: 'auth-images',
     },
+
+    MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE: 0.75,
 } as const;
 
 const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS = [

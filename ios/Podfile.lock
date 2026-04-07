@@ -4808,7 +4808,7 @@ SPEC CHECKSUMS:
   GTMAppAuth: f69bd07d68cd3b766125f7e072c45d7340dea0de
   GTMSessionFetcher: 5aea5ba6bd522a239e236100971f10cb71b96ab6
   GzipSwift: 893f3e48e597a1a4f62fafcb6514220fcf8287fa
-  hermes-engine: 197bf260539f6ee9f1156cb60db44a05533d1975
+  hermes-engine: 6bc8fb50f6b2eb191c5be0f853dc1b2f63dbce95
   libavif: 84bbb62fb232c3018d6f1bab79beea87e35de7b7
   libdav1d: 23581a4d8ec811ff171ed5e2e05cd27bad64c39f
   libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8

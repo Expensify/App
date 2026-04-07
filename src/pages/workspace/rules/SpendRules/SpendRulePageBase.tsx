@@ -15,7 +15,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {deleteExpensifyCardRule, getSpendRuleFormValuesFromCardRule, setExpensifyCardRule} from '@libs/actions/Card';
 import {clearDraftSpendRule, setDraftSpendRule, updateDraftSpendRule} from '@libs/actions/User';
-import {filterInactiveCards, getCardDescriptionForSearchTable, isCard} from '@libs/CardUtils';
+import {filterInactiveCards, getCardDescriptionForSearchTable, getSelectedCardsCurrency, isCard} from '@libs/CardUtils';
 import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
@@ -112,19 +112,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
 
     const categoriesMenuTitle = categories.map((category) => translate(`workspace.rules.spendRules.categoryOptions.${category}`)).join(', ');
 
-    const selectedCardsCurrencies = new Set<string>();
-    for (const id of cardIDs ?? []) {
-        const cardValue = cardsList?.[id];
-        if (cardValue === undefined || !isCard(cardValue)) {
-            continue;
-        }
-        if (typeof cardValue.nameValuePairs?.currency === 'string' && cardValue.nameValuePairs.currency) {
-            selectedCardsCurrencies.add(String(cardValue.nameValuePairs.currency));
-        }
-    }
-
-    const hasCurrencyMismatch = !(cardIDs?.length ?? 0) || selectedCardsCurrencies.size > 1;
-    const selectedCurrency = selectedCardsCurrencies.size === 1 ? Array.from(selectedCardsCurrencies).at(0) : undefined;
+    const selectedCurrency = getSelectedCardsCurrency(cardIDs, cardsList);
     const parsedMaxAmount = Number.parseFloat(maxAmount);
     const maxAmountMenuTitle = Number.isFinite(parsedMaxAmount) ? convertToDisplayString(convertToBackendAmount(parsedMaxAmount), selectedCurrency ?? CONST.CURRENCY.USD) : '';
 
@@ -276,7 +264,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                         description={translate('workspace.rules.spendRules.maxAmount')}
                         onPress={() => {
                             clearError();
-                            if (hasCurrencyMismatch) {
+                            if (!selectedCurrency) {
                                 openCurrencyMismatchModal();
                                 return;
                             }

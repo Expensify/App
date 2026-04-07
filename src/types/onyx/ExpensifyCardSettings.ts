@@ -80,7 +80,7 @@ type ExpensifyCardRuleFilter = {
     operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
 
     /** The right side of the filter condition */
-    right: ExpensifyCardRuleFilter | string[];
+    right: ExpensifyCardRuleFilter | string[] | string;
 };
 
 /** Expensify card rule data model */
