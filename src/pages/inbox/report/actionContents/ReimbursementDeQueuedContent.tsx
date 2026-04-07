@@ -3,9 +3,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import {getReimbursementDeQueuedOrCanceledActionMessage} from '@libs/ReportUtils';
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
-import CONST from '@src/CONST';
+import type CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {ReportAction} from '@src/types/onyx';
 
 type ReimbursementDeQueuedContentProps = {
     action: OnyxTypes.ReportAction;
@@ -16,7 +15,7 @@ function ReimbursementDeQueuedContent({action, report}: ReimbursementDeQueuedCon
     const {translate} = useLocalize();
     const message = getReimbursementDeQueuedOrCanceledActionMessage(
         translate,
-        action as OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED | typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED>>,
+        action as OnyxEntry<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED | typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED>>,
         report,
     );
 

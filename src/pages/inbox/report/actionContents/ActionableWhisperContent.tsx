@@ -87,6 +87,7 @@ function ActionableWhisperContent({
     const {translate, getLocalDateFromDatetime} = useLocalize();
 
     const reportActionReport = originalReport ?? report;
+    const reportPolicyID = report?.policyID;
 
     // eslint-disable-next-line react-hooks/preserve-manual-memoization
     const buttons: ActionableItem[] = useMemo(() => {
@@ -156,7 +157,7 @@ function ActionableWhisperContent({
             return [];
         }
         const actionableMentionWhisperOptions: ActionableItem[] = [];
-        const isReportInPolicy = !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE && personalPolicyID !== report.policyID;
+        const isReportInPolicy = !!reportPolicyID && reportPolicyID !== CONST.POLICY.ID_FAKE && personalPolicyID !== reportPolicyID;
         const hasMentionedPolicyMembers = getOriginalMessage(action)?.inviteeEmails?.every((login) => isPolicyMember(policy, login)) ?? false;
 
         if ((isPolicyAdmin(policy) || isPolicyOwner(policy, currentUserAccountID)) && isReportInPolicy && !isSystemUserMentioned(action) && !hasMentionedPolicyMembers) {
@@ -197,7 +198,7 @@ function ActionableWhisperContent({
         isOriginalReportArchived,
         resolveActionableReportMentionWhisper,
         resolveActionableMentionWhisper,
-        report?.policyID,
+        reportPolicyID,
     ]);
 
     if (isActionableCardFraudAlert(action)) {
