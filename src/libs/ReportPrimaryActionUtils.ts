@@ -61,7 +61,6 @@ import {
     isDuplicate,
     isOnHold as isOnHoldTransactionUtils,
     isPending,
-    isPendingCardOrScanningTransaction,
     isScanning,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
     shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
@@ -138,7 +137,7 @@ function isSubmitAction(
         return false;
     }
 
-    if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPendingCardOrScanningTransaction(transaction))) {
+    if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isScanning(transaction) || isPending(transaction))) {
         return false;
     }
 
