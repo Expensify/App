@@ -96,7 +96,7 @@ function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps)
         }
     }
 
-    const hasCurrencyMismatch = !(cardIDs?.length ?? 0) || selectedCardsCurrencies.size > 1;
+    const hasCurrencyMismatch = selectedCardsCurrencies.size !== 1;
     const selectedCurrency = selectedCardsCurrencies.size === 1 ? Array.from(selectedCardsCurrencies).at(0) : undefined;
     const parsedMaxAmount = Number.parseFloat(maxAmount);
     const maxAmountMenuTitle = Number.isFinite(parsedMaxAmount) ? convertToDisplayString(convertToBackendAmount(parsedMaxAmount), selectedCurrency ?? CONST.CURRENCY.USD) : '';
