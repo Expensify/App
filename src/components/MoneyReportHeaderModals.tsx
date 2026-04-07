@@ -87,6 +87,7 @@ function MoneyReportHeaderModals({reportID, children}: MoneyReportHeaderModalsPr
         // On iOS, delay opening the hold menu until active touch interactions finish to prevent visual glitches
         if (getPlatform() === CONST.PLATFORM.IOS) {
             return new Promise<void>((resolve) => {
+                // eslint-disable-next-line @typescript-eslint/no-deprecated -- InteractionManager is widely used across the codebase (120+ files) and kept alive via a dedicated RN patch
                 InteractionManager.runAfterInteractions(() => {
                     open().then(() => resolve());
                 });
