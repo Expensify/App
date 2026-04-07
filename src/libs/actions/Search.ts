@@ -5,7 +5,7 @@ import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {FormOnyxValues} from '@components/Form/types';
 import type {ContinueActionParams, PaymentMethod, PaymentMethodType} from '@components/KYCWall/types';
-import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {BankAccountMenuItem, BulkPaySelectionData, PaymentData, SearchQueryJSON, SelectedReports, SelectedTransactionInfo, SelectedTransactions} from '@components/Search/types';
@@ -14,6 +14,7 @@ import {waitForWrites} from '@libs/API';
 import type {
     ExportSearchItemsToCSVParams,
     ExportSearchWithTemplateParams,
+    OpenBulkChangeApproverPageParams,
     OpenSearchPageParams,
     ReportExportParams,
     RevertSplitTransactionParams,
@@ -36,6 +37,7 @@ import {
     buildOptimisticExportIntegrationAction,
     buildOptimisticIOUReportAction,
     generateReportID,
+    getParsedComment,
     getReportOrDraftReport,
     getReportTransactions,
     hasHeldExpenses,
@@ -43,6 +45,7 @@ import {
     isInvoiceReport,
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
+import {serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
 import {isTransactionGroupListItemType} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -103,12 +106,12 @@ type HandleActionButtonPressParams = {
     snapshotReport: Report;
     snapshotPolicy: Policy;
     lastPaymentMethod: OnyxEntry<LastPaymentMethod>;
-    userBillingGraceEndPeriods: OnyxCollection<BillingGraceEndPeriod>;
+    userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     currentSearchKey?: SearchKey;
     isDelegateAccessRestricted?: boolean;
     onDelegateAccessRestricted?: () => void;
     personalPolicyID: string | undefined;
-    onUndelete?: () => void;
+    ownerBillingGracePeriodEnd: OnyxEntry<number>;
 };
 
 type BulkDeleteReportsParams = {
@@ -120,9 +123,6 @@ type BulkDeleteReportsParams = {
     reportTransactions: Record<string, Transaction>;
     transactionsViolations: Record<string, TransactionViolations>;
     bankAccountList: OnyxEntry<BankAccountList>;
-    personalPolicy: Pick<Policy, 'id' | 'type' | 'autoReporting' | 'outputCurrency'> | undefined;
-    translate: LocaleContextProps['translate'];
-    toLocaleDigit: LocaleContextProps['toLocaleDigit'];
     transactions?: OnyxCollection<Transaction>;
     allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
 };
@@ -134,19 +134,19 @@ function handleActionButtonPress({
     snapshotReport,
     snapshotPolicy,
     lastPaymentMethod,
-    userBillingGraceEndPeriods,
+    userBillingGracePeriodEnds,
     currentSearchKey,
     isDelegateAccessRestricted,
     onDelegateAccessRestricted,
     personalPolicyID,
-    onUndelete,
+    ownerBillingGracePeriodEnd,
 }: HandleActionButtonPressParams) {
     // The transactionIDList is needed to handle actions taken on `status:""` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
     const allReportTransactions = (isTransactionGroupListItemType(item) ? item.transactions : [item]) as Transaction[];
     const hasHeldExpense = hasHeldExpenses('', allReportTransactions);
 
-    if (hasHeldExpense && item.action !== CONST.SEARCH.ACTION_TYPES.SUBMIT && item.action !== CONST.SEARCH.ACTION_TYPES.UNDELETE) {
+    if (hasHeldExpense && item.action !== CONST.SEARCH.ACTION_TYPES.SUBMIT) {
         goToItem();
         return;
     }
@@ -157,7 +157,7 @@ function handleActionButtonPress({
                 onDelegateAccessRestricted?.();
                 return;
             }
-            if (snapshotReport.policyID && shouldRestrictUserBillableActions(snapshotReport.policyID, userBillingGraceEndPeriods)) {
+            if (snapshotReport.policyID && shouldRestrictUserBillableActions(snapshotReport.policyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(snapshotReport.policyID));
                 return;
             }
@@ -168,14 +168,14 @@ function handleActionButtonPress({
                 onDelegateAccessRestricted?.();
                 return;
             }
-            if (snapshotReport.policyID && shouldRestrictUserBillableActions(snapshotReport.policyID, userBillingGraceEndPeriods)) {
+            if (snapshotReport.policyID && shouldRestrictUserBillableActions(snapshotReport.policyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(snapshotReport.policyID));
                 return;
             }
             approveMoneyRequestOnSearch(hash, item.reportID ? [item.reportID] : [], currentSearchKey);
             return;
         case CONST.SEARCH.ACTION_TYPES.SUBMIT: {
-            if (snapshotReport.policyID && shouldRestrictUserBillableActions(snapshotReport.policyID, userBillingGraceEndPeriods)) {
+            if (snapshotReport.policyID && shouldRestrictUserBillableActions(snapshotReport.policyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(snapshotReport.policyID));
                 return;
             }
@@ -201,9 +201,6 @@ function handleActionButtonPress({
             exportToIntegrationOnSearch(hash, [item.reportID], connectedIntegration, currentSearchKey);
             return;
         }
-        case CONST.SEARCH.ACTION_TYPES.UNDELETE:
-            onUndelete?.();
-            return;
         default:
             goToItem();
     }
@@ -462,6 +459,26 @@ function openSearchCardFiltersPage() {
     API.read(READ_COMMANDS.OPEN_SEARCH_CARD_FILTERS_PAGE, null, {finallyData});
 }
 
+function openBulkChangeApproverPage(reportIDList: OpenBulkChangeApproverPageParams['reportIDList']) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_BULK_CHANGE_APPROVER_PAGE>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_BULK_CHANGE_APPROVER_PAGE,
+            value: true,
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_BULK_CHANGE_APPROVER_PAGE>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_BULK_CHANGE_APPROVER_PAGE,
+            value: false,
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.OPEN_BULK_CHANGE_APPROVER_PAGE, {reportIDList}, {optimisticData, successData});
+}
+
 // Tracks in-flight search requests by hash+offset to prevent duplicate API calls
 // when both page-level (useSearchPageSetup) and Search-internal (handleSearch) effects
 // fire for the same query. Cleared when the request completes.
@@ -498,6 +515,7 @@ function search({
     isOffline = false,
     isLoading,
     shouldUpdateLastSearchParams = true,
+    skipWaitForWrites = false,
 }: {
     queryJSON: SearchQueryJSON;
     searchKey: SearchKey | undefined;
@@ -507,6 +525,14 @@ function search({
     isOffline?: boolean;
     isLoading: boolean;
     shouldUpdateLastSearchParams?: boolean;
+    /**
+     * When true, fires the search API immediately without waiting for pending
+     * writes in the sequential queue. Use for the post-expense-creation flow
+     * where the expense write is deferred and search snapshot data lives in
+     * separate Onyx keys, so there is no risk of the response overwriting
+     * optimistic write data.
+     */
+    skipWaitForWrites?: boolean;
 }) {
     if (isLoading || shouldPreventSearchAPI) {
         return;
@@ -529,7 +555,7 @@ function search({
         // Backend expects 'maximumResults' instead of 'limit'
         ...(limit !== undefined && {maximumResults: limit}),
     };
-    const jsonQuery = JSON.stringify(query);
+    const jsonQuery = serializeQueryJSONForBackend(query);
 
     if (shouldUpdateLastSearchParams) {
         saveLastSearchParams({
@@ -539,9 +565,9 @@ function search({
         });
     }
 
-    return waitForWrites(READ_COMMANDS.SEARCH).then(() => {
+    const startRequest = () =>
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        return API.makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData})
+        API.makeRequestWithSideEffects(READ_COMMANDS.SEARCH, {hash: queryJSON.hash, jsonQuery}, {optimisticData, finallyData, failureData})
             .then((result) => {
                 if (shouldUpdateLastSearchParams) {
                     const response = result?.onyxData?.[0]?.value as OnyxSearchResponse;
@@ -577,7 +603,12 @@ function search({
             .finally(() => {
                 inFlightSearchRequests.delete(dedupeKey);
             });
-    });
+
+    if (skipWaitForWrites) {
+        return startRequest();
+    }
+
+    return waitForWrites(READ_COMMANDS.SEARCH).then(startRequest);
 }
 
 function submitMoneyRequestOnSearch(hash: number, reportList: Report[], policy: Policy[], currentSearchKey?: SearchKey) {
@@ -872,9 +903,6 @@ function bulkDeleteReports({
     reportTransactions,
     transactionsViolations,
     bankAccountList,
-    personalPolicy,
-    translate,
-    toLocaleDigit,
     transactions,
     allReportNameValuePairs,
 }: BulkDeleteReportsParams) {
@@ -935,6 +963,7 @@ function bulkDeleteReports({
             selectedTransactionIDs: batchTransactionIDsForReport.length > 0 ? batchTransactionIDsForReport : undefined,
             allTransactionViolationsParam: transactionsViolations,
             currentUserAccountID: currentUserAccountIDParam,
+            currentUserEmail: currentUserEmailParam,
         });
     }
 
@@ -949,9 +978,6 @@ function bulkDeleteReports({
                 reportTransactions,
                 allTransactionViolations: transactionsViolations,
                 bankAccountList,
-                personalPolicy,
-                translate,
-                toLocaleDigit,
             });
         }
     }
@@ -1152,7 +1178,11 @@ function rejectMoneyRequestInBulk(
 
     API.write(
         WRITE_COMMANDS.REJECT_MONEY_REQUEST_IN_BULK,
-        {reportID, comment, transactionIDToRejectReportAction: JSON.stringify(transactionIDToRejectReportAction)},
+        {
+            reportID,
+            comment: getParsedComment(comment),
+            transactionIDToRejectReportAction: JSON.stringify(transactionIDToRejectReportAction),
+        },
         {optimisticData, successData, failureData, finallyData},
     );
 }
@@ -1487,9 +1517,10 @@ function handleBulkPayItemSelected(params: {
     activeAdminPolicies: Policy[];
     isUserValidated: boolean | undefined;
     isDelegateAccessRestricted: boolean;
-    userBillingGraceEndPeriods: OnyxCollection<BillingGraceEndPeriod>;
+    userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     showDelegateNoAccessModal: () => void;
     amountOwed: OnyxEntry<number>;
+    ownerBillingGracePeriodEnd: OnyxEntry<number>;
     confirmPayment?: (paymentType: PaymentMethodType | undefined, additionalData?: BulkPaySelectionData) => void;
     setPendingPaymentAdditionalData?: (data: BulkPaySelectionData | undefined) => void;
 }) {
@@ -1503,10 +1534,11 @@ function handleBulkPayItemSelected(params: {
         activeAdminPolicies,
         isUserValidated,
         isDelegateAccessRestricted,
-        userBillingGraceEndPeriods,
+        userBillingGracePeriodEnds,
         showDelegateNoAccessModal,
         confirmPayment,
         amountOwed,
+        ownerBillingGracePeriodEnd,
         setPendingPaymentAdditionalData,
     } = params;
     const {paymentType, policyFromPaymentMethod, policyFromContext, shouldSelectPaymentMethod} = getActivePaymentType(item.key, activeAdminPolicies, businessBankAccountOptions, policy?.id);
@@ -1525,7 +1557,7 @@ function handleBulkPayItemSelected(params: {
         return;
     }
 
-    if (policy && shouldRestrictUserBillableActions(policy?.id, userBillingGraceEndPeriods, amountOwed)) {
+    if (policy && shouldRestrictUserBillableActions(policy?.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy?.id));
         return;
     }
@@ -1679,6 +1711,7 @@ export {
     handleActionButtonPress,
     submitMoneyRequestOnSearch,
     openSearchPage as openSearch,
+    openBulkChangeApproverPage,
     getLastPolicyPaymentMethod,
     getLastPolicyBankAccountID,
     exportToIntegrationOnSearch,
