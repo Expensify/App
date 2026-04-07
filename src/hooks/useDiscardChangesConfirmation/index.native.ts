@@ -1,5 +1,5 @@
 import type {NavigationAction} from '@react-navigation/native';
-import {useIsFocused, usePreventRemove} from '@react-navigation/native';
+import {usePreventRemove} from '@react-navigation/native';
 import {useCallback, useRef, useState} from 'react';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -7,14 +7,13 @@ import useLocalize from '@hooks/useLocalize';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type UseDiscardChangesConfirmationOptions from './types';
 
-function useDiscardChangesConfirmation({getHasUnsavedChanges, onVisibilityChange, isEnabled = true}: UseDiscardChangesConfirmationOptions) {
+function useDiscardChangesConfirmation({getHasUnsavedChanges, onVisibilityChange}: UseDiscardChangesConfirmationOptions) {
     const {translate} = useLocalize();
-    const isFocused = useIsFocused();
     const {showConfirmModal} = useConfirmModal();
     const [shouldAllowNavigation, setShouldAllowNavigation] = useState(false);
     const blockedNavigationAction = useRef<NavigationAction | undefined>(undefined);
 
-    const shouldPrevent = isEnabled && isFocused && !shouldAllowNavigation;
+    const shouldPrevent = !shouldAllowNavigation;
 
     usePreventRemove(
         shouldPrevent,

@@ -78,16 +78,16 @@ function MultifactorAuthenticationScenarioAuthorizeTransactionPage({route}: Mult
 
     const onBeforeRemove: Parameters<typeof useBeforeRemove>[0] = useCallback(
         (e) => {
-            if (allowNavigatingAwayRef.current) {
+            if (allowNavigatingAwayRef.current || !transaction || !!denyOutcomeScreen) {
                 return;
             }
             e.preventDefault();
             showConfirmModal();
         },
-        [showConfirmModal],
+        [showConfirmModal, transaction, denyOutcomeScreen],
     );
 
-    useBeforeRemove(onBeforeRemove, !!transaction && !denyOutcomeScreen);
+    useBeforeRemove(onBeforeRemove);
 
     const onApproveTransaction = () => {
         addBreadcrumb('Approve tapped', {transactionID});
