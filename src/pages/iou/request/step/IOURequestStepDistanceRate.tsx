@@ -75,8 +75,7 @@ function IOURequestStepDistanceRate({
     const isDistanceRequest = isDistanceRequestTransactionUtils(currentTransaction);
     const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const isPolicyExpenseChat = isReportInGroupPolicy(report);
-    const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
-    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat || isTrackExpense || isExpenseUnreported(currentTransaction), policy, isDistanceRequest);
+    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat || isExpenseUnreported(currentTransaction), policy, isDistanceRequest);
 
     const currentRateID = getRateID(currentTransaction);
     const transactionCurrency = getCurrency(currentTransaction);
