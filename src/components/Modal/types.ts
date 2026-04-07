@@ -131,6 +131,12 @@ type BaseModalProps = Partial<ReanimatedModalProps> &
          * When `true` or `undefined`, the dismiss control is exposed to accessibility.
          */
         shouldEnableBottomDockedDismissAccessibility?: boolean;
+
+        /**
+         * Whether the modal should wrap the children in a scroll view if it is a bottom docked modal in landscape mode.
+         * Defaults to true.
+         */
+        shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode?: boolean;
     };
 
 export default BaseModalProps;

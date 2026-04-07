@@ -40,6 +40,7 @@ function BasePopoverReactionList({emojiName, reportActionID, currentUserPersonal
             shouldSetModalVisibility={false}
             fullscreen
             anchorRef={reactionListRef}
+            shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
         >
             <BaseReactionList
                 isVisible
