@@ -1,4 +1,5 @@
 import {useRoute} from '@react-navigation/native';
+import React from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
 import MoneyRequestReceiptView from '@components/ReportActionItem/MoneyRequestReceiptView';
