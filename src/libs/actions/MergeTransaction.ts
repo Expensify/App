@@ -1,6 +1,7 @@
 import {deepEqual} from 'fast-equals';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry, OnyxMergeInput, OnyxUpdate} from 'react-native-onyx';
+import type {CurrencyListActionsContextType} from '@components/CurrencyListContextProvider';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as API from '@libs/API';
 import type {GetTransactionsForMergingParams, MergeTransactionParams} from '@libs/API/parameters';
@@ -32,8 +33,9 @@ import {isDistanceRequest, isTransactionPendingDelete} from '@src/libs/Transacti
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {CardList, MergeTransaction, Policy, PolicyCategories, PolicyTagLists, Report, ReportNextStepDeprecated, Transaction, TransactionViolations} from '@src/types/onyx';
-import {getCleanUpTransactionThreadReportOnyxData, getDeleteTrackExpenseInformation, getUpdateMoneyRequestParams, getUpdateTrackExpenseParams} from './IOU';
+import {getCleanUpTransactionThreadReportOnyxData, getUpdateMoneyRequestParams, getUpdateTrackExpenseParams} from './IOU';
 import type {UpdateMoneyRequestData, UpdateMoneyRequestDataKeys} from './IOU';
+import {getDeleteTrackExpenseInformation} from './IOU/TrackExpense';
 
 /**
  * Setup merge transaction data for merging flow
@@ -53,6 +55,7 @@ function setupMergeTransactionDataAndNavigate(
     navigationTransactionID: string,
     transactions: Transaction[],
     localeCompare: LocaleContextProps['localeCompare'],
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     searchReports?: Report[],
     isSelectingSourceTransaction?: boolean,
     isOnSearch?: boolean,
@@ -101,6 +104,7 @@ function setupMergeTransactionDataAndNavigate(
             targetTransaction,
             sourceTransaction,
             localeCompare,
+            getCurrencyDecimals,
             searchReports,
             targetTransactionPolicy,
             sourceTransactionPolicy,
@@ -504,6 +508,7 @@ function mergeTransactionRequest({
                 transactionThreadID: sourceTransactionThreadReportID,
                 shouldDeleteTransactionThread,
                 reportAction: sourceIouAction,
+                currentUserAccountID: currentUserAccountIDParam,
             });
             optimisticSourceReportActionData.push(...cleanUpSourceTransactionThreadReportOnyxData.optimisticData);
             successSourceReportActionData.push(...cleanUpSourceTransactionThreadReportOnyxData.successData);
