@@ -30,11 +30,17 @@ import {getPolicyExpenseChat, getReportOrDraftReport, getTransactionDetails, isM
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getRequestType, getTaxValue, hasReceipt, isDistanceRequest, isExpenseUnreported} from '@libs/TransactionUtils';
 import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
-import {getMoneyRequestParticipantsFromReport, setMoneyRequestAmount, setMoneyRequestParticipantsFromReport, setMoneyRequestTaxAmount, setMoneyRequestTaxRate} from '@userActions/IOU';
+import {
+    getMoneyRequestParticipantsFromReport,
+    setMoneyRequestAmount,
+    setMoneyRequestParticipantsFromReport,
+    setMoneyRequestTaxAmount,
+    setMoneyRequestTaxRate,
+} from '@userActions/IOU';
+import {updateMoneyRequestAmountAndCurrency} from '@userActions/IOU/UpdateMoneyRequest';
 import {sendMoneyElsewhere, sendMoneyWithWallet} from '@userActions/IOU/SendMoney';
 import {resetSplitShares, setDraftSplitTransaction, setSplitShares} from '@userActions/IOU/Split';
 import {trackExpense} from '@userActions/IOU/TrackExpense';
-import {updateMoneyRequestAmountAndCurrency} from '@userActions/IOU/UpdateMoneyRequest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -97,9 +103,7 @@ function IOURequestStepAmount({
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
-        selector: hasSeenTourSelector,
-    });
+    const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const personalPolicy = usePersonalPolicy();
@@ -128,9 +132,7 @@ function IOURequestStepAmount({
     const isUnreportedDistanceExpense = isEditing && isDistanceRequest(transaction) && isExpenseUnreported(transaction);
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const [transactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
-        selector: validTransactionDraftsSelector,
-    });
+    const [transactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
     const draftTransactionIDs = Object.keys(transactionDrafts ?? {});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
 
@@ -399,12 +401,7 @@ function IOURequestStepAmount({
         const taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, newAmount, decimals));
 
         if (isSplitBill) {
-            setDraftSplitTransaction(transactionID, splitDraftTransaction, {
-                amount: newAmount,
-                currency: selectedCurrency,
-                taxCode,
-                taxAmount,
-            });
+            setDraftSplitTransaction(transactionID, splitDraftTransaction, {amount: newAmount, currency: selectedCurrency, taxCode, taxAmount});
             navigateBack();
             return;
         }

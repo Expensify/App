@@ -15,8 +15,8 @@ import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setMoneyRequestTag} from '@libs/actions/IOU';
-import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestTag} from '@libs/actions/IOU/UpdateMoneyRequest';
+import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getTagListName, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, isPolicyAdmin} from '@libs/PolicyUtils';
@@ -106,9 +106,7 @@ function IOURequestStepTag({
         });
 
         if (isEditingSplit) {
-            setDraftSplitTransaction(transactionID, splitDraftTransaction, {
-                tag: updatedTag,
-            });
+            setDraftSplitTransaction(transactionID, splitDraftTransaction, {tag: updatedTag});
             navigateBack();
             return;
         }

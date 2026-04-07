@@ -9,8 +9,8 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import {setMoneyRequestCurrency, setMoneyRequestParticipantsFromReport, setMoneyRequestTaxAmount} from '@libs/actions/IOU';
-import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestTaxAmount} from '@libs/actions/IOU/UpdateMoneyRequest';
+import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {convertToBackendAmount, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
@@ -55,12 +55,7 @@ function IOURequestStepTaxAmountPage({
     transaction,
     report,
 }: IOURequestStepTaxAmountPageProps) {
-    const {policy} = usePolicyForTransaction({
-        transaction,
-        reportPolicyID: report?.policyID,
-        action,
-        iouType,
-    });
+    const {policy} = usePolicyForTransaction({transaction, reportPolicyID: report?.policyID, action, iouType});
 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
@@ -105,9 +100,7 @@ function IOURequestStepTaxAmountPage({
         const taxAmountInSmallestCurrencyUnits = convertToBackendAmount(Number.parseFloat(currentAmount.amount));
 
         if (isEditingSplitBill) {
-            setDraftSplitTransaction(transactionID, splitDraftTransaction, {
-                taxAmount: taxAmountInSmallestCurrencyUnits,
-            });
+            setDraftSplitTransaction(transactionID, splitDraftTransaction, {taxAmount: taxAmountInSmallestCurrencyUnits});
             navigateBack();
             return;
         }

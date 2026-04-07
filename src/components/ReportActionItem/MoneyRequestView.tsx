@@ -349,34 +349,15 @@ function MoneyRequestView({
     const canEditAmount =
         !isGPSDistanceRequest &&
         isEditable &&
-        (canEditFieldOfMoneyRequest({
-            reportAction: parentReportAction,
-            fieldToEdit: CONST.EDIT_REQUEST_FIELD.AMOUNT,
-            isChatReportArchived,
-            transaction,
-        }) ||
+        (canEditFieldOfMoneyRequest({reportAction: parentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.AMOUNT, isChatReportArchived, transaction}) ||
             (shouldShowSplitIndicator && isSplitAvailable));
     const canEditMerchant =
         isEditable &&
-        canEditFieldOfMoneyRequest({
-            reportAction: parentReportAction,
-            fieldToEdit: CONST.EDIT_REQUEST_FIELD.MERCHANT,
-            isChatReportArchived,
-            transaction,
-            report: moneyRequestReport,
-            policy,
-        });
+        canEditFieldOfMoneyRequest({reportAction: parentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.MERCHANT, isChatReportArchived, transaction, report: moneyRequestReport, policy});
 
     const canEditDate =
         isEditable &&
-        canEditFieldOfMoneyRequest({
-            reportAction: parentReportAction,
-            fieldToEdit: CONST.EDIT_REQUEST_FIELD.DATE,
-            isChatReportArchived,
-            transaction,
-            report: moneyRequestReport,
-            policy,
-        });
+        canEditFieldOfMoneyRequest({reportAction: parentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.DATE, isChatReportArchived, transaction, report: moneyRequestReport, policy});
 
     const canEditDistanceOrRate = isPolicyAccessible(policy, currentUserEmailParam) || isTrackExpense || isP2PDistanceRequest;
 
@@ -470,14 +451,7 @@ function MoneyRequestView({
     let amountDescription = `${translate('iou.amount')}`;
     let dateDescription = `${translate('common.date')}`;
 
-    const {
-        unit,
-        rate,
-        name: rateName,
-    } = DistanceRequestUtils.getRate({
-        transaction: updatedTransaction ?? transaction,
-        policy,
-    });
+    const {unit, rate, name: rateName} = DistanceRequestUtils.getRate({transaction: updatedTransaction ?? transaction, policy});
     const distance = getDistanceInMeters(transactionBackup ?? updatedTransaction ?? transaction, unit);
     const currency = transactionCurrency ?? CONST.CURRENCY.USD;
     const hasRequiredCompanyCardViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.COMPANY_CARD_REQUIRED);

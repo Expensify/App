@@ -16,8 +16,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {TaxRatesOption} from '@libs/TaxOptionsListUtils';
 import {calculateTaxAmount, getAmount, getCurrency, getTaxRateTitle, getTaxValue} from '@libs/TransactionUtils';
 import {setMoneyRequestTaxRateValues} from '@userActions/IOU';
-import {setDraftSplitTransaction} from '@userActions/IOU/Split';
 import {updateMoneyRequestTaxRate} from '@userActions/IOU/UpdateMoneyRequest';
+import {setDraftSplitTransaction} from '@userActions/IOU/Split';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -48,12 +48,7 @@ function IOURequestStepTaxRatePage({
 }: IOURequestStepTaxRatePageProps) {
     const {translate} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
-    const {policy} = usePolicyForTransaction({
-        transaction,
-        reportPolicyID: report?.policyID,
-        action,
-        iouType,
-    });
+    const {policy} = usePolicyForTransaction({transaction, reportPolicyID: report?.policyID, action, iouType});
 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
@@ -124,12 +119,7 @@ function IOURequestStepTaxRatePage({
 
         if (isEditing) {
             const newTaxCode = taxes.code;
-            updateMoneyRequestTaxRate({
-                ...updateTaxRateParams,
-                taxCode: newTaxCode,
-                taxValue,
-                taxAmount: convertToBackendAmount(taxAmount ?? 0),
-            });
+            updateMoneyRequestTaxRate({...updateTaxRateParams, taxCode: newTaxCode, taxValue, taxAmount: convertToBackendAmount(taxAmount ?? 0)});
             navigateBack();
             return;
         }
@@ -140,11 +130,7 @@ function IOURequestStepTaxRatePage({
         }
         const amountInSmallestCurrencyUnits = convertToBackendAmount(taxAmount);
 
-        setMoneyRequestTaxRateValues(currentTransaction.transactionID, {
-            taxCode: taxes?.code ?? '',
-            taxAmount: amountInSmallestCurrencyUnits,
-            taxValue,
-        });
+        setMoneyRequestTaxRateValues(currentTransaction.transactionID, {taxCode: taxes?.code ?? '', taxAmount: amountInSmallestCurrencyUnits, taxValue});
 
         navigateBack();
     };

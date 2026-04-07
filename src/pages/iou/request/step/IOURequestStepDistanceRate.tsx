@@ -13,9 +13,15 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getIOURequestPolicyID, setMoneyRequestDistanceRate, setMoneyRequestTaxAmount, setMoneyRequestTaxRate, setMoneyRequestTaxValue} from '@libs/actions/IOU';
-import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
+import {
+    getIOURequestPolicyID,
+    setMoneyRequestDistanceRate,
+    setMoneyRequestTaxAmount,
+    setMoneyRequestTaxRate,
+    setMoneyRequestTaxValue,
+} from '@libs/actions/IOU';
 import {updateMoneyRequestDistanceRate} from '@libs/actions/IOU/UpdateMoneyRequest';
+import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -65,13 +71,7 @@ function IOURequestStepDistanceRate({
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
 
-    const {policy} = usePolicyForTransaction({
-        transaction,
-        reportPolicyID: report?.policyID,
-        action,
-        iouType,
-        policyDraft,
-    });
+    const {policy} = usePolicyForTransaction({transaction, reportPolicyID: report?.policyID, action, iouType, policyDraft});
 
     const styles = useThemeStyles();
     const {translate, toLocaleDigit, localeCompare} = useLocalize();
@@ -81,7 +81,8 @@ function IOURequestStepDistanceRate({
     const isDistanceRequest = isDistanceRequestTransactionUtils(currentTransaction);
     const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const isPolicyExpenseChat = isReportInGroupPolicy(report);
-    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat || isExpenseUnreported(currentTransaction), policy, isDistanceRequest);
+    const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
+    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat || isTrackExpense || isExpenseUnreported(currentTransaction), policy, isDistanceRequest);
 
     const currentRateID = getRateID(currentTransaction);
     const transactionCurrency = getCurrency(currentTransaction);
