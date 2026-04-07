@@ -19,10 +19,10 @@ type ImportCategoriesPageProps =
 
 function ImportCategoriesPage({route}: ImportCategoriesPageProps) {
     const policyID = route.params.policyID;
-    const backTo = 'backTo' in route.params ? route.params.backTo : undefined;
     const policy = usePolicy(policyID);
     const hasAccountingConnections = hasAccountingConnectionsUtil(policy);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_IMPORT;
+    const backTo = isQuickSettingsFlow ? route.params.backTo : undefined;
 
     const workspaceCategoriesListBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_IMPORT.path);
     const workspaceGoToImportedPath = appendDynamicRouteSuffixToBasePath(workspaceCategoriesListBackPath, DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_IMPORTED.path);

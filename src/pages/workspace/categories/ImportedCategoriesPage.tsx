@@ -34,7 +34,6 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
     const {containsHeader = true} = spreadsheet ?? {};
     const [isValidationEnabled, setIsValidationEnabled] = useState(false);
     const policyID = route.params.policyID;
-    const backTo = 'backTo' in route.params ? route.params.backTo : undefined;
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
 
     const {setIsClosing} = useCloseImportPage();
@@ -42,6 +41,7 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
     const policy = usePolicy(policyID);
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_IMPORTED;
+    const backTo = isQuickSettingsFlow ? route.params.backTo : undefined;
 
     const categoriesListPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_IMPORTED.path);
     const workspaceBackToImportPath = appendDynamicRouteSuffixToBasePath(categoriesListPath, DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_IMPORT.path);
