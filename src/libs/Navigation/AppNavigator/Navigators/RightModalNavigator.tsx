@@ -29,9 +29,9 @@ import calculateReceiptPaneRHPWidth from '@libs/Navigation/helpers/calculateRece
 import calculateSuperWideRHPWidth from '@libs/Navigation/helpers/calculateSuperWideRHPWidth';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import createRightModalNavigator from '@navigation/AppNavigator/createRightModalNavigator';
 import type {AuthScreensParamList, RightModalNavigatorParamList} from '@navigation/types';
 import {PINContextProvider} from '@pages/MissingPersonalDetails/PINContext';
 import variables from '@styles/variables';
@@ -44,7 +44,7 @@ import Overlay from './Overlay';
 
 type RightModalNavigatorProps = PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.RIGHT_MODAL_NAVIGATOR>;
 
-const Stack = createPlatformStackNavigator<RightModalNavigatorParamList, string>();
+const Stack = createRightModalNavigator<RightModalNavigatorParamList, typeof NAVIGATORS.RIGHT_MODAL_NAVIGATOR>();
 
 const singleRHPWidth = variables.sideBarWidth;
 const getWideRHPWidth = (windowWidth: number) => variables.sideBarWidth + calculateReceiptPaneRHPWidth(windowWidth);
@@ -197,6 +197,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                     {/* Without it, the transparent half of the narrow format RHP card would cover the pressable part of the overlay */}
                     <Animated.View style={[styles.pAbsolute, styles.r0, styles.h100, styles.overflowHidden, animatedWidthStyle]}>
                         <Stack.Navigator
+                            parentRoute={route}
                             screenOptions={screenOptions}
                             screenListeners={screenListeners}
                             id={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
