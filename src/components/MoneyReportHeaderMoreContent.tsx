@@ -1,6 +1,7 @@
 import {useRoute} from '@react-navigation/native';
 import React from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useMoneyReportHeaderStatusBar from '@hooks/useMoneyReportHeaderStatusBar';
 import useNetwork from '@hooks/useNetwork';
@@ -19,6 +20,7 @@ import {isInvoiceReport as isInvoiceReportUtil} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+import type * as OnyxTypes from '@src/types/onyx';
 import MoneyReportHeaderNextStep from './MoneyReportHeaderNextStep';
 import MoneyReportHeaderStatusBarSection from './MoneyReportHeaderStatusBarSection';
 import MoneyRequestReportNavigation from './MoneyRequestReportView/MoneyRequestReportNavigation';
@@ -27,6 +29,10 @@ type MoneyReportHeaderMoreContentProps = {
     reportID: string | undefined;
 };
 
+/**
+ * Cheap visibility gate — fetches minimal data to decide whether the more-content section
+ * should render at all, avoiding expensive hooks in the body when nothing is shown.
+ */
 function MoneyReportHeaderMoreContent({reportID}: MoneyReportHeaderMoreContentProps) {
     const route = useRoute<
         | PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
@@ -53,7 +59,7 @@ function MoneyReportHeaderMoreContent({reportID}: MoneyReportHeaderMoreContentPr
 
     return (
         <MoneyReportHeaderMoreContentBody
-            reportID={reportID}
+            moneyRequestReport={moneyRequestReport}
             statusBarType={statusBarType}
             isReportInSearch={isReportInSearch}
             shouldShowNextStep={shouldShowNextStep}
@@ -62,13 +68,13 @@ function MoneyReportHeaderMoreContent({reportID}: MoneyReportHeaderMoreContentPr
 }
 
 type MoneyReportHeaderMoreContentBodyProps = {
-    reportID: string | undefined;
+    moneyRequestReport: OnyxEntry<OnyxTypes.Report>;
     statusBarType: ValueOf<typeof CONST.REPORT.STATUS_BAR_TYPE> | undefined;
     isReportInSearch: boolean;
     shouldShowNextStep: boolean;
 };
 
-function MoneyReportHeaderMoreContentBody({reportID, statusBarType, isReportInSearch, shouldShowNextStep}: MoneyReportHeaderMoreContentBodyProps) {
+function MoneyReportHeaderMoreContentBody({moneyRequestReport, statusBarType, isReportInSearch, shouldShowNextStep}: MoneyReportHeaderMoreContentBodyProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -76,10 +82,10 @@ function MoneyReportHeaderMoreContentBody({reportID, statusBarType, isReportInSe
     const {isWideRHPDisplayedOnWideLayout, isSuperWideRHPDisplayedOnWideLayout} = useResponsiveLayoutOnWideRHP();
     const shouldDisplayNarrowMoreButton = !shouldDisplayNarrowVersion || isWideRHPDisplayedOnWideLayout || isSuperWideRHPDisplayedOnWideLayout;
 
-    const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const reportID = moneyRequestReport?.reportID;
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID}`);
 
-    const {reportActions: unfilteredReportActions} = usePaginatedReportActions(moneyRequestReport?.reportID);
+    const {reportActions: unfilteredReportActions} = usePaginatedReportActions(reportID);
     const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
 
     const allReportTransactions = useReportTransactionsCollection(reportID);
@@ -106,7 +112,7 @@ function MoneyReportHeaderMoreContentBody({reportID, statusBarType, isReportInSe
             </View>
             {isReportInSearch && (
                 <MoneyRequestReportNavigation
-                    reportID={moneyRequestReport?.reportID}
+                    reportID={reportID}
                     shouldDisplayNarrowVersion={!shouldDisplayNarrowMoreButton}
                 />
             )}
