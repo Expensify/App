@@ -44,7 +44,6 @@ import type {PressableRef} from './Pressable/GenericPressable/types';
 import PressableWithSecondaryInteraction from './PressableWithSecondaryInteraction';
 import RenderHTML from './RenderHTML';
 import ReportActionAvatars from './ReportActionAvatars';
-import SelectCircle from './SelectCircle';
 import Text from './Text';
 import EducationalTooltip from './Tooltip/EducationalTooltip';
 import getContextMenuAccessibilityHint from './utils/getContextMenuAccessibilityHint';
@@ -250,9 +249,6 @@ type MenuItemBaseProps = ForwardedFSClassProps &
 
         /** Should the title show with normal font weight (not bold) */
         shouldShowBasicTitle?: boolean;
-
-        /** Should we make this selectable with a checkbox */
-        shouldShowSelectedState?: boolean;
 
         /** Should we truncate the title */
         shouldTruncateTitle?: boolean;
@@ -533,7 +529,6 @@ function MenuItem({
     characterLimit = 200,
     isLabelHoverable = true,
     rightLabel,
-    shouldShowSelectedState = false,
     isSelected = false,
     shouldStackHorizontally = false,
     shouldShowDescriptionOnTop = false,
@@ -1135,7 +1130,6 @@ function MenuItem({
                                                     </View>
                                                 )}
                                                 {shouldShowRightComponent && rightComponent}
-                                                {shouldShowSelectedState && <SelectCircle isChecked={isSelected} />}
                                                 {shouldShowSelectedItemCheck && isSelected && (
                                                     <Icon
                                                         src={icons.Checkmark}

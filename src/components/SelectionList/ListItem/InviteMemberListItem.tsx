@@ -162,7 +162,7 @@ function InviteMemberListItem<TItem extends ListItem>({
                                 item={item}
                                 onSelectRow={handleCheckboxPress}
                                 disabled={!!isDisabled}
-                                style={[styles.ml2, styles.optionSelectCircle]}
+                                style={styles.ml2}
                             />
                         )}
                     </View>
