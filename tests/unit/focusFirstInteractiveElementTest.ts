@@ -114,6 +114,24 @@ describe('focusFirstInteractiveElement', () => {
             expect(button.style.outline).toBe('');
         });
 
+        it('on first Tab when focus moved away, does not prevent default', () => {
+            const button = document.createElement('button');
+            const container = createContainer(button);
+
+            focusFirstInteractiveElement(container);
+
+            // Simulate focus moving away (e.g., user clicked elsewhere)
+            const otherInput = document.createElement('input');
+            document.body.appendChild(otherInput);
+            otherInput.focus();
+
+            const tabEvent = new KeyboardEvent('keydown', {key: 'Tab', bubbles: true, cancelable: true});
+            const preventSpy = jest.spyOn(tabEvent, 'preventDefault');
+            document.dispatchEvent(tabEvent);
+
+            expect(preventSpy).not.toHaveBeenCalled();
+        });
+
         it('on first non-Tab key, does not prevent default', () => {
             const button = document.createElement('button');
             const container = createContainer(button);
@@ -240,6 +258,35 @@ describe('focusFirstInteractiveElement', () => {
             // Tab should NOT be intercepted — no preventDefault, no re-focus
             expect(preventSpy).not.toHaveBeenCalled();
             expect(focusSpy).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    // This test runs last — after keyboard tests set hadKeyboardEvent = true,
+    // a mousedown resets it back to false, restoring suppression behavior.
+    describe('after mouse resets keyboard flag (mousedown after keydown)', () => {
+        it('restores focus ring suppression and onFirstTab after mousedown', () => {
+            // hadKeyboardEvent is true from previous tests' keydown dispatches.
+            // Mousedown resets it to false.
+            document.dispatchEvent(new MouseEvent('mousedown', {bubbles: true}));
+
+            const button = document.createElement('button');
+            const container = createContainer(button);
+            const focusSpy = jest.spyOn(button, 'focus');
+
+            expect(focusFirstInteractiveElement(container)).toBe(true);
+            expect(focusSpy).toHaveBeenCalledTimes(1);
+            expect(button.getAttribute('data-programmatic-focus')).toBe('true');
+            expect(button.style.outline).toBe('none');
+
+            // Tab should be intercepted — re-focus with visible ring
+            const tabEvent = new KeyboardEvent('keydown', {key: 'Tab', bubbles: true, cancelable: true});
+            const preventSpy = jest.spyOn(tabEvent, 'preventDefault');
+            document.dispatchEvent(tabEvent);
+
+            expect(preventSpy).toHaveBeenCalled();
+            expect(focusSpy).toHaveBeenCalledTimes(2);
+            expect(button.getAttribute('data-programmatic-focus')).toBeNull();
+            expect(button.style.outline).toBe('');
         });
     });
 });
