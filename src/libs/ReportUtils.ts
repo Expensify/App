@@ -5109,15 +5109,13 @@ function canEditReportAction(reportAction: OnyxInputOrEntry<ReportAction>, linke
 }
 
 function canModifyHoldStatus(report: Report, reportAction: ReportAction, currentUserAccountID: number | undefined): boolean {
-    // TODO: Remove fallback once all callers pass currentUserAccountID (https://github.com/Expensify/App/issues/66413)
-    const resolvedCurrentUserAccountID = currentUserAccountID ?? currentUserPersonalDetails?.accountID;
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     if (!isMoneyRequestReport(report) || isTrackExpenseReport(report)) {
         return false;
     }
     const isAdmin = isPolicyAdmin(allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`]);
     const isActionOwner = isActionCreator(reportAction);
-    const isManager = isMoneyRequestReport(report) && report?.managerID !== null && resolvedCurrentUserAccountID === report?.managerID;
+    const isManager = isMoneyRequestReport(report) && report?.managerID !== null && currentUserAccountID === report?.managerID;
 
     if (isIOUReport(report)) {
         return isActionOwner || isManager;
@@ -5138,8 +5136,6 @@ function canHoldUnholdReportAction(
         return {canHoldRequest: false, canUnholdRequest: false};
     }
 
-    // TODO: Remove fallback once all callers pass currentUserAccountID (https://github.com/Expensify/App/issues/66413)
-    const resolvedCurrentUserAccountID = currentUserAccountID ?? currentUserPersonalDetails?.accountID;
     const isRequestSettled = isSettled(report);
     const isApproved = isReportApproved({report});
     const isRequestIOU = isIOUReport(report);
@@ -5147,7 +5143,7 @@ function canHoldUnholdReportAction(
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const isTrackExpenseMoneyReport = isTrackExpenseReport(report);
     const isActionOwner = isActionCreator(reportAction);
-    const isApprover = isMoneyRequestReport(report) && report.managerID !== null && resolvedCurrentUserAccountID === report?.managerID;
+    const isApprover = isMoneyRequestReport(report) && report.managerID !== null && currentUserAccountID === report?.managerID;
     const isAdmin = isPolicyAdminPolicyUtils(policy);
     const isOnHold = isOnHoldTransactionUtils(transaction);
     const isClosed = isClosedReport(report);
@@ -11234,18 +11230,13 @@ function isNonAdminOrOwnerOfPolicyExpenseChat(report: OnyxInputOrEntry<Report>, 
 }
 
 function isAdminOwnerApproverOrReportOwner(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, currentUserAccountID: number | undefined): boolean {
-    // TODO: Remove fallback once all callers pass currentUserAccountID (https://github.com/Expensify/App/issues/66413)
-    const resolvedCurrentUserAccountID = currentUserAccountID ?? currentUserPersonalDetails?.accountID;
-    const isApprover = isMoneyRequestReport(report) && report?.managerID !== null && resolvedCurrentUserAccountID === report?.managerID;
-
+    const isApprover = isMoneyRequestReport(report) && report?.managerID !== null && currentUserAccountID === report?.managerID;
     return isPolicyAdminPolicyUtils(policy) || isPolicyOwner(policy, deprecatedCurrentUserAccountID) || isReportOwner(report) || isApprover;
 }
 
 function isNonOwnerMangerOfIOUReport(report: OnyxEntry<Report>, currentUserAccountID: number | undefined): boolean {
-    // TODO: Remove fallback once all callers pass currentUserAccountID (https://github.com/Expensify/App/issues/66413)
-    const resolvedCurrentUserAccountID = currentUserAccountID ?? currentUserPersonalDetails?.accountID;
-    const isOwner = report?.ownerAccountID === resolvedCurrentUserAccountID;
-    const isManager = report?.managerID === resolvedCurrentUserAccountID;
+    const isOwner = report?.ownerAccountID === currentUserAccountID;
+    const isManager = report?.managerID === currentUserAccountID;
     return isIOUReport(report) && !isOwner && !isManager;
 }
 

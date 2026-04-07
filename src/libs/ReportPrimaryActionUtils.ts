@@ -428,7 +428,7 @@ function getAllExpensesToHoldIfApplicable(
     reportActions: ReportAction[] | undefined,
     reportTransactions: Transaction[],
     policy: OnyxEntry<Policy>,
-    currentUserAccountID: number | undefined = undefined,
+    currentUserAccountID: number | undefined,
 ) {
     if (!report || !reportActions || !hasOnlyHeldExpenses(report?.reportID)) {
         return [];

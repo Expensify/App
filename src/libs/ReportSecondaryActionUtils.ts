@@ -536,7 +536,7 @@ function isHoldAction(
     reportTransactions: Transaction[],
     reportActions: ReportAction[] | undefined,
     policy: OnyxEntry<Policy>,
-    currentUserAccountID: number | undefined = undefined,
+    currentUserAccountID: number | undefined,
 ): boolean {
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions);
     const isOneExpenseReport = reportTransactions.length === 1;
@@ -555,7 +555,7 @@ function isHoldActionForTransaction(
     reportTransaction: Transaction,
     reportAction: ReportAction,
     policy: OnyxEntry<Policy>,
-    currentUserAccountID: number | undefined = undefined,
+    currentUserAccountID: number | undefined,
 ): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
     const isIOUReport = isIOUReportUtils(report);
