@@ -181,7 +181,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
 
     const selectFocusedItem = () => {
         const focusedItem = getFocusedItem();
-        if (!focusedItem) {
+        if (!focusedItem || focusedItem.isInteractive === false) {
             return;
         }
         selectRow(focusedItem);
@@ -363,6 +363,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                         titleNumberOfLines={titleNumberOfLines}
                         shouldUseDefaultRightHandSideComponent={shouldUseDefaultRightHandSideComponent}
                         shouldDisableHoverStyle={shouldDisableHoverStyle}
+                        shouldPreventEnterKeySubmit={!disableKeyboardShortcuts}
                     />
                 );
             }

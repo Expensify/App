@@ -103,7 +103,7 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
     return (
         <>
             {isTripCaptured ? (
-                <View style={[styles.p5, styles.pt0, styles.gap2, styles.flexRow]}>
+                <View style={[styles.gap2, styles.flexRow]}>
                     <Button
                         onPress={() => setShowDiscardConfirmation(true)}
                         allowBubble
@@ -132,7 +132,7 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
                     allowBubble
                     pressOnEnter
                     large
-                    style={[styles.w100, styles.mb5, styles.ph5, styles.flexShrink0]}
+                    style={[styles.w100, styles.flexShrink0]}
                     text={gpsDraftDetails?.isTracking ? translate('gps.stop') : translate('gps.start')}
                     sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.GPS_START_STOP_BUTTON}
                 />

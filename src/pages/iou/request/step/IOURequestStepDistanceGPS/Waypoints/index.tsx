@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -20,9 +21,12 @@ import type {Unit} from '@src/types/onyx/Policy';
 type WaypointsProps = {
     /** Distance unit of the ongoing GPS trip */
     unit: Unit;
+
+    /** Whether the screen is in landscape mode */
+    isInLandscapeMode: boolean;
 };
 
-function Waypoints({unit}: WaypointsProps) {
+function Waypoints({unit, isInLandscapeMode}: WaypointsProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
@@ -43,8 +47,10 @@ function Waypoints({unit}: WaypointsProps) {
 
     const distance = DistanceRequestUtils.convertDistanceUnit(gpsDraftDetails?.distanceInMeters ?? 0, unit).toFixed(1);
 
+    const Wrapper = isInLandscapeMode ? ScrollView : View;
+
     return (
-        <View style={[styles.pt2, styles.pb4]}>
+        <Wrapper style={[styles.pt2, styles.pb4]}>
             <MenuItemWithTopDescription
                 interactive={false}
                 description={translate('common.distance')}
@@ -86,7 +92,7 @@ function Waypoints({unit}: WaypointsProps) {
                     shouldIconUseAutoWidthStyle
                 />
             ) : null}
-        </View>
+        </Wrapper>
     );
 }
 

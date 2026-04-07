@@ -6,8 +6,10 @@ import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import ImageSVG from '@components/ImageSVG';
 import type {MapViewHandle, WayPoint} from '@components/MapView/MapViewTypes';
 import mapUtils from '@components/MapView/utils';
+import ScrollView from '@components/ScrollView';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -16,6 +18,7 @@ import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportAttributes from '@hooks/useReportAttributes';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useTheme from '@hooks/useTheme';
@@ -26,9 +29,8 @@ import {init as initMapboxToken, stop as stopMapboxToken} from '@libs/actions/Ma
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getGPSConvertedDistance, getGPSCoordinates, getGPSWaypoints} from '@libs/GPSDraftDetailsUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {isArchivedReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
+import {isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
-import {getRateID} from '@libs/TransactionUtils';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
@@ -56,9 +58,10 @@ function IOURequestStepDistanceGPS({
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicatorUnfilled', 'Location']);
+    const isInLandscapeMode = useIsInLandscapeMode();
 
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
+    const isArchived = useReportIsArchived(report?.reportID);
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
@@ -82,7 +85,6 @@ function IOURequestStepDistanceGPS({
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const personalPolicy = usePersonalPolicy();
     const policy = usePolicy(report?.policyID);
-    const isArchived = isArchivedReport(reportNameValuePairs);
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -92,7 +94,6 @@ function IOURequestStepDistanceGPS({
 
     const shouldUseDefaultExpensePolicy = shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd);
 
-    const customUnitRateID = getRateID(transaction);
     const unit = DistanceRequestUtils.getRate({transaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy}).unit;
 
     const shouldSkipConfirmation = !skipConfirmation || !report?.reportID ? false : !(isArchived || isPolicyExpenseChatUtils(report));
@@ -116,7 +117,6 @@ function IOURequestStepDistanceGPS({
             reportAttributesDerived,
             personalDetails,
             waypoints,
-            customUnitRateID,
             currentUserLogin: currentUserEmailParam,
             currentUserAccountID: currentUserAccountIDParam,
             backToReport,
@@ -132,7 +132,7 @@ function IOURequestStepDistanceGPS({
             policyRecentlyUsedCurrencies,
             introSelected,
             activePolicyID,
-            privateIsArchived: reportNameValuePairs?.private_isArchived,
+            privateIsArchived: isArchived,
             gpsCoordinates,
             gpsDistance: distance,
             selfDMReport,
@@ -239,39 +239,46 @@ function IOURequestStepDistanceGPS({
             shouldShowNotFoundPage={shouldShowNotFoundPage}
             shouldShowWrapper={!isCreatingNewRequest}
         >
-            <View style={styles.mapViewContainer}>
-                <DistanceMapView
-                    accessToken={mapboxAccessToken?.token ?? ''}
-                    mapPadding={CONST.MAPBOX.PADDING}
-                    pitchEnabled={false}
-                    initialState={{
-                        zoom: CONST.MAPBOX.DEFAULT_ZOOM,
-                        location: waypointMarkers?.at(0)?.coordinate ?? CONST.MAPBOX.DEFAULT_COORDINATE,
-                    }}
-                    style={[styles.mapView, styles.mapEditView]}
-                    overlayStyle={styles.mapEditView}
-                    styleURL={CONST.MAPBOX.STYLE_URL}
-                    waypoints={waypointMarkers}
-                    directionCoordinates={directionCoordinates}
-                    ref={mapRef}
-                />
-            </View>
+            <View style={[styles.flex1, isInLandscapeMode && styles.flexRow, styles.w100]}>
+                <View style={[styles.mapViewContainer, {minHeight: undefined}]}>
+                    <DistanceMapView
+                        accessToken={mapboxAccessToken?.token ?? ''}
+                        mapPadding={CONST.MAPBOX.PADDING}
+                        pitchEnabled={false}
+                        initialState={{
+                            zoom: CONST.MAPBOX.DEFAULT_ZOOM,
+                            location: waypointMarkers?.at(0)?.coordinate ?? CONST.MAPBOX.DEFAULT_COORDINATE,
+                        }}
+                        style={[styles.mapView, styles.mapEditView]}
+                        overlayStyle={styles.mapEditView}
+                        styleURL={CONST.MAPBOX.STYLE_URL}
+                        waypoints={waypointMarkers}
+                        directionCoordinates={directionCoordinates}
+                        ref={mapRef}
+                    />
+                </View>
 
-            <View style={[styles.w100]}>
-                <Waypoints unit={unit} />
-                <DotIndicatorMessage
-                    style={[styles.ph5, styles.pb3]}
-                    messages={getError()}
-                    type="error"
-                />
-                <GPSButtons
-                    navigateToNextStep={navigateToNextStep}
-                    setShouldShowStartError={setShouldShowStartError}
-                    setShouldShowPermissionsError={setShouldShowPermissionsError}
-                    onTripStopped={showFullRouteAfterStopping}
-                    reportID={reportID}
-                    unit={unit}
-                />
+                <View style={[isInLandscapeMode && [styles.flex1, styles.justifyContentEnd]]}>
+                    <Waypoints
+                        unit={unit}
+                        isInLandscapeMode={isInLandscapeMode}
+                    />
+
+                    <View style={[styles.gap3, styles.ph5, isInLandscapeMode ? styles.pv3 : styles.pb5]}>
+                        <DotIndicatorMessage
+                            messages={getError()}
+                            type="error"
+                        />
+                        <GPSButtons
+                            navigateToNextStep={navigateToNextStep}
+                            setShouldShowStartError={setShouldShowStartError}
+                            setShouldShowPermissionsError={setShouldShowPermissionsError}
+                            onTripStopped={showFullRouteAfterStopping}
+                            reportID={reportID}
+                            unit={unit}
+                        />
+                    </View>
+                </View>
             </View>
         </StepScreenWrapper>
     );
