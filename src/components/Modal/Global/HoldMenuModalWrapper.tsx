@@ -1,73 +1,52 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
+import React, {useState} from 'react';
+import DecisionModal from '@components/DecisionModal';
 import useHoldMenuSubmit from '@hooks/useHoldMenuSubmit';
 import type {ActionHandledType} from '@hooks/useHoldMenuSubmit';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import type * as OnyxTypes from '@src/types/onyx';
+import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
-import DecisionModal from './DecisionModal';
+import type {ModalProps} from './ModalContext';
 
-type ProcessMoneyReportHoldMenuProps = {
-    /** The chat report this report is linked to */
-    chatReport: OnyxEntry<OnyxTypes.Report>;
-
-    /** Full amount of expense report to pay */
-    fullAmount: string;
-
-    /** Whether modal is visible */
-    isVisible: boolean;
-
-    /** The report currently being looked at */
-    moneyRequestReport: OnyxEntry<OnyxTypes.Report>;
-
-    /** Not held amount of expense report */
-    nonHeldAmount?: string;
-
-    /** Callback for closing modal */
-    onClose: () => void;
-
-    /** Type of payment */
+type HoldMenuModalWrapperProps = ModalProps & {
+    reportID: string | undefined;
+    chatReportID: string | undefined;
+    requestType: ActionHandledType;
     paymentType?: PaymentMethodType;
-
-    /** Selected VBBA ID for payment */
     methodID?: number;
-
-    /** Type of action handled */
-    requestType?: ActionHandledType;
-
-    /** Number of transaction of a money request */
-    transactionCount: number;
-
-    /** Callback invoked after the user confirms pay/approve, receives whether the full amount was chosen */
-    onConfirm?: (full: boolean) => void;
-
-    /** Whether the report has non held expenses */
+    nonHeldAmount?: string;
+    fullAmount: string;
     hasNonHeldExpenses?: boolean;
-
-    /** Transactions associated with report */
-    transactions?: OnyxTypes.Transaction[];
+    transactionCount: number;
+    onConfirm?: (full: boolean) => void;
 };
 
-function ProcessMoneyReportHoldMenu({
+function HoldMenuModalWrapper({
+    closeModal,
+    reportID,
+    chatReportID,
     requestType,
-    nonHeldAmount = '0',
-    fullAmount,
-    onClose,
-    isVisible,
     paymentType,
     methodID,
-    chatReport,
-    moneyRequestReport,
+    nonHeldAmount = '0',
+    fullAmount,
+    hasNonHeldExpenses,
     transactionCount,
     onConfirm,
-    hasNonHeldExpenses,
-    transactions,
-}: ProcessMoneyReportHoldMenuProps) {
+}: HoldMenuModalWrapperProps) {
+    const [isVisible, setIsVisible] = useState(true);
     const {translate} = useLocalize();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
+
+    const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
+
+    const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
+    const transactions = Object.values(reportTransactions);
 
     const {onSubmit, isApprove} = useHoldMenuSubmit({
         moneyRequestReport,
@@ -75,7 +54,7 @@ function ProcessMoneyReportHoldMenu({
         requestType,
         paymentType,
         methodID,
-        onClose,
+        onClose: () => setIsVisible(false),
         onConfirm,
         transactions,
     });
@@ -83,7 +62,7 @@ function ProcessMoneyReportHoldMenu({
     return (
         <DecisionModal
             title={translate(isApprove ? 'iou.confirmApprove' : 'iou.confirmPay')}
-            onClose={onClose}
+            onClose={() => setIsVisible(false)}
             isVisible={isVisible}
             prompt={
                 hasNonHeldExpenses
@@ -95,9 +74,15 @@ function ProcessMoneyReportHoldMenu({
             onFirstOptionSubmit={() => onSubmit(false)}
             onSecondOptionSubmit={() => onSubmit(true)}
             isSmallScreenWidth={isSmallScreenWidth}
+            onModalHide={() => {
+                if (isVisible) {
+                    return;
+                }
+                closeModal({action: 'CLOSE'});
+            }}
         />
     );
 }
 
-export default ProcessMoneyReportHoldMenu;
-export type {ActionHandledType};
+export default HoldMenuModalWrapper;
+export type {ActionHandledType, HoldMenuModalWrapperProps};
