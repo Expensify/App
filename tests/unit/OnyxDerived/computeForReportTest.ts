@@ -3,6 +3,7 @@ import {computeForReport} from '@libs/actions/OnyxDerived/configs/sortedReportAc
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
+import {createReport} from './helpers';
 
 function createAction(id: string, created: string, overrides: Partial<ReportAction> = {}): ReportAction {
     return {
@@ -19,18 +20,6 @@ function createAction(id: string, created: string, overrides: Partial<ReportActi
         person: [{type: 'TEXT', style: 'strong', text: 'User'}],
         ...overrides,
     } as ReportAction;
-}
-
-function createReport(reportID: string, overrides: Partial<Report> = {}): Report {
-    return {
-        reportID,
-        reportName: `Report ${reportID}`,
-        type: CONST.REPORT.TYPE.CHAT,
-        chatType: undefined,
-        ownerAccountID: 1,
-        isPinned: false,
-        ...overrides,
-    } as Report;
 }
 
 function toReportActions(...actions: ReportAction[]): ReportActions {
