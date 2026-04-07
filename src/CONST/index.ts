@@ -5989,11 +5989,13 @@ const CONST = {
         FLAG_SEVERITY_ASSAULT: 'assault',
     },
     EMOJI_PICKER_TEXT_INPUT_SIZES: 152,
+    EMOJI_PICKER_SKIN_TONE_LIST_HEIGHT: 56,
     TEXT_INPUT_SYMBOL_POSITION: {
         PREFIX: 'prefix',
         SUFFIX: 'suffix',
     },
     QR: {
+        DEFAULT_LOGO_SIZE: 120,
         DEFAULT_LOGO_SIZE_RATIO: 0.25,
         DEFAULT_LOGO_MARGIN_RATIO: 0.02,
         EXPENSIFY_LOGO_SIZE_RATIO: 0.22,
@@ -8519,6 +8521,7 @@ const CONST = {
             isExtraSmallScreenWidth: false,
             isSmallScreen: false,
             onboardingIsMediumOrLargerScreenWidth: false,
+            isInLandscapeMode: false,
         } as ResponsiveLayoutResult,
     },
 
@@ -9424,6 +9427,9 @@ const CONST = {
         PROFILE_PAGE: {
             AVATAR: 'ProfilePage-Avatar',
         },
+        SAFE_AREA: {
+            DISMISS_KEYBOARD_LANDSCAPE_MODE: 'SafeArea-DismissKeyboardLandscapeMode',
+        },
     },
 
     DOMAIN: {
@@ -9484,6 +9490,8 @@ const CONST = {
     CACHE_NAME: {
         AUTH_IMAGES: 'auth-images',
     },
+
+    MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE: 0.75,
 } as const;
 
 const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS = [
