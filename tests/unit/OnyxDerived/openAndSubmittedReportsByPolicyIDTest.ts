@@ -1,5 +1,5 @@
 import type {OnyxCollection} from 'react-native-onyx';
-import reportsByPolicyIDConfig from '@libs/actions/OnyxDerived/configs/reportsByPolicyID';
+import openAndSubmittedReportsByPolicyIDConfig from '@libs/actions/OnyxDerived/configs/openAndSubmittedReportsByPolicyID';
 import type {DerivedValueContext} from '@libs/actions/OnyxDerived/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -34,10 +34,10 @@ function createSession(accountID: number = CURRENT_USER_ACCOUNT_ID): Session {
     return {accountID} as Session;
 }
 
-const {compute} = reportsByPolicyIDConfig;
-const emptyContext = {} as DerivedValueContext<typeof ONYXKEYS.DERIVED.REPORTS_BY_POLICY_ID, [typeof ONYXKEYS.COLLECTION.REPORT, typeof ONYXKEYS.SESSION]>;
+const {compute} = openAndSubmittedReportsByPolicyIDConfig;
+const emptyContext = {} as DerivedValueContext<typeof ONYXKEYS.DERIVED.OPEN_AND_SUBMITTED_REPORTS_BY_POLICY_ID, [typeof ONYXKEYS.COLLECTION.REPORT, typeof ONYXKEYS.SESSION]>;
 
-describe('reportsByPolicyID derived value', () => {
+describe('openAndSubmittedReportsByPolicyID derived value', () => {
     it('returns empty object when reports is null/undefined', () => {
         const result = compute([undefined, createSession()], emptyContext);
         expect(result).toEqual({});

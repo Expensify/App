@@ -1,9 +1,9 @@
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportsByPolicyIDDerivedValue} from '@src/types/onyx';
+import type {OpenAndSubmittedReportsByPolicyIDDerivedValue} from '@src/types/onyx';
 
 export default createOnyxDerivedValueConfig({
-    key: ONYXKEYS.DERIVED.REPORTS_BY_POLICY_ID,
+    key: ONYXKEYS.DERIVED.OPEN_AND_SUBMITTED_REPORTS_BY_POLICY_ID,
     dependencies: [ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.SESSION],
     compute: ([reports, session]) => {
         if (!reports) {
@@ -12,7 +12,7 @@ export default createOnyxDerivedValueConfig({
 
         const currentUserAccountID = session?.accountID;
 
-        return Object.entries(reports).reduce<ReportsByPolicyIDDerivedValue>((acc, [reportID, report]) => {
+        return Object.entries(reports).reduce<OpenAndSubmittedReportsByPolicyIDDerivedValue>((acc, [reportID, report]) => {
             if (!report) {
                 return acc;
             }
