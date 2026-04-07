@@ -83,19 +83,18 @@ function AddPlaidBankAccount({
     const subscribedKeyboardShortcuts = useRef<Array<() => void>>([]);
     const previousNetworkState = useRef<boolean | undefined>(undefined);
     const [selectedPlaidAccountMask, setSelectedPlaidAccountMask] = useState(defaultSelectedPlaidAccountMask);
-    const [plaidLinkToken] = useOnyx(ONYXKEYS.PLAID_LINK_TOKEN);
-    const [isPlaidTokenReady, setIsPlaidTokenReady] = useState(false);
+    const [plaidLinkToken] = useOnyx(ONYXKEYS.PLAID_LINK_TOKEN, {initWithStoredValues: false});
     const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED);
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
     const getPlaidLinkToken = (): string | undefined => {
-        if (receivedRedirectURI && plaidLinkOAuthToken) {
-            return plaidLinkOAuthToken;
+        if (plaidLinkToken) {
+            return plaidLinkToken;
         }
 
-        if (isPlaidTokenReady && plaidLinkToken) {
-            return plaidLinkToken;
+        if (receivedRedirectURI && plaidLinkOAuthToken) {
+            return plaidLinkOAuthToken;
         }
     };
 
@@ -141,11 +140,9 @@ function AddPlaidBankAccount({
 
         // If we're coming from Plaid OAuth flow then we need to reuse the existing plaidLinkToken
         if (isAuthenticatedWithPlaid()) {
-            setIsPlaidTokenReady(true);
             return unsubscribeToNavigationShortcuts;
         }
         openPlaidBankLogin(allowDebit, bankAccountID);
-        setIsPlaidTokenReady(true);
         return unsubscribeToNavigationShortcuts;
 
         // disabling this rule, as we want this to run only on the first render

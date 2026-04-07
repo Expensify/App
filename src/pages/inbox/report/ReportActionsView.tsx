@@ -30,7 +30,6 @@ import {generateNewRandomInt, rand64} from '@libs/NumberUtils';
 import {
     getCombinedReportActions,
     getFilteredReportActionsForReportView,
-    getMostRecentIOURequestActionID,
     getOneTransactionThreadReportID,
     getOriginalMessage,
     getSortedReportActionsForDisplay,
@@ -138,7 +137,7 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
         [getTransactionThreadReportActions],
     );
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
-    const [isLoadingApp] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_APP);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
     const prevReportActionID = usePrevious(reportActionID);
     const reportPreviewAction = useMemo(() => getReportPreviewAction(report?.chatReportID, report?.reportID), [report?.chatReportID, report?.reportID]);
@@ -271,8 +270,6 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
         [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs, visibleReportActionsData, reportID],
     );
 
-    const mostRecentIOUReportActionID = useMemo(() => getMostRecentIOURequestActionID(reportActions), [reportActions]);
-
     const isSingleExpenseReport = reportPreviewAction?.childMoneyRequestCount === 1;
     const isMissingTransactionThreadReportID = !transactionThreadReport?.reportID;
     const isReportDataIncomplete = isSingleExpenseReport && isMissingTransactionThreadReportID;
@@ -376,7 +373,6 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
                 onLayout={recordTimeToMeasureItemLayout}
                 sortedReportActions={conciergeSidePanelFilteredReportActions}
                 sortedVisibleReportActions={conciergeSidePanelFilteredVisibleActions}
-                mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                 loadOlderChats={loadOlderChats}
                 loadNewerChats={loadNewerChats}
                 listID={listID}
