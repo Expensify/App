@@ -1,5 +1,6 @@
 import Mapbox from '@rnmapbox/maps';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import type {DirectionProps} from './MapViewTypes';
 
 function Direction({coordinates}: DirectionProps) {
@@ -10,7 +11,7 @@ function Direction({coordinates}: DirectionProps) {
 
     return (
         <Mapbox.ShapeSource
-            id="routeSource"
+            id={CONST.MAP_VIEW_LAYERS.ROUTE_SOURCE}
             shape={{
                 type: 'Feature',
                 properties: {},
@@ -21,7 +22,8 @@ function Direction({coordinates}: DirectionProps) {
             }}
         >
             <Mapbox.LineLayer
-                id="routeFill"
+                belowLayerID={CONST.MAP_VIEW_LAYERS.USER_LOCATION}
+                id={CONST.MAP_VIEW_LAYERS.ROUTE_FILL}
                 style={styles.mapDirection}
             />
         </Mapbox.ShapeSource>
