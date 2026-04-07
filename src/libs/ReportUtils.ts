@@ -11725,8 +11725,11 @@ function prepareOnboardingOnyxData({
 
     // Only the MANAGE_TEAM onboarding action uses the #admins room (with a guide); TRACK_WORKSPACE uses Concierge. Excludes emails that have a '+'.
     const shouldPostTasksInAdminsRoom = isPostingTasksInAdminsRoom(engagementChoice);
-    // When posting to admins room and the user is in the suggestedFollowups beta, we skip tasks in favor of backend-generated followups.
-    const shouldUseFollowupsInsteadOfTasks = shouldPostTasksInAdminsRoom && Permissions.isBetaEnabled(CONST.BETAS.SUGGESTED_FOLLOWUPS, betas, betaConfiguration);
+    // Phase 1 cohort (MANAGE_TEAM + MICRO company size) bypasses the beta gate — the backend
+    // handles gating via NVP, so all MICRO users get followups without needing the beta flag.
+    const isPhase1Cohort = companySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO;
+    // When posting to admins room and the user is in the suggestedFollowups beta (or Phase 1 cohort), we skip tasks in favor of backend-generated followups.
+    const shouldUseFollowupsInsteadOfTasks = shouldPostTasksInAdminsRoom && (Permissions.isBetaEnabled(CONST.BETAS.SUGGESTED_FOLLOWUPS, betas, betaConfiguration) || isPhase1Cohort);
     const adminsChatReport = deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${adminsChatReportID}`];
     const targetChatReport = shouldPostTasksInAdminsRoom
         ? (adminsChatReport ?? {reportID: adminsChatReportID, policyID: onboardingPolicyID, chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS})
