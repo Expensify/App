@@ -119,6 +119,10 @@ const DYNAMIC_ROUTES = {
         path: 'accounting-method',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_AUTO_SYNC],
     },
+    SAGE_INTACCT_PREREQUISITES: {
+        path: 'sage-intacct/prerequisites',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.ROOT, SCREENS.WORKSPACE.ACCOUNTING.EXISTING_SAGE_INTACCT_CONNECTIONS],
+    },
     ADDRESS_COUNTRY: {
         path: 'country',
         entryScreens: [
@@ -3755,12 +3759,6 @@ const ROUTES = {
         route: 'workspaces/:policyID/connections/netsuite/advanced/custom-form-id/:expenseType',
         getRoute: (policyID: string, expenseType: ValueOf<typeof CONST.NETSUITE_EXPENSE_TYPE>) =>
             `workspaces/${policyID}/connections/netsuite/advanced/custom-form-id/${expenseType as string}` as const,
-    },
-    POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES: {
-        route: 'workspaces/:policyID/accounting/sage-intacct/prerequisites',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/accounting/sage-intacct/prerequisites` as const, backTo),
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_ENTER_CREDENTIALS: {
         route: 'workspaces/:policyID/accounting/sage-intacct/enter-credentials',

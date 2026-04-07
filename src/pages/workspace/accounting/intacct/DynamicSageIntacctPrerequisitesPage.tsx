@@ -9,6 +9,7 @@ import ImageSVG from '@components/ImageSVG';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -19,19 +20,19 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type SageIntacctPrerequisitesPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_PREREQUISITES>;
+type DynamicSageIntacctPrerequisitesPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_PREREQUISITES>;
 
-function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps) {
+function DynamicSageIntacctPrerequisitesPage({route}: DynamicSageIntacctPrerequisitesPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['Download', 'NewWindow', 'Task']);
     const illustrations = useMemoizedLazyIllustrations(['Computer']);
     const popoverAnchor = useRef<View | RNText | null>(null);
     const policyID: string = route.params.policyID;
-    const backTo = route.params.backTo;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.SAGE_INTACCT_PREREQUISITES.path);
 
     const menuItems = useMemo(
         () => [
@@ -87,7 +88,7 @@ function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps
             <HeaderWithBackButton
                 title={translate('workspace.intacct.sageIntacctSetup')}
                 shouldShowBackButton
-                onBackButtonPress={() => Navigation.goBack(backTo)}
+                onBackButtonPress={() => Navigation.goBack(backPath)}
             />
             <View style={styles.flex1}>
                 <View style={[styles.alignSelfCenter, styles.computerIllustrationContainer]}>
@@ -117,4 +118,4 @@ function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps
     );
 }
 
-export default SageIntacctPrerequisitesPage;
+export default DynamicSageIntacctPrerequisitesPage;

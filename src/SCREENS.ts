@@ -626,7 +626,7 @@ const SCREENS = {
             NETSUITE_CUSTOM_FORM_ID: 'Policy_Accounting_NetSuite_Custom_Form_ID',
             DYNAMIC_NETSUITE_AUTO_SYNC: 'Dynamic_Policy_Accounting_NetSuite_Auto_Sync',
             DYNAMIC_NETSUITE_ACCOUNTING_METHOD: 'Dynamic_Policy_Accounting_NetSuite_Accounting_Method',
-            SAGE_INTACCT_PREREQUISITES: 'Policy_Accounting_Sage_Intacct_Prerequisites',
+            DYNAMIC_SAGE_INTACCT_PREREQUISITES: 'Dynamic_Policy_Accounting_Sage_Intacct_Prerequisites',
             ENTER_SAGE_INTACCT_CREDENTIALS: 'Policy_Enter_Sage_Intacct_Credentials',
             EXISTING_SAGE_INTACCT_CONNECTIONS: 'Policy_Existing_Sage_Intacct_Connections',
             SAGE_INTACCT_ENTITY: 'Policy_Sage_Intacct_Entity',

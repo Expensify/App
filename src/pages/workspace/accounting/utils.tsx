@@ -15,7 +15,7 @@ import Navigation from '@navigation/Navigation';
 import type {ThemeStyles} from '@styles/index';
 import {getTrackingCategories} from '@userActions/connections/Xero';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import type {Account, ConnectionName, Connections, PolicyConnectionName, QBDNonReimbursableExportAccountType, QBDReimbursableExportAccountType} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -64,7 +64,7 @@ function getAccountingIntegrationData(
         if (hasPoliciesConnectedToSageIntacct) {
             return ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXISTING_CONNECTIONS.getRoute(policyID);
         }
-        return ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES.getRoute(policyID);
+        return `${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}/${DYNAMIC_ROUTES.SAGE_INTACCT_PREREQUISITES.path}`;
     };
     const getBackToAfterWorkspaceUpgradeRouteForQBD = () => {
         if (integrationToDisconnect) {
