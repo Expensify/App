@@ -7,7 +7,7 @@ internalScope: Audience is all Expensify members. Covers a comprehensive capabil
 
 # What Concierge can help you do in Expensify
 
-Concierge is your built-in assistant in Expensify. You can ask it questions, give it instructions, or describe what you want to do and it will respond or take action instantly.
+Concierge is your built-in assistant in Expensify. You can ask it questions, give it instructions, or describe what you want to do and it will respond or take action. 
 
 Use this page as a reference for the types of things you can ask Concierge to do.
 
@@ -47,7 +47,7 @@ Examples:
 - “How do reimbursements work in my Workspace?”  
 - “Why isn’t my bank account syncing?”  
 
-Concierge will answer instantly or connect you with a human if needed.
+Concierge will answer or connect you with a human if needed.
 
 [Learn about Concierge Support Agent](/articles/new-expensify/concierge-ai/Support-Agent). 
 
@@ -125,7 +125,7 @@ Examples:
 ## What happens after you message Concierge
 
 After you send a message:
-- Concierge responds instantly in the same chat  
+- Concierge responds in the same chat  
 - Actions are completed in real time when possible  
 - You’ll get confirmation of any changes  
 - If needed, your request is escalated to a human without restarting the conversation  
