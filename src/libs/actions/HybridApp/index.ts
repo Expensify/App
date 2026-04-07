@@ -2,7 +2,7 @@ import HybridAppModule from '@expensify/react-native-hybrid-app';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Navigation from '@libs/Navigation/Navigation';
-import {isLockedToNewApp} from '@libs/TryNewDotUtils';
+import {shouldBlockOldAppExit} from '@libs/TryNewDotUtils';
 import {setIsGPSInProgressModalOpen} from '@userActions/isGPSInProgressModalOpen';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -10,11 +10,13 @@ import type {TryNewDot} from '@src/types/onyx';
 import type HybridAppSettings from './types';
 
 let currentTryNewDot: OnyxEntry<TryNewDot>;
+let hasResolvedTryNewDot = false;
 
 Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_TRY_NEW_DOT,
     callback: (tryNewDot) => {
         currentTryNewDot = tryNewDot;
+        hasResolvedTryNewDot = true;
     },
 });
 
@@ -36,7 +38,7 @@ function getHybridAppSettings(): Promise<HybridAppSettings | null> {
 }
 
 function closeReactNativeApp({shouldSetNVP, isTrackingGPS}: {shouldSetNVP: boolean; isTrackingGPS: boolean}) {
-    if (shouldSetNVP && isLockedToNewApp(currentTryNewDot)) {
+    if (shouldBlockOldAppExit(currentTryNewDot, hasResolvedTryNewDot, shouldSetNVP)) {
         return;
     }
 

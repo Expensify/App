@@ -6,6 +6,18 @@ function isLockedToNewApp(tryNewDot: OnyxEntry<TryNewDot>): boolean {
     return tryNewDot?.isLockedToNewApp === true;
 }
 
+function shouldBlockOldAppExit(tryNewDot: OnyxEntry<TryNewDot>, hasResolvedTryNewDot: boolean, shouldSetNVP: boolean): boolean {
+    if (!shouldSetNVP) {
+        return false;
+    }
+
+    if (!hasResolvedTryNewDot) {
+        return true;
+    }
+
+    return isLockedToNewApp(tryNewDot);
+}
+
 function isOldAppRedirectBlocked(tryNewDot: OnyxEntry<TryNewDot>, shouldRespectMobileLock: boolean): boolean {
     return tryNewDot?.classicRedirect?.isLockedToNewDot === true || (shouldRespectMobileLock && isLockedToNewApp(tryNewDot));
 }
@@ -22,4 +34,4 @@ function shouldUseOldApp(tryNewDot: TryNewDot): boolean | undefined {
     return tryNewDot.classicRedirect.dismissed;
 }
 
-export {isLockedToNewApp, isOldAppRedirectBlocked, shouldUseOldApp};
+export {isLockedToNewApp, isOldAppRedirectBlocked, shouldBlockOldAppExit, shouldUseOldApp};

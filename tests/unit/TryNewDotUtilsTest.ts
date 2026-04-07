@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import {isOldAppRedirectBlocked, shouldUseOldApp} from '@src/libs/TryNewDotUtils';
+import {isOldAppRedirectBlocked, shouldBlockOldAppExit, shouldUseOldApp} from '@src/libs/TryNewDotUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {TryNewDot} from '@src/types/onyx';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -44,6 +44,15 @@ describe('TryNewDotUtils', () => {
 
         expect(isOldAppRedirectBlocked(tryNewDot, false)).toBe(false);
         expect(isOldAppRedirectBlocked(tryNewDot, true)).toBe(true);
+    });
+
+    it('blocks Hybrid OldApp exits while tryNewDot is still unresolved', () => {
+        expect(shouldBlockOldAppExit(undefined, false, true)).toBe(true);
+    });
+
+    it('keeps unlocked users unlocked once tryNewDot has resolved', () => {
+        expect(shouldBlockOldAppExit(undefined, true, true)).toBe(false);
+        expect(shouldBlockOldAppExit(undefined, true, false)).toBe(false);
     });
 
     it('preserves isLockedToNewApp when nvp_tryNewDot is merged', async () => {

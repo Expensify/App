@@ -62,6 +62,15 @@ describe('HybridApp actions', () => {
         expect(closeNativeAppSpy).not.toHaveBeenCalled();
     });
 
+    it('allows shouldSetNVP exits once tryNewDot resolves without a mobile lock', async () => {
+        await waitForBatchedUpdatesWithAct();
+
+        closeReactNativeApp({shouldSetNVP: true, isTrackingGPS: false});
+
+        expect(Navigation.clearPreloadedRoutes).toHaveBeenCalled();
+        expect(closeNativeAppSpy).toHaveBeenCalledWith({shouldSetNVP: true});
+    });
+
     it('preserves shouldSetNVP false exits for existing non-force-mobile flows', () => {
         closeReactNativeApp({shouldSetNVP: false, isTrackingGPS: false});
 
