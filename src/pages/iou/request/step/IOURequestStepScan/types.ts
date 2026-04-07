@@ -38,12 +38,6 @@ type UseReceiptScanParams = {
     /** Report ID to navigate back to */
     backToReport: string | undefined;
 
-    /** Whether multi-scan is enabled */
-    isMultiScanEnabled: boolean | undefined;
-
-    /** Whether the user is starting a scan request */
-    isStartingScan: boolean | undefined;
-
     /** Callback to replace receipt and navigate back when editing */
     updateScanAndNavigate: (file: FileObject, source: string) => void;
 
@@ -62,7 +56,7 @@ type UseMobileReceiptScanParams = {
     isMultiScanEnabled?: boolean;
 
     /** Whether the user is starting a scan request */
-    isStartingScan?: boolean;
+    isStartingScan: boolean;
 
     /** The current receipt files being scanned */
     receiptFiles: ReceiptFile[];
@@ -76,8 +70,11 @@ type UseMobileReceiptScanParams = {
     /** Callback to start the location permission flow */
     setStartLocationPermissionFlow: (value: boolean) => void;
 
-    /** Callback to update multi-scan enabled state in parent */
-    setIsMultiScanEnabled: ((value: boolean) => void) | undefined;
+    /** Callback to update multi-scan enabled state */
+    setIsMultiScanEnabled: (value: boolean) => void;
+
+    /** Callback to update scanned receipt files */
+    setReceiptFiles: (value: ReceiptFile[]) => void;
 };
 
 type IOURequestStepScanProps = WithCurrentUserPersonalDetailsProps &
@@ -90,15 +87,6 @@ type IOURequestStepScanProps = WithCurrentUserPersonalDetailsProps &
          * Receives a function (`setTestReceiptAndNavigate`) as an argument,
          */
         onLayout?: (setTestReceiptAndNavigate: () => void) => void;
-
-        /** If the receipts preview should be shown */
-        isMultiScanEnabled?: boolean;
-
-        /** Updates isMultiScanEnabled flag */
-        setIsMultiScanEnabled?: (value: boolean) => void;
-
-        /** Indicates whether users start to create scan request */
-        isStartingScan?: boolean;
     };
 
 type ReceiptFile = {
