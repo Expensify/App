@@ -2454,8 +2454,6 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     } = moneyRequestInformation;
     const {payeeAccountID = deprecatedUserAccountID, payeeEmail = deprecatedCurrentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policyTags = getMoneyRequestPolicyTags({existingIOUReport, moneyRequestReportID, parentChatReport, participant});
 
     const {
         attendees,
@@ -2658,9 +2656,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
 
     const optimisticPolicyRecentlyUsedCategories = mergePolicyRecentlyUsedCategories(category, policyRecentlyUsedCategories);
     const optimisticPolicyRecentlyUsedTags = buildOptimisticPolicyRecentlyUsedTags({
-        // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) and getPolicyRecentlyUsedTagsData (https://github.com/Expensify/App/issues/71491) with useOnyx hook
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        policyTags,
+        policyTags: policyTagList ?? {},
         policyRecentlyUsedTags,
         transactionTags: tag,
     });
@@ -5029,7 +5025,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         optimisticReportPreviewActionID,
         shouldDeferAutoSubmit,
     } = distanceRequestInformation;
-    const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
+    const {policy, policyCategories, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
     const parsedComment = getParsedComment(transactionParams.comment);
     transactionParams.comment = parsedComment;
     const {
@@ -5165,7 +5161,8 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             policyParams: {
                 policy,
                 policyCategories,
-                policyTagList,
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                policyTagList: getMoneyRequestPolicyTags({existingIOUReport, moneyRequestReportID, parentChatReport: currentChatReport, participant}),
                 policyRecentlyUsedCategories,
                 policyRecentlyUsedTags,
             },
