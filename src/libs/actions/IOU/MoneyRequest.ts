@@ -12,7 +12,7 @@ import {generateReportID, getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtil
 import type {OptionData} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
-import {getValidWaypoints} from '@libs/TransactionUtils';
+import {getDefaultTaxCode, getValidWaypoints} from '@libs/TransactionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import {setTransactionReport} from '@userActions/Transaction';
 import type {IOUType} from '@src/CONST';
@@ -211,6 +211,10 @@ function createTransaction({
         const receipt: Receipt = receiptFile.file ?? {};
         receipt.source = receiptFile.source;
         receipt.state = CONST.IOU.RECEIPT_STATE.SCAN_READY;
+        const policy = policyParams?.policy;
+        const defaultTaxCode = getDefaultTaxCode(policy, transaction);
+        const taxCode = (transaction?.taxCode ? transaction.taxCode : defaultTaxCode) ?? '';
+        const taxAmount = transaction?.taxAmount ?? 0;
         if (iouType === CONST.IOU.TYPE.TRACK && report) {
             trackExpense({
                 report,
@@ -228,6 +232,8 @@ function createTransaction({
                     billable,
                     reimbursable,
                     gpsPoint,
+                    taxCode,
+                    taxAmount,
                 },
                 ...(policyParams ?? {}),
                 shouldHandleNavigation: index === files.length - 1,
@@ -265,6 +271,8 @@ function createTransaction({
                     receipt,
                     billable,
                     reimbursable,
+                    taxCode,
+                    taxAmount,
                 },
                 shouldHandleNavigation: index === files.length - 1,
                 backToReport,
@@ -471,6 +479,7 @@ function handleMoneyRequestStepScanParticipants({
                             activePolicyID,
                             files,
                             participant,
+                            policyParams: {policy},
                             reimbursable: defaultReimbursable,
                             isSelfTourViewed,
                             allTransactionDrafts,
@@ -498,6 +507,7 @@ function handleMoneyRequestStepScanParticipants({
                 activePolicyID,
                 files,
                 participant,
+                policyParams: {policy},
                 reimbursable: defaultReimbursable,
                 isSelfTourViewed,
                 allTransactionDrafts,
@@ -660,6 +670,9 @@ function handleMoneyRequestStepDistanceNavigation({
                 );
             }
             setMoneyRequestMerchant(transactionID, merchant, false);
+            const distanceDefaultTaxCode = getDefaultTaxCode(policy, transaction);
+            const distanceTaxCode = (transaction?.taxCode ? transaction.taxCode : distanceDefaultTaxCode) ?? '';
+            const distanceTaxAmount = transaction?.taxAmount ?? 0;
             if (isCreatingTrackExpense && participant) {
                 trackExpense({
                     report,
@@ -692,6 +705,8 @@ function handleMoneyRequestStepDistanceNavigation({
                         gpsCoordinates,
                         odometerStart,
                         odometerEnd,
+                        taxCode: distanceTaxCode,
+                        taxAmount: distanceTaxAmount,
                     },
                     isASAPSubmitBetaEnabled,
                     currentUserAccountIDParam: currentUserAccountID,
@@ -730,6 +745,8 @@ function handleMoneyRequestStepDistanceNavigation({
                     gpsCoordinates,
                     odometerStart,
                     odometerEnd,
+                    taxCode: distanceTaxCode,
+                    taxAmount: distanceTaxAmount,
                 },
                 backToReport,
                 isASAPSubmitBetaEnabled,
