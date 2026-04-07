@@ -1,7 +1,7 @@
 import {StackActions} from '@react-navigation/native';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {InteractionManager, StyleProp, TextStyle, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
@@ -146,6 +146,7 @@ type ReportDetailsPageMenuItem = {
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
     subtitle?: number;
     shouldShowRightIcon?: boolean;
+    subtitleStyle?: StyleProp<TextStyle>;
 };
 
 type ReportDetailsPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.ROOT>;
@@ -409,6 +410,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                 translationKey: 'common.members',
                 icon: expensifyIcons.Users,
                 subtitle: activeChatMembers.length,
+                subtitleStyle: [styles.ph2],
                 isAnonymousAction: false,
                 shouldShowRightIcon: true,
                 action: () => {
@@ -642,6 +644,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         amountOwed,
         ownerBillingGracePeriodEnd,
         iouTransaction,
+        styles.ph2,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
@@ -1108,6 +1111,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             isAnonymousAction={item.isAnonymousAction}
                             shouldShowRightIcon={item.shouldShowRightIcon}
                             brickRoadIndicator={item.brickRoadIndicator}
+                            subtitleStyle={item.subtitleStyle}
                         />
                     ))}
 
