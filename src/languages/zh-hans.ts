@@ -6483,6 +6483,7 @@ ${reportName}
                 duplicateRulePrompt: (merchantName: string) => `您现有针对“${merchantName}”的规则将优先于此规则。仍要保存吗？`,
                 saveAnyway: '仍然保存',
                 applyToExistingUnsubmittedExpenses: '应用到现有未提交的报销费用',
+                findRule: '查找商户规则',
             },
             categoryRules: {
                 title: '类别规则',
@@ -7500,6 +7501,8 @@ ${reportName}
     chronos: {
         oooEventSummaryFullDay: (summary: string, dayCount: number, date: string) => `${summary}，共计 ${dayCount} ${dayCount === 1 ? '天' : '天'}，截至 ${date}`,
         oooEventSummaryPartialDay: (summary: string, timePeriod: string, date: string) => `${summary}，时间范围：${timePeriod}，日期：${date}`,
+        startTimer: '开始计时',
+        stopTimer: '停止计时器',
     },
     footer: {
         features: '功能',

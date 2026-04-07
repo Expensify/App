@@ -6679,6 +6679,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 duplicateRulePrompt: (merchantName: string) => `La regola esistente per "${merchantName}" avrà la priorità su questa. Salvare comunque?`,
                 saveAnyway: 'Salva comunque',
                 applyToExistingUnsubmittedExpenses: 'Applica alle spese esistenti non inviate',
+                findRule: 'Trova regola esercente',
             },
             categoryRules: {
                 title: 'Regole di categoria',
@@ -7738,6 +7739,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
     chronos: {
         oooEventSummaryFullDay: (summary: string, dayCount: number, date: string) => `${summary} per ${dayCount} ${dayCount === 1 ? 'giorno' : 'giorni'} fino al ${date}`,
         oooEventSummaryPartialDay: (summary: string, timePeriod: string, date: string) => `${summary} dal ${timePeriod} del ${date}`,
+        startTimer: 'Avvia timer',
+        stopTimer: 'Ferma timer',
     },
     footer: {
         features: 'Funzionalità',
