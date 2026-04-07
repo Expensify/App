@@ -5,7 +5,6 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getParsedComment, isSelfDM, isTrackExpenseReport} from '@libs/ReportUtils';
 import {getMerchant, removeTransactionFromDuplicateTransactionViolation} from '@libs/TransactionUtils';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';

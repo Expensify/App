@@ -11785,6 +11785,7 @@ describe('actions/IOU', () => {
                         Food: {
                             name: 'Food',
                             enabled: true,
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
                             'GL Code': '',
                             unencodedName: 'Food',
                             externalID: '',
@@ -12156,6 +12157,7 @@ describe('actions/IOU', () => {
                         Marketing: {
                             name: 'Marketing',
                             enabled: true,
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
                             'GL Code': '',
                             unencodedName: 'Marketing',
                             externalID: '',
@@ -12168,6 +12170,7 @@ describe('actions/IOU', () => {
                         Engineering: {
                             name: 'Engineering',
                             enabled: true,
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
                             'GL Code': '',
                             unencodedName: 'Engineering',
                             externalID: '',
@@ -12247,6 +12250,7 @@ describe('actions/IOU', () => {
                         Food: {
                             name: 'Food',
                             enabled: true,
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
                             'GL Code': '',
                             unencodedName: 'Food',
                             externalID: '',
