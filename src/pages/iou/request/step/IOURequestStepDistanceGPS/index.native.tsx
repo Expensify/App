@@ -6,7 +6,6 @@ import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import ImageSVG from '@components/ImageSVG';
 import type {MapViewHandle, WayPoint} from '@components/MapView/MapViewTypes';
 import mapUtils from '@components/MapView/utils';
-import ScrollView from '@components/ScrollView';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
