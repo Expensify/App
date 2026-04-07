@@ -99,7 +99,7 @@ type BrickRoadIndicatorIconProps = {
 
 function BrickRoadIndicatorIcon({brickRoadIndicator}: BrickRoadIndicatorIconProps) {
     const theme = useTheme();
-    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
 
     return brickRoadIndicator ? (
         <Icon
@@ -138,7 +138,7 @@ function WorkspacesListRow({
     const theme = useTheme();
     const isFocused = useIsFocused();
     const isNarrow = layoutWidth === CONST.LAYOUT_WIDTH.NARROW;
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Hourglass'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Hourglass']);
     const illustrations = useMemoizedLazyIllustrations(['Mailbox', 'ShieldYellow']);
 
     const workspaceTypeIcon = useCallback(

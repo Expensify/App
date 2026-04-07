@@ -42,7 +42,7 @@ type AccountSwitcherProps = {
 };
 
 function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['CaretUpDown', 'Checkmark'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['CaretUpDown', 'Checkmark']);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const styles = useThemeStyles();
     const theme = useTheme();

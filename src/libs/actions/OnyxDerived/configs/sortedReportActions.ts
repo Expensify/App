@@ -34,7 +34,7 @@ function computeForReport(
 }
 
 export default createOnyxDerivedValueConfig({
-    key: ONYXKEYS.DERIVED.SORTED_REPORT_ACTIONS,
+    key: ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS,
     dependencies: [ONYXKEYS.COLLECTION.REPORT_ACTIONS, ONYXKEYS.COLLECTION.REPORT],
     compute: ([allReportActions, allReports], {sourceValues, currentValue}): SortedReportActionsDerivedValue => {
         if (!allReportActions) {
