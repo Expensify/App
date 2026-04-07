@@ -6879,8 +6879,7 @@ ${amount} para ${merchant} - ${date}`,
         changedReceiptRequiredAmount: (oldValue, newValue) => `cambió el importe requerido del recibo a "${newValue}" (antes "${oldValue}")`,
         removedReceiptRequiredAmount: (oldValue) => `eliminó el importe requerido del recibo (antes "${oldValue}")`,
         setItemizedReceiptRequiredAmount: (newValue) => `estableció el importe requerido del recibo detallado en "${newValue}"`,
-        changedItemizedReceiptRequiredAmount: (oldValue, newValue) =>
-            `cambió el importe requerido del recibo detallado a "${newValue}" (antes "${oldValue}")`,
+        changedItemizedReceiptRequiredAmount: (oldValue, newValue) => `cambió el importe requerido del recibo detallado a "${newValue}" (antes "${oldValue}")`,
         removedItemizedReceiptRequiredAmount: (oldValue) => `eliminó el importe requerido del recibo detallado (antes "${oldValue}")`,
 
         setMaxExpenseAmount: (newValue) => `estableció el importe máximo del gasto en "${newValue}"`,
