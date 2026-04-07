@@ -88,7 +88,7 @@ function PayPrimaryAction({
     const onlyShowPayElsewhere = reportHasOnlyNonReimbursableTransactions
         ? false
         : !canIOUBePaid && canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, transaction ? [transaction] : undefined, true, undefined, invoiceReceiverPolicy);
-    const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere || reportHasOnlyNonReimbursableTransactions;
+    const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere || (reportHasOnlyNonReimbursableTransactions && (moneyRequestReport?.total ?? 0) !== 0);
     const shouldShowApproveButton = (canApproveIOU(moneyRequestReport, policy, reportMetadata, transactions) && !hasOnlyPendingTransactions) || isApprovedAnimationRunning;
     const shouldDisableApproveButton = shouldShowApproveButton && !isAllowedToApproveExpenseReport(moneyRequestReport);
     const canAllowSettlement = hasUpdatedTotal(moneyRequestReport, policy);

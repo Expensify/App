@@ -1,6 +1,6 @@
 import {useRoute} from '@react-navigation/native';
-import {isUserValidatedSelector} from '@selectors/Account';
-import {hasSeenTourSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {delegateEmailSelector, isUserValidatedSelector} from '@selectors/Account';
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import truncate from 'lodash/truncate';
@@ -31,7 +31,6 @@ import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import usePaymentAnimations from '@hooks/usePaymentAnimations';
 import usePaymentOptions from '@hooks/usePaymentOptions';
 import usePermissions from '@hooks/usePermissions';
-import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
@@ -62,7 +61,7 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
 import {handleUnvalidatedAccount, selectPaymentType} from '@libs/PaymentUtils';
-import {getConnectedIntegration, getValidConnectedIntegration, isPolicyAccessible, isSubmitAndClose, sortPoliciesByName} from '@libs/PolicyUtils';
+import {getConnectedIntegration, getValidConnectedIntegration, isPolicyAccessible, sortPoliciesByName} from '@libs/PolicyUtils';
 import {
     getFilteredReportActionsForReportView,
     getIOUActionForTransactionID,
@@ -204,6 +203,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: isUserValidatedSelector,
     });
+    const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
@@ -215,7 +215,6 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS);
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`);
-    const personalPolicy = usePersonalPolicy();
     const {getCurrencyDecimals} = useCurrencyListActions();
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
@@ -260,7 +259,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
     });
     const draftTransactionIDs = Object.keys(transactionDrafts ?? {});
 
-    const {translate, localeCompare, toLocaleDigit} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const {isProduction} = useEnvironment();
     const exportTemplates = useMemo(
         () => getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, policy),
@@ -333,10 +332,6 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
     const [isPDFModalVisible, setIsPDFModalVisible] = useState(false);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-    const shouldUseMarkAsDoneCopy = isTrackIntentUser && isSubmitAndClose(policy);
-    const submitButtonText = shouldUseMarkAsDoneCopy ? translate('common.markAsDone') : translate('common.submit');
-    const approveButtonText = shouldUseMarkAsDoneCopy ? translate('common.markAsDone') : translate('iou.approve');
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
     const currentTransaction = transactions.at(0);
     const [originalIOUTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(currentTransaction?.comment?.originalTransactionID)}`);
@@ -562,7 +557,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         return !canIOUBePaid && getCanIOUBePaid(true);
     }, [canIOUBePaid, getCanIOUBePaid, reportHasOnlyNonReimbursableTransactions]);
 
-    const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere || reportHasOnlyNonReimbursableTransactions;
+    const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere || (reportHasOnlyNonReimbursableTransactions && (moneyRequestReport?.total ?? 0) !== 0);
 
     const shouldShowApproveButton = useMemo(
         () => (canApproveIOU(moneyRequestReport, policy, reportMetadata, transactions) && !hasOnlyPendingTransactions) || isApprovedAnimationRunning,
@@ -799,6 +794,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                         startSubmittingAnimation();
                     },
                     ownerBillingGracePeriodEnd,
+                    delegateEmail,
                 });
                 if (currentSearchQueryJSON && !isOffline) {
                     search({
@@ -836,6 +832,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
             clearSelectedTransactions,
             confirmPendingRTERAndProceed,
             ownerBillingGracePeriodEnd,
+            delegateEmail,
         ],
     );
 
@@ -1229,7 +1226,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         const actions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon'>> = [];
         if (hasSubmitAction && !shouldBlockSubmit) {
             actions.push({
-                text: submitButtonText,
+                text: translate('common.submit'),
                 icon: expensifyIcons.Send,
                 value: CONST.REPORT.PRIMARY_ACTIONS.SUBMIT,
                 onSelected: () => handleSubmitReport(true),
@@ -1237,7 +1234,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         }
         if (hasApproveAction && !isBlockSubmitDueToPreventSelfApproval) {
             actions.push({
-                text: approveButtonText,
+                text: translate('iou.approve'),
                 icon: expensifyIcons.ThumbsUp,
                 value: CONST.REPORT.PRIMARY_ACTIONS.APPROVE,
                 onSelected: () => {
@@ -1286,8 +1283,6 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         expensifyIcons.Send,
         expensifyIcons.ThumbsUp,
         kycWallRef,
-        approveButtonText,
-        submitButtonText,
     ]);
 
     const connectedIntegrationName = connectedIntegration
@@ -1364,7 +1359,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
         },
         [CONST.REPORT.SECONDARY_ACTIONS.SUBMIT]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.SUBMIT,
-            text: submitButtonText,
+            text: translate('common.submit'),
             icon: expensifyIcons.Send,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.SUBMIT,
             onSelected: () => {
@@ -1384,12 +1379,13 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                         userBillingGracePeriodEnds,
                         amountOwed,
                         ownerBillingGracePeriodEnd,
+                        delegateEmail,
                     });
                 });
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.APPROVE]: {
-            text: approveButtonText,
+            text: translate('iou.approve'),
             icon: expensifyIcons.ThumbsUp,
             value: CONST.REPORT.SECONDARY_ACTIONS.APPROVE,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.APPROVE,
@@ -1418,11 +1414,11 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                     if (result.action !== ModalActions.CONFIRM) {
                         return;
                     }
-                    unapproveExpenseReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep);
+                    unapproveExpenseReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, delegateEmail);
                     return;
                 }
 
-                unapproveExpenseReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep);
+                unapproveExpenseReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, delegateEmail);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT]: {
@@ -1733,9 +1729,6 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                             reportTransactions,
                             allTransactionViolations,
                             bankAccountList,
-                            personalPolicy,
-                            translate,
-                            toLocaleDigit,
                             hash: currentSearchHash,
                         });
                     });
@@ -1760,10 +1753,10 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                     if (result.action !== ModalActions.CONFIRM) {
                         return;
                     }
-                    retractReport(moneyRequestReport, chatReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep);
+                    retractReport(moneyRequestReport, chatReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, delegateEmail);
                     return;
                 }
-                retractReport(moneyRequestReport, chatReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep);
+                retractReport(moneyRequestReport, chatReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, delegateEmail);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.REOPEN]: {

@@ -445,9 +445,11 @@ function DatePresetFilterBase({
                 toValue={rangeEphemeralValues.to}
                 onFromSelected={(date) => {
                     setRangeEphemeralValues((prev) => ({...prev, from: date}));
+                    onRangeValidationErrorChange?.(false);
                 }}
                 onToSelected={(date) => {
                     setRangeEphemeralValues((prev) => ({...prev, to: date}));
+                    onRangeValidationErrorChange?.(false);
                 }}
                 shouldShowError={shouldShowRangeError}
                 forceVertical={forceVerticalCalendars}
