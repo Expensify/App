@@ -129,7 +129,7 @@ function getTagViolationsForDependentTags(policyTagList: PolicyTagLists, transac
             const tagValue = tags.at(index) ?? '';
             return tagValue === '' && (policyTagList[key]?.required ?? true);
         });
-        if (hasEmptyRequiredLevel) {
+        if (hasEmptyRequiredLevel || tags.length > policyTagKeys.length) {
             tagViolations.push({
                 name: CONST.VIOLATIONS.ALL_TAG_LEVELS_REQUIRED,
                 type: CONST.VIOLATION_TYPES.VIOLATION,
