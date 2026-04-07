@@ -1022,8 +1022,10 @@ function getEmojiPickerListHeight(isRenderingShortcutRow: boolean, windowHeight:
     };
 
     if (windowHeight) {
-        // dimensions of content above the emoji picker list
-        const dimensions = isRenderingShortcutRow ? CONST.EMOJI_PICKER_TEXT_INPUT_SIZES + CONST.CATEGORY_SHORTCUT_BAR_HEIGHT : CONST.EMOJI_PICKER_TEXT_INPUT_SIZES;
+        // dimensions of content above and below the emoji picker list
+        const dimensions = isRenderingShortcutRow
+            ? CONST.EMOJI_PICKER_TEXT_INPUT_SIZES + CONST.EMOJI_PICKER_SKIN_TONE_LIST_HEIGHT + CONST.CATEGORY_SHORTCUT_BAR_HEIGHT
+            : CONST.EMOJI_PICKER_TEXT_INPUT_SIZES + CONST.EMOJI_PICKER_SKIN_TONE_LIST_HEIGHT;
         const maxHeight = windowHeight - dimensions;
         return {
             ...style,

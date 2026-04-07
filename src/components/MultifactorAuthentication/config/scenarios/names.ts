@@ -18,6 +18,7 @@ const SCENARIO_NAMES = {
  * Prompt identifiers for multifactor authentication scenarios.
  */
 const PROMPT_NAMES = {
+    BIOMETRICS_HSM: 'biometrics',
     BIOMETRICS: 'biometrics',
     PASSKEYS: 'passkeys',
 } as const;

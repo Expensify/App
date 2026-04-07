@@ -546,15 +546,14 @@ function isSearchStringMatchUserDetails(personalDetail: PersonalDetails, searchV
  */
 function getIOUReportIDOfLastAction(
     report: OnyxEntry<Report>,
-    privateIsArchived: string | undefined,
+    privateIsArchived: boolean | undefined,
     visibleReportActionsData?: VisibleReportActionsDerivedValue,
     lastAction?: OnyxEntry<ReportAction>,
 ): string | undefined {
     if (!report?.reportID) {
         return;
     }
-    const isReportArchived = !!privateIsArchived;
-    const canUserPerformWrite = canUserPerformWriteAction(report, isReportArchived);
+    const canUserPerformWrite = canUserPerformWriteAction(report, privateIsArchived);
     const action = lastAction ?? getLastVisibleAction(report.reportID, canUserPerformWrite, {}, undefined, visibleReportActionsData);
     if (!isReportPreviewAction(action)) {
         return;
@@ -571,13 +570,12 @@ function getLastActorDisplayNameFromLastVisibleActions(
     lastActorDetails: Partial<PersonalDetails> | null,
     currentUserAccountIDParam: number,
     personalDetails: OnyxEntry<PersonalDetailsList>,
-    privateIsArchived: string | undefined,
+    privateIsArchived: boolean | undefined,
     visibleReportActionsData?: VisibleReportActionsDerivedValue,
     lastAction?: OnyxEntry<ReportAction>,
 ): string {
     const reportID = report?.reportID;
-    const isReportArchived = !!privateIsArchived;
-    const canUserPerformWrite = canUserPerformWriteAction(report, isReportArchived);
+    const canUserPerformWrite = canUserPerformWriteAction(report, privateIsArchived);
     const lastReportAction = lastAction ?? getLastVisibleAction(reportID, canUserPerformWrite, {}, undefined, visibleReportActionsData);
 
     if (lastReportAction) {
@@ -984,7 +982,7 @@ type CreateOptionParams = {
     accountIDs: number[];
     personalDetails: OnyxInputOrEntry<PersonalDetailsList>;
     report: OnyxInputOrEntry<Report>;
-    privateIsArchived: string | undefined;
+    privateIsArchived: boolean | undefined;
     policy?: OnyxEntry<Policy>;
     config?: PreviewConfig;
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
@@ -1078,7 +1076,7 @@ function createOption({
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- below is a boolean expression
         hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat || reportUtilsIsGroupChat(report);
-        subtitle = getChatRoomSubtitle(report, true, !!result.private_isArchived);
+        subtitle = getChatRoomSubtitle(report, true, result.private_isArchived);
 
         // If displaying chat preview line is needed, let's overwrite the default alternate text
         const lastActorDetails = personalDetails?.[report?.lastActorAccountID ?? String(CONST.DEFAULT_NUMBER_ID)] ?? {};
@@ -1088,7 +1086,7 @@ function createOption({
             translate: translateFn,
             report,
             lastActorDetails,
-            isReportArchived: !!result.private_isArchived,
+            isReportArchived: result.private_isArchived,
             visibleReportActionsDataParam: visibleReportActionsData,
             reportAttributesDerived,
             policyTags,
@@ -1137,7 +1135,7 @@ function createOption({
         personalDetail?.accountID,
         null,
         undefined,
-        !!result?.private_isArchived,
+        result?.private_isArchived,
     );
     result.subtitle = subtitle;
 
@@ -1156,7 +1154,7 @@ function createOption({
  */
 function getReportOption(
     participant: Participant,
-    privateIsArchived: string | undefined,
+    privateIsArchived: boolean | undefined,
     policy: OnyxEntry<Policy>,
     personalDetails: OnyxEntry<PersonalDetailsList>,
     conciergeReportID: string | undefined,
@@ -1223,7 +1221,7 @@ function getReportDisplayOption(
     report: OnyxEntry<Report>,
     unknownUserDetails: OnyxEntry<Participant>,
     personalDetails: OnyxEntry<PersonalDetailsList>,
-    privateIsArchived: string | undefined,
+    privateIsArchived: boolean | undefined,
     policy: OnyxEntry<Policy>,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     policyTags?: OnyxEntry<PolicyTagLists>,
@@ -1274,7 +1272,7 @@ function getReportDisplayOption(
  */
 function getPolicyExpenseReportOption(
     participant: Participant | SearchOptionData,
-    privateIsArchived: string | undefined,
+    privateIsArchived: boolean | undefined,
     personalDetails: OnyxEntry<PersonalDetailsList>,
     expenseReport: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
@@ -1407,7 +1405,7 @@ function isReportSelected(reportOption: SearchOptionData, selectedOptions: Array
 function processReport(
     report: OnyxEntry<Report> | null,
     personalDetails: OnyxEntry<PersonalDetailsList>,
-    privateIsArchived: string | undefined,
+    privateIsArchived: boolean | undefined,
     policy: OnyxEntry<Policy>,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     policyTags?: OnyxEntry<PolicyTagLists>,
@@ -1512,7 +1510,7 @@ function createOptionList(
  * Similar to recentReportComparator, but works with raw Report objects instead of SearchOptionData
  */
 const reportSortComparator = (report: Report, privateIsArchivedMap: PrivateIsArchivedMap): string => {
-    const isArchived = !!privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
+    const isArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
     return `${isArchived ? 0 : 1}_${report.lastVisibleActionCreated ?? ''}`;
 };
 
@@ -1647,7 +1645,7 @@ function createFilteredOptionList(
 function createOptionFromReport(
     report: Report,
     personalDetails: OnyxEntry<PersonalDetailsList>,
-    privateIsArchived: string | undefined,
+    privateIsArchived: boolean | undefined,
     policy: OnyxEntry<Policy>,
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     config?: PreviewConfig,
@@ -2158,7 +2156,7 @@ function isValidReport(option: SearchOption<Report>, policy: OnyxEntry<Policy>, 
         includeSelfDM,
         login: option.login,
         includeDomainEmail,
-        isReportArchived: !!option.private_isArchived,
+        isReportArchived: option.private_isArchived,
         draftComment,
     });
 
@@ -2207,7 +2205,7 @@ function isValidReport(option: SearchOption<Report>, policy: OnyxEntry<Policy>, 
         return false;
     }
 
-    if (!canUserPerformWriteAction(option.item, !!option.private_isArchived) && !includeReadOnly) {
+    if (!canUserPerformWriteAction(option.item, option.private_isArchived) && !includeReadOnly) {
         return false;
     }
 
@@ -2331,7 +2329,7 @@ function prepareReportOptionsForDisplay(
                     : undefined;
             const oneTransactionThreadReport = oneTransactionThreadReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`] : undefined;
 
-            isOptionUnread = isUnread(report, oneTransactionThreadReport, !!option.private_isArchived) && !!report.lastActorAccountID;
+            isOptionUnread = isUnread(report, oneTransactionThreadReport, option.private_isArchived) && !!report.lastActorAccountID;
         }
 
         let lastIOUCreationDate;
@@ -2956,7 +2954,7 @@ function formatSectionsFromSearchTerm(
     selectedOptions: SearchOptionData[],
     filteredRecentReports: SearchOptionData[],
     filteredPersonalDetails: SearchOptionData[],
-    privateIsArchivedMap: Record<string, string | undefined>,
+    privateIsArchivedMap: Record<string, boolean>,
     currentUserAccountID: number,
     allPolicies: OnyxCollection<Policy>,
     personalDetails: OnyxEntry<PersonalDetailsList> = {},

@@ -103,6 +103,7 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
             policyRecentlyUsedCategories,
             policyRecentlyUsedTags,
             isFromGlobalCreate: transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate,
+            senderPolicyTags: policyTags ?? {},
         });
     };
 
