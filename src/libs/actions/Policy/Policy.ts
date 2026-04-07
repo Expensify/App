@@ -2160,7 +2160,7 @@ function clearDuplicateWorkspace() {
     Onyx.set(ONYXKEYS.DUPLICATE_WORKSPACE, {});
 }
 
-function getDisplayNameForWorkspace(email: string) {
+function getDisplayNameForWorkspace(email: string, displayNameOverride?: string) {
     const emailParts = email.split('@');
     const domain = emailParts.at(1) ?? '';
     const isSMSDomain = `@${domain}` === CONST.SMS.DOMAIN;
@@ -2174,7 +2174,7 @@ function getDisplayNameForWorkspace(email: string) {
     }
 
     const userDetails = PersonalDetailsUtils.getPersonalDetailByEmail(email);
-    const displayName = userDetails?.displayName?.trim();
+    const displayName = displayNameOverride?.trim() ?? userDetails?.displayName?.trim();
     if (displayName) {
         return Str.UCFirst(displayName);
     }
@@ -2184,12 +2184,10 @@ function getDisplayNameForWorkspace(email: string) {
 }
 
 /**
- * Generate a policy name based on an email and policy list.
- * @param [email] the email to base the workspace name on. If not passed, will use the logged-in user's email instead
- * @param [lastWorkspaceNumber] the last workspace number
+ * Generate a policy name based on an email and the last workspace number.
  */
-function newGenerateDefaultWorkspaceName(email: string, lastWorkspaceNumber: number | undefined, localeTranslate: LocalizedTranslate): string {
-    const emailParts = email ? email.split('@') : deprecatedSessionEmail.split('@');
+function newGenerateDefaultWorkspaceName(email: string, lastWorkspaceNumber: number | undefined, localeTranslate: LocalizedTranslate, displayNameOverride?: string): string {
+    const emailParts = email.split('@');
     if (!emailParts || emailParts.length !== 2) {
         return '';
     }
@@ -2200,7 +2198,7 @@ function newGenerateDefaultWorkspaceName(email: string, lastWorkspaceNumber: num
         return localeTranslate('workspace.new.myGroupWorkspace', {workspaceNumber: lastWorkspaceNumber !== undefined ? lastWorkspaceNumber + 1 : undefined});
     }
 
-    const displayNameForWorkspace = getDisplayNameForWorkspace(email || deprecatedSessionEmail);
+    const displayNameForWorkspace = getDisplayNameForWorkspace(email, displayNameOverride);
 
     return localeTranslate('workspace.new.workspaceName', displayNameForWorkspace, lastWorkspaceNumber !== undefined ? lastWorkspaceNumber + 1 : undefined);
 }
@@ -3946,6 +3944,8 @@ function createWorkspaceFromIOUPayment(
     currentUserEmail: string,
     iouReportOwnerEmail: string,
     conciergeReportID: string | undefined,
+    lastWorkspaceNumber: number | undefined,
+    localeTranslate: LocalizedTranslate,
 ): WorkspaceFromIOUCreationData | undefined {
     // This flow only works for IOU reports
     if (!iouReport || !ReportUtils.isIOUReportUsingReport(iouReport)) {
@@ -3954,7 +3954,7 @@ function createWorkspaceFromIOUPayment(
 
     // Generate new variables for the policy
     const policyID = generatePolicyID();
-    const workspaceName = generateDefaultWorkspaceName(currentUserEmail);
+    const workspaceName = newGenerateDefaultWorkspaceName(currentUserEmail, lastWorkspaceNumber, localeTranslate);
     const employeeAccountID = iouReport?.ownerAccountID;
     const {customUnits, customUnitID, customUnitRateID} = buildOptimisticDistanceRateCustomUnits(iouReport?.currency);
     const oldPersonalPolicyID = iouReport?.policyID;
