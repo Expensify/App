@@ -16,7 +16,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getSpendRuleFormValuesFromCardRule} from '@libs/actions/Card';
-import {filterInactiveCards, getCardDescriptionForSearchTable, isCard} from '@libs/CardUtils';
+import {filterInactiveCards, getCardDescriptionForSearchTable, getSelectedCardsCurrency, isCard} from '@libs/CardUtils';
 import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -25,7 +25,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SpendRuleForm} from '@src/types/form';
-import type {WorkspaceCardsList} from '@src/types/onyx';
 
 type SpendRulesSectionProps = {
     policyID: string;
@@ -66,27 +65,6 @@ function getSpendRuleSummaryParts(
     }
 
     return summaryParts;
-}
-
-function getSelectedCardsCurrency(cardIDs: string[], cardsList: WorkspaceCardsList | undefined): string | undefined {
-    const currencies = new Set<string>();
-
-    for (const cardID of cardIDs) {
-        const card = cardsList?.[cardID];
-        if (!card || !isCard(card)) {
-            continue;
-        }
-
-        if (typeof card.nameValuePairs?.currency === 'string' && card.nameValuePairs.currency) {
-            currencies.add(String(card.nameValuePairs.currency));
-        }
-    }
-
-    if (currencies.size !== 1) {
-        return undefined;
-    }
-
-    return Array.from(currencies).at(0);
 }
 
 function SpendRulesSection({policyID}: SpendRulesSectionProps) {

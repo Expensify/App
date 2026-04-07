@@ -1,6 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -13,7 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateDraftSpendRule} from '@libs/actions/User';
-import {filterInactiveCards, isCard} from '@libs/CardUtils';
+import {filterInactiveCards, getSelectedCardsCurrency} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -23,33 +22,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/SpendRuleForm';
-import type {WorkspaceCardsList} from '@src/types/onyx';
 
 type SpendRuleMaxAmountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_SPEND_MAX_AMOUNT>;
-
-function getSelectedCardsCurrency(cardIDs: string[] | undefined, cardsList: OnyxEntry<WorkspaceCardsList>): string | undefined {
-    if (!cardIDs?.length) {
-        return undefined;
-    }
-
-    const cardsRecord = cardsList ?? {};
-    const currencies = new Set<string>();
-    for (const id of cardIDs) {
-        const card = cardsRecord[id];
-        if (card === undefined || !isCard(card)) {
-            continue;
-        }
-        const currency = card.nameValuePairs?.currency;
-        if (currency) {
-            currencies.add(currency);
-        }
-    }
-
-    if (currencies.size !== 1) {
-        return undefined;
-    }
-    return Array.from(currencies).at(0);
-}
 
 function SpendRuleMaxAmountPage({route}: SpendRuleMaxAmountPageProps) {
     const {policyID} = route.params;
