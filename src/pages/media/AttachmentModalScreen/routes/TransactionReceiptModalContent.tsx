@@ -548,7 +548,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                         style={styles.transactionReceiptButton}
                     />
                 )}
-                {!isPDF && (shouldShowReplaceReceiptButton || isOdometerImage) && (
+                {(shouldShowReplaceReceiptButton || isOdometerImage) && (
                     <Button
                         icon={expensifyIcons.Camera}
                         onPress={() => {
