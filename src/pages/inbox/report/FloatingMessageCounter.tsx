@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect} from 'react';
+import type {StyleProp, TextStyle} from 'react-native';
 import {View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withSpring} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
@@ -10,6 +11,59 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import type IconAsset from '@src/types/utils/IconAsset';
+
+type FloatingPillButtonProps = {
+    /** Whether the button uses the success style */
+    success: boolean;
+
+    /** Whether the button uses the danger style */
+    danger?: boolean;
+
+    /** Callback when the button is pressed */
+    onPress?: () => void;
+
+    /** The icon to display */
+    icon: IconAsset;
+
+    /** The fill color for the icon */
+    iconFill: string;
+
+    /** The label text to display */
+    label: string;
+
+    /** Additional text styles */
+    textStyle?: StyleProp<TextStyle>;
+};
+
+function FloatingPillButton({success, danger, onPress, icon, iconFill, label, textStyle}: FloatingPillButtonProps) {
+    const styles = useThemeStyles();
+
+    return (
+        <Button
+            success={success}
+            danger={danger}
+            small
+            onPress={onPress}
+            sentryLabel={CONST.SENTRY_LABEL.REPORT.FLOATING_MESSAGE_COUNTER}
+        >
+            <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                <Icon
+                    small
+                    src={icon}
+                    fill={iconFill}
+                />
+
+                <Text
+                    style={[styles.ml2, styles.buttonSmallText, textStyle, styles.userSelectNone]}
+                    dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                >
+                    {label}
+                </Text>
+            </View>
+        </Button>
+    );
+}
 
 type FloatingMessageCounterProps = {
     /** Whether the New Messages indicator is active */
@@ -41,7 +95,7 @@ function FloatingMessageCounter({isActive = false, onClick = () => {}, hasNewMes
     const {translate} = useLocalize();
     const translateY = useSharedValue(MARKER_INACTIVE_TRANSLATE_Y);
 
-    const showActionBadgePill = !!actionBadge && !!actionBadgeBrickRoadStatus;
+    const shouldShowActionBadgePill = !!actionBadge && !!actionBadgeBrickRoadStatus;
     const isError = actionBadgeBrickRoadStatus === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
 
     const show = useCallback(() => {
@@ -57,12 +111,12 @@ function FloatingMessageCounter({isActive = false, onClick = () => {}, hasNewMes
     }, [translateY]);
 
     useEffect(() => {
-        if (isActive || showActionBadgePill) {
+        if (isActive || shouldShowActionBadgePill) {
             show();
         } else {
             hide();
         }
-    }, [isActive, showActionBadgePill, show, hide]);
+    }, [isActive, shouldShowActionBadgePill, show, hide]);
 
     const wrapperStyle = useAnimatedStyle(() => ({
         ...styles.floatingMessageCounterWrapper,
@@ -76,51 +130,25 @@ function FloatingMessageCounter({isActive = false, onClick = () => {}, hasNewMes
         >
             <View style={styles.floatingMessageCounter}>
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                    {showActionBadgePill ? (
-                        <Button
+                    {shouldShowActionBadgePill ? (
+                        <FloatingPillButton
                             success={!isError}
                             danger={isError}
-                            small
                             onPress={onActionBadgePress}
-                            sentryLabel={CONST.SENTRY_LABEL.REPORT.FLOATING_MESSAGE_COUNTER}
-                        >
-                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                <Icon
-                                    small
-                                    src={icons.UpArrow}
-                                    fill={theme.textLight}
-                                />
-
-                                <Text
-                                    style={[styles.ml2, styles.buttonSmallText, styles.textWhite, styles.userSelectNone]}
-                                    dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                                >
-                                    {translate(`common.actionBadge.${actionBadge}`)}
-                                </Text>
-                            </View>
-                        </Button>
+                            icon={icons.UpArrow}
+                            iconFill={theme.textLight}
+                            label={translate(`common.actionBadge.${actionBadge}`)}
+                            textStyle={styles.textWhite}
+                        />
                     ) : (
-                        <Button
+                        <FloatingPillButton
                             success={hasNewMessages}
-                            small
                             onPress={onClick}
-                            sentryLabel={CONST.SENTRY_LABEL.REPORT.FLOATING_MESSAGE_COUNTER}
-                        >
-                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                <Icon
-                                    small
-                                    src={icons.DownArrow}
-                                    fill={hasNewMessages ? theme.textLight : theme.icon}
-                                />
-
-                                <Text
-                                    style={[styles.ml2, styles.buttonSmallText, hasNewMessages && styles.textWhite, styles.userSelectNone]}
-                                    dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                                >
-                                    {hasNewMessages ? translate('newMessages') : translate('latestMessages')}
-                                </Text>
-                            </View>
-                        </Button>
+                            icon={icons.DownArrow}
+                            iconFill={hasNewMessages ? theme.textLight : theme.icon}
+                            label={hasNewMessages ? translate('newMessages') : translate('latestMessages')}
+                            textStyle={hasNewMessages && styles.textWhite}
+                        />
                     )}
                 </View>
             </View>
