@@ -1,3 +1,4 @@
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -57,6 +58,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
     useEffect(() => {
         setTaskReport(report);
@@ -114,7 +116,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                     <OfflineWithFeedback
                         shouldShowErrorMessages
                         errors={report?.errorFields?.editTask ?? report?.errorFields?.createTask}
-                        onClose={() => clearTaskErrors(report, conciergeReportID, accountID, introSelected, betas)}
+                        onClose={() => clearTaskErrors(report, conciergeReportID, accountID, introSelected, betas, isSelfTourViewed)}
                         errorRowStyles={styles.ph5}
                     >
                         <Hoverable>

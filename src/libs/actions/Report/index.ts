@@ -2022,7 +2022,13 @@ function navigateToAndCreateGroupChat(
  *
  * @param participantAccountIDs of user logins to start a chat report with.
  */
-function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[], currentUserAccountID: number, introSelected: OnyxEntry<IntroSelected>, betas: OnyxEntry<Beta[]>) {
+function navigateToAndOpenReportWithAccountIDs(
+    participantAccountIDs: number[],
+    currentUserAccountID: number,
+    introSelected: OnyxEntry<IntroSelected>,
+    isSelfTourViewed: boolean | undefined,
+    betas: OnyxEntry<Beta[]>,
+) {
     let newChat: OptimisticChatReport | undefined;
     const chat = getChatByParticipants([...participantAccountIDs, currentUserAccountID]);
     if (!chat) {
@@ -2034,6 +2040,7 @@ function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[], 
         openReport({
             reportID: newChat?.reportID,
             introSelected,
+            isSelfTourViewed,
             newReportObject: newChat,
             parentReportActionID: '0',
             participantAccountIDList: participantAccountIDs,
@@ -3922,6 +3929,7 @@ function clearCreateChatError(
     introSelected: OnyxEntry<IntroSelected>,
     currentUserAccountID: number,
     betas: OnyxEntry<Beta[]>,
+    isSelfTourViewed: boolean | undefined,
 ) {
     const metaData = getReportMetadata(report?.reportID);
     const isOptimisticReport = metaData?.isOptimisticReport;
@@ -3930,8 +3938,7 @@ function clearCreateChatError(
         return;
     }
 
-    // TODO: We'll pass isSelfTourViewed in the next PR. Refactor issue: https://github.com/Expensify/App/issues/66424
-    navigateToConciergeChatAndDeleteReport(report?.reportID, conciergeReportID, currentUserAccountID, introSelected, undefined, betas, undefined, true);
+    navigateToConciergeChatAndDeleteReport(report?.reportID, conciergeReportID, currentUserAccountID, introSelected, isSelfTourViewed, betas, undefined, true);
 }
 
 /**

@@ -323,7 +323,7 @@ describe('actions/Report', () => {
 
         return waitForBatchedUpdates()
             .then(() => {
-                Report.clearCreateChatError(REPORT, CONCIERGE_REPORT_ID, {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM}, TEST_USER_ACCOUNT_ID, undefined);
+                Report.clearCreateChatError(REPORT, CONCIERGE_REPORT_ID, {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM}, TEST_USER_ACCOUNT_ID, undefined, false);
                 return waitForBatchedUpdates();
             })
             .then(
@@ -356,7 +356,7 @@ describe('actions/Report', () => {
 
         return waitForBatchedUpdates()
             .then(() => {
-                Report.clearCreateChatError(REPORT, CONCIERGE_REPORT_ID, INTRO_SELECTED, TEST_USER_ACCOUNT_ID, undefined);
+                Report.clearCreateChatError(REPORT, CONCIERGE_REPORT_ID, INTRO_SELECTED, TEST_USER_ACCOUNT_ID, undefined, false);
                 return waitForBatchedUpdates();
             })
             .then(
@@ -388,7 +388,7 @@ describe('actions/Report', () => {
 
         return waitForBatchedUpdates()
             .then(() => {
-                Report.clearCreateChatError(REPORT, CONCIERGE_REPORT_ID, INTRO_SELECTED, TEST_USER_ACCOUNT_ID, undefined);
+                Report.clearCreateChatError(REPORT, CONCIERGE_REPORT_ID, INTRO_SELECTED, TEST_USER_ACCOUNT_ID, undefined, false);
                 return waitForBatchedUpdates();
             })
             .then(
@@ -429,7 +429,57 @@ describe('actions/Report', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${REPORT.reportID}`, {isOptimisticReport: true});
         await waitForBatchedUpdates();
 
-        Report.clearCreateChatError(REPORT, undefined, INTRO_SELECTED, TEST_USER_ACCOUNT_ID, testBetas);
+        Report.clearCreateChatError(REPORT, undefined, INTRO_SELECTED, TEST_USER_ACCOUNT_ID, testBetas, false);
+        await waitForBatchedUpdates();
+
+        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
+    });
+
+    it('clearCreateChatError should pass isSelfTourViewed=true through navigateToConciergeChatAndDeleteReport when deleting optimistic report', async () => {
+        const TEST_USER_ACCOUNT_ID = 1;
+        const TEST_USER_LOGIN = 'test@user.com';
+        const REPORT: OnyxTypes.Report = {...createRandomReport(1, undefined), errorFields: {createChat: {error: 'error'}}};
+        const INTRO_SELECTED: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM};
+
+        await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+        await TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            [CONST.ACCOUNT_ID.CONCIERGE]: {
+                accountID: CONST.ACCOUNT_ID.CONCIERGE,
+                login: CONST.EMAIL.CONCIERGE,
+                displayName: 'Concierge',
+            },
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT.reportID}`, REPORT);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${REPORT.reportID}`, {isOptimisticReport: true});
+        await waitForBatchedUpdates();
+
+        Report.clearCreateChatError(REPORT, undefined, INTRO_SELECTED, TEST_USER_ACCOUNT_ID, undefined, true);
+        await waitForBatchedUpdates();
+
+        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
+    });
+
+    it('clearCreateChatError should pass isSelfTourViewed=false through navigateToConciergeChatAndDeleteReport when deleting optimistic report', async () => {
+        const TEST_USER_ACCOUNT_ID = 1;
+        const TEST_USER_LOGIN = 'test@user.com';
+        const REPORT: OnyxTypes.Report = {...createRandomReport(1, undefined), errorFields: {createChat: {error: 'error'}}};
+        const INTRO_SELECTED: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM};
+
+        await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+        await TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            [CONST.ACCOUNT_ID.CONCIERGE]: {
+                accountID: CONST.ACCOUNT_ID.CONCIERGE,
+                login: CONST.EMAIL.CONCIERGE,
+                displayName: 'Concierge',
+            },
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT.reportID}`, REPORT);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${REPORT.reportID}`, {isOptimisticReport: true});
+        await waitForBatchedUpdates();
+
+        Report.clearCreateChatError(REPORT, undefined, INTRO_SELECTED, TEST_USER_ACCOUNT_ID, undefined, false);
         await waitForBatchedUpdates();
 
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
@@ -6293,7 +6343,7 @@ describe('actions/Report', () => {
 
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
 
-            Report.navigateToAndOpenReportWithAccountIDs([PARTICIPANT_ACCOUNT_ID], TEST_USER_ACCOUNT_ID, testIntroSelected, undefined);
+            Report.navigateToAndOpenReportWithAccountIDs([PARTICIPANT_ACCOUNT_ID], TEST_USER_ACCOUNT_ID, testIntroSelected, false, undefined);
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
@@ -6320,11 +6370,45 @@ describe('actions/Report', () => {
 
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
 
-            Report.navigateToAndOpenReportWithAccountIDs([PARTICIPANT_ACCOUNT_ID], TEST_USER_ACCOUNT_ID, testIntroSelected, undefined);
+            Report.navigateToAndOpenReportWithAccountIDs([PARTICIPANT_ACCOUNT_ID], TEST_USER_ACCOUNT_ID, testIntroSelected, false, undefined);
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 0);
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(EXISTING_REPORT_ID));
+        });
+
+        it('should pass isSelfTourViewed=true through to openReport when creating new chat', async () => {
+            const TEST_USER_ACCOUNT_ID = 1;
+            const TEST_USER_LOGIN = 'test@user.com';
+            const PARTICIPANT_ACCOUNT_ID = 2;
+
+            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+            await TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
+
+            const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
+
+            Report.navigateToAndOpenReportWithAccountIDs([PARTICIPANT_ACCOUNT_ID], TEST_USER_ACCOUNT_ID, testIntroSelected, true, undefined);
+            await waitForBatchedUpdates();
+
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
+            expect(Navigation.navigate).toHaveBeenCalled();
+        });
+
+        it('should pass isSelfTourViewed=false through to openReport when creating new chat', async () => {
+            const TEST_USER_ACCOUNT_ID = 1;
+            const TEST_USER_LOGIN = 'test@user.com';
+            const PARTICIPANT_ACCOUNT_ID = 2;
+
+            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
+            await TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
+
+            const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
+
+            Report.navigateToAndOpenReportWithAccountIDs([PARTICIPANT_ACCOUNT_ID], TEST_USER_ACCOUNT_ID, testIntroSelected, false, undefined);
+            await waitForBatchedUpdates();
+
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
+            expect(Navigation.navigate).toHaveBeenCalled();
         });
     });
 
