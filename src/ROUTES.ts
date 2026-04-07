@@ -116,7 +116,7 @@ const DYNAMIC_ROUTES = {
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_ADVANCED, SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION],
     },
     NETSUITE_ACCOUNTING_METHOD: {
-        path: 'accounting-method',
+        path: 'netsuite-accounting-method',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_AUTO_SYNC],
     },
     SAGE_INTACCT_PREREQUISITES: {
