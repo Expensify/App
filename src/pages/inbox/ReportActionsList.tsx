@@ -4,12 +4,12 @@ import MoneyRequestReportActionsList from '@components/MoneyRequestReportView/Mo
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {shouldDisplayReportTableView, shouldWaitForTransactions as shouldWaitForTransactionsUtil} from '@libs/MoneyRequestReportUtils';
+import {getAllNonDeletedTransactions, shouldDisplayReportTableView, shouldWaitForTransactions as shouldWaitForTransactionsUtil} from '@libs/MoneyRequestReportUtils';
 import {isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Transaction} from '@src/types/onyx';
 import ReportActionsView from './report/ReportActionsView';
 
 const defaultReportMetadata = {
@@ -36,14 +36,14 @@ function ReportActionsList() {
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`);
+    const {reportActions} = usePaginatedReportActions(reportIDFromRoute);
 
-    // Raw transaction collection — cheap Onyx derived selector, only used for branching (length / reportID checks)
     const allReportTransactions = useReportTransactionsCollection(reportIDFromRoute);
-    const rawTransactions = Object.values(allReportTransactions ?? {}).filter((t): t is Transaction => !!t);
+    const reportTransactions = getAllNonDeletedTransactions(allReportTransactions, reportActions, isOffline, true);
 
     const isMoneyRequestOrInvoiceReport = isMoneyRequestReport(report) || isInvoiceReport(report);
-    const shouldWaitForTransactions = shouldWaitForTransactionsUtil(report, rawTransactions, reportMetadata, isOffline);
-    const shouldDisplayMoneyRequestActionsList = isMoneyRequestOrInvoiceReport && shouldDisplayReportTableView(report, rawTransactions);
+    const shouldWaitForTransactions = shouldWaitForTransactionsUtil(report, reportTransactions, reportMetadata, isOffline);
+    const shouldDisplayMoneyRequestActionsList = isMoneyRequestOrInvoiceReport && shouldDisplayReportTableView(report, reportTransactions);
 
     if (!report || shouldWaitForTransactions) {
         return <ReportActionsSkeletonView />;
