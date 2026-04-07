@@ -277,8 +277,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
     });
     const draftTransactionIDs = Object.keys(transactionDrafts ?? {});
 
-    const {translate, localeCompare, toLocaleDigit} = useLocalize();
-    const {isProduction} = useEnvironment();
+    const {translate, localeCompare} = useLocalize();
     const exportTemplates = useMemo(
         () => getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, policy),
         [integrationsExportTemplates, csvExportLayouts, policy, translate],
