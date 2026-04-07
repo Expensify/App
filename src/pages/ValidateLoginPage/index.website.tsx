@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import ExpiredValidateCodeModal from '@components/ValidateCode/ExpiredValidateCodeModal';
@@ -26,13 +26,10 @@ function ValidateLoginPage({
 
     const login = credentials?.login;
     const isSignedIn = !!session?.authToken && session?.authTokenType !== CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
-    // When not signed in, ignore stored autoAuthState on the first render to prevent stale values
-    // (e.g. FAILED from a previous magic link attempt) from briefly rendering incorrect UI.
-    // Once initAutoAuthState() runs in the useEffect, the state is set to true and real values are used.
-    const [hasInitialized, setHasInitialized] = useState(isSignedIn);
-    const [autoAuthState] = useOnyx(ONYXKEYS.SESSION, {selector: autoAuthStateSelector});
-    const effectiveAutoAuthState = hasInitialized ? autoAuthState : undefined;
-    const autoAuthStateWithDefault = effectiveAutoAuthState ?? CONST.AUTO_AUTH_STATE.NOT_STARTED;
+    // To ensure that the previous autoAuthState does not impact the rendering of the current magic link page, the autoAuthState prop sets initWithStoredValues to false.
+    // This is done unless the user is signed in, in which case the page will be remounted upon successful sign-in, as explained in Session.initAutoAuthState.
+    const [autoAuthState] = useOnyx(ONYXKEYS.SESSION, {initWithStoredValues: isSignedIn, selector: autoAuthStateSelector});
+    const autoAuthStateWithDefault = autoAuthState ?? CONST.AUTO_AUTH_STATE.NOT_STARTED;
     const is2FARequired = !!account?.requiresTwoFactorAuth;
     const cachedAccountID = credentials?.accountID;
     const isUserClickedSignIn = !login && isSignedIn && (autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.SIGNING_IN || autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN);
@@ -41,8 +38,6 @@ function ValidateLoginPage({
     const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
 
     useEffect(() => {
-        setHasInitialized(true);
-
         if (isUserClickedSignIn) {
             // The user clicked the option to sign in the current tab
             Navigation.isNavigationReady().then(() => {
@@ -87,13 +82,13 @@ function ValidateLoginPage({
             )}
             {autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN && isSignedIn && !exitTo && !!login && <JustSignedInModal is2FARequired={false} />}
             {/* If session.autoAuthState isn't available yet, we use shouldStartSignInWithValidateCode to conditionally render the component instead of local autoAuthState which contains a default value of NOT_STARTED */}
-            {(!effectiveAutoAuthState ? !shouldStartSignInWithValidateCode : autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.NOT_STARTED && !isNavigatingToExitTo) && (
+            {(!autoAuthState ? !shouldStartSignInWithValidateCode : autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.NOT_STARTED && !isNavigatingToExitTo) && (
                 <ValidateCodeModal
                     accountID={Number(accountID)}
                     code={validateCode}
                 />
             )}
-            {(!effectiveAutoAuthState ? shouldStartSignInWithValidateCode : autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.SIGNING_IN) && (
+            {(!autoAuthState ? shouldStartSignInWithValidateCode : autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.SIGNING_IN) && (
                 <FullScreenLoadingIndicator
                     reasonAttributes={{
                         context: 'ValidateLoginPage',
