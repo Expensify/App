@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import useOnyx from '@hooks/useOnyx';
 import useReportAttributes from '@hooks/useReportAttributes';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -17,26 +17,21 @@ function LHNTooltipContextProvider({data, children}: LHNTooltipContextProviderPr
     const [isFullscreenVisible] = useOnyx(ONYXKEYS.FULLSCREEN_VISIBILITY);
     const reportAttributes = useReportAttributes();
 
-    const firstReportIDWithGBRorRBR = useMemo(() => {
-        const firstReport = data.find((report) => {
-            const attrs = reportAttributes?.[report.reportID];
-            if (!isEmptyObject(attrs?.reportErrors)) {
-                return true;
-            }
-            return attrs?.requiresAttention;
-        });
-        return firstReport?.reportID;
-    }, [data, reportAttributes]);
+    const firstReport = data.find((report) => {
+        const attrs = reportAttributes?.[report.reportID];
+        if (!isEmptyObject(attrs?.reportErrors)) {
+            return true;
+        }
+        return attrs?.requiresAttention;
+    });
+    const firstReportIDWithGBRorRBR = firstReport?.reportID;
 
-    const value = useMemo(
-        () => ({
-            onboardingPurpose: introSelected?.choice,
-            onboarding,
-            isFullscreenVisible,
-            firstReportIDWithGBRorRBR,
-        }),
-        [introSelected?.choice, onboarding, isFullscreenVisible, firstReportIDWithGBRorRBR],
-    );
+    const value = {
+        onboardingPurpose: introSelected?.choice,
+        onboarding,
+        isFullscreenVisible,
+        firstReportIDWithGBRorRBR,
+    };
 
     return <LHNTooltipContext.Provider value={value}>{children}</LHNTooltipContext.Provider>;
 }
