@@ -79,7 +79,7 @@ function ReportFetchHandler() {
 
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${linkedAction?.childReportID}`);
 
-    const oneTransactionThreadTransactionsCollection = useReportTransactionsCollection(reportID);
+    const reportTransactionsCollection = useReportTransactionsCollection(reportID);
     const allReportTransactions = useReportTransactionsCollection(reportIDFromRoute);
     const reportTransactions = getAllNonDeletedTransactions(allReportTransactions, reportActions, isOffline, true);
     const visibleTransactions = isOffline ? reportTransactions : reportTransactions?.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
@@ -126,7 +126,7 @@ function ReportFetchHandler() {
     });
 
     const createOneTransactionThread = useEffectEvent(() => {
-        const currentReportTransactions = Object.values(oneTransactionThreadTransactionsCollection ?? {}).filter(
+        const currentReportTransactions = Object.values(reportTransactionsCollection ?? {}).filter(
             (transaction): transaction is Transaction => !!transaction && transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         );
         const oneTransactionID = currentReportTransactions.at(0)?.transactionID;
