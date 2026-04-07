@@ -22,7 +22,7 @@ import type SCREENS from '@src/SCREENS';
 type SpendRuleMerchantsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_SPEND_MERCHANTS>;
 
 function SpendRuleMerchantsPage({route}: SpendRuleMerchantsPageProps) {
-    const {policyID} = route.params;
+    const {policyID, ruleID} = route.params;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [spendRuleForm] = useOnyx(ONYXKEYS.FORMS.SPEND_RULE_FORM);
@@ -41,10 +41,11 @@ function SpendRuleMerchantsPage({route}: SpendRuleMerchantsPageProps) {
             ? translate('workspace.rules.spendRules.addMerchantToBlockSpend')
             : translate('workspace.rules.spendRules.addMerchantToAllowSpend');
 
-    const goBack = () => Navigation.goBack(ROUTES.RULES_SPEND_NEW.getRoute(policyID));
+    const parentRoute = ruleID === ROUTES.NEW ? ROUTES.RULES_SPEND_NEW.getRoute(policyID) : ROUTES.RULES_SPEND_EDIT.getRoute(policyID, ruleID);
+    const goBack = () => Navigation.goBack(parentRoute);
 
     const addMerchant = () => {
-        Navigation.navigate(ROUTES.RULES_SPEND_MERCHANT_EDIT.getRoute(policyID, ROUTES.NEW));
+        Navigation.navigate(ROUTES.RULES_SPEND_MERCHANT_EDIT.getRoute(policyID, ruleID, ROUTES.NEW));
     };
 
     return (
@@ -81,7 +82,7 @@ function SpendRuleMerchantsPage({route}: SpendRuleMerchantsPageProps) {
                                         ? translate('workspace.rules.spendRules.merchantExactlyMatches')
                                         : translate('workspace.rules.spendRules.merchantContains')
                                 }
-                                onPress={() => Navigation.navigate(ROUTES.RULES_SPEND_MERCHANT_EDIT.getRoute(policyID, String(index)))}
+                                onPress={() => Navigation.navigate(ROUTES.RULES_SPEND_MERCHANT_EDIT.getRoute(policyID, ruleID, String(index)))}
                                 shouldShowRightIcon
                                 title={merchantName}
                                 titleStyle={styles.flex1}

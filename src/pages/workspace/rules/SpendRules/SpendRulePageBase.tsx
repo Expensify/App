@@ -1,5 +1,6 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
+import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -12,13 +13,14 @@ import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {setExpensifyCardRule} from '@libs/actions/Card';
-import {clearDraftSpendRule, updateDraftSpendRule} from '@libs/actions/User';
+import {deleteExpensifyCardRule, getSpendRuleFormValuesFromCardRule, setExpensifyCardRule} from '@libs/actions/Card';
+import {clearDraftSpendRule, setDraftSpendRule, updateDraftSpendRule} from '@libs/actions/User';
 import {filterInactiveCards, getCardDescriptionForSearchTable, isCard} from '@libs/CardUtils';
 import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -28,6 +30,7 @@ import SpendRuleRestrictionTypeToggle from './SpendRuleRestrictionTypeToggle';
 
 type SpendRulePageBaseProps = {
     policyID: string;
+    ruleID?: string;
     titleKey: TranslationPaths;
     testID: string;
 };
@@ -47,17 +50,41 @@ function getErrorMessage(hasSelectedCards: boolean, hasAnyRuleApplied: boolean, 
     return '';
 }
 
-function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps) {
+function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBaseProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const domainAccountID = useDefaultFundID(policyID);
     const [spendRuleForm] = useOnyx(ONYXKEYS.FORMS.SPEND_RULE_FORM);
+    const [expensifyCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
     const [isErrorVisible, setIsErrorVisible] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+    const hasHydratedExistingRule = useRef(false);
+    const resolvedRuleID = ruleID ?? ROUTES.NEW;
+    const isEditing = resolvedRuleID !== ROUTES.NEW;
+    const existingRule = isEditing ? expensifyCardSettings?.cardRules?.[resolvedRuleID] : undefined;
 
     useEffect(() => () => clearDraftSpendRule(), []);
+
+    useEffect(() => {
+        hasHydratedExistingRule.current = false;
+    }, [resolvedRuleID]);
+
+    useEffect(() => {
+        if (!isEditing || !existingRule || hasHydratedExistingRule.current) {
+            return;
+        }
+
+        const existingFormValues = getSpendRuleFormValuesFromCardRule(existingRule);
+        if (!existingFormValues) {
+            return;
+        }
+
+        setDraftSpendRule(existingFormValues);
+        hasHydratedExistingRule.current = true;
+    }, [existingRule, isEditing]);
 
     const cardIDs = spendRuleForm?.cardIDs;
     const restrictionAction = spendRuleForm?.restrictionAction ?? CONST.SPEND_RULES.ACTION.ALLOW;
@@ -111,7 +138,7 @@ function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps)
         if (result.action !== ModalActions.CONFIRM) {
             return;
         }
-        Navigation.navigate(ROUTES.RULES_SPEND_CARD.getRoute(policyID));
+        Navigation.navigate(ROUTES.RULES_SPEND_CARD.getRoute(policyID, resolvedRuleID));
     };
 
     function getMerchantMenuTitle(merchantNamesToSummarize: string[] | undefined): string {
@@ -154,10 +181,37 @@ function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps)
         }
 
         clearError();
-        setExpensifyCardRule(domainAccountID, rand64(), spendRuleForm);
+        setExpensifyCardRule(domainAccountID, isEditing ? resolvedRuleID : rand64(), spendRuleForm);
         clearDraftSpendRule();
         Navigation.goBack();
     };
+
+    const handleDeleteRule = () => {
+        if (!existingRule) {
+            return;
+        }
+
+        showConfirmModal({
+            title: translate('workspace.rules.spendRules.deleteRule'),
+            prompt: translate('workspace.rules.spendRules.deleteRuleConfirmation'),
+            confirmText: translate('common.delete'),
+            cancelText: translate('common.cancel'),
+            danger: true,
+        }).then((result) => {
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
+
+            setIsDeleting(true);
+            deleteExpensifyCardRule(domainAccountID, resolvedRuleID, existingRule);
+            clearDraftSpendRule();
+            Navigation.goBack();
+        });
+    };
+
+    if (isEditing && !existingRule && !isDeleting) {
+        return <NotFoundPage />;
+    }
 
     return (
         <AccessOrNotFoundWrapper
@@ -177,7 +231,7 @@ function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps)
                         description={translate('workspace.rules.spendRules.chooseCards')}
                         onPress={() => {
                             clearError();
-                            Navigation.navigate(ROUTES.RULES_SPEND_CARD.getRoute(policyID));
+                            Navigation.navigate(ROUTES.RULES_SPEND_CARD.getRoute(policyID, resolvedRuleID));
                         }}
                         shouldShowRightIcon
                         title={cardsMenuTitle}
@@ -198,7 +252,7 @@ function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps)
                         description={translate('common.merchant')}
                         onPress={() => {
                             clearError();
-                            Navigation.navigate(ROUTES.RULES_SPEND_MERCHANTS.getRoute(policyID));
+                            Navigation.navigate(ROUTES.RULES_SPEND_MERCHANTS.getRoute(policyID, resolvedRuleID));
                         }}
                         shouldShowRightIcon
                         title={getMerchantMenuTitle(spendRuleForm?.merchantNames)}
@@ -210,7 +264,7 @@ function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps)
                         description={translate('workspace.rules.spendRules.spendCategory')}
                         onPress={() => {
                             clearError();
-                            Navigation.navigate(ROUTES.RULES_SPEND_CATEGORY.getRoute(policyID));
+                            Navigation.navigate(ROUTES.RULES_SPEND_CATEGORY.getRoute(policyID, resolvedRuleID));
                         }}
                         shouldShowRightIcon
                         title={categoriesMenuTitle}
@@ -226,7 +280,7 @@ function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps)
                                 openCurrencyMismatchModal();
                                 return;
                             }
-                            Navigation.navigate(ROUTES.RULES_SPEND_MAX_AMOUNT.getRoute(policyID));
+                            Navigation.navigate(ROUTES.RULES_SPEND_MAX_AMOUNT.getRoute(policyID, resolvedRuleID));
                         }}
                         shouldShowRightIcon
                         title={maxAmountMenuTitle}
@@ -242,6 +296,18 @@ function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps)
                     onSubmit={handleSaveRule}
                     enabledWhenOffline
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_SAVE}
+                    shouldRenderFooterAboveSubmit
+                    footerContent={
+                        isEditing ? (
+                            <Button
+                                text={translate('workspace.rules.spendRules.deleteRule')}
+                                onPress={handleDeleteRule}
+                                style={[styles.mb4]}
+                                large
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_DELETE}
+                            />
+                        ) : undefined
+                    }
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

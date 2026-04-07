@@ -31,10 +31,11 @@ type CategoryListItem = ListItem & {
 type SpendRuleCategoryPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_SPEND_CATEGORY>;
 
 function SpendRuleCategoryPage({route}: SpendRuleCategoryPageProps) {
-    const {policyID} = route.params;
+    const {policyID, ruleID} = route.params;
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
+    const parentRoute = ruleID === ROUTES.NEW ? ROUTES.RULES_SPEND_NEW.getRoute(policyID) : ROUTES.RULES_SPEND_EDIT.getRoute(policyID, ruleID);
 
     const [spendRuleForm] = useOnyx(ONYXKEYS.FORMS.SPEND_RULE_FORM);
 
@@ -90,7 +91,7 @@ function SpendRuleCategoryPage({route}: SpendRuleCategoryPageProps) {
 
     const handleSave = () => {
         updateDraftSpendRule({categories: selectedCategories});
-        Navigation.goBack(ROUTES.RULES_SPEND_NEW.getRoute(policyID));
+        Navigation.goBack(parentRoute);
     };
 
     return (
@@ -102,7 +103,7 @@ function SpendRuleCategoryPage({route}: SpendRuleCategoryPageProps) {
         >
             <HeaderWithBackButton
                 title={translate('workspace.rules.spendRules.spendCategory')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.RULES_SPEND_NEW.getRoute(policyID))}
+                onBackButtonPress={() => Navigation.goBack(parentRoute)}
             />
             <SelectionList
                 canSelectMultiple

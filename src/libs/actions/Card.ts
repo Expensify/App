@@ -1749,6 +1749,42 @@ function setExpensifyCardRule(domainAccountID: number, cardRuleID: string, spend
     API.write(WRITE_COMMANDS.SET_EXPENSIFY_CARD_RULE, parameters, {optimisticData, failureData});
 }
 
+function deleteExpensifyCardRule(domainAccountID: number, cardRuleID: string, previousRule?: ExpensifyCardRule) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`,
+            value: {
+                cardRules: {
+                    [cardRuleID]: null,
+                },
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = previousRule
+        ? [
+              {
+                  onyxMethod: Onyx.METHOD.MERGE,
+                  key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`,
+                  value: {
+                      cardRules: {
+                          [cardRuleID]: previousRule,
+                      },
+                  },
+              },
+          ]
+        : [];
+
+    const parameters: SetExpensifyCardRuleParams = {
+        domainAccountID,
+        cardRuleID,
+        cardRuleValue: '',
+    };
+
+    API.write(WRITE_COMMANDS.SET_EXPENSIFY_CARD_RULE, parameters, {optimisticData, failureData});
+}
+
 /**
  * Resolves a fraud alert for a given card.
  * When the user clicks on the whisper it sets the optimistic data to the resolution and calls the API
@@ -1850,6 +1886,7 @@ export {
     clearIssueNewCardFormData,
     setDraftInviteAccountID,
     resolveFraudAlert,
+    deleteExpensifyCardRule,
     setExpensifyCardRule,
     getSpendRuleFormValuesFromCardRule,
 };

@@ -253,6 +253,7 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
                     }
                     accessibilityLabel={`${rule.summaryParts.map((part) => `${part.badgeLabel}. ${part.text}`).join('. ')}. ${rule.cardSummary}`}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.SPEND_RULE_ITEM}
+                    onPress={() => Navigation.navigate(ROUTES.RULES_SPEND_EDIT.getRoute(policyID, rule.ruleID))}
                     shouldShowRightIcon
                 />
             ))}

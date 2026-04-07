@@ -51,11 +51,12 @@ function getSelectedCardsCurrency(cardIDs: string[] | undefined, cardsList: Onyx
 }
 
 function SpendRuleMaxAmountPage({route}: SpendRuleMaxAmountPageProps) {
-    const {policyID} = route.params;
+    const {policyID, ruleID} = route.params;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const domainAccountID = useDefaultFundID(policyID);
+    const parentRoute = ruleID === ROUTES.NEW ? ROUTES.RULES_SPEND_NEW.getRoute(policyID) : ROUTES.RULES_SPEND_EDIT.getRoute(policyID, ruleID);
 
     const [spendRuleForm] = useOnyx(ONYXKEYS.FORMS.SPEND_RULE_FORM);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
@@ -76,14 +77,14 @@ function SpendRuleMaxAmountPage({route}: SpendRuleMaxAmountPageProps) {
             >
                 <HeaderWithBackButton
                     title={translate('workspace.rules.spendRules.maxAmount')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.RULES_SPEND_NEW.getRoute(policyID))}
+                    onBackButtonPress={() => Navigation.goBack(parentRoute)}
                 />
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
                     formID={ONYXKEYS.FORMS.SPEND_RULE_FORM}
                     onSubmit={({maxAmount}) => {
                         updateDraftSpendRule({maxAmount: maxAmount.trim()});
-                        Navigation.goBack(ROUTES.RULES_SPEND_NEW.getRoute(policyID));
+                        Navigation.goBack(parentRoute);
                     }}
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
