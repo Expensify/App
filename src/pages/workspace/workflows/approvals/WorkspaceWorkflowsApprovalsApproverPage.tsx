@@ -3,6 +3,7 @@ import React, {useCallback, useMemo, useState} from 'react';
 import type {SelectionListApprover} from '@components/ApproverSelectionList';
 import ApproverSelectionList from '@components/ApproverSelectionList';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -12,7 +13,7 @@ import {clearApprovalWorkflowApprover, clearApprovalWorkflowApprovers, setApprov
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {getDefaultApprover, getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
+import {getDefaultApprover, getMemberAccountIDsForWorkspace, isExpensifyTeam} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import MemberRightIcon from '@pages/workspace/MemberRightIcon';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -33,6 +34,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
     const [approvalWorkflow, approvalWorkflowMetadata] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
     const isApprovalWorkflowLoading = isLoadingOnyxValue(approvalWorkflowMetadata);
     const personalDetailsByEmail = usePersonalDetailsByEmail();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const approverIndex = Number(route.params.approverIndex) ?? 0;
     const rhpRoutes = useNavigationState((state) => state.routes);
     const defaultApprover = getDefaultApprover(policy);
@@ -52,6 +54,9 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
     const approversFromWorkflow = approvalWorkflow?.approvers;
     const isDefault = approvalWorkflow?.isDefault;
 
+    // Hide internal Expensify team members (SRAMs/guides) from non-Expensify customers, matching the workflows table filtering.
+    const shouldFilterOutExpensifyTeam = !!policy?.owner && !!currentUserPersonalDetails?.login && !isExpensifyTeam(policy.owner) && !isExpensifyTeam(currentUserPersonalDetails.login);
+
     const allApprovers: SelectionListApprover[] = useMemo(() => {
         if (isApprovalWorkflowLoading || !employeeList) {
             return [];
@@ -64,6 +69,10 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                 const email = employee.email;
 
                 if (!email) {
+                    return null;
+                }
+
+                if (shouldFilterOutExpensifyTeam && isExpensifyTeam(email) && visibleSelectedApproverEmail !== email) {
                     return null;
                 }
 
@@ -121,6 +130,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
         defaultApprover,
         personalDetails,
         icons.FallbackAvatar,
+        shouldFilterOutExpensifyTeam,
     ]);
 
     const shouldShowListEmptyContent = !!approvalWorkflow && !isApprovalWorkflowLoading && !removingApproverEmail;
