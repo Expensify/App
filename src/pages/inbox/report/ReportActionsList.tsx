@@ -12,12 +12,14 @@ import InvertedFlatList from '@components/FlatList/InvertedFlatList';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useEnvironment from '@hooks/useEnvironment';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -188,6 +190,7 @@ function ReportActionsList({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['UpArrow']);
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isProduction} = useEnvironment();
 
     const {getLocalDateFromDatetime} = useLocalize();
     const {isOffline, lastOfflineAt, lastOnlineAt} = useNetworkWithOfflineStatus();
@@ -216,6 +219,8 @@ function ReportActionsList({
     const [actionIdToHighlight, setActionIdToHighlight] = useState('');
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`);
+    const allReportAttributes = useReportAttributes();
+    const reportAttributes = allReportAttributes?.[report.reportID];
 
     const backTo = route?.params?.backTo as string;
     // Display the new message indicator when comment linking and not close to the newest message.
@@ -353,21 +358,32 @@ function ReportActionsList({
     hasNewestReportActionRef.current = hasNewestReportAction;
     const sortedVisibleReportActionsRef = useRef(sortedVisibleReportActions);
 
-    const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, trackVerticalScrolling, onViewableItemsChanged} = useReportUnreadMessageScrollTracking({
-        reportID: report.reportID,
-        currentVerticalScrollingOffsetRef: scrollOffsetRef,
-        readActionSkippedRef: readActionSkipped,
-        unreadMarkerReportActionIndex,
-        isInverted: true,
-        onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-            scrollOffsetRef.current = event.nativeEvent.contentOffset.y;
-            onScroll?.(event);
-            if (shouldScrollToEndAfterLayout && (!hasCreatedActionAdded || isOffline)) {
-                setShouldScrollToEndAfterLayout(false);
-            }
-        },
-        hasOnceLoadedReportActions: !!reportMetadata?.hasOnceLoadedReportActions,
-    });
+    // Find the index of the action badge target in the visible actions list
+    const actionBadgeTargetIndex = useMemo(() => {
+        const targetID = reportAttributes?.actionTargetReportActionID;
+        if (!targetID) {
+            return -1;
+        }
+        return sortedVisibleReportActions.findIndex((action) => action.reportActionID === targetID);
+    }, [reportAttributes?.actionTargetReportActionID, sortedVisibleReportActions]);
+
+    const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, isActionBadgeAboveViewport, trackVerticalScrolling, onViewableItemsChanged} =
+        useReportUnreadMessageScrollTracking({
+            reportID: report.reportID,
+            currentVerticalScrollingOffsetRef: scrollOffsetRef,
+            readActionSkippedRef: readActionSkipped,
+            unreadMarkerReportActionIndex,
+            isInverted: true,
+            onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+                scrollOffsetRef.current = event.nativeEvent.contentOffset.y;
+                onScroll?.(event);
+                if (shouldScrollToEndAfterLayout && (!hasCreatedActionAdded || isOffline)) {
+                    setShouldScrollToEndAfterLayout(false);
+                }
+            },
+            hasOnceLoadedReportActions: !!reportMetadata?.hasOnceLoadedReportActions,
+            actionBadgeTargetIndex,
+        });
 
     useScrollToEndOnNewMessageReceived({
         sizeChangeType: 'changed',
@@ -625,6 +641,13 @@ function ReportActionsList({
         readNewestAction(report.reportID, !!reportMetadata?.hasOnceLoadedReportActions);
     }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, report.reportID, backTo, introSelected, reportMetadata?.hasOnceLoadedReportActions, betas]);
 
+    const scrollToActionBadgeTarget = useCallback(() => {
+        if (actionBadgeTargetIndex === -1) {
+            return;
+        }
+        reportScrollManager.scrollToIndex(actionBadgeTargetIndex);
+    }, [actionBadgeTargetIndex, reportScrollManager]);
+
     /**
      * Calculates the ideal number of report actions to render in the first render, based on the screen height and on
      * the height of the smallest report action possible.
@@ -865,6 +888,9 @@ function ReportActionsList({
                 hasNewMessages={!!unreadMarkerReportActionID}
                 isActive={isFloatingMessageCounterVisible}
                 onClick={scrollToBottomAndMarkReportAsRead}
+                actionBadge={!isProduction && isActionBadgeAboveViewport ? reportAttributes?.actionBadge : undefined}
+                actionBadgeBrickRoadStatus={!isProduction && isActionBadgeAboveViewport ? reportAttributes?.brickRoadStatus : undefined}
+                onActionBadgePress={scrollToActionBadgeTarget}
             />
             <View
                 style={[styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}
