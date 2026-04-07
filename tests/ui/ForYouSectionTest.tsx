@@ -105,7 +105,7 @@ describe('ForYouSection', () => {
         await act(async () => {
             await Onyx.multiSet({
                 [ONYXKEYS.SESSION]: {accountID: ACCOUNT_ID, email: 'test@example.com'},
-                [ONYXKEYS.RAM_ONLY_IS_LOADING_APP]: false,
+                [ONYXKEYS.IS_LOADING_APP]: false,
             });
         });
         await waitForBatchedUpdatesWithAct();

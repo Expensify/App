@@ -120,7 +120,7 @@ Onyx.connectWithoutView({
 
 const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.ACCOUNT,
-    ONYXKEYS.RAM_ONLY_IS_LOADING_APP,
+    ONYXKEYS.IS_LOADING_APP,
     ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED,
     ONYXKEYS.IS_CHECKING_PUBLIC_ROOM,
     ONYXKEYS.MODAL,
@@ -223,7 +223,7 @@ function setSidebarLoaded() {
 }
 
 function setAppLoading(isLoading: boolean) {
-    Onyx.set(ONYXKEYS.RAM_ONLY_IS_LOADING_APP, isLoading);
+    Onyx.set(ONYXKEYS.IS_LOADING_APP, isLoading);
 }
 
 /**
@@ -299,7 +299,7 @@ type OnyxDataForOpenOrReconnectKeys =
     | typeof ONYXKEYS.COLLECTION.REPORT
     | typeof ONYXKEYS.RAM_ONLY_IS_LOADING_REPORT_DATA
     | typeof ONYXKEYS.HAS_LOADED_APP
-    | typeof ONYXKEYS.RAM_ONLY_IS_LOADING_APP
+    | typeof ONYXKEYS.IS_LOADING_APP
     | typeof ONYXKEYS.LAST_FULL_RECONNECT_TIME;
 
 /**
@@ -324,7 +324,7 @@ function getOnyxDataForOpenOrReconnect(
     const result: OnyxData<
         | typeof ONYXKEYS.RAM_ONLY_IS_LOADING_REPORT_DATA
         | typeof ONYXKEYS.HAS_LOADED_APP
-        | typeof ONYXKEYS.RAM_ONLY_IS_LOADING_APP
+        | typeof ONYXKEYS.IS_LOADING_APP
         | typeof ONYXKEYS.COLLECTION.REPORT
         | typeof ONYXKEYS.LAST_FULL_RECONNECT_TIME
     > = {
@@ -355,13 +355,13 @@ function getOnyxDataForOpenOrReconnect(
     if (isOpenApp) {
         result.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.RAM_ONLY_IS_LOADING_APP,
+            key: ONYXKEYS.IS_LOADING_APP,
             value: true,
         });
 
         result.finallyData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.RAM_ONLY_IS_LOADING_APP,
+            key: ONYXKEYS.IS_LOADING_APP,
             value: false,
         });
     }
@@ -423,7 +423,7 @@ function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Re
     // Exception: When forceRun is true (exiting imported state), always make the API call
     if (isUsingImportedState && !forceRun) {
         Onyx.multiSet({
-            [ONYXKEYS.RAM_ONLY_IS_LOADING_APP]: false,
+            [ONYXKEYS.IS_LOADING_APP]: false,
             [ONYXKEYS.HAS_LOADED_APP]: true,
         });
         return Promise.resolve();
