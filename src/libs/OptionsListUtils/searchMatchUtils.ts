@@ -9,8 +9,7 @@ type SearchMatchConfig = {
 
     /**
      * Optional callback to transform the concatenated search terms before matching.
-     * Receives the joined terms string (already lowercased).
-     * Return the final string to match against.
+     * @param concatenatedSearchTerms - the joined terms string, already lowercased
      */
     transformSearchText?: (concatenatedSearchTerms: string) => string;
 };
