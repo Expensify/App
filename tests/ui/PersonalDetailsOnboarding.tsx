@@ -171,6 +171,7 @@ describe('OnboardingPersonalDetails Page', () => {
     });
 
     it('should navigate to Onboarding workspaces page when submitting form with EMPLOYER + Submit2026 beta and validated private domain', async () => {
+        const testEmail = 'test@user.com';
         await TestHelper.signInWithTestUser();
 
         await act(async () => {
@@ -178,7 +179,13 @@ describe('OnboardingPersonalDetails Page', () => {
                 isFromPublicDomain: false,
                 hasAccessibleDomainPolicies: true,
             });
-            await Onyx.merge(ONYXKEYS.LOGIN_LIST, mockLoginList);
+            await Onyx.merge(ONYXKEYS.LOGIN_LIST, {
+                [testEmail]: {
+                    partnerName: 'expensify.com',
+                    partnerUserID: testEmail,
+                    validatedDate: 'fake-validatedDate',
+                },
+            });
             await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.EMPLOYER);
             await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.SUBMIT_2026]);
         });
