@@ -53,6 +53,7 @@ Each row represents an expense and includes:
   - **Move to another report:** When you need to have multiple reports or need to break up expenses across multiple weeks or months.
   - **Download:** For exporting to a CSV file for analysis or to share with your accountant.
   - **Hold:** Use this when you need to temporarily pause the approval of an expense until all required information is provided.
+  - **Change approver:** Use this to add an approver or bypass approvers for the selected reports. This is available for reports submitted on Control plan workspaces with approval workflows enabled.
   - **Delete:** To remove expenses from the expense report.
 
 **Note:** The bulk action menu appears after selecting at least one expense.

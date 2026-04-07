@@ -62,6 +62,16 @@ When an expense is submitted on a workspace with an approval workflow configured
 3. Select **Bypass approvers**.
 4. You are now the final approver, and the prescribed workflow has been bypassed.
 
+## How to change the approver for multiple reports at once
+
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), head to **Reports > Reports**.
+2. Select two or more reports using the checkboxes.
+3. Tap the selection count at the bottom, then select **Change approver**.
+4. Select **Add approver** or **Bypass approvers**.
+5. If you selected **Add approver**, choose the approver and save.
+
+**Note:** When selecting reports across multiple workspaces, only members who belong to all selected workspaces will appear in the approver list. Bulk change approver is only available for reports submitted on Control plan workspaces with approval workflows enabled. Non-Control workspaces will prompt you to upgrade.
+
 ---
 
 # Hold an Expense
