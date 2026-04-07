@@ -327,6 +327,7 @@ type InitMoneyRequestParams = {
     currentDate: string | undefined;
     lastSelectedDistanceRates?: OnyxEntry<OnyxTypes.LastSelectedDistanceRates>;
     currentUserPersonalDetails: CurrentUserPersonalDetails;
+    isTrackDistanceExpense?: boolean;
     hasOnlyPersonalPolicies: boolean;
     draftTransactionIDs?: string[];
 };
@@ -681,6 +682,7 @@ type SubmitReportFunctionParams = {
     amountOwed: OnyxEntry<number>;
     onSubmitted?: () => void;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
+    delegateEmail: string | undefined;
 };
 
 let allTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
@@ -1050,6 +1052,7 @@ function initMoneyRequest({
     policy,
     personalPolicy,
     isFromGlobalCreate,
+    isTrackDistanceExpense = false,
     isFromFloatingActionButton,
     currentIouRequestType,
     newIouRequestType,
@@ -1100,7 +1103,7 @@ function initMoneyRequest({
     ) {
         if (!isFromGlobalCreate) {
             const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(report) || isPolicyExpenseChatReportUtil(parentReport);
-            const customUnitRateID = DistanceRequestUtils.getCustomUnitRateID({reportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates});
+            const customUnitRateID = DistanceRequestUtils.getCustomUnitRateID({reportID, isPolicyExpenseChat, isTrackDistanceExpense, policy, lastSelectedDistanceRates});
             comment.customUnit = {customUnitRateID, name: CONST.CUSTOM_UNITS.NAME_DISTANCE};
         } else if (hasOnlyPersonalPolicies) {
             comment.customUnit = {customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID, name: CONST.CUSTOM_UNITS.NAME_DISTANCE};
@@ -1380,7 +1383,7 @@ function setCustomUnitRateID(transactionID: string, customUnitRateID: string | u
 
     if (customUnitRateID && transaction) {
         const distanceRate = isFakeP2PRate
-            ? DistanceRequestUtils.getRate({transaction, useTransactionDistanceUnit: false, policy})
+            ? DistanceRequestUtils.getRate({transaction: undefined, policy: undefined, useTransactionDistanceUnit: false, isFakeP2PRate})
             : DistanceRequestUtils.getRateByCustomUnitRateID({policy, customUnitRateID});
 
         const transactionDistanceUnit = transaction.comment?.customUnit?.distanceUnit;
@@ -1402,7 +1405,6 @@ function setCustomUnitRateID(transactionID: string, customUnitRateID: string | u
             }
         }
     }
-
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
         comment: {
             customUnit: {
@@ -2504,6 +2506,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         chatReport = buildOptimisticChatReport({
             participantList: [payerAccountID, payeeAccountID],
             optimisticReportID: optimisticChatReportID,
+            currentUserAccountID: currentUserAccountIDParam,
         });
     }
 
@@ -3560,7 +3563,7 @@ function getUpdateTrackExpenseParams(
 
     const hasPendingWaypoints = 'waypoints' in transactionChanges;
     const hasModifiedDistanceRate = 'customUnitRateID' in transactionChanges;
-    if (transaction && updatedTransaction && (hasPendingWaypoints || hasModifiedDistanceRate)) {
+    if (transaction && updatedTransaction && hasPendingWaypoints) {
         // Delete the draft transaction when editing waypoints when the server responds successfully and there are no errors
         successData.push({
             onyxMethod: Onyx.METHOD.SET,
@@ -4335,6 +4338,7 @@ function updateMoneyRequestDistanceRate({
     isASAPSubmitBetaEnabled,
     updatedTaxAmount,
     updatedTaxCode,
+    updatedTaxValue,
     parentReportNextStep,
 }: {
     transaction: OnyxEntry<OnyxTypes.Transaction>;
@@ -4349,12 +4353,14 @@ function updateMoneyRequestDistanceRate({
     isASAPSubmitBetaEnabled: boolean;
     updatedTaxAmount?: number;
     updatedTaxCode?: string;
+    updatedTaxValue?: string;
     parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
 }) {
     const transactionChanges: TransactionChanges = {
         customUnitRateID: rateID,
         ...(typeof updatedTaxAmount === 'number' ? {taxAmount: updatedTaxAmount} : {}),
         ...(updatedTaxCode ? {taxCode: updatedTaxCode} : {}),
+        ...(updatedTaxValue ? {taxValue: updatedTaxValue} : {}),
     };
 
     if (transaction?.transactionID) {
@@ -4418,6 +4424,7 @@ function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string 
             reportName: '',
             chatType: CONST.REPORT.CHAT_TYPE.GROUP,
             notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+            currentUserAccountID,
         });
 
         return {existingSplitChatReport: null, splitChatReport};
@@ -4426,6 +4433,7 @@ function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string 
     // Otherwise, create a new 1:1 chat report
     const splitChatReport = buildOptimisticChatReport({
         participantList: participantAccountIDs,
+        currentUserAccountID,
     });
     return {existingSplitChatReport: null, splitChatReport};
 }
@@ -4745,6 +4753,7 @@ function createSplitsAndOnyxData({
                 existingChatReport ??
                 buildOptimisticChatReport({
                     participantList: [accountID, currentUserAccountID],
+                    currentUserAccountID,
                 });
         }
 
@@ -7776,12 +7785,13 @@ function retractReport(
     hasViolations: boolean,
     isASAPSubmitBetaEnabled: boolean,
     expenseReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
+    delegateEmail: string | undefined,
 ) {
     if (!expenseReport) {
         return;
     }
 
-    const optimisticRetractReportAction = buildOptimisticRetractedReportAction();
+    const optimisticRetractReportAction = buildOptimisticRetractedReportAction(delegateEmail);
     const predictedNextState = CONST.REPORT.STATE_NUM.OPEN;
     const predictedNextStatus = CONST.REPORT.STATUS_NUM.OPEN;
 
@@ -7949,12 +7959,13 @@ function unapproveExpenseReport(
     hasViolations: boolean,
     isASAPSubmitBetaEnabled: boolean,
     expenseReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
+    delegateEmail: string | undefined,
 ) {
     if (isEmptyObject(expenseReport)) {
         return;
     }
 
-    const optimisticUnapprovedReportAction = buildOptimisticUnapprovedReportAction(expenseReport.total ?? 0, expenseReport.currency ?? '', expenseReport.reportID);
+    const optimisticUnapprovedReportAction = buildOptimisticUnapprovedReportAction(expenseReport.total ?? 0, expenseReport.currency ?? '', expenseReport.reportID, delegateEmail);
 
     // buildOptimisticNextStep is used in parallel
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -8116,6 +8127,7 @@ function submitReport({
     amountOwed,
     onSubmitted,
     ownerBillingGracePeriodEnd,
+    delegateEmail,
 }: SubmitReportFunctionParams) {
     if (!expenseReport) {
         return;
@@ -8135,6 +8147,7 @@ function submitReport({
         expenseReport.reportID,
         adminAccountID,
         policy?.approvalMode,
+        delegateEmail,
     );
     const isDEWPolicy = hasDynamicExternalWorkflow(policy);
     // For DEW policies, only add optimistic submit action when offline
@@ -9080,6 +9093,10 @@ function setMoneyRequestParticipantsFromReport(transactionID: string, report: On
 
 function setMoneyRequestTaxRate(transactionID: string, taxCode: string | null, isDraft = true) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {taxCode});
+}
+
+function setMoneyRequestTaxValue(transactionID: string, taxValue: string | null, isDraft = true) {
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {taxValue});
 }
 
 function setMoneyRequestTaxAmount(transactionID: string, taxAmount: number | null, isDraft = true) {
@@ -11262,6 +11279,7 @@ export {
     setMoneyRequestTag,
     setMoneyRequestTaxAmount,
     setMoneyRequestTaxRate,
+    setMoneyRequestTaxValue,
     setMoneyRequestTaxRateValues,
     startMoneyRequest,
     submitReport,
