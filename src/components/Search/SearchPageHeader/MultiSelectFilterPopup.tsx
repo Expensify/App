@@ -14,11 +14,12 @@ type MultiSelectFilterPopupProps<T extends string> = PopoverComponentProps & {
     isSearchable?: boolean;
 };
 
-function MultiSelectFilterPopup<T extends string>({closeOverlay, loading, translationKey, items, value, onChangeCallback, isSearchable}: MultiSelectFilterPopupProps<T>) {
+function MultiSelectFilterPopup<T extends string>({closeOverlay, loading, translationKey, items, value, onChangeCallback, isSearchable, modalHeadingRef}: MultiSelectFilterPopupProps<T>) {
     const {translate} = useLocalize();
     return (
         <MultiSelectPopup
             label={translate(translationKey)}
+            modalHeadingRef={modalHeadingRef}
             items={items}
             value={value}
             loading={loading}

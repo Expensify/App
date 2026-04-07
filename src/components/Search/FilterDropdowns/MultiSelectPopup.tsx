@@ -15,6 +15,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
+import type {ModalHeadingRef} from './DropdownButton';
 
 type MultiSelectItem<T> = {
     text: string;
@@ -46,9 +47,12 @@ type MultiSelectPopupProps<T> = {
 
     /** Whether the data for the popover is loading */
     loading?: boolean;
+
+    /** Visible heading target for modal initial focus */
+    modalHeadingRef?: ModalHeadingRef;
 };
 
-function MultiSelectPopup<T extends string>({label, loading, value, items, closeOverlay, onChange, isSearchable, searchPlaceholder}: MultiSelectPopupProps<T>) {
+function MultiSelectPopup<T extends string>({label, loading, value, items, closeOverlay, onChange, isSearchable, searchPlaceholder, modalHeadingRef}: MultiSelectPopupProps<T>) {
     const theme = useTheme();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -111,7 +115,15 @@ function MultiSelectPopup<T extends string>({label, loading, value, items, close
 
     return (
         <View style={[!isSmallScreenWidth && styles.pv4, styles.gap2]}>
-            {isSmallScreenWidth && <Text style={[styles.textLabel, styles.textSupporting, styles.ph5, styles.pv1]}>{label}</Text>}
+            {isSmallScreenWidth && (
+                <Text
+                    ref={modalHeadingRef}
+                    tabIndex={-1}
+                    style={[styles.textLabel, styles.textSupporting, styles.ph5, styles.pv1]}
+                >
+                    {label}
+                </Text>
+            )}
 
             <View style={[styles.getSelectionListPopoverHeight(listData.length || 1, windowHeight, isSearchable ?? false)]}>
                 {!!loading && (

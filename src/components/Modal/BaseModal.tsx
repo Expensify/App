@@ -272,7 +272,6 @@ function BaseModal({
     );
 
     const shouldShowBottomDockedDismissButton = isSmallScreenWidth && type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED && !!(onBackdropPress ?? onClose);
-    // PopoverMenu only passes this internal accessibility handshake on the native iOS path.
     const shouldHideBottomDockedDismissFromAccessibility = shouldShowBottomDockedDismissButton && shouldEnableBottomDockedDismissAccessibility === false;
 
     const modalPaddingStyles = useMemo(() => {

@@ -1,4 +1,5 @@
 import React, {useEffect} from 'react';
+import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/DropdownButton';
 import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -6,15 +7,13 @@ import {openSearchCardFiltersPage} from '@libs/actions/Search';
 import ONYXKEYS from '@src/ONYXKEYS';
 import MultiSelectFilterPopup from './MultiSelectFilterPopup';
 
-type FeedFilterPopupProps = {
-    isExpanded: boolean;
+type FeedFilterPopupProps = Pick<PopoverComponentProps, 'closeOverlay' | 'isExpanded' | 'modalHeadingRef'> & {
     items: Array<MultiSelectItem<string>>;
     value: Array<MultiSelectItem<string>>;
-    closeOverlay: () => void;
     onChangeCallback: (items: Array<MultiSelectItem<string>>) => void;
 };
 
-function FeedFilterPopup({closeOverlay, items, value, isExpanded, onChangeCallback}: FeedFilterPopupProps) {
+function FeedFilterPopup({closeOverlay, items, value, isExpanded, onChangeCallback, modalHeadingRef}: FeedFilterPopupProps) {
     const {isOffline} = useNetwork();
     const [areCardsLoaded] = useOnyx(ONYXKEYS.IS_SEARCH_FILTERS_CARD_DATA_LOADED);
 
@@ -36,6 +35,7 @@ function FeedFilterPopup({closeOverlay, items, value, isExpanded, onChangeCallba
             translationKey="search.filters.feed"
             closeOverlay={closeOverlay}
             onChangeCallback={onChangeCallback}
+            modalHeadingRef={modalHeadingRef}
         />
     );
 }

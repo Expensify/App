@@ -13,6 +13,7 @@ import type {SearchDateValues} from '@libs/SearchQueryUtils';
 import {getDateModifierTitle, getDateRangeDisplayValueFromFormValue} from '@libs/SearchQueryUtils';
 import type {SearchDateModifier} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
+import type {ModalHeadingRef} from '../DropdownButton';
 import ActionButtons from './ActionButtons';
 import SelectedDateModifierHeader from './SelectedDateModifierHeader';
 
@@ -34,9 +35,12 @@ type DateSelectPopupProps = {
 
     /** Function to set the popover width dynamically */
     setPopoverWidth?: (width: number | undefined) => void;
+
+    /** Visible heading target for modal initial focus */
+    modalHeadingRef?: ModalHeadingRef;
 };
 
-function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopoverWidth}: DateSelectPopupProps) {
+function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopoverWidth, modalHeadingRef}: DateSelectPopupProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
@@ -191,7 +195,15 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
 
     return (
         <View style={mobileContainerStyle}>
-            {!selectedDateModifier && <Text style={mobileLabelStyle}>{label}</Text>}
+            {!selectedDateModifier && (
+                <Text
+                    ref={modalHeadingRef}
+                    tabIndex={-1}
+                    style={mobileLabelStyle}
+                >
+                    {label}
+                </Text>
+            )}
             <ScrollView
                 ref={scrollViewRef}
                 keyboardShouldPersistTaps="handled"

@@ -48,6 +48,7 @@ function ReanimatedModal({
     shouldIgnoreBackHandlerDuringTransition = false,
     shouldEnableNewFocusManagement,
     shouldReturnFocus,
+    shouldEnableBottomDockedDismissAccessibility,
     ...props
 }: ReanimatedModalProps) {
     const [isVisibleState, setIsVisibleState] = useState(isVisible);
@@ -194,6 +195,7 @@ function ReanimatedModal({
             animationOutTiming={animationOutTiming}
             animationInDelay={animationInDelay}
             backdropOpacity={backdropOpacity}
+            shouldEnableBottomDockedDismissAccessibility={shouldEnableBottomDockedDismissAccessibility}
         />
     );
 

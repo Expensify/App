@@ -126,9 +126,9 @@ type BaseModalProps = Partial<ReanimatedModalProps> &
         shouldDisplayBelowModals?: boolean;
 
         /**
-         * Internal accessibility handshake for bottom-docked popovers on native iOS.
-         * When `false`, the dismiss control stays hidden from accessibility until the first actionable item is focused.
-         * When `true` or `undefined`, the dismiss control is exposed to accessibility.
+         * Internal accessibility handshake for bottom-docked popovers on native mobile.
+         * When `false`, dismiss affordances stay hidden from accessibility until the caller enables them.
+         * When `true` or `undefined`, dismiss affordances are exposed to accessibility.
          */
         shouldEnableBottomDockedDismissAccessibility?: boolean;
 

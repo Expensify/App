@@ -6,6 +6,7 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SelectionList from '@components/SelectionList';
 import UserSelectionListItem from '@components/SelectionList/ListItem/UserSelectionListItem';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
+import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -16,10 +17,15 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {getParticipantsOption} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ModalHeadingRef} from './DropdownButton';
 
 type UserSelectPopupProps = {
+    /** The label to show when in an overlay on mobile */
+    label?: string;
+
     /** The currently selected users */
     value: string[];
 
@@ -35,9 +41,12 @@ type UserSelectPopupProps = {
      * Set to true to always show search, or false to never show search regardless of user count.
      */
     isSearchable?: boolean;
+
+    /** Visible heading target for modal initial focus */
+    modalHeadingRef?: ModalHeadingRef;
 };
 
-function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSelectPopupProps) {
+function UserSelectPopup({label, value, closeOverlay, onChange, isSearchable, modalHeadingRef}: UserSelectPopupProps) {
     const selectionListRef = useRef<SelectionListHandle<ListItem> | null>(null);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -148,10 +157,17 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
         if (debouncedSearchTerm) {
             return;
         }
-        setTotalOptionsCount(selectedOptionsForDisplay.length + availableOptions.personalDetails.length + availableOptions.recentReports.length);
+
+        const animationFrame = requestAnimationFrame(() => {
+            setTotalOptionsCount(selectedOptionsForDisplay.length + availableOptions.personalDetails.length + availableOptions.recentReports.length);
+        });
+
+        return () => cancelAnimationFrame(animationFrame);
     }, [debouncedSearchTerm, selectedOptionsForDisplay.length, availableOptions.personalDetails.length, availableOptions.recentReports.length]);
 
     const shouldShowSearchInput = isSearchable ?? totalOptionsCount >= CONST.STANDARD_LIST_ITEM_LIMIT;
+    const headingHeightOffset = shouldUseNarrowLayout && !!label ? variables.lineHeightLarge + 8 : 0;
+    const popoverHeightStyle = styles.getUserSelectionListPopoverHeight(listData.length || 1, windowHeight, shouldUseNarrowLayout, shouldShowSearchInput);
 
     const textInputOptions = useMemo(
         () =>
@@ -168,7 +184,23 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
     );
 
     return (
-        <View style={[styles.getUserSelectionListPopoverHeight(listData.length || 1, windowHeight, shouldUseNarrowLayout, shouldShowSearchInput)]}>
+        <View
+            style={[
+                popoverHeightStyle,
+                headingHeightOffset > 0 && {
+                    height: popoverHeightStyle.height + headingHeightOffset,
+                },
+            ]}
+        >
+            {shouldUseNarrowLayout && !!label && (
+                <Text
+                    ref={modalHeadingRef}
+                    tabIndex={-1}
+                    style={[styles.textLabel, styles.textSupporting, styles.ph5, styles.pv1]}
+                >
+                    {label}
+                </Text>
+            )}
             <SelectionList
                 data={listData}
                 ref={selectionListRef}

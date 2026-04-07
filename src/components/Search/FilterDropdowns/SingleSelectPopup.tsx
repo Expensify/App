@@ -12,6 +12,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
+import type {ModalHeadingRef} from './DropdownButton';
 
 type SingleSelectItem<T> = {
     text: string;
@@ -47,6 +48,9 @@ type SingleSelectPopupProps<T> = {
 
     /** Custom styles for the SelectionList */
     selectionListStyle?: SelectionListStyle;
+
+    /** Visible heading target for modal initial focus */
+    modalHeadingRef?: ModalHeadingRef;
 };
 
 function SingleSelectPopup<T extends string>({
@@ -60,6 +64,7 @@ function SingleSelectPopup<T extends string>({
     defaultValue,
     style,
     selectionListStyle,
+    modalHeadingRef,
 }: SingleSelectPopupProps<T>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -132,7 +137,15 @@ function SingleSelectPopup<T extends string>({
 
     return (
         <View style={[!isSmallScreenWidth && styles.pv4, styles.gap2, style]}>
-            {shouldShowLabel && <Text style={[styles.textLabel, styles.textSupporting, styles.ph5, styles.pv1]}>{label}</Text>}
+            {shouldShowLabel && (
+                <Text
+                    ref={modalHeadingRef}
+                    tabIndex={-1}
+                    style={[styles.textLabel, styles.textSupporting, styles.ph5, styles.pv1]}
+                >
+                    {label}
+                </Text>
+            )}
 
             <View style={[styles.getSelectionListPopoverHeight(options.length || 1, windowHeight, isSearchable ?? false)]}>
                 <SelectionList

@@ -13,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {GroupBySection} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
+import type {ModalHeadingRef} from './DropdownButton';
 
 type GroupByPopupItem = {
     text: string;
@@ -36,9 +37,12 @@ type GroupByPopupProps = {
 
     /** Function to call when changes are applied */
     onChange: (item: GroupByPopupItem | null) => void;
+
+    /** Visible heading target for modal initial focus */
+    modalHeadingRef?: ModalHeadingRef;
 };
 
-function GroupByPopup({label, value, sections, style, closeOverlay, onChange}: GroupByPopupProps) {
+function GroupByPopup({label, value, sections, style, closeOverlay, onChange, modalHeadingRef}: GroupByPopupProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -87,7 +91,15 @@ function GroupByPopup({label, value, sections, style, closeOverlay, onChange}: G
 
     return (
         <View style={[!isSmallScreenWidth && styles.pv4, styles.gap2, style]}>
-            {isSmallScreenWidth && !!label && <Text style={[styles.textLabel, styles.textSupporting, styles.ph5, styles.pv1]}>{label}</Text>}
+            {isSmallScreenWidth && !!label && (
+                <Text
+                    ref={modalHeadingRef}
+                    tabIndex={-1}
+                    style={[styles.textLabel, styles.textSupporting, styles.ph5, styles.pv1]}
+                >
+                    {label}
+                </Text>
+            )}
 
             <View style={[styles.getSelectionListPopoverHeight(optionsCount, windowHeight, false)]}>
                 <SelectionListWithSections

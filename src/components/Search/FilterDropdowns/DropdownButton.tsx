@@ -1,6 +1,6 @@
 import {willAlertModalBecomeVisibleSelector} from '@selectors/Modal';
-import type {ReactNode} from 'react';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import type {ComponentProps, ReactNode, Ref} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Button from '@components/Button';
@@ -14,15 +14,20 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import getPlatform from '@libs/getPlatform';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
+type ModalHeadingNode = ComponentProps<typeof Text> extends {ref?: Ref<infer T>} ? T | null : never;
+type ModalHeadingRef = (node: ModalHeadingNode) => void;
+
 type PopoverComponentProps = {
     isExpanded: boolean;
     closeOverlay: () => void;
     setPopoverWidth?: (width: number | undefined) => void;
+    modalHeadingRef?: ModalHeadingRef;
 };
 
 type DropdownButtonProps = WithSentryLabel & {
@@ -52,16 +57,32 @@ type DropdownButtonProps = WithSentryLabel & {
 
     /** Wrapper style for the outer view */
     wrapperStyle?: StyleProp<ViewStyle>;
+
+    /** Internal opt-in to delay dismiss accessibility for bottom-docked filter popovers */
+    shouldDelayBottomDockedDismissAccessibility?: boolean;
 };
 
 const PADDING_MODAL = 8;
+const BOTTOM_DOCKED_DISMISS_ACCESSIBILITY_DELAY = 2500;
 
 const ANCHOR_ORIGIN = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
 };
 
-function DropdownButton({label, value, viewportOffsetTop, PopoverComponent, medium = false, labelStyle, innerStyles, caretWrapperStyle, wrapperStyle, sentryLabel}: DropdownButtonProps) {
+function DropdownButton({
+    label,
+    value,
+    viewportOffsetTop,
+    PopoverComponent,
+    medium = false,
+    labelStyle,
+    innerStyles,
+    caretWrapperStyle,
+    wrapperStyle,
+    sentryLabel,
+    shouldDelayBottomDockedDismissAccessibility = false,
+}: DropdownButtonProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to distinguish RHL and narrow layout
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -71,7 +92,10 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent, medi
     const {windowHeight} = useWindowDimensions();
     const triggerRef = useRef<View | null>(null);
     const anchorRef = useRef<View | null>(null);
+    const modalAccessibilityHeadingElementRef = useRef<ModalHeadingNode>(null);
+    const dismissAccessibilityTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const [isOverlayVisible, setIsOverlayVisible] = useState(false);
+    const [shouldEnableBottomDockedDismissAccessibility, setShouldEnableBottomDockedDismissAccessibility] = useState(true);
     const [customPopoverWidth, setCustomPopoverWidth] = useState<number | undefined>(undefined);
     const {calculatePopoverPosition} = usePopoverPosition();
 
@@ -81,6 +105,13 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent, medi
     });
 
     const [willAlertModalBecomeVisible] = useOnyx(ONYXKEYS.MODAL, {selector: willAlertModalBecomeVisibleSelector});
+    const isWeb = getPlatform() === CONST.PLATFORM.WEB;
+    const shouldUseWebModalHeadingFocus = shouldDelayBottomDockedDismissAccessibility && isSmallScreenWidth && isWeb;
+    const shouldDelayDismissAccessibilityForCurrentLayout = shouldDelayBottomDockedDismissAccessibility && isSmallScreenWidth && !isWeb;
+
+    const handleModalHeadingRef = useCallback<ModalHeadingRef>((node) => {
+        modalAccessibilityHeadingElementRef.current = node;
+    }, []);
 
     /**
      * Toggle the overlay between open & closed
@@ -127,8 +158,58 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent, medi
     }, [isSmallScreenWidth, styles, actualPopoverWidth]);
 
     const popoverContent = useMemo(() => {
-        return PopoverComponent({closeOverlay: toggleOverlay, isExpanded: isOverlayVisible, setPopoverWidth: setCustomPopoverWidth});
-    }, [PopoverComponent, toggleOverlay, isOverlayVisible]);
+        return PopoverComponent({
+            closeOverlay: toggleOverlay,
+            isExpanded: isOverlayVisible,
+            setPopoverWidth: setCustomPopoverWidth,
+            modalHeadingRef: shouldUseWebModalHeadingFocus ? handleModalHeadingRef : undefined,
+        });
+    }, [PopoverComponent, toggleOverlay, isOverlayVisible, shouldUseWebModalHeadingFocus, handleModalHeadingRef]);
+
+    const initialFocus = shouldUseWebModalHeadingFocus ? () => modalAccessibilityHeadingElementRef.current as never : undefined;
+
+    const clearDismissAccessibilityTimeout = useCallback(() => {
+        if (!dismissAccessibilityTimeoutRef.current) {
+            return;
+        }
+
+        clearTimeout(dismissAccessibilityTimeoutRef.current);
+        dismissAccessibilityTimeoutRef.current = null;
+    }, []);
+
+    const handleModalShow = useCallback(() => {
+        if (!shouldDelayDismissAccessibilityForCurrentLayout) {
+            return;
+        }
+
+        clearDismissAccessibilityTimeout();
+        setShouldEnableBottomDockedDismissAccessibility(false);
+        dismissAccessibilityTimeoutRef.current = setTimeout(() => {
+            setShouldEnableBottomDockedDismissAccessibility(true);
+            dismissAccessibilityTimeoutRef.current = null;
+        }, BOTTOM_DOCKED_DISMISS_ACCESSIBILITY_DELAY);
+    }, [clearDismissAccessibilityTimeout, shouldDelayDismissAccessibilityForCurrentLayout]);
+
+    useEffect(() => {
+        if (!shouldDelayDismissAccessibilityForCurrentLayout) {
+            setShouldEnableBottomDockedDismissAccessibility(true);
+            return;
+        }
+
+        if (isOverlayVisible) {
+            return;
+        }
+
+        clearDismissAccessibilityTimeout();
+        setShouldEnableBottomDockedDismissAccessibility(false);
+    }, [clearDismissAccessibilityTimeout, isOverlayVisible, shouldDelayDismissAccessibilityForCurrentLayout]);
+
+    useEffect(
+        () => () => {
+            clearDismissAccessibilityTimeout();
+        },
+        [clearDismissAccessibilityTimeout],
+    );
 
     return (
         <View
@@ -164,11 +245,14 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent, medi
                 anchorRef={triggerRef}
                 avoidKeyboard
                 isVisible={isOverlayVisible}
+                onModalShow={handleModalShow}
                 onClose={toggleOverlay}
                 anchorPosition={popoverTriggerPosition}
                 anchorAlignment={ANCHOR_ORIGIN}
                 restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
                 shouldEnableNewFocusManagement
+                shouldEnableBottomDockedDismissAccessibility={shouldDelayDismissAccessibilityForCurrentLayout ? shouldEnableBottomDockedDismissAccessibility : undefined}
+                initialFocus={initialFocus}
                 shouldMeasureAnchorPositionFromTop={false}
                 outerStyle={{...StyleUtils.getOuterModalStyle(windowHeight, viewportOffsetTop), ...containerStyles}}
                 // This must be false because we dont want the modal to close if we open the RHP for selections
@@ -189,5 +273,5 @@ function DropdownButton({label, value, viewportOffsetTop, PopoverComponent, medi
     );
 }
 
-export type {PopoverComponentProps, DropdownButtonProps};
+export type {PopoverComponentProps, DropdownButtonProps, ModalHeadingRef};
 export default withViewportOffsetTop(DropdownButton);
