@@ -3,6 +3,7 @@ import React, {useCallback, useEffect, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -27,6 +28,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getHeaderMessage} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
 import {openPolicyExpensifyCardsPage} from '@userActions/Policy/Policy';
@@ -91,7 +93,14 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
         }, [spendRuleForm?.cardIDs]),
     );
 
-    const eligibleCards = getEligibleCards(cardsList, expensifyCardSettings ?? {});
+    const {isOffline} = useNetwork({
+        onReconnect: () => {
+            openPolicyExpensifyCardsPage(policyID, defaultFundID);
+        },
+    });
+
+    const isCardSettingsLoading = !isOffline && (!expensifyCardSettings || expensifyCardSettings.isLoading) && !expensifyCardSettings?.hasOnceLoaded;
+    const eligibleCards = expensifyCardSettings ? getEligibleCards(cardsList, expensifyCardSettings) : [];
 
     const filterCard = (card: Card, searchInput: string) => filterCardsByPersonalDetails(card, searchInput, personalDetails);
     const sortCards = (cards: Card[]) => sortCardsByCardholderName(cards, personalDetails, localeCompare);
@@ -122,12 +131,6 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
         openPolicyExpensifyCardsPage(policyID, defaultFundID);
     }, [defaultFundID, policyID]);
 
-    useNetwork({
-        onReconnect: () => {
-            openPolicyExpensifyCardsPage(policyID, defaultFundID);
-        },
-    });
-
     const toggleCard = (item: ExpensifyCardListItem) => {
         setSelectedCardIDs((prev) => {
             if (prev.includes(item.keyForList)) {
@@ -155,7 +158,19 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
     };
 
     const handleSave = () => {
-        updateDraftSpendRule({cardIDs: selectedCardIDs});
+        if (isCardSettingsLoading) {
+            return;
+        }
+
+        const eligibleCardIDs = new Set(eligibleCards.map((card) => String(card.cardID)));
+        const validSelectedCardIDs = selectedCardIDs.filter((cardID) => eligibleCardIDs.has(cardID));
+
+        if (validSelectedCardIDs.length !== selectedCardIDs.length) {
+            setSelectedCardIDs(validSelectedCardIDs);
+            return;
+        }
+
+        updateDraftSpendRule({cardIDs: validSelectedCardIDs});
         Navigation.goBack(ROUTES.RULES_SPEND_NEW.getRoute(policyID));
     };
 
@@ -167,56 +182,70 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
         >
-            <ScreenWrapper
-                testID="SpendRuleCardPage"
-                shouldEnableMaxHeight
-                offlineIndicatorStyle={styles.mtAuto}
-                includeSafeAreaPaddingBottom
-            >
-                <HeaderWithBackButton
-                    title={translate('workspace.rules.spendRules.cardPageTitle')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.RULES_SPEND_NEW.getRoute(policyID))}
-                />
-                <SelectionList
-                    canSelectMultiple
-                    textInputOptions={{
-                        headerMessage,
-                        value: inputValue,
-                        label: translate('common.search'),
-                        onChangeText: setInputValue,
-                    }}
-                    data={listData}
-                    style={{
-                        listHeaderWrapperStyle: [styles.pt5, styles.pb2],
-                        listHeaderSelectAllTextStyle: [styles.textLabelSupporting],
-                    }}
-                    onSelectAll={listData.length > 0 ? toggleSelectAll : undefined}
-                    onCheckboxPress={toggleCard}
-                    onSelectRow={toggleCard}
-                    selectedItems={selectedCardIDs}
-                    ListItem={CardListItem}
-                    shouldUseDefaultRightHandSideCheckmark={false}
-                    shouldUpdateFocusedIndex
-                    shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                    listEmptyContent={
-                        <BlockingView
-                            icon={illustrations.Telescope}
-                            iconWidth={variables.emptyListIconWidth}
-                            iconHeight={variables.emptyListIconHeight}
-                            title={inputValue.trim() ? translate('common.noResultsFound') : translate('workspace.companyCards.noActiveCards')}
-                        />
-                    }
-                    footerContent={
-                        <FormAlertWithSubmitButton
-                            buttonText={translate('common.save')}
-                            isAlertVisible={false}
-                            onSubmit={handleSave}
-                            enabledWhenOffline
-                            containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
-                        />
+            {isCardSettingsLoading ? (
+                <FullScreenLoadingIndicator
+                    shouldUseGoBackButton
+                    reasonAttributes={
+                        {
+                            context: 'SpendRuleCardPage',
+                            isOffline,
+                            hasOnceLoaded: !!expensifyCardSettings?.hasOnceLoaded,
+                        } satisfies SkeletonSpanReasonAttributes
                     }
                 />
-            </ScreenWrapper>
+            ) : (
+                <ScreenWrapper
+                    testID="SpendRuleCardPage"
+                    shouldEnableMaxHeight
+                    offlineIndicatorStyle={styles.mtAuto}
+                    includeSafeAreaPaddingBottom
+                >
+                    <HeaderWithBackButton
+                        title={translate('workspace.rules.spendRules.cardPageTitle')}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.RULES_SPEND_NEW.getRoute(policyID))}
+                    />
+                    <SelectionList
+                        canSelectMultiple
+                        textInputOptions={{
+                            headerMessage,
+                            value: inputValue,
+                            label: translate('common.search'),
+                            onChangeText: setInputValue,
+                        }}
+                        data={listData}
+                        style={{
+                            listHeaderWrapperStyle: [styles.pt5, styles.pb2],
+                            listHeaderSelectAllTextStyle: [styles.textLabelSupporting],
+                        }}
+                        onSelectAll={listData.length > 0 ? toggleSelectAll : undefined}
+                        onCheckboxPress={toggleCard}
+                        onSelectRow={toggleCard}
+                        selectedItems={selectedCardIDs}
+                        ListItem={CardListItem}
+                        shouldUseDefaultRightHandSideCheckmark={false}
+                        shouldUpdateFocusedIndex
+                        shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                        listEmptyContent={
+                            <BlockingView
+                                icon={illustrations.Telescope}
+                                iconWidth={variables.emptyListIconWidth}
+                                iconHeight={variables.emptyListIconHeight}
+                                title={inputValue.trim() ? translate('common.noResultsFound') : translate('workspace.companyCards.noActiveCards')}
+                            />
+                        }
+                        footerContent={
+                            <FormAlertWithSubmitButton
+                                buttonText={translate('common.save')}
+                                isAlertVisible={false}
+                                isDisabled={isCardSettingsLoading}
+                                onSubmit={handleSave}
+                                enabledWhenOffline
+                                containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
+                            />
+                        }
+                    />
+                </ScreenWrapper>
+            )}
         </AccessOrNotFoundWrapper>
     );
 }
