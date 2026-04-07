@@ -18,6 +18,7 @@ import {shouldValidateFile} from '@libs/ReceiptUtils';
 import ShareActionHandler from '@libs/ShareActionHandlerModule';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {close as closeModal} from '@userActions/Modal';
+import Tab from '@userActions/Tab';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -120,6 +121,9 @@ function ShareRootPage() {
                 if (tempFile.mimeType) {
                     if (receiptFileFormats.includes(tempFile.mimeType) && fileExtension) {
                         setIsFileScannable(true);
+                        // Reset the persisted tab to SUBMIT so that defaultSelectedTab takes effect
+                        // even when a previous Share session left the tab on SHARE.
+                        Tab.setSelectedTab(CONST.TAB.SHARE.NAVIGATOR_ID, CONST.TAB.SHARE.SUBMIT);
                     } else {
                         setIsFileScannable(false);
                     }
@@ -199,6 +203,7 @@ function ShareRootPage() {
                     <OnyxTabNavigator
                         id={CONST.TAB.SHARE.NAVIGATOR_ID}
                         tabBar={TabSelector}
+                        defaultSelectedTab={CONST.TAB.SHARE.SUBMIT}
                         lazyLoadEnabled
                         onTabSelect={onTabSelectFocusHandler}
                     >
