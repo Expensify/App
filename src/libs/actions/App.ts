@@ -52,9 +52,8 @@ Onyx.connectWithoutView({
 // `useOnyx` would trigger extra rerenders without affecting the View, so `Onyx.connectWithoutView` is used instead
 let isSidebarLoaded: boolean | undefined;
 Onyx.connectWithoutView({
-    key: ONYXKEYS.IS_SIDEBAR_LOADED,
+    key: ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED,
     callback: (val) => (isSidebarLoaded = val),
-    initWithStoredValues: false,
 });
 
 // `isUsingImportedState` is used in `openApp`, `reconnectApp`, and `clearOnyxAndResetApp` to prevent API calls when using imported state.
@@ -121,9 +120,9 @@ Onyx.connectWithoutView({
 
 const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.ACCOUNT,
+    ONYXKEYS.RAM_ONLY_IS_LOADING_APP,
+    ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED,
     ONYXKEYS.IS_CHECKING_PUBLIC_ROOM,
-    ONYXKEYS.IS_LOADING_APP,
-    ONYXKEYS.IS_SIDEBAR_LOADED,
     ONYXKEYS.MODAL,
     ONYXKEYS.NETWORK,
     ONYXKEYS.SESSION,
@@ -138,6 +137,7 @@ const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.SHOULD_USE_STAGING_SERVER,
     ONYXKEYS.IS_DEBUG_MODE_ENABLED,
     ONYXKEYS.COLLECTION.PASSKEY_CREDENTIALS,
+    ONYXKEYS.COLLECTION.DEVICE_BIOMETRICS,
 
     // Preserve IS_USING_IMPORTED_STATE so that when the app restarts (especially in HybridApp mode),
     // we know if we're in imported state mode and should skip API calls that would cause infinite loading
@@ -219,11 +219,11 @@ function setSidebarLoaded() {
         return;
     }
 
-    Onyx.set(ONYXKEYS.IS_SIDEBAR_LOADED, true);
+    Onyx.set(ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED, true);
 }
 
 function setAppLoading(isLoading: boolean) {
-    Onyx.set(ONYXKEYS.IS_LOADING_APP, isLoading);
+    Onyx.set(ONYXKEYS.RAM_ONLY_IS_LOADING_APP, isLoading);
 }
 
 /**
@@ -297,9 +297,9 @@ function getPolicyParamsForOpenOrReconnect(): Promise<PolicyParamsForOpenOrRecon
 
 type OnyxDataForOpenOrReconnectKeys =
     | typeof ONYXKEYS.COLLECTION.REPORT
-    | typeof ONYXKEYS.IS_LOADING_REPORT_DATA
+    | typeof ONYXKEYS.RAM_ONLY_IS_LOADING_REPORT_DATA
     | typeof ONYXKEYS.HAS_LOADED_APP
-    | typeof ONYXKEYS.IS_LOADING_APP
+    | typeof ONYXKEYS.RAM_ONLY_IS_LOADING_APP
     | typeof ONYXKEYS.LAST_FULL_RECONNECT_TIME;
 
 /**
@@ -322,16 +322,16 @@ function getOnyxDataForOpenOrReconnect(
     Log.info(`[App] isLoadingReportData set to true`, false, {command: commandName});
 
     const result: OnyxData<
-        | typeof ONYXKEYS.IS_LOADING_REPORT_DATA
+        | typeof ONYXKEYS.RAM_ONLY_IS_LOADING_REPORT_DATA
         | typeof ONYXKEYS.HAS_LOADED_APP
-        | typeof ONYXKEYS.IS_LOADING_APP
+        | typeof ONYXKEYS.RAM_ONLY_IS_LOADING_APP
         | typeof ONYXKEYS.COLLECTION.REPORT
         | typeof ONYXKEYS.LAST_FULL_RECONNECT_TIME
     > = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                key: ONYXKEYS.RAM_ONLY_IS_LOADING_REPORT_DATA,
                 value: true,
             },
         ],
@@ -339,7 +339,7 @@ function getOnyxDataForOpenOrReconnect(
         finallyData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+                key: ONYXKEYS.RAM_ONLY_IS_LOADING_REPORT_DATA,
                 value: false,
             },
         ],
@@ -355,13 +355,13 @@ function getOnyxDataForOpenOrReconnect(
     if (isOpenApp) {
         result.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.IS_LOADING_APP,
+            key: ONYXKEYS.RAM_ONLY_IS_LOADING_APP,
             value: true,
         });
 
         result.finallyData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.IS_LOADING_APP,
+            key: ONYXKEYS.RAM_ONLY_IS_LOADING_APP,
             value: false,
         });
     }
@@ -423,7 +423,7 @@ function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Re
     // Exception: When forceRun is true (exiting imported state), always make the API call
     if (isUsingImportedState && !forceRun) {
         Onyx.multiSet({
-            [ONYXKEYS.IS_LOADING_APP]: false,
+            [ONYXKEYS.RAM_ONLY_IS_LOADING_APP]: false,
             [ONYXKEYS.HAS_LOADED_APP]: true,
         });
         return Promise.resolve();
@@ -567,8 +567,8 @@ type CreateWorkspaceWithPolicyDraftParams = {
     currentUserEmailParam: string;
     shouldCreateControlPolicy?: boolean;
     type?: PolicyType;
-    // TODO: Remove optional (?) once allBetas Onyx.connect is removed (https://github.com/Expensify/App/issues/66417)
-    betas?: OnyxEntry<OnyxTypes.Beta[]>;
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
+    hasActiveAdminPolicies: boolean;
 };
 
 /**
@@ -594,6 +594,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
         type,
         isSelfTourViewed,
         betas,
+        hasActiveAdminPolicies,
     } = params;
 
     const policyIDWithDefault = policyID || generatePolicyID();
@@ -621,6 +622,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
             type,
             isSelfTourViewed,
             betas,
+            hasActiveAdminPolicies,
         });
         Navigation.navigate(routeToNavigate, {forceReplace: !transitionFromOldDot});
     });
@@ -642,6 +644,7 @@ function createWorkspaceWithPolicyDraft(params: CreateWorkspaceWithPolicyDraftPa
         shouldCreateControlPolicy,
         isSelfTourViewed,
         betas,
+        hasActiveAdminPolicies,
     } = params;
 
     createDraftInitialWorkspace(introSelected, policyOwnerEmail, policyName, policyID, makeMeAdmin, currency, file);
@@ -661,6 +664,7 @@ function createWorkspaceWithPolicyDraft(params: CreateWorkspaceWithPolicyDraftPa
         shouldCreateControlPolicy,
         isSelfTourViewed,
         betas,
+        hasActiveAdminPolicies,
     });
 }
 
@@ -680,8 +684,8 @@ type SavePolicyDraftByNewWorkspaceParams = {
     allReportsParam: OnyxCollection<OnyxTypes.Report>;
     shouldCreateControlPolicy?: boolean;
     type?: PolicyType;
-    // TODO: Remove optional (?) once allBetas Onyx.connect is removed (https://github.com/Expensify/App/issues/66417)
-    betas?: OnyxEntry<OnyxTypes.Beta[]>;
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
+    hasActiveAdminPolicies: boolean;
 };
 
 /**
@@ -704,6 +708,7 @@ function savePolicyDraftByNewWorkspace({
     type,
     isSelfTourViewed,
     betas,
+    hasActiveAdminPolicies,
 }: SavePolicyDraftByNewWorkspaceParams) {
     createWorkspace({
         policyOwnerEmail,
@@ -723,6 +728,7 @@ function savePolicyDraftByNewWorkspace({
         type,
         isSelfTourViewed,
         betas,
+        hasActiveAdminPolicies,
     });
 }
 
@@ -746,6 +752,8 @@ function setUpPoliciesAndNavigate(
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
     activePolicyID: string | undefined,
     isSelfTourViewed: boolean | undefined,
+    betas: OnyxEntry<OnyxTypes.Beta[]>,
+    hasActiveAdminPolicies: boolean,
 ) {
     const currentUrl = getCurrentUrl();
     if (!session || !currentUrl?.includes('exitTo')) {
@@ -777,6 +785,8 @@ function setUpPoliciesAndNavigate(
             currentUserAccountIDParam: currentSessionData.accountID ?? CONST.DEFAULT_NUMBER_ID,
             currentUserEmailParam: currentSessionData.email ?? '',
             isSelfTourViewed,
+            betas,
+            hasActiveAdminPolicies,
         });
         return;
     }

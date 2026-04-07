@@ -117,6 +117,9 @@ function useChartInteractions({handlePress, checkIsOver, isCursorOverLabel, reso
     /** React state indicating if the cursor is currently "hitting" a target based on checkIsOver */
     const [isOverTarget, setIsOverTarget] = useState(false);
 
+    /** React state indicating if the cursor is over a clickable element (dot/bar, not label) */
+    const [isOverClickableTarget, setIsOverClickableTarget] = useState(false);
+
     /**
      * Canvas-space x positions for each data point, set by the chart content via setPointPositions.
      * These replace Victory's internal tData.ox array, enabling worklet-safe nearest-point lookup.
@@ -141,26 +144,33 @@ function useChartInteractions({handlePress, checkIsOver, isCursorOverLabel, reso
     );
 
     /**
-     * Derived value performing the hit-test on the UI thread.
-     * Runs whenever cursor position or matched data points change.
+     * Derived value that checks only whether the cursor is over a clickable element
+     * (e.g. dot, bar) — excludes labels which show tooltip but aren't clickable.
      */
-    const isCursorOverTarget = useDerivedValue(() => {
+    const isCursorOverClickable = useDerivedValue(() => {
         const cursorX = chartInteractionState.cursor.x.get();
         const cursorY = chartInteractionState.cursor.y.get();
         const targetX = chartInteractionState.x.position.get();
         const targetY = chartInteractionState.y.y.position.get();
-
         const currentChartBottom = chartBottom?.get() ?? 0;
-        return (
-            checkIsOver({
-                cursorX,
-                cursorY,
-                targetX,
-                targetY,
-                chartBottom: currentChartBottom,
-            }) ||
-            (isCursorOverLabel?.({cursorX, cursorY, targetX, targetY, chartBottom: currentChartBottom}, chartInteractionState.matchedIndex.get()) ?? false)
-        );
+        return checkIsOver({cursorX, cursorY, targetX, targetY, chartBottom: currentChartBottom});
+    });
+
+    /**
+     * Derived value performing the hit-test on the UI thread.
+     * Runs whenever cursor position or matched data points change.
+     * Includes both clickable targets and labels (for tooltip display).
+     */
+    const isCursorOverTarget = useDerivedValue(() => {
+        if (isCursorOverClickable.get()) {
+            return true;
+        }
+        const cursorX = chartInteractionState.cursor.x.get();
+        const cursorY = chartInteractionState.cursor.y.get();
+        const targetX = chartInteractionState.x.position.get();
+        const targetY = chartInteractionState.y.y.position.get();
+        const currentChartBottom = chartBottom?.get() ?? 0;
+        return isCursorOverLabel?.({cursorX, cursorY, targetX, targetY, chartBottom: currentChartBottom}, chartInteractionState.matchedIndex.get()) ?? false;
     });
 
     /** Syncs the matched data index from the UI thread to React state */
@@ -176,6 +186,14 @@ function useChartInteractions({handlePress, checkIsOver, isCursorOverLabel, reso
         () => isCursorOverTarget.get(),
         (isOver) => {
             scheduleOnRN(setIsOverTarget, isOver);
+        },
+    );
+
+    /** Syncs the clickable hit-test result from the UI thread to React state */
+    useAnimatedReaction(
+        () => isCursorOverClickable.get(),
+        (isOver) => {
+            scheduleOnRN(setIsOverClickableTarget, isOver);
         },
     );
 
@@ -308,6 +326,8 @@ function useChartInteractions({handlePress, checkIsOver, isCursorOverLabel, reso
         activeDataIndex,
         /** Whether the tooltip should currently be rendered and visible */
         isTooltipActive: isOverTarget && isTooltipActiveState,
+        /** Whether the cursor is over a clickable element (dot/bar, not label) */
+        isOverClickableTarget,
         /** Raw tooltip positioning data */
         initialTooltipPosition,
     };

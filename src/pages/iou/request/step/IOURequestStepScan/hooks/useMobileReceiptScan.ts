@@ -7,9 +7,10 @@ import useTransactionDraftValues from '@hooks/useTransactionDraftValues';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import HapticFeedback from '@libs/HapticFeedback';
 import type {ReceiptFile, UseMobileReceiptScanParams} from '@pages/iou/request/step/IOURequestStepScan/types';
-import {removeDraftTransactions, removeTransactionReceipt} from '@userActions/TransactionEdit';
+import {removeDraftTransactionsByIDs, removeTransactionReceipt} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 
 /**
  * Extends useReceiptScan with mobile-only logic: multi-scan, haptic feedback, and blink animation.
@@ -18,12 +19,13 @@ function useMobileReceiptScan({
     initialTransaction,
     iouType,
     isMultiScanEnabled = false,
-    isStartingScan = false,
+    isStartingScan,
     receiptFiles,
     navigateToConfirmationStep,
     shouldSkipConfirmation,
     setStartLocationPermissionFlow,
     setIsMultiScanEnabled,
+    setReceiptFiles,
 }: UseMobileReceiptScanParams) {
     const [shouldStartLocationPermissionFlow] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, {
         selector: shouldStartLocationPermissionFlowSelector,
@@ -31,6 +33,7 @@ function useMobileReceiptScan({
     const optimisticTransactions = useTransactionDraftValues();
 
     const [dismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [shouldShowMultiScanEducationalPopup, setShouldShowMultiScanEducationalPopup] = useState(false);
 
     const canUseMultiScan = isStartingScan && iouType !== CONST.IOU.TYPE.SPLIT;
@@ -75,8 +78,11 @@ function useMobileReceiptScan({
             setShouldShowMultiScanEducationalPopup(true);
         }
         removeTransactionReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
-        removeDraftTransactions(true);
-        setIsMultiScanEnabled?.(!isMultiScanEnabled);
+        removeDraftTransactionsByIDs(draftTransactionIDs, true);
+        if (isMultiScanEnabled) {
+            setReceiptFiles([]);
+        }
+        setIsMultiScanEnabled(!isMultiScanEnabled);
     }
 
     function dismissMultiScanEducationalPopup() {

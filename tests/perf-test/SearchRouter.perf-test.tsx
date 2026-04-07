@@ -101,13 +101,11 @@ const getMockedPersonalDetails = (length = 100) =>
         length,
     );
 
-const MOCK_CURRENT_USER_ACCOUNT_ID = 1;
-
 const mockedReports = getMockedReports(600);
 const mockedBetas = Object.values(CONST.BETAS);
 const mockedPersonalDetails = getMockedPersonalDetails(100);
 const EMPTY_PRIVATE_IS_ARCHIVED_MAP: PrivateIsArchivedMap = {};
-const mockedOptions = createOptionList(mockedPersonalDetails, MOCK_CURRENT_USER_ACCOUNT_ID, EMPTY_PRIVATE_IS_ARCHIVED_MAP, mockedReports);
+const mockedOptions = createOptionList(mockedPersonalDetails, EMPTY_PRIVATE_IS_ARCHIVED_MAP, mockedReports, undefined);
 
 beforeAll(() =>
     Onyx.init({
@@ -167,7 +165,7 @@ test('[SearchRouter] should render list with cached options', async () => {
                 ...mockedReports,
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
                 [ONYXKEYS.BETAS]: mockedBetas,
-                [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
+                [ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS]: true,
             }),
         )
         .then(() => measureRenders(<SearchRouterWrapperWithCachedOptions />, {scenario}));
@@ -187,7 +185,7 @@ test('[SearchRouter] should react to text input changes', async () => {
                 ...mockedReports,
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
                 [ONYXKEYS.BETAS]: mockedBetas,
-                [ONYXKEYS.IS_SEARCHING_FOR_REPORTS]: true,
+                [ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS]: true,
             }),
         )
         .then(() => measureRenders(<SearchAutocompleteInputWrapper />, {scenario}));

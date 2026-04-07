@@ -29,39 +29,30 @@ Onyx.connectWithoutView({
 /**
  * Determines if the user should be navigated to the RHP variant side panel after onboarding.
  * The RHP variant is only shown to micro companies that are part of the RHP experiment.
- *
- * Accepts an optional variantOverride to bypass the module-level Onyx variable, avoiding a race
- * condition where the Onyx callback hasn't fired yet when this is called immediately after the
- * CompleteGuidedSetup API response.
  */
-const shouldOpenRHPVariant: ShouldOpenRHPVariant = (variantOverride) => {
-    const variant = variantOverride ?? onboardingRHPVariant;
+const shouldOpenRHPVariant: ShouldOpenRHPVariant = () => {
     const isMicroCompany = onboardingCompanySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO;
-    const isRHPConciergeDM = variant === CONST.ONBOARDING_RHP_VARIANT.RHP_CONCIERGE_DM;
-    const isRHPAdminsRoom = variant === CONST.ONBOARDING_RHP_VARIANT.RHP_ADMINS_ROOM;
-    const isRHPHomePage = variant === CONST.ONBOARDING_RHP_VARIANT.RHP_HOME_PAGE;
+    const isRHPConciergeDM = onboardingRHPVariant === CONST.ONBOARDING_RHP_VARIANT.RHP_CONCIERGE_DM;
+    const isRHPAdminsRoom = onboardingRHPVariant === CONST.ONBOARDING_RHP_VARIANT.RHP_ADMINS_ROOM;
+    const isRHPHomePage = onboardingRHPVariant === CONST.ONBOARDING_RHP_VARIANT.RHP_HOME_PAGE;
 
     return isMicroCompany && (isRHPConciergeDM || isRHPAdminsRoom || isRHPHomePage);
 };
 
 /**
- * Handles navigation for RHP experiment:
- * - Control: navigate to the last accessed report on small screens, do not open side panel
- * - RHP Concierge DM: navigate to the workspace overview and open the side panel with the Concierge DM
- * - RHP Admins Room: navigate to the workspace overview and open the side panel with the Admins Room
- * - RHP Home Page: navigate to the Home page and open the side panel with the Concierge DM
- *
- * Accepts an optional variantOverride for the same race-condition reason as shouldOpenRHPVariant.
+ * Handles navigation for RHP experiment variants (B/C/D):
+ * Variants B and C navigate to the workspace overview, Variant D navigates to home.
+ * All variants open the side panel without overlay.
+ * The control variant is handled separately in navigateAfterOnboarding.
  */
-const handleRHPVariantNavigation: HandleRHPVariantNavigation = (onboardingPolicyID, variantOverride) => {
-    const variant = variantOverride ?? onboardingRHPVariant;
-    if (variant === CONST.ONBOARDING_RHP_VARIANT.RHP_HOME_PAGE) {
-        Navigation.navigate(ROUTES.HOME);
-        SidePanelActions.openSidePanel(true);
-        return;
-    }
+const handleRHPVariantNavigation: HandleRHPVariantNavigation = (onboardingPolicyID) => {
+    const isRHPHomePage = onboardingRHPVariant === CONST.ONBOARDING_RHP_VARIANT.RHP_HOME_PAGE;
 
-    Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(onboardingPolicyID));
+    if (isRHPHomePage) {
+        Navigation.navigate(ROUTES.HOME);
+    } else {
+        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(onboardingPolicyID));
+    }
     SidePanelActions.openSidePanel(true);
 };
 
