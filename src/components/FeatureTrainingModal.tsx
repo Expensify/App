@@ -14,7 +14,9 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import Accessibility from '@libs/Accessibility';
+import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
@@ -165,6 +167,8 @@ type FeatureTrainingModalSVGProps = {
 // This page requires either an icon or a video/animation, but not both
 type FeatureTrainingModalProps = BaseFeatureTrainingModalProps & MergeExclusive<FeatureTrainingModalVideoProps, FeatureTrainingModalSVGProps>;
 
+const LANDSCAPE_ILLUSTRATION_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO = 0.7;
+
 function FeatureTrainingModal({
     animation,
     animationStyle,
@@ -196,7 +200,7 @@ function FeatureTrainingModal({
     shouldRenderHTMLDescription = false,
     shouldCloseOnConfirm = true,
     avoidKeyboard = false,
-    shouldUseScrollView = false,
+    shouldUseScrollView: shouldUseScrollViewProp = false,
     shouldShowConfirmationLoader = false,
     canConfirmWhileOffline = true,
     shouldGoBack = true,
@@ -210,6 +214,7 @@ function FeatureTrainingModal({
     const isReduceMotionEnabled = Accessibility.useReducedMotion();
     const illustrations = useMemoizedLazyIllustrations(['Hands']);
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
+    const {windowHeight, windowWidth} = useWindowDimensions();
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [willShowAgain, setWillShowAgain] = useState(true);
     const [videoStatus, setVideoStatus] = useState<VideoStatus>('video');
@@ -223,6 +228,9 @@ function FeatureTrainingModal({
     const [contentHeight, setContentHeight] = useState(0);
     const insets = useSafeAreaInsets();
     const {isKeyboardActive} = useKeyboardState();
+    const isInLandscapeMode = isInLandscapeModeUtil(windowWidth, windowHeight);
+
+    const shouldUseScrollView = shouldUseScrollViewProp || isInLandscapeMode;
 
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -264,7 +272,7 @@ function FeatureTrainingModal({
         return (
             <View
                 style={[
-                    styles.w100,
+                    isInLandscapeMode ? styles.h100 : styles.w100,
                     // Prevent layout jumps by reserving height
                     // for the video until it loads. Also, when
                     // videoStatus === 'animation' it will
@@ -343,6 +351,7 @@ function FeatureTrainingModal({
         animationStyle,
         animation,
         shouldUseNarrowLayout,
+        isInLandscapeMode,
         isReduceMotionEnabled,
         illustrations.Hands,
     ]);
@@ -436,10 +445,15 @@ function FeatureTrainingModal({
                 onHelp();
             }}
             shouldDisableBottomSafeAreaPadding={shouldUseScrollView}
+            shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={!shouldUseScrollView}
         >
             <Wrapper
                 scrollsToTop={false}
-                style={[styles.mh100, onboardingIsMediumOrLargerScreenWidth && StyleUtils.getWidthStyle(width), wrapperStyles.style]}
+                style={[
+                    onboardingIsMediumOrLargerScreenWidth && StyleUtils.getWidthStyle(width),
+                    wrapperStyles.style,
+                    isInLandscapeMode ? {maxHeight: windowHeight * CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE} : styles.mh100,
+                ]}
                 contentContainerStyle={wrapperStyles.containerStyle}
                 keyboardShouldPersistTaps={shouldUseScrollView ? 'handled' : undefined}
                 ref={shouldUseScrollView ? scrollViewRef : undefined}
@@ -449,7 +463,13 @@ function FeatureTrainingModal({
                 // eslint-disable-next-line react/forbid-component-props
                 fsClass={CONST.FULLSTORY.CLASS.UNMASK}
             >
-                <View style={[onboardingIsMediumOrLargerScreenWidth ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING}, illustrationOuterContainerStyle]}>
+                <View
+                    style={[
+                        onboardingIsMediumOrLargerScreenWidth ? {padding: MODAL_PADDING} : {paddingHorizontal: MODAL_PADDING},
+                        illustrationOuterContainerStyle,
+                        isInLandscapeMode ? [{maxHeight: windowHeight * LANDSCAPE_ILLUSTRATION_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO}, styles.alignSelfCenter] : undefined,
+                    ]}
+                >
                     {renderIllustration()}
                 </View>
                 <View style={[styles.mt5, styles.mh5, contentOuterContainerStyles]}>

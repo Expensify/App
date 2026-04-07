@@ -37,7 +37,6 @@ function createDefaultParams(): UseMobileReceiptScanParams {
         shouldSkipConfirmation: false,
         setStartLocationPermissionFlow: jest.fn(),
         setIsMultiScanEnabled: jest.fn(),
-        setReceiptFiles: jest.fn(),
     };
 }
 
@@ -129,36 +128,6 @@ describe('useMobileReceiptScan', () => {
             expect(setIsMultiScanEnabled).toHaveBeenCalledWith(true);
             expect(mockRemoveTransactionReceipt).toHaveBeenCalledWith(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
             expect(mockRemoveDraftTransactions).toHaveBeenCalledWith(expect.anything(), true);
-        });
-
-        it('should clear receiptFiles when disabling multi-scan', async () => {
-            const setIsMultiScanEnabled = jest.fn();
-            const setReceiptFiles = jest.fn();
-            const toggleParams = {...params, setIsMultiScanEnabled, setReceiptFiles, isMultiScanEnabled: true};
-            const {result} = renderHook(() => useMobileReceiptScan(toggleParams));
-            await waitForBatchedUpdatesWithAct();
-
-            await act(async () => {
-                result.current.toggleMultiScan();
-            });
-
-            expect(setReceiptFiles).toHaveBeenCalledWith([]);
-            expect(setIsMultiScanEnabled).toHaveBeenCalledWith(false);
-        });
-
-        it('should not clear receiptFiles when enabling multi-scan', async () => {
-            const setIsMultiScanEnabled = jest.fn();
-            const setReceiptFiles = jest.fn();
-            const toggleParams = {...params, setIsMultiScanEnabled, setReceiptFiles, isMultiScanEnabled: false};
-            const {result} = renderHook(() => useMobileReceiptScan(toggleParams));
-            await waitForBatchedUpdatesWithAct();
-
-            await act(async () => {
-                result.current.toggleMultiScan();
-            });
-
-            expect(setReceiptFiles).not.toHaveBeenCalled();
-            expect(setIsMultiScanEnabled).toHaveBeenCalledWith(true);
         });
     });
 
