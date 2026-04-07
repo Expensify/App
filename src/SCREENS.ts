@@ -109,6 +109,10 @@ const SCREENS = {
         EDIT_MULTIPLE_REIMBURSABLE_RHP: 'Search_Edit_Multiple_Reimbursable_RHP',
         EDIT_MULTIPLE_TAX_RHP: 'Search_Edit_Multiple_Tax_RHP',
         TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP: 'Search_Transactions_Change_Report_Search',
+        CHANGE_APPROVER: {
+            ROOT: 'Search_Change_Approver_Root',
+            ADD_APPROVER: 'Search_Change_Approver_Add_Approver',
+        },
     },
     SETTINGS: {
         ROOT: 'Settings_Root',
@@ -743,7 +747,7 @@ const SCREENS = {
         TAG_LIST_VIEW: 'Tag_List_View',
         TAG_GL_CODE: 'Tag_GL_Code',
         CURRENCY: 'Workspace_Overview_Currency',
-        ADDRESS: 'Workspace_Overview_Address',
+        DYNAMIC_WORKSPACE_OVERVIEW_ADDRESS: 'Dynamic_Workspace_Overview_Address',
         DYNAMIC_WORKSPACE_OVERVIEW_PLAN: 'Dynamic_Workspace_Overview_Plan_Type',
         WORKFLOWS: 'Workspace_Workflows',
         WORKFLOWS_PAYER: 'Workspace_Workflows_Payer',

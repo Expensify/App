@@ -24,7 +24,7 @@ function createOption(
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     config?: PreviewConfig,
     reportAttributesDerived?: ReportAttributes,
-    isReportArchived?: string,
+    isReportArchived?: boolean,
 ): OptionData {
     const {selected = false, isSelected = false, isDisabled = false, shouldStoreReportErrors = false, shouldShowBrickRoadIndicator = false} = config ?? {};
     const result: OptionData = {
