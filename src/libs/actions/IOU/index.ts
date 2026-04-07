@@ -666,6 +666,7 @@ type ApproveMoneyRequestFunctionParams = {
     full?: boolean;
     onApproved?: () => void;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
+    delegateEmail: string | undefined;
 };
 
 type SubmitReportFunctionParams = {
@@ -7229,6 +7230,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         full,
         onApproved,
         ownerBillingGracePeriodEnd,
+        delegateEmail,
     } = params;
     if (!expenseReport) {
         return;
@@ -7245,7 +7247,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
     if (hasHeldExpenses && !full && !!expenseReport.unheldTotal) {
         total = expenseReport.unheldTotal;
     }
-    const optimisticApprovedReportAction = buildOptimisticApprovedReportAction(total, expenseReport.currency ?? '', expenseReport.reportID, currentUserAccountIDParam);
+    const optimisticApprovedReportAction = buildOptimisticApprovedReportAction(total, expenseReport.currency ?? '', expenseReport.reportID, currentUserAccountIDParam, delegateEmail);
 
     const isDEWPolicy = hasDynamicExternalWorkflow(policy);
     const shouldAddOptimisticApproveAction = !isDEWPolicy || isOffline();

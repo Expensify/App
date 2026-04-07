@@ -798,6 +798,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                         }
                         startApprovedAnimation();
                     },
+                    delegateEmail,
                 });
                 if (skipAnimation) {
                     clearSelectedTransactions(true);
@@ -821,6 +822,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
             amountOwed,
             clearSelectedTransactions,
             ownerBillingGracePeriodEnd,
+            delegateEmail,
         ],
     );
 
@@ -2019,6 +2021,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                 userBillingGracePeriodEnds,
                 amountOwed,
                 ownerBillingGracePeriodEnd,
+                delegateEmail,
             });
         },
         [
@@ -2037,6 +2040,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
             userBillingGracePeriodEnds,
             amountOwed,
             ownerBillingGracePeriodEnd,
+            delegateEmail,
         ],
     );
 
