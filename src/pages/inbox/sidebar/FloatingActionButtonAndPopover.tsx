@@ -60,7 +60,7 @@ function FloatingActionButtonAndPopover() {
     };
 
     return (
-        <View style={[styles.justifyContentCenter, styles.flexGrow1, styles.gap3, shouldUseNarrowLayout ? styles.w100 : styles.pv4]}>
+        <View style={[styles.justifyContentCenter, styles.flexGrow1, styles.gap3, shouldUseNarrowLayout ? styles.w100 : {paddingVertical: 8}]}>
             <FABPopoverMenu
                 isVisible={isCreateMenuActive && (!shouldUseNarrowLayout || isFocused)}
                 onClose={hideCreateMenu}

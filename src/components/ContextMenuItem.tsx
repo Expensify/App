@@ -128,7 +128,7 @@ function ContextMenuItem({
             title={itemText}
             icon={itemIcon}
             onPress={triggerPressAndUpdateSuccess}
-            wrapperStyle={[styles.pr8, !shouldUseNarrowLayout && {height: 44, paddingHorizontal: 16, paddingVertical: 4, alignItems: 'center'}, wrapperStyle]}
+            wrapperStyle={[styles.pr8, !shouldUseNarrowLayout && {height: 56, paddingHorizontal: 20, paddingVertical: 4, alignItems: 'center'}, wrapperStyle]}
             iconStyles={!shouldUseNarrowLayout ? [{width: 20}] : undefined}
             success={!isThrottledButtonActive}
             description={description}

@@ -4153,8 +4153,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         contextMenuItemPopoverMaxWidth: {
-            minWidth: 280,
-            maxWidth: 280,
+            minWidth: 300,
+            maxWidth: 300,
         },
 
         formSpaceVertical: {

@@ -376,7 +376,7 @@ function BasePopoverMenu({
                 style={hasBackButtonText ? styles.pv0 : undefined}
                 additionalIconStyles={[{width: variables.iconSizeSmall, height: variables.iconSizeSmall}, styles.opacitySemiTransparent, styles.mr1]}
                 iconStyles={!isSmallScreenWidth ? [{width: 20}] : undefined}
-                wrapperStyle={!isSmallScreenWidth ? [{paddingHorizontal: 16}] : undefined}
+                wrapperStyle={!isSmallScreenWidth ? [{height: 56, paddingHorizontal: 20, paddingVertical: 4, alignItems: 'center'}] : undefined}
                 title={backButtonTitle}
                 accessibilityLabel={`${translate('common.goBack')}, ${backButtonTitle}`}
                 titleStyle={hasBackButtonText ? styles.createMenuHeaderText : undefined}
@@ -435,7 +435,7 @@ function BasePopoverMenu({
                     wrapperStyle={[
                         StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, focusedIndex === menuIndex, item.disabled ?? false, theme.activeComponentBG, theme.hoverComponentBG),
                         shouldUseScrollView && !shouldUseModalPaddingStyle && StyleUtils.getOptionMargin(menuIndex, currentMenuItems.length - 1),
-                        !isSmallScreenWidth && {height: 44, paddingHorizontal: 16, paddingVertical: 4, alignItems: 'center'},
+                        !isSmallScreenWidth && {height: 56, paddingHorizontal: 20, paddingVertical: 4, alignItems: 'center'},
                     ]}
                     shouldRemoveHoverBackground={item.isSelected}
                     titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
@@ -551,7 +551,7 @@ function BasePopoverMenu({
             return shouldEnableMaxHeight && !isInLandscapeMode ? [{maxHeight: CONST.POPOVER_MENU_MAX_HEIGHT_MOBILE}] : [];
         }
 
-        const stylesArray: ViewStyle[] = [StyleSheet.flatten(styles.createMenuContainer), {width: 280}];
+        const stylesArray: ViewStyle[] = [StyleSheet.flatten(styles.createMenuContainer), {width: 300, paddingVertical: 8}];
 
         if (shouldUseScrollView && shouldEnableMaxHeight && !isInLandscapeMode) {
             stylesArray.push({maxHeight: 560});
@@ -560,7 +560,8 @@ function BasePopoverMenu({
         return stylesArray;
     }, [isSmallScreenWidth, shouldEnableMaxHeight, styles.createMenuContainer, shouldUseScrollView]);
 
-    const {paddingTop, paddingBottom, paddingVertical, ...restScrollContainerStyle} = (StyleSheet.flatten([styles.pv4, scrollContainerStyle]) as ViewStyle) ?? {};
+    const {paddingTop, paddingBottom, paddingVertical, ...restScrollContainerStyle} =
+        (StyleSheet.flatten([isSmallScreenWidth ? styles.pv4 : {paddingVertical: 8}, scrollContainerStyle]) as ViewStyle) ?? {};
     const {
         paddingVertical: menuContainerPaddingVertical,
         paddingTop: menuContainerPaddingTop,
