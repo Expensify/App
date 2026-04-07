@@ -17,6 +17,7 @@ import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
@@ -36,6 +37,7 @@ import type {BaseOnboardingWorkspacesProps} from './types';
 function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboardingWorkspacesProps) {
     const icons = useMemoizedLazyExpensifyIcons(['FallbackWorkspaceAvatar', 'DownArrow']);
     const {isOffline} = useNetwork();
+    const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {onboardingMessages} = useOnboardingMessages();
@@ -200,8 +202,11 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                                 link
                                 shouldUseDefaultHover={false}
                                 medium
+                                shouldShowRightIcon
                                 iconRight={icons.DownArrow}
-                                innerStyles={[styles.ph3]}
+                                iconRightFill={theme.link}
+                                iconRightHoverFill={theme.linkHover}
+                                innerStyles={styles.ph0}
                                 textStyles={[styles.fontSizeNormal]}
                             />
                         </View>
