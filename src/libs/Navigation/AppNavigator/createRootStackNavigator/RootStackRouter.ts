@@ -64,6 +64,12 @@ function isPreloadAction(action: RootStackNavigatorAction): action is PreloadAct
     return action.type === CONST.NAVIGATION.ACTION_TYPE.PRELOAD;
 }
 
+const MODAL_GUARD_REDIRECT_TARGETS = new Set<string>([NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR, NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR]);
+
+function isModalGuardRedirectTarget(name: string) {
+    return MODAL_GUARD_REDIRECT_TARGETS.has(name);
+}
+
 /**
  * Evaluates navigation guards and handles BLOCK/REDIRECT results
  *
@@ -94,25 +100,22 @@ function handleNavigationGuards(
             return null;
         }
 
-        const redirectRoute = redirectState.routes.at(-1);
+        const isModalRedirect = redirectState.routes.some((route) => isModalGuardRedirectTarget(route.name));
 
-        // If the focused route is already the redirect target (e.g., multiple actions triggered
-        // on fresh app open all fire the same guard), don't add it again.
-        if (redirectRoute && state.routes[state.index]?.name === redirectRoute.name) {
-            return state;
+        let resetRoutes: typeof redirectState.routes = redirectState.routes;
+        if (isModalRedirect) {
+            const redirectRoute = redirectState.routes.at(-1);
+            const existingFullScreenRoute = state.routes.find((route) => isFullScreenName(route.name));
+            // When the current stack already has a fullscreen route (e.g., a deep-linked report),
+            // append only the redirect target on top of the existing routes so the user returns
+            // to them after the redirect screen is dismissed. Otherwise (fresh app with no stack),
+            // use the full redirect state which includes the base route (e.g., Home).
+            resetRoutes = existingFullScreenRoute && redirectRoute ? ([existingFullScreenRoute, redirectRoute] as typeof redirectState.routes) : redirectState.routes;
         }
 
-        const hasExistingFullScreenRoute = state.routes.some((route) => isFullScreenName(route.name));
-
-        // When the current stack already has a fullscreen route (e.g., a deep-linked report),
-        // append only the redirect target on top of the existing routes so the user returns
-        // to them after the redirect screen is dismissed. Otherwise (fresh app with no stack),
-        // use the full redirect state which includes the base route (e.g., Home).
-        const routes = hasExistingFullScreenRoute && redirectRoute ? [...state.routes, redirectRoute] : redirectState.routes;
-
         const resetAction = CommonActions.reset({
-            index: routes.length - 1,
-            routes,
+            index: resetRoutes.length - 1,
+            routes: resetRoutes,
         } as PartialState<NavigationState>);
 
         return stackRouter.getStateForAction(state, resetAction, configOptions);
