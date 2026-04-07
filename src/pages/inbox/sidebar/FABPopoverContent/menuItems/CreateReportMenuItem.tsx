@@ -51,7 +51,7 @@ const chatEnabledPaidGroupPoliciesSelector = (policies: OnyxCollection<OnyxTypes
 
 function CreateReportMenuItem() {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['Document']);
     const {shouldRedirectToExpensifyClassic, showRedirectToExpensifyClassicModal} = useRedirectToExpensifyClassic();
@@ -95,6 +95,7 @@ function CreateReportMenuItem() {
             isASAPSubmitBetaEnabled,
             defaultChatEnabledPolicy,
             allBetas,
+            formatPhoneNumber,
             false,
             shouldDismissEmptyReportsConfirmation,
         );

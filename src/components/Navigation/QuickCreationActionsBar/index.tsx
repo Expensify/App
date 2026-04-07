@@ -36,7 +36,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 function QuickCreationActionsBar() {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptPlus', 'DocumentPlus', 'CarPlus', 'LuggageWithLinesPlus']);
 
     const [session] = useOnyx(ONYXKEYS.SESSION);
@@ -116,6 +116,7 @@ function QuickCreationActionsBar() {
                 isASAPSubmitBetaEnabled,
                 defaultChatEnabledPolicy,
                 allBetas,
+                formatPhoneNumber,
                 false,
                 shouldDismissEmptyReportsConfirmation,
             );
@@ -127,7 +128,7 @@ function QuickCreationActionsBar() {
                 );
             });
         },
-        [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicy, isASAPSubmitBetaEnabled, allBetas],
+        [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicy, isASAPSubmitBetaEnabled, allBetas, formatPhoneNumber],
     );
 
     const {openCreateReportConfirmation} = useCreateEmptyReportConfirmation({

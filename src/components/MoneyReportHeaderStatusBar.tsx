@@ -37,7 +37,7 @@ function isDeprecatedFormatNextStep(step: NextStepData): step is ReportNextStepD
 function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Hourglass', 'Checkmark', 'Stopwatch', 'DotIndicator']);
     const iconMap: IconMap = useMemo(
         () => ({
@@ -64,11 +64,11 @@ function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps)
 
         // Fall back to new format (with messageKey)
         if ('messageKey' in nextStep && nextStep.messageKey) {
-            return buildNextStepMessage(nextStep, translate, currentUserAccountID);
+            return buildNextStepMessage(nextStep, translate, currentUserAccountID, formatPhoneNumber);
         }
 
         return '';
-    }, [nextStep, translate, currentUserAccountID, currentUserEmail]);
+    }, [nextStep, translate, currentUserAccountID, currentUserEmail, formatPhoneNumber]);
 
     // iconFill can be set by frontend optimistic updates (deprecated format) but backend never sends it in new format
     const iconFill = (nextStep && 'iconFill' in nextStep ? (nextStep as {iconFill?: string}).iconFill : undefined) ?? theme.icon;

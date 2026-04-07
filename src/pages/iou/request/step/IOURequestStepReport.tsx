@@ -46,7 +46,7 @@ const getIOUActionsSelector = (actions: OnyxEntry<ReportActions>): ReportAction[
 
 function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const {backTo, action, iouType, transactionID, reportID: reportIDFromRoute, reportActionID} = route.params;
-    const {translate, toLocaleDigit} = useLocalize();
+    const {translate, toLocaleDigit, formatPhoneNumber} = useLocalize();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const transactionReport = Object.values(allReports ?? {}).find((report) => report?.reportID === transaction?.reportID);
@@ -187,6 +187,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                         allTransactions,
                         translate,
                         toLocaleDigit,
+                        formatPhoneNumber,
                     });
                     removeTransaction(transaction.transactionID);
                 }
@@ -233,6 +234,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                 allTransactions,
                 translate,
                 toLocaleDigit,
+                formatPhoneNumber,
             });
             removeTransaction(transaction.transactionID);
         });
@@ -247,7 +249,16 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         }
 
         const policyForNewReport = isPerDiemTransaction && perDiemOriginalPolicy ? perDiemOriginalPolicy : policyForMovingExpenses;
-        const optimisticReport = createNewReport(ownerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForNewReport, betas, false, shouldDismissEmptyReportsConfirmation);
+        const optimisticReport = createNewReport(
+            ownerPersonalDetails,
+            hasViolations,
+            isASAPSubmitBetaEnabled,
+            policyForNewReport,
+            betas,
+            formatPhoneNumber,
+            false,
+            shouldDismissEmptyReportsConfirmation,
+        );
         handleRegularReportSelection({value: optimisticReport.reportID, keyForList: optimisticReport.reportID}, optimisticReport);
     };
 

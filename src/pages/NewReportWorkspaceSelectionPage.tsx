@@ -58,7 +58,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
     const {clearSelectedTransactions} = useSearchActionsContext();
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const {translate, localeCompare, toLocaleDigit} = useLocalize();
+    const {translate, localeCompare, toLocaleDigit, formatPhoneNumber} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP);
     const isRHPOnReportInSearch = isRHPOnSearchMoneyRequestReportPage();
@@ -113,6 +113,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
             hasViolations,
             policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
             betas,
+            formatPhoneNumber,
             false,
             shouldDismissEmptyReportsConfirmation,
         );
@@ -133,6 +134,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                     allTransactions,
                     translate,
                     toLocaleDigit,
+                    formatPhoneNumber,
                 });
 
                 // eslint-disable-next-line rulesdir/no-default-id-values

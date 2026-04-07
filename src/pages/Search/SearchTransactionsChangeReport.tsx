@@ -28,7 +28,7 @@ type TransactionGroupListItem = ListItem & {
 };
 
 function SearchTransactionsChangeReport() {
-    const {translate, toLocaleDigit} = useLocalize();
+    const {translate, toLocaleDigit, formatPhoneNumber} = useLocalize();
     const {selectedTransactions} = useSearchStateContext();
     const {clearSelectedTransactions} = useSearchActionsContext();
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions), [selectedTransactions]);
@@ -102,6 +102,7 @@ function SearchTransactionsChangeReport() {
             isASAPSubmitBetaEnabled,
             policyForMovingExpenses,
             betas,
+            formatPhoneNumber,
             false,
             shouldDismissEmptyReportsConfirmation,
         );
@@ -119,6 +120,7 @@ function SearchTransactionsChangeReport() {
                 allTransactions: transactions,
                 translate,
                 toLocaleDigit,
+                formatPhoneNumber,
             });
             clearSelectedTransactions();
         });
@@ -163,6 +165,7 @@ function SearchTransactionsChangeReport() {
             allTransactions: transactions,
             translate,
             toLocaleDigit,
+            formatPhoneNumber,
         });
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
@@ -185,6 +188,7 @@ function SearchTransactionsChangeReport() {
             allTransactions: transactions,
             translate,
             toLocaleDigit,
+            formatPhoneNumber,
         });
         clearSelectedTransactions();
         Navigation.goBack();

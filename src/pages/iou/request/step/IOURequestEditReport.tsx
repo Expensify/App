@@ -34,7 +34,7 @@ type IOURequestEditReportProps = WithWritableReportOrNotFoundProps<typeof SCREEN
 
 function IOURequestEditReport({route}: IOURequestEditReportProps) {
     const {backTo, reportID, action, shouldTurnOffSelectionMode, transactionID: transactionIDFromParams} = route.params;
-    const {translate, toLocaleDigit} = useLocalize();
+    const {translate, toLocaleDigit, formatPhoneNumber} = useLocalize();
     const {selectedTransactionIDs} = useSearchStateContext();
     const transactionIDs = transactionIDFromParams ? [transactionIDFromParams] : selectedTransactionIDs;
     const {clearSelectedTransactions} = useSearchActionsContext();
@@ -85,6 +85,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
                 allTransactions,
                 translate,
                 toLocaleDigit,
+                formatPhoneNumber,
             });
             turnOffMobileSelectionMode();
             clearSelectedTransactions(true);
@@ -106,6 +107,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             allTransactions,
             translate,
             toLocaleDigit,
+            formatPhoneNumber,
         });
         if (shouldTurnOffSelectionMode) {
             turnOffMobileSelectionMode();
@@ -120,7 +122,16 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         }
 
         const policyForNewReport = hasPerDiemTransactions ? selectedReportPolicy : policyForMovingExpenses;
-        const optimisticReport = createNewReport(ownerPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForNewReport, betas, false, shouldDismissEmptyReportsConfirmation);
+        const optimisticReport = createNewReport(
+            ownerPersonalDetails,
+            hasViolations,
+            isASAPSubmitBetaEnabled,
+            policyForNewReport,
+            betas,
+            formatPhoneNumber,
+            false,
+            shouldDismissEmptyReportsConfirmation,
+        );
         selectReport(
             {
                 value: optimisticReport.reportID,
