@@ -6449,7 +6449,7 @@ const plainStyles = (theme: ThemeColors) =>
             }) satisfies CustomPickerStyle,
         mapDirection: {
             lineColor: theme.success,
-            lineWidth: 8,
+            lineWidth: 7,
         },
 
         mapDirectionLayer: {
