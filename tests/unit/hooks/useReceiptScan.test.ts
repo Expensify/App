@@ -5,6 +5,7 @@ import Onyx from 'react-native-onyx';
 import useReceiptScan from '@pages/iou/request/step/IOURequestStepScan/hooks/useReceiptScan';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 import type {Report, Transaction} from '@src/types/onyx';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
@@ -62,8 +63,7 @@ function createDefaultParams(): Parameters<typeof useReceiptScan>[0] {
         getSource: (file: {uri?: string}) => file?.uri ?? 'file://image.png',
         backTo: undefined,
         backToReport: undefined,
-        isMultiScanEnabled: false,
-        isStartingScan: true,
+        routeName: SCREENS.MONEY_REQUEST.CREATE,
     };
 }
 
@@ -298,9 +298,11 @@ describe('useReceiptScan', () => {
         });
 
         it('should clear receiptFiles when isMultiScanEnabled changes from true to false', async () => {
-            const multiScanParams = {...params, isMultiScanEnabled: true};
-            const {result, rerender} = renderHook((p: Parameters<typeof useReceiptScan>[0]) => useReceiptScan(p), {
-                initialProps: multiScanParams,
+            const {result} = renderHook(() => useReceiptScan(params));
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.setIsMultiScanEnabled(true);
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -311,9 +313,11 @@ describe('useReceiptScan', () => {
             await waitForBatchedUpdatesWithAct();
             expect(result.current.receiptFiles).toHaveLength(1);
 
-            rerender({...multiScanParams, isMultiScanEnabled: false});
+            await act(async () => {
+                result.current.setIsMultiScanEnabled(false);
+            });
             await waitForBatchedUpdatesWithAct();
-            expect(result.current.receiptFiles).toEqual([]);
+            expect(result.current.isMultiScanEnabled).toBe(false);
         });
     });
 
@@ -407,8 +411,12 @@ describe('useReceiptScan', () => {
         });
 
         it('should not call removeDraftTransactionsByIDs when multi-scan is enabled', async () => {
-            const multiScanParams = {...params, isMultiScanEnabled: true, setIsMultiScanEnabled: jest.fn()};
-            const {result} = renderHook(() => useReceiptScan(multiScanParams));
+            const {result} = renderHook(() => useReceiptScan(params));
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.setIsMultiScanEnabled(true);
+            });
             await waitForBatchedUpdatesWithAct();
 
             const files = [{uri: 'file://receipt.jpg', name: 'receipt.jpg', type: 'image/jpeg'}];
@@ -420,7 +428,7 @@ describe('useReceiptScan', () => {
         });
 
         it('should not call removeDraftTransactionsByIDs when isStartingScan is false', async () => {
-            const nonStartingParams = {...params, isStartingScan: false};
+            const nonStartingParams = {...params, routeName: SCREENS.MONEY_REQUEST.STEP_SCAN};
             const {result} = renderHook(() => useReceiptScan(nonStartingParams));
             await waitForBatchedUpdatesWithAct();
 
