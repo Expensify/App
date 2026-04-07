@@ -14,7 +14,7 @@ import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as API from '@src/libs/API';
 import * as SearchQueryUtils from '@src/libs/SearchQueryUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyTagLists, SearchResults} from '@src/types/onyx';
+import type {Policy, SearchResults} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
 import createRandomPolicy from '../../utils/collections/policies';
 import createRandomPolicyTags from '../../utils/collections/policyTags';
@@ -82,7 +82,8 @@ describe('actions/IOU/Receipt', () => {
     });
 
     beforeEach(() => {
-        mockFetch = getGlobalFetchMock();
+        global.fetch = getGlobalFetchMock();
+        mockFetch = fetch as MockFetch;
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
