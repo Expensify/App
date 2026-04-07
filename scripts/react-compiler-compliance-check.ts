@@ -11,9 +11,9 @@
  */
 import {transformSync} from '@babel/core';
 import fs from 'fs';
-import {globSync} from 'glob';
 import path from 'path';
 import CLI from './utils/CLI';
+import FileUtils from './utils/FileUtils';
 import Git from './utils/Git';
 import {log, error as logError, info as logInfo, success as logSuccess, warn as logWarn} from './utils/Logger';
 
@@ -77,46 +77,13 @@ function checkReactCompilerCompliance(source: string, filename: string): Compila
 }
 
 /**
- * Resolve a list of inputs (file paths, directories, or glob patterns)
- * to concrete .ts/.tsx file paths.
- */
-function resolveFilePaths(inputs: string[]): string[] {
-    const resolved = new Set<string>();
-
-    for (const input of inputs) {
-        const absoluteInput = path.resolve(input);
-
-        if (fs.existsSync(absoluteInput) && fs.statSync(absoluteInput).isDirectory()) {
-            const pattern = path.join(absoluteInput, '**', `*{${FILE_EXTENSIONS.join(',')}}`);
-            for (const file of globSync(pattern)) {
-                resolved.add(file);
-            }
-            continue;
-        }
-
-        if (fs.existsSync(absoluteInput) && fs.statSync(absoluteInput).isFile()) {
-            resolved.add(absoluteInput);
-            continue;
-        }
-
-        for (const file of globSync(input, {absolute: true})) {
-            if (FILE_EXTENSIONS.some((ext) => file.endsWith(ext))) {
-                resolved.add(file);
-            }
-        }
-    }
-
-    return Array.from(resolved);
-}
-
-/**
  * Check specific files and report per-file status.
  */
 function checkFiles(inputs: string[], verbose: boolean): boolean {
-    const files = resolveFilePaths(inputs);
+    const files = FileUtils.resolveFilePaths(inputs, FILE_EXTENSIONS);
 
     if (files.length === 0) {
-        logWarn('No .ts/.tsx files found matching the provided paths.');
+        logWarn(`No ${FILE_EXTENSIONS.join('/')} files found matching the provided paths.`);
         return true;
     }
 
@@ -292,5 +259,5 @@ if (require.main === module) {
     main();
 }
 
-export {checkReactCompilerCompliance, resolveFilePaths};
+export {checkReactCompilerCompliance};
 export type {CompilationResult};
