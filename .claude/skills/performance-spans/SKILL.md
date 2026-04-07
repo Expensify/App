@@ -297,11 +297,12 @@ Delta sign: negative = improvement (faster), positive = regression (slower).
 Create `.claude/skills/performance-spans/test-cases/<SpanName>.md` with the same frontmatter shape. The command and skill pick it up automatically — no other changes needed.
 
 Available span names from `CONST.TELEMETRY` in `src/CONST/index.ts`:
-- `ManualOpenReport` ✓ (defined)
-- `ManualSendMessage`
-- `ManualAppStartup`
+- `ManualOpenReport` ✓ (test case defined)
+- `ManualAppStartup` ✓ (test case defined — iOS/Android only)
+- `ManualNavigateToTabs` ✓ (test case defined — covers both `ManualNavigateToReports` and `ManualNavigateToInboxTab`)
+- `ManualOpenSearchRouter` ✓ (test case defined)
+- `ManualSendMessage` ✓ (test case defined)
 - `ManualOpenCreateExpense`
 - `ManualCameraInit`
 - `ManualShutterToConfirmation`
-- `ManualOpenSearchRouter`
 - `OnyxDerivedCompute` (high-frequency, use with care)
