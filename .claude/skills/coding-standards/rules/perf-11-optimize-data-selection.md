@@ -124,17 +124,18 @@ const [hasEmptyReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
 
 ### Review Metadata
 
-Flag ONLY when ALL of these are true:
+Flag ONLY when ANY of these are true:
 
 - A component uses `useOnyx` and either:
   - Subscribes to a broad data structure without selecting specific fields, causing re-renders when unrelated fields change
-  - Uses a `selector` that returns a large object, full collection, mapped/transformed collection, `Set`, `Map`, or intermediate data structure that is further reduced by the component
+  - Uses a `selector` whose output is still large or complex (e.g., full collection, large mapped/transformed result, `Set`, `Map`), or returns an intermediate data structure that is further reduced by the component
+- A selector on a collection references other large external datasets (e.g., another Onyx collection passed via closure) and iterates over them on every change to the subscribed collection, compounding the computation cost on unrelated updates
 
 **DO NOT flag if:**
 
 - The selector returns a primitive value (`boolean`, `string`, `number`, `undefined`)
 - The selector returns a small object with only a few fields picked from a single item (not a collection)
-- The selector meaningfully reduces a large dataset to a small result
+- The selector meaningfully reduces a large dataset to a small result (e.g., a primitive or a few items) by iterating over the subscribed collection itself — the `deepEqual` cost on a small result is negligible
 - The `useOnyx` call is on a single-item key (not a collection), and the selector picks specific fields
 - The data structure is static or the function requires the entire object for valid operations
 

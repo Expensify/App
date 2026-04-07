@@ -1,5 +1,6 @@
 import React, {createContext, useCallback, useContext, useMemo, useRef} from 'react';
 import useOnyx from '@hooks/useOnyx';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CurrencyList} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
@@ -10,7 +11,7 @@ const CurrencyListStateContext = createContext<CurrencyListStateContextType>(def
 const CurrencyListActionsContext = createContext<CurrencyListActionsContextType>(defaultCurrencyListActionsContextValue);
 
 function CurrencyListContextProvider({children}: React.PropsWithChildren) {
-    const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
+    const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST);
 
     const currencyListRef = useRef(currencyList);
     currencyListRef.current = currencyList;
@@ -22,7 +23,7 @@ function CurrencyListContextProvider({children}: React.PropsWithChildren) {
     const getCurrencyDecimals = useCallback(
         (currencyCode: string | undefined): number => {
             const decimals = currencyList[currencyCode ?? '']?.decimals;
-            return decimals ?? 2;
+            return decimals ?? CONST.DEFAULT_CURRENCY_DECIMALS;
         },
         [currencyList],
     );

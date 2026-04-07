@@ -1,7 +1,7 @@
 import React from 'react';
-import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import TimePicker from '@components/TimePicker/TimePicker';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -15,7 +15,7 @@ import ROUTES from '@src/ROUTES';
 function SetTimePage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [statusDraftCustomClearAfterDate] = useOnyx(ONYXKEYS.STATUS_DRAFT_CUSTOM_CLEAR_AFTER_DATE, {canBeMissing: true});
+    const [statusDraftCustomClearAfterDate] = useOnyx(ONYXKEYS.STATUS_DRAFT_CUSTOM_CLEAR_AFTER_DATE);
     const customStatusClearAfterDate = statusDraftCustomClearAfterDate ?? '';
 
     const onSubmit = (time: string) => {
@@ -33,12 +33,15 @@ function SetTimePage() {
                 title={translate('statusPage.time')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_STATUS_CLEAR_AFTER)}
             />
-            <View style={styles.flex1}>
+            <ScrollView
+                style={styles.flex1}
+                contentContainerStyle={styles.flexGrow1}
+            >
                 <TimePicker
                     defaultValue={customStatusClearAfterDate}
                     onSubmit={onSubmit}
                 />
-            </View>
+            </ScrollView>
         </ScreenWrapper>
     );
 }

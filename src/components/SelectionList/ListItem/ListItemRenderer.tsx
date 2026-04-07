@@ -17,6 +17,7 @@ type ListItemRendererProps<TItem extends ListItem> = Omit<BaseListItemProps<TIte
         titleStyles?: StyleProp<TextStyle>;
         titleContainerStyles?: StyleProp<ViewStyle>;
         shouldHighlightSelectedItem: boolean;
+        shouldPreventEnterKeySubmit?: boolean;
     };
 
 function ListItemRenderer<TItem extends ListItem>({
@@ -28,6 +29,7 @@ function ListItemRenderer<TItem extends ListItem>({
     isDisabled,
     showTooltip,
     canSelectMultiple,
+    canShowProductTrainingTooltip,
     onLongPressRow,
     shouldSingleExecuteRowSelect,
     selectRow,
@@ -37,10 +39,12 @@ function ListItemRenderer<TItem extends ListItem>({
     rightHandSideComponent,
     isMultilineSupported,
     isAlternateTextMultilineSupported,
+    shouldUseDefaultRightHandSideComponent,
     alternateTextNumberOfLines,
     shouldIgnoreFocus,
     setFocusedIndex,
     shouldSyncFocus,
+    titleNumberOfLines,
     wrapperStyle,
     titleStyles,
     singleExecution,
@@ -48,9 +52,9 @@ function ListItemRenderer<TItem extends ListItem>({
     shouldUseDefaultRightHandSideCheckmark,
     shouldHighlightSelectedItem,
     shouldDisableHoverStyle,
-    shouldStopMouseLeavePropagation,
     shouldShowRightCaret,
     errorRowStyles,
+    shouldPreventEnterKeySubmit = true,
 }: ListItemRendererProps<TItem>) {
     const handleOnCheckboxPress = () => {
         if (isTransactionGroupListItemType(item)) {
@@ -63,6 +67,7 @@ function ListItemRenderer<TItem extends ListItem>({
         <>
             <ListItem
                 item={item}
+                index={index}
                 isFocused={isFocused}
                 isDisabled={isDisabled}
                 showTooltip={showTooltip}
@@ -78,13 +83,14 @@ function ListItemRenderer<TItem extends ListItem>({
                 onCheckboxPress={handleOnCheckboxPress()}
                 onDismissError={() => onDismissError?.(item)}
                 shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
-                // We're already handling the Enter key press in the useKeyboardShortcut hook, so we don't want the list item to submit the form
-                shouldPreventEnterKeySubmit
+                shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
                 rightHandSideComponent={rightHandSideComponent}
                 keyForList={item.keyForList}
+                shouldUseDefaultRightHandSideComponent={shouldUseDefaultRightHandSideComponent}
                 isMultilineSupported={isMultilineSupported}
                 isAlternateTextMultilineSupported={isAlternateTextMultilineSupported}
                 alternateTextNumberOfLines={alternateTextNumberOfLines}
+                titleNumberOfLines={titleNumberOfLines}
                 onFocus={(event: NativeSyntheticEvent<ExtendedTargetedEvent>) => {
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     if (shouldIgnoreFocus || isDisabled) {
@@ -99,12 +105,12 @@ function ListItemRenderer<TItem extends ListItem>({
                 shouldSyncFocus={shouldSyncFocus}
                 wrapperStyle={wrapperStyle}
                 titleStyles={titleStyles}
+                canShowProductTrainingTooltip={canShowProductTrainingTooltip}
                 titleContainerStyles={titleContainerStyles}
                 errorRowStyles={errorRowStyles}
                 shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
                 shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                 shouldDisableHoverStyle={shouldDisableHoverStyle}
-                shouldStopMouseLeavePropagation={shouldStopMouseLeavePropagation}
                 shouldShowRightCaret={shouldShowRightCaret}
             />
             {item.footerContent && item.footerContent}

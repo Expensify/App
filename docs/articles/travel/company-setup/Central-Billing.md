@@ -4,13 +4,11 @@ description: Learn how Workspace Admins can enable Central Billing to issue trav
 keywords: [New Expensify, central billing, Expensify Travel, travel card, virtual card, Spotnana, travel payments, domain admin, workspace admin, company travel card]
 ---
 
-<div id="new-expensify" markdown="1">
-
 Central Billing allows Workspace Admins to set up a company card for Expensify Travel. This simplifies payments, eliminates reimbursement delays, and gives organizations greater control over travel spending.
 
 ---
 
-## How to access the travel tool
+## How to access Expensify Travel
 
 - **In New Expensify:** Click the green **+** button in the bottom-left corner of your screen, then select **Book travel**.
 - **In Classic Expensify:** Click **Travel** in the left-hand menu, then select **Book or manage travel**.
@@ -19,7 +17,7 @@ Central Billing allows Workspace Admins to set up a company card for Expensify T
 
 ---
 
-## What is Central Billing?
+## What is Central Billing
 
 Central Billing lets members use a company card when booking travel in Expensify Travel. These cards are admin-controlled, travel-specific, and prevent the need for personal card use.  
 
@@ -33,7 +31,7 @@ When enabled, travel cards appear under the **Central payment methods** section 
 
 ---
 
-## Who can configure Central Billing?
+## Who can configure Central Billing
 
 Only **Travel Admins** can enable and manage Central Billing. Once enabled, Travel Admins can:  
 - View card details  
@@ -106,19 +104,26 @@ You can use the Reporting tool within Expensify Travel to assist with reconcilin
 
 ---
 
-## FAQ
+# FAQ
 
-### Why should I use Central Billing?
+## Why should I use Central Billing?
 It eliminates reimbursements by allowing companies to pay directly for member travel with a central card.  
 
-### Can I restrict what the travel card can be used for?
+## Can I restrict what the travel card can be used for?
 Yes. Travel cards can only be used for bookings made through Expensify Travel. More restriction options (e.g., merchant types, time limits) are planned for future releases.  
 
-### Can I disable a Central Billing card?
+## Can I disable a Central Billing card?
 Yes. To remove a card:  
 1. Go to **Program > Company > Payment > Payment Methods**.
 2. Click the three dots next to the card.  
 3. Select **Remove Payment Method**.  
 4. All pending bookings tied to that card will be automatically suspended.  
 
-</div>
+## Why was my Central Billing travel expense assigned to the booker instead of me?
+Expensify assigns central billing expenses to the cardholder by matching card details and personal information (such as name). If an exact match can't be determined, the expense is assigned to the booker instead to avoid it appearing in the wrong person's account. This can happen when:
+
+- Your name in Expensify doesn't match the name on the card.
+- Another workspace member has the same last four digits of a card on file.
+
+To have expenses assigned to you, make sure your Expensify profile name matches the cardholder name and that your card is connected to your account.  
+

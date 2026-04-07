@@ -8,6 +8,7 @@ import Section from '@components/Section';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -19,6 +20,7 @@ import getPlatform from '@libs/getPlatform';
 import type Platform from '@libs/getPlatform/types';
 import Navigation from '@libs/Navigation/Navigation';
 import colors from '@styles/theme/colors';
+import {getBaseTheme} from '@styles/theme/utils';
 import CONST from '@src/CONST';
 import {isFullySupportedLocale, LOCALE_TO_LANGUAGE_STRING} from '@src/CONST/LOCALES';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -30,15 +32,15 @@ function PreferencesPage() {
     const {getCurrencySymbol} = useCurrencyListActions();
     const illustrations = useMemoizedLazyIllustrations(['Gears']);
     const preferencesIllustration = usePreferencesSectionIllustration();
-    const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {canBeMissing: true});
+    const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE);
 
     const platform = getPlatform(true);
-    const [mutedPlatforms = getEmptyObject<Partial<Record<Platform, true>>>()] = useOnyx(ONYXKEYS.NVP_MUTED_PLATFORMS, {canBeMissing: true});
+    const [mutedPlatforms = getEmptyObject<Partial<Record<Platform, true>>>()] = useOnyx(ONYXKEYS.NVP_MUTED_PLATFORMS);
     const isPlatformMuted = mutedPlatforms[platform];
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
-    const [preferredTheme] = useOnyx(ONYXKEYS.PREFERRED_THEME, {canBeMissing: true});
-    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
-    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [preferredTheme] = useOnyx(ONYXKEYS.PREFERRED_THEME);
+    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
 
     const personalPolicy = usePolicy(personalPolicyID);
 
@@ -47,6 +49,7 @@ function PreferencesPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    useDocumentTitle(translate('common.preferences'));
 
     return (
         <ScreenWrapper
@@ -61,6 +64,7 @@ function PreferencesPage() {
                 shouldUseHeadlineHeader
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
+                shouldDisplayHelpButton
                 onBackButtonPress={Navigation.goBack}
             />
             <ScrollView contentContainerStyle={styles.pt3}>
@@ -77,7 +81,12 @@ function PreferencesPage() {
                         <View style={[styles.flex1, styles.mt5]}>
                             <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween, styles.sectionMenuItemTopDescription]}>
                                 <View style={styles.flex4}>
-                                    <Text>{translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}</Text>
+                                    <Text
+                                        accessible={false}
+                                        aria-hidden
+                                    >
+                                        {translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}
+                                    </Text>
                                 </View>
                                 <View style={[styles.flex1, styles.alignItemsEnd]}>
                                     <Switch
@@ -89,7 +98,12 @@ function PreferencesPage() {
                             </View>
                             <View style={[styles.flexRow, styles.mb4, styles.justifyContentBetween]}>
                                 <View style={styles.flex4}>
-                                    <Text>{translate('preferencesPage.muteAllSounds')}</Text>
+                                    <Text
+                                        accessible={false}
+                                        aria-hidden
+                                    >
+                                        {translate('preferencesPage.muteAllSounds')}
+                                    </Text>
                                 </View>
                                 <View style={[styles.flex1, styles.alignItemsEnd]}>
                                     <Switch
@@ -105,6 +119,7 @@ function PreferencesPage() {
                                 description={translate('priorityModePage.priorityMode')}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_PRIORITY_MODE)}
                                 wrapperStyle={styles.sectionMenuItemTopDescription}
+                                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.PRIORITY_MODE}
                             />
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon
@@ -113,6 +128,7 @@ function PreferencesPage() {
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_LANGUAGE)}
                                 wrapperStyle={styles.sectionMenuItemTopDescription}
                                 hintText={!preferredLocale || !isFullySupportedLocale(preferredLocale) ? translate('languagePage.aiGenerated') : ''}
+                                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.LANGUAGE}
                             />
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon
@@ -120,13 +136,15 @@ function PreferencesPage() {
                                 description={translate('billingCurrency.paymentCurrency')}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_PAYMENT_CURRENCY)}
                                 wrapperStyle={styles.sectionMenuItemTopDescription}
+                                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.PAYMENT_CURRENCY}
                             />
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon
-                                title={translate(`themePage.themes.${preferredTheme ?? CONST.THEME.DEFAULT}.label`)}
+                                title={translate(`themePage.themes.${getBaseTheme(preferredTheme ?? CONST.THEME.DEFAULT)}.label`)}
                                 description={translate('themePage.theme')}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_THEME)}
                                 wrapperStyle={styles.sectionMenuItemTopDescription}
+                                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.THEME}
                             />
                         </View>
                     </Section>

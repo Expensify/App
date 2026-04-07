@@ -3,7 +3,7 @@ import type {ValueOf} from 'type-fest';
 import type {MenuItemProps} from '@components/MenuItem';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import type {SelectorType} from '@components/SelectionScreen';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import type {ToggleSettingOptionRowProps} from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import type CONST from '@src/CONST';
 import type {NetSuiteCustomFieldForm} from '@src/types/form';
@@ -77,10 +77,7 @@ type ExpenseRouteParams = {
     policyID: string;
 };
 
-type CustomFieldSubStepWithPolicy = SubStepProps & {
-    /** Policy ID of the current policy */
-    policyID: string;
-
+type CustomFieldSubPageWithPolicy = SubPageProps & {
     /** Current policy in the form steps */
     policy: Policy | undefined;
 
@@ -106,7 +103,7 @@ type CustomListSelectorType = SelectorType & {
     id: string;
 };
 
-type SubStepWithPolicy = SubStepProps & {policyID: string | undefined};
+type CustomSubPageTokenInputProps = SubPageProps & {policyID: string | undefined};
 
 export type {
     MenuItem,
@@ -115,8 +112,8 @@ export type {
     ToggleItem,
     AccordionItem,
     ExpenseRouteParams,
-    CustomFieldSubStepWithPolicy,
+    CustomFieldSubPageWithPolicy,
     CustomListSelectorType,
     ExtendedMenuItemWithSubscribedSettings,
-    SubStepWithPolicy,
+    CustomSubPageTokenInputProps,
 };

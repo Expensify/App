@@ -14,11 +14,10 @@ import {getMostRecentActiveDEWSubmitFailedAction, getOriginalMessage, isDynamicE
 import {
     hasActionWithErrorsForTransaction,
     hasReceiptError,
-    hasReportViolations,
+    isExpenseReport,
     isPaidGroupPolicyExpenseReport,
     isPaidGroupPolicy as isPaidGroupPolicyUtil,
     isReportApproved,
-    isReportOwner,
     isSettled,
 } from './ReportUtils';
 import type {TransactionDetails} from './ReportUtils';
@@ -43,7 +42,6 @@ import {
     isOnHold,
     isPending,
     isScanning,
-    isUnreportedAndHasInvalidDistanceRateTransaction,
 } from './TransactionUtils';
 import {isInvalidMerchantValue} from './ValidationUtils';
 import {filterReceiptViolations} from './Violations/ViolationsUtils';
@@ -81,11 +79,12 @@ const getReviewNavigationRoute = (
     duplicates: Array<OnyxEntry<OnyxTypes.Transaction>>,
     policy: OnyxEntry<OnyxTypes.Policy>,
     policyCategories: OnyxTypes.PolicyCategories | undefined,
+    policyTags: OnyxTypes.PolicyTagLists,
     transactionReport: OnyxEntry<OnyxTypes.Report>,
 ) => {
     // Use set method to prevent merging fields from the previous expense
     // (e.g., category, tag, tax) that may be not enabled/available in the new expense's policy.
-    const comparisonResult = compareDuplicateTransactionFields(transaction, duplicates, transactionReport, transaction?.transactionID, policy, policyCategories);
+    const comparisonResult = compareDuplicateTransactionFields(policyTags, transaction, duplicates, transactionReport, transaction?.transactionID, policy, policyCategories);
     setReviewDuplicatesKey(
         {
             ...comparisonResult.keep,
@@ -127,6 +126,18 @@ type TranslationPathOrText = {
 };
 
 const dotSeparator: TranslationPathOrText = {text: ` ${CONST.DOT_SEPARATOR} `};
+
+/**
+ * Normalize the last four digits to always return 4 characters.
+ * If the number is shorter than 4 digits, it will be padded with X's.
+ */
+function formatLastFourPAN(lastFourPAN?: string): string {
+    if (lastFourPAN === undefined || lastFourPAN.length === 0) {
+        return '';
+    }
+    const digitsOnly = lastFourPAN.replaceAll(/\D/g, '');
+    return digitsOnly ? digitsOnly.slice(-4).padStart(4, 'X') : '';
+}
 
 function getMultiLevelTagViolationsCount(violations: OnyxTypes.TransactionViolations): number {
     return violations?.reduce((acc, violation) => {
@@ -263,12 +274,15 @@ function getTransactionPreviewTextAndTranslationPaths({
     }
 
     if (hasFieldErrors && RBRMessage === undefined) {
-        const amountMissing = isAmountMissing(transaction);
-        const merchantMissing = isMerchantMissing(transaction);
+        const isFromExpenseReport = isExpenseReport(iouReport);
+        const amountMissing = isAmountMissing(transaction, isFromExpenseReport);
+        const merchantMissing = isFromExpenseReport && isMerchantMissing(transaction);
         if (amountMissing && merchantMissing) {
             RBRMessage = {translationPath: 'violations.reviewRequired'};
         } else if (merchantMissing) {
             RBRMessage = {translationPath: 'iou.missingMerchant'};
+        } else if (amountMissing) {
+            RBRMessage = {translationPath: 'iou.missingAmount'};
         }
     }
 
@@ -288,11 +302,7 @@ function getTransactionPreviewTextAndTranslationPaths({
 
     let previewHeaderText: TranslationPathOrText[] = [{translationPath: getExpenseTypeTranslationKey(getTransactionType(transaction))}];
 
-    if (isDistanceRequest(transaction)) {
-        if (RBRMessage === undefined && isUnreportedAndHasInvalidDistanceRateTransaction(transaction, policy)) {
-            RBRMessage = {translationPath: 'violations.customUnitOutOfPolicy'};
-        }
-    } else if (isTransactionScanning) {
+    if (isTransactionScanning) {
         previewHeaderText = [{translationPath: 'common.receipt'}];
     } else if (isBillSplit) {
         previewHeaderText = [{translationPath: 'iou.split'}];
@@ -408,9 +418,7 @@ function createTransactionPreviewConditionals({
     const shouldShowCategory = !!categoryForDisplay && isReportAPolicyExpenseChat;
 
     const hasAnyViolations =
-        isUnreportedAndHasInvalidDistanceRateTransaction(transaction, policy) ||
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        hasViolationsOfTypeNotice ||
+        !!hasViolationsOfTypeNotice ||
         hasWarningTypeViolation(transaction, violations, currentUserEmail ?? '', currentUserAccountID, iouReport ?? undefined, policy) ||
         hasViolation(transaction, violations, currentUserEmail ?? '', currentUserAccountID, iouReport ?? undefined, policy, true) ||
         (isDistanceRequest(transaction) &&
@@ -418,8 +426,7 @@ function createTransactionPreviewConditionals({
                 (violation) => violation.name === CONST.VIOLATIONS.MODIFIED_AMOUNT && (violation.type === CONST.VIOLATION_TYPES.VIOLATION || violation.type === CONST.VIOLATION_TYPES.NOTICE),
             ));
     const hasErrorOrOnHold = hasFieldErrors || (!isFullySettled && !isFullyApproved && isTransactionOnHold);
-    const hasReportViolationsOrActionErrors =
-        (isReportOwner(iouReport) && hasReportViolations(iouReport?.reportID)) || hasActionWithErrorsForTransaction(iouReport?.reportID, transaction, reportActions);
+    const hasReportViolationsOrActionErrors = hasActionWithErrorsForTransaction(iouReport?.reportID, transaction, reportActions);
     const isDEWSubmitFailed = hasDynamicExternalWorkflow(policy) && !!getMostRecentActiveDEWSubmitFailedAction(reportActions);
     const shouldShowRBR = hasAnyViolations || hasErrorOrOnHold || hasReportViolationsOrActionErrors || hasReceiptError(transaction) || isDEWSubmitFailed;
 
@@ -455,5 +462,6 @@ export {
     createTransactionPreviewConditionals,
     getViolationTranslatePath,
     getUniqueActionErrorsForTransaction,
+    formatLastFourPAN,
 };
 export type {TranslationPathOrText};

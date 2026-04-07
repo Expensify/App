@@ -33,7 +33,7 @@ function SplitListItem<TItem extends ListItem>({
     onInputFocus,
     onInputBlur,
 }: SplitListItemProps<TItem>) {
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Folder', 'Tag'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Folder', 'Tag']);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -226,7 +226,7 @@ function SplitListItem<TItem extends ListItem>({
                                 accessibilityLabel={translate('common.edit')}
                                 role="button"
                                 style={styles.pointerEventsAuto}
-                                sentryLabel="SplitListItem-EditButton"
+                                sentryLabel={CONST.SENTRY_LABEL.SELECTION_LIST.SPLIT_LIST_ITEM_EDIT_BUTTON}
                             >
                                 <Icon
                                     src={icons.ArrowRight}

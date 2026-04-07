@@ -1,26 +1,13 @@
 import React, {useEffect, useMemo} from 'react';
 import DocusignFullStep from '@components/SubStepForms/DocusignFullStep';
 import useOnyx from '@hooks/useOnyx';
+import type NonUSDPageProps from '@pages/ReimbursementAccount/NonUSD/types';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
 import {clearReimbursementAccountFinishCorpayBankAccountOnboarding, finishCorpayBankAccountOnboarding} from '@userActions/BankAccounts';
 import {clearErrors} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
-
-type DocusignProps = {
-    /** Handles back button press */
-    onBackButtonPress: () => void;
-
-    /** Handles submit button press */
-    onSubmit: () => void;
-
-    /** Array of step names */
-    stepNames?: readonly string[];
-
-    /** Currency of the policy */
-    policyCurrency: string;
-};
 
 const INPUT_KEYS = {
     PROVIDE_TRUTHFUL_INFORMATION: INPUT_IDS.ADDITIONAL_DATA.CORPAY.PROVIDE_TRUTHFUL_INFORMATION,
@@ -30,9 +17,9 @@ const INPUT_KEYS = {
     ACH_AUTHORIZATION_FORM: INPUT_IDS.ADDITIONAL_DATA.CORPAY.ACH_AUTHORIZATION_FORM,
 };
 
-function Docusign({onBackButtonPress, onSubmit, stepNames, policyCurrency}: DocusignProps) {
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: false});
+function Docusign({onBackButtonPress, onSubmit, stepNames, currency}: NonUSDPageProps) {
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const finalStepValues = useMemo(() => getSubStepValues(INPUT_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
     const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
@@ -78,7 +65,7 @@ function Docusign({onBackButtonPress, onSubmit, stepNames, policyCurrency}: Docu
             isLoading={reimbursementAccount?.isFinishingCorpayBankAccountOnboarding ?? false}
             onBackButtonPress={handleBackButtonPress}
             onSubmit={submit}
-            currency={policyCurrency}
+            currency={currency ?? ''}
             startStepIndex={6}
             stepNames={stepNames}
         />

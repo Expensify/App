@@ -65,13 +65,12 @@ describe('getMergedPR', () => {
         expect(result?.number).toBe(82016);
     });
 
-    it('should fall back to first PR if no merged PR is found', () => {
+    it('should return undefined when no merged PR is found instead of blaming an unmerged PR', () => {
         const associatedPRs = [openPRWithMainMerged, openPRDifferentBase];
 
         const result = getMergedPR(associatedPRs);
 
-        // Falls back to first element when no merged PR matches
-        expect(result?.number).toBe(80254);
+        expect(result).toBeUndefined();
     });
 
     it('should return undefined for empty array', () => {

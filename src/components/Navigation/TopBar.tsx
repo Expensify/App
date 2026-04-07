@@ -1,5 +1,5 @@
 import React from 'react';
-import {View} from 'react-native';
+import {Keyboard, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import LoadingBar from '@components/LoadingBar';
 import {PressableWithoutFeedback} from '@components/Pressable';
@@ -7,12 +7,13 @@ import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import Text from '@components/Text';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
-import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import SignInButton from '@pages/inbox/sidebar/SignInButton';
 import {isAnonymousUser as isAnonymousUserUtil} from '@userActions/Session';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session} from '@src/types/onyx';
 
@@ -27,13 +28,13 @@ type TopBarProps = {
 
 const authTokenTypeSelector = (session: OnyxEntry<Session>) => session && {authTokenType: session.authTokenType};
 
-function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpButton = true, cancelSearch, shouldShowLoadingBar = false, children}: TopBarProps) {
+function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpButton = false, cancelSearch, shouldShowLoadingBar, children}: TopBarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector, canBeMissing: true});
-    const shouldShowLoadingBarForReports = useLoadingBarVisibility();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const isAnonymousUser = isAnonymousUserUtil(session);
 
+    const isInLandscapeMode = useIsInLandscapeMode();
     const {wideRHPRouteKeys} = useWideRHPState();
     const isWideRHPVisible = !!wideRHPRouteKeys.length;
 
@@ -45,12 +46,14 @@ function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpB
             <View
                 style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ml5, styles.mr3, styles.headerBarHeight]}
                 dataSet={{dragArea: true}}
+                onTouchStart={isInLandscapeMode ? () => Keyboard.dismiss() : undefined}
             >
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.pr2]}>
                     <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
                         <Text
                             numberOfLines={1}
                             style={[styles.flexShrink1, styles.topBarLabel]}
+                            accessibilityRole={CONST.ROLE.HEADER}
                         >
                             {breadcrumbLabel}
                         </Text>
@@ -62,6 +65,7 @@ function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpB
                     <PressableWithoutFeedback
                         accessibilityLabel={translate('common.cancel')}
                         style={styles.textBlue}
+                        sentryLabel={CONST.SENTRY_LABEL.TOP_BAR.CANCEL_BUTTON}
                         onPress={() => {
                             cancelSearch();
                         }}
@@ -69,12 +73,14 @@ function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpB
                         <Text style={[styles.textBlue]}>{translate('common.cancel')}</Text>
                     </PressableWithoutFeedback>
                 )}
-                {shouldDisplayHelpButton && <SidePanelButton />}
                 {displaySearch && <SearchButton />}
+                {shouldDisplayHelpButton && <SidePanelButton />}
             </View>
-            <LoadingBar shouldShow={!isWideRHPVisible && (shouldShowLoadingBarForReports || shouldShowLoadingBar)} />
+            <LoadingBar shouldShow={!isWideRHPVisible && !!shouldShowLoadingBar} />
         </View>
     );
 }
+
+export type {TopBarProps};
 
 export default TopBar;

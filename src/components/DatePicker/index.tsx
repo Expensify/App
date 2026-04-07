@@ -1,12 +1,10 @@
 import {format, setYear} from 'date-fns';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {GestureResponderEvent} from 'react-native';
 import {InteractionManager, View} from 'react-native';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {setDraftValues} from '@userActions/FormActions';
@@ -32,14 +30,12 @@ function DatePicker({
     formID,
     autoFocus = false,
     shouldHideClearButton = false,
+    autoComplete = 'off',
     forwardedFSClass,
 }: DateInputWithPickerProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Calendar']);
     const styles = useThemeStyles();
     const {windowHeight, windowWidth} = useWindowDimensions();
-    // shouldUseNarrowLayout returns true for RHP but goal here is to prevent autoFocus only on small devices.
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
 
     const [isModalVisible, setIsModalVisible] = useState(false);
@@ -74,18 +70,14 @@ function DatePicker({
         });
     }, [windowHeight]);
 
-    const handlePress = useCallback(
-        (event?: GestureResponderEvent | KeyboardEvent) => {
-            // This makes sure that cursor does not appear in the TextInput when we open the DatePicker
-            event?.preventDefault();
-            calculatePopoverPosition();
-            setIsModalVisible(true);
-        },
-        [calculatePopoverPosition],
-    );
+    const showDatePickerModal = useCallback(() => {
+        // Blur the input before showing the modal, so the focus won't be returned after the modal is closed
+        textInputRef.current?.blur();
+        calculatePopoverPosition();
+        setIsModalVisible(true);
+    }, [calculatePopoverPosition]);
 
     const closeDatePicker = useCallback(() => {
-        textInputRef.current?.blur();
         setIsModalVisible(false);
     }, []);
 
@@ -110,15 +102,15 @@ function DatePicker({
     }, [calculatePopoverPosition, windowWidth]);
 
     useEffect(() => {
-        if (!autoFocus || isAutoFocused.current || isSmallScreenWidth) {
+        if (!autoFocus || isAutoFocused.current) {
             return;
         }
         isAutoFocused.current = true;
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
-            handlePress();
+            textInputRef.current?.focus();
         });
-    }, [handlePress, autoFocus, isSmallScreenWidth]);
+    }, [autoFocus]);
 
     const getValidDateForCalendar = useMemo(() => {
         if (!selectedDate) {
@@ -148,11 +140,12 @@ function DatePicker({
                     errorText={errorText}
                     inputStyle={styles.pointerEventsNone}
                     disabled={disabled}
-                    onPress={handlePress}
+                    onFocus={showDatePickerModal}
                     textInputContainerStyles={isModalVisible ? styles.borderColorFocus : {}}
                     shouldHideClearButton={shouldHideClearButton}
                     onClearInput={handleClear}
                     forwardedFSClass={forwardedFSClass}
+                    autoComplete={autoComplete}
                     disableKeyboard
                 />
             </View>

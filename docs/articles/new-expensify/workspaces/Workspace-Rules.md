@@ -40,14 +40,15 @@ Once enabled, go to the **Rules** tab in the left menu to manage expense-level s
 - **eReceipts** – Enable automatic receipt generation for all USD card transactions up to $75 (requires USD as default currency).
 - **Merchant-based automation** – Automatically apply categories, tags, and other fields using Workspace Merchant Rules.
 
- 
-![Rules page showing all available workspace-level expense rules]({{site.url}}/assets/images/new-expensify-rules.png){:width="100%"}
+![]({{site.url}}/assets/images/ExpensifyHelp-FlagExpensesMissingItemizedReceipts_01.png){:width="100%"}
 
 ---
 
 # What happens if Expense Rules are broken 
 
 When an expense breaks a Workspace Rule or Category Rule, the expense is flagged with a violation and the approver is prompted to manually review it before approval.
+
+![Expense showing violations]({{site.url}}/assets/images/ExpensifyHelp-FlagExpensesMissing|temizedReceipts_02.png){:width="100%"}
 
 ---
 
@@ -58,7 +59,7 @@ Workspace Merchant Rules let Workspace Admins automatically apply consistent cod
 Workspace Merchant Rules:
 - Apply when an expense is created
 - Work at the workspace level (not per member)
-- Don’t change how employees submit expenses
+- Don't change how members submit expenses
 
 To learn how to set up and manage Workspace Merchant Rules, see:
 [**Workspace Merchant Rules**](https://help.expensify.com/articles/new-expensify/workspaces/Workspace-Merchant-Rules)

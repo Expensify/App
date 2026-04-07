@@ -1,5 +1,6 @@
 import type {KeyValueMapping} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import {getLatestUserChronosTimerCommand, isChronosStartOrStopMessage, isChronosTimerRunningFromVisibleActions, isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import getReportURLForCurrentContext from '@libs/Navigation/helpers/getReportURLForCurrentContext';
@@ -11,11 +12,17 @@ import {chatReportR14932 as mockChatReport, iouReportR14932 as mockIOUReport} fr
 import CONST from '../../src/CONST';
 import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
 import {
+    findLastReportActions,
+    getAddedCardFeedMessage,
+    getAssignedCompanyCardMessage,
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
     getCardIssuedMessage,
     getCompanyAddressUpdateMessage,
     getCreatedReportForUnapprovedTransactionsMessage,
+    getCurrencyDefaultTaxUpdateMessage,
+    getCustomTaxNameUpdateMessage,
+    getForeignCurrencyDefaultTaxUpdateMessage,
     getInvoiceCompanyNameUpdateMessage,
     getInvoiceCompanyWebsiteUpdateMessage,
     getOneTransactionThreadReportID,
@@ -23,18 +30,34 @@ import {
     getPolicyChangeLogMaxExpenseAgeMessage,
     getPolicyChangeLogMaxExpenseAmountMessage,
     getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
+    getRemovedCardFeedMessage,
+    getRenamedCardFeedMessage,
     getReportActionActorAccountID,
     getSendMoneyFlowAction,
+    getSortedReportActions,
+    getSortedReportActionsForDisplay,
+    getUnassignedCompanyCardMessage,
     getUpdateACHAccountMessage,
+    getUpdatedCardFeedLiabilityMessage,
+    getUpdatedCardFeedStatementPeriodMessage,
+    hasNextActionMadeBySameActor,
+    hasReasoning,
+    isConsecutiveActionMadeByPreviousActor,
     isIOUActionMatchingTransactionList,
+    isNewerReportAction,
+    isReportActionVisibleAsLastAction,
+    isResolvedActionableWhisper,
+    shouldHideNewMarker,
 } from '../../src/libs/ReportActionsUtils';
 import {buildOptimisticCreatedReportForUnapprovedAction} from '../../src/libs/ReportUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
+import shouldDisplayNewMarkerOnReportAction from '../../src/pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
 import type {Card, OriginalMessageIOU, Report, ReportAction, ReportActions} from '../../src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import {getFakeReportAction} from '../utils/ReportTestUtils';
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -580,6 +603,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-13 22:27:01.825',
                     reportActionID: '8401445780099176',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                     originalMessage: {
                         html: 'Hello world',
@@ -596,6 +620,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-12 22:27:01.825',
                     reportActionID: '6401435781022176',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                     originalMessage: {
                         html: 'Hello world',
@@ -612,6 +637,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-11 22:27:01.825',
                     reportActionID: '2962390724708756',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                     originalMessage: {
                         amount: 0,
@@ -629,6 +655,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-10 22:27:01.825',
                     reportActionID: '1609646094152486',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.RENAMED,
                     originalMessage: {
                         html: 'Hello world',
@@ -647,6 +674,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-09 22:27:01.825',
                     reportActionID: '8049485084562457',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FIELD,
                     originalMessage: {},
                     message: [{html: 'updated the Approval Mode from "Submit and Approve" to "Submit and Close"', type: 'Action type', text: 'Action text'}],
@@ -654,6 +682,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-08 22:27:06.825',
                     reportActionID: '1661970171066216',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED,
                     originalMessage: {
                         paymentType: 'ACH',
@@ -663,6 +692,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-06 22:27:08.825',
                     reportActionID: '1661970171066220',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.TASK_EDITED,
                     originalMessage: {
                         html: 'Hello world',
@@ -684,6 +714,7 @@ describe('ReportActionsUtils', () => {
             const movedTransactionAction: ReportAction = {
                 created: '2022-11-13 22:27:01.825',
                 reportActionID: '8401445780099177',
+                reportID: '1',
                 actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
                 originalMessage: {
                     fromReportID: CONST.REPORT.UNREPORTED_REPORT_ID,
@@ -694,6 +725,7 @@ describe('ReportActionsUtils', () => {
             const addCommentAction: ReportAction = {
                 created: '2022-11-12 22:27:01.825',
                 reportActionID: '6401435781022176',
+                reportID: '1',
                 actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                 originalMessage: {
                     html: 'Hello world',
@@ -719,6 +751,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-13 22:27:01.825',
                     reportActionID: '8401445780099176',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                     originalMessage: {
                         html: 'Hello world',
@@ -735,6 +768,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-12 22:27:01.825',
                     reportActionID: '6401435781022176',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
                     originalMessage: {
                         html: 'Hello world',
@@ -751,6 +785,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-11 22:27:01.825',
                     reportActionID: '2962390724708756',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                     originalMessage: {
                         amount: 0,
@@ -768,6 +803,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-10 22:27:01.825',
                     reportActionID: '1609646094152486',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.RENAMED,
                     originalMessage: {
                         html: 'Hello world',
@@ -786,6 +822,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-09 22:27:01.825',
                     reportActionID: '1661970171066218',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.CLOSED,
                     originalMessage: {
                         policyName: 'default', // change to const
@@ -814,6 +851,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-13 22:27:01.825',
                     reportActionID: '8401445780099176',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                     originalMessage: {
                         html: 'Hello world',
@@ -830,6 +868,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-12 22:27:01.825',
                     reportActionID: '8401445780099175',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                     originalMessage: {
                         html: 'Hello world',
@@ -841,6 +880,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-11 22:27:01.825',
                     reportActionID: '8401445780099174',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                     originalMessage: {
                         html: 'Hello world',
@@ -863,6 +903,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2024-11-19 08:04:13.728',
                     reportActionID: '1607371725956675966',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                     originalMessage: {
                         html: '<mention-user accountID="18414674"/>',
@@ -882,6 +923,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2024-11-19 08:00:14.352',
                     reportActionID: '4655978522337302598',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                     originalMessage: {
                         html: '#join',
@@ -900,6 +942,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-09 22:27:01.825',
                     reportActionID: '8049485084562457',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER,
                     originalMessage: {
                         lastModified: '2024-11-19 08:00:14.353',
@@ -917,6 +960,7 @@ describe('ReportActionsUtils', () => {
                 {
                     created: '2022-11-12 22:27:01.825',
                     reportActionID: '6401435781022176',
+                    reportID: '1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
                     originalMessage: {
                         inviteeAccountIDs: [18414674],
@@ -945,6 +989,117 @@ describe('ReportActionsUtils', () => {
             );
 
             expect(result).toStrictEqual(expectedOutput);
+        });
+
+        it('should filter out ACTIONABLE_MENTION_WHISPER when originalMessage.deleted is set', () => {
+            // Given an ADD_COMMENT and an ACTIONABLE_MENTION_WHISPER whose originalMessage.deleted is set.
+            // The backend sets this field when the parent comment is deleted (cascade deletion).
+            // This test verifies that the frontend correctly hides the whisper when it receives that field.
+            const input: ReportAction[] = [
+                {
+                    created: '2024-11-19 08:04:13.728',
+                    reportActionID: '1607371725956675966',
+                    reportID: '1',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    originalMessage: {
+                        html: '<mention-user accountID="18414674"/>',
+                        whisperedTo: [],
+                        lastModified: '2024-11-19 08:04:13.728',
+                    },
+                    message: [
+                        {
+                            html: '<mention-user accountID="18414674"/>',
+                            text: '@someone',
+                            type: 'COMMENT',
+                            whisperedTo: [],
+                        },
+                    ],
+                },
+                {
+                    created: '2024-11-19 08:04:13.730',
+                    reportActionID: '6401435781022176',
+                    reportID: '1',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
+                    originalMessage: {
+                        inviteeAccountIDs: [18414674],
+                        lastModified: '2024-11-19 08:04:25.813',
+                        whisperedTo: [18301266],
+                        deleted: '2024-11-19 08:04:27.000',
+                    },
+                    message: [
+                        {
+                            html: "Heads up, <mention-user accountID=18414674></mention-user> isn't a member of this room.",
+                            text: "Heads up,  isn't a member of this room.",
+                            type: 'COMMENT',
+                        },
+                    ],
+                },
+            ];
+
+            // When sorted for display with write access enabled
+            const result = ReportActionsUtils.getSortedReportActionsForDisplay(input, true);
+
+            // Then the whisper with deleted set should be filtered out, leaving only the ADD_COMMENT
+            expect(result).toStrictEqual([input.at(0)]);
+        });
+
+        it('should keep ACTIONABLE_MENTION_WHISPER visible when deleted is set but parent comment is not deleted', () => {
+            // Given a parent ADD_COMMENT (ID N) and an ACTIONABLE_MENTION_WHISPER (ID N+1) whose
+            // originalMessage.deleted is set (e.g. from the backend one-per-user cleanup rule).
+            // Use sequential IDs so the parent check can find the parent via whisperID - 1.
+            const parentID = '1000000000000000';
+            const whisperID = '1000000000000001';
+
+            const parentAction: ReportAction = {
+                created: '2024-11-19 08:04:13.728',
+                reportActionID: parentID,
+                reportID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                originalMessage: {
+                    html: '<mention-user accountID="18414674"/>',
+                    whisperedTo: [],
+                    lastModified: '2024-11-19 08:04:13.728',
+                },
+                message: [
+                    {
+                        html: '<mention-user accountID="18414674"/>',
+                        text: '@someone',
+                        type: 'COMMENT',
+                        whisperedTo: [],
+                    },
+                ],
+            };
+
+            const whisperAction: ReportAction = {
+                created: '2024-11-19 08:04:13.730',
+                reportActionID: whisperID,
+                reportID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
+                originalMessage: {
+                    inviteeAccountIDs: [18414674],
+                    lastModified: '2024-11-19 08:04:25.813',
+                    whisperedTo: [18301266],
+                    deleted: '2024-11-19 08:04:27.000',
+                },
+                message: [
+                    {
+                        html: "Heads up, <mention-user accountID=18414674></mention-user> isn't a member of this room.",
+                        text: "Heads up,  isn't a member of this room.",
+                        type: 'COMMENT',
+                    },
+                ],
+            };
+
+            const allActionsForReport: ReportActions = {
+                [parentID]: parentAction,
+                [whisperID]: whisperAction,
+            };
+
+            // When checking whether the whisper is resolved, providing the full action set
+            const result = isResolvedActionableWhisper(whisperAction, allActionsForReport);
+
+            // Then the whisper should NOT be treated as resolved because its parent is still present and not deleted
+            expect(result).toBe(false);
         });
     });
 
@@ -1053,6 +1208,7 @@ describe('ReportActionsUtils', () => {
                 ...LHNTestUtils.getFakeReportAction('email1@test.com', 3),
                 created: '2023-08-01 16:00:00',
                 reportActionID: 'action1',
+                reportID: '1',
                 actionName: 'ADDCOMMENT',
                 originalMessage: {
                     html: 'Hello world',
@@ -1063,6 +1219,7 @@ describe('ReportActionsUtils', () => {
                 ...LHNTestUtils.getFakeReportAction('email2@test.com', 3),
                 created: '2023-08-01 18:00:00',
                 reportActionID: 'action2',
+                reportID: '1',
                 actionName: 'ADDCOMMENT',
                 originalMessage: {
                     html: 'Hello world',
@@ -1144,6 +1301,7 @@ describe('ReportActionsUtils', () => {
                 message: [],
                 originalMessage: {
                     to: 'example@gmail.com',
+                    message: '',
                 },
             };
 
@@ -1153,6 +1311,213 @@ describe('ReportActionsUtils', () => {
 
             // Then it should return the correct message fragments
             expect(expectedFragments).toEqual([{text: expectedMessage, html: `<muted-text>${expectedMessage}</muted-text>`, type: 'COMMENT'}]);
+        });
+
+        it('should return the correct fragment for DEW_SUBMIT_FAILED with harvesting', () => {
+            const errorMessage = 'All expenses must be categorized before submitting';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                reportActionID: '1',
+                created: '1',
+                message: [],
+                originalMessage: {
+                    message: errorMessage,
+                    harvesting: true,
+                },
+            };
+
+            const fragments = ReportActionsUtils.getReportActionMessageFragments(translateLocal, action);
+            const expectedText = translateLocal('iou.failedToAutoSubmitViaDEW', errorMessage);
+            const expectedHtml = `<muted-text>${expectedText}</muted-text>`;
+            expect(fragments).toEqual([{text: expectedText, html: expectedHtml, type: 'COMMENT'}]);
+        });
+
+        it('should return the correct fragment for DEW_SUBMIT_FAILED without harvesting', () => {
+            const errorMessage = 'All expenses must be categorized before submitting';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                reportActionID: '1',
+                created: '1',
+                message: [],
+                originalMessage: {
+                    message: errorMessage,
+                },
+            };
+
+            const fragments = ReportActionsUtils.getReportActionMessageFragments(translateLocal, action);
+            const expectedText = translateLocal('iou.failedToSubmitViaDEW', errorMessage);
+            const expectedHtml = `<muted-text>${expectedText}</muted-text>`;
+            expect(fragments).toEqual([{text: expectedText, html: expectedHtml, type: 'COMMENT'}]);
+        });
+
+        it('should return the correct fragment for DEW_APPROVE_FAILED with automaticAction', () => {
+            const errorMessage = 'This report cannot be approved';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED,
+                reportActionID: '1',
+                created: '1',
+                message: [],
+                originalMessage: {
+                    message: errorMessage,
+                    automaticAction: true,
+                },
+            };
+
+            const fragments = ReportActionsUtils.getReportActionMessageFragments(translateLocal, action);
+            const expectedText = translateLocal('iou.failedToAutoApproveViaDEW', errorMessage);
+            const expectedHtml = `<muted-text>${expectedText}</muted-text>`;
+            expect(fragments).toEqual([{text: expectedText, html: expectedHtml, type: 'COMMENT'}]);
+        });
+
+        it('should return the correct fragment for DEW_APPROVE_FAILED without automaticAction', () => {
+            const errorMessage = 'This report cannot be approved';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED,
+                reportActionID: '1',
+                created: '1',
+                message: [],
+                originalMessage: {
+                    message: errorMessage,
+                    automaticAction: false,
+                },
+            };
+
+            const fragments = ReportActionsUtils.getReportActionMessageFragments(translateLocal, action);
+            const expectedText = translateLocal('iou.failedToApproveViaDEW', errorMessage);
+            const expectedHtml = `<muted-text>${expectedText}</muted-text>`;
+            expect(fragments).toEqual([{text: expectedText, html: expectedHtml, type: 'COMMENT'}]);
+        });
+
+        it('should preserve backend-provided CARDFROZEN fragments', () => {
+            const cardFrozenMessage = 'A A froze their Expensify Card (ending in 1384). New transactions will be declined until the card is unfrozen.';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN,
+                reportActionID: 'card-frozen-action-123',
+                actorAccountID: 21052128,
+                created: '2026-03-12 01:58:43.479',
+                message: [
+                    {
+                        html: cardFrozenMessage,
+                        text: cardFrozenMessage,
+                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                        whisperedTo: [],
+                    },
+                ],
+                originalMessage: {
+                    html: cardFrozenMessage,
+                    isNewDot: true,
+                    lastModified: '2026-03-12 01:58:43.479',
+                },
+            };
+
+            expect(ReportActionsUtils.getReportActionMessageFragments(translateLocal, action)).toEqual(action.message);
+        });
+
+        it('should preserve backend-provided CARDUNFROZEN fragments', () => {
+            const cardUnfrozenMessage = 'A A unfroze their Expensify Card (ending in 1384). This card can now be used for transactions.';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CARD_UNFROZEN> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_UNFROZEN,
+                reportActionID: 'card-unfrozen-action-123',
+                actorAccountID: 21052128,
+                created: '2026-03-12 02:08:08.128',
+                message: [
+                    {
+                        html: cardUnfrozenMessage,
+                        text: cardUnfrozenMessage,
+                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                        whisperedTo: [],
+                    },
+                ],
+                originalMessage: {
+                    html: cardUnfrozenMessage,
+                    isNewDot: true,
+                    lastModified: '2026-03-12 02:08:08.128',
+                },
+            };
+
+            expect(ReportActionsUtils.getReportActionMessageFragments(translateLocal, action)).toEqual(action.message);
+        });
+    });
+
+    describe('getReportActionText', () => {
+        it('should return the backend-provided CARDFROZEN text', () => {
+            const cardFrozenMessage = 'A A froze their Expensify Card (ending in 1384). New transactions will be declined until the card is unfrozen.';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN,
+                reportActionID: 'card-frozen-action-123',
+                actorAccountID: 21052128,
+                created: '2026-03-12 01:58:43.479',
+                message: [
+                    {
+                        html: cardFrozenMessage,
+                        text: cardFrozenMessage,
+                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                        whisperedTo: [],
+                    },
+                ],
+                originalMessage: {
+                    html: cardFrozenMessage,
+                    isNewDot: true,
+                    lastModified: '2026-03-12 01:58:43.479',
+                },
+            };
+
+            expect(ReportActionsUtils.getReportActionText(action)).toBe(cardFrozenMessage);
+        });
+
+        it('should return the backend-provided CARDUNFROZEN text', () => {
+            const cardUnfrozenMessage = 'A A unfroze their Expensify Card (ending in 1384). This card can now be used for transactions.';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CARD_UNFROZEN> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_UNFROZEN,
+                reportActionID: 'card-unfrozen-action-123',
+                actorAccountID: 21052128,
+                created: '2026-03-12 02:08:08.128',
+                message: [
+                    {
+                        html: cardUnfrozenMessage,
+                        text: cardUnfrozenMessage,
+                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                        whisperedTo: [],
+                    },
+                ],
+                originalMessage: {
+                    html: cardUnfrozenMessage,
+                    isNewDot: true,
+                    lastModified: '2026-03-12 02:08:08.128',
+                },
+            };
+
+            expect(ReportActionsUtils.getReportActionText(action)).toBe(cardUnfrozenMessage);
+            expect(ReportActionsUtils.shouldReportActionBeVisible(action, action.reportActionID, true)).toBe(true);
+        });
+    });
+
+    describe('getMessageOfOldDotReportAction', () => {
+        it('should return the ACH bounce message with return reason when provided', () => {
+            const returnReason = 'R03 - No Account/Unable to Locate Account';
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2024-01-01 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE,
+                originalMessage: {returnReason},
+            };
+
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            expect(message).toBe(translateLocal('report.actions.type.reimbursementACHBounceWithReason', {returnReason}));
+        });
+
+        it('should return the default ACH bounce message when return reason is missing', () => {
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2024-01-01 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE,
+                originalMessage: {},
+            };
+
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            expect(message).toBe(translateLocal('report.actions.type.reimbursementACHBounceDefault'));
         });
     });
 
@@ -1230,7 +1595,7 @@ describe('ReportActionsUtils', () => {
             const res = ReportActionsUtils.shouldShowAddMissingDetails(CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS, mockPersonalDetail);
             expect(res).toEqual(true);
         });
-        it('should return false if personal detail is completed', () => {
+        it('should still return true when personal detail is completed but has not been confirmed yet', () => {
             const mockPersonalDetail = {
                 addresses: [
                     {
@@ -1245,7 +1610,27 @@ describe('ReportActionsUtils', () => {
                 phoneNumber: '+162992973',
                 dob: '9-9-2000',
             };
-            const res = ReportActionsUtils.shouldShowAddMissingDetails(CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS, mockPersonalDetail);
+            const cardState = CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED;
+            const res = ReportActionsUtils.shouldShowAddMissingDetails(CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS, mockPersonalDetail, cardState);
+            expect(res).toEqual(true);
+        });
+        it('should return false if personal detail is completed and has been confirmed by the user', () => {
+            const mockPersonalDetail = {
+                addresses: [
+                    {
+                        street: '123 Main St',
+                        city: 'New York',
+                        state: 'NY',
+                        postalCode: '10001',
+                    },
+                ],
+                legalFirstName: 'John',
+                legalLastName: 'David',
+                phoneNumber: '+162992973',
+                dob: '9-9-2000',
+            };
+            const cardState = CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED;
+            const res = ReportActionsUtils.shouldShowAddMissingDetails(CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS, mockPersonalDetail, cardState);
             expect(res).toEqual(false);
         });
     });
@@ -1383,6 +1768,30 @@ describe('ReportActionsUtils', () => {
             const reportAction = buildOptimisticCreatedReportForUnapprovedAction('123456', '789012');
             expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(false);
         });
+
+        it('should return false for CARDFROZEN action with a backend-provided message fragment', () => {
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN,
+                reportActionID: 'card-frozen-action-123',
+                actorAccountID: 21052128,
+                created: '2026-03-12 01:58:43.479',
+                message: [
+                    {
+                        html: 'A A froze their Expensify Card (ending in 1384). New transactions will be declined until the card is unfrozen.',
+                        text: 'A A froze their Expensify Card (ending in 1384). New transactions will be declined until the card is unfrozen.',
+                        type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                        whisperedTo: [],
+                    },
+                ],
+                originalMessage: {
+                    html: 'A A froze their Expensify Card (ending in 1384). New transactions will be declined until the card is unfrozen.',
+                    isNewDot: true,
+                    lastModified: '2026-03-12 01:58:43.479',
+                },
+            };
+
+            expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(false);
+        });
     });
 
     describe('getRenamedAction', () => {
@@ -1446,7 +1855,6 @@ describe('ReportActionsUtils', () => {
         } as Card;
 
         const testPolicyID = 'test-policy-123';
-
         describe('render virtual card issued messages', () => {
             it('should render a plain text message without card link when no card data is available', () => {
                 const messageResult = getCardIssuedMessage({
@@ -1529,6 +1937,72 @@ describe('ReportActionsUtils', () => {
             const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
             expect(actual).toBe(true);
         });
+
+        it('should return false for TAKE_CONTROL when automaticAction is true and mentionedAccountIDs is empty', () => {
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
+                reportActionID: '1',
+                created: '2025-09-29',
+                originalMessage: {
+                    lastModified: '2025-09-29',
+                    mentionedAccountIDs: [] as number[],
+                    automaticAction: true,
+                },
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL>;
+
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
+            expect(actual).toBe(false);
+        });
+
+        it('should return true for TAKE_CONTROL when automaticAction is true but mentionedAccountIDs has values', () => {
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
+                reportActionID: '1',
+                created: '2025-09-29',
+                message: [{html: 'took control', type: 'COMMENT', text: 'took control'}],
+                originalMessage: {
+                    lastModified: '2025-09-29',
+                    mentionedAccountIDs: [123],
+                    automaticAction: true,
+                },
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL>;
+
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
+            expect(actual).toBe(true);
+        });
+
+        it('should return true for TAKE_CONTROL when automaticAction is false', () => {
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
+                reportActionID: '1',
+                created: '2025-09-29',
+                message: [{html: 'took control', type: 'COMMENT', text: 'took control'}],
+                originalMessage: {
+                    lastModified: '2025-09-29',
+                    mentionedAccountIDs: [] as number[],
+                    automaticAction: false,
+                },
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL>;
+
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
+            expect(actual).toBe(true);
+        });
+
+        it('should return true for TAKE_CONTROL when automaticAction is not set', () => {
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
+                reportActionID: '1',
+                created: '2025-09-29',
+                message: [{html: 'took control', type: 'COMMENT', text: 'took control'}],
+                originalMessage: {
+                    lastModified: '2025-09-29',
+                    mentionedAccountIDs: [456],
+                },
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL>;
+
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
+            expect(actual).toBe(true);
+        });
     });
 
     describe('getPolicyChangeLogUpdateEmployee', () => {
@@ -1550,7 +2024,7 @@ describe('ReportActionsUtils', () => {
             };
 
             const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(translateLocal, action);
-            const expected = translateLocal('report.actions.type.updatedCustomField1', {email: formatPhoneNumber(email), newValue, previousValue});
+            const expected = translateLocal('report.actions.type.updatedCustomField1', formatPhoneNumber(email), newValue, previousValue);
             expect(actual).toBe(expected);
         });
 
@@ -1583,11 +2057,7 @@ describe('ReportActionsUtils', () => {
             };
 
             const formattedEmail = formatPhoneNumber(email);
-            const expectedCustomFieldMessage = translateLocal('report.actions.type.updatedCustomField1', {
-                email: formattedEmail,
-                newValue: customFieldNewValue,
-                previousValue: customFieldOldValue,
-            });
+            const expectedCustomFieldMessage = translateLocal('report.actions.type.updatedCustomField1', formattedEmail, customFieldNewValue, customFieldOldValue);
             const expectedRoleMessage = translateLocal('report.actions.type.updateRole', {
                 email: formattedEmail,
                 newRole: translateLocal('workspace.common.roleName', newRole).toLowerCase(),
@@ -1657,18 +2127,35 @@ describe('ReportActionsUtils', () => {
     });
 
     describe('getCreatedReportForUnapprovedTransactionsMessage', () => {
-        it('should return the correct message with a valid report ID and report name', () => {
+        it('should return the correct message with a valid report ID and report name when report is not deleted', () => {
             const reportID = '67890';
             const reportName = 'Original Report';
+            const isReportDeleted = false;
             const reportUrl = getReportURLForCurrentContext(reportID);
             const expectedMessage = translateLocal('reportAction.createdReportForUnapprovedTransactions', {
                 reportUrl,
                 reportName,
+                reportID,
+                isReportDeleted,
             });
 
-            const result = getCreatedReportForUnapprovedTransactionsMessage(reportID, reportName, translateLocal);
+            const result = getCreatedReportForUnapprovedTransactionsMessage(reportID, reportName, isReportDeleted, translateLocal);
 
             expect(result).toBe(expectedMessage);
+        });
+
+        it('should return a message with plain reportID when report is deleted', () => {
+            const isReportDeleted = true;
+            const result = getCreatedReportForUnapprovedTransactionsMessage('123456', 'Some Name', isReportDeleted, translateLocal);
+
+            expect(result).toBe('created this report for any held expenses from deleted report #123456');
+        });
+
+        it('should handle undefined reportID and report is deleted', () => {
+            const isReportDeleted = true;
+            const result = getCreatedReportForUnapprovedTransactionsMessage(undefined, 'Some Name', isReportDeleted, translateLocal);
+
+            expect(result).toBe('');
         });
     });
 
@@ -2522,7 +3009,7 @@ describe('ReportActionsUtils', () => {
                     reportActionID: '2',
                     originalMessage: {workflow: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, to: 'example@gmail.com'},
                 },
-                {actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED, reportActionID: '2DEW', originalMessage: {to: 'example@gmail.com'}},
+                {actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED, reportActionID: '2DEW', originalMessage: {to: 'example@gmail.com', message: ''}},
                 {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: '', reportActionID: '3'},
                 {
                     actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
@@ -2530,7 +3017,7 @@ describe('ReportActionsUtils', () => {
                     reportActionID: '4',
                     originalMessage: {workflow: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, to: 'example2@gmail.com'},
                 },
-                {actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED, reportActionID: '4DEW', originalMessage: {to: 'example2@gmail.com'}},
+                {actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED, reportActionID: '4DEW', originalMessage: {to: 'example2@gmail.com', message: ''}},
             ];
             const actual = ReportActionsUtils.withDEWRoutedActionsArray(reportActions);
 
@@ -2591,12 +3078,12 @@ describe('ReportActionsUtils', () => {
             const secondDEWAction = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED,
                 reportActionID: '2DEW',
-                originalMessage: {to: 'example@gmail.com'},
+                originalMessage: {to: 'example@gmail.com', message: ''},
             } as ReportAction;
             const fourthDEWAction = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED,
                 reportActionID: '4DEW',
-                originalMessage: {to: 'example2@gmail.com'},
+                originalMessage: {to: 'example2@gmail.com', message: ''},
             } as ReportAction;
             const expected: ReportActions = {
                 [firstAction.reportActionID]: firstAction,
@@ -2647,14 +3134,33 @@ describe('ReportActionsUtils', () => {
                 reportActionID: '1',
                 actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED,
                 created: '',
-                originalMessage: {to},
+                originalMessage: {to, message: ''},
             };
 
             // When getting the DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action message
             const actual = ReportActionsUtils.getDynamicExternalWorkflowRoutedMessage(action, translateLocal);
 
             // Then it should return the routed due to DEW message with the correct "to" value
-            const expected = translateLocal('iou.routedDueToDEW', to);
+            const expected = translateLocal('iou.routedDueToDEW', to, '');
+            expect(actual).toBe(expected);
+        });
+
+        it('should return the routed message with reason', () => {
+            // Given a DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action with a reason message
+            const to = 'example@gmail.com';
+            const reason = 'the report total exceeds the auto-approval limit';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED,
+                created: '',
+                originalMessage: {to, message: reason},
+            };
+
+            // When getting the DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action message
+            const actual = ReportActionsUtils.getDynamicExternalWorkflowRoutedMessage(action, translateLocal);
+
+            // Then it should return the routed due to DEW message with the correct "to" value and reason
+            const expected = translateLocal('iou.routedDueToDEW', to, reason);
             expect(actual).toBe(expected);
         });
     });
@@ -2797,6 +3303,149 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('getAddedCardFeedMessage', () => {
+        it('should return translated message when feedName is present', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CARD_FEED,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    feedName: 'Visa Commercial',
+                },
+            } as ReportAction;
+            const result = getAddedCardFeedMessage(translateLocal, action);
+            expect(result).toBe('added card feed "Visa Commercial"');
+        });
+    });
+
+    describe('getRemovedCardFeedMessage', () => {
+        it('should return translated message when feedName is present', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CARD_FEED,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    feedName: 'Amex Corporate',
+                },
+            } as ReportAction;
+            const result = getRemovedCardFeedMessage(translateLocal, action);
+            expect(result).toBe('removed card feed "Amex Corporate"');
+        });
+    });
+
+    describe('getRenamedCardFeedMessage', () => {
+        it('should return translated message when oldName and newName are present', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.RENAME_CARD_FEED,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldName: 'Old Feed Name',
+                    newName: 'New Feed Name',
+                },
+            } as ReportAction;
+            const result = getRenamedCardFeedMessage(translateLocal, action);
+            expect(result).toBe('renamed card feed to "New Feed Name" (previously "Old Feed Name")');
+        });
+    });
+
+    describe('getAssignedCompanyCardMessage', () => {
+        it('should return translated message when email and cardLastFour are present', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ASSIGN_COMPANY_CARD,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    email: 'user@example.com',
+                    feedName: 'US Bank',
+                    cardLastFour: '1234',
+                },
+            } as ReportAction;
+            const result = getAssignedCompanyCardMessage(translateLocal, action);
+            expect(result).toBe('assigned user@example.com "US Bank" company card ending in 1234');
+        });
+    });
+
+    describe('getUnassignedCompanyCardMessage', () => {
+        it('should return translated message when email and cardLastFour are present', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UNASSIGN_COMPANY_CARD,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    email: 'user@example.com',
+                    feedName: 'US Bank',
+                    cardLastFour: '5678',
+                },
+            } as ReportAction;
+            const result = getUnassignedCompanyCardMessage(translateLocal, action);
+            expect(result).toBe('unassigned user@example.com "US Bank" company card ending in 5678');
+        });
+    });
+
+    describe('getUpdatedCardFeedLiabilityMessage', () => {
+        it('should return enabled message when liabilityType is ALLOW', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_LIABILITY,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    feedName: 'Visa Commercial',
+                    liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.ALLOW,
+                },
+            } as ReportAction;
+            const result = getUpdatedCardFeedLiabilityMessage(translateLocal, action);
+            expect(result).toBe('enabled cardholders to delete card transactions for card feed "Visa Commercial"');
+        });
+    });
+
+    describe('getUpdatedCardFeedStatementPeriodMessage', () => {
+        it('should return translated message with numeric day values', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_STATEMENT_PERIOD,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    feedName: 'Visa Commercial',
+                    statementPeriodEndDay: '15',
+                    previousStatementPeriodEndDay: '20',
+                },
+            } as ReportAction;
+            const result = getUpdatedCardFeedStatementPeriodMessage(translateLocal, action);
+            expect(result).toBe('changed card feed "Visa Commercial" statement period end day to "15" (previously "20")');
+        });
+
+        it('should translate LAST_DAY_OF_MONTH value', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_STATEMENT_PERIOD,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    feedName: 'Amex Corporate',
+                    statementPeriodEndDay: CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH,
+                    previousStatementPeriodEndDay: '10',
+                },
+            } as ReportAction;
+            const result = getUpdatedCardFeedStatementPeriodMessage(translateLocal, action);
+            expect(result).toBe('changed card feed "Amex Corporate" statement period end day to "Last day of the month" (previously "10")');
+        });
+
+        it('should translate LAST_BUSINESS_DAY_OF_MONTH value', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_STATEMENT_PERIOD,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    feedName: 'Mastercard',
+                    statementPeriodEndDay: CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_BUSINESS_DAY_OF_MONTH,
+                    previousStatementPeriodEndDay: CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH,
+                },
+            } as ReportAction;
+            const result = getUpdatedCardFeedStatementPeriodMessage(translateLocal, action);
+            expect(result).toBe('changed card feed "Mastercard" statement period end day to "Last business day of the month" (previously "Last day of the month")');
+        });
+    });
+
     describe('getCompanyAddressUpdateMessage', () => {
         it('should return "set" message when setting address for first time', () => {
             const action = {
@@ -2865,6 +3514,72 @@ describe('ReportActionsUtils', () => {
             const result = getCompanyAddressUpdateMessage(translateLocal, action);
 
             // The new line should be replaced with a comma
+            expect(result).toBe('set the company address to "123 Main St, Suite 500, New York, NY 10001"');
+        });
+
+        it('should handle address with separate addressStreet2 field', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    newAddress: {
+                        addressStreet: '123 Main St',
+                        addressStreet2: 'Suite 500',
+                        city: 'New York',
+                        state: 'NY',
+                        zipCode: '10001',
+                        country: 'US',
+                    },
+                    oldAddress: null,
+                },
+            } as ReportAction;
+
+            const result = getCompanyAddressUpdateMessage(translateLocal, action);
+            expect(result).toBe('set the company address to "123 Main St, Suite 500, New York, NY 10001"');
+        });
+
+        it('should prefer addressStreet2 over newline-split second line when both are present', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    newAddress: {
+                        addressStreet: '123 Main St\nOld Unit',
+                        addressStreet2: 'Suite 500',
+                        city: 'New York',
+                        state: 'NY',
+                        zipCode: '10001',
+                        country: 'US',
+                    },
+                    oldAddress: null,
+                },
+            } as ReportAction;
+
+            const result = getCompanyAddressUpdateMessage(translateLocal, action);
+            expect(result).toBe('set the company address to "123 Main St, Suite 500, New York, NY 10001"');
+        });
+
+        it('should fallback to newline-split second line when addressStreet2 is empty', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    newAddress: {
+                        addressStreet: '123 Main St\nSuite 500',
+                        addressStreet2: '   ',
+                        city: 'New York',
+                        state: 'NY',
+                        zipCode: '10001',
+                        country: 'US',
+                    },
+                    oldAddress: null,
+                },
+            } as ReportAction;
+
+            const result = getCompanyAddressUpdateMessage(translateLocal, action);
             expect(result).toBe('set the company address to "123 Main St, Suite 500, New York, NY 10001"');
         });
     });
@@ -3349,6 +4064,72 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('getCustomTaxNameUpdateMessage', () => {
+        it('should return the correct message when updating custom tax name', () => {
+            // Given an UPDATE_CUSTOM_TAX_NAME action with old and new names
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_TAX_NAME,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldName: 'Sales Tax',
+                    newName: 'VAT',
+                },
+                message: [],
+            } as ReportAction;
+
+            // When getting the update message
+            const result = getCustomTaxNameUpdateMessage(translateLocal, action);
+
+            // Then it should return the correct message with old and new names
+            expect(result).toBe('changed the custom tax name to "VAT" (previously "Sales Tax")');
+        });
+    });
+
+    describe('getCurrencyDefaultTaxUpdateMessage', () => {
+        it('should return the correct message when updating workspace currency default tax', () => {
+            // Given an UPDATE_CURRENCY_DEFAULT_TAX action with old and new names
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY_DEFAULT_TAX,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldName: 'Standard Rate',
+                    newName: 'Reduced Rate',
+                },
+                message: [],
+            } as ReportAction;
+
+            // When getting the update message
+            const result = getCurrencyDefaultTaxUpdateMessage(translateLocal, action);
+
+            // Then it should return the correct message with old and new names
+            expect(result).toBe('changed the workspace currency default tax rate to "Reduced Rate" (previously "Standard Rate")');
+        });
+    });
+
+    describe('getForeignCurrencyDefaultTaxUpdateMessage', () => {
+        it('should return the correct message when updating foreign currency default tax', () => {
+            // Given an UPDATE_FOREIGN_CURRENCY_DEFAULT_TAX action with old and new names
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FOREIGN_CURRENCY_DEFAULT_TAX,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    oldName: 'Foreign Tax (15%)',
+                    newName: 'Foreign Tax (10%)',
+                },
+                message: [],
+            } as ReportAction;
+
+            // When getting the update message
+            const result = getForeignCurrencyDefaultTaxUpdateMessage(translateLocal, action);
+
+            // Then it should return the correct message with old and new names
+            expect(result).toBe('changed the foreign currency default tax rate to "Foreign Tax (10%)" (previously "Foreign Tax (15%)")');
+        });
+    });
+
     describe('getAutoPayApprovedReportsEnabledMessage', () => {
         it('should return enabled message when auto-pay is enabled', () => {
             const action = {
@@ -3431,6 +4212,708 @@ describe('ReportActionsUtils', () => {
 
             const result = getAutoReimbursementMessage(translateLocal, action);
             expect(result).toBe('changed the auto-pay approved reports threshold to "$1,000.00" (previously "$500.00")');
+        });
+    });
+
+    describe('isNewerReportAction', () => {
+        const makeAction = (overrides: Partial<ReportAction>): ReportAction =>
+            ({
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                reportActionID: '1',
+                created: '2024-01-01 00:00:00.000',
+                ...overrides,
+            }) as ReportAction;
+
+        it('should return true when a has a later timestamp than b', () => {
+            const a = makeAction({created: '2024-01-02 00:00:00.000', reportActionID: '1'});
+            const b = makeAction({created: '2024-01-01 00:00:00.000', reportActionID: '2'});
+            expect(isNewerReportAction(a, b)).toBeTruthy();
+        });
+
+        it('should return false when a has an earlier timestamp than b', () => {
+            const a = makeAction({created: '2024-01-01 00:00:00.000', reportActionID: '1'});
+            const b = makeAction({created: '2024-01-02 00:00:00.000', reportActionID: '2'});
+            expect(isNewerReportAction(a, b)).toBeFalsy();
+        });
+
+        it('should treat CREATED action as always oldest', () => {
+            const created = makeAction({actionName: CONST.REPORT.ACTIONS.TYPE.CREATED, created: '2024-12-31 00:00:00.000', reportActionID: '1'});
+            const comment = makeAction({created: '2024-01-01 00:00:00.000', reportActionID: '2'});
+
+            expect(isNewerReportAction(created, comment)).toBeFalsy();
+            expect(isNewerReportAction(comment, created)).toBeTruthy();
+        });
+
+        it('should treat undefined created as oldest', () => {
+            const withUndefined = makeAction({created: undefined, reportActionID: '1'});
+            const withDate = makeAction({created: '2024-01-01 00:00:00.000', reportActionID: '2'});
+
+            expect(isNewerReportAction(withUndefined, withDate)).toBeFalsy();
+            expect(isNewerReportAction(withDate, withUndefined)).toBeTruthy();
+        });
+
+        it('should prefer REPORT_PREVIEW over other actions when timestamps match', () => {
+            const preview = makeAction({actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW, created: '2024-01-01 00:00:00.000', reportActionID: '1'});
+            const comment = makeAction({actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: '2024-01-01 00:00:00.000', reportActionID: '2'});
+
+            expect(isNewerReportAction(preview, comment)).toBeTruthy();
+            expect(isNewerReportAction(comment, preview)).toBeFalsy();
+        });
+
+        it('should fall back to reportActionID comparison when timestamps and action types match', () => {
+            const higher = makeAction({created: '2024-01-01 00:00:00.000', reportActionID: '200'});
+            const lower = makeAction({created: '2024-01-01 00:00:00.000', reportActionID: '100'});
+
+            expect(isNewerReportAction(higher, lower)).toBeTruthy();
+            expect(isNewerReportAction(lower, higher)).toBeFalsy();
+        });
+    });
+
+    describe('findLastReportActions', () => {
+        const makeAction = (overrides: Partial<ReportAction>): ReportAction =>
+            ({
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                reportActionID: '1',
+                reportID: 'testReportID',
+                created: '2024-01-01 00:00:00.000',
+                person: [{type: 'TEXT', style: 'strong', text: 'Actor'}],
+                message: [{html: 'hello', text: 'hello', type: 'COMMENT'}],
+                ...overrides,
+            }) as ReportAction;
+
+        it('returns undefined for both when reportActions is undefined', () => {
+            const result = findLastReportActions(undefined);
+            expect(result.lastVisibleAction).toBeUndefined();
+            expect(result.lastActionForDisplay).toBeUndefined();
+        });
+
+        it('returns undefined for both when reportActions is empty', () => {
+            const result = findLastReportActions({});
+            expect(result.lastVisibleAction).toBeUndefined();
+            expect(result.lastActionForDisplay).toBeUndefined();
+        });
+
+        it('returns the single visible action for both when there is only one ADD_COMMENT action', () => {
+            const action = makeAction({reportActionID: '1', created: '2024-01-01 00:00:00.000'});
+            const result = findLastReportActions({[action.reportActionID]: action});
+            expect(result.lastVisibleAction).toBe(action);
+            expect(result.lastActionForDisplay).toBe(action);
+        });
+
+        it('returns undefined for lastActionForDisplay but not lastVisibleAction when only action is CREATED', () => {
+            const created = makeAction({actionName: CONST.REPORT.ACTIONS.TYPE.CREATED, reportActionID: '1', created: '2024-01-01 00:00:00.000'});
+            const result = findLastReportActions({[created.reportActionID]: created});
+            expect(result.lastVisibleAction).toBe(created);
+            expect(result.lastActionForDisplay).toBeUndefined();
+        });
+
+        it('returns the newest of multiple visible actions', () => {
+            const older = makeAction({reportActionID: '1', created: '2024-01-01 00:00:00.000'});
+            const newer = makeAction({reportActionID: '2', created: '2024-01-02 00:00:00.000'});
+            const result = findLastReportActions({
+                [older.reportActionID]: older,
+                [newer.reportActionID]: newer,
+            });
+            expect(result.lastVisibleAction).toBe(newer);
+            expect(result.lastActionForDisplay).toBe(newer);
+        });
+
+        it('skips deleted actions (no pendingAction, empty html) for both results', () => {
+            const visible = makeAction({reportActionID: '1', created: '2024-01-01 00:00:00.000'});
+            const deleted = makeAction({
+                reportActionID: '2',
+                created: '2024-01-02 00:00:00.000',
+                message: [{html: '', text: '', type: 'COMMENT'}],
+                pendingAction: undefined,
+            });
+            const result = findLastReportActions({
+                [visible.reportActionID]: visible,
+                [deleted.reportActionID]: deleted,
+            });
+            expect(result.lastVisibleAction).toBe(visible);
+            expect(result.lastActionForDisplay).toBe(visible);
+        });
+
+        it('excludes actions with errors from lastActionForDisplay but not from lastVisibleAction', () => {
+            const clean = makeAction({reportActionID: '1', created: '2024-01-01 00:00:00.000'});
+            const withErrors = makeAction({
+                reportActionID: '2',
+                created: '2024-01-02 00:00:00.000',
+                errors: {someError: 'error message'},
+            });
+            const result = findLastReportActions({
+                [clean.reportActionID]: clean,
+                [withErrors.reportActionID]: withErrors,
+            });
+            expect(result.lastVisibleAction).toBe(withErrors);
+            expect(result.lastActionForDisplay).toBe(clean);
+        });
+
+        it('agrees with getSortedReportActionsForDisplay for lastVisibleAction across multiple actions', () => {
+            const actionA = makeAction({reportActionID: 'actionA', created: '2024-01-01 00:00:00.000'});
+            const actionB = makeAction({reportActionID: 'actionB', created: '2024-01-03 00:00:00.000'});
+            const actionC = makeAction({reportActionID: 'actionC', created: '2024-01-02 00:00:00.000'});
+            const actions: ReportActions = {
+                actionA,
+                actionB,
+                actionC,
+            };
+            const {lastVisibleAction} = findLastReportActions(actions);
+            const fromSort = getSortedReportActionsForDisplay(actions).at(0);
+            expect(lastVisibleAction?.reportActionID).toBe(fromSort?.reportActionID);
+        });
+
+        it('agrees with the old getSortedReportActions+filter approach for lastActionForDisplay', () => {
+            const actionA = makeAction({reportActionID: 'actionA', created: '2024-01-01 00:00:00.000'});
+            const actionB = makeAction({reportActionID: 'actionB', created: '2024-01-03 00:00:00.000'});
+            const actionC = makeAction({
+                reportActionID: 'actionC',
+                created: '2024-01-02 00:00:00.000',
+                errors: {someError: 'error'},
+            });
+            const actions: ReportActions = {actionA, actionB, actionC};
+            const {lastActionForDisplay} = findLastReportActions(actions);
+            const fromOldApproach = getSortedReportActions(Object.values(actions)).findLast(
+                (a) => isReportActionVisibleAsLastAction(a) && a.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED,
+            );
+            expect(lastActionForDisplay?.reportActionID).toBe(fromOldApproach?.reportActionID);
+        });
+
+        it('respects canUserPerformWriteAction when determining visibility', () => {
+            const normalAction = makeAction({reportActionID: '1', created: '2024-01-01 00:00:00.000'});
+            // An actionable mention whisper is hidden when canUserPerformWriteAction is false
+            const joinRequestAction = makeAction({
+                reportActionID: '2',
+                created: '2024-01-02 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
+            });
+
+            const withWrite = findLastReportActions({[normalAction.reportActionID]: normalAction, [joinRequestAction.reportActionID]: joinRequestAction}, true);
+            const withoutWrite = findLastReportActions({[normalAction.reportActionID]: normalAction, [joinRequestAction.reportActionID]: joinRequestAction}, false);
+
+            // With write permission: join request is visible, so it should be selected as newer
+            expect(withWrite.lastVisibleAction?.reportActionID).toBe(joinRequestAction.reportActionID);
+            // Without write permission: join request hidden, so only the normal action remains
+            expect(withoutWrite.lastVisibleAction?.reportActionID).toBe(normalAction.reportActionID);
+        });
+    });
+
+    describe('isOriginalReportDeleted', () => {
+        it('should return true when action.isOriginalReportDeleted is true', () => {
+            const action = {
+                ...createRandomReportAction(1),
+                isOriginalReportDeleted: true,
+            };
+            const originalReport = createRandomReport(1, undefined);
+
+            expect(ReportActionsUtils.isOriginalReportDeleted(action, originalReport)).toBe(true);
+        });
+
+        it('should return true when originalReport.pendingFields.preview is DELETE', () => {
+            const action = createRandomReportAction(1);
+            const originalReport = {
+                ...createRandomReport(1, undefined),
+                pendingFields: {
+                    preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                },
+            };
+
+            expect(ReportActionsUtils.isOriginalReportDeleted(action, originalReport)).toBe(true);
+        });
+
+        it('should return false when both conditions are not met', () => {
+            const action = {
+                ...createRandomReportAction(1),
+                isOriginalReportDeleted: false,
+            };
+            const originalReport = createRandomReport(1, undefined);
+
+            expect(ReportActionsUtils.isOriginalReportDeleted(action, originalReport)).toBe(false);
+        });
+
+        it('should return false when originalReport.pendingFields.preview is not DELETE', () => {
+            const action = {
+                ...createRandomReportAction(1),
+                isOriginalReportDeleted: false,
+            };
+            const originalReport = {
+                ...createRandomReport(1, undefined),
+                pendingFields: {
+                    preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            };
+
+            expect(ReportActionsUtils.isOriginalReportDeleted(action, originalReport)).toBe(false);
+        });
+    });
+
+    describe('isRejectedAction', () => {
+        it('should return true for REJECTED action type', () => {
+            // Given a report action with REJECTED action type
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REJECTED> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REJECTED,
+                created: '2025-11-21',
+                reportActionID: '1',
+                originalMessage: undefined,
+                message: [],
+                previousMessage: [],
+            };
+
+            // When checking if the action is a rejected action
+            const result = ReportActionsUtils.isRejectedAction(action);
+
+            // Then it should return true
+            expect(result).toBe(true);
+        });
+
+        it('should return true for REJECTED_TO_SUBMITTER action type', () => {
+            // Given a report action with REJECTED_TO_SUBMITTER action type
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REJECTED_TO_SUBMITTER,
+                created: '2025-11-21',
+                reportActionID: '1',
+                originalMessage: undefined,
+                message: [],
+                previousMessage: [],
+            };
+
+            // When checking if the action is a rejected action
+            const result = ReportActionsUtils.isRejectedAction(action);
+
+            // Then it should return true because REJECTED_TO_SUBMITTER is also a rejected action
+            expect(result).toBe(true);
+        });
+
+        it('should return false for non-rejected action type', () => {
+            // Given a report action with SUBMITTED action type (not rejected)
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                created: '2025-11-21',
+                reportActionID: '1',
+                originalMessage: {
+                    amount: 10000,
+                    currency: 'USD',
+                },
+                message: [],
+                previousMessage: [],
+            };
+
+            // When checking if the action is a rejected action
+            const result = ReportActionsUtils.isRejectedAction(action);
+
+            // Then it should return false
+            expect(result).toBe(false);
+        });
+
+        it('should return false for null action', () => {
+            // Given a null action
+
+            // When checking if the action is a rejected action
+            const result = ReportActionsUtils.isRejectedAction(null);
+
+            // Then it should return false because the action is null
+            expect(result).toBe(false);
+        });
+    });
+
+    describe('hasReasoning', () => {
+        it('should return true when the action has a non-empty reasoning field', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+                reportActionID: '1',
+                created: '2025-09-29',
+                originalMessage: {
+                    fromReportID: '2',
+                    toReportID: '3',
+                    reasoning: 'This expense was moved because it violated the max amount rule.',
+                },
+            };
+
+            expect(hasReasoning(action)).toBe(true);
+        });
+
+        it('should return false when the action has no reasoning field', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+                reportActionID: '1',
+                created: '2025-09-29',
+                originalMessage: {
+                    fromReportID: '2',
+                    toReportID: '3',
+                },
+            };
+
+            expect(hasReasoning(action)).toBe(false);
+        });
+
+        it('should return false when reasoning is an empty string', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+                reportActionID: '1',
+                created: '2025-09-29',
+                originalMessage: {
+                    fromReportID: '2',
+                    toReportID: '3',
+                    reasoning: '',
+                },
+            };
+
+            expect(hasReasoning(action)).toBe(false);
+        });
+
+        it('should return false when the action is null or undefined', () => {
+            expect(hasReasoning(null)).toBe(false);
+            expect(hasReasoning(undefined)).toBe(false);
+        });
+    });
+
+    describe('isConsecutiveActionMadeByPreviousActor', () => {
+        const accountID = 1;
+
+        it('returns false if current action is missing', () => {
+            expect(isConsecutiveActionMadeByPreviousActor([getFakeReportAction(accountID)], 0, false)).toBe(false);
+        });
+
+        it('returns false if actions are more than 5 minutes apart', () => {
+            const actions = [getFakeReportAction(accountID, {created: '2025-01-01T02:00:00Z'}), getFakeReportAction(accountID, {created: '2025-01-01T01:01:00Z'})];
+            expect(isConsecutiveActionMadeByPreviousActor(actions, 0, false)).toBe(false);
+        });
+
+        it('returns true when same actor and within 5 minutes', () => {
+            const actions = [
+                getFakeReportAction(accountID, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}),
+                getFakeReportAction(accountID, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}),
+            ];
+            expect(isConsecutiveActionMadeByPreviousActor(actions, 0, false)).toBe(true);
+        });
+
+        it('skips pending-delete actions when online', () => {
+            const actions = [getFakeReportAction(accountID), getFakeReportAction(accountID, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}), getFakeReportAction(accountID)];
+            expect(isConsecutiveActionMadeByPreviousActor(actions, 0, false)).toBe(true);
+        });
+
+        it('does not skip pending-delete actions when offline', () => {
+            const actions = [getFakeReportAction(accountID), getFakeReportAction(2, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}), getFakeReportAction(accountID)];
+            expect(isConsecutiveActionMadeByPreviousActor(actions, 0, true)).toBe(false);
+        });
+    });
+
+    describe('hasNextActionMadeBySameActor', () => {
+        const accountID = 1;
+
+        it('returns false if inspecting first item on the list', () => {
+            expect(hasNextActionMadeBySameActor([], 0, false)).toBe(false);
+        });
+
+        it('returns false if actions are more than 5 minutes apart', () => {
+            const actions = [getFakeReportAction(accountID, {created: '2025-01-01T01:01:00Z'}), getFakeReportAction(accountID, {created: '2025-01-01T02:00:00Z'})];
+            expect(hasNextActionMadeBySameActor(actions, 1, false)).toBe(false);
+        });
+
+        it('returns true when same actor and within 5 minutes', () => {
+            const actions = [
+                getFakeReportAction(accountID, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}),
+                getFakeReportAction(accountID, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}),
+            ];
+            expect(hasNextActionMadeBySameActor(actions, 1, false)).toBe(true);
+        });
+
+        it('skips pending-delete actions when online', () => {
+            const actions = [getFakeReportAction(accountID), getFakeReportAction(accountID, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}), getFakeReportAction(accountID)];
+            expect(hasNextActionMadeBySameActor(actions, 2, false)).toBe(true);
+        });
+
+        it('does not skip pending-delete actions when offline', () => {
+            const actions = [getFakeReportAction(accountID), getFakeReportAction(2, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}), getFakeReportAction(accountID)];
+            expect(hasNextActionMadeBySameActor(actions, 2, true)).toBe(false);
+        });
+    });
+
+    describe('isConsecutiveChronosAutomaticTimerAction', () => {
+        const accountID = 1;
+
+        function makeChronosAction(text: string, overrides: Parameters<typeof getFakeReportAction>[1] = {}) {
+            return getFakeReportAction(accountID, {
+                message: [{html: text, isDeletedParentAction: false, isEdited: false, text, type: 'TEXT', whisperedTo: []}],
+                ...overrides,
+            });
+        }
+
+        it('returns false when isChronosReport is false', () => {
+            const actions = [makeChronosAction('started'), makeChronosAction('started')];
+            expect(isConsecutiveChronosAutomaticTimerAction(actions, 0, false, false)).toBe(false);
+        });
+
+        it('returns false when current action is not a timer action', () => {
+            const actions = [makeChronosAction('hello'), makeChronosAction('started')];
+            expect(isConsecutiveChronosAutomaticTimerAction(actions, 0, true, false)).toBe(false);
+        });
+
+        it('returns false when previous action is not a timer action', () => {
+            const actions = [makeChronosAction('started'), makeChronosAction('hello')];
+            expect(isConsecutiveChronosAutomaticTimerAction(actions, 0, true, false)).toBe(false);
+        });
+
+        it('returns true when both current and previous are timer actions', () => {
+            const actions = [makeChronosAction('started'), makeChronosAction('stopped')];
+            expect(isConsecutiveChronosAutomaticTimerAction(actions, 0, true, false)).toBe(true);
+        });
+
+        it('returns false when there is no previous action', () => {
+            const actions = [makeChronosAction('started')];
+            expect(isConsecutiveChronosAutomaticTimerAction(actions, 0, true, false)).toBe(false);
+        });
+
+        it('skips pending-delete previous action when online', () => {
+            const actions = [makeChronosAction('started'), makeChronosAction('stopped', {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}), makeChronosAction('started')];
+            expect(isConsecutiveChronosAutomaticTimerAction(actions, 0, true, false)).toBe(true);
+        });
+
+        it('does not skip pending-delete previous action when offline', () => {
+            const actions = [makeChronosAction('hello'), makeChronosAction('stopped', {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}), makeChronosAction('started')];
+            expect(isConsecutiveChronosAutomaticTimerAction(actions, 0, true, true)).toBe(false);
+        });
+
+        it('includes pending-delete timer action as previous when offline', () => {
+            const actions = [makeChronosAction('started'), makeChronosAction('stopped', {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}), makeChronosAction('started')];
+            expect(isConsecutiveChronosAutomaticTimerAction(actions, 0, true, true)).toBe(true);
+        });
+    });
+
+    describe('isChronosStartOrStopMessage', () => {
+        it('returns stop when stop pattern matches', () => {
+            expect(isChronosStartOrStopMessage('stop')).toBe(CONST.CHRONOS.TIMER_COMMAND.STOP);
+            expect(isChronosStartOrStopMessage('stopped')).toBe(CONST.CHRONOS.TIMER_COMMAND.STOP);
+            expect(isChronosStartOrStopMessage('stop now')).toBe(CONST.CHRONOS.TIMER_COMMAND.STOP);
+            expect(isChronosStartOrStopMessage('stopped at 10:00 AM')).toBe(CONST.CHRONOS.TIMER_COMMAND.STOP);
+            expect(isChronosStartOrStopMessage('Stopped at 3pm')).toBe(CONST.CHRONOS.TIMER_COMMAND.STOP);
+        });
+
+        it('returns start when only start pattern matches', () => {
+            expect(isChronosStartOrStopMessage('start')).toBe(CONST.CHRONOS.TIMER_COMMAND.START);
+            expect(isChronosStartOrStopMessage('started')).toBe(CONST.CHRONOS.TIMER_COMMAND.START);
+            expect(isChronosStartOrStopMessage('start now')).toBe(CONST.CHRONOS.TIMER_COMMAND.START);
+            expect(isChronosStartOrStopMessage('started at 9:00')).toBe(CONST.CHRONOS.TIMER_COMMAND.START);
+            expect(isChronosStartOrStopMessage('Started at noon')).toBe(CONST.CHRONOS.TIMER_COMMAND.START);
+        });
+
+        it('returns null when start or stop appears only inside a longer message', () => {
+            expect(isChronosStartOrStopMessage('stop then start')).toBe(null);
+            expect(isChronosStartOrStopMessage('I will start later')).toBe(null);
+            expect(isChronosStartOrStopMessage('please stop by later')).toBe(null);
+            expect(isChronosStartOrStopMessage('stop at the corner')).toBe(null);
+            expect(isChronosStartOrStopMessage('start at home')).toBe(null);
+        });
+
+        it('returns null for unrelated text', () => {
+            expect(isChronosStartOrStopMessage('hello chronos')).toBe(null);
+        });
+
+        it('returns null when start or stop appears only inside other words', () => {
+            expect(isChronosStartOrStopMessage('kickstart')).toBe(null);
+            expect(isChronosStartOrStopMessage('nonstop')).toBe(null);
+            expect(isChronosStartOrStopMessage('upstart')).toBe(null);
+        });
+    });
+
+    describe('getLatestUserChronosTimerCommand', () => {
+        const currentUserAccountID = 100;
+
+        function makeUserTimerComment(text: string, actorAccountID: number, overrides: Partial<ReportAction> = {}): ReportAction {
+            return getFakeReportAction(actorAccountID, {
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                actorAccountID,
+                message: [{html: text, isDeletedParentAction: false, isEdited: false, text, type: 'TEXT', whisperedTo: []}],
+                ...overrides,
+            });
+        }
+
+        it('returns null when there are no matching comments', () => {
+            expect(getLatestUserChronosTimerCommand([], currentUserAccountID)).toBe(null);
+            expect(getLatestUserChronosTimerCommand([makeUserTimerComment('hello', currentUserAccountID)], currentUserAccountID)).toBe(null);
+        });
+
+        it('returns the newest matching command when sorted newest-first', () => {
+            const sortedNewestFirst = [
+                makeUserTimerComment('start', currentUserAccountID, {reportActionID: '3', created: '2024-01-03 10:00:00.000'}),
+                makeUserTimerComment('stop', currentUserAccountID, {reportActionID: '2', created: '2024-01-02 10:00:00.000'}),
+                makeUserTimerComment('start', currentUserAccountID, {reportActionID: '1', created: '2024-01-01 10:00:00.000'}),
+            ];
+            expect(getLatestUserChronosTimerCommand(sortedNewestFirst, currentUserAccountID)).toBe(CONST.CHRONOS.TIMER_COMMAND.START);
+        });
+
+        it('returns stop when the newest timer command is stop', () => {
+            const sortedNewestFirst = [
+                makeUserTimerComment('stopped', currentUserAccountID, {reportActionID: '2', created: '2024-01-02 10:00:00.000'}),
+                makeUserTimerComment('start', currentUserAccountID, {reportActionID: '1', created: '2024-01-01 10:00:00.000'}),
+            ];
+            expect(getLatestUserChronosTimerCommand(sortedNewestFirst, currentUserAccountID)).toBe(CONST.CHRONOS.TIMER_COMMAND.STOP);
+        });
+
+        it('ignores comments from other users', () => {
+            const sortedNewestFirst = [makeUserTimerComment('start', 999, {reportActionID: '2'}), makeUserTimerComment('hello', currentUserAccountID, {reportActionID: '1'})];
+            expect(getLatestUserChronosTimerCommand(sortedNewestFirst, currentUserAccountID)).toBe(null);
+        });
+
+        it('ignores non-ADD_COMMENT actions', () => {
+            const sortedNewestFirst = [
+                getFakeReportAction(currentUserAccountID, {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                    actorAccountID: currentUserAccountID,
+                    message: [{html: 'start', isDeletedParentAction: false, isEdited: false, text: 'start', type: 'TEXT', whisperedTo: []}],
+                }),
+            ];
+            expect(getLatestUserChronosTimerCommand(sortedNewestFirst, currentUserAccountID)).toBe(null);
+        });
+    });
+
+    describe('isChronosTimerRunningFromVisibleActions', () => {
+        const currentUserAccountID = 200;
+
+        function makeUserTimerComment(text: string, overrides: Partial<ReportAction> = {}): ReportAction {
+            return getFakeReportAction(currentUserAccountID, {
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                actorAccountID: currentUserAccountID,
+                message: [{html: text, isDeletedParentAction: false, isEdited: false, text, type: 'TEXT', whisperedTo: []}],
+                ...overrides,
+            });
+        }
+
+        it('returns true when the latest user timer command is start', () => {
+            const sortedNewestFirst = [makeUserTimerComment('start', {reportActionID: '2'}), makeUserTimerComment('stop', {reportActionID: '1'})];
+            expect(isChronosTimerRunningFromVisibleActions(sortedNewestFirst, currentUserAccountID)).toBe(true);
+        });
+
+        it('returns false when the latest user timer command is stop', () => {
+            const sortedNewestFirst = [makeUserTimerComment('stop', {reportActionID: '2'}), makeUserTimerComment('start', {reportActionID: '1'})];
+            expect(isChronosTimerRunningFromVisibleActions(sortedNewestFirst, currentUserAccountID)).toBe(false);
+        });
+
+        it('returns false when there is no timer command', () => {
+            expect(isChronosTimerRunningFromVisibleActions([makeUserTimerComment('stats')], currentUserAccountID)).toBe(false);
+        });
+    });
+
+    describe('shouldHideNewMarker', () => {
+        it('returns true when reportAction is undefined', () => {
+            expect(shouldHideNewMarker(undefined, false)).toBe(true);
+        });
+
+        it('returns true when online and reportAction has pendingAction DELETE', () => {
+            const reportAction = getFakeReportAction(1, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+            expect(shouldHideNewMarker(reportAction, false)).toBe(true);
+        });
+
+        it('returns false when offline and reportAction has pendingAction DELETE', () => {
+            const reportAction = getFakeReportAction(1, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+            expect(shouldHideNewMarker(reportAction, true)).toBe(false);
+        });
+
+        it('returns false when online and reportAction has no pendingAction', () => {
+            const reportAction = getFakeReportAction(1, {pendingAction: null});
+            expect(shouldHideNewMarker(reportAction, false)).toBe(false);
+        });
+
+        it('returns false when offline and reportAction has no pendingAction', () => {
+            const reportAction = getFakeReportAction(1, {pendingAction: null});
+            expect(shouldHideNewMarker(reportAction, true)).toBe(false);
+        });
+    });
+
+    describe('shouldDisplayNewMarkerOnReportAction', () => {
+        const unreadMarkerTime = '2023-01-01 10:00:00.000';
+        const currentUserAccountID = 1;
+
+        function makeAction(overrides: Partial<ReportAction> = {}): ReportAction {
+            return getFakeReportAction(2, {
+                actorAccountID: 99,
+                created: '2023-01-01 11:00:00.000',
+                ...overrides,
+            });
+        }
+
+        const baseParams = {
+            nextMessage: undefined,
+            isEarliestReceivedOfflineMessage: false,
+            unreadMarkerTime,
+            currentUserAccountID,
+            prevSortedVisibleReportActionsObjects: {},
+            scrollingVerticalOffset: CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD + 1,
+            prevUnreadMarkerReportActionID: 'some-id',
+        };
+
+        it('returns true when isEarliestReceivedOfflineMessage is true and next message is not unread', () => {
+            const message = makeAction();
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    isEarliestReceivedOfflineMessage: true,
+                    isOffline: false,
+                }),
+            ).toBe(true);
+        });
+
+        it('returns false when online and message has pendingAction DELETE (shouldHideNewMarker = true)', () => {
+            const message = makeAction({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    isOffline: false,
+                }),
+            ).toBe(false);
+        });
+
+        it('returns true when offline and message has pendingAction DELETE (shouldHideNewMarker = false)', () => {
+            const message = makeAction({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE});
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    isOffline: true,
+                }),
+            ).toBe(true);
+        });
+
+        it('returns false when message created time is before unreadMarkerTime (message is read)', () => {
+            const message = makeAction({created: '2023-01-01 09:00:00.000'});
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    isOffline: false,
+                }),
+            ).toBe(false);
+        });
+
+        it('returns false when nextMessage is also unread', () => {
+            const message = makeAction({created: '2023-01-01 11:00:00.000'});
+            const nextMessage = makeAction({created: '2023-01-01 11:30:00.000'});
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    nextMessage,
+                    isOffline: false,
+                }),
+            ).toBe(false);
+        });
+
+        it('returns false when message is from current user, is new, and no prevUnreadMarkerReportActionID', () => {
+            const message = makeAction({actorAccountID: currentUserAccountID, reportActionID: 'new-action-id'});
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    prevUnreadMarkerReportActionID: null,
+                    prevSortedVisibleReportActionsObjects: {},
+                    isOffline: false,
+                }),
+            ).toBe(false);
         });
     });
 });
