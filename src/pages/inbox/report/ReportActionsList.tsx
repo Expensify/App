@@ -655,11 +655,31 @@ function ReportActionsList({
         readNewestAction(report.reportID, !!reportMetadata?.hasOnceLoadedReportActions);
     }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, report.reportID, backTo, introSelected, reportMetadata?.hasOnceLoadedReportActions, betas]);
 
+    const scrollToActionBadgeTargetTimersRef = useRef<Array<ReturnType<typeof setTimeout>>>([]);
     const scrollToActionBadgeTarget = useCallback(() => {
         if (actionBadgeTargetIndex === -1) {
             return;
         }
+
+        // Clear any pending retry timers from a previous press
+        for (const timer of scrollToActionBadgeTargetTimersRef.current) {
+            clearTimeout(timer);
+        }
+        scrollToActionBadgeTargetTimersRef.current = [];
+
+        // Without getItemLayout, FlatList estimates scroll positions using averageItemLength.
+        // For variable-height chat messages this estimate can be inaccurate, causing the scroll
+        // to land too far or not reach the target at all. We retry after short delays — the
+        // first scroll brings us closer to the target so that items around it get rendered and
+        // measured, making subsequent scrollToIndex calls progressively more accurate.
         reportScrollManager.scrollToIndex(actionBadgeTargetIndex);
+        const delays = [300, 800];
+        for (const delay of delays) {
+            const timer = setTimeout(() => {
+                reportScrollManager.scrollToIndex(actionBadgeTargetIndex);
+            }, delay);
+            scrollToActionBadgeTargetTimersRef.current.push(timer);
+        }
     }, [actionBadgeTargetIndex, reportScrollManager]);
 
     /**
