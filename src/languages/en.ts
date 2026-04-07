@@ -7313,6 +7313,10 @@ const translations = {
         setReceiptRequiredAmount: (newValue: string) => `set receipt required amount to "${newValue}"`,
         changedReceiptRequiredAmount: (oldValue: string, newValue: string) => `changed receipt required amount to "${newValue}" (previously "${oldValue}")`,
         removedReceiptRequiredAmount: (oldValue: string) => `removed receipt required amount (previously "${oldValue}")`,
+        setItemizedReceiptRequiredAmount: (newValue: string) => `set itemized receipt required amount to "${newValue}"`,
+        changedItemizedReceiptRequiredAmount: (oldValue: string, newValue: string) =>
+            `changed itemized receipt required amount to "${newValue}" (previously "${oldValue}")`,
+        removedItemizedReceiptRequiredAmount: (oldValue: string) => `removed itemized receipt required amount (previously "${oldValue}")`,
         setMaxExpenseAmount: (newValue: string) => `set max expense amount to "${newValue}"`,
         changedMaxExpenseAmount: (oldValue: string, newValue: string) => `changed max expense amount to "${newValue}" (previously "${oldValue}")`,
         removedMaxExpenseAmount: (oldValue: string) => `removed max expense amount (previously "${oldValue}")`,
