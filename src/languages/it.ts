@@ -8869,7 +8869,11 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             forceTwoFactorAuthError: 'Impossibile modificare l’impostazione “Forza l’autenticazione a due fattori”. Riprova più tardi.',
             resetTwoFactorAuth: 'Reimposta l’autenticazione a due fattori',
         },
-        groups: {title: 'Gruppi', memberCount: () => ({one: '1 membro', other: (count: number) => `${count} membri`})},
+        groups: {
+            title: 'Gruppi',
+            memberCount: () => ({one: '1 membro', other: (count: number) => `${count} membri`}),
+            error: {settings: '<rbr>Non è stato possibile salvare questa modifica. Riprova o <concierge-link>contatta Concierge</concierge-link> per ulteriore assistenza.</rbr>'},
+        },
     },
     proactiveAppReview: {
         title: 'Ti piace il nuovo Expensify?',

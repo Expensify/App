@@ -8758,7 +8758,11 @@ ${reportName}
             forceTwoFactorAuthError: '2要素認証の強制設定を変更できませんでした。後でもう一度お試しください。',
             resetTwoFactorAuth: '2 要素認証をリセット',
         },
-        groups: {title: 'グループ', memberCount: () => ({one: 'メンバー 1 人', other: (count: number) => `${count}名のメンバー`})},
+        groups: {
+            title: 'グループ',
+            memberCount: () => ({one: 'メンバー 1 人', other: (count: number) => `${count}名のメンバー`}),
+            error: {settings: '<rbr>この変更を保存できませんでした。もう一度お試しいただくか、<concierge-link>Conciergeにお問い合わせ</concierge-link>ください。</rbr>'},
+        },
     },
     proactiveAppReview: {
         title: '新しい Expensify をお楽しみいただけていますか？',

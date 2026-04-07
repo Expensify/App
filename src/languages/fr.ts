@@ -8903,7 +8903,11 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             forceTwoFactorAuthError: 'L’activation forcée de l’authentification à deux facteurs n’a pas pu être modifiée. Veuillez réessayer plus tard.',
             resetTwoFactorAuth: 'Réinitialiser l’authentification à deux facteurs',
         },
-        groups: {title: 'Groupes', memberCount: () => ({one: '1 membre', other: (count: number) => `${count} membres`})},
+        groups: {
+            title: 'Groupes',
+            memberCount: () => ({one: '1 membre', other: (count: number) => `${count} membres`}),
+            error: {settings: "<rbr>Impossible d'enregistrer cette modification. Veuillez réessayer ou <concierge-link>contacter Concierge</concierge-link> pour obtenir de l'aide.</rbr>"},
+        },
     },
     proactiveAppReview: {
         title: 'Vous appréciez le nouveau Expensify ?',

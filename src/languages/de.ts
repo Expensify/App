@@ -8879,7 +8879,14 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             forceTwoFactorAuthError: 'Die Erzwingung der Zwei-Faktor-Authentifizierung konnte nicht geändert werden. Bitte versuche es später erneut.',
             resetTwoFactorAuth: 'Zwei-Faktor-Authentifizierung zurücksetzen',
         },
-        groups: {title: 'Gruppen', memberCount: () => ({one: '1 Mitglied', other: (count: number) => `${count} Mitglieder`})},
+        groups: {
+            title: 'Gruppen',
+            memberCount: () => ({one: '1 Mitglied', other: (count: number) => `${count} Mitglieder`}),
+            error: {
+                settings:
+                    '<rbr>Diese Änderung konnte nicht gespeichert werden. Bitte versuche es erneut oder <concierge-link>kontaktiere Concierge</concierge-link> für weitere Unterstützung.</rbr>',
+            },
+        },
     },
     proactiveAppReview: {
         title: 'Gefällt dir das neue Expensify?',

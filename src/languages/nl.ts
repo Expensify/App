@@ -8847,7 +8847,11 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
             forceTwoFactorAuthError: 'Verplichte twee-factor-authenticatie kon niet worden gewijzigd. Probeer het later opnieuw.',
             resetTwoFactorAuth: 'Tweeledige verificatie opnieuw instellen',
         },
-        groups: {title: 'Groepen', memberCount: () => ({one: '1 lid', other: (count: number) => `${count} leden`})},
+        groups: {
+            title: 'Groepen',
+            memberCount: () => ({one: '1 lid', other: (count: number) => `${count} leden`}),
+            error: {settings: '<rbr>Kon deze wijziging niet opslaan. Probeer het opnieuw of <concierge-link>neem contact op met Concierge</concierge-link> voor meer ondersteuning.</rbr>'},
+        },
     },
     proactiveAppReview: {
         title: 'Geniet je van de nieuwe Expensify?',

@@ -8824,7 +8824,11 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
             forceTwoFactorAuthError: 'Nie udało się zmienić wymuszania uwierzytelniania dwuskładnikowego. Spróbuj ponownie później.',
             resetTwoFactorAuth: 'Zresetuj uwierzytelnianie dwuskładnikowe',
         },
-        groups: {title: 'Grupy', memberCount: () => ({one: '1 członek', other: (count: number) => `${count} członków`})},
+        groups: {
+            title: 'Grupy',
+            memberCount: () => ({one: '1 członek', other: (count: number) => `${count} członków`}),
+            error: {settings: '<rbr>Nie udało się zapisać tej zmiany. Spróbuj ponownie lub <concierge-link>skontaktuj się z Concierge</concierge-link>, aby uzyskać pomoc.</rbr>'},
+        },
     },
     proactiveAppReview: {
         title: 'Podoba Ci się nowy Expensify?',
