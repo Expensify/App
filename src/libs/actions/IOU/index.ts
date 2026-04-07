@@ -844,6 +844,25 @@ function getPolicyTagsData(policyID: string | undefined) {
     return allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
 }
 
+function getMoneyRequestPolicyTags({
+    existingIOUReport,
+    moneyRequestReportID,
+    parentChatReport,
+    participant,
+}: {
+    existingIOUReport?: OnyxEntry<OnyxTypes.Report>;
+    moneyRequestReportID?: string;
+    parentChatReport: OnyxEntry<OnyxTypes.Report>;
+    participant: Participant;
+}): OnyxTypes.PolicyTagLists {
+    const iouReportPolicyID =
+        existingIOUReport?.policyID ??
+        (moneyRequestReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReportID}`]?.policyID : undefined) ??
+        parentChatReport?.policyID ??
+        allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.reportID}`]?.policyID;
+    return getPolicyTagsData(iouReportPolicyID) ?? {};
+}
+
 /**
  * @private
  * After finishing the action in RHP from the Inbox tab, besides dismissing the modal, we should open the report.
@@ -2429,6 +2448,8 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     } = moneyRequestInformation;
     const {payeeAccountID = deprecatedUserAccountID, payeeEmail = deprecatedCurrentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
+    const policyTags = getMoneyRequestPolicyTags({existingIOUReport, moneyRequestReportID, parentChatReport, participant});
+
     const {
         attendees,
         amount,
@@ -2632,7 +2653,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     const optimisticPolicyRecentlyUsedTags = buildOptimisticPolicyRecentlyUsedTags({
         // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) and getPolicyRecentlyUsedTagsData (https://github.com/Expensify/App/issues/71491) with useOnyx hook
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        policyTags: getPolicyTagsData(iouReport.policyID),
+        policyTags,
         policyRecentlyUsedTags,
         transactionTags: tag,
     });
@@ -11332,6 +11353,8 @@ export {
     getReceiptError,
     getSearchOnyxUpdate,
     getPolicyTags,
+    getPolicyTagsData,
+    getMoneyRequestPolicyTags,
     setMoneyRequestTimeRate,
     setMoneyRequestTimeCount,
     getCleanUpTransactionThreadReportOnyxData,
