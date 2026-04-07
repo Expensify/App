@@ -749,16 +749,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 >
                     {shouldDisplayNarrowHeaderButton && getHeaderButtons()}
                 </HeaderWithBackButton>
-                <ConfirmModal
-                    isVisible={deleteCategoriesConfirmModalVisible}
-                    onConfirm={handleDeleteCategories}
-                    onCancel={() => setDeleteCategoriesConfirmModalVisible(false)}
-                    title={translate(selectedCategories.length === 1 ? 'workspace.categories.deleteCategory' : 'workspace.categories.deleteCategories')}
-                    prompt={translate(selectedCategories.length === 1 ? 'workspace.categories.deleteCategoryPrompt' : 'workspace.categories.deleteCategoriesPrompt')}
-                    confirmText={translate('common.delete')}
-                    cancelText={translate('common.cancel')}
-                    danger
-                />
                 {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
                 {(!hasVisibleCategories || isLoading) && headerContent}
                 {isLoading && (
