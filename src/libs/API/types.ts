@@ -572,7 +572,7 @@ const WRITE_COMMANDS = {
     RESET_DOMAIN_MEMBER_TWO_FACTOR_AUTH: 'ResetDomainMemberTwoFactorAuth',
     EXPORT_DOMAIN_MEMBERS_CSV: 'ExportDomainMembersCSV',
     INITIATE_BANK_ACCOUNT_UNLOCK: 'InitiateBankAccountUnlock',
-    UPDATE_DOMAIN_SECURITY_GROUP: 'UpdateDomainSecurityGroup',
+    UPDATE_DOMAIN_SECURITY_GROUP: 'UpdateDomainSecurityGroupForNewDot',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;

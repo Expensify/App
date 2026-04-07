@@ -76,6 +76,7 @@ function DomainGroupEditNamePage({route}: DomainGroupEditNamePageProps) {
                         Navigation.goBack(ROUTES.DOMAIN_GROUP_DETAILS.getRoute(domainAccountID, groupID));
                     }}
                     submitButtonText={translate('common.save')}
+                    enabledWhenOffline
                     style={[styles.flex1, styles.ph5, styles.pb3]}
                 >
                     <InputWrapper
