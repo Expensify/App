@@ -63,7 +63,7 @@ describe('HybridApp actions', () => {
     });
 
     it('allows shouldSetNVP exits once tryNewDot resolves without a mobile lock', async () => {
-        await Onyx.set(ONYXKEYS.RAM_ONLY_IS_LOADING_APP, false);
+        await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
         await waitForBatchedUpdatesWithAct();
 
         closeReactNativeApp({shouldSetNVP: true, isTrackingGPS: false});
@@ -86,7 +86,7 @@ describe('HybridApp actions', () => {
 
     it('re-blocks shouldSetNVP exits after tryNewDot is cleared until the next app load finishes', async () => {
         await Onyx.multiSet({
-            [ONYXKEYS.RAM_ONLY_IS_LOADING_APP]: false,
+            [ONYXKEYS.IS_LOADING_APP]: false,
             [ONYXKEYS.NVP_TRY_NEW_DOT]: {
                 classicRedirect: {
                     dismissed: true,
@@ -100,15 +100,15 @@ describe('HybridApp actions', () => {
 
         jest.clearAllMocks();
 
-        await Onyx.clear([ONYXKEYS.RAM_ONLY_IS_LOADING_APP]);
+        await Onyx.clear([ONYXKEYS.IS_LOADING_APP]);
         await waitForBatchedUpdatesWithAct();
 
         closeReactNativeApp({shouldSetNVP: true, isTrackingGPS: false});
         expect(closeNativeAppSpy).not.toHaveBeenCalled();
 
-        await Onyx.set(ONYXKEYS.RAM_ONLY_IS_LOADING_APP, true);
+        await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
         await waitForBatchedUpdatesWithAct();
-        await Onyx.set(ONYXKEYS.RAM_ONLY_IS_LOADING_APP, false);
+        await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
         await waitForBatchedUpdatesWithAct();
 
         closeReactNativeApp({shouldSetNVP: true, isTrackingGPS: false});
@@ -117,7 +117,7 @@ describe('HybridApp actions', () => {
 
     it('re-blocks shouldSetNVP exits after a session switch until the new tryNewDot state resolves', async () => {
         await Onyx.multiSet({
-            [ONYXKEYS.RAM_ONLY_IS_LOADING_APP]: false,
+            [ONYXKEYS.IS_LOADING_APP]: false,
             [ONYXKEYS.SESSION]: {
                 accountID: 1,
                 authToken: 'old-auth-token',

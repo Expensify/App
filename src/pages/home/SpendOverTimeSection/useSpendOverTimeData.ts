@@ -1,4 +1,4 @@
-import {useEffect, useEffectEvent} from 'react';
+import {useEffect} from 'react';
 import type {GroupedItem} from '@components/Search/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -21,10 +21,11 @@ function useSpendOverTimeData() {
 
     const {isOffline} = useNetwork();
 
-    const fetchData = () => {
+    useEffect(() => {
         if (!queryJSON || isSearchLoading || isOffline) {
             return;
         }
+
         search({
             queryJSON,
             searchKey,
@@ -33,13 +34,7 @@ function useSpendOverTimeData() {
             isLoading: false,
             shouldUpdateLastSearchParams: false,
         });
-    };
-
-    const onConfigChanged = useEffectEvent(fetchData);
-
-    useEffect(() => {
-        onConfigChanged();
-    }, [config.hash, isOffline]);
+    }, [config.hash, isSearchLoading, isOffline, queryJSON, searchKey]);
 
     const sortedData =
         searchResults?.data && queryJSON && groupBy && login
