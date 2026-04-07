@@ -31,13 +31,14 @@ function getAccessibilityProps<TItem extends ListItem>({
     tabIndex,
     accessible,
     item,
+    isFocused,
     canSelectMultiple,
-}: AccessibilityProps & Pick<BaseListItemProps<TItem>, 'item' | 'canSelectMultiple'>) {
+}: AccessibilityProps & Pick<BaseListItemProps<TItem>, 'item' | 'isFocused' | 'canSelectMultiple'>) {
     const isSelectableOption = !canSelectMultiple && role !== CONST.ROLE.CHECKBOX && role !== CONST.ROLE.RADIO;
     const effectiveRole = getItemRole(role, isSelectableOption);
 
     const isCheckableRole = effectiveRole === CONST.ROLE.CHECKBOX || effectiveRole === CONST.ROLE.RADIO;
-    const accessibilityState = isCheckableRole ? {checked: !!item.isSelected} : getSelectableState(!!item.isSelected);
+    const accessibilityState = isCheckableRole ? {checked: !!item.isSelected, selected: !!isFocused} : getSelectableState(!!item.isSelected);
     const ariaCurrent = !isCheckableRole && item.isSelected ? true : undefined;
 
     if (accessible === false) {
@@ -135,6 +136,7 @@ function BaseListItem<TItem extends ListItem>({
         accessible,
         tabIndex: item.tabIndex,
         item,
+        isFocused,
         canSelectMultiple,
     });
 
