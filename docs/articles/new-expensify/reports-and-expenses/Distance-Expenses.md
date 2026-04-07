@@ -42,7 +42,7 @@ To create an expense using distance between the starting and ending locations of
    - Distance
    - Amount
    - Date
-   - (Optional) Add a description, category, or tag. 
+   - (Optional) Add a description, category, tag, or tax. 
 6. Select **Create expense**. 
 
 ---
@@ -59,7 +59,7 @@ To create an expense by inputting a distance manually:
    - Distance
    - Amount
    - Date
-   - (Optional) Add a description, category, tag or receipt.
+   - (Optional) Add a description, category, tag, tax, or receipt.
 6. Select **Create expense**.
 
 Once a Distance expense is created, it can be submitted on a report. To learn how to add expenses to a report, see [Create and Submit Reports](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Create-and-Submit-Reports). 
