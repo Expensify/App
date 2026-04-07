@@ -12136,7 +12136,7 @@ describe('ReportUtils', () => {
                 iouReportID: expenseReportID,
             };
 
-            // Closed/approved report — stateNum > 1, so it won't be in reportsByPolicyID
+            // Closed/approved report — stateNum > 1, so it won't be in openAndSubmittedReportsByPolicyID
             // and won't pass isOpenOrProcessingReport
             const expenseReport: Report = {
                 ...createExpenseReport(806),
