@@ -20,8 +20,8 @@ import {getTransactionDetails, isExpenseRequest, isPolicyExpenseChat} from '@lib
 import {hasReceipt} from '@libs/TransactionUtils';
 import {isInvalidMerchantValue, isValidInputLength} from '@libs/ValidationUtils';
 import {setMoneyRequestMerchant} from '@userActions/IOU';
-import {updateMoneyRequestMerchant} from '@userActions/IOU/UpdateMoneyRequest';
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
+import {updateMoneyRequestMerchant} from '@userActions/IOU/UpdateMoneyRequest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
