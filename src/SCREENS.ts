@@ -466,8 +466,8 @@ const SCREENS = {
 
     REPORT_SETTINGS: {
         ROOT: 'Report_Settings_Root',
+        DYNAMIC_NOTIFICATION_PREFERENCES: 'Dynamic_Report_Settings_Notification_Preferences',
         DYNAMIC_SETTINGS_NAME: 'Dynamic_Report_Settings_Name',
-        NOTIFICATION_PREFERENCES: 'Report_Settings_Notification_Preferences',
         DYNAMIC_SETTINGS_WRITE_CAPABILITY: 'Dynamic_Report_Settings_Write_Capability',
         VISIBILITY: 'Report_Settings_Visibility',
         DYNAMIC_SETTINGS_VISIBILITY: 'Dynamic_Report_Settings_Visibility',
@@ -644,9 +644,9 @@ const SCREENS = {
             SAGE_INTACCT_REIMBURSABLE_EXPENSES: 'Policy_Accounting_Sage_Intacct_Reimbursable_Expenses',
             SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES: 'Policy_Accounting_Sage_Intacct_Non_Reimbursable_Expenses',
             SAGE_INTACCT_REIMBURSABLE_DESTINATION: 'Policy_Accounting_Sage_Intacct_Reimbursable_Destination',
-            SAGE_INTACCT_NON_REIMBURSABLE_DESTINATION: 'Policy_Accounting_Sage_Intacct_Non_Reimbursable_Destination',
-            SAGE_INTACCT_DEFAULT_VENDOR: 'Policy_Accounting_Sage_Intacct_Default_Vendor',
-            SAGE_INTACCT_NON_REIMBURSABLE_CREDIT_CARD_ACCOUNT: 'Policy_Accounting_Sage_Intacct_Non_Reimbursable_Credit_Card_Account',
+            DYNAMIC_SAGE_INTACCT_NON_REIMBURSABLE_DESTINATION: 'Dynamic_Policy_Accounting_Sage_Intacct_Non_Reimbursable_Destination',
+            DYNAMIC_SAGE_INTACCT_DEFAULT_VENDOR: 'Dynamic_Policy_Accounting_Sage_Intacct_Default_Vendor',
+            DYNAMIC_SAGE_INTACCT_NON_REIMBURSABLE_CREDIT_CARD_ACCOUNT: 'Dynamic_Policy_Accounting_Sage_Intacct_Non_Reimbursable_Credit_Card_Account',
             SAGE_INTACCT_ADVANCED: 'Policy_Accounting_Sage_Intacct_Advanced',
             SAGE_INTACCT_AUTO_SYNC: 'Policy_Accounting_Sage_Intacct_Auto_Sync',
             SAGE_INTACCT_ACCOUNTING_METHOD: 'Policy_Accounting_Sage_Intacct_Accounting_Method',
