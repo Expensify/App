@@ -1,5 +1,6 @@
 import type {KeysOfUnion, ValueOf} from 'type-fest';
-import type {CreateTrackExpenseParams, IOURequestType, ReplaceReceipt, RequestMoneyInformation, StartSplitBilActionParams} from '@libs/actions/IOU';
+import type {IOURequestType, ReplaceReceipt, RequestMoneyInformation, StartSplitBilActionParams} from '@libs/actions/IOU';
+import type {CreateTrackExpenseParams} from '@libs/actions/IOU/TrackExpense';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type {FileObject} from '@src/types/utils/Attachment';
@@ -219,7 +220,7 @@ type Receipt = {
     source?: ReceiptSource;
 
     /** Local file URI preserved on the creating device so the remote source from the server does not cause a reload */
-    localSource?: string;
+    localSource?: string | null;
 
     /** Name of receipt file */
     filename?: string;
