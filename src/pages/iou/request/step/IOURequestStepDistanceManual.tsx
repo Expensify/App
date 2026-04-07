@@ -16,7 +16,9 @@ import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
+import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useReportAttributes from '@hooks/useReportAttributes';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -29,7 +31,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {isArchivedReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
+import {isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
 import {getDistanceInMeters, getRateID} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
@@ -70,12 +72,11 @@ function IOURequestStepDistanceManual({
 
     const [formError, setFormError] = useState<string>('');
 
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
-    const isArchived = isArchivedReport(reportNameValuePairs);
+    const isArchived = useReportIsArchived(report?.reportID);
     const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`);
     const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
     const selfDMReport = useSelfDMReport();
-    const policy = usePolicy(report?.policyID);
+    const {policy} = usePolicyForTransaction({reportPolicyID: report?.policyID, action, iouType, transaction});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
     const personalPolicy = usePersonalPolicy();
@@ -116,7 +117,6 @@ function IOURequestStepDistanceManual({
         [iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd],
     );
 
-    const customUnitRateID = getRateID(transaction);
     // to make sure the correct distance amount and unit will be shown we use distance unit
     // from defaultExpensePolicy or current report's policy instead of from transaction and
     // then we use transaction data (distanceUnit and quantity) for conversions
@@ -223,7 +223,6 @@ function IOURequestStepDistanceManual({
                 transactionID,
                 reportAttributesDerived,
                 personalDetails,
-                customUnitRateID,
                 manualDistance: distanceAsFloat,
                 currentUserLogin: currentUserEmailParam,
                 currentUserAccountID: currentUserAccountIDParam,
@@ -241,7 +240,7 @@ function IOURequestStepDistanceManual({
                 policyRecentlyUsedCurrencies,
                 introSelected,
                 activePolicyID,
-                privateIsArchived: reportNameValuePairs?.private_isArchived,
+                privateIsArchived: isArchived,
                 selfDMReport,
                 policyForMovingExpenses,
                 betas,
@@ -267,7 +266,6 @@ function IOURequestStepDistanceManual({
             reportID,
             reportAttributesDerived,
             personalDetails,
-            customUnitRateID,
             currentUserEmailParam,
             currentUserAccountIDParam,
             backTo,
@@ -284,7 +282,6 @@ function IOURequestStepDistanceManual({
             policyRecentlyUsedCurrencies,
             introSelected,
             activePolicyID,
-            reportNameValuePairs?.private_isArchived,
             isEditingSplit,
             distance,
             splitDraftTransaction,

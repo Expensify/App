@@ -49,6 +49,7 @@ import {
     getDismissedViolationMessageText,
     getDynamicExternalWorkflowApproveFailedActionMessage,
     getDynamicExternalWorkflowSubmitFailedActionMessage,
+    getExportIntegrationLastMessageText,
     getForeignCurrencyDefaultTaxUpdateMessage,
     getForwardsToUpdateMessage,
     getIntegrationSyncFailedMessage,
@@ -105,6 +106,8 @@ import {
     isMovedAction,
     isOldDotReportAction,
     isOriginalReportDeleted,
+    isReimbursementDeQueuedOrCanceledAction,
+    isReimbursementQueuedAction,
     isRejectedAction,
     isRenamedAction,
     isReportActionAttachment,
@@ -122,6 +125,8 @@ import {
     getParentReport,
     getPolicyChangeMessage,
     getPolicyName,
+    getReimbursementDeQueuedOrCanceledActionMessage,
+    getReimbursementQueuedActionMessage,
     getReportMetadata,
     getReportOrDraftReport,
     getTransactionReportName,
@@ -411,10 +416,12 @@ function getMoneyRequestReportName({report, policy, invoiceReceiverPolicy}: {rep
 
 function computeReportNameBasedOnReportAction(
     translate: LocalizedTranslate,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     parentReportAction: ReportAction | undefined,
     report: Report | undefined,
     reportPolicy: Policy | undefined,
     parentReport: Report | undefined,
+    personalDetailsList: OnyxEntry<PersonalDetailsList>,
     conciergeReportID: string | undefined,
 ): string | undefined {
     if (!parentReportAction) {
@@ -442,8 +449,34 @@ function computeReportNameBasedOnReportAction(
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
         return translate('iou.heldExpense');
     }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION) {
+        return getExportIntegrationLastMessageText(translate, parentReportAction);
+    }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
         return translate('iou.unheldExpense');
+    }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTEDTRANSACTION_THREAD) {
+        return translate('iou.reject.reportActions.rejectedExpense');
+    }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED_TRANSACTION_MARKASRESOLVED) {
+        return translate('iou.reject.reportActions.markedAsResolved');
+    }
+    if (isReimbursementQueuedAction(parentReportAction)) {
+        return getReimbursementQueuedActionMessage({
+            reportAction: parentReportAction,
+            report: parentReport,
+            translate,
+            formatPhoneNumber,
+            shouldUseShortDisplayName: false,
+            personalDetails: personalDetailsList,
+        });
+    }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED) {
+        return translate('iou.receiptScanningFailed');
+    }
+
+    if (isReimbursementDeQueuedOrCanceledAction(parentReportAction)) {
+        return getReimbursementDeQueuedOrCanceledActionMessage(translate, parentReportAction, parentReport);
     }
     if (isRejectedAction(parentReportAction)) {
         return translate('iou.rejectedThisReport');
@@ -698,6 +731,21 @@ function computeReportNameBasedOnReportAction(
         return Parser.htmlToText(getSettlementAccountLockedMessage(translate, parentReportAction));
     }
 
+    if (isOldDotReportAction(parentReportAction)) {
+        return getMessageOfOldDotReportAction(translate, parentReportAction);
+    }
+
+    if (isRenamedAction(parentReportAction)) {
+        return getRenamedAction(translate, parentReportAction, isExpenseReport(parentReport));
+    }
+
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.RESOLVED_DUPLICATES)) {
+        return translate('violations.resolvedDuplicates');
+    }
+
+    if (isCardIssuedAction(parentReportAction)) {
+        return getCardIssuedMessage({reportAction: parentReportAction, translate});
+    }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CARD_FEED)) {
         return getAddedCardFeedMessage(translate, parentReportAction);
     }
@@ -758,21 +806,8 @@ function computeChatThreadReportName(
         return formatReportLastMessageText(formattedName);
     }
 
-    if (!isEmptyObject(parentReportAction) && isOldDotReportAction(parentReportAction)) {
-        return getMessageOfOldDotReportAction(translate, parentReportAction);
-    }
-
-    if (isRenamedAction(parentReportAction)) {
-        const parent = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
-        return getRenamedAction(translate, parentReportAction, isExpenseReport(parent));
-    }
-
     if (parentReportActionMessage?.isDeletedParentAction) {
         return translate('parentReportAction.deletedMessage');
-    }
-
-    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RESOLVED_DUPLICATES) {
-        return translate('violations.resolvedDuplicates');
     }
 
     const isAttachment = isReportActionAttachment(!isEmptyObject(parentReportAction) ? parentReportAction : undefined);
@@ -813,9 +848,6 @@ function computeChatThreadReportName(
     if (isTripRoom(report) && report?.reportName !== CONST.REPORT.DEFAULT_REPORT_NAME) {
         return report?.reportName ?? '';
     }
-    if (isCardIssuedAction(parentReportAction)) {
-        return getCardIssuedMessage({reportAction: parentReportAction, translate});
-    }
     return reportActionMessage;
 }
 
@@ -844,8 +876,17 @@ function computeReportName({
     const parentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
     const parentReportAction = isThread(report) ? reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`]?.[report.parentReportActionID] : undefined;
 
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const parentReportActionBasedName = computeReportNameBasedOnReportAction(translateLocal, parentReportAction, report, reportPolicy, parentReport, conciergeReportID);
+    const parentReportActionBasedName = computeReportNameBasedOnReportAction(
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        translateLocal,
+        formatPhoneNumberPhoneUtils,
+        parentReportAction,
+        report,
+        reportPolicy,
+        parentReport,
+        personalDetailsList,
+        conciergeReportID,
+    );
 
     if (parentReportActionBasedName) {
         return parentReportActionBasedName;
@@ -880,13 +921,13 @@ function computeReportName({
         return Parser.isHTML(taskName) ? Parser.htmlToText(taskName).trim() : taskName.trim();
     }
 
-    const privateIsArchivedValue = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]?.private_isArchived;
+    const privateIsArchivedValue = !!allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]?.private_isArchived;
 
     const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report.policyID}`];
     const chatThreadReportName = computeChatThreadReportName(
         // eslint-disable-next-line @typescript-eslint/no-deprecated -- translateLocal is deprecated; computeReportName is non-React code that cannot use the translate hook
         translateLocal,
-        !!privateIsArchivedValue,
+        privateIsArchivedValue,
         report,
         reports ?? {},
         currentUserLogin ?? '',
@@ -957,7 +998,7 @@ function computeReportName({
         formattedName = CONST.CONCIERGE_DISPLAY_NAME;
     }
 
-    const isArchivedNonExpense = isArchivedNonExpenseReport(report, !!privateIsArchivedValue);
+    const isArchivedNonExpense = isArchivedNonExpenseReport(report, privateIsArchivedValue);
 
     if (formattedName) {
         return formatReportLastMessageText(isArchivedNonExpense ? generateArchivedReportName(formattedName) : formattedName);
