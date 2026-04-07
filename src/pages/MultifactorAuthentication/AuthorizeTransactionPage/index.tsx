@@ -1,13 +1,12 @@
 import type {SeverityLevel} from '@sentry/react-native';
 import * as Sentry from '@sentry/react-native';
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {AuthorizeTransactionCancelConfirmModal} from '@components/MultifactorAuthentication/components/Modals';
 import ScenarioConfigs from '@components/MultifactorAuthentication/config/scenarios';
 import {
-    AlreadyReviewedFailureScreen,
     DeniedTransactionServerFailureScreen,
     DeniedTransactionSuccessScreen,
 } from '@components/MultifactorAuthentication/config/scenarios/AuthorizeTransaction';
@@ -118,6 +117,17 @@ function MultifactorAuthenticationScenarioAuthorizeTransactionPage({route}: Mult
         Navigation.closeRHPFlow();
     };
 
+    // Automatically navigate away if transaction becomes nullish and we didn't deny it here
+    // User must have actioned it on a different device.
+    // Disabling prefer-early-return because I think the affirmative conditional is much easier 
+    // to read than inverting it for an early return.
+    // eslint-disable-next-line rulesdir/prefer-early-return
+    useEffect(() => {
+        if (!transaction && !isDenyingTransaction && !denyOutcomeScreen) {
+            Navigation.closeRHPFlow();
+        }
+    }, [denyOutcomeScreen, transaction, isDenyingTransaction]);
+
     if (denyOutcomeScreen) {
         return <ScreenWrapper testID={MultifactorAuthenticationScenarioAuthorizeTransactionPage.displayName}>{denyOutcomeScreen}</ScreenWrapper>;
     }
@@ -129,7 +139,7 @@ function MultifactorAuthenticationScenarioAuthorizeTransactionPage({route}: Mult
         // We handle this case specially here so that the user does not see a momentary flash of the AlreadyReviewedFailureScreen
         return (
             <ScreenWrapper testID={MultifactorAuthenticationScenarioAuthorizeTransactionPage.displayName}>
-                {isDenyingTransaction ? <DeniedTransactionSuccessScreen /> : <AlreadyReviewedFailureScreen />}
+                <DeniedTransactionSuccessScreen />
             </ScreenWrapper>
         );
     }
