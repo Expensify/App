@@ -125,7 +125,7 @@ function UpdatePersonalBankAccountPage() {
 
         const existingData = bankAccountList?.[String(personalBankAccount.bankAccountID)]?.accountData?.additionalData;
         const currentAddress = getCurrentAddress(privatePersonalDetails);
-        const [street1, street2] = getStreetLines(currentAddress?.street);
+        const [street1, street2] = getStreetLines(currentAddress?.street ?? currentAddress?.addressLine1);
 
         const legalFirstName = personalBankAccountDraft?.legalFirstName ?? privatePersonalDetails?.legalFirstName ?? existingData?.firstName ?? '';
         const legalLastName = personalBankAccountDraft?.legalLastName ?? privatePersonalDetails?.legalLastName ?? existingData?.lastName ?? '';
@@ -134,7 +134,8 @@ function UpdatePersonalBankAccountPage() {
         const addressStreet2 = personalBankAccountDraft?.addressStreet2 ?? homeAddressDraft?.addressLine2 ?? street2 ?? '';
         const addressCity = personalBankAccountDraft?.addressCity ?? homeAddressDraft?.city ?? currentAddress?.city ?? existingData?.addressCity ?? '';
         const addressState = personalBankAccountDraft?.addressState ?? homeAddressDraft?.state ?? currentAddress?.state ?? existingData?.addressState ?? '';
-        const addressZipCode = personalBankAccountDraft?.addressZipCode ?? homeAddressDraft?.zipPostCode ?? currentAddress?.zip ?? existingData?.addressZipCode ?? '';
+        const addressZipCode =
+            personalBankAccountDraft?.addressZipCode ?? homeAddressDraft?.zipPostCode ?? currentAddress?.zip ?? currentAddress?.zipPostCode ?? existingData?.addressZipCode ?? '';
 
         const rawPhone = personalBankAccountDraft?.phoneNumber ?? privatePersonalDetails?.phoneNumber ?? existingData?.companyPhone ?? '';
         const parsed = parsePhoneNumber(rawPhone, {regionCode: CONST.COUNTRY.US});

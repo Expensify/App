@@ -148,6 +148,8 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     let badgeText;
     if (isInLockedState) {
         badgeText = translate('common.locked');
+    } else if (isNeedingAction && shouldShowDefaultBadge) {
+        badgeText = `${translate('paymentMethodList.defaultPaymentMethod')} · ${translate('common.actionRequired')}`;
     } else if (isNeedingAction) {
         badgeText = translate('common.actionRequired');
     } else if (shouldShowDefaultBadge) {
