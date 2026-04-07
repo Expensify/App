@@ -41,6 +41,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {onboardingMessages} = useOnboardingMessages();
+    const [showAll, setShowAll] = useState(false);
 
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -101,8 +102,6 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         );
     };
 
-    const [showAll, setShowAll] = useState(false);
-
     const allPolicyIDItems = Object.values(joinablePolicies ?? {})
         .sort((a, b) => b.employeeCount - a.employeeCount)
         .map((policyInfo) => ({
@@ -133,8 +132,8 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             ],
         }));
 
-    const hasMoreThanFive = allPolicyIDItems.length > 5;
-    const policyIDItems = !showAll && hasMoreThanFive ? allPolicyIDItems.slice(0, 5) : allPolicyIDItems;
+    const hasMoreThanLimit = allPolicyIDItems.length > CONST.ONBOARDING_JOINABLE_WORKSPACES_LIMIT;
+    const policyIDItems = !showAll && hasMoreThanLimit ? allPolicyIDItems.slice(0, CONST.ONBOARDING_JOINABLE_WORKSPACES_LIMIT) : allPolicyIDItems;
 
     const wrapperPadding = onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5;
 
@@ -194,7 +193,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                     </View>
                 }
                 listFooterContent={
-                    hasMoreThanFive && !showAll ? (
+                    hasMoreThanLimit && !showAll ? (
                         <View style={[wrapperPadding, styles.alignItemsStart]}>
                             <Button
                                 text={translate('common.showMore')}
