@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import {deepEqual} from 'fast-equals';
 import type {ReactNode, RefObject} from 'react';
-import React, {useCallback, useLayoutEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useMemo, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
@@ -144,8 +144,8 @@ type PopoverMenuProps = Partial<ModalAnimationProps> & {
     /** How to re-focus after the modal is dismissed */
     restoreFocusType?: BaseModalProps['restoreFocusType'];
 
-    /** Whether to show the selected option checkmark */
-    shouldShowSelectedItemCheck?: boolean;
+    /** Whether to show a radio button on each item to indicate which one is currently selected */
+    shouldShowRadioButton?: boolean;
 
     /** The style of content container which wraps all child views */
     containerStyles?: StyleProp<ViewStyle>;
@@ -291,7 +291,7 @@ function BasePopoverMenu({
     shouldSetModalVisibility = true,
     shouldEnableNewFocusManagement,
     restoreFocusType,
-    shouldShowSelectedItemCheck = false,
+    shouldShowRadioButton = false,
     containerStyles,
     badgeStyle,
     headerStyles,
@@ -317,9 +317,22 @@ function BasePopoverMenu({
     const [enteredSubMenuIndexes, setEnteredSubMenuIndexes] = useState<readonly number[]>(CONST.EMPTY_ARRAY);
     const platform = getPlatform();
     const isWeb = platform === CONST.PLATFORM.WEB;
-    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: currentMenuItemsFocusedIndex, maxIndex: currentMenuItems.length - 1, isActive: isVisible});
+    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
+        initialFocusedIndex: shouldShowRadioButton ? -1 : currentMenuItemsFocusedIndex,
+        maxIndex: currentMenuItems.length - 1,
+        isActive: isVisible,
+    });
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['BackArrow', 'ReceiptScan', 'MoneyCircle']);
     const prevMenuItems = usePrevious(menuItems);
+
+    // initialFocusedIndex does not reset when the popover is closed and reopened.
+    // In radio-button mode the selected item must not appear highlighted on open, so we reset focus explicitly each time the popover becomes visible.
+    useEffect(() => {
+        if (!isVisible || !shouldShowRadioButton) {
+            return;
+        }
+        setFocusedIndex(-1);
+    }, [isVisible, shouldShowRadioButton, setFocusedIndex]);
 
     const selectItem = (index: number, event?: GestureResponderEvent | KeyboardEvent) => {
         const selectedItem = currentMenuItems.at(index);
@@ -417,7 +430,7 @@ function BasePopoverMenu({
                     title={text}
                     onPress={(event) => selectItem(menuIndex, event)}
                     focused={focusedIndex === menuIndex}
-                    shouldShowSelectedItemCheck={shouldShowSelectedItemCheck}
+                    shouldShowRadioButton={shouldShowRadioButton}
                     shouldCheckActionAllowedOnPress={false}
                     iconRight={item.rightIcon}
                     shouldShowRightIcon={!!item.rightIcon}
@@ -431,7 +444,13 @@ function BasePopoverMenu({
                     badgeText={badgeText}
                     badgeStyle={StyleSheet.flatten(badgeStyle)}
                     wrapperStyle={[
-                        StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, focusedIndex === menuIndex, item.disabled ?? false, theme.activeComponentBG, theme.hoverComponentBG),
+                        StyleUtils.getItemBackgroundColorStyle(
+                            shouldShowRadioButton ? false : !!item.isSelected,
+                            focusedIndex === menuIndex,
+                            item.disabled ?? false,
+                            theme.activeComponentBG,
+                            theme.hoverComponentBG,
+                        ),
                         shouldUseScrollView && !shouldUseModalPaddingStyle && StyleUtils.getOptionMargin(menuIndex, currentMenuItems.length - 1),
                     ]}
                     shouldRemoveHoverBackground={item.isSelected}

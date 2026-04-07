@@ -256,7 +256,7 @@ function ImportColumn({column, columnName, columnRoles, columnIndex, shouldShowD
                         <ButtonWithDropdownMenu
                             onPress={() => {}}
                             buttonSize={CONST.DROPDOWN_BUTTON_SIZE.SMALL}
-                            shouldShowSelectedItemCheck
+                            shouldShowRadioButton
                             menuHeaderText={columnHeader}
                             isSplitButton={false}
                             onOptionSelected={(option) => {

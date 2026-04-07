@@ -81,7 +81,7 @@ Selected.args = {
     icon: Chase,
     iconHeight: variables.iconSizeExtraLarge,
     iconWidth: variables.iconSizeExtraLarge,
-    shouldShowSelectedItemCheck: true,
+    shouldShowRadioButton: true,
     isSelected: true,
 };
 

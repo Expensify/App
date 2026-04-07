@@ -42,6 +42,7 @@ import {useMenuItemGroupActions, useMenuItemGroupState} from './MenuItemGroup';
 import PlaidCardFeedIcon from './PlaidCardFeedIcon';
 import type {PressableRef} from './Pressable/GenericPressable/types';
 import PressableWithSecondaryInteraction from './PressableWithSecondaryInteraction';
+import RadioButton from './RadioButton';
 import RenderHTML from './RenderHTML';
 import ReportActionAvatars from './ReportActionAvatars';
 import Text from './Text';
@@ -391,8 +392,8 @@ type MenuItemBaseProps = ForwardedFSClassProps &
 
         shouldShowLoadingSpinnerIcon?: boolean;
 
-        /** Should selected item be marked with checkmark */
-        shouldShowSelectedItemCheck?: boolean;
+        /** Whether to show a radio button on each item to indicate which one is currently selected */
+        shouldShowRadioButton?: boolean;
 
         /** Should use auto width for the icon container. */
         shouldIconUseAutoWidthStyle?: boolean;
@@ -573,7 +574,7 @@ function MenuItem({
     renderTooltipContent,
     onEducationTooltipPress,
     additionalIconStyles,
-    shouldShowSelectedItemCheck = false,
+    shouldShowRadioButton = false,
     shouldIconUseAutoWidthStyle = false,
     shouldBreakWord = false,
     pressableTestID,
@@ -1130,12 +1131,17 @@ function MenuItem({
                                                     </View>
                                                 )}
                                                 {shouldShowRightComponent && rightComponent}
-                                                {shouldShowSelectedItemCheck && isSelected && (
-                                                    <Icon
-                                                        src={icons.Checkmark}
-                                                        fill={theme.iconSuccessFill}
-                                                        additionalStyles={styles.alignSelfCenter}
-                                                    />
+                                                {shouldShowRadioButton && (
+                                                    <View
+                                                        pointerEvents="none"
+                                                        style={styles.alignSelfCenter}
+                                                    >
+                                                        <RadioButton
+                                                            isChecked={isSelected}
+                                                            onPress={() => {}}
+                                                            accessibilityLabel={typeof title === 'string' ? title : ''}
+                                                        />
+                                                    </View>
                                                 )}
                                                 {copyable && deviceHasHoverSupport && !interactive && isHovered && !!copyValue && (
                                                     <View style={styles.justifyContentCenter}>
