@@ -134,8 +134,10 @@ import {isEmptyObject, isEmptyValueObject} from '@src/types/utils/EmptyObject';
 import ActionableWhisperContent, {isActionableWhisperAction} from './actionContents/ActionableWhisperContent';
 import ApprovalFlowContent, {isApprovalFlowAction} from './actionContents/ApprovalFlowContent';
 import ChatMessageContent from './actionContents/ChatMessageContent';
+import ModifiedExpenseContent from './actionContents/ModifiedExpenseContent';
 import PaymentContent from './actionContents/PaymentContent';
 import PolicyChangeLogContent from './actionContents/PolicyChangeLogContent';
+import ReimbursementDeQueuedContent from './actionContents/ReimbursementDeQueuedContent';
 import SimpleMessageContent, {isSimpleMessageAction} from './actionContents/SimpleMessageContent';
 import {RestrictedReadOnlyContextMenuActions} from './ContextMenu/ContextMenuActions';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
@@ -146,7 +148,6 @@ import ReportActionItemBasicMessage from './ReportActionItemBasicMessage';
 import ReportActionItemContentCreated from './ReportActionItemContentCreated';
 import ReportActionItemDraft from './ReportActionItemDraft';
 import ReportActionItemGrouped from './ReportActionItemGrouped';
-import ReportActionItemMessageWithExplain from './ReportActionItemMessageWithExplain';
 import ReportActionItemSingle from './ReportActionItemSingle';
 import ReportActionItemThread from './ReportActionItemThread';
 import TripSummary from './TripSummary';
@@ -305,12 +306,6 @@ type PureReportActionItemProps = {
     /** What missing payment method does this report action indicate, if any? */
     missingPaymentMethod?: MissingPaymentMethod | undefined;
 
-    /** Returns the preview message for `REIMBURSEMENT_DEQUEUED` or `REIMBURSEMENT_ACH_CANCELED` action */
-    reimbursementDeQueuedOrCanceledActionMessage?: string;
-
-    /** The report action message when expense has been modified. */
-    modifiedExpenseMessage?: string;
-
     /** Gets all transactions on an IOU report with a receipt */
     getTransactionsWithReceipts?: (iouReportID: string | undefined) => OnyxTypes.Transaction[];
 
@@ -418,8 +413,6 @@ function PureReportActionItem({
     isClosedExpenseReportWithNoExpenses,
     isCurrentUserTheOnlyParticipant = () => false,
     missingPaymentMethod,
-    reimbursementDeQueuedOrCanceledActionMessage = '',
-    modifiedExpenseMessage = '',
     getTransactionsWithReceipts = () => [],
     clearError = () => {},
     clearAllRelatedReportActionErrors = () => {},
@@ -927,12 +920,17 @@ function PureReportActionItem({
                 </ReportActionItemBasicMessage>
             );
         } else if (isReimbursementDeQueuedOrCanceledAction(action)) {
-            children = <ReportActionItemBasicMessage message={reimbursementDeQueuedOrCanceledActionMessage} />;
+            children = (
+                <ReimbursementDeQueuedContent
+                    action={action}
+                    report={report}
+                />
+            );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
             children = (
-                <ReportActionItemMessageWithExplain
-                    message={modifiedExpenseMessage}
+                <ModifiedExpenseContent
                     action={action}
+                    policy={policy}
                     childReport={childReport}
                     originalReport={originalReport}
                 />
@@ -1467,8 +1465,6 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         prevProps.isChronosReport === nextProps.isChronosReport &&
         prevProps.isClosedExpenseReportWithNoExpenses === nextProps.isClosedExpenseReportWithNoExpenses &&
         deepEqual(prevProps.missingPaymentMethod, nextProps.missingPaymentMethod) &&
-        prevProps.reimbursementDeQueuedOrCanceledActionMessage === nextProps.reimbursementDeQueuedOrCanceledActionMessage &&
-        prevProps.modifiedExpenseMessage === nextProps.modifiedExpenseMessage &&
         prevProps.userBillingFundID === nextProps.userBillingFundID &&
         deepEqual(prevProps.taskReport, nextProps.taskReport) &&
         prevProps.shouldHighlight === nextProps.shouldHighlight &&

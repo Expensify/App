@@ -623,19 +623,24 @@ describe('PureReportActionItem', () => {
 
     describe('Modified expense message', () => {
         it('clicking the workspace rules link opens the workspace rules URL', async () => {
-            const workspaceRulesUrl = 'https://example.com/workspaces/policy123/rules';
-            const modifiedExpenseMessage = `marked the expense as "billable" via <a href="${workspaceRulesUrl}">workspace rules</a>`;
+            const policyID = 'policy123';
 
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE, {
-                policyID: 'policy123',
+                policyID,
                 policyRulesModifiedFields: {billable: true},
             });
 
             const report = {
                 reportID: 'testReport',
                 type: CONST.REPORT.TYPE.CHAT,
-                policyID: 'policy123',
+                policyID,
             };
+
+            const policy = {
+                id: policyID,
+                areRulesEnabled: true,
+                role: CONST.POLICY.ROLE.ADMIN,
+            } as Policy;
 
             render(
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
@@ -644,8 +649,9 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     personalPolicyID={undefined}
-                                    currentUserEmail={undefined}
+                                    currentUserEmail={actorEmail}
                                     report={report}
+                                    policy={policy}
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
@@ -659,7 +665,6 @@ describe('PureReportActionItem', () => {
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     betas={undefined}
                                     draftTransactionIDs={[]}
-                                    modifiedExpenseMessage={modifiedExpenseMessage}
                                     userBillingGracePeriodEnds={undefined}
                                 />
                             </PortalProvider>
@@ -675,7 +680,7 @@ describe('PureReportActionItem', () => {
             fireEvent.press(workspaceRulesLink);
 
             expect(openLink).toHaveBeenCalledTimes(1);
-            expect(openLink).toHaveBeenCalledWith(workspaceRulesUrl, expect.any(String));
+            expect(openLink).toHaveBeenCalledWith(expect.stringContaining(`/workspaces/${policyID}/rules`), expect.any(String));
         });
     });
 
@@ -915,40 +920,13 @@ describe('PureReportActionItem', () => {
 
     describe('Reimbursement actions', () => {
         it('REIMBURSEMENT_DEQUEUED action shows dequeued message', async () => {
-            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED, {});
-            render(
-                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
-                    <OptionsListContextProvider>
-                        <ScreenWrapper testID="test">
-                            <PortalProvider>
-                                <PureReportActionItem
-                                    personalPolicyID={undefined}
-                                    currentUserEmail={undefined}
-                                    report={undefined}
-                                    parentReportAction={undefined}
-                                    action={action}
-                                    displayAsGroup={false}
-                                    isMostRecentIOUReportAction={false}
-                                    shouldDisplayNewMarker={false}
-                                    index={0}
-                                    isFirstVisibleReportAction={false}
-                                    taskReport={undefined}
-                                    linkedReport={undefined}
-                                    iouReportOfLinkedReport={undefined}
-                                    currentUserAccountID={ACTOR_ACCOUNT_ID}
-                                    betas={undefined}
-                                    draftTransactionIDs={[]}
-                                    userBillingGracePeriodEnds={undefined}
-                                    reimbursementDeQueuedOrCanceledActionMessage="Payment canceled"
-                                />
-                            </PortalProvider>
-                        </ScreenWrapper>
-                    </OptionsListContextProvider>
-                </ComposeProviders>,
-            );
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED, {
+                cancellationReason: CONST.REPORT.CANCEL_PAYMENT_REASONS.ADMIN,
+            });
+            renderItemWithAction(action);
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.getByText('Payment canceled')).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('iou.adminCanceledRequest'))).toBeOnTheScreen();
         });
     });
 
