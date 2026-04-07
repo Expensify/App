@@ -128,35 +128,40 @@ function BaseDomainMembersPage({
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const illustrations = useMemoizedLazyIllustrations(['EmptyShelves']);
 
-    const data: MemberOption[] = accountIDs.map((accountID) => {
-        const details = personalDetails?.[accountID];
-        const login = details?.login ?? '';
-        const customProps = getCustomRowProps?.(accountID, login);
-        const isPendingActionDelete = customProps?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const data: MemberOption[] = accountIDs
+        .filter((accountID) => {
+            const details = personalDetails?.[accountID];
+            return !!details?.login || !!details?.displayName;
+        })
+        .map((accountID) => {
+            const details = personalDetails?.[accountID];
+            const login = details?.login ?? '';
+            const customProps = getCustomRowProps?.(accountID, login);
+            const isPendingActionDelete = customProps?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
-        return {
-            keyForList: String(accountID),
-            accountID,
-            login,
-            text: formatPhoneNumber(getDisplayNameOrDefault(details)),
-            alternateText: formatPhoneNumber(login),
-            icons: [
-                {
-                    source: details?.avatar ?? icons.FallbackAvatar,
-                    name: formatPhoneNumber(login),
-                    type: CONST.ICON_TYPE_AVATAR,
-                    id: accountID,
-                },
-            ],
-            rightElement: getCustomRightElement?.(accountID),
-            errors: getLatestError(customProps?.errors),
-            pendingAction: customProps?.pendingAction,
-            isInteractive: !isPendingActionDelete && !details?.isOptimisticPersonalDetail,
-            isDisabled: isPendingActionDelete,
-            isDisabledCheckbox: isPendingActionDelete || !!details?.isOptimisticPersonalDetail,
-            brickRoadIndicator: customProps?.brickRoadIndicator,
-        };
-    });
+            return {
+                keyForList: String(accountID),
+                accountID,
+                login,
+                text: formatPhoneNumber(getDisplayNameOrDefault(details)),
+                alternateText: formatPhoneNumber(login),
+                icons: [
+                    {
+                        source: details?.avatar ?? icons.FallbackAvatar,
+                        name: formatPhoneNumber(login),
+                        type: CONST.ICON_TYPE_AVATAR,
+                        id: accountID,
+                    },
+                ],
+                rightElement: getCustomRightElement?.(accountID),
+                errors: getLatestError(customProps?.errors),
+                pendingAction: customProps?.pendingAction,
+                isInteractive: !isPendingActionDelete && !details?.isOptimisticPersonalDetail,
+                isDisabled: isPendingActionDelete,
+                isDisabledCheckbox: isPendingActionDelete || !!details?.isOptimisticPersonalDetail,
+                brickRoadIndicator: customProps?.brickRoadIndicator,
+            };
+        });
 
     const filterMember = (memberOption: MemberOption, searchQuery: string) => {
         const results = tokenizedSearch([memberOption], searchQuery, (option) => [option.text ?? '', option.alternateText ?? '']);

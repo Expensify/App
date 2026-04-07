@@ -834,6 +834,7 @@ type AvatarBorderStyleParams = {
     isInReportAction: boolean;
     shouldUseCardBackground: boolean;
     isActive?: boolean;
+    customPressedBorderColor?: string;
 };
 
 function getHorizontalStackedAvatarBorderStyle({
@@ -843,6 +844,7 @@ function getHorizontalStackedAvatarBorderStyle({
     isInReportAction = false,
     shouldUseCardBackground = false,
     isActive = false,
+    customPressedBorderColor,
 }: AvatarBorderStyleParams): ViewStyle {
     let borderColor = shouldUseCardBackground ? theme.cardBG : theme.appBG;
 
@@ -855,6 +857,9 @@ function getHorizontalStackedAvatarBorderStyle({
 
     if (isPressed) {
         borderColor = isInReportAction ? theme.hoverComponentBG : theme.buttonPressedBG;
+        if (customPressedBorderColor) {
+            borderColor = customPressedBorderColor;
+        }
     }
 
     return {borderColor};
@@ -863,9 +868,9 @@ function getHorizontalStackedAvatarBorderStyle({
 /**
  * Get computed avatar styles based on position and border size
  */
-function getHorizontalStackedAvatarStyle(index: number, overlapSize: number): ViewStyle {
+function getHorizontalStackedAvatarStyle(index: number, overlapSize: number, firstAvatarMarginLeft = 0): ViewStyle {
     return {
-        marginLeft: index > 0 ? -overlapSize : 0,
+        marginLeft: index > 0 ? -overlapSize : firstAvatarMarginLeft,
         zIndex: index + 2,
     };
 }
@@ -1017,8 +1022,10 @@ function getEmojiPickerListHeight(isRenderingShortcutRow: boolean, windowHeight:
     };
 
     if (windowHeight) {
-        // dimensions of content above the emoji picker list
-        const dimensions = isRenderingShortcutRow ? CONST.EMOJI_PICKER_TEXT_INPUT_SIZES + CONST.CATEGORY_SHORTCUT_BAR_HEIGHT : CONST.EMOJI_PICKER_TEXT_INPUT_SIZES;
+        // dimensions of content above and below the emoji picker list
+        const dimensions = isRenderingShortcutRow
+            ? CONST.EMOJI_PICKER_TEXT_INPUT_SIZES + CONST.EMOJI_PICKER_SKIN_TONE_LIST_HEIGHT + CONST.CATEGORY_SHORTCUT_BAR_HEIGHT
+            : CONST.EMOJI_PICKER_TEXT_INPUT_SIZES + CONST.EMOJI_PICKER_SKIN_TONE_LIST_HEIGHT;
         const maxHeight = windowHeight - dimensions;
         return {
             ...style,
@@ -1582,7 +1589,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         backgroundColor: theme.componentBG,
         height: size,
         width: size,
-        borderColor: theme.borderLighter,
+        borderColor: theme.bordersBold,
         borderWidth: 2,
         justifyContent: 'center',
         alignItems: 'center',
@@ -1629,7 +1636,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     getDotIndicatorTextStyles: (isErrorText = true): TextStyle => (isErrorText ? {...styles.offlineFeedbackText, color: styles.formError.color} : {...styles.offlineFeedbackText}),
 
     getEmojiReactionBubbleStyle: (isHovered: boolean, hasUserReacted: boolean, isContextMenu = false): ViewStyle => {
-        let backgroundColor = theme.border;
+        let backgroundColor = theme.buttonDefaultBG;
 
         if (isHovered) {
             backgroundColor = theme.buttonHoveredBG;
@@ -1853,6 +1860,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT:
             case CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT:
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL:
+            case CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE:
             case CONST.SEARCH.TABLE_COLUMNS.TOTAL:
                 columnWidth = {...getWidthStyle(isAmountColumnWide ? variables.w130 : variables.w96), ...(!shouldRemoveTotalColumnFlex && styles.flex1), ...styles.alignItemsEnd};
                 break;
@@ -1871,6 +1879,9 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO:
                 columnWidth = {...getWidthStyle(variables.w72), ...styles.alignItemsCenter};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.ATTENDEES:
+                columnWidth = {...getWidthStyle(variables.w72)};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_FEED:
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_BANK_ACCOUNT:
