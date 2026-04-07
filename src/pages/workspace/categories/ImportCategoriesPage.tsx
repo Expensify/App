@@ -37,7 +37,7 @@ function ImportCategoriesPage({route}: ImportCategoriesPageProps) {
             fullPageNotFoundViewProps={{subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized', onLinkPress: goBackFromInvalidPolicy}}
         >
             <ImportSpreadsheet
-                backTo={isQuickSettingsFlow ? backTo : workspaceCategoriesListBackPath}
+                backTo={isQuickSettingsFlow ? backTo : backPath}
                 goTo={isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_IMPORTED.getRoute(policyID, backTo) : backPath}
             />
         </AccessOrNotFoundWrapper>
