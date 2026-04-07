@@ -7708,6 +7708,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
     chronos: {
         oooEventSummaryFullDay: (summary: string, dayCount: number, date: string) => `${summary} por ${dayCount} ${dayCount === 1 ? 'dia' : 'dias'} até ${date}`,
         oooEventSummaryPartialDay: (summary: string, timePeriod: string, date: string) => `${summary} de ${timePeriod} em ${date}`,
+        startTimer: 'Iniciar cronômetro',
+        stopTimer: 'Parar cronômetro',
     },
     footer: {
         features: 'Recursos',
