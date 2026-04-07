@@ -138,6 +138,66 @@ describe('OnboardingPurpose Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
+    it('should navigate to personal details page when user selects EMPLOYER with Submit2026 beta and is from public domain', async () => {
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {
+                isFromPublicDomain: true,
+                hasAccessibleDomainPolicies: false,
+            });
+            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.SUBMIT_2026]);
+        });
+
+        const {unmount} = renderOnboardingPurposePage(SCREENS.ONBOARDING.PURPOSE, {backTo: ''});
+
+        await waitForBatchedUpdatesWithAct();
+
+        const user = userEvent.setup();
+        const employerLabel = translatePurpose(CONST.ONBOARDING_CHOICES.EMPLOYER);
+        const employerOption = screen.getByLabelText(employerLabel);
+        await user.press(employerOption);
+
+        await waitFor(() => {
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(''));
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should navigate to workspaces page when user selects EMPLOYER with Submit2026 beta and is from private domain with name set', async () => {
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {
+                isFromPublicDomain: false,
+                hasAccessibleDomainPolicies: true,
+            });
+            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.SUBMIT_2026]);
+            await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM, {
+                firstName: 'Test',
+                lastName: 'User',
+            });
+        });
+
+        const {unmount} = renderOnboardingPurposePage(SCREENS.ONBOARDING.PURPOSE, {backTo: ''});
+
+        await waitForBatchedUpdatesWithAct();
+
+        const user = userEvent.setup();
+        const employerLabel = translatePurpose(CONST.ONBOARDING_CHOICES.EMPLOYER);
+        const employerOption = screen.getByLabelText(employerLabel);
+        await user.press(employerOption);
+
+        await waitFor(() => {
+            expect(navigate).toHaveBeenCalledWith(ROUTES.ONBOARDING_WORKSPACES.getRoute(''));
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
     it('should call completeOnboarding with introSelected when user is from private domain and selects a direct-complete choice', async () => {
         await TestHelper.signInWithTestUser();
 

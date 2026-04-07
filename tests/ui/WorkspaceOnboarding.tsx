@@ -9,10 +9,13 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
+import {navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
 import OnboardingWorkspaces from '@pages/OnboardingWorkspaces';
+import {createWorkspace} from '@userActions/Policy/Policy';
+import {completeOnboarding} from '@userActions/Report';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -20,6 +23,43 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
+
+const mockCreateWorkspace = jest.mocked(createWorkspace);
+const mockCompleteOnboarding = jest.mocked(completeOnboarding);
+const mockNavigateToSubmitWorkspace = jest.mocked(navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue);
+
+jest.mock('@userActions/Report', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const actual = jest.requireActual('@userActions/Report');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return {
+        ...actual,
+        completeOnboarding: jest.fn(),
+    };
+});
+
+jest.mock('@userActions/Policy/Policy', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const actual = jest.requireActual('@userActions/Policy/Policy');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return {
+        ...actual,
+        createWorkspace: jest.fn().mockReturnValue({
+            policyID: 'test-policy-id',
+            adminsChatReportID: 'test-admins-report-id',
+        }),
+    };
+});
+
+jest.mock('@libs/navigateAfterOnboarding', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const actual = jest.requireActual('@libs/navigateAfterOnboarding');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return {
+        ...actual,
+        navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue: jest.fn(),
+    };
+});
 
 TestHelper.setupGlobalFetchMock();
 
@@ -170,6 +210,57 @@ describe('OnboardingWorkspaces Page', () => {
 
         await waitFor(() => {
             expect(screen.getByLabelText(TestHelper.translateLocal('common.back'))).toBeOnTheScreen();
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should create a Submit workspace when skip is pressed with EMPLOYER purpose and Submit2026 beta', async () => {
+        await TestHelper.signInWithTestUser();
+
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
+                hasCompletedGuidedSetupFlow: false,
+            });
+            await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.EMPLOYER);
+            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.SUBMIT_2026]);
+        });
+
+        const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: ''});
+
+        await waitForBatchedUpdatesWithAct();
+
+        const skipButton = screen.getByTestId('onboardingWorkSpaceSkipButton');
+
+        const mockEvent = {
+            nativeEvent: {},
+            type: 'press',
+            target: skipButton,
+            currentTarget: skipButton,
+        };
+
+        fireEvent.press(skipButton, mockEvent);
+
+        await waitFor(() => {
+            expect(mockCreateWorkspace).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    type: CONST.POLICY.TYPE.SUBMIT,
+                    engagementChoice: CONST.ONBOARDING_CHOICES.EMPLOYER,
+                }),
+            );
+        });
+
+        await waitFor(() => {
+            expect(mockCompleteOnboarding).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    engagementChoice: CONST.ONBOARDING_CHOICES.EMPLOYER,
+                }),
+            );
+        });
+
+        await waitFor(() => {
+            expect(mockNavigateToSubmitWorkspace).toHaveBeenCalledWith('test-policy-id');
         });
 
         unmount();
