@@ -38,7 +38,7 @@ function LimitTypeStep({policy, stepNames, startStepIndex}: LimitTypeStepProps) 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
-    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
+    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
     const formRef = useRef<FormRef | null>(null);
 
     const areApprovalsConfigured = getApprovalWorkflow(policy) !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
@@ -192,7 +192,7 @@ function LimitTypeStep({policy, stepNames, startStepIndex}: LimitTypeStepProps) 
                     <InputWrapperWithRef
                         InputComponent={AmountForm}
                         label={translate('workspace.card.issueNewCard.amount')}
-                        defaultValue={convertToFrontendAmountAsString(issueNewCard?.data?.limit, issueNewCard?.data?.currency, false)}
+                        defaultValue={convertToFrontendAmountAsString(issueNewCard?.data?.limit, 0)}
                         isCurrencyPressable={false}
                         currency={issueNewCard?.data?.currency}
                         inputID={INPUT_IDS.LIMIT}

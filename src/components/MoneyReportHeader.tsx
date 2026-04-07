@@ -32,7 +32,6 @@ import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import usePaymentAnimations from '@hooks/usePaymentAnimations';
 import usePaymentOptions from '@hooks/usePaymentOptions';
 import usePermissions from '@hooks/usePermissions';
-import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
@@ -235,7 +234,6 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS);
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`);
-    const personalPolicy = usePersonalPolicy();
     const {getCurrencyDecimals} = useCurrencyListActions();
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
@@ -280,7 +278,7 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
     });
     const draftTransactionIDs = Object.keys(transactionDrafts ?? {});
 
-    const {translate, localeCompare, toLocaleDigit} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const {isProduction} = useEnvironment();
     const exportTemplates = useMemo(
         () => getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, policy),
@@ -1791,9 +1789,6 @@ function MoneyReportHeader({reportID: reportIDProp, shouldDisplayBackButton = fa
                             reportTransactions,
                             allTransactionViolations,
                             bankAccountList,
-                            personalPolicy,
-                            translate,
-                            toLocaleDigit,
                             hash: currentSearchHash,
                         });
                     });
