@@ -25,6 +25,7 @@ import useScrollToEndOnNewMessageReceived from '@hooks/useScrollToEndOnNewMessag
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
+import {isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import DateUtils from '@libs/DateUtils';
 import FS from '@libs/Fullstory';
 import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlightItem';
@@ -35,7 +36,6 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import {
     getFirstVisibleReportActionID,
     isConsecutiveActionMadeByPreviousActor,
-    isConsecutiveChronosAutomaticTimerAction,
     isCurrentActionUnread,
     isDeletedParentAction,
     isReportPreviewAction,
@@ -394,7 +394,7 @@ function ReportActionsList({
             return;
         }
 
-        if (isUnread(report, transactionThreadReport, isReportArchived, reportActionsFromOnyx) || (lastAction && isCurrentActionUnread(report, lastAction, sortedVisibleReportActions))) {
+        if (isUnread(report, transactionThreadReport, isReportArchived) || (lastAction && isCurrentActionUnread(report, lastAction, sortedVisibleReportActions))) {
             // On desktop, when the notification center is displayed, isVisible will return false.
             // Currently, there's no programmatic way to dismiss the notification center panel.
             // To handle this, we use the 'referrer' parameter to check if the current navigation is triggered from a notification.
