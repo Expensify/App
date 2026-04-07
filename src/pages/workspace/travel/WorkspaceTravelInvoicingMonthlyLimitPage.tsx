@@ -34,7 +34,7 @@ function WorkspaceTravelInvoicingMonthlyLimitPage({route}: WorkspaceTravelInvoic
     const [cardSettings] = useOnyx(getTravelInvoicingCardSettingsKey(workspaceAccountID));
     const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
     const currentLimit = travelSettings?.monthlySpendLimitPerUser ?? 0;
-    const defaultValue = convertToFrontendAmountAsString(currentLimit);
+    const defaultValue = convertToFrontendAmountAsString(currentLimit, CONST.DEFAULT_CURRENCY_DECIMALS);
     const {inputCallbackRef} = useAutoFocusInput();
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
     const [pendingLimit, setPendingLimit] = useState(0);
