@@ -466,8 +466,8 @@ const SCREENS = {
 
     REPORT_SETTINGS: {
         ROOT: 'Report_Settings_Root',
+        DYNAMIC_NOTIFICATION_PREFERENCES: 'Dynamic_Report_Settings_Notification_Preferences',
         DYNAMIC_SETTINGS_NAME: 'Dynamic_Report_Settings_Name',
-        NOTIFICATION_PREFERENCES: 'Report_Settings_Notification_Preferences',
         DYNAMIC_SETTINGS_WRITE_CAPABILITY: 'Dynamic_Report_Settings_Write_Capability',
         VISIBILITY: 'Report_Settings_Visibility',
         DYNAMIC_SETTINGS_VISIBILITY: 'Dynamic_Report_Settings_Visibility',
