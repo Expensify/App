@@ -10,6 +10,7 @@ import {isMobileSafari} from '@libs/Browser';
 import Navigation from '@libs/Navigation/Navigation';
 import {waitForIdle} from '@libs/Network/SequentialQueue';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import SignInPageWrapped, {SignInPage} from './SignInPage';
 import type {SignInPageRef} from './SignInPage';
@@ -42,9 +43,15 @@ function SignInModal() {
             // To prevent deadlock when OpenReport and OpenApp overlap, wait for the queue to be idle before calling openApp.
             // This ensures that any communication gaps between the client and server during OpenReport processing do not cause the queue to pause,
             // which would prevent us from processing or clearing the queue.
-            waitForIdle().then(() => {
-                openApp(true);
-            });
+            // After openApp completes, check if onboarding is needed. The earlier dismissModal fires while
+            // IS_LOADING_APP is still true, which causes OnboardingGuard to skip the onboarding redirect.
+            // By navigating to HOME after openApp loads the data, we trigger the guard with accurate state,
+            // allowing it to properly redirect new users to onboarding.
+            waitForIdle()
+                .then(() => openApp(true))
+                .then(() => {
+                    Navigation.navigate(ROUTES.HOME);
+                });
         }
     }, [session?.authTokenType]);
 
