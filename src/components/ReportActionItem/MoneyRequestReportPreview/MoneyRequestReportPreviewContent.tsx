@@ -512,36 +512,32 @@ function MoneyRequestReportPreviewContent({
         return index === MAX_PREVIEWS_NUMBER ? ITEM_LAYOUT_TYPE.SHOW_MORE : ITEM_LAYOUT_TYPE.PREVIEW;
     };
 
-    const previewContent = (() => {
-        if (shouldShowPreviewLoading) {
-            return (
-                <View
-                    style={[
-                        {
-                            height: CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.WIDE_HEIGHT,
-                            minWidth: previewCarouselMinWidth,
-                        },
-                        styles.justifyContentCenter,
-                        styles.mtn1,
-                    ]}
-                >
-                    <ActivityIndicator
-                        size={40}
-                        reasonAttributes={carouselReasonAttributes}
-                    />
-                </View>
-            );
-        }
+    let previewContent: React.ReactNode;
 
-        if (shouldShowAccessPlaceHolder) {
-            return <AccessMoneyRequestReportPreviewPlaceHolder />;
-        }
-
-        if (shouldShowEmptyPlaceholder) {
-            return <EmptyMoneyRequestReportPreview />;
-        }
-
-        return (
+    if (shouldShowPreviewLoading) {
+        previewContent = (
+            <View
+                style={[
+                    {
+                        height: CONST.REPORT.TRANSACTION_PREVIEW.CAROUSEL.WIDE_HEIGHT,
+                        minWidth: previewCarouselMinWidth,
+                    },
+                    styles.justifyContentCenter,
+                    styles.mtn1,
+                ]}
+            >
+                <ActivityIndicator
+                    size={40}
+                    reasonAttributes={carouselReasonAttributes}
+                />
+            </View>
+        );
+    } else if (shouldShowAccessPlaceHolder) {
+        previewContent = <AccessMoneyRequestReportPreviewPlaceHolder />;
+    } else if (shouldShowEmptyPlaceholder) {
+        previewContent = <EmptyMoneyRequestReportPreview />;
+    } else {
+        previewContent = (
             <View style={[styles.flex1, styles.flexColumn, styles.overflowVisible, styles.minHeight42]}>
                 <FlashList
                     key={carouselKey}
@@ -569,7 +565,7 @@ function MoneyRequestReportPreviewContent({
                 />
             </View>
         );
-    })();
+    }
 
     return (
         <View
