@@ -1,12 +1,10 @@
-import Navigation from '../../../src/libs/Navigation/Navigation';
+import Navigation from '@libs/Navigation/Navigation';
 import {getTaskTitle, isActiveTaskEditRoute} from '../../../src/libs/TaskUtils';
 import {createRegularTaskReport} from '../../utils/collections/reports';
 
 jest.mock('../../../src/libs/Localize');
-jest.mock('../../../src/libs/Navigation/Navigation', () => ({
-    default: {
-        getActiveRoute: jest.fn(),
-    },
+jest.mock('@libs/Navigation/Navigation', () => ({
+    getActiveRoute: jest.fn(),
 }));
 
 const mockGetActiveRoute = jest.mocked(Navigation.getActiveRoute);
