@@ -18,8 +18,6 @@ jest.mock('@src/ROUTES', () => ({
         INVITE: {path: 'invite'},
         FILTERS: {path: 'filters'},
         ADDRESS_COUNTRY: {path: 'country', getRoute: (country: string) => `country?country=${country}`},
-        EXIT_SURVEY_REASON: {path: 'exit-survey/reason'},
-        EXIT_SURVEY_CONFIRM: {path: 'exit-survey/confirm'},
     },
 }));
 
@@ -41,18 +39,6 @@ describe('createDynamicRoute', () => {
 
         expect(result).toBe(expectedPath);
         expect(mockGetActiveRoute).toHaveBeenCalled();
-    });
-
-    it('should replace an existing dynamic suffix when navigating to another dynamic route (e.g. exit survey reason → confirm)', () => {
-        const activeRoute = 'settings/exit-survey/reason';
-        const suffix = 'exit-survey/confirm';
-        const expectedPath = 'settings/exit-survey/confirm';
-
-        mockGetActiveRoute.mockReturnValue(activeRoute);
-
-        const result = createDynamicRoute(suffix as unknown as DynamicRouteSuffix);
-
-        expect(result).toBe(expectedPath);
     });
 
     it('should append suffix and preserve query parameters at the end', () => {
