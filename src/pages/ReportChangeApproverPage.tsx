@@ -177,3 +177,5 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
 }
 
 export default withReportOrNotFound()(ReportChangeApproverPage);
+export {APPROVER_TYPE};
+export type {ApproverType};
