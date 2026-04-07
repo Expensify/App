@@ -42,9 +42,9 @@ function PrevNextButtons({isPrevButtonDisabled, isNextButtonDisabled, onNext, on
                 <View style={[styles.reportActionContextMenuMiniButton, {backgroundColor: theme.borderLighter}, isPrevButtonDisabled && styles.buttonOpacityDisabled]}>
                     <Icon
                         src={icons.BackArrow}
-                        small
+                        width={variables.iconSizeNormal}
+                        height={variables.iconSizeNormal}
                         fill={theme.icon}
-                        isButtonIcon
                     />
                 </View>
             </PressableWithFeedback>

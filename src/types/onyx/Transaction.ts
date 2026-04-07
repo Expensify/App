@@ -1,5 +1,6 @@
 import type {KeysOfUnion, ValueOf} from 'type-fest';
-import type {CreateTrackExpenseParams, IOURequestType, ReplaceReceipt, RequestMoneyInformation, StartSplitBilActionParams} from '@libs/actions/IOU';
+import type {IOURequestType, ReplaceReceipt, RequestMoneyInformation, StartSplitBilActionParams} from '@libs/actions/IOU';
+import type {CreateTrackExpenseParams} from '@libs/actions/IOU/TrackExpense';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type {FileObject} from '@src/types/utils/Attachment';
@@ -217,6 +218,9 @@ type Receipt = {
 
     /** Path of the receipt file */
     source?: ReceiptSource;
+
+    /** Local file URI preserved on the creating device so the remote source from the server does not cause a reload */
+    localSource?: string | null;
 
     /** Name of receipt file */
     filename?: string;
@@ -453,6 +457,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The transaction converted amount in report's currency */
         convertedAmount?: number;
 
+        /** The currency conversion rate from the transaction currency to the report currency */
+        currencyConversionRate?: string;
+
         /** The transaction tax amount */
         taxAmount?: number;
 
@@ -548,6 +555,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The transaction id */
         transactionID: string;
+
+        /** Selected transaction IDs for bulk edit operations (only used in draft transactions) */
+        selectedTransactionIDs?: string[];
 
         /** The transaction tag */
         tag?: string;
