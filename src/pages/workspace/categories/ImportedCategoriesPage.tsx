@@ -11,7 +11,6 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import {importPolicyCategories} from '@libs/actions/Policy/Category';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
-import {appendDynamicRouteSuffixToBasePath} from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -43,8 +42,7 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_IMPORTED;
     const backTo = isQuickSettingsFlow ? route.params.backTo : undefined;
 
-    const categoriesListPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_IMPORTED.path);
-    const workspaceBackToImportPath = appendDynamicRouteSuffixToBasePath(categoriesListPath, DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_IMPORT.path);
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_IMPORTED.path);
 
     const getColumnRoles = (): ColumnRole[] => {
         const roles = [];
@@ -147,7 +145,7 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
         >
             <HeaderWithBackButton
                 title={translate('workspace.categories.importCategories')}
-                onBackButtonPress={() => Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_IMPORT.getRoute(policyID, backTo) : workspaceBackToImportPath)}
+                onBackButtonPress={() => Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_IMPORT.getRoute(policyID, backTo) : backPath)}
             />
             <ImportSpreadsheetColumns
                 spreadsheetColumns={spreadsheetColumns}

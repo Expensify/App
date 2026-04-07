@@ -2,7 +2,6 @@ import React from 'react';
 import ImportSpreadsheet from '@components/ImportSpreadsheet';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import usePolicy from '@hooks/usePolicy';
-import {appendDynamicRouteSuffixToBasePath} from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {goBackFromInvalidPolicy, hasAccountingConnections as hasAccountingConnectionsUtil} from '@libs/PolicyUtils';
@@ -24,8 +23,7 @@ function ImportCategoriesPage({route}: ImportCategoriesPageProps) {
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_IMPORT;
     const backTo = isQuickSettingsFlow ? route.params.backTo : undefined;
 
-    const workspaceCategoriesListBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_IMPORT.path);
-    const workspaceGoToImportedPath = appendDynamicRouteSuffixToBasePath(workspaceCategoriesListBackPath, DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_IMPORTED.path);
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_IMPORT.path);
 
     if (hasAccountingConnections) {
         return <NotFoundPage />;
@@ -40,7 +38,7 @@ function ImportCategoriesPage({route}: ImportCategoriesPageProps) {
         >
             <ImportSpreadsheet
                 backTo={isQuickSettingsFlow ? backTo : workspaceCategoriesListBackPath}
-                goTo={isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_IMPORTED.getRoute(policyID, backTo) : workspaceGoToImportedPath}
+                goTo={isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_IMPORTED.getRoute(policyID, backTo) : backPath}
             />
         </AccessOrNotFoundWrapper>
     );
