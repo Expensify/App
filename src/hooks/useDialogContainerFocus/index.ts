@@ -3,6 +3,55 @@ import {InteractionManager} from 'react-native';
 import type UseDialogContainerFocus from './types';
 
 const FOCUSABLE_SELECTOR = 'button, [href], input, textarea, select, [role="button"], [role="link"], [tabindex]:not([tabindex="-1"])';
+const PROGRAMMATIC_FOCUS_DATA_ATTRIBUTE = 'data-programmatic-focus';
+
+// Module-level flag: true after any keyboard event. On page load/refresh this is false
+// (no keyboard interaction yet), so we suppress the focus ring. After keyboard navigation
+// (e.g., Tab + Enter to open the RHP), this is true and we show the ring immediately.
+let hadKeyboardEvent = false;
+if (typeof document !== 'undefined') {
+    document.addEventListener(
+        'keydown',
+        () => {
+            hadKeyboardEvent = true;
+        },
+        true,
+    );
+}
+
+/** @returns true if an element was focused, false otherwise. */
+function focusFirstInteractiveElement(container: HTMLElement | null): boolean {
+    if (!container || (document.activeElement && document.activeElement !== document.body)) {
+        return false;
+    }
+    const targets = container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
+    const target = Array.from(targets).find((el) => !el.closest('[aria-hidden="true"]'));
+    if (!target) {
+        return false;
+    }
+    if (!hadKeyboardEvent) {
+        const cleanup = () => {
+            target.removeAttribute(PROGRAMMATIC_FOCUS_DATA_ATTRIBUTE);
+            target.style.removeProperty('outline');
+        };
+        // On first Tab, prevent default and re-focus the same element with a visible ring
+        // so the user sees focus land here instead of advancing past the silent focus.
+        const onFirstTab = (e: KeyboardEvent) => {
+            if (e.key !== 'Tab' || document.activeElement !== target) {
+                return;
+            }
+            e.preventDefault();
+            cleanup();
+            target.focus({preventScroll: true});
+        };
+        target.setAttribute(PROGRAMMATIC_FOCUS_DATA_ATTRIBUTE, 'true');
+        target.style.setProperty('outline', 'none');
+        target.addEventListener('blur', cleanup, {once: true});
+        document.addEventListener('keydown', onFirstTab, {once: true, capture: true});
+    }
+    target.focus({preventScroll: true});
+    return true;
+}
 
 /** Focuses the first interactive element inside the dialog after the RHP transition for screen reader announcement. */
 const useDialogContainerFocus: UseDialogContainerFocus = (ref, isReady, claimInitialFocus) => {
@@ -19,13 +68,11 @@ const useDialogContainerFocus: UseDialogContainerFocus = (ref, isReady, claimIni
                 return;
             }
             frameId = requestAnimationFrame(() => {
-                if (cancelled || (document.activeElement && document.activeElement !== document.body)) {
+                if (cancelled) {
                     return;
                 }
                 const container = ref.current as unknown as HTMLElement | null;
-                const targets = container?.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
-                const target = targets && Array.from(targets).find((el) => !el.closest('[aria-hidden="true"]'));
-                target?.focus({preventScroll: true});
+                focusFirstInteractiveElement(container);
             });
         });
         return () => {
@@ -37,3 +84,4 @@ const useDialogContainerFocus: UseDialogContainerFocus = (ref, isReady, claimIni
 };
 
 export default useDialogContainerFocus;
+export {focusFirstInteractiveElement, FOCUSABLE_SELECTOR};
