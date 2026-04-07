@@ -319,7 +319,12 @@ function MapView({
                     );
                 })}
 
-                {!!directionCoordinates && <Direction coordinates={directionCoordinates} />}
+                {!!directionCoordinates && (
+                    <Direction
+                        coordinates={directionCoordinates}
+                        belowLayerID={interactive ? CONST.MAP_VIEW_LAYERS.USER_LOCATION : undefined}
+                    />
+                )}
                 {!!distanceSymbolCoordinate && !!distanceInMeters && !!distanceUnit && (
                     <MarkerView
                         coordinate={distanceSymbolCoordinate}

@@ -3,7 +3,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {DirectionProps} from './MapViewTypes';
 
-function Direction({coordinates}: DirectionProps) {
+function Direction({coordinates, belowLayerID}: DirectionProps) {
     const styles = useThemeStyles();
     if (coordinates.length < 1) {
         return null;
@@ -22,7 +22,7 @@ function Direction({coordinates}: DirectionProps) {
             }}
         >
             <Mapbox.LineLayer
-                belowLayerID={CONST.MAP_VIEW_LAYERS.USER_LOCATION}
+                belowLayerID={belowLayerID}
                 id={CONST.MAP_VIEW_LAYERS.ROUTE_FILL}
                 style={styles.mapDirection}
             />
