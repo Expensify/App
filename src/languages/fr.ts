@@ -6714,6 +6714,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 duplicateRulePrompt: (merchantName: string) => `Votre règle existante pour « ${merchantName} » aura la priorité sur celle-ci. Enregistrer quand même ?`,
                 saveAnyway: 'Enregistrer quand même',
                 applyToExistingUnsubmittedExpenses: 'Appliquer aux dépenses non soumises existantes',
+                findRule: 'Règle de recherche de commerçant',
             },
             categoryRules: {
                 title: 'Règles de catégorie',
@@ -7772,6 +7773,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
     chronos: {
         oooEventSummaryFullDay: (summary: string, dayCount: number, date: string) => `${summary} pour ${dayCount} ${dayCount === 1 ? 'jour' : 'jours'} jusqu’au ${date}`,
         oooEventSummaryPartialDay: (summary: string, timePeriod: string, date: string) => `${summary} du ${timePeriod} le ${date}`,
+        startTimer: 'Démarrer le minuteur',
+        stopTimer: 'Arrêter le minuteur',
     },
     footer: {
         features: 'Fonctionnalités',

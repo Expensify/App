@@ -1538,6 +1538,8 @@ function verifySetupIntentAndRequestPolicyOwnerChange(policyID: string, currentU
 function createPolicyExpenseChats(
     policyID: string,
     invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs,
+    // TODO: Remove optional (?) once all is updated (https://github.com/Expensify/App/issues/66578)
+    reportActionsList?: OnyxCollection<ReportActions>,
     hasOutstandingChildRequest = false,
     notificationPreference: NotificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
 ): WorkspaceMembersChats {
@@ -1577,7 +1579,7 @@ function createPolicyExpenseChats(
                 },
             });
             const currentTime = DateUtils.getDBTime();
-            const reportActions = deprecatedAllReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChat.reportID}`] ?? {};
+            const reportActions = (reportActionsList ?? deprecatedAllReportActions)?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldChat.reportID}`] ?? {};
             for (const action of Object.values(reportActions)) {
                 if (action.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
                     continue;
@@ -2158,7 +2160,7 @@ function clearDuplicateWorkspace() {
     Onyx.set(ONYXKEYS.DUPLICATE_WORKSPACE, {});
 }
 
-function getDisplayNameForWorkspace(email: string) {
+function getDisplayNameForWorkspace(email: string, displayNameOverride?: string) {
     const emailParts = email.split('@');
     const domain = emailParts.at(1) ?? '';
     const isSMSDomain = `@${domain}` === CONST.SMS.DOMAIN;
@@ -2172,7 +2174,7 @@ function getDisplayNameForWorkspace(email: string) {
     }
 
     const userDetails = PersonalDetailsUtils.getPersonalDetailByEmail(email);
-    const displayName = userDetails?.displayName?.trim();
+    const displayName = displayNameOverride?.trim() ?? userDetails?.displayName?.trim();
     if (displayName) {
         return Str.UCFirst(displayName);
     }
@@ -2182,12 +2184,10 @@ function getDisplayNameForWorkspace(email: string) {
 }
 
 /**
- * Generate a policy name based on an email and policy list.
- * @param [email] the email to base the workspace name on. If not passed, will use the logged-in user's email instead
- * @param [lastWorkspaceNumber] the last workspace number
+ * Generate a policy name based on an email and the last workspace number.
  */
-function newGenerateDefaultWorkspaceName(email: string, lastWorkspaceNumber: number | undefined, localeTranslate: LocalizedTranslate): string {
-    const emailParts = email ? email.split('@') : deprecatedSessionEmail.split('@');
+function newGenerateDefaultWorkspaceName(email: string, lastWorkspaceNumber: number | undefined, localeTranslate: LocalizedTranslate, displayNameOverride?: string): string {
+    const emailParts = email.split('@');
     if (!emailParts || emailParts.length !== 2) {
         return '';
     }
@@ -2198,7 +2198,7 @@ function newGenerateDefaultWorkspaceName(email: string, lastWorkspaceNumber: num
         return localeTranslate('workspace.new.myGroupWorkspace', {workspaceNumber: lastWorkspaceNumber !== undefined ? lastWorkspaceNumber + 1 : undefined});
     }
 
-    const displayNameForWorkspace = getDisplayNameForWorkspace(email || deprecatedSessionEmail);
+    const displayNameForWorkspace = getDisplayNameForWorkspace(email, displayNameOverride);
 
     return localeTranslate('workspace.new.workspaceName', displayNameForWorkspace, lastWorkspaceNumber !== undefined ? lastWorkspaceNumber + 1 : undefined);
 }
@@ -2928,7 +2928,13 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
     }
 
     if (adminParticipant?.login) {
-        const employeeWorkspaceChat = createPolicyExpenseChats(policyID, {[adminParticipant.login]: adminParticipant.accountID ?? CONST.DEFAULT_NUMBER_ID}, hasOutstandingChildRequest);
+        // TODO: Update to include reportActionsList later (https://github.com/Expensify/App/issues/66578)
+        const employeeWorkspaceChat = createPolicyExpenseChats(
+            policyID,
+            {[adminParticipant.login]: adminParticipant.accountID ?? CONST.DEFAULT_NUMBER_ID},
+            undefined,
+            hasOutstandingChildRequest,
+        );
         params.memberData = JSON.stringify({
             accountID: Number(adminParticipant.accountID),
             email: adminParticipant.login,
@@ -2965,23 +2971,16 @@ function createWorkspace(options: CreateWorkspaceDataOptions): CreateWorkspacePa
 
 /**
  * Creates a draft workspace for various money request flows
- *
- * @param [policyOwnerEmail] the email of the account to make the owner of the policy
- * @param [makeMeAdmin] leave the calling account as an admin on the policy
- * @param [policyName] custom policy name we will use for created workspace
- * @param [policyID] custom policy id we will use for created workspace
  */
 function createDraftWorkspace(
     introSelected: OnyxEntry<IntroSelected>,
+    workspaceName: string,
     policyOwnerEmail = '',
     makeMeAdmin = false,
-    policyName = '',
     policyID = generatePolicyID(),
     currency = '',
     file?: File,
 ): CreateWorkspaceParams {
-    const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
-
     const {customUnits, customUnitID, customUnitRateID, outputCurrency} = buildOptimisticDistanceRateCustomUnits(currency);
 
     const {expenseChatData, adminsChatReportID, adminsCreatedReportActionID, expenseChatReportID, expenseCreatedReportActionID} = ReportUtils.buildOptimisticWorkspaceChats(
@@ -3936,6 +3935,8 @@ function createWorkspaceFromIOUPayment(
     currentUserEmail: string,
     iouReportOwnerEmail: string,
     conciergeReportID: string | undefined,
+    lastWorkspaceNumber: number | undefined,
+    localeTranslate: LocalizedTranslate,
 ): WorkspaceFromIOUCreationData | undefined {
     // This flow only works for IOU reports
     if (!iouReport || !ReportUtils.isIOUReportUsingReport(iouReport)) {
@@ -3944,7 +3945,7 @@ function createWorkspaceFromIOUPayment(
 
     // Generate new variables for the policy
     const policyID = generatePolicyID();
-    const workspaceName = generateDefaultWorkspaceName(currentUserEmail);
+    const workspaceName = newGenerateDefaultWorkspaceName(currentUserEmail, lastWorkspaceNumber, localeTranslate);
     const employeeAccountID = iouReport?.ownerAccountID;
     const {customUnits, customUnitID, customUnitRateID} = buildOptimisticDistanceRateCustomUnits(iouReport?.currency);
     const oldPersonalPolicyID = iouReport?.policyID;
@@ -3967,7 +3968,8 @@ function createWorkspaceFromIOUPayment(
     }
 
     // Create the expense chat for the employee whose IOU is being paid
-    const employeeWorkspaceChat = createPolicyExpenseChats(policyID, {[iouReportOwnerEmail]: employeeAccountID}, true);
+    // TODO: Update to include reportActionsList later (https://github.com/Expensify/App/issues/66578)
+    const employeeWorkspaceChat = createPolicyExpenseChats(policyID, {[iouReportOwnerEmail]: employeeAccountID}, undefined, true);
     const newWorkspace = {
         id: policyID,
 
