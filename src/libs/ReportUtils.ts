@@ -4502,8 +4502,8 @@ function isReportFieldDisabled(report: OnyxEntry<Report>, reportField: OnyxEntry
  * A field is considered disabled if it is disabled by the report configuration itself
  * or if the user is not an admin, owner, approver, or the report owner.
  */
-function isReportFieldDisabledForUser(report: OnyxEntry<Report>, reportField: OnyxEntry<PolicyReportField>, policy: OnyxEntry<Policy>): boolean {
-    return isReportFieldDisabled(report, reportField, policy) || !isAdminOwnerApproverOrReportOwner(report, policy);
+function isReportFieldDisabledForUser(report: OnyxEntry<Report>, reportField: OnyxEntry<PolicyReportField>, policy: OnyxEntry<Policy>, currentUserAccountID: number | undefined): boolean {
+    return isReportFieldDisabled(report, reportField, policy) || !isAdminOwnerApproverOrReportOwner(report, policy, currentUserAccountID);
 }
 
 /**
@@ -4516,11 +4516,11 @@ function isReportFieldDisabledForUser(report: OnyxEntry<Report>, reportField: On
  * - the report is an expense report,
  * - the report belongs to a paid group policy.
  */
-function canEditReportTitle(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
+function canEditReportTitle(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, currentUserAccountID: number | undefined): boolean {
     const titleField = getAvailableReportFields(report, Object.values(policy?.fieldList ?? {})).find((reportField) => isReportFieldOfTypeTitle(reportField));
     const isFieldDisabled = isReportFieldDisabled(report, titleField, policy);
 
-    return !isFieldDisabled && isAdminOwnerApproverOrReportOwner(report, policy) && isExpenseReport(report) && isPaidGroupPolicyPolicyUtils(policy);
+    return !isFieldDisabled && isAdminOwnerApproverOrReportOwner(report, policy, currentUserAccountID) && isExpenseReport(report) && isPaidGroupPolicyPolicyUtils(policy);
 }
 
 /**
@@ -5108,14 +5108,16 @@ function canEditReportAction(reportAction: OnyxInputOrEntry<ReportAction>, linke
     );
 }
 
-function canModifyHoldStatus(report: Report, reportAction: ReportAction): boolean {
+function canModifyHoldStatus(report: Report, reportAction: ReportAction, currentUserAccountID: number | undefined): boolean {
+    // TODO: Remove fallback once all callers pass currentUserAccountID (https://github.com/Expensify/App/issues/66413)
+    const resolvedCurrentUserAccountID = currentUserAccountID ?? currentUserPersonalDetails?.accountID;
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     if (!isMoneyRequestReport(report) || isTrackExpenseReport(report)) {
         return false;
     }
     const isAdmin = isPolicyAdmin(allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`]);
     const isActionOwner = isActionCreator(reportAction);
-    const isManager = isMoneyRequestReport(report) && report?.managerID !== null && currentUserPersonalDetails?.accountID === report?.managerID;
+    const isManager = isMoneyRequestReport(report) && report?.managerID !== null && resolvedCurrentUserAccountID === report?.managerID;
 
     if (isIOUReport(report)) {
         return isActionOwner || isManager;
@@ -5130,11 +5132,14 @@ function canHoldUnholdReportAction(
     holdReportAction: OnyxEntry<ReportAction>,
     transaction: OnyxEntry<Transaction>,
     policy: OnyxEntry<Policy>,
+    currentUserAccountID: number | undefined,
 ): {canHoldRequest: boolean; canUnholdRequest: boolean} {
     if (!report || !reportAction || !isMoneyRequestAction(reportAction) || isInvoiceReport(report)) {
         return {canHoldRequest: false, canUnholdRequest: false};
     }
 
+    // TODO: Remove fallback once all callers pass currentUserAccountID (https://github.com/Expensify/App/issues/66413)
+    const resolvedCurrentUserAccountID = currentUserAccountID ?? currentUserPersonalDetails?.accountID;
     const isRequestSettled = isSettled(report);
     const isApproved = isReportApproved({report});
     const isRequestIOU = isIOUReport(report);
@@ -5142,13 +5147,13 @@ function canHoldUnholdReportAction(
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const isTrackExpenseMoneyReport = isTrackExpenseReport(report);
     const isActionOwner = isActionCreator(reportAction);
-    const isApprover = isMoneyRequestReport(report) && report.managerID !== null && currentUserPersonalDetails?.accountID === report?.managerID;
+    const isApprover = isMoneyRequestReport(report) && report.managerID !== null && resolvedCurrentUserAccountID === report?.managerID;
     const isAdmin = isPolicyAdminPolicyUtils(policy);
     const isOnHold = isOnHoldTransactionUtils(transaction);
     const isClosed = isClosedReport(report);
     const isSubmitted = isProcessingReport(report);
 
-    const canModifyStatus = canModifyHoldStatus(report, reportAction);
+    const canModifyStatus = canModifyHoldStatus(report, reportAction, currentUserAccountID);
     const canModifyUnholdStatus = !isTrackExpenseMoneyReport && (isAdmin || (isActionOwner && isHoldActionCreator) || isApprover);
 
     const canHoldOrUnholdRequest = !isRequestSettled && !isApproved && !isClosed && !isDeletedParentAction(reportAction);
@@ -9218,7 +9223,7 @@ function hasViolations(
     return transactions.some((transaction) => hasViolation(transaction, transactionViolations, currentUserEmailParam ?? '', currentUserAccountIDParam, report, policy, shouldShowInReview));
 }
 
-function hasVisibleReportFieldViolations(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
+function hasVisibleReportFieldViolations(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, currentUserAccountID: number | undefined): boolean {
     if (!report || !policy?.fieldList || !policy?.areReportFieldsEnabled) {
         return false;
     }
@@ -9247,7 +9252,7 @@ function hasVisibleReportFieldViolations(report: OnyxEntry<Report>, policy: Onyx
         if (shouldHideSingleReportField(field)) {
             return false;
         }
-        if (isReportFieldDisabledForUser(report, field, policy)) {
+        if (isReportFieldDisabledForUser(report, field, policy, currentUserAccountID)) {
             return false;
         }
         return !!getFieldViolation(field);
@@ -11228,15 +11233,19 @@ function isNonAdminOrOwnerOfPolicyExpenseChat(report: OnyxInputOrEntry<Report>, 
     return isPolicyExpenseChat(report) && !(isPolicyAdminPolicyUtils(policy) || isPolicyOwner(policy, deprecatedCurrentUserAccountID) || isReportOwner(report));
 }
 
-function isAdminOwnerApproverOrReportOwner(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
-    const isApprover = isMoneyRequestReport(report) && report?.managerID !== null && currentUserPersonalDetails?.accountID === report?.managerID;
+function isAdminOwnerApproverOrReportOwner(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, currentUserAccountID: number | undefined): boolean {
+    // TODO: Remove fallback once all callers pass currentUserAccountID (https://github.com/Expensify/App/issues/66413)
+    const resolvedCurrentUserAccountID = currentUserAccountID ?? currentUserPersonalDetails?.accountID;
+    const isApprover = isMoneyRequestReport(report) && report?.managerID !== null && resolvedCurrentUserAccountID === report?.managerID;
 
     return isPolicyAdminPolicyUtils(policy) || isPolicyOwner(policy, deprecatedCurrentUserAccountID) || isReportOwner(report) || isApprover;
 }
 
-function isNonOwnerMangerOfIOUReport(report: OnyxEntry<Report>): boolean {
-    const isOwner = report?.ownerAccountID === currentUserPersonalDetails?.accountID;
-    const isManager = report?.managerID === currentUserPersonalDetails?.accountID;
+function isNonOwnerMangerOfIOUReport(report: OnyxEntry<Report>, currentUserAccountID: number | undefined): boolean {
+    // TODO: Remove fallback once all callers pass currentUserAccountID (https://github.com/Expensify/App/issues/66413)
+    const resolvedCurrentUserAccountID = currentUserAccountID ?? currentUserPersonalDetails?.accountID;
+    const isOwner = report?.ownerAccountID === resolvedCurrentUserAccountID;
+    const isManager = report?.managerID === resolvedCurrentUserAccountID;
     return isIOUReport(report) && !isOwner && !isManager;
 }
 
@@ -11287,7 +11296,7 @@ function canJoinChat(
 /**
  * Whether the user can leave a report
  */
-function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, isReportArchived = false): boolean {
+function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, currentUserAccountID: number | undefined, isReportArchived = false): boolean {
     if (isRootGroupChat(report, isReportArchived)) {
         return true;
     }
@@ -11322,7 +11331,7 @@ function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, isRe
         (isChatThread(report) && !!getReportNotificationPreference(report)) ||
         isUserCreatedPolicyRoom(report) ||
         isNonAdminOrOwnerOfPolicyExpenseChat(report, policy) ||
-        isNonOwnerMangerOfIOUReport(report)
+        isNonOwnerMangerOfIOUReport(report, currentUserAccountID)
     );
 }
 
