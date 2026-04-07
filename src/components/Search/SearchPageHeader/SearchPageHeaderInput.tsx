@@ -233,10 +233,12 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                     if (item.mapKey && item.autocompleteID && fieldKey) {
                         const parsed = parseSearchQuery(newSearchQuery) as {ranges: Array<{key: string; value: string}>};
                         const sameKeyRanges = parsed.ranges?.filter((r) => r.key === fieldKey) ?? [];
-                        const index = sameKeyRanges.length - 1;
                         const lastRange = sameKeyRanges.at(-1);
                         const rangeValue = lastRange?.value ?? item.searchQuery;
-                        const substitutionKey = index <= 0 ? item.mapKey : getSubstitutionMapKeyWithIndex(fieldKey as SearchFilterKey, rangeValue, index);
+                        // Index must be per (key, value), not just key, so mixed values don't collide.
+                        const index = sameKeyRanges.filter((range) => range.value === rangeValue).length - 1;
+                        const substitutionBaseKey = `${fieldKey}:${rangeValue}`;
+                        const substitutionKey = index <= 0 ? substitutionBaseKey : `${substitutionBaseKey}:${index}`;
                         const substitutions = {...autocompleteSubstitutions, [substitutionKey]: item.autocompleteID};
                         setAutocompleteSubstitutions(substitutions);
                     }
