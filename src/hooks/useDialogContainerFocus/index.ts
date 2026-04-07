@@ -5,15 +5,21 @@ import type UseDialogContainerFocus from './types';
 const FOCUSABLE_SELECTOR = 'button, [href], input, textarea, select, [role="button"], [role="link"], [tabindex]:not([tabindex="-1"])';
 const PROGRAMMATIC_FOCUS_DATA_ATTRIBUTE = 'data-programmatic-focus';
 
-// Module-level flag: true after any keyboard event. On page load/refresh this is false
-// (no keyboard interaction yet), so we suppress the focus ring. After keyboard navigation
-// (e.g., Tab + Enter to open the RHP), this is true and we show the ring immediately.
+// Tracks whether the last user interaction was keyboard or mouse/page-load.
+// Keyboard: show focus ring immediately. Mouse/page-load: suppress ring.
 let hadKeyboardEvent = false;
 if (typeof document !== 'undefined') {
     document.addEventListener(
         'keydown',
         () => {
             hadKeyboardEvent = true;
+        },
+        true,
+    );
+    document.addEventListener(
+        'mousedown',
+        () => {
+            hadKeyboardEvent = false;
         },
         true,
     );
