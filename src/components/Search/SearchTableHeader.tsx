@@ -83,6 +83,14 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
         translationKey: 'common.category',
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.ATTENDEES,
+        translationKey: 'iou.attendees',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE,
+        translationKey: 'iou.totalPerAttendee',
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TAG,
         translationKey: 'common.tag',
     },
