@@ -152,7 +152,7 @@ function BaseReportActionContextMenu({
         'Stopwatch',
         'ThreeDots',
         'Trashcan',
-    ] as const);
+    ]);
     const StyleUtils = useStyleUtils();
     const {translate, getLocalDateFromDatetime} = useLocalize();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -243,6 +243,7 @@ function BaseReportActionContextMenu({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
     const session = useSession();
@@ -413,6 +414,8 @@ function BaseReportActionContextMenu({
                             encryptedAuthToken,
                             iouTransaction,
                             bankAccountList,
+                            isOffline,
+                            conciergeReportID,
                         };
 
                         if ('renderContent' in contextAction) {
@@ -424,13 +427,12 @@ function BaseReportActionContextMenu({
                         const text = textTranslateKey && (isKeyInActionUpdateKeys ? translate(textTranslateKey, {action: moneyRequestAction ?? reportAction}) : translate(textTranslateKey));
                         const transactionPayload = textTranslateKey === 'reportActionContextMenu.copyMessage' && transaction && {transaction};
                         const isMenuAction = textTranslateKey === 'reportActionContextMenu.menu';
-                        const icon = typeof contextAction.icon === 'string' ? icons[contextAction.icon] : contextAction.icon;
-                        const successIcon = typeof contextAction.successIcon === 'string' ? icons[contextAction.successIcon] : contextAction.successIcon;
+                        const successIcon = contextAction.successIcon ? icons[contextAction.successIcon] : undefined;
 
                         return (
                             <ContextMenuItem
                                 buttonRef={isMenuAction ? threeDotRef : {current: null}}
-                                icon={icon}
+                                icon={icons[contextAction.icon]}
                                 text={text ?? ''}
                                 successIcon={successIcon}
                                 successText={contextAction.successTextTranslateKey ? translate(contextAction.successTextTranslateKey) : undefined}

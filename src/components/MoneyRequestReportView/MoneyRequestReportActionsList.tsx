@@ -40,6 +40,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {dismissRejectUseExplanation} from '@libs/actions/IOU';
 import {queueExportSearchWithTemplate} from '@libs/actions/Search';
+import {isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import DateUtils from '@libs/DateUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isActionVisibleOnMoneyRequestReport} from '@libs/MoneyRequestReportUtils';
@@ -48,13 +49,12 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {
     getFirstVisibleReportActionID,
-    getMostRecentIOURequestActionID,
     getOneTransactionThreadReportID,
     hasNextActionMadeBySameActor,
-    isConsecutiveChronosAutomaticTimerAction,
     isCurrentActionUnread,
     isDeletedParentAction,
     isIOUActionMatchingTransactionList,
+    isMoneyRequestAction,
     isReportActionVisible,
     wasMessageReceivedWhileOffline,
 } from '@libs/ReportActionsUtils';
@@ -72,7 +72,7 @@ import {getUnreadMarkerReportAction} from '@pages/inbox/report/shouldDisplayNewM
 import useReportUnreadMessageScrollTracking from '@pages/inbox/report/useReportUnreadMessageScrollTracking';
 import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 import variables from '@styles/variables';
-import {openReport, readNewestAction, subscribeToNewActionEvent} from '@userActions/Report';
+import {getOlderActions, openReport, readNewestAction, subscribeToNewActionEvent} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -92,6 +92,10 @@ const EmptyParentReportActionForTransactionThread = undefined;
 
 // Amount of time to wait until all list items should be rendered and scrollToEnd will behave well
 const DELAY_FOR_SCROLLING_TO_END = 100;
+
+// The server page size for report actions is ~50. Gaps from IOU prioritization only happen
+// when the initial load is truncated, so skip backfill for smaller reports.
+const BACKFILL_MIN_ACTIONS_THRESHOLD = 50;
 
 type MoneyRequestReportListProps = {
     /** The report */
@@ -175,7 +179,6 @@ function MoneyRequestReportActionsList({
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
     const transactionsWithoutPendingDelete = useMemo(() => transactions.filter((t) => !isTransactionPendingDelete(t)), [transactions]);
-    const mostRecentIOUReportActionID = useMemo(() => getMostRecentIOURequestActionID(reportActions), [reportActions]);
     // reportActions is passed as an array because it's sorted chronologically for FlatList rendering and pagination.
     // However, getOriginalReportID expects the Onyx object format (keyed by reportActionID) for efficient lookups.
     const reportActionsObject = useMemo(() => {
@@ -420,6 +423,58 @@ function MoneyRequestReportActionsList({
             loadNewerChats(false);
         }
     }, [hasFinishedInitialLoad, reportActions.length, hasNewerActions, isOffline, reportMetadata?.isLoadingNewerReportActions, reportMetadata?.newestFetchedReportActionID, loadNewerChats]);
+
+    // Backfill loop: the backend prioritizes IOU actions in OpenReport/GetNewerActions for money
+    // request reports, which can leave non-IOU chat messages in a gap between the IOU-biased cursor
+    // and older messages. After auto-pagination finishes, walk backwards from the IOU cursor using
+    // getOlderActions. Each response advances oldestFetchedReportActionID so the next call picks up
+    // where the previous one left off, until the cursor stops advancing (gap filled).
+    const prevBackfillCursorRef = useRef<string | undefined>(undefined);
+    const isBackfillingRef = useRef(false);
+    const prevBackfillReportIDRef = useRef(reportID);
+    if (prevBackfillReportIDRef.current !== reportID) {
+        prevBackfillReportIDRef.current = reportID;
+        prevBackfillCursorRef.current = undefined;
+        isBackfillingRef.current = false;
+    }
+    useEffect(() => {
+        if (!hasFinishedInitialLoad || isOffline || hasNewerActions || reportMetadata?.isLoadingNewerReportActions || reportMetadata?.isLoadingOlderReportActions) {
+            return;
+        }
+
+        if (!isBackfillingRef.current) {
+            const hasIOUActions = reportActions.some((action) => isMoneyRequestAction(action));
+            if (!hasIOUActions || reportActions.length < BACKFILL_MIN_ACTIONS_THRESHOLD || !reportMetadata?.newestFetchedReportActionID) {
+                return;
+            }
+        }
+
+        const cursor = isBackfillingRef.current ? reportMetadata?.oldestFetchedReportActionID : reportMetadata?.newestFetchedReportActionID;
+        if (!cursor) {
+            return;
+        }
+
+        if (prevBackfillCursorRef.current === cursor) {
+            return;
+        }
+
+        isBackfillingRef.current = true;
+        prevBackfillCursorRef.current = cursor;
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        const handle = InteractionManager.runAfterInteractions(() => getOlderActions(reportID, cursor));
+
+        return () => handle.cancel();
+    }, [
+        hasFinishedInitialLoad,
+        isOffline,
+        hasNewerActions,
+        reportMetadata?.isLoadingNewerReportActions,
+        reportMetadata?.isLoadingOlderReportActions,
+        reportMetadata?.newestFetchedReportActionID,
+        reportMetadata?.oldestFetchedReportActionID,
+        reportActions,
+        reportID,
+    ]);
 
     const onStartReached = useCallback(() => {
         if (!isSearchTopmostFullScreenRoute()) {
@@ -694,7 +749,6 @@ function MoneyRequestReportActionsList({
                     report={report}
                     transactionThreadReport={transactionThreadReport}
                     displayAsGroup={displayAsGroup}
-                    mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                     shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
                     shouldDisplayReplyDivider={visibleReportActions.length > 1}
                     isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
@@ -719,7 +773,6 @@ function MoneyRequestReportActionsList({
             report,
             isOffline,
             transactionThreadReport,
-            mostRecentIOUReportActionID,
             unreadMarkerReportActionID,
             firstVisibleReportActionID,
             linkedReportActionID,
