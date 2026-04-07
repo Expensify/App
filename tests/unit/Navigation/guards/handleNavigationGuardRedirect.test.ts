@@ -112,34 +112,31 @@ describe('handleNavigationGuards - REDIRECT stack preservation', () => {
         expect(result?.index).toBe(1);
     });
 
-    it('should not duplicate the redirect target when it is already the focused route', () => {
-        // Given the current stack already has the onboarding route as the focused route
+    it('should use the full redirect state for non-modal redirects even when fullscreen routes exist', () => {
+        // Given the current stack has a deep-linked report (a fullscreen route)
         const state: StackNavigationState<ParamListBase> = {
             key: 'root',
-            index: 1,
+            index: 0,
             routeNames,
-            routes: [
-                {key: 'home-1', name: SCREENS.HOME, params: undefined},
-                {key: 'onboarding-1', name: NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR, params: undefined},
-            ],
+            routes: [{key: 'report-1', name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, params: undefined}],
             stale: false,
             type: 'stack',
             preloadedRoutes: [],
         };
 
-        // When the guard fires the same REDIRECT again
-        mockedEvaluateGuards.mockReturnValue({type: 'REDIRECT', route: 'onboarding/purpose'});
+        // When the guard returns a non-modal REDIRECT (e.g., to SettingsSplitNavigator)
+        mockedEvaluateGuards.mockReturnValue({type: 'REDIRECT', route: 'settings'});
         mockedGetAdaptedStateFromPath.mockReturnValue({
-            routes: [
-                {name: SCREENS.HOME, key: 'home-2'},
-                {name: NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR, key: 'onboarding-2'},
-            ],
+            routes: [{name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, key: 'settings-1'}],
         });
 
         const result = router.getStateForAction(state, mockAction, configOptions);
 
-        // Then the state should be unchanged (no duplicate onboarding route added)
-        expect(result).toEqual(state);
+        // Then the full redirect state should be used (no route preservation for non-modal redirects)
+        expect(result).not.toBeNull();
+        expect(result?.routes).toHaveLength(1);
+        expect(result?.routes[0].name).toBe(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR);
+        expect(result?.index).toBe(0);
     });
 
     it('should not process redirect when guard allows navigation', () => {
