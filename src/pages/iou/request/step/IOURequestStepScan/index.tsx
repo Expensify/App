@@ -12,7 +12,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
-import {checkIfScanFileCanBeRead, replaceReceipt, updateLastLocationPermissionPrompt} from '@userActions/IOU';
+import {updateLastLocationPermissionPrompt} from '@userActions/IOU';
+import {checkIfScanFileCanBeRead, replaceReceipt} from '@userActions/IOU/Receipt';
 import {removeDraftTransactionsByIDs, removeTransactionReceipt} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,6 +33,9 @@ function IOURequestStepScan({
     transaction: initialTransaction,
     currentUserPersonalDetails,
     onLayout,
+    isMultiScanEnabled = false,
+    isStartingScan = false,
+    setIsMultiScanEnabled,
 }: Omit<IOURequestStepScanProps, 'user'>) {
     const isMobileWeb = isMobile();
     const policy = usePolicy(report?.policyID);
@@ -59,9 +63,6 @@ function IOURequestStepScan({
 
     const {
         transactions,
-        isMultiScanEnabled,
-        setIsMultiScanEnabled,
-        isStartingScan,
         isEditing,
         isReplacingReceipt,
         shouldAcceptMultipleFiles,
@@ -85,6 +86,8 @@ function IOURequestStepScan({
         currentUserPersonalDetails,
         backTo,
         backToReport,
+        isMultiScanEnabled,
+        isStartingScan,
         updateScanAndNavigate,
         getSource,
     });
@@ -125,10 +128,11 @@ function IOURequestStepScan({
             if (isAllScanFilesCanBeRead) {
                 return;
             }
+            setIsMultiScanEnabled?.(false);
             removeTransactionReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
             removeDraftTransactionsByIDs(draftTransactionIDs, true);
         });
-    }, [transactions, draftTransactionIDs]);
+    }, [setIsMultiScanEnabled, transactions, draftTransactionIDs]);
 
     // this effect will pre-fetch location in web if the location permission is already granted to optimize the flow
     useEffect(() => {
