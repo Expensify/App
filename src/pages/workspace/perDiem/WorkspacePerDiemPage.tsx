@@ -117,7 +117,7 @@ type WorkspacePerDiemPageProps = PlatformStackScreenProps<WorkspaceSplitNavigato
 function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
@@ -333,6 +333,8 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         expensifyIcons.Download,
     ]);
 
+    const shouldDisplayNarrowHeaderButton = isInLandscapeMode || !shouldUseNarrowLayout;
+
     const getHeaderButtons = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
 
@@ -352,7 +354,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     customText={translate('workspace.common.selected', {count: selectedPerDiem.length})}
                     options={options}
                     isSplitButton={false}
-                    style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
+                    style={[!shouldDisplayNarrowHeaderButton && styles.flexGrow1, !shouldDisplayNarrowHeaderButton && styles.mb3]}
                     isDisabled={!selectedPerDiem.length}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.PER_DIEM.BULK_ACTIONS_DROPDOWN}
                 />
@@ -360,7 +362,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         }
 
         return (
-            <View style={[styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
+            <View style={[styles.flexRow, styles.gap2, !shouldDisplayNarrowHeaderButton && styles.mb3]}>
                 <ButtonWithDropdownMenu
                     success={false}
                     onPress={() => {}}
@@ -446,7 +448,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                         Navigation.goBack();
                     }}
                 >
-                    {!shouldUseNarrowLayout && getHeaderButtons()}
+                    {shouldDisplayNarrowHeaderButton && getHeaderButtons()}
                 </HeaderWithBackButton>
                 <ConfirmModal
                     isVisible={deletePerDiemConfirmModalVisible}
@@ -458,7 +460,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     cancelText={translate('common.cancel')}
                     danger
                 />
-                {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
+                {!shouldDisplayNarrowHeaderButton && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
                 {(!hasVisibleSubRates || isLoading) && headerContent}
                 {isLoading && (
                     <ActivityIndicator

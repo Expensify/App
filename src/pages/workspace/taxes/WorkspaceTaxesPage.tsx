@@ -64,7 +64,7 @@ function WorkspaceTaxesPage({
 }: WorkspaceTaxesPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.taxes');
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const [selectedTaxesIDs, setSelectedTaxesIDs] = useState<string[]>([]);
@@ -351,8 +351,10 @@ function WorkspaceTaxesPage({
         [icons.Gear, policyID, translate],
     );
 
+    const shouldDisplayNarrowHeaderButton = isInLandscapeMode || !shouldUseNarrowLayout;
+
     const headerButtons = !shouldShowBulkActionsButton ? (
-        <View style={[styles.w100, styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
+        <View style={[styles.w100, styles.flexRow, styles.gap2, !shouldDisplayNarrowHeaderButton && styles.mb3]}>
             {!hasAccountingConnections && (
                 <Button
                     success
@@ -360,7 +362,7 @@ function WorkspaceTaxesPage({
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAXES.ADD_BUTTON}
                     icon={icons.Plus}
                     text={translate('workspace.taxes.addRate')}
-                    style={[shouldUseNarrowLayout && styles.flex1]}
+                    style={[!shouldDisplayNarrowHeaderButton && styles.flex1]}
                 />
             )}
             <ButtonWithDropdownMenu
@@ -382,7 +384,7 @@ function WorkspaceTaxesPage({
             customText={translate('workspace.common.selected', {count: selectedTaxesIDs.length})}
             shouldAlwaysShowDropdownMenu
             isSplitButton={false}
-            style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
+            style={[!shouldDisplayNarrowHeaderButton && styles.flexGrow1, !shouldDisplayNarrowHeaderButton && styles.mb3]}
             isDisabled={!selectedTaxesIDs.length}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAXES.BULK_ACTIONS_DROPDOWN}
         />
@@ -443,9 +445,9 @@ function WorkspaceTaxesPage({
                         Navigation.goBack();
                     }}
                 >
-                    {!shouldUseNarrowLayout && headerButtons}
+                    {shouldDisplayNarrowHeaderButton && headerButtons}
                 </HeaderWithBackButton>
-                {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
+                {!shouldDisplayNarrowHeaderButton && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}

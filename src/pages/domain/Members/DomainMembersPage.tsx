@@ -44,7 +44,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['Profile']);
     const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Gear', 'DotIndicator', 'RemoveMembers', 'Download']);
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
     const clearSelectedMembers = () => setSelectedMembers([]);
     const isMobileSelectionModeEnabled = useMobileSelectionMode(clearSelectedMembers);
@@ -52,6 +52,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
 
     const canSelectMultiple = shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true;
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
+    const shouldDisplayNarrowHeaderButton = isInLandscapeMode || !shouldUseNarrowLayout;
 
     const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`);
     const [domainPendingActions] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {selector: memberPendingActionSelector});
@@ -218,10 +219,10 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                 onPress={() => null}
                 options={getBulkActionsButtonOptions()}
                 isSplitButton={false}
-                style={shouldUseNarrowLayout ? [styles.flexGrow1, styles.mb3] : undefined}
+                style={!shouldDisplayNarrowHeaderButton ? [styles.flexGrow1, styles.mb3] : undefined}
                 isDisabled={!selectedMembers.length}
                 testID="DomainMembersPage-header-dropdown-menu-button"
-                wrapperStyle={shouldUseNarrowLayout && styles.flexGrow1}
+                wrapperStyle={!shouldDisplayNarrowHeaderButton && styles.flexGrow1}
             />
         ) : (
             <View style={[styles.flexRow, styles.gap2]}>
@@ -230,8 +231,8 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                     onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_MEMBER.getRoute(domainAccountID))}
                     text={translate('domain.members.addMember')}
                     icon={icons.Plus}
-                    innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
-                    style={shouldUseNarrowLayout ? [styles.flexGrow1, styles.mb3] : undefined}
+                    innerStyles={[!shouldDisplayNarrowHeaderButton && styles.alignItemsCenter]}
+                    style={!shouldDisplayNarrowHeaderButton ? [styles.flexGrow1, styles.mb3] : undefined}
                 />
                 <ButtonWithDropdownMenu
                     success={false}

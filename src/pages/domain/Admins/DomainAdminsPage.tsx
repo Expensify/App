@@ -31,7 +31,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const illustrations = useMemoizedLazyIllustrations(['UserShield']);
     const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Plus', 'DotIndicator']);
 
@@ -75,6 +75,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     );
 
     const hasSettingsErrors = hasDomainAdminsSettingsErrors(domainErrors);
+    const shouldDisplayNarrowHeaderButton = isInLandscapeMode || !shouldUseNarrowLayout;
 
     const headerContent = isAdmin ? (
         <View style={[styles.flexRow, styles.gap2]}>
@@ -83,8 +84,8 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
                 onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_ADMIN.getRoute(domainAccountID))}
                 text={translate('domain.admins.addAdmin')}
                 icon={icons.Plus}
-                innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
-                style={shouldUseNarrowLayout && [styles.flexGrow1, styles.mb3]}
+                innerStyles={[!shouldDisplayNarrowHeaderButton && styles.alignItemsCenter]}
+                style={!shouldDisplayNarrowHeaderButton && [styles.flexGrow1, styles.mb3]}
             />
             <Button
                 onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADMINS_SETTINGS.getRoute(domainAccountID))}
@@ -92,8 +93,8 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
                 icon={hasSettingsErrors ? icons.DotIndicator : icons.Gear}
                 iconFill={hasSettingsErrors ? theme.danger : undefined}
                 iconHoverFill={hasSettingsErrors ? theme.dangerHover : undefined}
-                innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
-                style={shouldUseNarrowLayout ? [styles.flexGrow0, styles.mb3] : undefined}
+                innerStyles={[!shouldDisplayNarrowHeaderButton && styles.alignItemsCenter]}
+                style={!shouldDisplayNarrowHeaderButton ? [styles.flexGrow0, styles.mb3] : undefined}
             />
         </View>
     ) : null;

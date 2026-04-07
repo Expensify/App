@@ -123,10 +123,12 @@ function BaseDomainMembersPage({
 }: BaseDomainMembersPageProps) {
     const {formatPhoneNumber, localeCompare, translate} = useLocalize();
     const styles = useThemeStyles();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const illustrations = useMemoizedLazyIllustrations(['EmptyShelves']);
+
+    const shouldDisplayNarrowHeaderButton = isInLandscapeMode || !shouldUseNarrowLayout;
 
     const data: MemberOption[] = accountIDs
         .filter((accountID) => {
@@ -271,9 +273,9 @@ function BaseDomainMembersPage({
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldUseHeadlineHeader={!useSelectionModeHeader}
                 >
-                    {!shouldUseNarrowLayout && !!headerContent && <View style={[styles.flexRow, styles.gap2]}>{headerContent}</View>}
+                    {shouldDisplayNarrowHeaderButton && !!headerContent && <View style={[styles.flexRow, styles.gap2]}>{headerContent}</View>}
                 </HeaderWithBackButton>
-                {shouldUseNarrowLayout && !!headerContent && <View style={[styles.ph5, styles.flexRow, styles.gap2]}>{headerContent}</View>}
+                {!shouldDisplayNarrowHeaderButton && !!headerContent && <View style={[styles.ph5, styles.flexRow, styles.gap2]}>{headerContent}</View>}
                 <SelectionListWithModal
                     data={filteredData}
                     shouldShowRightCaret

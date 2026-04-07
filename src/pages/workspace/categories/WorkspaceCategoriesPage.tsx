@@ -69,7 +69,7 @@ type WorkspaceCategoriesPageProps =
 function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, localeCompare} = useLocalize();
@@ -512,6 +512,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         policyId,
     ]);
 
+    const shouldDisplayNarrowHeaderButton = isInLandscapeMode || !shouldUseNarrowLayout;
+
     const getHeaderButtons = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
         const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
@@ -629,7 +631,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     customText={translate('workspace.common.selected', {count: selectedCategories.length})}
                     options={options}
                     isSplitButton={false}
-                    style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
+                    style={[!shouldDisplayNarrowHeaderButton && styles.flexGrow1, !shouldDisplayNarrowHeaderButton && styles.mb3]}
                     isDisabled={!selectedCategories.length}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.BULK_ACTIONS_DROPDOWN}
                     testID="WorkspaceCategoriesPage-header-dropdown-menu-button"
@@ -638,7 +640,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         }
         const shouldShowAddCategory = !policyHasAccountingConnections && hasVisibleCategories;
         return (
-            <View style={[styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
+            <View style={[styles.flexRow, styles.gap2, !shouldDisplayNarrowHeaderButton && styles.mb3]}>
                 {shouldShowAddCategory && (
                     <Button
                         success
@@ -646,7 +648,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.ADD_BUTTON}
                         icon={icons.Plus}
                         text={translate('workspace.categories.addCategory')}
-                        style={[shouldUseNarrowLayout && styles.flex1]}
+                        style={[!shouldDisplayNarrowHeaderButton && styles.flex1]}
                     />
                 )}
                 <ButtonWithDropdownMenu
@@ -745,8 +747,18 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         Navigation.goBack();
                     }}
                 >
-                    {!shouldUseNarrowLayout && getHeaderButtons()}
+                    {shouldDisplayNarrowHeaderButton && getHeaderButtons()}
                 </HeaderWithBackButton>
+                <ConfirmModal
+                    isVisible={deleteCategoriesConfirmModalVisible}
+                    onConfirm={handleDeleteCategories}
+                    onCancel={() => setDeleteCategoriesConfirmModalVisible(false)}
+                    title={translate(selectedCategories.length === 1 ? 'workspace.categories.deleteCategory' : 'workspace.categories.deleteCategories')}
+                    prompt={translate(selectedCategories.length === 1 ? 'workspace.categories.deleteCategoryPrompt' : 'workspace.categories.deleteCategoriesPrompt')}
+                    confirmText={translate('common.delete')}
+                    cancelText={translate('common.cancel')}
+                    danger
+                />
                 {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
                 {(!hasVisibleCategories || isLoading) && headerContent}
                 {isLoading && (
