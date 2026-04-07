@@ -8,6 +8,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImageSVG from '@components/ImageSVG';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -90,7 +91,7 @@ function DynamicSageIntacctPrerequisitesPage({route}: DynamicSageIntacctPrerequi
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack(backPath)}
             />
-            <View style={styles.flex1}>
+            <ScrollView>
                 <View style={[styles.alignSelfCenter, styles.computerIllustrationContainer]}>
                     <ImageSVG src={illustrations.Computer} />
                 </View>
@@ -100,20 +101,19 @@ function DynamicSageIntacctPrerequisitesPage({route}: DynamicSageIntacctPrerequi
                     menuItems={menuItems}
                     shouldUseSingleExecution
                 />
-
-                <FixedFooter
-                    style={[styles.mtAuto]}
-                    addBottomSafeAreaPadding
-                >
-                    <Button
-                        success
-                        text={translate('common.next')}
-                        onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ENTER_CREDENTIALS.getRoute(policyID))}
-                        pressOnEnter
-                        large
-                    />
-                </FixedFooter>
-            </View>
+            </ScrollView>
+            <FixedFooter
+                style={[styles.mtAuto]}
+                addBottomSafeAreaPadding
+            >
+                <Button
+                    success
+                    text={translate('common.next')}
+                    onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ENTER_CREDENTIALS.getRoute(policyID))}
+                    pressOnEnter
+                    large
+                />
+            </FixedFooter>
         </ScreenWrapper>
     );
 }
