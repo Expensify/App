@@ -2,7 +2,7 @@ import React, {useEffect, useRef} from 'react';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useReimbursementAccountSubmit from '@hooks/useReimbursementAccountSubmit';
+import useReimbursementAccountSubmitCallback from '@hooks/useReimbursementAccountSubmitCallback';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import {getBankAccountIDAsNumber} from '@libs/ReimbursementAccountUtils';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
@@ -34,7 +34,7 @@ function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const [plaidLinkToken] = useOnyx(ONYXKEYS.PLAID_LINK_TOKEN);
     const {translate} = useLocalize();
-    const markSubmitting = useReimbursementAccountSubmit(onSubmit);
+    const markSubmitting = useReimbursementAccountSubmitCallback(onSubmit);
 
     const redirectedFromPlaidToManualRef = useRef(false);
     const values = getSubStepValues(BANK_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount ?? {});

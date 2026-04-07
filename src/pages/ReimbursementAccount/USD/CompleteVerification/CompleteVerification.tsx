@@ -2,7 +2,7 @@ import React, {useCallback, useMemo} from 'react';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useReimbursementAccountSubmit from '@hooks/useReimbursementAccountSubmit';
+import useReimbursementAccountSubmitCallback from '@hooks/useReimbursementAccountSubmitCallback';
 import {getBankAccountIDAsNumber} from '@libs/ReimbursementAccountUtils';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
 import {acceptACHContractForBankAccount} from '@userActions/BankAccounts';
@@ -31,7 +31,7 @@ function CompleteVerification({onBackButtonPress, onSubmit}: CompleteVerificatio
     const values = useMemo(() => getSubStepValues(COMPLETE_VERIFICATION_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
     const policyID = reimbursementAccount?.achData?.policyID;
     const bankAccountID = getBankAccountIDAsNumber(reimbursementAccount?.achData);
-    const markSubmitting = useReimbursementAccountSubmit(onSubmit);
+    const markSubmitting = useReimbursementAccountSubmitCallback(onSubmit);
 
     const submit = useCallback(() => {
         acceptACHContractForBankAccount(

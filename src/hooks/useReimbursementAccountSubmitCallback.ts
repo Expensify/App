@@ -10,7 +10,7 @@ import useOnyx from './useOnyx';
  * @param onSubmit - callback that navigates to the next step
  * @returns markSubmitting - call this right after firing the API action
  */
-export default function useReimbursementAccountSubmit(onSubmit?: () => void) {
+export default function useReimbursementAccountSubmitCallback(onSubmit?: () => void) {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const isSubmittingRef = useRef(false);
 

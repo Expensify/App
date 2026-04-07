@@ -5,7 +5,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useReimbursementAccountSubmit from '@hooks/useReimbursementAccountSubmit';
+import useReimbursementAccountSubmitCallback from '@hooks/useReimbursementAccountSubmitCallback';
 import useSubPage from '@hooks/useSubPage';
 import type {SubPageProps} from '@hooks/useSubPage/types';
 import Navigation from '@libs/Navigation/Navigation';
@@ -58,7 +58,7 @@ function PersonalInfo({onBackButtonPress, onSubmit, ref, backTo}: PersonalInfoPr
     const policyID = reimbursementAccount?.achData?.policyID;
     const values = useMemo(() => getSubStepValues(PERSONAL_INFO_STEP_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
     const bankAccountID = getBankAccountIDAsNumber(reimbursementAccount?.achData);
-    const markSubmitting = useReimbursementAccountSubmit(onSubmit);
+    const markSubmitting = useReimbursementAccountSubmitCallback(onSubmit);
     const submit = useCallback(
         (isConfirmPage: boolean) => {
             updatePersonalInformationForBankAccount(bankAccountID, {...values}, policyID, isConfirmPage);

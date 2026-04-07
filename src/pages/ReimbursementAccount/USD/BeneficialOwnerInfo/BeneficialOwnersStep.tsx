@@ -4,7 +4,7 @@ import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import YesNoStep from '@components/SubStepForms/YesNoStep';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useReimbursementAccountSubmit from '@hooks/useReimbursementAccountSubmit';
+import useReimbursementAccountSubmitCallback from '@hooks/useReimbursementAccountSubmitCallback';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {getBankAccountIDAsNumber} from '@libs/ReimbursementAccountUtils';
@@ -48,7 +48,7 @@ function BeneficialOwnersStep({onBackButtonPress, onSubmit, currentSubPage, poli
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const companyName = reimbursementAccount?.achData?.companyName ?? '';
-    const markSubmitting = useReimbursementAccountSubmit(onSubmit);
+    const markSubmitting = useReimbursementAccountSubmitCallback(onSubmit);
 
     // Read state from Onyx draft so it survives URL-based navigation (component remounts)
     const isUserUBO = reimbursementAccountDraft?.ownsMoreThan25Percent ?? reimbursementAccount?.achData?.ownsMoreThan25Percent ?? false;
