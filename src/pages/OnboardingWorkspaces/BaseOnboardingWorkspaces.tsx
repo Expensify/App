@@ -34,7 +34,7 @@ import type {JoinablePolicy} from '@src/types/onyx/JoinablePolicies';
 import type {BaseOnboardingWorkspacesProps} from './types';
 
 function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboardingWorkspacesProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackWorkspaceAvatar']);
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackWorkspaceAvatar', 'DownArrow']);
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -193,13 +193,14 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                 }
                 listFooterContent={
                     hasMoreThanFive && !showAll ? (
-                        <View style={[wrapperPadding]}>
+                        <View style={[wrapperPadding, styles.alignItemsStart]}>
                             <Button
                                 text={translate('common.showMore')}
                                 onPress={() => setShowAll(true)}
                                 link
                                 shouldUseDefaultHover={false}
                                 medium
+                                iconRight={icons.DownArrow}
                                 innerStyles={[styles.ph3]}
                                 textStyles={[styles.fontSizeNormal]}
                             />
