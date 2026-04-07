@@ -151,8 +151,7 @@ function clearPersonalBankAccountSetupType() {
 }
 
 function clearPersonalBankAccountErrors() {
-    Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {errors: null});
-    Onyx.merge(ONYXKEYS.FORMS.HOME_ADDRESS_FORM, {errors: null});
+    Onyx.merge(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {errors: null, updateError: undefined});
 }
 
 type PersonalBankAccountUpdateData = Pick<
@@ -225,6 +224,7 @@ function updatePersonalBankAccountInfo(bankAccountID: number, accountData: Perso
                 value: {
                     isLoading: false,
                     errors: null,
+                    updateError: undefined,
                     shouldShowSuccess: true,
                 },
             },
@@ -233,7 +233,6 @@ function updatePersonalBankAccountInfo(bankAccountID: number, accountData: Perso
                 key: ONYXKEYS.FORMS.HOME_ADDRESS_FORM,
                 value: {
                     isLoading: false,
-                    errors: null,
                 },
             },
         ],
@@ -243,7 +242,8 @@ function updatePersonalBankAccountInfo(bankAccountID: number, accountData: Perso
                 key: ONYXKEYS.PERSONAL_BANK_ACCOUNT,
                 value: {
                     isLoading: false,
-                    errors: getMicroSecondOnyxErrorWithTranslationKey('addPersonalBankAccount.updatePersonalInfoFailure'),
+                    errors: null,
+                    updateError: 'addPersonalBankAccount.updatePersonalInfoFailure',
                 },
             },
             {
@@ -251,7 +251,6 @@ function updatePersonalBankAccountInfo(bankAccountID: number, accountData: Perso
                 key: ONYXKEYS.FORMS.HOME_ADDRESS_FORM,
                 value: {
                     isLoading: false,
-                    errors: getMicroSecondOnyxErrorWithTranslationKey('addPersonalBankAccount.updatePersonalInfoFailure'),
                 },
             },
             {

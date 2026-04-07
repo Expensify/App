@@ -1,6 +1,7 @@
 import React, {useEffect} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmationPage from '@components/ConfirmationPage';
+import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -17,6 +18,7 @@ import Navigation from '@navigation/Navigation';
 import {clearPersonalBankAccount, clearPersonalBankAccountErrors, updatePersonalBankAccountInfo} from '@userActions/BankAccounts';
 import {clearDraftValues} from '@userActions/FormActions';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {BankAccountList} from '@src/types/onyx';
@@ -119,7 +121,25 @@ function UpdatePersonalBankAccountPage() {
     };
 
     const submitPersonalInfo = () => {
+        // eslint-disable-next-line no-console
+        console.log(
+            '[DEBUG-RETRY] submitPersonalInfo called',
+            JSON.stringify({
+                bankAccountID: personalBankAccount?.bankAccountID,
+                isLoading: personalBankAccount?.isLoading,
+                errors: personalBankAccount?.errors,
+                shouldShowSuccess: personalBankAccount?.shouldShowSuccess,
+            }),
+        );
         if (!personalBankAccount?.bankAccountID || personalBankAccount?.isLoading) {
+            // eslint-disable-next-line no-console
+            console.log(
+                '[DEBUG-RETRY] submitPersonalInfo BLOCKED',
+                JSON.stringify({
+                    noBankAccountID: !personalBankAccount?.bankAccountID,
+                    isLoading: personalBankAccount?.isLoading,
+                }),
+            );
             return;
         }
 
@@ -209,6 +229,15 @@ function UpdatePersonalBankAccountPage() {
     };
 
     const handleNextPage = () => {
+        // eslint-disable-next-line no-console
+        console.log(
+            '[DEBUG-RETRY] handleNextPage called',
+            JSON.stringify({
+                currentPageName,
+                isLoading: personalBankAccount?.isLoading,
+                errors: personalBankAccount?.errors,
+            }),
+        );
         clearPersonalBankAccountErrors();
         nextPage();
     };
@@ -254,6 +283,13 @@ function UpdatePersonalBankAccountPage() {
                 onNext={handleNextPage}
                 onMove={() => {}}
             />
+            {!!personalBankAccount?.updateError && (
+                <DotIndicatorMessage
+                    style={[styles.mh5, styles.mb3]}
+                    messages={{error: translate(personalBankAccount.updateError as TranslationPaths)}}
+                    type="error"
+                />
+            )}
         </ScreenWrapper>
     );
 }
