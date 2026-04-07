@@ -153,7 +153,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                 options={secondaryActions}
                 isSplitButton={false}
                 shouldUseOptionIcon
-                wrapperStyle={isEmptyObject(cardsList) ? styles.flexGrow1 : styles.flexGrow0}
+                wrapperStyle={isEmptyObject(cardsList) && !isInLandscapeMode ? styles.flexGrow1 : styles.flexGrow0}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.MORE_DROPDOWN}
             />
         </View>
