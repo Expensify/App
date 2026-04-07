@@ -879,6 +879,7 @@ function changeTransactionsReport({
     toLocaleDigit: toLocaleDigitParam,
     defaultP2PMileageRate,
 }: ChangeTransactionsReportProps) {
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const translate = translateParam ?? translateLocal;
     const toLocaleDigit = toLocaleDigitParam ?? ((digit: string) => localeDigitForStandardDigit(IntlStore.getCurrentLocale(), digit));
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;

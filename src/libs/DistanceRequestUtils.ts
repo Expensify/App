@@ -415,8 +415,7 @@ function getRate({
     const customUnitRateID = getRateID(transaction);
     const customMileageRate =
         (customUnitRateID && (mileageRates?.[customUnitRateID] ?? mileageRatesForMovingExpenses?.[customUnitRateID])) || (isUnreportedExpense ? undefined : defaultMileageRate);
-    const mileageRate =
-        isCustomUnitRateIDForP2P(transaction) || isFakeP2PRate ? getRateForP2P(policyCurrency, transaction, defaultP2PMileageRate) : customMileageRate;
+    const mileageRate = isCustomUnitRateIDForP2P(transaction) || isFakeP2PRate ? getRateForP2P(policyCurrency, transaction, defaultP2PMileageRate) : customMileageRate;
     const unit = getDistanceUnit(useTransactionDistanceUnit ? transaction : undefined, mileageRate);
     return {
         ...mileageRate,

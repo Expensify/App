@@ -2839,6 +2839,7 @@ function recalculateUnreportedTransactionDetails(
     let modifiedCurrency: string | undefined;
     let modifiedMerchant: string | undefined;
 
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const translateFn = translateParam ?? translateLocal;
     const toLocaleDigitFn = toLocaleDigitParam ?? ((digit: string) => toLocaleDigit(IntlStore.getCurrentLocale(), digit));
 

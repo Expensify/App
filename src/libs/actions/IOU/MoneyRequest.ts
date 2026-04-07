@@ -804,8 +804,7 @@ function handleMoneyRequestStepDistanceNavigation({
                 ? DistanceRequestUtils.getRateByCustomUnitRateID({customUnitRateID: rateID, policy: policyForMovingExpenses})
                 : undefined;
             const currency = ratePolicyForMovingExpenses?.currency ?? personalOutputCurrency ?? CONST.CURRENCY.USD;
-            const distanceUnit =
-                ratePolicyForMovingExpenses?.unit ?? DistanceRequestUtils.getRateForP2P(currency, transaction, defaultP2PMileageRate).unit;
+            const distanceUnit = ratePolicyForMovingExpenses?.unit ?? DistanceRequestUtils.getRateForP2P(currency, transaction, defaultP2PMileageRate).unit;
             const distanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(distance, unit);
             const distanceInDistanceUnit = roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(distanceInMeters, distanceUnit));
             setMoneyRequestDistance(transactionID, distanceInDistanceUnit, true, distanceUnit);
