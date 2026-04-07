@@ -6,6 +6,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import type {PressableWithFeedbackProps} from '@components/Pressable/PressableWithFeedback';
 import getAccessibilityLabel from '@components/SelectionList/utils/getAccessibilityLabel';
+import {getItemRole} from '@components/SelectionList/utils/getItemRole';
 import useHover from '@hooks/useHover';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -14,8 +15,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getBrowser} from '@libs/Browser';
-import getOperatingSystem from '@libs/getOperatingSystem';
+import {getBrowser, isMobileChrome} from '@libs/Browser';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {BaseListItemProps, ListItem} from './types';
@@ -36,8 +36,10 @@ function getAccessibilityProps<TItem extends ListItem>({
     selectedLabel,
 }: AccessibilityProps & Pick<BaseListItemProps<TItem>, 'item' | 'isFocused' | 'canSelectMultiple'> & {selectedLabel: string}) {
     const isSelectableOption = !canSelectMultiple && role !== CONST.ROLE.CHECKBOX && role !== CONST.ROLE.RADIO;
+    const effectiveRole = getItemRole(role, isSelectableOption);
 
-    const accessibilityState = role === CONST.ROLE.CHECKBOX || role === CONST.ROLE.RADIO ? {checked: !!item.isSelected, selected: !!isFocused} : {selected: !!item.isSelected};
+    const isCheckableRole = effectiveRole === CONST.ROLE.CHECKBOX || effectiveRole === CONST.ROLE.RADIO;
+    const accessibilityState = isCheckableRole ? {checked: !!item.isSelected, selected: !!isFocused} : {selected: !!item.isSelected};
 
     if (accessible === false) {
         return {
@@ -48,12 +50,10 @@ function getAccessibilityProps<TItem extends ListItem>({
         } satisfies CalculatedAccessibilityProps;
     }
 
-    const effectiveRole = isSelectableOption ? CONST.ROLE.OPTION : role;
-
-    // Chrome on macOS doesn't expose aria-selected to VoiceOver, so we bake "selected"
-    // into the label as a workaround. Other browser/OS combos handle aria-selected natively.
+    // Chromium bug #337904204: aria-selected is not exposed to assistive technology in Chrome desktop.
+    // We append "selected" to the label as a workaround. Mobile Chrome is unaffected.
     let accessibilityLabel = getAccessibilityLabel(item);
-    if (isSelectableOption && item.isSelected && getBrowser() === CONST.BROWSER.CHROME && getOperatingSystem() === CONST.OS.MAC_OS) {
+    if (isSelectableOption && item.isSelected && getBrowser() === CONST.BROWSER.CHROME && !isMobileChrome()) {
         accessibilityLabel = `${accessibilityLabel}, ${selectedLabel}`;
     }
 
