@@ -984,12 +984,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.CATEGORIES_SETTINGS]: {
                             path: ROUTES.WORKSPACE_CATEGORIES_SETTINGS.route,
                         },
-                        [SCREENS.WORKSPACE.CATEGORIES_IMPORT]: {
-                            path: ROUTES.WORKSPACE_CATEGORIES_IMPORT.route,
-                        },
-                        [SCREENS.WORKSPACE.CATEGORIES_IMPORTED]: {
-                            path: ROUTES.WORKSPACE_CATEGORIES_IMPORTED.route,
-                        },
+                        [SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_IMPORT]: DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_IMPORT.path,
+                        [SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_IMPORTED]: DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_IMPORTED.path,
                         [SCREENS.WORKSPACE.WORKFLOWS_PAYER]: {
                             path: ROUTES.WORKSPACE_WORKFLOWS_PAYER.route,
                         },
