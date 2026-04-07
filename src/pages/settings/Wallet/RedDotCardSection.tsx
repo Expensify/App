@@ -14,7 +14,7 @@ type RedDotCardSectionProps = {
 function RedDotCardSection({title, description}: RedDotCardSectionProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
 
     return (
         <View style={[styles.p5, styles.flexRow, styles.alignItemsStart]}>
