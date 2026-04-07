@@ -2,6 +2,7 @@
 title: Set Up and Manage Expensify Cards
 description: Learn how Workspace Admins can enable, issue, and manage Expensify Cards for employees, including spending limits, bank connections, and virtual card setup.
 keywords: [New Expensify, Expensify Card setup, manage virtual card, card limits, Expensify Visa, card settings, Workspace Admin]
+internalScope: Applies to Workspace Admins. Covers Expensify Card setup and management. Does not cover troubleshooting or third-party feeds.
 ---
 
 Workspace Admins can enable and issue Expensify Visa® Commercial Cards to manage company spending with real-time controls and flexibility across employees and subscriptions.
@@ -37,6 +38,8 @@ Link a U.S. business bank account to pay the card balance:
 1. From the navigation tabs (on the left on web, and at the bottom on mobile), select **Workspaces > [Workspace Name] > Expensify Card**
 2. Click **Issue new card**
 3. Choose an existing account or [add a new bank account](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Connect-a-Business-Bank-Account) as the settlement account.
+
+If you already have an Expensify Card feed on another workspace, you can select that existing feed instead of connecting a new bank account. This links the same card feed to the current workspace, so you can manage cards across multiple workspaces with a single settlement account.
 
 ![Click the issue card button]({{site.url}}/assets/images/ExpensifyHelp-ExpensifyCard_02.png){:width="100%"}
 
@@ -102,7 +105,7 @@ You’ll need a U.S. business bank account registered to a U.S.-incorporated bus
 
 ## Can I use Expensify Cards across multiple workspaces?
 
-Yes, but each workspace must have its **own settlement account**. For example, using the card in three workspaces requires three separate bank accounts.
+Yes. You can link a single Expensify Card feed to multiple workspaces using the same settlement account. When issuing cards on a new workspace, select an existing feed that is already connected to another workspace. Each workspace shows only its own members in the card list, but all workspaces share the same card feed and settlement account.
 
 ## Can an employee have multiple cards?
 

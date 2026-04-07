@@ -34,6 +34,7 @@ The grey **More** button is always visible in the report header. Tap it to acces
 - Hold / Unhold
 - Unapprove
 - Download as CSV
+- **Print**
 - Change Workspace
 - View Details
 - Delete
@@ -90,8 +91,8 @@ If Expensify cannot detect a potential match between a SmartScanned receipt and 
 # Actions for Invoices and IOUs
 
 ## Invoices - As the Receiver
-- Use **Pay** to reimburse.
-- Tap **More** for options like **Download** and **View Details**.
+- Select the three dots **(⋮)** for options like **Download**, **Print**, and **View Details**.
+- Tap **More** for options like **Download**, **Print**, and **View Details**.
 
 ## Invoices - As the Sender
 - Choose **Export** or **Mark as exported**.

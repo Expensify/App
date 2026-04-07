@@ -99,19 +99,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const allCardSettings = useExpensifyCardFeeds(policyID);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
-    const icons = useMemoizedLazyExpensifyIcons([
-        'ArrowRight',
-        'CircularArrowBackwards',
-        'ExpensifyCard',
-        'Gear',
-        'Key',
-        'NewWindow',
-        'Pencil',
-        'QuestionMark',
-        'Send',
-        'Sync',
-        'Trashcan',
-    ] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'CircularArrowBackwards', 'ExpensifyCard', 'Gear', 'Key', 'NewWindow', 'Pencil', 'QuestionMark', 'Send', 'Sync', 'Trashcan']);
     const accountingIcons = useMemoizedLazyExpensifyIcons(['IntacctSquare', 'QBOSquare', 'XeroSquare', 'NetSuiteSquare', 'QBDSquare']);
     const illustrations = useMemoizedLazyIllustrations(['Accounting']);
 

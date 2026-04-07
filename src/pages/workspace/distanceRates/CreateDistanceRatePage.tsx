@@ -33,7 +33,7 @@ type CreateDistanceRatePageProps = PlatformStackScreenProps<SettingsNavigatorPar
 
 function CreateDistanceRatePage({
     route: {
-        params: {policyID, transactionID, reportID},
+        params: {policyID, transactionID, reportID, iouType, action},
     },
 }: CreateDistanceRatePageProps) {
     const styles = useThemeStyles();
@@ -45,7 +45,7 @@ function CreateDistanceRatePage({
     const customUnitRateID = generateCustomUnitID();
     const {inputCallbackRef} = useAutoFocusInput();
     const isDistanceRateUpgrade = transactionID && reportID;
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
+    const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(transactionID)}`);
 
     const FullPageBlockingView = !customUnitID ? FullPageOfflineBlockingView : View;
 
@@ -70,8 +70,14 @@ function CreateDistanceRatePage({
 
         createPolicyDistanceRate(policyID, customUnitID, newRate);
         if (isDistanceRateUpgrade) {
-            setMoneyRequestDistanceRate(transaction, customUnitRateID, policy, true);
-            Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID), {compareParams: false});
+            const isEdit = action === CONST.IOU.ACTION.EDIT;
+            setMoneyRequestDistanceRate(transactionDraft, customUnitRateID, policy, true);
+            Navigation.goBack(
+                !isEdit
+                    ? ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType ?? CONST.IOU.TYPE.SUBMIT, transactionID, reportID)
+                    : ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(CONST.IOU.ACTION.EDIT, iouType ?? CONST.IOU.TYPE.SUBMIT, transactionID, reportID),
+                {compareParams: false},
+            );
             return;
         }
         Navigation.goBack();
