@@ -123,6 +123,13 @@ Parse both log files and compute P90/avg/max/min for each. Then output:
 | Max    | Xms    | Xms      | ±Xms (±X.X%)   |
 | Min    | Xms    | Xms      | ±Xms (±X.X%)   |
 | N      | X      | X        |                 |
+
+**Verdict: <verdict>**
 ```
 
 Delta sign convention: negative = improvement (feature branch is faster), positive = regression.
+
+Verdict is based on P90 delta %:
+- Within ±5% → `Perf-neutral — P90 delta within ±5%`
+- >5% faster → `Improvement — P90 improved by X.X%`
+- >5% slower → `Regression — P90 regressed by X.X% — investigate before shipping`
