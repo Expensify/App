@@ -196,10 +196,10 @@ describe('ReportActionsView', () => {
         mockUseReportTransactionsCollection.mockReturnValue({});
 
         mockUseOnyx.mockImplementation((key: string) => {
-            if (key === ONYXKEYS.IS_LOADING_APP) {
+            if (key === ONYXKEYS.RAM_ONLY_IS_LOADING_APP) {
                 return [false, {status: 'loaded'}];
             }
-            if (key === ONYXKEYS.ARE_TRANSLATIONS_LOADING) {
+            if (key === ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING) {
                 return [false, {status: 'loaded'}];
             }
             if (key.includes('reportMetadata')) {
@@ -230,10 +230,10 @@ describe('ReportActionsView', () => {
             });
 
             mockUseOnyx.mockImplementation((key: string) => {
-                if (key === ONYXKEYS.IS_LOADING_APP) {
+                if (key === ONYXKEYS.RAM_ONLY_IS_LOADING_APP) {
                     return [true, {status: 'loaded'}];
                 }
-                if (key === ONYXKEYS.ARE_TRANSLATIONS_LOADING) {
+                if (key === ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING) {
                     return [false, {status: 'loaded'}];
                 }
                 if (key.includes('reportMetadata')) {
@@ -267,10 +267,10 @@ describe('ReportActionsView', () => {
             });
 
             mockUseOnyx.mockImplementation((key: string) => {
-                if (key === ONYXKEYS.IS_LOADING_APP) {
+                if (key === ONYXKEYS.RAM_ONLY_IS_LOADING_APP) {
                     return [false, {status: 'loaded'}];
                 }
-                if (key === ONYXKEYS.ARE_TRANSLATIONS_LOADING) {
+                if (key === ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING) {
                     return [false, {status: 'loaded'}];
                 }
                 if (key.includes('reportMetadata')) {
@@ -299,10 +299,10 @@ describe('ReportActionsView', () => {
             });
 
             mockUseOnyx.mockImplementation((key: string) => {
-                if (key === ONYXKEYS.IS_LOADING_APP) {
+                if (key === ONYXKEYS.RAM_ONLY_IS_LOADING_APP) {
                     return [true, {status: 'loaded'}];
                 }
-                if (key === ONYXKEYS.ARE_TRANSLATIONS_LOADING) {
+                if (key === ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING) {
                     return [false, {status: 'loaded'}];
                 }
                 if (key.includes('reportMetadata')) {
@@ -331,10 +331,10 @@ describe('ReportActionsView', () => {
             });
 
             mockUseOnyx.mockImplementation((key: string) => {
-                if (key === ONYXKEYS.IS_LOADING_APP) {
+                if (key === ONYXKEYS.RAM_ONLY_IS_LOADING_APP) {
                     return [false, {status: 'loaded'}];
                 }
-                if (key === ONYXKEYS.ARE_TRANSLATIONS_LOADING) {
+                if (key === ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING) {
                     return [false, {status: 'loaded'}];
                 }
                 if (key.includes('reportMetadata')) {
@@ -397,10 +397,10 @@ describe('ReportActionsView', () => {
                 if (key === ONYXKEYS.CONCIERGE_REPORT_ID) {
                     return [CONCIERGE_REPORT_ID, {status: 'loaded'}];
                 }
-                if (key === ONYXKEYS.IS_LOADING_APP) {
+                if (key === ONYXKEYS.RAM_ONLY_IS_LOADING_APP) {
                     return [false, {status: 'loaded'}];
                 }
-                if (key === ONYXKEYS.ARE_TRANSLATIONS_LOADING) {
+                if (key === ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING) {
                     return [false, {status: 'loaded'}];
                 }
                 if (key.includes('reportMetadata')) {

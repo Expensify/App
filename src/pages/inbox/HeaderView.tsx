@@ -6,6 +6,7 @@ import React, {useMemo} from 'react';
 import {Keyboard, View} from 'react-native';
 import Button from '@components/Button';
 import CaretWrapper from '@components/CaretWrapper';
+import ChronosTimerHeaderButton from '@components/ChronosTimerHeaderButton';
 import DisplayNames from '@components/DisplayNames';
 import HeaderLoadingBar from '@components/HeaderLoadingBar';
 import Icon from '@components/Icon';
@@ -41,6 +42,7 @@ import {getReportName} from '@libs/ReportNameUtils';
 import {
     canJoinChat,
     canUserPerformWriteAction,
+    chatIncludesChronos,
     getChatRoomSubtitle,
     getDisplayNamesWithTooltips,
     getParentNavigationSubtitle,
@@ -385,6 +387,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                                             success={!hasActiveScheduledCall}
                                         />
                                     )}
+                                    {!shouldUseNarrowLayout && chatIncludesChronos(report) && <ChronosTimerHeaderButton report={report} />}
                                     {!shouldUseNarrowLayout && isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton report={report} />}
                                     {!isParentReportLoading && canJoin && !shouldUseNarrowLayout && joinButton}
                                 </View>
@@ -424,6 +427,13 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                         />
                     )}
                 </View>
+                {!!report && shouldUseNarrowLayout && chatIncludesChronos(report) && (
+                    <View style={[styles.appBG, styles.pl0]}>
+                        <View style={[styles.ph5, styles.pb3]}>
+                            <ChronosTimerHeaderButton report={report} />
+                        </View>
+                    </View>
+                )}
                 {!!report && shouldUseNarrowLayout && isOpenTaskReport(report, parentReportAction) && (
                     <View style={[styles.appBG, styles.pl0]}>
                         <View style={[styles.ph5, styles.pb3]}>

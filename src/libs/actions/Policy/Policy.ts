@@ -5,7 +5,7 @@ import type {OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} fr
 import Onyx from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {ReportExportType} from '@components/ButtonWithDropdownMenu/types';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type PolicyData from '@hooks/usePolicyData/types';
 import * as API from '@libs/API';
 import type {
@@ -1399,6 +1399,8 @@ function leaveWorkspace(currentUserAccountID: number, currentUserEmail: string, 
 
 function addBillingCardAndRequestPolicyOwnerChange(
     policyID: string | undefined,
+    currentUserAccountID: number,
+    currentUserEmail: string,
     cardData: {
         cardNumber: string;
         cardYear: string;
@@ -1436,8 +1438,8 @@ function addBillingCardAndRequestPolicyOwnerChange(
                 isLoading: false,
                 isChangeOwnerSuccessful: true,
                 isChangeOwnerFailed: false,
-                owner: deprecatedSessionEmail,
-                ownerAccountID: deprecatedSessionAccountID,
+                owner: currentUserEmail,
+                ownerAccountID: currentUserAccountID,
             },
         },
     ];
@@ -1486,7 +1488,7 @@ function addBillingCardAndRequestPolicyOwnerChange(
  * Properly updates the nvp_privateStripeCustomerID onyx data for 3DS payment
  *
  */
-function verifySetupIntentAndRequestPolicyOwnerChange(policyID: string) {
+function verifySetupIntentAndRequestPolicyOwnerChange(policyID: string, currentUserAccountID: number, currentUserEmail: string) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1508,8 +1510,8 @@ function verifySetupIntentAndRequestPolicyOwnerChange(policyID: string) {
                 isLoading: false,
                 isChangeOwnerSuccessful: true,
                 isChangeOwnerFailed: false,
-                owner: deprecatedSessionEmail,
-                ownerAccountID: deprecatedSessionAccountID,
+                owner: currentUserEmail,
+                ownerAccountID: currentUserAccountID,
             },
         },
     ];
@@ -1525,7 +1527,7 @@ function verifySetupIntentAndRequestPolicyOwnerChange(policyID: string) {
             },
         },
     ];
-    API.write(WRITE_COMMANDS.VERIFY_SETUP_INTENT_AND_REQUEST_POLICY_OWNER_CHANGE, {accountID: deprecatedSessionAccountID, policyID}, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.VERIFY_SETUP_INTENT_AND_REQUEST_POLICY_OWNER_CHANGE, {accountID: currentUserAccountID, policyID}, {optimisticData, successData, failureData});
 }
 
 /**
@@ -1603,6 +1605,7 @@ function createPolicyExpenseChats(
             policyID,
             ownerAccountID: cleanAccountID,
             notificationPreference,
+            currentUserAccountID: deprecatedSessionAccountID,
         });
 
         // Set correct notification preferences: visible for the submitter, hidden for others until there's activity
@@ -2153,6 +2156,51 @@ function setDuplicateWorkspaceData(data: Partial<DuplicateWorkspace>) {
 
 function clearDuplicateWorkspace() {
     Onyx.set(ONYXKEYS.DUPLICATE_WORKSPACE, {});
+}
+
+function getDisplayNameForWorkspace(email: string) {
+    const emailParts = email.split('@');
+    const domain = emailParts.at(1) ?? '';
+    const isSMSDomain = `@${domain}` === CONST.SMS.DOMAIN;
+    if (isSMSDomain) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return translateLocal('workspace.new.myGroupWorkspace', {});
+    }
+
+    if (!PUBLIC_DOMAINS_SET.has(domain.toLowerCase())) {
+        return Str.UCFirst(domain.split('.').at(0) ?? '');
+    }
+
+    const userDetails = PersonalDetailsUtils.getPersonalDetailByEmail(email);
+    const displayName = userDetails?.displayName?.trim();
+    if (displayName) {
+        return Str.UCFirst(displayName);
+    }
+
+    const username = emailParts.at(0) ?? '';
+    return Str.UCFirst(username);
+}
+
+/**
+ * Generate a policy name based on an email and policy list.
+ * @param [email] the email to base the workspace name on. If not passed, will use the logged-in user's email instead
+ * @param [lastWorkspaceNumber] the last workspace number
+ */
+function newGenerateDefaultWorkspaceName(email: string, lastWorkspaceNumber: number | undefined, localeTranslate: LocalizedTranslate): string {
+    const emailParts = email ? email.split('@') : deprecatedSessionEmail.split('@');
+    if (!emailParts || emailParts.length !== 2) {
+        return '';
+    }
+    const domain = emailParts.at(1) ?? '';
+    const isSMSDomain = `@${domain}` === CONST.SMS.DOMAIN;
+
+    if (isSMSDomain) {
+        return localeTranslate('workspace.new.myGroupWorkspace', {workspaceNumber: lastWorkspaceNumber !== undefined ? lastWorkspaceNumber + 1 : undefined});
+    }
+
+    const displayNameForWorkspace = getDisplayNameForWorkspace(email || deprecatedSessionEmail);
+
+    return localeTranslate('workspace.new.workspaceName', displayNameForWorkspace, lastWorkspaceNumber !== undefined ? lastWorkspaceNumber + 1 : undefined);
 }
 
 /**
@@ -2926,23 +2974,16 @@ function createWorkspace(options: CreateWorkspaceDataOptions): CreateWorkspacePa
 
 /**
  * Creates a draft workspace for various money request flows
- *
- * @param [policyOwnerEmail] the email of the account to make the owner of the policy
- * @param [makeMeAdmin] leave the calling account as an admin on the policy
- * @param [policyName] custom policy name we will use for created workspace
- * @param [policyID] custom policy id we will use for created workspace
  */
 function createDraftWorkspace(
     introSelected: OnyxEntry<IntroSelected>,
+    workspaceName: string,
     policyOwnerEmail = '',
     makeMeAdmin = false,
-    policyName = '',
     policyID = generatePolicyID(),
     currency = '',
     file?: File,
 ): CreateWorkspaceParams {
-    const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
-
     const {customUnits, customUnitID, customUnitRateID, outputCurrency} = buildOptimisticDistanceRateCustomUnits(currency);
 
     const {expenseChatData, adminsChatReportID, adminsCreatedReportActionID, expenseChatReportID, expenseCreatedReportActionID} = ReportUtils.buildOptimisticWorkspaceChats(
@@ -7004,6 +7045,8 @@ export {
     updateLastAccessedWorkspace,
     clearDeleteWorkspaceError,
     setWorkspaceDefaultSpendCategory,
+    getDisplayNameForWorkspace,
+    newGenerateDefaultWorkspaceName,
     generateDefaultWorkspaceName,
     updateGeneralSettings,
     deleteWorkspaceAvatar,
