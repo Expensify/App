@@ -77,7 +77,7 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
             return;
         }
         if (categoryID !== selectedCategory.keyForList) {
-            setWorkspaceDefaultSpendCategory(policyID, currentGroupID, selectedCategory.keyForList);
+            setWorkspaceDefaultSpendCategory(policyID, currentGroupID, selectedCategory.keyForList, policy?.mccGroup);
         }
 
         KeyboardUtils.dismiss({
