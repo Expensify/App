@@ -86,8 +86,8 @@ function DistanceRequestController({
         const errorKey = 'iou.error.invalidRate';
         const policyRates = DistanceRequestUtils.getMileageRates(policy);
 
-        // If the selected rate belongs to the policy, clear the error
-        if (customUnitRateID && customUnitRateID in policyRates) {
+        // If the selected rate belongs to the policy, and for moving track expense if the units also matches, clear the error
+        if (customUnitRateID && customUnitRateID in policyRates && (!isMovingTransactionFromTrackExpense || policyRates[customUnitRateID].unit === mileageRate.unit)) {
             clearFormErrors([errorKey]);
             return;
         }
