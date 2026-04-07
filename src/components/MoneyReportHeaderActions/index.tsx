@@ -5,7 +5,6 @@ import type {ButtonWithDropdownMenuRef} from '@components/ButtonWithDropdownMenu
 import type {RejectModalAction} from '@components/MoneyReportHeaderEducationalModals';
 import MoneyReportHeaderEducationalModals from '@components/MoneyReportHeaderEducationalModals';
 import MoneyReportHeaderPrimaryAction from '@components/MoneyReportHeaderPrimaryAction';
-import ProcessMoneyReportHoldMenu from '@components/ProcessMoneyReportHoldMenu';
 import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
 import ReportPDFDownloadModal from '@components/ReportPDFDownloadModal';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
@@ -28,6 +27,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import MoneyReportHeaderHoldMenu from './MoneyReportHeaderHoldMenu';
 import MoneyReportHeaderSecondaryActions from './MoneyReportHeaderSecondaryActions';
 import MoneyReportHeaderSelectionDropdown from './MoneyReportHeaderSelectionDropdown';
 
@@ -216,38 +216,36 @@ function MoneyReportHeaderActions({
         <>
             {actionButtons}
 
-            {isHoldMenuVisible && requestType !== undefined && (
-                <ProcessMoneyReportHoldMenu
-                    nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
-                    requestType={requestType}
-                    fullAmount={fullAmount}
-                    onClose={() => {
-                        setSelectedVBBAToPayFromHoldMenu(undefined);
-                        setIsHoldMenuVisible(false);
-                        isSelectionModePaymentRef.current = false;
-                    }}
-                    isVisible={isHoldMenuVisible}
-                    paymentType={paymentType}
-                    methodID={paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? selectedVBBAToPayFromHoldMenu : undefined}
-                    chatReport={chatReport}
-                    moneyRequestReport={moneyRequestReport}
-                    hasNonHeldExpenses={!hasOnlyHeldExpenses}
-                    startAnimation={() => {
-                        if (isSelectionModePaymentRef.current) {
-                            clearSelectedTransactions(true);
-                            return;
-                        }
-                        if (requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
-                            startApprovedAnimation();
-                        } else {
-                            startAnimation();
-                        }
-                    }}
-                    transactionCount={transactionIDs.length}
-                    transactions={transactionsList}
-                    onNonReimbursablePaymentError={showNonReimbursablePaymentErrorModal}
-                />
-            )}
+            <MoneyReportHeaderHoldMenu
+                nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
+                requestType={requestType}
+                fullAmount={fullAmount}
+                onClose={() => {
+                    setSelectedVBBAToPayFromHoldMenu(undefined);
+                    setIsHoldMenuVisible(false);
+                    isSelectionModePaymentRef.current = false;
+                }}
+                isVisible={isHoldMenuVisible}
+                paymentType={paymentType}
+                methodID={paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? selectedVBBAToPayFromHoldMenu : undefined}
+                chatReport={chatReport}
+                moneyRequestReport={moneyRequestReport}
+                hasNonHeldExpenses={!hasOnlyHeldExpenses}
+                startAnimation={() => {
+                    if (isSelectionModePaymentRef.current) {
+                        clearSelectedTransactions(true);
+                        return;
+                    }
+                    if (requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
+                        startApprovedAnimation();
+                    } else {
+                        startAnimation();
+                    }
+                }}
+                transactionCount={transactionIDs.length}
+                transactions={transactionsList}
+                onNonReimbursablePaymentError={showNonReimbursablePaymentErrorModal}
+            />
             <MoneyReportHeaderEducationalModals
                 requestParentReportAction={requestParentReportAction}
                 transaction={transaction}
