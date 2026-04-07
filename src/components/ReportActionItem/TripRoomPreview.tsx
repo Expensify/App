@@ -2,7 +2,6 @@ import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
 import type {ListRenderItemInfo, StyleProp, ViewStyle} from 'react-native';
 import {FlatList, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -11,6 +10,7 @@ import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,24 +20,20 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
+import {getOriginalMessage} from '@libs/ReportActionsUtils';
 import type {ReservationData} from '@libs/TripReservationUtils';
 import {formatCancelledDescription, getReservationsFromTripReport, getTripReservationIcon, getTripTotal} from '@libs/TripReservationUtils';
 import type {ContextMenuAnchor} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Report, ReportAction} from '@src/types/onyx';
+import type {ReportAction} from '@src/types/onyx';
 import type {Reservation} from '@src/types/onyx/Transaction';
 
 type TripRoomPreviewProps = {
     /** All the data of the action */
     action: ReportAction;
-
-    /** The associated chatReport */
-    chatReport: OnyxEntry<Report>;
-
-    /** The associated iouReport */
-    iouReport: OnyxEntry<Report>;
 
     /** Extra styles to pass to View wrapper */
     containerStyles?: StyleProp<ViewStyle>;
@@ -129,8 +125,6 @@ function ReservationView({reservation, onPress, isCancelled}: ReservationViewPro
 
 function TripRoomPreview({
     action,
-    chatReport,
-    iouReport,
     containerStyles,
     contextMenuAnchor,
     isHovered = false,
@@ -140,6 +134,13 @@ function TripRoomPreview({
 }: TripRoomPreviewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+
+    const originalMessage = getOriginalMessage(action);
+    const linkedReportID = originalMessage && 'linkedReportID' in originalMessage ? originalMessage.linkedReportID : undefined;
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${linkedReportID}`);
+    const iouReportOfLinkedReportID = chatReport && 'iouReportID' in chatReport ? chatReport.iouReportID : undefined;
+    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportOfLinkedReportID}`);
+
     const chatReportID = chatReport?.reportID;
     const tripTransactions = useTripTransactions(chatReportID);
 
