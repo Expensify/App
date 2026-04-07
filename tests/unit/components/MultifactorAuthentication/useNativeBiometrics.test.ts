@@ -98,24 +98,23 @@ describe('useNativeBiometrics hook', () => {
         it('should initialize info with biometrics status', async () => {
             const {result} = renderHook(() => useNativeBiometrics());
 
-            expect(result.current.doesDeviceSupportAuthenticationMethod()).toBe(true);
+            await expect(result.current.doesDeviceSupportAuthenticationMethod()).resolves.toBe(true);
             await expect(result.current.getLocalCredentialID()).resolves.toBeUndefined();
             await expect(result.current.areLocalCredentialsKnownToServer()).resolves.toBe(false);
         });
     });
 
     describe('doesDeviceSupportAuthenticationMethod', () => {
-        it('should return true when device supports biometrics', () => {
+        it('should return true when device supports biometrics', async () => {
             const {result} = renderHook(() => useNativeBiometrics());
 
-            expect(typeof result.current.doesDeviceSupportAuthenticationMethod()).toBe('boolean');
-            expect(result.current.doesDeviceSupportAuthenticationMethod()).toBe(true);
+            await expect(result.current.doesDeviceSupportAuthenticationMethod()).resolves.toBe(true);
         });
 
-        it('should return boolean based on supportedAuthentication', () => {
+        it('should return boolean based on supportedAuthentication', async () => {
             const {result} = renderHook(() => useNativeBiometrics());
 
-            const support = result.current.doesDeviceSupportAuthenticationMethod();
+            const support = await result.current.doesDeviceSupportAuthenticationMethod();
             const {biometrics, credentials} = PublicKeyStore.supportedAuthentication;
             const expectedValue = biometrics || credentials;
 

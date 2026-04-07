@@ -47,7 +47,6 @@ import {
     isMerchantMissing,
     isScanning,
     isTimeRequest,
-    isUnreportedAndHasInvalidDistanceRateTransaction,
     shouldShowAttendees as shouldShowAttendeesUtils,
 } from '@libs/TransactionUtils';
 import variables from '@styles/variables';
@@ -237,9 +236,7 @@ function TransactionItemRow({
             return '';
         }
 
-        const policyParam = policy ?? transactionItem.policy;
-        const isCustomUnitOutOfPolicy = isUnreportedAndHasInvalidDistanceRateTransaction(transactionItem, policyParam);
-        const hasFieldErrors = hasMissingSmartscanFields(transactionItem, report) || isCustomUnitOutOfPolicy;
+        const hasFieldErrors = hasMissingSmartscanFields(transactionItem, report);
         if (hasFieldErrors) {
             const amountMissing = isAmountMissing(transactionItem);
             const merchantMissing = isMerchantMissing(transactionItem);
@@ -251,12 +248,11 @@ function TransactionItemRow({
                 error = translate('iou.missingAmount');
             } else if (merchantMissing && !isSettled(report)) {
                 error = translate('iou.missingMerchant');
-            } else if (isCustomUnitOutOfPolicy) {
-                error = translate('violations.customUnitOutOfPolicy');
             }
+
             return error;
         }
-    }, [transactionItem, translate, report, policy]);
+    }, [transactionItem, translate, report]);
 
     const exchangeRateMessage = getExchangeRate(transactionItem, report?.currency);
 
@@ -280,14 +276,14 @@ function TransactionItemRow({
 
     const totalPerAttendee = useMemo(() => {
         const attendeesCount = transactionAttendees.length ?? 0;
-        const totalAmount = getAmount(transactionItem);
+        const totalAmount = getAmount(transactionItem, isExpenseReport(report));
 
         if (!attendeesCount || totalAmount === undefined) {
             return undefined;
         }
 
         return totalAmount / attendeesCount;
-    }, [transactionAttendees.length, transactionItem]);
+    }, [report, transactionAttendees.length, transactionItem]);
 
     const renderColumn = (column: SearchColumnType): React.ReactNode => {
         switch (column) {

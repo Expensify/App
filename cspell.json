@@ -653,6 +653,7 @@
         "Salagatan",
         "samltool",
         "Saqbd",
+        "sbaiahmed",
         "SBFJ",
         "Scaleway",
         "Scaleway's",
@@ -902,7 +903,9 @@
         "Synovus",
         "Wallester",
         "Wintrust",
-        "Zürcher"
+        "Zürcher",
+        "CARDFROZEN",
+        "CARDUNFROZEN"
     ],
     "ignorePaths": [
         "src/languages/de.ts",
