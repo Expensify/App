@@ -2672,7 +2672,7 @@ function getValidOptions(
             return searchTerms.every((term) =>
                 isPersonalDetailMatchingSearchTerm(personalDetail, currentUserAccountID, term, {
                     useLocaleLowerCase: true,
-                    transformSearchText: (concatenatedSearchTerms) => deburr(`${concatenatedSearchTerms} ${personalDetail.text ?? ''}`),
+                    transformSearchText: (concatenatedSearchTerms) => deburr(`${concatenatedSearchTerms} ${(personalDetail.text ?? '').toLocaleLowerCase()}`),
                 }),
             );
         };
