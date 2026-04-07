@@ -1,4 +1,5 @@
 import {useEffect, useRef, useState, useTransition} from 'react';
+import {Image} from 'react-native';
 import {generateThumbnail} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
 
 const thumbnailCache = new Map<string, string>();
@@ -30,6 +31,9 @@ function pregenerateThumbnail(sourceUri: string): Promise<string | undefined> {
     return generateThumbnail(sourceUri).then((uri) => {
         if (uri) {
             thumbnailCache.set(sourceUri, uri);
+            // Pre-decode the thumbnail in the native image pipeline so the
+            // confirmation screen can display it instantly without decode latency.
+            Image.prefetch(uri);
         }
         return uri;
     });

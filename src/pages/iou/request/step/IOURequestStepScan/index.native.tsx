@@ -175,6 +175,10 @@ function IOURequestStepScan({
         }
         endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
 
+        // Preload the confirmation screen module so its JS is parsed and ready
+        // when we navigate after capture — eliminates cold-start module load cost.
+        require('../IOURequestStepConfirmation');
+
         // Pre-create upload directory to avoid latency during capture
         const path = getReceiptsUploadFolderPath();
         ReactNativeBlobUtil.fs
@@ -332,9 +336,8 @@ function IOURequestStepScan({
                     source,
                 };
 
-                setMoneyRequestReceipt(transactionID, source, filename, !isEditing, 'image/jpeg');
-
                 if (isEditing) {
+                    setMoneyRequestReceipt(transactionID, source, filename, !isEditing, 'image/jpeg');
                     updateScanAndNavigate(cameraFile as FileObject, source);
                     return;
                 }
@@ -343,20 +346,18 @@ function IOURequestStepScan({
                 setReceiptFiles(newReceiptFiles);
 
                 if (isMultiScanEnabled) {
+                    setMoneyRequestReceipt(transactionID, source, filename, !isEditing, 'image/jpeg');
                     setDidCapturePhoto(false);
                     isCapturingPhoto.current = false;
                     return;
                 }
 
-                // Pre-generate the thumbnail and cache it so the confirm screen
-                // can use it synchronously on first render (no source swap / flash).
-                // We don't block on it — if it finishes before navigation, great;
-                // if not, the hook's fallback path will handle it.
-                pregenerateThumbnail(source);
-
-                // Defer navigation by one frame so React renders the frozen camera
-                // state (didCapturePhoto=true) before the screen transitions away.
-                requestAnimationFrame(() => submitReceipts(newReceiptFiles));
+                // Fire Onyx merge immediately (non-blocking) while we await thumbnail generation.
+                // Both run in parallel — navigation proceeds once the thumbnail is cached.
+                setMoneyRequestReceipt(transactionID, source, filename, !isEditing, 'image/jpeg');
+                pregenerateThumbnail(source).then(() => {
+                    submitReceipts(newReceiptFiles);
+                });
             })
             .catch((error: string) => {
                 isCapturingPhoto.current = false;
