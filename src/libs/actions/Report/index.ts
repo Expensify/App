@@ -92,8 +92,8 @@ import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import {
     getDefaultApprover,
-    getManagerAccountID,
     getMemberAccountIDsForWorkspace,
+    getSubmitToAccountID,
     isInstantSubmitEnabled,
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPolicyMember,
@@ -6563,7 +6563,7 @@ function buildOptimisticChangePolicyData(
     updatePolicyIdForReportAndThreads(reportID, policy.id, reportIDToThreadsReportIDsMap, optimisticData, failureData);
 
     const managerLogin = PersonalDetailsUtils.getLoginByAccountID(report.managerID ?? CONST.DEFAULT_NUMBER_ID);
-    const newManagerAccountID = getManagerAccountID(policy, {...report, policyID: policy.id});
+    const newManagerAccountID = getSubmitToAccountID(policy, {...report, policyID: policy.id});
     const shouldResetApprovalChain = isProcessingReport(report) && newManagerAccountID !== report.managerID && isPolicyMember(policy, managerLogin);
     if (shouldResetApprovalChain) {
         optimisticData.push({
