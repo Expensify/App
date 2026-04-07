@@ -19,7 +19,7 @@ function useDialogLabelRegistration(title: ReactNode) {
 
     const isTransitionReady = !!isInsideDialog && !!screenWrapperStatus?.didScreenTransitionEnd;
 
-    return {isInsideDialog, isTransitionReady, claimInitialFocus, containerRef};
+    return {isTransitionReady, claimInitialFocus, containerRef};
 }
 
 export default useDialogLabelRegistration;
