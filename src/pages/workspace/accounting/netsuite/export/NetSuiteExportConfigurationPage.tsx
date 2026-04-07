@@ -108,9 +108,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             type: 'menuitem',
             title: config?.reimbursableExpensesExportDestination ? translate(`workspace.netsuite.exportDestination.values.${config.reimbursableExpensesExportDestination}.label`) : undefined,
             description: translate('workspace.accounting.exportOutOfPocket'),
-            onPress: !policyID
-                ? undefined
-                : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(CONST.NETSUITE_EXPENSE_TYPE.REIMBURSABLE))),
+            onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(policyID, CONST.NETSUITE_EXPENSE_TYPE.REIMBURSABLE)),
             subscribedSettings: [
                 CONST.NETSUITE_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION,
                 ...(!shouldHideReimbursableDefaultVendor(true, config) ? [CONST.NETSUITE_CONFIG.DEFAULT_VENDOR] : []),
@@ -125,9 +123,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
                 ? translate(`workspace.netsuite.exportDestination.values.${config.nonreimbursableExpensesExportDestination}.label`)
                 : undefined,
             description: translate('workspace.accounting.exportCompanyCard'),
-            onPress: !policyID
-                ? undefined
-                : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(CONST.NETSUITE_EXPENSE_TYPE.NON_REIMBURSABLE))),
+            onPress: !policyID ? undefined : () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES.getRoute(policyID, CONST.NETSUITE_EXPENSE_TYPE.NON_REIMBURSABLE)),
             subscribedSettings: [
                 CONST.NETSUITE_CONFIG.NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION,
                 ...(!shouldHideReimbursableDefaultVendor(false, config) ? [CONST.NETSUITE_CONFIG.DEFAULT_VENDOR] : []),
