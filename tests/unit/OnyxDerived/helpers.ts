@@ -1,7 +1,7 @@
 import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
 
-export function createReport(reportID: string, overrides: Partial<Report> = {}): Report {
+function createReport(reportID: string, overrides: Partial<Report> = {}): Report {
     return {
         reportID,
         reportName: `Report ${reportID}`,
@@ -12,3 +12,5 @@ export function createReport(reportID: string, overrides: Partial<Report> = {}):
         ...overrides,
     } as Report;
 }
+
+export default createReport;

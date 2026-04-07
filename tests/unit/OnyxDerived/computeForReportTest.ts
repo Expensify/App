@@ -3,7 +3,7 @@ import {computeForReport} from '@libs/actions/OnyxDerived/configs/sortedReportAc
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
-import {createReport} from './helpers';
+import createReport from './helpers';
 
 function createAction(id: string, created: string, overrides: Partial<ReportAction> = {}): ReportAction {
     return {

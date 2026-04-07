@@ -4,7 +4,7 @@ import type {DerivedValueContext} from '@libs/actions/OnyxDerived/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, Session} from '@src/types/onyx';
-import {createReport as createBaseReport} from './helpers';
+import createBaseReport from './helpers';
 
 const CURRENT_USER_ACCOUNT_ID = 1;
 const OTHER_USER_ACCOUNT_ID = 2;
