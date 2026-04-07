@@ -111,7 +111,6 @@ describe('PureReportActionItem', () => {
                                 currentUserAccountID={ACTOR_ACCOUNT_ID}
                                 betas={undefined}
                                 draftTransactionIDs={[]}
-                                userBillingGracePeriodEnds={undefined}
                             />
                         </PortalProvider>
                     </ScreenWrapper>
@@ -405,7 +404,6 @@ describe('PureReportActionItem', () => {
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     betas={undefined}
                                     draftTransactionIDs={[]}
-                                    userBillingGracePeriodEnds={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -461,7 +459,6 @@ describe('PureReportActionItem', () => {
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     betas={undefined}
                                     draftTransactionIDs={[]}
-                                    userBillingGracePeriodEnds={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -529,7 +526,6 @@ describe('PureReportActionItem', () => {
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     betas={undefined}
                                     draftTransactionIDs={[]}
-                                    userBillingGracePeriodEnds={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -592,7 +588,6 @@ describe('PureReportActionItem', () => {
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     betas={undefined}
                                     draftTransactionIDs={[]}
-                                    userBillingGracePeriodEnds={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -647,7 +642,6 @@ describe('PureReportActionItem', () => {
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     betas={undefined}
                                     draftTransactionIDs={[]}
-                                    userBillingGracePeriodEnds={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1084,7 +1078,6 @@ describe('PureReportActionItem', () => {
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     betas={undefined}
                                     draftTransactionIDs={[]}
-                                    userBillingGracePeriodEnds={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1183,7 +1176,6 @@ describe('PureReportActionItem', () => {
                                     isClosedExpenseReportWithNoExpenses
                                     betas={undefined}
                                     draftTransactionIDs={[]}
-                                    userBillingGracePeriodEnds={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1217,7 +1209,6 @@ describe('PureReportActionItem', () => {
                                     missingPaymentMethod="bankAccount"
                                     betas={undefined}
                                     draftTransactionIDs={[]}
-                                    userBillingGracePeriodEnds={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1253,7 +1244,6 @@ describe('PureReportActionItem', () => {
                                     missingPaymentMethod="wallet"
                                     betas={undefined}
                                     draftTransactionIDs={[]}
-                                    userBillingGracePeriodEnds={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1293,7 +1283,6 @@ describe('PureReportActionItem', () => {
                                     bankAccountList={{12345: {accountData: {accountNumber: '000098765'}} as never}}
                                     betas={undefined}
                                     draftTransactionIDs={[]}
-                                    userBillingGracePeriodEnds={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1333,7 +1322,6 @@ describe('PureReportActionItem', () => {
                                     bankAccountList={{12345: {accountData: {accountNumber: '000098765'}} as never}}
                                     betas={undefined}
                                     draftTransactionIDs={[]}
-                                    userBillingGracePeriodEnds={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1395,7 +1383,6 @@ describe('PureReportActionItem', () => {
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     betas={undefined}
                                     draftTransactionIDs={[]}
-                                    userBillingGracePeriodEnds={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1439,7 +1426,6 @@ describe('PureReportActionItem', () => {
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     betas={undefined}
                                     draftTransactionIDs={[]}
-                                    userBillingGracePeriodEnds={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -1943,7 +1929,6 @@ describe('PureReportActionItem', () => {
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     betas={undefined}
                                     draftTransactionIDs={[]}
-                                    userBillingGracePeriodEnds={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -2000,7 +1985,6 @@ describe('PureReportActionItem', () => {
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     betas={undefined}
                                     draftTransactionIDs={[]}
-                                    userBillingGracePeriodEnds={undefined}
                                     reportNameValuePairsOrigin="harvest"
                                     reportNameValuePairsOriginalID="origReport123"
                                 />
@@ -2056,7 +2040,6 @@ describe('PureReportActionItem', () => {
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
                                     betas={undefined}
                                     draftTransactionIDs={[]}
-                                    userBillingGracePeriodEnds={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>

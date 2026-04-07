@@ -1,7 +1,7 @@
 import React, {useMemo} from 'react';
 import type {TextInput} from 'react-native';
 import {View} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import {AttachmentContext} from '@components/AttachmentContext';
 import Button from '@components/Button';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
@@ -84,7 +84,6 @@ type ChatMessageContentProps = {
     userBillingFundID: number | undefined;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
     draftTransactionIDs: string[] | undefined;
-    userBillingGracePeriodEnds: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
     currentUserAccountID: number;
     currentUserEmail: string | undefined;
     createDraftTransactionAndNavigateToParticipantSelector?: (params: CreateDraftTransactionParams) => void;
@@ -114,7 +113,6 @@ function ChatMessageContent({
     userBillingFundID,
     introSelected,
     draftTransactionIDs,
-    userBillingGracePeriodEnds,
     currentUserAccountID,
     currentUserEmail,
     createDraftTransactionAndNavigateToParticipantSelector = () => {},
@@ -129,6 +127,7 @@ function ChatMessageContent({
     // useOnyx subscriptions — only mount for chat messages now
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const trackExpenseTransactionID = isActionableTrackExpense(action) ? getOriginalMessage(action)?.transactionID : undefined;
     const [trackExpenseTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(trackExpenseTransactionID)}`);
 

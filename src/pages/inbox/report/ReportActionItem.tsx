@@ -33,10 +33,7 @@ import type {PersonalDetailsList, ReportActionReactions, Transaction} from '@src
 import type {PureReportActionItemProps} from './PureReportActionItem';
 import PureReportActionItem from './PureReportActionItem';
 
-type ReportActionItemProps = Omit<
-    PureReportActionItemProps,
-    'currentUserAccountID' | 'currentUserEmail' | 'personalPolicyID' | 'draftTransactionIDs' | 'userBillingGracePeriodEnds' | 'betas'
-> & {
+type ReportActionItemProps = Omit<PureReportActionItemProps, 'currentUserAccountID' | 'currentUserEmail' | 'personalPolicyID' | 'draftTransactionIDs' | 'betas'> & {
     /** Whether to show the draft message or not */
     shouldShowDraftMessage?: boolean;
 
@@ -90,7 +87,6 @@ function ReportActionItem({
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
-    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const transactionsOnIOUReport = useReportTransactions(iouReport?.reportID);
     const transactionID = isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID;
 
@@ -148,7 +144,6 @@ function ReportActionItem({
             isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
             bankAccountList={bankAccountList}
             reportMetadata={reportMetadata}
-            userBillingGracePeriodEnds={userBillingGracePeriodEnds}
         />
     );
 }
