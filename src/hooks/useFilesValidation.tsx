@@ -166,7 +166,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
                     return;
                 }
 
-                if (result.error === CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE && isImageFile(file) && validationState.isValidatingReceipts) {
+                if (result.error === CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE && isImageFile(file)) {
                     filesToResize.push(file);
                     return;
                 }
