@@ -144,6 +144,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const currencySymbol = getCurrencySymbol(transactionDetails.currency ?? '') ?? transactionDetails.currency ?? CONST.CURRENCY.USD;
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setErrorMessage('');
     }, [splitExpenses.length]);
 
@@ -199,11 +200,13 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         const errorString = getLatestErrorMessage(draftTransaction ?? {});
 
         if (errorString) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setErrorMessage(errorString);
         }
     }, [draftTransaction, draftTransaction?.errors]);
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setErrorMessage('');
     }, [sumOfSplitExpenses, splitExpenses]);
 
