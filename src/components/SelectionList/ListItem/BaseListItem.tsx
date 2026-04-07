@@ -15,6 +15,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getBrowser, isMobile} from '@libs/Browser';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {BaseListItemProps, ListItem} from './types';
@@ -39,7 +40,7 @@ function getAccessibilityProps<TItem extends ListItem>({
 
     const isCheckableRole = effectiveRole === CONST.ROLE.CHECKBOX || effectiveRole === CONST.ROLE.RADIO;
     const accessibilityState = isCheckableRole ? {checked: !!item.isSelected, selected: !!isFocused} : getSelectableState(!!item.isSelected);
-    const ariaCurrent = !isCheckableRole && item.isSelected ? true : undefined;
+    const ariaCurrent = !isCheckableRole && item.isSelected && getBrowser() === CONST.BROWSER.CHROME && !isMobile() ? true : undefined;
 
     if (accessible === false) {
         return {
