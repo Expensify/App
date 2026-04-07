@@ -1663,6 +1663,7 @@ const translations: TranslationDeepObject<typeof en> = {
         backdropLabel: 'Sfondo modale',
     },
     nextStep: {
+        // All nextStep.message functions share a common positional signature (actor, actorType, eta, etaType) for type compatibility, so unused params are expected
         /* eslint-disable @typescript-eslint/no-unused-vars */
         message: {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS]: (
@@ -1671,6 +1672,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => {
+                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
@@ -1687,6 +1689,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => {
+                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
@@ -1709,6 +1712,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => {
+                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
@@ -1729,6 +1733,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 if (eta) {
                     formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `il ${eta} di ogni mese` : ` ${eta}`;
                 }
+                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
@@ -1745,6 +1750,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => {
+                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
@@ -1761,6 +1767,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => {
+                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
@@ -1777,6 +1784,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => {
+                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
@@ -1793,6 +1801,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => {
+                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
@@ -1809,6 +1818,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => {
+                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
@@ -1854,7 +1864,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
             },
         },
-        /* eslint-enable @typescript-eslint/no-unused-vars */
         eta: {
             [CONST.NEXT_STEP.ETA_KEY.SHORTLY]: 'presto',
             [CONST.NEXT_STEP.ETA_KEY.TODAY]: 'più tardi oggi',
@@ -7214,31 +7223,19 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
             `ha modificato la formula del nome del report personalizzato in "${newDefaultTitle}" (in precedenza "${oldDefaultTitle}")`,
         updatedOwnership: (oldOwnerEmail: string, oldOwnerName: string, policyName: string) => `ha assunto la proprietà di ${policyName} da ${oldOwnerName} (${oldOwnerEmail})`,
         updatedAutoHarvesting: (enabled: boolean) => `Invio pianificato ${enabled ? 'abilitato' : 'disabilitato'}`,
-        updatedIndividualBudgetNotification: ({
-            budgetAmount,
-            budgetFrequency,
-            budgetName,
-            budgetTypeForNotificationMessage,
-            summaryLink,
-            thresholdPercentage,
-            totalSpend,
-            unsubmittedSpend,
-            userEmail,
-            awaitingApprovalSpend,
-            approvedReimbursedClosedSpend,
-        }: {
-            budgetAmount: string;
-            budgetFrequency: string;
-            budgetName: string;
-            budgetTypeForNotificationMessage: string;
-            summaryLink?: string;
-            thresholdPercentage: number;
-            totalSpend: number;
-            unsubmittedSpend: number;
-            userEmail?: string;
-            awaitingApprovalSpend: number;
-            approvedReimbursedClosedSpend: number;
-        }) =>
+        updatedIndividualBudgetNotification: (
+            budgetAmount: string,
+            budgetFrequency: string,
+            budgetName: string,
+            budgetTypeForNotificationMessage: string,
+            thresholdPercentage: number,
+            totalSpend: number,
+            unsubmittedSpend: number,
+            awaitingApprovalSpend: number,
+            approvedReimbursedClosedSpend: number,
+            summaryLink?: string,
+            userEmail?: string,
+        ) =>
             `Attenzione! Questo spazio di lavoro ha un budget ${budgetFrequency} di “${budgetAmount}” per il/la ${budgetTypeForNotificationMessage} “${budgetName}”. ${userEmail} è attualmente a ${approvedReimbursedClosedSpend}, che supera il ${thresholdPercentage}% del budget. Ci sono anche ${awaitingApprovalSpend} in attesa di approvazione e ${unsubmittedSpend} non ancora inviati, per un totale di ${totalSpend}.${summaryLink ? `<a href="${summaryLink}">Ecco un report</a> con tutte quelle spese per i tuoi archivi!` : ''}`,
         updatedSharedBudgetNotification: (
             budgetAmount: string,

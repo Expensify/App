@@ -7084,31 +7084,19 @@ const translations = {
         updatedOwnership: (oldOwnerEmail: string, oldOwnerName: string, policyName: string) => `took over ownership of ${policyName} from ${oldOwnerName} (${oldOwnerEmail})`,
         updatedAutoHarvesting: (enabled: boolean) => `${enabled ? 'enabled' : 'disabled'} scheduled submit`,
 
-        updatedIndividualBudgetNotification: ({
-            budgetAmount,
-            budgetFrequency,
-            budgetName,
-            budgetTypeForNotificationMessage,
-            summaryLink,
-            thresholdPercentage,
-            totalSpend,
-            unsubmittedSpend,
-            userEmail,
-            awaitingApprovalSpend,
-            approvedReimbursedClosedSpend,
-        }: {
-            budgetAmount: string;
-            budgetFrequency: string;
-            budgetName: string;
-            budgetTypeForNotificationMessage: string;
-            summaryLink?: string;
-            thresholdPercentage: number;
-            totalSpend: number;
-            unsubmittedSpend: number;
-            userEmail?: string;
-            awaitingApprovalSpend: number;
-            approvedReimbursedClosedSpend: number;
-        }) =>
+        updatedIndividualBudgetNotification: (
+            budgetAmount: string,
+            budgetFrequency: string,
+            budgetName: string,
+            budgetTypeForNotificationMessage: string,
+            thresholdPercentage: number,
+            totalSpend: number,
+            unsubmittedSpend: number,
+            awaitingApprovalSpend: number,
+            approvedReimbursedClosedSpend: number,
+            summaryLink?: string,
+            userEmail?: string,
+        ) =>
             `Heads up! This workspace has a ${budgetFrequency} budget of "${budgetAmount}" for the ${budgetTypeForNotificationMessage} "${budgetName}". ${userEmail} is currently at ${approvedReimbursedClosedSpend}, which is over ${thresholdPercentage}% of the budget. There's also ${awaitingApprovalSpend} awaiting approval, and ${unsubmittedSpend} that hasn't been submitted yet, for a total of ${totalSpend}.${summaryLink ? ` <a href="${summaryLink}">Here's a report</a> with all those expenses for your records!` : ''}`,
         updatedSharedBudgetNotification: (
             budgetAmount: string,

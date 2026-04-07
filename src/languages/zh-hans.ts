@@ -1614,6 +1614,7 @@ const translations: TranslationDeepObject<typeof en> = {
         backdropLabel: '模态背景',
     },
     nextStep: {
+        // All nextStep.message functions share a common positional signature (actor, actorType, eta, etaType) for type compatibility, so unused params are expected
         /* eslint-disable @typescript-eslint/no-unused-vars */
         message: {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS]: (
@@ -1622,6 +1623,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => {
+                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
@@ -1638,6 +1640,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => {
+                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
@@ -1660,6 +1663,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => {
+                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
@@ -1680,6 +1684,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 if (eta) {
                     formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `在每个月的 ${eta} 日` : ` ${eta}`;
                 }
+                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
@@ -1696,6 +1701,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => {
+                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
@@ -1712,6 +1718,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => {
+                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
@@ -1728,6 +1735,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => {
+                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
@@ -1744,6 +1752,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => {
+                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
@@ -1760,6 +1769,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
             ) => {
+                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
@@ -1805,7 +1815,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
             },
         },
-        /* eslint-enable @typescript-eslint/no-unused-vars */
         eta: {
             [CONST.NEXT_STEP.ETA_KEY.SHORTLY]: '很快',
             [CONST.NEXT_STEP.ETA_KEY.TODAY]: '今天稍后',
@@ -7006,31 +7015,19 @@ ${reportName}
         updatedDefaultTitle: (newDefaultTitle: string, oldDefaultTitle: string) => `将自定义报表名称公式更改为“${newDefaultTitle}”（之前为“${oldDefaultTitle}”）`,
         updatedOwnership: (oldOwnerEmail: string, oldOwnerName: string, policyName: string) => `从 ${oldOwnerName}（${oldOwnerEmail}）接管了 ${policyName} 的所有权`,
         updatedAutoHarvesting: (enabled: boolean) => `已计划提交 ${enabled ? '已启用' : '已禁用'}`,
-        updatedIndividualBudgetNotification: ({
-            budgetAmount,
-            budgetFrequency,
-            budgetName,
-            budgetTypeForNotificationMessage,
-            summaryLink,
-            thresholdPercentage,
-            totalSpend,
-            unsubmittedSpend,
-            userEmail,
-            awaitingApprovalSpend,
-            approvedReimbursedClosedSpend,
-        }: {
-            budgetAmount: string;
-            budgetFrequency: string;
-            budgetName: string;
-            budgetTypeForNotificationMessage: string;
-            summaryLink?: string;
-            thresholdPercentage: number;
-            totalSpend: number;
-            unsubmittedSpend: number;
-            userEmail?: string;
-            awaitingApprovalSpend: number;
-            approvedReimbursedClosedSpend: number;
-        }) =>
+        updatedIndividualBudgetNotification: (
+            budgetAmount: string,
+            budgetFrequency: string,
+            budgetName: string,
+            budgetTypeForNotificationMessage: string,
+            thresholdPercentage: number,
+            totalSpend: number,
+            unsubmittedSpend: number,
+            awaitingApprovalSpend: number,
+            approvedReimbursedClosedSpend: number,
+            summaryLink?: string,
+            userEmail?: string,
+        ) =>
             `注意！此工作区的「${budgetTypeForNotificationMessage}：${budgetName}」有一项${budgetFrequency}预算，金额为「${budgetAmount}」。${userEmail} 当前支出为 ${approvedReimbursedClosedSpend}，已超过预算的 ${thresholdPercentage}%。另外还有 ${awaitingApprovalSpend} 正在等待审批，以及 ${unsubmittedSpend} 尚未提交，总计为 ${totalSpend}。${summaryLink ? `<a href="${summaryLink}">这里有一份报表</a>，包含了所有这些报销，供你留档！` : ''}`,
         updatedSharedBudgetNotification: (
             budgetAmount: string,

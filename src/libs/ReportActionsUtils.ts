@@ -4129,19 +4129,20 @@ function getUpdatedIndividualBudgetNotificationMessage(translate: LocalizedTrans
         summaryLink = extractLinksFromMessageHtmlString(summaryLinkMessage);
     }
 
-    return translate('workspaceActions.updatedIndividualBudgetNotification', {
+    return translate(
+        'workspaceActions.updatedIndividualBudgetNotification',
         budgetAmount,
-        budgetFrequency: translate(`workspace.common.budgetFrequency.${budgetFrequency}` as TranslationPaths),
+        translate(`workspace.common.budgetFrequency.${budgetFrequency}` as TranslationPaths),
         budgetName,
-        budgetTypeForNotificationMessage: translate(`workspace.common.budgetTypeForNotificationMessage.${budgetTypeForNotificationMessage}`),
-        summaryLink,
+        translate(`workspace.common.budgetTypeForNotificationMessage.${budgetTypeForNotificationMessage}`),
         thresholdPercentage,
         totalSpend,
         unsubmittedSpend,
-        userEmail,
         awaitingApprovalSpend,
         approvedReimbursedClosedSpend,
-    });
+        summaryLink,
+        userEmail,
+    );
 }
 
 function getUpdatedSharedBudgetNotificationMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>) {
