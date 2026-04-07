@@ -739,11 +739,11 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_CUSTOM_FORM_ID]: {
                             path: ROUTES.POLICY_ACCOUNTING_NETSUITE_CUSTOM_FORM_ID.route,
                         },
-                        [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_AUTO_SYNC]: {
-                            path: ROUTES.POLICY_ACCOUNTING_NETSUITE_AUTO_SYNC.route,
+                        [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_AUTO_SYNC]: {
+                            path: DYNAMIC_ROUTES.NETSUITE_AUTO_SYNC.path,
                         },
-                        [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_ACCOUNTING_METHOD]: {
-                            path: ROUTES.POLICY_ACCOUNTING_NETSUITE_ACCOUNTING_METHOD.route,
+                        [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_ACCOUNTING_METHOD]: {
+                            path: DYNAMIC_ROUTES.NETSUITE_ACCOUNTING_METHOD.path,
                         },
                         [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_PREREQUISITES]: {path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.ENTER_SAGE_INTACCT_CREDENTIALS]: {path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ENTER_CREDENTIALS.route},

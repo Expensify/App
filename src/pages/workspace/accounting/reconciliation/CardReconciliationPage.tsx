@@ -14,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getConnectionNameFromRouteParam} from '@libs/AccountingUtils';
 import {openPolicyAccountingPage} from '@libs/actions/PolicyConnections';
 import {getCardSettings, isExpensifyCardFullySetUp} from '@libs/CardUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -24,7 +25,7 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 import {toggleContinuousReconciliation} from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type ExpensifyCardSettings from '@src/types/onyx/ExpensifyCardSettings';
 import type {ConnectionName} from '@src/types/onyx/Policy';
@@ -101,7 +102,7 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
             case CONST.POLICY.CONNECTIONS.ROUTE.XERO:
                 return `${environmentURL}/${ROUTES.POLICY_ACCOUNTING_XERO_AUTO_SYNC.getRoute(policyID, backTo)}`;
             case CONST.POLICY.CONNECTIONS.ROUTE.NETSUITE:
-                return `${environmentURL}/${ROUTES.POLICY_ACCOUNTING_NETSUITE_AUTO_SYNC.getRoute(policyID, backTo)}`;
+                return `${environmentURL}/${ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, connection)}/${DYNAMIC_ROUTES.NETSUITE_AUTO_SYNC.path}`;
             case CONST.POLICY.CONNECTIONS.ROUTE.SAGE_INTACCT:
                 return `${environmentURL}/${ROUTES.POLICY_ACCOUNTING_CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC.getRoute(policyID)}`;
             case CONST.POLICY.CONNECTIONS.ROUTE.QBD:
