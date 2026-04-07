@@ -61,6 +61,7 @@ import {
     isDuplicate,
     isOnHold as isOnHoldTransactionUtils,
     isPending,
+    isPendingCardOrScanningTransaction,
     isScanning,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
     shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
@@ -125,7 +126,8 @@ function isSubmitAction(
     }
 
     const isExpenseReport = isExpenseReportUtils(report);
-    const isReportSubmitter = isCurrentUserSubmitter(report);
+    const isAdmin = isPolicyAdminPolicyUtils(policy);
+    const canUserSubmit = report?.ownerAccountID === currentUserAccountID || report?.managerID === currentUserAccountID || isAdmin;
     const isOpenReport = isOpenReportUtils(report);
 
     if (hasPendingDEWSubmit(reportMetadata, hasDynamicExternalWorkflow(policy))) {
@@ -136,13 +138,7 @@ function isSubmitAction(
         return false;
     }
 
-    if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPending(transaction))) {
-        return false;
-    }
-
-    const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isScanning(transaction));
-
-    if (isAnyReceiptBeingScanned) {
+    if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPendingCardOrScanningTransaction(transaction))) {
         return false;
     }
 
@@ -170,7 +166,7 @@ function isSubmitAction(
         return false;
     }
 
-    return isExpenseReport && isReportSubmitter && isOpenReport && reportTransactions.length !== 0;
+    return isExpenseReport && canUserSubmit && isOpenReport && reportTransactions.length !== 0;
 }
 
 function isApproveAction(
@@ -193,9 +189,8 @@ function isApproveAction(
         return false;
     }
 
-    const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isScanning(transaction));
-
-    if (isAnyReceiptBeingScanned) {
+    const hasOnlyPendingCardOrScanningTransactions = reportTransactions.length > 0 && reportTransactions.every((transaction) => isScanning(transaction) || isPending(transaction));
+    if (hasOnlyPendingCardOrScanningTransactions) {
         return false;
     }
 
@@ -213,10 +208,6 @@ function isApproveAction(
     const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 
     if (!isExpenseReport || !isApprovalEnabled || reportTransactions.length === 0) {
-        return false;
-    }
-
-    if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPending(transaction))) {
         return false;
     }
 
@@ -277,9 +268,10 @@ function isPrimaryPayAction({
     const isApprovalEnabled = policy ? policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
     const isSubmittedWithoutApprovalsEnabled = !isApprovalEnabled && isProcessingReport;
 
-    const isReportFinished = (isReportApproved && !report.isWaitingOnBankAccount) || isSubmittedWithoutApprovalsEnabled || isReportClosed;
+    const isApproved = isReportApproved || isSubmittedWithoutApprovalsEnabled;
+    const isReportFinished = (isApproved || isReportClosed) && !report.isWaitingOnBankAccount;
     const {reimbursableSpend, nonReimbursableSpend} = getMoneyRequestSpendBreakdown(report);
-    const isAutoReimbursable = canBeAutoReimbursed(report, policy);
+    const isAutoReimbursable = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES ? false : canBeAutoReimbursed(report, policy);
     const isPayAtEnd = isPayAtEndExpenseReportUtils(report, reportTransactions);
 
     if (
@@ -295,14 +287,14 @@ function isPrimaryPayAction({
         return isSecondaryAction ?? !didExportFail;
     }
 
-    if (!isProcessingReport) {
-        return false;
-    }
-
     const isIOUReport = isIOUReportUtils(report);
 
     if (isIOUReport && isReportPayer && !isReportSettled && reimbursableSpend > 0) {
         return true;
+    }
+
+    if (!isProcessingReport) {
+        return false;
     }
 
     const isInvoiceReport = isInvoiceReportUtils(report);
