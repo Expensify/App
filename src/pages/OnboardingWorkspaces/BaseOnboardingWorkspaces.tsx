@@ -191,26 +191,31 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                         <Text style={[styles.textSupporting, styles.mt3]}>{translate('onboarding.listOfWorkspaces')}</Text>
                     </View>
                 }
-                footerContent={
-                    <>
-                        {hasMoreThanFive && !showAll && (
+                listFooterContent={
+                    hasMoreThanFive && !showAll ? (
+                        <View style={[wrapperPadding]}>
                             <Button
-                                large
                                 text={translate('common.showMore')}
                                 onPress={() => setShowAll(true)}
-                                style={[styles.mt5]}
+                                link
+                                shouldUseDefaultHover={false}
+                                medium
+                                innerStyles={[styles.ph3]}
+                                textStyles={[styles.fontSizeNormal]}
                             />
-                        )}
-                        <Button
-                            success={false}
-                            large
-                            text={translate('common.skip')}
-                            testID="onboardingWorkSpaceSkipButton"
-                            onPress={skipJoiningWorkspaces}
-                            style={[styles.mt5]}
-                            sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.SKIP}
-                        />
-                    </>
+                        </View>
+                    ) : null
+                }
+                footerContent={
+                    <Button
+                        success={false}
+                        large
+                        text={translate('onboarding.skipForNow')}
+                        testID="onboardingWorkSpaceSkipButton"
+                        onPress={skipJoiningWorkspaces}
+                        style={[styles.mt5]}
+                        sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.SKIP}
+                    />
                 }
             />
         </ScreenWrapper>
