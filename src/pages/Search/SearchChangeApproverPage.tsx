@@ -9,7 +9,7 @@ import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -227,7 +227,7 @@ function SearchChangeApproverPage() {
             ) : (
                 <SelectionList
                     data={approverTypes}
-                    ListItem={RadioListItem}
+                    ListItem={SingleSelectListItem}
                     alternateNumberOfSupportedLines={2}
                     onSelectRow={(option) => {
                         if (!option.keyForList) {
