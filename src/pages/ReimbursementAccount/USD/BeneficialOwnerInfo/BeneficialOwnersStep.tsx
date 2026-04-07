@@ -144,6 +144,7 @@ function BeneficialOwnersStep({onBackButtonPress, onSubmit, currentSubPage, poli
         if (currentSubPage === SUB_PAGE_NAMES.IS_USER_UBO) {
             setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {ownsMoreThan25Percent: value});
 
+            // User is an owner but there are 4 other owners already added, so we remove last one
             if (value && beneficialOwnerKeys.length === 4) {
                 setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {beneficialOwnerKeys: beneficialOwnerKeys.slice(0, 3)});
             }

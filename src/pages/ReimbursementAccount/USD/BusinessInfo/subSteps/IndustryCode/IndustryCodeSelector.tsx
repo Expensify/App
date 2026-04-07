@@ -24,6 +24,7 @@ function IndustryCodeSelector({onInputChange, value, errorText}: IndustryCodeSel
     const [shouldDisplayChildItems, setShouldDisplayChildItems] = useState(false);
     const {translate} = useLocalize();
 
+    // Delay rendering the list and focusing the input until the screen transition animation completes.
     useFocusEffect(
         useCallback(() => {
             const timeout = setTimeout(() => {
