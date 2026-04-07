@@ -9,7 +9,6 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
-import {navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
@@ -26,7 +25,6 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 const mockCreateWorkspace = jest.mocked(createWorkspace);
 const mockCompleteOnboarding = jest.mocked(completeOnboarding);
-const mockNavigateToSubmitWorkspace = jest.mocked(navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue);
 
 jest.mock('@userActions/Report', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -48,16 +46,6 @@ jest.mock('@userActions/Policy/Policy', () => {
             policyID: 'test-policy-id',
             adminsChatReportID: 'test-admins-report-id',
         }),
-    };
-});
-
-jest.mock('@libs/navigateAfterOnboarding', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const actual = jest.requireActual('@libs/navigateAfterOnboarding');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return {
-        ...actual,
-        navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue: jest.fn(),
     };
 });
 
@@ -217,6 +205,9 @@ describe('OnboardingWorkspaces Page', () => {
     });
 
     it('should create a Submit workspace when skip is pressed with EMPLOYER purpose and Submit2026 beta', async () => {
+        jest.spyOn(Navigation, 'dismissModal').mockImplementation(() => {});
+        jest.spyOn(Navigation, 'setNavigationActionToMicrotaskQueue').mockImplementation((callback: () => void) => callback());
+
         await TestHelper.signInWithTestUser();
 
         await act(async () => {
@@ -260,7 +251,7 @@ describe('OnboardingWorkspaces Page', () => {
         });
 
         await waitFor(() => {
-            expect(mockNavigateToSubmitWorkspace).toHaveBeenCalledWith('test-policy-id');
+            expect(navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_CATEGORIES.getRoute('test-policy-id'));
         });
 
         unmount();
