@@ -1,3 +1,4 @@
+// cspell:ignore René Résumé
 import deburr from 'lodash/deburr';
 import {isPersonalDetailMatchingSearchTerm} from '@libs/OptionsListUtils/searchMatchUtils';
 
