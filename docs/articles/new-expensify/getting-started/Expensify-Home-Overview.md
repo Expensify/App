@@ -85,6 +85,8 @@ The **Discover** section helps you get familiar with things you can do in Expens
 
 This section includes a short demo that introduces key areas of the app and shows how different parts fit together. This can be helpful when you’re getting started or returning after some time away.
 
+Once you watch the demo, the Discover section is automatically removed from Home.
+
 ---
 
 ## How the Announcements section works on Home
@@ -128,6 +130,10 @@ The **Time-sensitive** section only appears when there is an urgent issue or lim
 ## Why don’t I see the Spend over time section?
 
 The **Spend over time** section only appears if you are a Workspace Admin, Auditor, or approver on a paid workspace that has existing transactions. If you don't hold one of these roles, or your workspace has no transactions yet, this section won't be visible.
+
+## Why don’t I see the Discover section?
+
+The **Discover** section only appears if you haven’t watched the demo yet. Once you watch it, the section is permanently removed from Home.
 
 ## Why don’t I see the Assigned cards section?
 
