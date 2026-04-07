@@ -3442,7 +3442,6 @@ const CONST = {
             // Often referred to as "collect" workspaces
             TEAM: 'team',
 
-            // New free Submit workspace (distinct from Classic "submit")
             SUBMIT: 'submit2026',
         },
         RULE_CONDITIONS: {

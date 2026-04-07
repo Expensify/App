@@ -22,9 +22,6 @@ import usePreferredPolicy from './usePreferredPolicy';
  * Hook that provides a function to auto-create a Submit workspace for EMPLOYER
  * users during onboarding and complete the onboarding flow.
  *
- * After creating the workspace, navigates to Workspace > Categories with the
- * side panel open so #admins is visible in Concierge Anywhere.
- *
  * Shared by BaseOnboardingPersonalDetails, BaseOnboardingPurpose, and BaseOnboardingWorkspaces.
  */
 function useAutoCreateSubmitWorkspace() {
