@@ -9040,6 +9040,8 @@ const CONST = {
         },
         MERGE_EXPENSE: {
             MERGE_TRANSACTION_ITEM: 'MergeExpense-MergeTransactionItem',
+            RECEIPT_ITEM: 'MergeExpense-ReceiptItem',
+            FIELD_VALUE_OPTION: 'MergeExpense-FieldValueOption',
         },
         IOU_REQUEST_STEP: {
             DISTANCE_NEXT_BUTTON: 'IOURequestStep-DistanceNextButton',
