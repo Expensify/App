@@ -3,7 +3,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
-import SelectionButton from '@components/SelectionList/components/SelectionButton';
+import RadioButton from '@components/RadioButton';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -55,14 +55,9 @@ function OptionItem({title, icon, onPress, isSelected = false, isDisabled, style
                         />
                         {(isSelected || !isDisabled) && (
                             <View>
-                                <SelectionButton
-                                    role={CONST.ROLE.RADIO}
-                                    item={{
-                                        isSelected,
-                                        text: translate(title),
-                                        keyForList: title,
-                                    }}
-                                    onSelectRow={() => onPress?.()}
+                                <RadioButton
+                                    isChecked={isSelected}
+                                    onPress={() => onPress?.()}
                                     accessibilityLabel={translate(title)}
                                 />
                             </View>
