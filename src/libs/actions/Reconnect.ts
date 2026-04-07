@@ -19,7 +19,7 @@ Onyx.connectWithoutView({
 });
 
 Onyx.connectWithoutView({
-    key: ONYXKEYS.RAM_ONLY_IS_LOADING_APP,
+    key: ONYXKEYS.IS_LOADING_APP,
     callback: (val) => {
         isLoadingApp = val;
     },

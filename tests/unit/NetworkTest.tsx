@@ -136,7 +136,7 @@ describe('NetworkTests', () => {
         // Sign in test user and wait for updates
         await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
         await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
-        await Onyx.set(ONYXKEYS.RAM_ONLY_IS_LOADING_APP, false);
+        await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
         await waitForBatchedUpdates();
 
         const initialAuthToken = sessionState?.authToken;

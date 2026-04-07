@@ -24,7 +24,7 @@ describe('Reconnect', () => {
 
     test('calls openApp when isLoadingApp is true', async () => {
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: 1234, email: 'test@test.com'});
-        await Onyx.merge(ONYXKEYS.RAM_ONLY_IS_LOADING_APP, true);
+        await Onyx.merge(ONYXKEYS.IS_LOADING_APP, true);
         await waitForBatchedUpdates();
 
         reconnect();
@@ -35,7 +35,7 @@ describe('Reconnect', () => {
 
     test('calls reconnectApp when isLoadingApp is false', async () => {
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: 1234, email: 'test@test.com'});
-        await Onyx.merge(ONYXKEYS.RAM_ONLY_IS_LOADING_APP, false);
+        await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
         await waitForBatchedUpdates();
 
         reconnect();
@@ -46,7 +46,7 @@ describe('Reconnect', () => {
 
     test('passes lastUpdateIDAppliedToClient to reconnectApp', async () => {
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: 1234, email: 'test@test.com'});
-        await Onyx.merge(ONYXKEYS.RAM_ONLY_IS_LOADING_APP, false);
+        await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
         await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 42);
         await waitForBatchedUpdates();
 

@@ -31,6 +31,20 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getMostRecentReportID, navigateToConciergeChatAndDeleteReport, notifyNewAction, optimisticReportLastData} from './Report';
 import {setSelfTourViewed} from './Welcome';
 
+type EditTaskAssigneeOptions = {
+    report: OnyxTypes.Report;
+    parentReport: OnyxEntry<OnyxTypes.Report>;
+    sessionAccountID: number;
+    assigneeEmail: string;
+    currentUserEmail: string;
+    currentUserAccountID: number;
+    hasOutstandingChildTask: boolean;
+    delegateEmail: string | undefined;
+    assigneeAccountID?: number | null;
+    assigneeChatReport?: OnyxEntry<OnyxTypes.Report>;
+    isOptimisticReport?: boolean;
+};
+
 type OptimisticReport = Pick<OnyxTypes.Report, 'reportName' | 'managerID' | 'pendingFields' | 'participants'>;
 type Assignee = {
     icons: Icon[];
@@ -726,20 +740,19 @@ function editTask(report: OnyxTypes.Report, {title, description}: OnyxTypes.Task
     API.write(WRITE_COMMANDS.EDIT_TASK, parameters, {optimisticData, successData, failureData});
 }
 
-// eslint-disable-next-line @typescript-eslint/max-params -- Will be refactored in next PR; full restructure tracked in https://github.com/Expensify/App/issues/66417
-function editTaskAssignee(
-    report: OnyxTypes.Report,
-    parentReport: OnyxEntry<OnyxTypes.Report>,
-    sessionAccountID: number,
-    assigneeEmail: string,
-    currentUserEmail: string,
-    currentUserAccountID: number,
-    hasOutstandingChildTask: boolean,
-    delegateEmail: string | undefined,
-    assigneeAccountID: number | null = 0,
-    assigneeChatReport?: OnyxEntry<OnyxTypes.Report>,
-    isOptimisticReport?: boolean,
-) {
+function editTaskAssignee({
+    report,
+    parentReport,
+    sessionAccountID,
+    assigneeEmail,
+    currentUserEmail,
+    currentUserAccountID,
+    hasOutstandingChildTask,
+    delegateEmail,
+    assigneeAccountID = 0,
+    assigneeChatReport,
+    isOptimisticReport,
+}: EditTaskAssigneeOptions) {
     // Create the EditedReportAction on the task
     const editTaskReportAction = ReportUtils.buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID, currentUserAccountID, delegateEmail);
     const reportName = report.reportName?.trim();
@@ -935,6 +948,7 @@ function setNewOptimisticAssignee(currentUserAccountID: number, assigneePersonal
         policyID: CONST.POLICY.OWNER_EMAIL_FAKE,
         ownerAccountID: CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+        currentUserAccountID,
     });
 
     Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
