@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -39,7 +40,7 @@ import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {getMimeTypeFromUri, isLocalFile as isLocalFileFileUtils} from '@libs/fileDownload/FileUtils';
+import {isLocalFile as isLocalFileFileUtils} from '@libs/fileDownload/FileUtils';
 import validateReceiptFile from '@libs/fileDownload/validateReceiptFile';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -55,6 +56,7 @@ import Log from '@libs/Log';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
+import {getOdometerImageName, getOdometerImageType, getOdometerImageUri} from '@libs/OdometerImageUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {
@@ -73,7 +75,6 @@ import getSubmitExpenseScenario from '@libs/telemetry/getSubmitExpenseScenario';
 import markSubmitExpenseEnd from '@libs/telemetry/markSubmitExpenseEnd';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {
-    getAttendees,
     getDefaultTaxCode,
     getRateID,
     getRequestType,
@@ -90,20 +91,19 @@ import type {GpsPoint} from '@userActions/IOU';
 import {
     createDistanceRequest as createDistanceRequestIOUActions,
     getIOURequestPolicyID,
-    requestMoney as requestMoneyIOUActions,
     setMoneyRequestBillable,
     setMoneyRequestCategory,
     setMoneyRequestParticipantsFromReport,
-    setMoneyRequestReceipt,
     setMoneyRequestReimbursable,
     startMoneyRequest,
-    trackExpense as trackExpenseIOUActions,
     updateLastLocationPermissionPrompt,
 } from '@userActions/IOU';
 import {submitPerDiemExpenseForSelfDM, submitPerDiemExpense as submitPerDiemExpenseIOUActions} from '@userActions/IOU/PerDiem';
+import {setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
 import {getReceiverType, sendInvoice} from '@userActions/IOU/SendInvoice';
 import {sendMoneyElsewhere, sendMoneyWithWallet} from '@userActions/IOU/SendMoney';
 import {splitBill, splitBillAndOpenReport, startSplitBill} from '@userActions/IOU/Split';
+import {requestMoney as requestMoneyIOUActions, trackExpense as trackExpenseIOUActions} from '@userActions/IOU/TrackExpense';
 import {openDraftWorkspaceRequest} from '@userActions/Policy/Policy';
 import {removeDraftTransaction, removeDraftTransactionsByIDs, replaceDefaultDraftTransaction} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
@@ -273,6 +273,7 @@ function IOURequestStepConfirmation({
     const receiverAccountID = receiverParticipant && 'accountID' in receiverParticipant && receiverParticipant.accountID ? receiverParticipant.accountID : CONST.DEFAULT_NUMBER_ID;
     const receiverType = getReceiverType(receiverParticipant);
     const senderWorkspaceID = transaction?.participants?.find((participant) => participant?.isSender)?.policyID;
+    const [senderWorkspacePolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${senderWorkspaceID}`);
 
     const existingInvoiceReport = useParticipantsInvoiceReport(receiverAccountID, receiverType, senderWorkspaceID);
 
@@ -289,6 +290,7 @@ function IOURequestStepConfirmation({
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const isManualDistanceRequest = isManualDistanceRequestTransactionUtils(transaction);
     const isOdometerDistanceRequest = isOdometerDistanceRequestTransactionUtils(transaction);
+    const isFocused = useIsFocused();
     const isGPSDistanceRequest = isGPSDistanceRequestTransactionUtils(transaction);
     const transactionDistance = isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest ? (transaction?.comment?.customUnit?.quantity ?? undefined) : undefined;
     const isTimeRequest = requestType === CONST.IOU.REQUEST_TYPE.TIME;
@@ -320,6 +322,10 @@ function IOURequestStepConfirmation({
     const [isConfirming, setIsConfirming] = useState(false);
     const [isStitchingReceipt, setIsStitchingReceipt] = useState(false);
     const [stitchError, setStitchError] = useState('');
+    const lastStitchedImages = useRef<{
+        startImage: FileObject | string | undefined;
+        endImage: FileObject | string | undefined;
+    } | null>(null);
 
     const headerTitle = useMemo(() => {
         if (isCategorizingTrackExpense) {
@@ -350,18 +356,9 @@ function IOURequestStepConfirmation({
                 const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
                 return participant.accountID
                     ? getParticipantsOption(participant, personalDetails)
-                    : getReportOption(
-                          participant,
-                          privateIsArchived,
-                          policy,
-                          currentUserPersonalDetails.accountID,
-                          personalDetails,
-                          conciergeReportID,
-                          reportAttributesDerived,
-                          reportDrafts,
-                      );
+                    : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, reportDrafts);
             }) ?? [],
-        [transaction?.participants, iouType, personalDetails, reportAttributesDerived, reportDrafts, privateIsArchivedMap, policy, currentUserPersonalDetails.accountID, conciergeReportID],
+        [transaction?.participants, iouType, personalDetails, reportAttributesDerived, reportDrafts, privateIsArchivedMap, policy, conciergeReportID],
     );
     const participantsPolicyTags = useParticipantsPolicyTags(participants ?? []);
     const isPolicyExpenseChat = useMemo(() => participants?.some((participant) => participant.isPolicyExpenseChat), [participants]);
@@ -427,18 +424,25 @@ function IOURequestStepConfirmation({
         }
     }, [isOffline, policy?.pendingAction, policyExpenseChatPolicyID, senderPolicyID]);
 
-    const odometerStartImage = transaction?.comment?.odometerStartImage;
-    const odometerEndImage = transaction?.comment?.odometerEndImage;
-
     useEffect(() => {
-        if (!isOdometerDistanceRequest) {
+        if (!isOdometerDistanceRequest || !isFocused) {
             return;
         }
 
-        const getImageUri = (img: FileObject | string | null | undefined): string => (typeof img === 'string' ? img : (img?.uri ?? ''));
-        const getImageName = (img: FileObject | string | null | undefined): string => (typeof img === 'string' ? (img.split('/').pop() ?? '') : (img?.name ?? ''));
-        const getImageType = (img: FileObject | string | null | undefined): string | undefined =>
-            typeof img === 'string' ? getMimeTypeFromUri(img) : (img?.type ?? getMimeTypeFromUri(img?.uri ?? ''));
+        const odometerStartImage = transaction?.comment?.odometerStartImage;
+        const odometerEndImage = transaction?.comment?.odometerEndImage;
+
+        // Skip stitching when source images haven't changed (compare by URI not reference
+        // because Onyx may create new object instances when restoring a backup transaction)
+        const startUri = getOdometerImageUri(odometerStartImage);
+        const endUri = getOdometerImageUri(odometerEndImage);
+        if (
+            lastStitchedImages.current !== null &&
+            getOdometerImageUri(lastStitchedImages.current.startImage) === startUri &&
+            getOdometerImageUri(lastStitchedImages.current.endImage) === endUri
+        ) {
+            return;
+        }
 
         if (!odometerStartImage || !odometerEndImage) {
             const singleImage = odometerStartImage ?? odometerEndImage;
@@ -447,7 +451,14 @@ function IOURequestStepConfirmation({
                 return;
             }
 
-            setMoneyRequestReceipt(currentTransactionID, getImageUri(singleImage), getImageName(singleImage), shouldUseTransactionDraft(action, iouType), getImageType(singleImage));
+            setMoneyRequestReceipt(
+                currentTransactionID,
+                getOdometerImageUri(singleImage),
+                getOdometerImageName(singleImage),
+                shouldUseTransactionDraft(action, iouType),
+                getOdometerImageType(singleImage),
+            );
+            lastStitchedImages.current = {startImage: odometerStartImage, endImage: odometerEndImage};
             return;
         }
 
@@ -462,11 +473,12 @@ function IOURequestStepConfirmation({
                 }
                 setMoneyRequestReceipt(
                     currentTransactionID,
-                    getImageUri(stitchedImage),
-                    getImageName(stitchedImage),
+                    getOdometerImageUri(stitchedImage),
+                    getOdometerImageName(stitchedImage),
                     shouldUseTransactionDraft(action, iouType),
-                    getImageType(stitchedImage),
+                    getOdometerImageType(stitchedImage),
                 );
+                lastStitchedImages.current = {startImage: odometerStartImage, endImage: odometerEndImage};
             })
             .catch((error: unknown) => {
                 if (ignore) {
@@ -485,7 +497,7 @@ function IOURequestStepConfirmation({
         return () => {
             ignore = true;
         };
-    }, [isOdometerDistanceRequest, currentTransactionID, odometerStartImage, odometerEndImage, action, translate, iouType]);
+    }, [isOdometerDistanceRequest, isFocused, currentTransactionID, transaction?.comment?.odometerStartImage, transaction?.comment?.odometerEndImage, action, translate, iouType]);
 
     const defaultBillable = !!policy?.defaultBillable;
     useEffect(() => {
@@ -678,6 +690,7 @@ function IOURequestStepConfirmation({
             removeDraftTransactionsByIDs(draftTransactionIDs, true);
             navigateToStartMoneyRequestStep(requestType, iouType, initialTransactionID, reportID);
         });
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- draftTransactionIDs is intentionally excluded to avoid re-running on draft changes
     }, [requestType, iouType, initialTransactionID, reportID, action, report, transactions, participants]);
 
     const requestMoney = useCallback(
@@ -701,7 +714,7 @@ function IOURequestStepConfirmation({
                 const isTestReceipt = receipt?.isTestReceipt ?? false;
                 const isTestDriveReceipt = receipt?.isTestDriveReceipt ?? false;
                 const isLinkedTrackedExpenseReportArchived =
-                    !!item.linkedTrackedExpenseReportID && !!privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`];
+                    !!item.linkedTrackedExpenseReportID && privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`];
 
                 const itemAmount = isTestReceipt ? CONST.TEST_RECEIPT.AMOUNT : item.amount;
                 const itemCurrency = isTestReceipt ? CONST.TEST_RECEIPT.CURRENCY : item.currency;
@@ -955,7 +968,7 @@ function IOURequestStepConfirmation({
             }
             for (const [index, item] of transactions.entries()) {
                 const isLinkedTrackedExpenseReportArchived =
-                    !!item.linkedTrackedExpenseReportID && !!privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`];
+                    !!item.linkedTrackedExpenseReportID && privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`];
                 const itemDistance = isManualDistanceRequest || isOdometerDistanceRequest || isGPSDistanceRequest ? (item.comment?.customUnit?.quantity ?? undefined) : undefined;
 
                 trackExpenseIOUActions({
@@ -1336,6 +1349,7 @@ function IOURequestStepConfirmation({
                     policyRecentlyUsedCategories,
                     isFromGlobalCreate: transaction?.isFromFloatingActionButton ?? transaction?.isFromGlobalCreate,
                     policyRecentlyUsedTags,
+                    senderPolicyTags: senderWorkspacePolicyTags ?? {},
                 });
                 markSubmitExpenseEnd();
                 return;
@@ -1432,6 +1446,7 @@ function IOURequestStepConfirmation({
             existingInvoiceReport,
             policy,
             policyTags,
+            senderWorkspacePolicyTags,
             policyCategories,
             trackExpense,
             userLocation,
@@ -1687,13 +1702,7 @@ function IOURequestStepConfirmation({
                     <MoneyRequestConfirmationList
                         transaction={transaction}
                         selectedParticipants={participants}
-                        iouAmount={transaction?.amount ?? 0}
-                        iouAttendees={getAttendees(transaction, currentUserPersonalDetails)}
-                        iouComment={transaction?.comment?.comment ?? ''}
-                        iouCurrencyCode={transaction?.currency}
-                        iouIsBillable={transaction?.billable}
                         onToggleBillable={setBillable}
-                        iouCategory={transaction?.category}
                         onConfirm={onConfirm}
                         onSendMoney={sendMoney}
                         showRemoveExpenseConfirmModal={() => {
@@ -1706,8 +1715,6 @@ function IOURequestStepConfirmation({
                         shouldDisplayReceipt={!isMovingTransactionFromTrackExpense && (!isDistanceRequest || isManualDistanceRequest || isOdometerDistanceRequest) && !isPerDiemRequest}
                         isPolicyExpenseChat={isPolicyExpenseChat}
                         policyID={policyID}
-                        iouMerchant={transaction?.merchant}
-                        iouCreated={transaction?.created}
                         isDistanceRequest={isDistanceRequest}
                         isManualDistanceRequest={isManualDistanceRequest}
                         isOdometerDistanceRequest={isOdometerDistanceRequest}
@@ -1718,13 +1725,10 @@ function IOURequestStepConfirmation({
                         action={action}
                         isConfirmed={isConfirmed}
                         isConfirming={isConfirming}
-                        iouIsReimbursable={transaction?.reimbursable}
                         onToggleReimbursable={setReimbursable}
                         expensesNumber={transactions.length}
                         isReceiptEditable
                         isTimeRequest={isTimeRequest}
-                        iouTimeCount={transaction?.comment?.units?.count}
-                        iouTimeRate={transaction?.comment?.units?.rate}
                         shouldHideToSection={shouldHideToSection}
                     />
                 </View>

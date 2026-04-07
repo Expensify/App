@@ -7,7 +7,7 @@ import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isIOUReport} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
-import {convertBulkTrackedExpensesToIOU} from '@userActions/IOU';
+import {convertBulkTrackedExpensesToIOU} from '@userActions/IOU/TrackExpense';
 import {changeTransactionsReport} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -58,6 +58,7 @@ function AddUnreportedExpenseFooter({selectedIds, report, reportToConfirm, repor
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`);
+    const [defaultP2PMileageRate] = useOnyx(ONYXKEYS.DEFAULT_P2P_MILEAGE_RATE);
 
     const handleConfirm = () => {
         if (selectedIds.size === 0) {
@@ -95,6 +96,7 @@ function AddUnreportedExpenseFooter({selectedIds, report, reportToConfirm, repor
                     allTransactions: selectedTransactions,
                     translate,
                     toLocaleDigit,
+                    defaultP2PMileageRate,
                 });
             }
         });

@@ -1,53 +1,53 @@
-import {useFocusEffect} from '@react-navigation/core';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {Alert, AppState, StyleSheet, View} from 'react-native';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import {Alert, StyleSheet, View} from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
-import {Gesture, GestureDetector} from 'react-native-gesture-handler';
+import {GestureDetector} from 'react-native-gesture-handler';
 import {RESULTS} from 'react-native-permissions';
-import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming} from 'react-native-reanimated';
-import type {Camera, PhotoFile, Point} from 'react-native-vision-camera';
-import {useCameraDevice, useCameraFormat} from 'react-native-vision-camera';
-import {scheduleOnRN} from 'react-native-worklets';
+import Animated from 'react-native-reanimated';
+import type {PhotoFile} from 'react-native-vision-camera';
+import {useCameraFormat} from 'react-native-vision-camera';
 import ActivityIndicator from '@components/ActivityIndicator';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Button from '@components/Button';
 import FeatureTrainingModal from '@components/FeatureTrainingModal';
-import {useFullScreenLoaderActions, useFullScreenLoaderState} from '@components/FullScreenLoaderContext';
+import {useFullScreenLoaderActions} from '@components/FullScreenLoaderContext';
 import Icon from '@components/Icon';
 import ImageSVG from '@components/ImageSVG';
 import LocationPermissionModal from '@components/LocationPermissionModal';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import {pregenerateThumbnail} from '@hooks/useLocalReceiptThumbnail';
+import useNativeCamera from '@hooks/useNativeCamera';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
-import getPlatform from '@libs/getPlatform';
-import type Platform from '@libs/getPlatform/types';
 import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {cancelSpan, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
-import {replaceReceipt, setMoneyRequestReceipt, updateLastLocationPermissionPrompt} from '@userActions/IOU';
+import variables from '@styles/variables';
+import {updateLastLocationPermissionPrompt} from '@userActions/IOU';
+import {replaceReceipt, setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
 import {buildOptimisticTransactionAndCreateDraft} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {FileObject} from '@src/types/utils/Attachment';
-import {getEmptyObject} from '@src/types/utils/EmptyObject';
-import CameraPermission from './CameraPermission';
+import captureReceipt from './captureReceipt';
 import NavigationAwareCamera from './components/NavigationAwareCamera/Camera';
 import ReceiptPreviews from './components/ReceiptPreviews';
 import useMobileReceiptScan from './hooks/useMobileReceiptScan';
@@ -70,29 +70,59 @@ function IOURequestStepScan({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const {isLoaderVisible} = useFullScreenLoaderState();
+    const isInLandscapeMode = useIsInLandscapeMode();
+
+    // Ref for double-tap protection (doesn't trigger re-render)
+    const isCapturingPhoto = useRef(false);
+
+    const onFocusStart = () => {
+        isCapturingPhoto.current = false;
+    };
+
+    const onFocusCleanup = () => {
+        cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
+        cancelSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION);
+    };
+
+    const {
+        camera,
+        device,
+        cameraPermissionStatus,
+        flash,
+        setFlash,
+        hasFlash,
+        didCapturePhoto,
+        setDidCapturePhoto,
+        isAttachmentPickerActive,
+        setIsAttachmentPickerActive,
+        isPlatformMuted,
+        askForPermissions,
+        tapGesture,
+        cameraFocusIndicatorAnimatedStyle,
+        cameraLoadingReasonAttributes,
+    } = useNativeCamera({context: 'IOURequestStepScan', onFocusStart, onFocusCleanup});
     const {setIsLoaderVisible} = useFullScreenLoaderActions();
-    const device = useCameraDevice('back', {
-        physicalDevices: ['wide-angle-camera', 'ultra-wide-angle-camera'],
-    });
-    const format = useCameraFormat(device, [{photoAspectRatio: 4 / 3}, {videoResolution: 'max'}, {photoResolution: 'max'}]);
+
+    const {windowWidth, windowHeight} = useWindowDimensions();
+
+    // Prioritize photoResolution over videoResolution so the format selector picks a 4032x3024
+    // format instead of the 5712x4284 (24.5MP) format that videoResolution:'max' would select.
+    // This cuts capture time roughly in half while maintaining the same output photo resolution.
+    // Use screen dimensions for video resolution since we only need enough for the preview.
+    const format = useCameraFormat(device, [
+        {photoAspectRatio: CONST.RECEIPT_CAMERA.PHOTO_ASPECT_RATIO},
+        {photoResolution: {width: CONST.RECEIPT_CAMERA.PHOTO_WIDTH, height: CONST.RECEIPT_CAMERA.PHOTO_HEIGHT}},
+        {videoResolution: {width: windowHeight, height: windowWidth}},
+    ]);
     // Format dimensions are in landscape orientation, so height/width gives portrait aspect ratio
     const cameraAspectRatio = format ? format.photoHeight / format.photoWidth : undefined;
+    const fps = useMemo(() => (format ? Math.min(Math.max(30, format.minFps), format.maxFps) : 30), [format]);
 
-    const navigateBack = useCallback(() => {
+    const navigateBack = () => {
         Navigation.goBack(backTo);
-    }, [backTo]);
-    const hasFlash = !!device?.hasFlash;
-    const camera = useRef<Camera>(null);
-    const [flash, setFlash] = useState(false);
+    };
     const lazyIllustrations = useMemoizedLazyIllustrations(['MultiScan', 'Hand', 'Shutter']);
     const lazyIcons = useMemoizedLazyExpensifyIcons(['Bolt', 'Gallery', 'ReceiptMultiple', 'boltSlash']);
-    const platform = getPlatform(true);
-    const [mutedPlatforms = getEmptyObject<Partial<Record<Platform, true>>>()] = useOnyx(ONYXKEYS.NVP_MUTED_PLATFORMS);
-    const isPlatformMuted = mutedPlatforms[platform];
-    const [cameraPermissionStatus, setCameraPermissionStatus] = useState<string | null>(null);
-    const [isAttachmentPickerActive, setIsAttachmentPickerActive] = useState(false);
-    const [didCapturePhoto, setDidCapturePhoto] = useState(false);
     const policy = usePolicy(report?.policyID);
 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
@@ -100,9 +130,6 @@ function IOURequestStepScan({
     // Track camera init telemetry
     const cameraInitSpanStarted = useRef(false);
     const cameraInitialized = useRef(false);
-
-    // Ref for double-tap protection (doesn't trigger re-render)
-    const isCapturingPhoto = useRef(false);
 
     // Start camera init span when permission is granted and camera is ready
     useEffect(() => {
@@ -152,6 +179,10 @@ function IOURequestStepScan({
         }
         endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
 
+        // Preload the confirmation screen module so its JS is parsed and ready
+        // when we navigate after capture — eliminates cold-start module load cost.
+        require('../IOURequestStepConfirmation');
+
         // Pre-create upload directory to avoid latency during capture
         const path = getReceiptsUploadFolderPath();
         ReactNativeBlobUtil.fs
@@ -168,90 +199,6 @@ function IOURequestStepScan({
                 Log.warn('Error checking if the upload directory exists', error);
             });
     }, []);
-
-    const askForPermissions = useCallback(() => {
-        // There's no way we can check for the BLOCKED status without requesting the permission first
-        // https://github.com/zoontek/react-native-permissions/blob/a836e114ce3a180b2b23916292c79841a267d828/README.md?plain=1#L670
-        CameraPermission.requestCameraPermission?.()
-            .then((status: string) => {
-                setCameraPermissionStatus(status);
-
-                if (status === RESULTS.BLOCKED) {
-                    showCameraPermissionsAlert(translate);
-                }
-            })
-            .catch(() => {
-                setCameraPermissionStatus(RESULTS.UNAVAILABLE);
-            });
-    }, [translate]);
-
-    const focusIndicatorOpacity = useSharedValue(0);
-    const focusIndicatorScale = useSharedValue(2);
-    const focusIndicatorPosition = useSharedValue({x: 0, y: 0});
-
-    const cameraFocusIndicatorAnimatedStyle = useAnimatedStyle(() => ({
-        opacity: focusIndicatorOpacity.get(),
-        transform: [{translateX: focusIndicatorPosition.get().x}, {translateY: focusIndicatorPosition.get().y}, {scale: focusIndicatorScale.get()}],
-    }));
-
-    const focusCamera = (point: Point) => {
-        if (!camera.current) {
-            return;
-        }
-
-        camera.current.focus(point).catch((error: Record<string, unknown>) => {
-            if (error.message === '[unknown/unknown] Cancelled by another startFocusAndMetering()') {
-                return;
-            }
-            Log.warn('Error focusing camera', error);
-        });
-    };
-
-    const tapGesture = Gesture.Tap()
-        .enabled(device?.supportsFocus ?? false)
-        .onStart((ev: {x: number; y: number}) => {
-            const point = {x: ev.x, y: ev.y};
-
-            focusIndicatorOpacity.set(withSequence(withTiming(0.8, {duration: 250}), withDelay(1000, withTiming(0, {duration: 250}))));
-            focusIndicatorScale.set(2);
-            focusIndicatorScale.set(withSpring(1, {damping: 10, stiffness: 200}));
-            focusIndicatorPosition.set(point);
-
-            scheduleOnRN(focusCamera, point);
-        });
-
-    useFocusEffect(
-        useCallback(() => {
-            setDidCapturePhoto(false);
-            isCapturingPhoto.current = false;
-            const refreshCameraPermissionStatus = () => {
-                CameraPermission?.getCameraPermissionStatus?.()
-                    .then(setCameraPermissionStatus)
-                    .catch(() => setCameraPermissionStatus(RESULTS.UNAVAILABLE));
-            };
-
-            refreshCameraPermissionStatus();
-
-            // Refresh permission status when app gain focus
-            const subscription = AppState.addEventListener('change', (appState) => {
-                if (appState !== 'active') {
-                    return;
-                }
-
-                refreshCameraPermissionStatus();
-            });
-
-            return () => {
-                subscription.remove();
-                cancelSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
-                cancelSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION);
-
-                if (isLoaderVisible) {
-                    setIsLoaderVisible(false);
-                }
-            };
-        }, [isLoaderVisible, setIsLoaderVisible]),
-    );
 
     const updateScanAndNavigate = useCallback(
         (file: FileObject, source: string) => {
@@ -326,7 +273,7 @@ function IOURequestStepScan({
         cancelSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION);
     }, [isMultiScanEnabled]);
 
-    const capturePhoto = useCallback(() => {
+    const capturePhoto = () => {
         if (!isMultiScanEnabled) {
             startSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION, {
                 name: CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION,
@@ -368,12 +315,7 @@ function IOURequestStepScan({
 
         const path = getReceiptsUploadFolderPath();
 
-        camera?.current
-            ?.takePhoto({
-                flash: flash && hasFlash ? 'on' : 'off',
-                enableShutterSound: !isPlatformMuted,
-                path,
-            })
+        captureReceipt(camera.current, {flash, hasFlash, isPlatformMuted, path})
             .then((photo: PhotoFile) => {
                 setDidCapturePhoto(true);
 
@@ -388,6 +330,7 @@ function IOURequestStepScan({
                 const transactionID = transaction?.transactionID ?? initialTransactionID;
                 const source = getPhotoSource(photo.path);
                 const filename = photo.path;
+
                 endSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
 
                 const cameraFile = {
@@ -397,9 +340,8 @@ function IOURequestStepScan({
                     source,
                 };
 
-                setMoneyRequestReceipt(transactionID, source, filename, !isEditing, 'image/jpeg');
-
                 if (isEditing) {
+                    setMoneyRequestReceipt(transactionID, source, filename, !isEditing, 'image/jpeg');
                     updateScanAndNavigate(cameraFile as FileObject, source);
                     return;
                 }
@@ -408,12 +350,18 @@ function IOURequestStepScan({
                 setReceiptFiles(newReceiptFiles);
 
                 if (isMultiScanEnabled) {
+                    setMoneyRequestReceipt(transactionID, source, filename, !isEditing, 'image/jpeg');
                     setDidCapturePhoto(false);
                     isCapturingPhoto.current = false;
                     return;
                 }
 
-                submitReceipts(newReceiptFiles);
+                // Fire Onyx merge immediately (non-blocking) while we await thumbnail generation.
+                // Both run in parallel — navigation proceeds once the thumbnail is cached.
+                setMoneyRequestReceipt(transactionID, source, filename, !isEditing, 'image/jpeg');
+                pregenerateThumbnail(source).then(() => {
+                    submitReceipts(newReceiptFiles);
+                });
             })
             .catch((error: string) => {
                 isCapturingPhoto.current = false;
@@ -422,30 +370,6 @@ function IOURequestStepScan({
                 showCameraAlert();
                 Log.warn('Error taking photo', error);
             });
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- askForPermissions is not needed
-    }, [
-        cameraPermissionStatus,
-        isMultiScanEnabled,
-        translate,
-        showBlink,
-        flash,
-        hasFlash,
-        isPlatformMuted,
-        initialTransaction,
-        currentUserPersonalDetails,
-        reportID,
-        initialTransactionID,
-        isEditing,
-        receiptFiles,
-        submitReceipts,
-        updateScanAndNavigate,
-        askForPermissions,
-    ]);
-
-    const cameraLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'IOURequestStepScan',
-        cameraPermissionGranted: cameraPermissionStatus === RESULTS.GRANTED,
-        deviceAvailable: device != null,
     };
 
     // Wait for camera permission status to render
@@ -473,26 +397,28 @@ function IOURequestStepScan({
                 {PDFValidationComponent}
                 <View style={[styles.flex1]}>
                     {cameraPermissionStatus !== RESULTS.GRANTED && (
-                        <View style={[styles.cameraView, styles.permissionView, styles.userSelectNone]}>
-                            <ImageSVG
-                                contentFit="contain"
-                                src={lazyIllustrations.Hand}
-                                width={CONST.RECEIPT.HAND_ICON_WIDTH}
-                                height={CONST.RECEIPT.HAND_ICON_HEIGHT}
-                                style={styles.pb5}
-                            />
+                        <ScrollView>
+                            <View style={[styles.cameraView, isInLandscapeMode ? styles.permissionViewLandscape : styles.permissionView, styles.userSelectNone]}>
+                                <ImageSVG
+                                    contentFit="contain"
+                                    src={lazyIllustrations.Hand}
+                                    width={CONST.RECEIPT.HAND_ICON_WIDTH}
+                                    height={CONST.RECEIPT.HAND_ICON_HEIGHT}
+                                    style={styles.pb5}
+                                />
 
-                            <Text style={[styles.textFileUpload]}>{translate('receipt.takePhoto')}</Text>
-                            <Text style={[styles.subTextFileUpload]}>{translate('receipt.cameraAccess')}</Text>
-                            <Button
-                                success
-                                text={translate('common.continue')}
-                                accessibilityLabel={translate('common.continue')}
-                                style={[styles.p9, styles.pt5]}
-                                onPress={capturePhoto}
-                                sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.SCAN_SUBMIT_BUTTON}
-                            />
-                        </View>
+                                <Text style={[styles.textFileUpload]}>{translate('receipt.takePhoto')}</Text>
+                                <Text style={[styles.subTextFileUpload]}>{translate('receipt.cameraAccess')}</Text>
+                                <Button
+                                    success
+                                    text={translate('common.continue')}
+                                    accessibilityLabel={translate('common.continue')}
+                                    style={[styles.p9, styles.pt5]}
+                                    onPress={capturePhoto}
+                                    sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.SCAN_SUBMIT_BUTTON}
+                                />
+                            </View>
+                        </ScrollView>
                     )}
                     {cameraPermissionStatus === RESULTS.GRANTED && device == null && (
                         <View style={[styles.cameraView]}>
@@ -512,6 +438,7 @@ function IOURequestStepScan({
                                         ref={camera}
                                         device={device}
                                         format={format}
+                                        fps={fps}
                                         style={styles.flex1}
                                         zoom={device.neutralZoom}
                                         photo
@@ -522,7 +449,7 @@ function IOURequestStepScan({
                                     <Animated.View style={[styles.cameraFocusIndicator, cameraFocusIndicatorAnimatedStyle]} />
                                     <Animated.View
                                         pointerEvents="none"
-                                        style={[StyleSheet.absoluteFillObject, StyleUtils.getBackgroundColorStyle(theme.appBG), blinkStyle, styles.zIndex10]}
+                                        style={[StyleSheet.absoluteFill, StyleUtils.getBackgroundColorStyle(theme.appBG), blinkStyle, styles.zIndex10]}
                                     />
                                 </View>
                             </GestureDetector>
@@ -536,8 +463,8 @@ function IOURequestStepScan({
                                         onPress={() => setFlash((prevFlash) => !prevFlash)}
                                     >
                                         <Icon
-                                            height={16}
-                                            width={16}
+                                            height={variables.iconSizeSmall}
+                                            width={variables.iconSizeSmall}
                                             src={lazyIcons.Bolt}
                                             fill={flash ? theme.white : theme.icon}
                                         />
@@ -591,8 +518,8 @@ function IOURequestStepScan({
                                 }}
                             >
                                 <Icon
-                                    height={32}
-                                    width={32}
+                                    height={variables.iconSizeMenuItem}
+                                    width={variables.iconSizeMenuItem}
                                     src={lazyIcons.Gallery}
                                     fill={theme.textSupporting}
                                 />
@@ -623,8 +550,8 @@ function IOURequestStepScan({
                             onPress={toggleMultiScan}
                         >
                             <Icon
-                                height={32}
-                                width={32}
+                                height={variables.iconSizeMenuItem}
+                                width={variables.iconSizeMenuItem}
                                 src={lazyIcons.ReceiptMultiple}
                                 fill={isMultiScanEnabled ? theme.iconMenu : theme.textSupporting}
                             />
@@ -639,8 +566,8 @@ function IOURequestStepScan({
                             onPress={() => setFlash((prevFlash) => !prevFlash)}
                         >
                             <Icon
-                                height={32}
-                                width={32}
+                                height={variables.iconSizeMenuItem}
+                                width={variables.iconSizeMenuItem}
                                 src={flash ? lazyIcons.Bolt : lazyIcons.boltSlash}
                                 fill={theme.textSupporting}
                             />
@@ -674,9 +601,9 @@ function IOURequestStepScan({
 }
 
 const IOURequestStepScanWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepScan);
-// eslint-disable-next-line rulesdir/no-negated-variables
+// eslint-disable-next-line rulesdir/no-negated-variables -- withWritableReportOrNotFound HOC requires this pattern
 const IOURequestStepScanWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepScanWithCurrentUserPersonalDetails, true);
-// eslint-disable-next-line rulesdir/no-negated-variables
+// eslint-disable-next-line rulesdir/no-negated-variables -- withFullTransactionOrNotFound HOC requires this pattern
 const IOURequestStepScanWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepScanWithWritableReportOrNotFound);
 
 export default IOURequestStepScanWithFullTransactionOrNotFound;
