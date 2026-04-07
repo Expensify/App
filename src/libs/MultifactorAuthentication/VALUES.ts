@@ -1,5 +1,5 @@
 /**
- * Barrel file that merges shared, NativeBiometricsEC256, and Passkeys VALUES
+ * Barrel file that merges shared, NativeBiometricsHSM, and Passkeys VALUES
  * into a single object matching the original Biometrics/VALUES shape.
  * This ensures CONST.MULTIFACTOR_AUTHENTICATION continues working everywhere.
  */
