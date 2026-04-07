@@ -6,6 +6,7 @@ import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {hasCreditBankAccount} from '@libs/actions/ReimbursementAccount/store';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getOriginalMessage, isReimbursementQueuedAction} from '@libs/ReportActionsUtils';
@@ -31,12 +32,12 @@ function ReimbursementQueuedContent({action, report, parentReport, personalDetai
     const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const kycWallRef = useContext(KYCWallContext);
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [hasCreditBankAccountValue = false] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {selector: hasCreditBankAccount});
 
     const targetReport = isChatThread(report) ? parentReport : report;
     const submitterDisplayName = formatPhoneNumber(getDisplayNameOrDefault(personalDetails?.[targetReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]));
     const paymentType = isReimbursementQueuedAction(action) ? (getOriginalMessage(action)?.paymentType ?? '') : '';
-    const missingPaymentMethod = getIndicatedMissingPaymentMethod(userWalletTierName, targetReport?.reportID, action, bankAccountList);
+    const missingPaymentMethod = getIndicatedMissingPaymentMethod(userWalletTierName, targetReport?.reportID, action, hasCreditBankAccountValue);
 
     return (
         <ReportActionItemBasicMessage message={translate(paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? 'iou.waitingOnEnabledWallet' : 'iou.waitingOnBankAccount', submitterDisplayName)}>

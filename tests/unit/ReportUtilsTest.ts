@@ -13258,7 +13258,7 @@ describe('ReportUtils', () => {
             expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
 
             // Verify "Enable your wallet" indicator for SILVER tier
-            const missingPaymentMethod = getIndicatedMissingPaymentMethod(CONST.WALLET.TIER_NAME.SILVER, iouReportID, reimbursementQueuedAction, {});
+            const missingPaymentMethod = getIndicatedMissingPaymentMethod(CONST.WALLET.TIER_NAME.SILVER, iouReportID, reimbursementQueuedAction, false);
             expect(missingPaymentMethod).toBe('wallet');
 
             await Onyx.clear();
@@ -13325,7 +13325,7 @@ describe('ReportUtils', () => {
             expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
 
             // Verify wallet indicator for undefined tier
-            const missingPaymentMethod = getIndicatedMissingPaymentMethod(undefined, iouReportID, reimbursementQueuedAction, {});
+            const missingPaymentMethod = getIndicatedMissingPaymentMethod(undefined, iouReportID, reimbursementQueuedAction, false);
             expect(missingPaymentMethod).toBe('wallet');
 
             await Onyx.clear();
@@ -13396,7 +13396,7 @@ describe('ReportUtils', () => {
             expect(reason).not.toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
 
             // Verify NO wallet indicator for GOLD tier
-            const missingPaymentMethod = getIndicatedMissingPaymentMethod(CONST.WALLET.TIER_NAME.GOLD, iouReportID, reimbursementQueuedAction, {});
+            const missingPaymentMethod = getIndicatedMissingPaymentMethod(CONST.WALLET.TIER_NAME.GOLD, iouReportID, reimbursementQueuedAction, false);
             expect(missingPaymentMethod).toBeUndefined();
 
             await Onyx.clear();
@@ -13467,7 +13467,7 @@ describe('ReportUtils', () => {
 
             // But wallet indicator should NOT be 'wallet' for non-EXPENSIFY payment
             // (would be 'bankAccount' or undefined depending on bank account status)
-            const missingPaymentMethod = getIndicatedMissingPaymentMethod(CONST.WALLET.TIER_NAME.SILVER, iouReportID, reimbursementQueuedAction, {});
+            const missingPaymentMethod = getIndicatedMissingPaymentMethod(CONST.WALLET.TIER_NAME.SILVER, iouReportID, reimbursementQueuedAction, false);
             expect(missingPaymentMethod).not.toBe('wallet');
 
             await Onyx.clear();

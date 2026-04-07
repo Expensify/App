@@ -101,7 +101,6 @@ import {
 import type {IOURequestType} from './actions/IOU';
 import {unholdRequest} from './actions/IOU/Hold';
 import {createDraftWorkspace} from './actions/Policy/Policy';
-import {hasCreditBankAccount} from './actions/ReimbursementAccount/store';
 import {openUnreportedExpense} from './actions/Report';
 import type {GuidedSetupData, TaskForParameters} from './actions/Report';
 import {isAnonymousUser as isAnonymousUserSession} from './actions/Session';
@@ -11239,7 +11238,7 @@ function getIndicatedMissingPaymentMethod(
     userWalletTierName: string | undefined,
     reportId: string | undefined,
     reportAction: ReportAction,
-    bankAccountList: OnyxEntry<BankAccountList>,
+    hasCreditBankAccount: boolean,
 ): MissingPaymentMethod | undefined {
     const isSubmitterOfUnsettledReport = reportId && isCurrentUserSubmitter(getReport(reportId, allReports)) && !isSettled(reportId);
     if (!reportId || !isSubmitterOfUnsettledReport || !isReimbursementQueuedAction(reportAction)) {
@@ -11250,7 +11249,7 @@ function getIndicatedMissingPaymentMethod(
         return !userWalletTierName || userWalletTierName === CONST.WALLET.TIER_NAME.SILVER ? 'wallet' : undefined;
     }
 
-    return !hasCreditBankAccount(bankAccountList) ? 'bankAccount' : undefined;
+    return !hasCreditBankAccount ? 'bankAccount' : undefined;
 }
 
 /**
