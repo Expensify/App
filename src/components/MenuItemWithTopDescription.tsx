@@ -1,5 +1,5 @@
-import React, {useEffect, useLayoutEffect, useRef} from 'react';
-import {View} from 'react-native';
+import React, {useEffect, useRef} from 'react';
+import type {View} from 'react-native';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useTheme from '@hooks/useTheme';
 import mergeRefs from '@libs/mergeRefs';
@@ -21,7 +21,7 @@ function MenuItemWithTopDescription({highlighted, outerWrapperStyle, ref, ...pro
     const pressableRef = useRef<View>(null);
     useEffect(() => {
         const element = pressableRef.current;
-        if (props.interactive || !element || !(element instanceof HTMLElement) || typeof element.onclick === 'undefined') {
+        if (props.interactive || !element || typeof HTMLElement === 'undefined' || !(element instanceof HTMLElement) || typeof element.onclick === 'undefined') {
             return;
         }
         // React Native Web's Pressable always attaches an onClick handler to the DOM element.
