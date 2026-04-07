@@ -15481,12 +15481,12 @@ describe('ReportUtils', () => {
 
         it('should flag smartscan error when expense report has a missing merchant', async () => {
             // Replace the transaction with one that has an empty merchant
-            const txnMissingMerchant: Transaction = {
+            const transactionMissingMerchant: Transaction = {
                 ...transaction,
                 merchant: '',
                 modifiedMerchant: '',
             };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, txnMissingMerchant);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transactionMissingMerchant);
             await waitForBatchedUpdates();
 
             const reportsCollection = {
@@ -15507,13 +15507,13 @@ describe('ReportUtils', () => {
             };
 
             // Even with missing merchant, a settled report should not show error
-            const txnMissingMerchant: Transaction = {
+            const transactionMissingMerchant: Transaction = {
                 ...transaction,
                 merchant: '',
                 modifiedMerchant: '',
             };
             // isSettled reads from the global allReports Onyx store, so we must persist the settled status there
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, txnMissingMerchant);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transactionMissingMerchant);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, settledExpenseReport);
             await waitForBatchedUpdates();
 
