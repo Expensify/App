@@ -8,11 +8,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
-import usePolicy from './usePolicy';
-import usePermissions from './usePermissions';
-import useOnyx from './useOnyx';
-import useNonReimbursablePaymentModal from './useNonReimbursablePaymentModal';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useNonReimbursablePaymentModal from './useNonReimbursablePaymentModal';
+import useOnyx from './useOnyx';
+import usePermissions from './usePermissions';
+import usePolicy from './usePolicy';
 
 type ActionHandledType = DeepValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE.PAY | typeof CONST.IOU.REPORT_ACTION_TYPE.APPROVE>;
 
