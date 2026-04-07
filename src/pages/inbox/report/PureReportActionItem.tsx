@@ -8,13 +8,10 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {Emoji} from '@assets/emojis/types';
 import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
-import Button from '@components/Button';
 import DisplayNames from '@components/DisplayNames';
 import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
 import InlineSystemMessage from '@components/InlineSystemMessage';
-import KYCWall from '@components/KYCWall';
-import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
@@ -99,14 +96,13 @@ import {
     isWhisperActionTargetedToOthers,
     useTableReportViewActionRenderConditionals,
 } from '@libs/ReportActionsUtils';
-import type {CreateDraftTransactionParams, MissingPaymentMethod} from '@libs/ReportUtils';
+import type {CreateDraftTransactionParams} from '@libs/ReportUtils';
 import {
     canWriteInReport,
     getChatListItemReportName,
     getDisplayNamesWithTooltips,
     getMovedActionMessage,
     getWhisperDisplayNames,
-    isChatThread,
     isCompletedTaskReport,
     isExpenseReport,
     isHarvestCreatedExpenseReport as isHarvestCreatedExpenseReportUtils,
@@ -117,7 +113,6 @@ import SelectionScraper from '@libs/SelectionScraper';
 import {ReactionListContext} from '@pages/inbox/ReportScreenContext';
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import variables from '@styles/variables';
-import {openPersonalBankAccountSetupView} from '@userActions/BankAccounts';
 import type {IgnoreDirection} from '@userActions/ClearReportActionErrors';
 import {hideEmojiPicker, isActive} from '@userActions/EmojiPickerAction';
 import {createTransactionThreadReport, expandURLPreview} from '@userActions/Report';
@@ -136,6 +131,7 @@ import ModifiedExpenseContent from './actionContents/ModifiedExpenseContent';
 import PaymentContent from './actionContents/PaymentContent';
 import PolicyChangeLogContent from './actionContents/PolicyChangeLogContent';
 import ReimbursementDeQueuedContent from './actionContents/ReimbursementDeQueuedContent';
+import ReimbursementQueuedContent from './actionContents/ReimbursementQueuedContent';
 import SimpleMessageContent, {isSimpleMessageAction} from './actionContents/SimpleMessageContent';
 import {RestrictedReadOnlyContextMenuActions} from './ContextMenu/ContextMenuActions';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
@@ -289,8 +285,8 @@ type PureReportActionItemProps = {
     /** Whether the provided report is a closed expense report with no expenses */
     isClosedExpenseReportWithNoExpenses?: boolean;
 
-    /** What missing payment method does this report action indicate, if any? */
-    missingPaymentMethod?: MissingPaymentMethod | undefined;
+    /** User wallet tierName */
+    userWalletTierName?: string | undefined;
 
     /** Gets all transactions on an IOU report with a receipt */
     getTransactionsWithReceipts?: (iouReportID: string | undefined) => OnyxTypes.Transaction[];
@@ -330,9 +326,6 @@ type PureReportActionItemProps = {
 
     /** Current user's email */
     currentUserEmail: string | undefined;
-
-    /** The bank account list */
-    bankAccountList?: OnyxTypes.BankAccountList | undefined;
 
     /** Report name value pairs origin */
     reportNameValuePairsOrigin?: string;
@@ -391,7 +384,7 @@ function PureReportActionItem({
     resolveActionableMentionWhisper = () => {},
     isClosedExpenseReportWithNoExpenses,
     isCurrentUserTheOnlyParticipant = () => false,
-    missingPaymentMethod,
+    userWalletTierName,
     getTransactionsWithReceipts = () => [],
     clearError = () => {},
     clearAllRelatedReportActionErrors = () => {},
@@ -402,7 +395,6 @@ function PureReportActionItem({
     isTryNewDotNVPDismissed = false,
     currentUserAccountID,
     currentUserEmail,
-    bankAccountList,
     reportNameValuePairsOrigin,
     reportNameValuePairsOriginalID,
     reportMetadata,
@@ -428,7 +420,6 @@ function PureReportActionItem({
     const [moderationDecision, setModerationDecision] = useState<OnyxTypes.DecisionName>(CONST.MODERATION.MODERATOR_DECISION_APPROVED);
     const reactionListRef = useContext(ReactionListContext);
     const {updateHiddenAttachments} = useContext(AttachmentModalContext);
-    const kycWallRef = useContext(KYCWallContext);
     const composerTextInputRef = useRef<TextInput | HTMLTextAreaElement>(null);
     const popoverAnchorRef = useRef<Exclude<ContextMenuAnchor, TextInput>>(null);
     const downloadedPreviews = useRef<string[]>([]);
@@ -847,51 +838,16 @@ function PureReportActionItem({
                 </ShowContextMenuStateContext.Provider>
             );
         } else if (isReimbursementQueuedAction(action)) {
-            const targetReport = isChatThread(report) ? parentReport : report;
-            const submitterDisplayName = formatPhoneNumber(getDisplayNameOrDefault(personalDetails?.[targetReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]));
-            const paymentType = getOriginalMessage(action)?.paymentType ?? '';
-
             children = (
-                <ReportActionItemBasicMessage
-                    message={translate(paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? 'iou.waitingOnEnabledWallet' : 'iou.waitingOnBankAccount', submitterDisplayName)}
-                >
-                    <>
-                        {missingPaymentMethod === 'bankAccount' && (
-                            <Button
-                                success
-                                style={[styles.w100, styles.requestPreviewBox]}
-                                text={translate('bankAccount.addBankAccount')}
-                                onPress={() => openPersonalBankAccountSetupView({exitReportID: Navigation.getTopmostReportId() ?? targetReport?.reportID, isUserValidated})}
-                                pressOnEnter
-                                large
-                            />
-                        )}
-                        {missingPaymentMethod === 'wallet' && (
-                            <KYCWall
-                                ref={kycWallRef}
-                                onSuccessfulKYC={() => Navigation.navigate(ROUTES.ENABLE_PAYMENTS)}
-                                enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
-                                addBankAccountRoute={ROUTES.BANK_ACCOUNT_PERSONAL}
-                                addDebitCardRoute={ROUTES.SETTINGS_ADD_DEBIT_CARD}
-                                chatReportID={targetReport?.reportID}
-                                iouReport={iouReport}
-                            >
-                                {(triggerKYCFlow, buttonRef) => (
-                                    <Button
-                                        ref={buttonRef}
-                                        success
-                                        large
-                                        style={[styles.w100, styles.requestPreviewBox]}
-                                        text={translate('iou.enableWallet')}
-                                        onPress={(event) => {
-                                            triggerKYCFlow({event});
-                                        }}
-                                    />
-                                )}
-                            </KYCWall>
-                        )}
-                    </>
-                </ReportActionItemBasicMessage>
+                <ReimbursementQueuedContent
+                    action={action}
+                    report={report}
+                    parentReport={parentReport}
+                    personalDetails={personalDetails}
+                    iouReport={iouReport}
+                    isUserValidated={isUserValidated}
+                    userWalletTierName={userWalletTierName}
+                />
             );
         } else if (isReimbursementDeQueuedOrCanceledAction(action)) {
             children = (
@@ -924,7 +880,6 @@ function PureReportActionItem({
             children = (
                 <PaymentContent
                     action={action}
-                    bankAccountList={bankAccountList}
                     policy={policy}
                 />
             );
@@ -1417,7 +1372,6 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         prevProps.iouReport?.reportID === nextProps.iouReport?.reportID &&
         deepEqual(prevProps.emojiReactions, nextProps.emojiReactions) &&
         deepEqual(prevProps.linkedTransactionRouteError, nextProps.linkedTransactionRouteError) &&
-        prevProps.isUserValidated === nextProps.isUserValidated &&
         prevProps.parentReport?.reportID === nextProps.parentReport?.reportID &&
         deepEqual(prevProps.personalDetails, nextProps.personalDetails) &&
         deepEqual(prevProps.introSelected, nextProps.introSelected) &&
@@ -1428,12 +1382,11 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         prevProps.isArchivedRoom === nextProps.isArchivedRoom &&
         prevProps.isChronosReport === nextProps.isChronosReport &&
         prevProps.isClosedExpenseReportWithNoExpenses === nextProps.isClosedExpenseReportWithNoExpenses &&
-        deepEqual(prevProps.missingPaymentMethod, nextProps.missingPaymentMethod) &&
         prevProps.userBillingFundID === nextProps.userBillingFundID &&
         prevProps.shouldHighlight === nextProps.shouldHighlight &&
-        deepEqual(prevProps.bankAccountList, nextProps.bankAccountList) &&
         prevProps.reportNameValuePairsOrigin === nextProps.reportNameValuePairsOrigin &&
         prevProps.reportNameValuePairsOriginalID === nextProps.reportNameValuePairsOriginalID &&
-        prevProps.reportMetadata?.pendingExpenseAction === nextProps.reportMetadata?.pendingExpenseAction
+        prevProps.reportMetadata?.pendingExpenseAction === nextProps.reportMetadata?.pendingExpenseAction &&
+        prevProps.userWalletTierName === nextProps.userWalletTierName
     );
 });

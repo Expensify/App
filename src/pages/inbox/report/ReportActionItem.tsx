@@ -12,10 +12,8 @@ import {getIOUReportIDFromReportActionPreview, getOriginalMessage, isMoneyReques
 import {
     chatIncludesChronosWithID,
     createDraftTransactionAndNavigateToParticipantSelector,
-    getIndicatedMissingPaymentMethod,
     getTransactionsWithReceipts,
     isArchivedNonExpenseReport,
-    isChatThread,
     isClosedExpenseReportWithNoExpenses,
     isCurrentUserTheOnlyParticipant,
 } from '@libs/ReportUtils';
@@ -42,9 +40,6 @@ type ReportActionItemProps = Omit<PureReportActionItemProps, 'currentUserAccount
 
     /** Emoji reactions for the report action */
     emojiReactions?: OnyxEntry<ReportActionReactions>;
-
-    /** User wallet tierName */
-    userWalletTierName: string | undefined;
 
     /** Whether the user is validated */
     isUserValidated: boolean | undefined;
@@ -85,7 +80,6 @@ function ReportActionItem({
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const transactionsOnIOUReport = useReportTransactions(iouReport?.reportID);
     const transactionID = isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID;
@@ -100,8 +94,6 @@ function ReportActionItem({
     const [linkedTransactionRouteError] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {selector: getLinkedTransactionRouteError});
 
     const blockedFromConcierge = useBlockedFromConcierge();
-    const targetReport = isChatThread(report) ? parentReport : report;
-    const missingPaymentMethod = getIndicatedMissingPaymentMethod(userWalletTierName, targetReport?.reportID, action, bankAccountList);
 
     return (
         <PureReportActionItem
@@ -135,14 +127,13 @@ function ReportActionItem({
             resolveActionableMentionWhisper={resolveActionableMentionWhisper}
             isClosedExpenseReportWithNoExpenses={isClosedExpenseReportWithNoExpenses(iouReport, transactionsOnIOUReport)}
             isCurrentUserTheOnlyParticipant={isCurrentUserTheOnlyParticipant}
-            missingPaymentMethod={missingPaymentMethod}
+            userWalletTierName={userWalletTierName}
             getTransactionsWithReceipts={getTransactionsWithReceipts}
             clearError={clearError}
             clearAllRelatedReportActionErrors={clearAllRelatedReportActionErrors}
             dismissTrackExpenseActionableWhisper={dismissTrackExpenseActionableWhisper}
             userBillingFundID={userBillingFundID}
             isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
-            bankAccountList={bankAccountList}
             reportMetadata={reportMetadata}
         />
     );
