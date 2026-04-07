@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -60,20 +60,14 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
     const [isErrorVisible, setIsErrorVisible] = useState(false);
-    const [isDeleting, setIsDeleting] = useState(false);
-    const hasHydratedExistingRule = useRef(false);
-    const resolvedRuleID = ruleID ?? ROUTES.NEW;
-    const isEditing = resolvedRuleID !== ROUTES.NEW;
-    const existingRule = isEditing ? expensifyCardSettings?.cardRules?.[resolvedRuleID] : undefined;
+    const currentRuleID = ruleID ?? ROUTES.NEW;
+    const isEditing = currentRuleID !== ROUTES.NEW;
+    const existingRule = isEditing ? expensifyCardSettings?.cardRules?.[currentRuleID] : undefined;
 
     useEffect(() => () => clearDraftSpendRule(), []);
 
     useEffect(() => {
-        hasHydratedExistingRule.current = false;
-    }, [resolvedRuleID]);
-
-    useEffect(() => {
-        if (!isEditing || !existingRule || hasHydratedExistingRule.current) {
+        if (!isEditing || !existingRule) {
             return;
         }
 
@@ -83,7 +77,6 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
         }
 
         setDraftSpendRule(existingFormValues);
-        hasHydratedExistingRule.current = true;
     }, [existingRule, isEditing]);
 
     const cardIDs = spendRuleForm?.cardIDs;
@@ -126,7 +119,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
         if (result.action !== ModalActions.CONFIRM) {
             return;
         }
-        Navigation.navigate(ROUTES.RULES_SPEND_CARD.getRoute(policyID, resolvedRuleID));
+        Navigation.navigate(ROUTES.RULES_SPEND_CARD.getRoute(policyID, currentRuleID));
     };
 
     function getMerchantMenuTitle(merchantNamesToSummarize: string[] | undefined): string {
@@ -169,7 +162,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
         }
 
         clearError();
-        setExpensifyCardRule(domainAccountID, isEditing ? resolvedRuleID : rand64(), spendRuleForm);
+        setExpensifyCardRule(domainAccountID, isEditing ? currentRuleID : rand64(), spendRuleForm);
         clearDraftSpendRule();
         Navigation.goBack();
     };
@@ -190,14 +183,13 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                 return;
             }
 
-            setIsDeleting(true);
-            deleteExpensifyCardRule(domainAccountID, resolvedRuleID, existingRule);
+            deleteExpensifyCardRule(domainAccountID, currentRuleID, existingRule);
             clearDraftSpendRule();
             Navigation.goBack();
         });
     };
 
-    if (isEditing && !existingRule && !isDeleting) {
+    if (isEditing && !existingRule) {
         return <NotFoundPage />;
     }
 
@@ -219,7 +211,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                         description={translate('workspace.rules.spendRules.chooseCards')}
                         onPress={() => {
                             clearError();
-                            Navigation.navigate(ROUTES.RULES_SPEND_CARD.getRoute(policyID, resolvedRuleID));
+                            Navigation.navigate(ROUTES.RULES_SPEND_CARD.getRoute(policyID, currentRuleID));
                         }}
                         shouldShowRightIcon
                         title={cardsMenuTitle}
@@ -240,7 +232,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                         description={translate('common.merchant')}
                         onPress={() => {
                             clearError();
-                            Navigation.navigate(ROUTES.RULES_SPEND_MERCHANTS.getRoute(policyID, resolvedRuleID));
+                            Navigation.navigate(ROUTES.RULES_SPEND_MERCHANTS.getRoute(policyID, currentRuleID));
                         }}
                         shouldShowRightIcon
                         title={getMerchantMenuTitle(spendRuleForm?.merchantNames)}
@@ -252,7 +244,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                         description={translate('workspace.rules.spendRules.spendCategory')}
                         onPress={() => {
                             clearError();
-                            Navigation.navigate(ROUTES.RULES_SPEND_CATEGORY.getRoute(policyID, resolvedRuleID));
+                            Navigation.navigate(ROUTES.RULES_SPEND_CATEGORY.getRoute(policyID, currentRuleID));
                         }}
                         shouldShowRightIcon
                         title={categoriesMenuTitle}
@@ -268,7 +260,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
                                 openCurrencyMismatchModal();
                                 return;
                             }
-                            Navigation.navigate(ROUTES.RULES_SPEND_MAX_AMOUNT.getRoute(policyID, resolvedRuleID));
+                            Navigation.navigate(ROUTES.RULES_SPEND_MAX_AMOUNT.getRoute(policyID, currentRuleID));
                         }}
                         shouldShowRightIcon
                         title={maxAmountMenuTitle}
