@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import * as API from '@libs/API';
+import {read} from '@libs/API';
 import {READ_COMMANDS} from '@libs/API/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BillingGraceEndPeriod} from '@src/types/onyx';
@@ -7,7 +7,7 @@ import {openSubscriptionPage} from '../../src/libs/actions/Subscription';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/API');
-const mockAPI = API as jest.Mocked<typeof API>;
+const mockRead = jest.mocked(read);
 
 describe('actions/Subscription', () => {
     beforeAll(() => {
@@ -30,7 +30,7 @@ describe('actions/Subscription', () => {
         it('should call API.read with loading optimistic/success/failure data when no ownerAccountID is provided', () => {
             openSubscriptionPage();
 
-            expect(mockAPI.read).toHaveBeenCalledWith(
+            expect(mockRead).toHaveBeenCalledWith(
                 READ_COMMANDS.OPEN_SUBSCRIPTION_PAGE,
                 null,
                 expect.objectContaining({
@@ -66,7 +66,7 @@ describe('actions/Subscription', () => {
 
             openSubscriptionPage(ownerAccountID, currentGracePeriod);
 
-            expect(mockAPI.read).toHaveBeenCalledWith(
+            expect(mockRead).toHaveBeenCalledWith(
                 READ_COMMANDS.OPEN_SUBSCRIPTION_PAGE,
                 null,
                 expect.objectContaining({
@@ -104,7 +104,7 @@ describe('actions/Subscription', () => {
 
             openSubscriptionPage(ownerAccountID, undefined);
 
-            expect(mockAPI.read).toHaveBeenCalledWith(
+            expect(mockRead).toHaveBeenCalledWith(
                 READ_COMMANDS.OPEN_SUBSCRIPTION_PAGE,
                 null,
                 expect.objectContaining({
@@ -122,8 +122,8 @@ describe('actions/Subscription', () => {
         it('should not include grace period data when ownerAccountID is 0 (falsy)', () => {
             openSubscriptionPage(0);
 
-            const call = mockAPI.read.mock.calls.at(0);
-            const onyxData = call?.at(2) as Parameters<typeof mockAPI.read>[2];
+            const call = mockRead.mock.calls.at(0);
+            const onyxData = call?.at(2) as Parameters<typeof mockRead>[2];
 
             // optimisticData should only have the loading key
             expect(onyxData?.optimisticData).toHaveLength(1);
