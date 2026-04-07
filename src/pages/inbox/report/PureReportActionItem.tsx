@@ -223,9 +223,6 @@ type PureReportActionItemProps = {
     /** The IOU/Expense report we are paying */
     iouReport?: OnyxTypes.Report;
 
-    /** The task report associated with this action, if any */
-    taskReport: OnyxEntry<OnyxTypes.Report>;
-
     /** The linked report associated with this action, if any */
     linkedReport: OnyxEntry<OnyxTypes.Report>;
 
@@ -386,7 +383,6 @@ function PureReportActionItem({
     parentReportActionForTransactionThread,
     draftMessage,
     iouReport,
-    taskReport,
     linkedReport,
     iouReportOfLinkedReport,
     emojiReactions,
@@ -852,7 +848,6 @@ function PureReportActionItem({
                     <ShowContextMenuActionsContext.Provider value={contextMenuActionsValue}>
                         <TaskPreview
                             style={displayAsGroup ? [] : [styles.mt1]}
-                            taskReport={taskReport}
                             chatReportID={reportID}
                             action={action}
                             isHovered={hovered}
@@ -1450,7 +1445,6 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         prevProps.isClosedExpenseReportWithNoExpenses === nextProps.isClosedExpenseReportWithNoExpenses &&
         deepEqual(prevProps.missingPaymentMethod, nextProps.missingPaymentMethod) &&
         prevProps.userBillingFundID === nextProps.userBillingFundID &&
-        deepEqual(prevProps.taskReport, nextProps.taskReport) &&
         prevProps.shouldHighlight === nextProps.shouldHighlight &&
         deepEqual(prevProps.bankAccountList, nextProps.bankAccountList) &&
         prevProps.reportNameValuePairsOrigin === nextProps.reportNameValuePairsOrigin &&
