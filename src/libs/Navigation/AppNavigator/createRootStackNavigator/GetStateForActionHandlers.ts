@@ -1,12 +1,12 @@
-import type {CommonActions, RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
+import type {CommonActions, NavigationState, PartialState, RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
 import {StackActions} from '@react-navigation/native';
 import type {ParamListBase, Router} from '@react-navigation/routers';
 import Log from '@libs/Log';
+import buildTabNavigatorNestedState from '@libs/Navigation/helpers/buildTabNavigatorNestedState';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
-import isSideModalNavigator from '@libs/Navigation/helpers/isSideModalNavigator';
-import shouldStripRHPOnFullscreenPush from '@libs/Navigation/helpers/shouldStripRHPOnFullscreenPush';
 import {SIDEBAR_TO_SPLIT} from '@libs/Navigation/linkingConfig/RELATIONS';
+import type {NavigationPartialRoute} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
@@ -49,6 +49,70 @@ const MODAL_ROUTES_TO_DISMISS = new Set<string>([
 ]);
 
 const screensWithEnteringAnimation = new Set<string>();
+
+/** Shape of `action.payload.params` when pushing the root tab navigator with a nested tab route (`screen` + optional `params`). */
+type TabNavigatorPushPayloadParams = {
+    screen: string;
+    params?: Record<string, unknown>;
+};
+
+/**
+ * True when this push is `TAB_NAVIGATOR` with nested `{ screen, params }`. That combination is the case we patch below:
+ * the stack route can carry `screen`/`params` as *initial* child navigation hints, which is not the same as having a
+ * full `params.state` subtree computed up front.
+ */
+function isPushTabNavigatorWithScreenParam(action: PushActionType): boolean {
+    return (
+        action.payload.name === NAVIGATORS.TAB_NAVIGATOR &&
+        !!action.payload.params &&
+        typeof action.payload.params === 'object' &&
+        'screen' in action.payload.params &&
+        typeof (action.payload.params as {screen?: unknown}).screen === 'string'
+    );
+}
+
+/**
+ * Returns stack state after rehydrating a `TAB_NAVIGATOR` push, with `params.state` holding the full tab subtree
+ * (same shape as deep links). Without that, `useNavigationBuilder` runs a follow-up NAVIGATE after mount and
+ * `fullHistory` gains a duplicate entry (e.g. Home).
+ */
+function getRehydratedTabNavigatorStateAfterPush(rehydratedState: StackNavigationState<ParamListBase>, tabPushParams: TabNavigatorPushPayloadParams): StackNavigationState<ParamListBase> {
+    const rehydratedLastRoute = rehydratedState.routes.at(-1);
+
+    if (rehydratedLastRoute?.name !== NAVIGATORS.TAB_NAVIGATOR) {
+        return rehydratedState;
+    }
+
+    const {screen: screenName, params: nestedParams} = tabPushParams;
+    const existingTabState = rehydratedLastRoute.state as NavigationState | undefined;
+    const existingTabRoute = existingTabState?.routes?.find((r) => r.name === screenName);
+    const tabParams = (nestedParams ?? existingTabRoute?.params) as Record<string, unknown> | undefined;
+
+    const selectedTabRoute: NavigationPartialRoute = {
+        name: screenName,
+        ...(tabParams ? {params: tabParams} : {}),
+        ...(existingTabRoute?.state ? {state: existingTabRoute.state as PartialState<NavigationState>} : {}),
+    };
+
+    const tabNavigatorNestedState = buildTabNavigatorNestedState(selectedTabRoute);
+    const paramsWithoutNestedTarget = Object.fromEntries(
+        Object.entries((rehydratedLastRoute.params ?? {}) as Record<string, unknown>).filter(([key]) => key !== 'screen' && key !== 'params'),
+    ) as Record<string, unknown>;
+
+    const updatedLastRoute = {
+        ...rehydratedLastRoute,
+        params: {
+            ...paramsWithoutNestedTarget,
+            // RN tab partial state is wider than NavigationState; params.state accepts PartialState.
+            state: tabNavigatorNestedState as unknown as PartialState<NavigationState>,
+        },
+    };
+
+    return {
+        ...rehydratedState,
+        routes: [...rehydratedState.routes.slice(0, -1), updatedLastRoute],
+    } as StackNavigationState<ParamListBase>;
+}
 
 /**
  * Util function with common logic for handling OPEN_WORKSPACE_SPLIT and OPEN_DOMAIN_SPLIT actions.
@@ -149,7 +213,7 @@ function handlePushFullscreenAction(
     action: PushActionType,
     configOptions: RouterConfigOptions,
     stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
-) {
+): StackNavigationState<ParamListBase> | null {
     const targetScreen = action.payload?.params && 'screen' in action.payload.params ? (action.payload?.params?.screen as string) : undefined;
     const navigatorName = action.payload.name;
 
@@ -160,14 +224,25 @@ function handlePushFullscreenAction(
         return null;
     }
 
-    const lastFullScreenRoute = stateWithNavigator.routes.at(-1);
+    let resultState = stateWithNavigator as StackNavigationState<ParamListBase>;
+
+    // Pushing TAB_NAVIGATOR with only { screen, params } makes useNavigationBuilder apply a follow-up
+    // NAVIGATE after mount; with backBehavior="fullHistory" that appends an extra tab history entry.
+    // getRehydratedTabNavigatorStateAfterPush sets params.state like deep links and avoids that.
+    // Rehydrate only in this branch — other fullscreen pushes rely on addRootHistoryRouterExtension alone.
+    if (isPushTabNavigatorWithScreenParam(action)) {
+        const rehydratedState = stackRouter.getRehydratedState(stateWithNavigator, configOptions);
+        const tabPushParams = action.payload.params as TabNavigatorPushPayloadParams;
+        resultState = getRehydratedTabNavigatorStateAfterPush(rehydratedState, tabPushParams);
+    }
+
+    const lastFullScreenRoute = resultState.routes.at(-1);
 
     // Transitioning to all central screens in each split should be animated
     if (lastFullScreenRoute?.key && targetScreen && !SCREENS_WITH_NAVIGATION_TAB_BAR.has(targetScreen)) {
         screensWithEnteringAnimation.add(lastFullScreenRoute.key);
     }
-
-    return stateWithNavigator;
+    return resultState;
 }
 
 function handleReplaceReportsSplitNavigatorAction(
