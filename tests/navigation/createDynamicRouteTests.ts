@@ -1,5 +1,6 @@
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import createDynamicRoute, {appendDynamicRouteSuffixToBasePath} from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import ROUTES from '@src/ROUTES';
 import type {DynamicRouteSuffix} from '@src/ROUTES';
 
 jest.mock('@libs/Navigation/Navigation', () => ({
@@ -11,6 +12,9 @@ jest.mock('@libs/Log', () => ({
 }));
 
 jest.mock('@src/ROUTES', () => ({
+    default: {
+        HOME: 'home',
+    },
     DYNAMIC_ROUTES: {
         VERIFY_ACCOUNT: {path: 'verify-account'},
         CUSTOM_FLOW: {path: 'custom-flow'},
@@ -115,5 +119,72 @@ describe('createDynamicRoute', () => {
         mockGetActiveRoute.mockReturnValue(activeRoute);
 
         expect(() => createDynamicRoute(suffixWithQuery)).toThrow('[createDynamicRoute] Query param "country" exists in both base path and dynamic suffix. This is not allowed.');
+    });
+});
+
+describe('appendDynamicRouteSuffixToBasePath', () => {
+    it('should append a dynamic suffix to an explicit base path', () => {
+        const basePath = 'workspaces/123/categories';
+        const suffix = 'invite';
+
+        const result = appendDynamicRouteSuffixToBasePath(basePath, suffix as DynamicRouteSuffix);
+
+        expect(result).toBe('workspaces/123/categories/invite');
+    });
+
+    it('should strip leading slashes from the base path', () => {
+        const basePath = '/workspaces/123/categories';
+
+        const result = appendDynamicRouteSuffixToBasePath(basePath, 'invite' as DynamicRouteSuffix);
+
+        expect(result).toBe('workspaces/123/categories/invite');
+    });
+
+    it('should preserve query parameters on the base path', () => {
+        const basePath = 'workspaces/123/categories?tab=all';
+
+        const result = appendDynamicRouteSuffixToBasePath(basePath, 'invite' as DynamicRouteSuffix);
+
+        expect(result).toBe('workspaces/123/categories/invite?tab=all');
+    });
+
+    it('should append a suffix that includes its own query string', () => {
+        const basePath = 'settings/profile/address';
+        const suffixWithQuery = 'country?country=US';
+
+        const result = appendDynamicRouteSuffixToBasePath(basePath, suffixWithQuery as DynamicRouteSuffix);
+
+        expect(result).toBe('settings/profile/address/country?country=US');
+    });
+
+    it('should merge base and suffix query parameters when both are present', () => {
+        const basePath = 'settings/profile/address?existing=1';
+        const suffixWithQuery = 'country?country=US';
+
+        const result = appendDynamicRouteSuffixToBasePath(basePath, suffixWithQuery as DynamicRouteSuffix);
+
+        expect(result).toBe('settings/profile/address/country?existing=1&country=US');
+    });
+
+    it('should return HOME when the base path has no path segment before the query', () => {
+        const basePath = '?only=query';
+
+        const result = appendDynamicRouteSuffixToBasePath(basePath, 'verify-account' as DynamicRouteSuffix);
+
+        expect(result).toBe(ROUTES.HOME);
+    });
+
+    it('should return HOME when the base path is empty', () => {
+        const result = appendDynamicRouteSuffixToBasePath('', 'verify-account' as DynamicRouteSuffix);
+
+        expect(result).toBe(ROUTES.HOME);
+    });
+
+    it('should throw when suffix query params collide with base path query params', () => {
+        const basePath = 'settings/profile/address?country=GB';
+
+        expect(() => appendDynamicRouteSuffixToBasePath(basePath, 'country?country=US' as DynamicRouteSuffix)).toThrow(
+            '[createDynamicRoute] Query param "country" exists in both base path and dynamic suffix. This is not allowed.',
+        );
     });
 });
