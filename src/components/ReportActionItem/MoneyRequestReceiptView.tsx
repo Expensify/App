@@ -260,18 +260,17 @@ function MoneyRequestReceiptView({
             if (isReceiptFieldViolation || isReceiptImageViolation || isRTERViolation) {
                 const cardID = violation.data?.cardID;
                 const card = cardID ? cardList?.[cardID] : undefined;
-                const violationMessage = ViolationsUtils.getViolationTranslation(
+                const violationMessage = ViolationsUtils.getViolationTranslation({
                     violation,
                     translate,
                     canEdit,
-                    undefined,
                     companyCardPageURL,
                     connectionLink,
                     card,
                     isMarkAsCash,
                     routeDistanceMeters,
                     distanceUnit,
-                );
+                });
                 allViolations.push(violationMessage);
                 if (isReceiptImageViolation || isRTERViolation) {
                     imageViolations.push(violationMessage);

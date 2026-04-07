@@ -25,6 +25,19 @@ import type {Unit} from '@src/types/onyx/Policy';
 import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ViolationFixParams from './types';
 
+type ViolationTranslationParams = {
+    violation: TransactionViolation;
+    translate: LocaleContextProps['translate'];
+    canEdit?: boolean;
+    tags?: PolicyTagLists;
+    companyCardPageURL?: string;
+    connectionLink?: string;
+    card?: Card;
+    isMarkAsCash?: boolean;
+    routeDistanceMeters?: number;
+    distanceUnit?: Unit;
+};
+
 /**
  * Filters out receiptRequired violation when itemizedReceiptRequired is also present.
  * Itemized receipt requirement supersedes regular receipt requirement.
@@ -663,18 +676,8 @@ const ViolationsUtils = {
      * possible values could be either translation keys that resolve to  strings or translation keys that resolve to
      * functions.
      */
-    getViolationTranslation(
-        violation: TransactionViolation,
-        translate: LocaleContextProps['translate'],
-        canEdit = true,
-        tags?: PolicyTagLists,
-        companyCardPageURL?: string,
-        connectionLink?: string,
-        card?: Card,
-        isMarkAsCash?: boolean,
-        routeDistanceMeters?: number,
-        distanceUnit?: Unit,
-    ): string {
+    getViolationTranslation(params: ViolationTranslationParams): string {
+        const {violation, translate, canEdit = true, tags, companyCardPageURL, connectionLink, card, isMarkAsCash, routeDistanceMeters, distanceUnit} = params;
         const {
             brokenBankConnection = false,
             isAdmin = false,
@@ -837,18 +840,17 @@ const ViolationsUtils = {
             ...filteredViolations.map((violation) => {
                 const cardID = violation?.data?.cardID;
                 const card = cardID ? cardList?.[cardID] : undefined;
-                const message = ViolationsUtils.getViolationTranslation(
+                const message = ViolationsUtils.getViolationTranslation({
                     violation,
                     translate,
-                    true,
                     tags,
                     companyCardPageURL,
                     connectionLink,
                     card,
                     isMarkAsCash,
-                    transaction?.comment?.customUnit?.routeDistanceMeters,
-                    transaction?.comment?.customUnit?.distanceUnit,
-                );
+                    routeDistanceMeters: transaction?.comment?.customUnit?.routeDistanceMeters,
+                    distanceUnit: transaction?.comment?.customUnit?.distanceUnit,
+                });
                 if (!message) {
                     return;
                 }
@@ -896,6 +898,6 @@ const ViolationsUtils = {
 };
 
 export {getIsViolationFixed};
-export type {ViolationFixParams};
+export type {ViolationFixParams, ViolationTranslationParams};
 export default ViolationsUtils;
 export {filterReceiptViolations};
