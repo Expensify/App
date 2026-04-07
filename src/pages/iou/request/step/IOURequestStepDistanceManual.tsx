@@ -16,7 +16,9 @@ import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
+import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useReportAttributes from '@hooks/useReportAttributes';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -29,7 +31,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {isArchivedReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
+import {isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
 import {getDistanceInMeters, getRateID} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
@@ -70,19 +72,19 @@ function IOURequestStepDistanceManual({
 
     const [formError, setFormError] = useState<string>('');
 
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
-    const isArchived = isArchivedReport(reportNameValuePairs);
+    const isArchived = useReportIsArchived(report?.reportID);
     const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`);
     const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
     const selfDMReport = useSelfDMReport();
-    const policy = usePolicy(report?.policyID);
+    const {policy} = usePolicyForTransaction({reportPolicyID: report?.policyID, action, iouType, transaction});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
     const personalPolicy = usePersonalPolicy();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
@@ -110,11 +112,10 @@ function IOURequestStepDistanceManual({
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
 
     const shouldUseDefaultExpensePolicy = useMemo(
-        () => shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy, amountOwed, ownerBillingGraceEndPeriod),
-        [iouType, defaultExpensePolicy, amountOwed, ownerBillingGraceEndPeriod],
+        () => shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd),
+        [iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd],
     );
 
-    const customUnitRateID = getRateID(transaction);
     // to make sure the correct distance amount and unit will be shown we use distance unit
     // from defaultExpensePolicy or current report's policy instead of from transaction and
     // then we use transaction data (distanceUnit and quantity) for conversions
@@ -221,7 +222,6 @@ function IOURequestStepDistanceManual({
                 transactionID,
                 reportAttributesDerived,
                 personalDetails,
-                customUnitRateID,
                 manualDistance: distanceAsFloat,
                 currentUserLogin: currentUserEmailParam,
                 currentUserAccountID: currentUserAccountIDParam,
@@ -239,7 +239,7 @@ function IOURequestStepDistanceManual({
                 policyRecentlyUsedCurrencies,
                 introSelected,
                 activePolicyID,
-                privateIsArchived: reportNameValuePairs?.private_isArchived,
+                privateIsArchived: isArchived,
                 selfDMReport,
                 policyForMovingExpenses,
                 betas,
@@ -249,7 +249,8 @@ function IOURequestStepDistanceManual({
                 draftTransactionIDs,
                 isSelfTourViewed: !!isSelfTourViewed,
                 amountOwed,
-                ownerBillingGraceEndPeriod,
+                userBillingGracePeriodEnds,
+                ownerBillingGracePeriodEnd,
             });
         },
         [
@@ -263,7 +264,6 @@ function IOURequestStepDistanceManual({
             reportID,
             reportAttributesDerived,
             personalDetails,
-            customUnitRateID,
             currentUserEmailParam,
             currentUserAccountIDParam,
             backTo,
@@ -280,7 +280,6 @@ function IOURequestStepDistanceManual({
             policyRecentlyUsedCurrencies,
             introSelected,
             activePolicyID,
-            reportNameValuePairs?.private_isArchived,
             isEditingSplit,
             distance,
             splitDraftTransaction,
@@ -297,7 +296,7 @@ function IOURequestStepDistanceManual({
             draftTransactionIDs,
             isSelfTourViewed,
             amountOwed,
-            ownerBillingGraceEndPeriod,
+            ownerBillingGracePeriodEnd,
         ],
     );
 
