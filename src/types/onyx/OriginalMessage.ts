@@ -1103,8 +1103,11 @@ type OriginalMessageReimbursed = {
     /** Whether this action was created from NewDot */
     isNewDot?: boolean;
 
-    /** Payment method used (e.g., 'Fast_ACH', 'Check', 'StripeConnect', or standard ACH) */
+    /** Payment method used (e.g., 'Fast_ACH', 'Check', 'StripeConnect', or standard ACH) - set by the openReport path */
     paymentMethod?: string;
+
+    /** Raw payment method field as stored by Auth (e.g., 'Fast_ACH', 'Check', 'StripeConnect', or standard ACH) - set on real-time Pusher updates */
+    method?: string;
 
     /** Last 4 digits of the debit bank account used to fund the payment */
     debitBankAccountLast4?: string;

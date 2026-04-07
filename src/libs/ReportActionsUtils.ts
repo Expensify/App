@@ -443,8 +443,12 @@ function getMarkedReimbursedMessage(translate: LocalizedTranslate, reportAction:
 function getReimbursedMessage(translate: LocalizedTranslate, reportAction: OnyxInputOrEntry<ReportAction>, report: OnyxEntry<Report>, currentUserAccountID: number): string {
     const originalMessage = getOriginalMessage(reportAction) as OriginalMessageReimbursed | undefined;
 
+    // Auth stores the payment method as `method`; the openReport path maps it to `paymentMethod` via getDisplayInformation().
+    // Real-time Pusher updates only carry `method`, so we fall back to it here for compatibility.
+    const effectivePaymentMethod = originalMessage?.paymentMethod ?? originalMessage?.method;
+
     // If no structured data, fall back to message fragments from backend (old actions)
-    if (!originalMessage?.paymentMethod) {
+    if (!effectivePaymentMethod || !originalMessage) {
         const messageFragments = reportAction?.message;
         let fallback = getReportActionMessageText(reportAction as OnyxEntry<ReportAction>);
         if (Array.isArray(messageFragments) && messageFragments.length > 1) {
@@ -457,7 +461,7 @@ function getReimbursedMessage(translate: LocalizedTranslate, reportAction: OnyxI
         return fallback;
     }
 
-    const {paymentMethod, debitBankAccountLast4, creditBankAccountLast4, expectedDate, isInvoiceOrBill, isSubmitterAddingBankAccount, stripePaymentType} = originalMessage;
+    const {debitBankAccountLast4, creditBankAccountLast4, expectedDate, isInvoiceOrBill, isSubmitterAddingBankAccount, stripePaymentType} = originalMessage;
 
     // Resolve submitter from report owner
     const submitterAccountID = report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -471,12 +475,12 @@ function getReimbursedMessage(translate: LocalizedTranslate, reportAction: OnyxI
     const isAutomation = !!reportAction?.delegateAccountID;
 
     let paymentSuffix = '';
-    if (paymentMethod === 'Fast_ACH' && expectedDate && expectedDate !== '???') {
+    if (effectivePaymentMethod === 'Fast_ACH' && expectedDate && expectedDate !== '???') {
         const formattedDate = DateUtils.formatWithUTCTimeZone(expectedDate, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT);
         paymentSuffix = translate('iou.reimbursedWithFastACH', {isCurrentUser, submitterLogin, creditBankAccount: creditBankAccountLast4 ?? '', expectedDate: formattedDate});
-    } else if (paymentMethod === 'Check') {
+    } else if (effectivePaymentMethod === 'Check') {
         paymentSuffix = translate('iou.reimbursedWithCheck');
-    } else if (paymentMethod === 'StripeConnect') {
+    } else if (effectivePaymentMethod === 'StripeConnect') {
         paymentSuffix = translate('iou.reimbursedWithStripeConnect', {isCurrentUser, submitterLogin, creditBankAccount: creditBankAccountLast4 ?? '', isCard: stripePaymentType === 'card'});
     } else {
         let formattedDate: string | undefined;
