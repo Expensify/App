@@ -2,9 +2,10 @@
  * Type definitions specific to native biometrics (ED25519 / KeyStore).
  */
 import type {ValueOf} from 'type-fest';
-import type {MultifactorAuthenticationMethodCode, MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/shared/types';
+import type {MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/shared/types';
 import type CONST from '@src/CONST';
 import type {Base64URLString} from '@src/utils/Base64URL';
+import type {SECURE_STORE_VALUES} from './SecureStore';
 import type VALUES from './VALUES';
 
 /**
@@ -16,7 +17,7 @@ type MultifactorAuthenticationKeyStoreStatus<T> = {
 
     reason: MultifactorAuthenticationReason;
 
-    type?: MultifactorAuthenticationMethodCode;
+    type?: ValueOf<typeof SECURE_STORE_VALUES.AUTH_TYPE>['CODE'];
 };
 
 /**

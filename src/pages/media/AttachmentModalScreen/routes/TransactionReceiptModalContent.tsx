@@ -26,6 +26,7 @@ import cropOrRotateImage from '@libs/cropOrRotateImage';
 import fetchImage from '@libs/fetchImage';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
+import moveReceiptToDurableStorage from '@libs/moveReceiptToDurableStorage';
 import Navigation from '@libs/Navigation/Navigation';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getReportAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
@@ -74,6 +75,8 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
 
     // If we have a merge transaction, we need to use the receipt from the merge transaction
     const [mergeTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(mergeTransactionID)}`);
+
+    const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
 
     const isDraftTransaction = !!action;
     const draftTransactionID = isDraftTransaction ? transactionID : undefined;
@@ -263,9 +266,9 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
      * Detach the receipt and close the modal.
      */
     const deleteReceiptAndClose = useCallback(() => {
-        detachReceipt(transaction?.transactionID, policy, policyCategories);
+        detachReceipt(transaction?.transactionID, policy, policyTagList, policyCategories);
         navigation.goBack();
-    }, [navigation, transaction?.transactionID, policy, policyCategories]);
+    }, [navigation, transaction?.transactionID, policy, policyCategories, policyTagList]);
 
     /**
      * Remove odometer image and close the modal.
@@ -290,6 +293,32 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
 
     const allowDownload = !isEReceipt;
 
+    const applyDurableReceipt = useCallback(
+        (imageUri: string, filename: string, file: File, isSameReceipt?: boolean) => {
+            if (!transaction?.transactionID) {
+                return Promise.resolve();
+            }
+            return moveReceiptToDurableStorage(imageUri, filename).then((durableUri) => {
+                const durableFile = Object.assign(new File([file], file.name || filename, {type: file.type}), {uri: durableUri, source: durableUri});
+                if (isOdometerImage) {
+                    setMoneyRequestOdometerImage(transaction, imageType, durableFile, isDraftTransaction, !isEditingConfirmation);
+                } else if (isDraftTransaction) {
+                    setMoneyRequestReceipt(transaction.transactionID, durableUri, filename, isDraftTransaction, fileType);
+                } else {
+                    replaceReceipt({
+                        transactionID: transaction.transactionID,
+                        file: durableFile,
+                        source: durableUri,
+                        transactionPolicyCategories: policyCategories,
+                        transactionPolicy: policy,
+                        ...(isSameReceipt ? {state: transaction?.receipt?.state, isSameReceipt: true} : {}),
+                    });
+                }
+            });
+        },
+        [transaction, isDraftTransaction, isOdometerImage, isEditingConfirmation, imageType, fileType, policyCategories, policy],
+    );
+
     const rotateReceipt = useCallback(() => {
         if (!transaction?.transactionID || !sourceUri || !isImage) {
             return;
@@ -304,39 +333,26 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             .then((rotatedImage) => {
                 if (!rotatedImage) {
                     setIsRotating(false);
-                    return;
+                    return Promise.resolve();
                 }
 
                 const imageUriResult = 'uri' in rotatedImage && rotatedImage.uri ? rotatedImage.uri : undefined;
                 if (!imageUriResult) {
                     setIsRotating(false);
-                    return;
+                    return Promise.resolve();
                 }
 
                 const file = rotatedImage as File;
                 const rotatedFilename = file.name ?? receiptFilename;
 
-                if (isOdometerImage) {
-                    setMoneyRequestOdometerImage(transaction, imageType, file, isDraftTransaction, !isEditingConfirmation);
-                } else if (isDraftTransaction) {
-                    setMoneyRequestReceipt(transaction.transactionID, imageUriResult, rotatedFilename, isDraftTransaction, fileType);
-                } else {
-                    replaceReceipt({
-                        transactionID: transaction.transactionID,
-                        file,
-                        source: imageUriResult,
-                        state: transaction.receipt?.state,
-                        transactionPolicyCategories: policyCategories,
-                        transactionPolicy: policy,
-                        isSameReceipt: true,
-                    });
-                }
-                setIsRotating(false);
+                return applyDurableReceipt(imageUriResult, rotatedFilename, file, true).then(() => {
+                    setIsRotating(false);
+                });
             })
             .catch(() => {
                 setIsRotating(false);
             });
-    }, [transaction, sourceUri, isImage, fileName, fileType, receiptFilename, isOdometerImage, isDraftTransaction, imageType, isEditingConfirmation, policyCategories, policy]);
+    }, [transaction?.transactionID, sourceUri, isImage, receiptFilename, fileName, fileType, applyDurableReceipt]);
 
     const shouldShowRotateAndCropReceiptButton = useMemo(
         () =>
@@ -391,53 +407,27 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             .then((croppedImage) => {
                 if (!croppedImage) {
                     setIsCropSaving(false);
-                    return;
+                    return Promise.resolve();
                 }
 
                 const imageUriResult = 'uri' in croppedImage && croppedImage.uri ? croppedImage.uri : undefined;
                 if (!imageUriResult) {
                     setIsCropSaving(false);
-                    return;
+                    return Promise.resolve();
                 }
 
                 const file = croppedImage as File;
                 const croppedFilename = file.name ?? receiptFilename;
 
-                if (isOdometerImage) {
-                    setMoneyRequestOdometerImage(transaction, imageType, file, isDraftTransaction, !isEditingConfirmation);
-                } else if (isDraftTransaction) {
-                    setMoneyRequestReceipt(transaction.transactionID, imageUriResult, croppedFilename, isDraftTransaction, fileType);
-                } else {
-                    replaceReceipt({
-                        transactionID: transaction.transactionID,
-                        file,
-                        source: imageUriResult,
-                        transactionPolicyCategories: policyCategories,
-                        transactionPolicy: policy,
-                    });
-                }
-                setIsCropSaving(false);
-                exitCropMode();
+                return applyDurableReceipt(imageUriResult, croppedFilename, file).then(() => {
+                    setIsCropSaving(false);
+                    exitCropMode();
+                });
             })
             .catch(() => {
                 setIsCropSaving(false);
             });
-    }, [
-        transaction,
-        sourceUri,
-        isImage,
-        cropRect,
-        fileName,
-        fileType,
-        exitCropMode,
-        receiptFilename,
-        isOdometerImage,
-        isDraftTransaction,
-        imageType,
-        isEditingConfirmation,
-        policyCategories,
-        policy,
-    ]);
+    }, [transaction?.transactionID, sourceUri, isImage, cropRect, receiptFilename, fileName, fileType, exitCropMode, applyDurableReceipt]);
 
     const threeDotsMenuItems: ThreeDotsMenuItemFactory = useCallback(
         ({file, source: innerSource, isLocalSource}) => {
