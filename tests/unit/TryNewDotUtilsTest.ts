@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import {isOldAppRedirectBlocked, shouldBlockOldAppExit, shouldUseOldApp} from '@src/libs/TryNewDotUtils';
+import {isOldAppRedirectBlocked, shouldBlockOldAppExit, shouldHideOldAppRedirect, shouldUseOldApp} from '@src/libs/TryNewDotUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {TryNewDot} from '@src/types/onyx';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -44,6 +44,14 @@ describe('TryNewDotUtils', () => {
 
         expect(isOldAppRedirectBlocked(tryNewDot, false)).toBe(false);
         expect(isOldAppRedirectBlocked(tryNewDot, true)).toBe(true);
+    });
+
+    it('hides HybridApp Classic entry points while tryNewDot is still loading', () => {
+        expect(shouldHideOldAppRedirect(undefined, true, true)).toBe(true);
+    });
+
+    it('does not hide web Classic entry points just because tryNewDot is still loading', () => {
+        expect(shouldHideOldAppRedirect(undefined, true, false)).toBe(false);
     });
 
     it('blocks Hybrid OldApp exits while tryNewDot is still unresolved', () => {
