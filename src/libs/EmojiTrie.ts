@@ -4,6 +4,7 @@ import CONST from '@src/CONST';
 import {FULLY_SUPPORTED_LOCALES} from '@src/CONST/LOCALES';
 import type {FullySupportedLocale} from '@src/CONST/LOCALES';
 import StringUtils from './StringUtils';
+import {endSpan, startSpan} from './telemetry/activeSpans';
 import Trie from './Trie';
 
 type EmojiMetaData = {
@@ -121,7 +122,12 @@ const buildEmojisTrie = (locale: FullySupportedLocale) => {
     if (emojiTrieForLocale[locale]) {
         return; // Return early if the trie is already built
     }
+    startSpan(CONST.TELEMETRY.SPAN_LOCALE.EMOJI_TRIE_BUILD, {
+        name: CONST.TELEMETRY.SPAN_LOCALE.EMOJI_TRIE_BUILD,
+        op: CONST.TELEMETRY.SPAN_LOCALE.EMOJI_TRIE_BUILD,
+    });
     emojiTrieForLocale[locale] = createTrie(locale);
+    endSpan(CONST.TELEMETRY.SPAN_LOCALE.EMOJI_TRIE_BUILD);
 };
 
 /**
