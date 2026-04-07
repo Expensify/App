@@ -2098,7 +2098,7 @@ function getMessageOfOldDotReportAction(translate: LocalizedTranslate, oldDotAct
             return translate('report.actions.type.managerDetachReceipt');
         case CONST.REPORT.ACTIONS.TYPE.MARK_REIMBURSED_FROM_INTEGRATION: {
             const {amount, currency} = originalMessage;
-            if (!amount && !currency) {
+            if (!amount || !currency) {
                 return getMessageOfOldDotLegacyAction(oldDotAction);
             }
             return translate('report.actions.type.markedReimbursedFromIntegration', {amount, currency});
