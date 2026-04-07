@@ -62,14 +62,14 @@ function SidebarLinks({insets, optionListItems, priorityMode = CONST.PRIORITY_MO
             const shouldBlockReportNavigation = Navigation.getActiveRoute() !== `/${ROUTES.INBOX}` && shouldUseNarrowLayout;
 
             if (
-                (option.reportID === Navigation.getTopmostReportId() && !reportActionID) ||
-                (shouldUseNarrowLayout && isActiveReport(option.reportID) && !reportActionID) ||
+                (option.reportID === Navigation.getTopmostReportId() && !reportActionID && !option.actionTargetReportActionID) ||
+                (shouldUseNarrowLayout && isActiveReport(option.reportID) && !reportActionID && !option.actionTargetReportActionID) ||
                 shouldBlockReportNavigation
             ) {
                 cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${option.reportID}`);
                 return;
             }
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(option.reportID));
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(option.reportID, option.actionTargetReportActionID));
         },
         [shouldUseNarrowLayout, isActiveReport],
     );
