@@ -62,11 +62,9 @@ describe('useRedirectToExpensifyClassic', () => {
         const cleanup = mockHybridAppConfig(true);
 
         try {
-            await Onyx.multiSet({
-                [`${ONYXKEYS.COLLECTION.POLICY}1`]: buildPaidGroupPolicy(1),
-                [ONYXKEYS.NVP_TRY_NEW_DOT]: {
-                    isLockedToNewApp: true,
-                },
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, buildPaidGroupPolicy(1));
+            await Onyx.set(ONYXKEYS.NVP_TRY_NEW_DOT, {
+                isLockedToNewApp: true,
             });
             await waitForBatchedUpdatesWithAct();
 
