@@ -58,6 +58,9 @@ function IOURequestStepScan({
     transaction: initialTransaction,
     currentUserPersonalDetails,
     onLayout,
+    isMultiScanEnabled = false,
+    isStartingScan = false,
+    setIsMultiScanEnabled,
 }: IOURequestStepScanProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -211,9 +214,6 @@ function IOURequestStepScan({
     const getSource = useCallback((file: FileObject) => file.uri ?? '', []);
 
     const {
-        isMultiScanEnabled,
-        setIsMultiScanEnabled,
-        isStartingScan,
         isEditing,
         shouldAcceptMultipleFiles,
         shouldSkipConfirmation,
@@ -236,6 +236,8 @@ function IOURequestStepScan({
         currentUserPersonalDetails,
         backTo,
         backToReport,
+        isMultiScanEnabled,
+        isStartingScan,
         updateScanAndNavigate,
         getSource,
     });
@@ -251,7 +253,6 @@ function IOURequestStepScan({
             shouldSkipConfirmation,
             setStartLocationPermissionFlow,
             setIsMultiScanEnabled,
-            setReceiptFiles,
         });
 
     const maybeCancelShutterSpan = useCallback(() => {
