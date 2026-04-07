@@ -635,6 +635,7 @@ function getReasonAndReportActionThatHasRedBrickRoad(
     transactions: OnyxCollection<Transaction>,
     transactionViolations?: OnyxCollection<TransactionViolation[]>,
     isReportArchived = false,
+    reports?: OnyxCollection<Report>,
 ): ReasonAndReportActionThatHasRedBrickRoad | null {
     if (isReportArchived) {
         return null;
@@ -649,7 +650,7 @@ function getReasonAndReportActionThatHasRedBrickRoad(
         };
     }
 
-    const {reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, isReportArchived);
+    const {reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, isReportArchived, reports);
     const errors = reportErrors;
     const hasErrors = Object.keys(errors).length !== 0;
 
@@ -775,7 +776,7 @@ function getOptionData({
     result.isTaskReport = isTaskReport(report);
     result.isInvoiceReport = isInvoiceReport(report);
     result.parentReportAction = parentReportAction;
-    result.private_isArchived = reportNameValuePairs?.private_isArchived;
+    result.private_isArchived = !!reportNameValuePairs?.private_isArchived;
     result.isPolicyExpenseChat = isPolicyExpenseChat(report);
     result.isExpenseRequest = isExpenseRequest(report);
     result.isMoneyRequestReport = isMoneyRequestReport(report);
@@ -1139,7 +1140,7 @@ function getOptionData({
                         lastActorDetails,
                         currentUserAccountID,
                         personalDetails,
-                        reportNameValuePairs?.private_isArchived,
+                        !!reportNameValuePairs?.private_isArchived,
                         visibleReportActionsData,
                         lastAction,
                     )) ||
@@ -1193,7 +1194,7 @@ function getOptionData({
                         lastActorDetails,
                         currentUserAccountID,
                         personalDetails,
-                        reportNameValuePairs?.private_isArchived,
+                        !!reportNameValuePairs?.private_isArchived,
                         visibleReportActionsData,
                         lastAction,
                     )) ||

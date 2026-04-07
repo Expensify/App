@@ -106,6 +106,18 @@ const REASON = {
         UNEXPECTED_RESPONSE: 'WebAuthn credential response type is unexpected',
         GENERIC: 'An unknown WebAuthn error occurred',
     },
+    HSM: {
+        CANCELED: 'Biometric authentication canceled by user',
+        NOT_AVAILABLE: 'Biometric authentication not available',
+        LOCKOUT: 'Biometric authentication locked out',
+        LOCKOUT_PERMANENT: 'Biometric authentication permanently locked out',
+        KEY_NOT_FOUND: 'Key not found',
+        SIGNATURE_FAILED: 'Signature creation failed',
+        KEY_CREATION_FAILED: 'Key creation failed',
+        KEY_ACCESS_FAILED: 'Failed to access cryptographic key',
+        AUTHENTICATION_FAILED: 'Biometric authentication failed',
+        GENERIC: 'An HSM error occurred',
+    },
 } as const;
 
 const HTTP_STATUS = {
@@ -224,6 +236,10 @@ const ROUTINE_FAILURES = new Set<ReasonValue>([
     REASON.WEBAUTHN.NOT_ALLOWED,
     REASON.WEBAUTHN.ABORT,
     REASON.WEBAUTHN.NOT_SUPPORTED,
+    REASON.HSM.CANCELED,
+    REASON.HSM.NOT_AVAILABLE,
+    REASON.HSM.LOCKOUT,
+    REASON.HSM.AUTHENTICATION_FAILED,
 ]);
 
 /** Known errors that should rarely happen and may indicate a bug or unexpected state. Logged at 'error' level. Any reason not in either set is treated as UNCLASSIFIED (e.g. 5xx, missing reason). */
@@ -254,6 +270,12 @@ const ANOMALOUS_FAILURES = new Set<ReasonValue>([
     REASON.WEBAUTHN.REGISTRATION_REQUIRED,
     REASON.WEBAUTHN.UNEXPECTED_RESPONSE,
     REASON.WEBAUTHN.GENERIC,
+    REASON.HSM.LOCKOUT_PERMANENT,
+    REASON.HSM.SIGNATURE_FAILED,
+    REASON.HSM.KEY_NOT_FOUND,
+    REASON.HSM.KEY_CREATION_FAILED,
+    REASON.HSM.KEY_ACCESS_FAILED,
+    REASON.HSM.GENERIC,
 ]);
 
 const SHARED_VALUES = {
@@ -271,14 +293,16 @@ const SHARED_VALUES = {
      * Maps authentication type to the corresponding prompt type.
      */
     PROMPT_TYPE_MAP: {
+        BIOMETRICS_HSM: PROMPT_NAMES.BIOMETRICS_HSM,
         BIOMETRICS: PROMPT_NAMES.BIOMETRICS,
         PASSKEYS: PROMPT_NAMES.PASSKEYS,
     },
 
     /**
-     * Authentication type identifiers.
+     * Authentication type identifiers used for identification of allowed authentication methods in scenarios
      */
     TYPE: {
+        BIOMETRICS_HSM: 'BIOMETRICS_HSM',
         BIOMETRICS: 'BIOMETRICS',
         PASSKEYS: 'PASSKEYS',
     },
