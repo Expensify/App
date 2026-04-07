@@ -119,10 +119,18 @@ const emojiTrieForLocale: EmojiTrieForLocale = Object.values(FULLY_SUPPORTED_LOC
 
 const buildEmojisTrie = (locale: FullySupportedLocale) => {
     if (emojiTrieForLocale[locale]) {
-        return; // Return early if the locale is not supported or the trie is already built
+        return; // Return early if the trie is already built
     }
     emojiTrieForLocale[locale] = createTrie(locale);
 };
 
+/**
+ * Returns the trie for the given locale, building it lazily on first access.
+ */
+const getEmojiTrie = (locale: FullySupportedLocale): Trie<EmojiMetaData> | undefined => {
+    buildEmojisTrie(locale);
+    return emojiTrieForLocale[locale];
+};
+
 export default emojiTrieForLocale;
-export {buildEmojisTrie};
+export {buildEmojisTrie, getEmojiTrie};

@@ -4,7 +4,6 @@ import {importEmojiLocale} from '@assets/emojis';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import DateUtils from '@libs/DateUtils';
-import {buildEmojisTrie} from '@libs/EmojiTrie';
 import {fromLocaleDigit as fromLocaleDigitLocaleDigitUtils, toLocaleDigit as toLocaleDigitLocaleDigitUtils, toLocaleOrdinal as toLocaleOrdinalLocaleDigitUtils} from '@libs/LocaleDigitUtils';
 import {formatPhoneNumberWithCountryCode} from '@libs/LocalePhoneNumber';
 import {getDevicePreferredLocale, translate as translateLocalize} from '@libs/Localize';
@@ -119,14 +118,6 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
 
         importEmojiLocale(normalizedLocale).then(() => {
             endSpan(CONST.TELEMETRY.SPAN_LOCALE.EMOJI_IMPORT);
-
-            startSpan(CONST.TELEMETRY.SPAN_LOCALE.EMOJI_TRIE_BUILD, {
-                name: CONST.TELEMETRY.SPAN_LOCALE.EMOJI_TRIE_BUILD,
-                op: CONST.TELEMETRY.SPAN_LOCALE.EMOJI_TRIE_BUILD,
-                parentSpan: getSpan(CONST.TELEMETRY.SPAN_APP_STARTUP),
-            });
-            buildEmojisTrie(normalizedLocale);
-            endSpan(CONST.TELEMETRY.SPAN_LOCALE.EMOJI_TRIE_BUILD);
         });
     }, [localeToApply, nvpPreferredLocale]);
 
