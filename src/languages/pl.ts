@@ -7704,6 +7704,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
     chronos: {
         oooEventSummaryFullDay: (summary: string, dayCount: number, date: string) => `${summary} za ${dayCount} ${dayCount === 1 ? 'dzień' : 'dni'} do ${date}`,
         oooEventSummaryPartialDay: (summary: string, timePeriod: string, date: string) => `${summary} z ${timePeriod} z dnia ${date}`,
+        startTimer: 'Startuj licznik',
+        stopTimer: 'Zatrzymaj licznik czasu',
     },
     footer: {
         features: 'Funkcje',

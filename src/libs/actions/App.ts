@@ -52,8 +52,9 @@ Onyx.connectWithoutView({
 // `useOnyx` would trigger extra rerenders without affecting the View, so `Onyx.connectWithoutView` is used instead
 let isSidebarLoaded: boolean | undefined;
 Onyx.connectWithoutView({
-    key: ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED,
+    key: ONYXKEYS.IS_SIDEBAR_LOADED,
     callback: (val) => (isSidebarLoaded = val),
+    initWithStoredValues: false,
 });
 
 // `isUsingImportedState` is used in `openApp`, `reconnectApp`, and `clearOnyxAndResetApp` to prevent API calls when using imported state.
@@ -120,9 +121,9 @@ Onyx.connectWithoutView({
 
 const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.ACCOUNT,
-    ONYXKEYS.RAM_ONLY_IS_LOADING_APP,
-    ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED,
     ONYXKEYS.IS_CHECKING_PUBLIC_ROOM,
+    ONYXKEYS.IS_LOADING_APP,
+    ONYXKEYS.IS_SIDEBAR_LOADED,
     ONYXKEYS.MODAL,
     ONYXKEYS.NETWORK,
     ONYXKEYS.SESSION,
@@ -219,11 +220,11 @@ function setSidebarLoaded() {
         return;
     }
 
-    Onyx.set(ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED, true);
+    Onyx.set(ONYXKEYS.IS_SIDEBAR_LOADED, true);
 }
 
 function setAppLoading(isLoading: boolean) {
-    Onyx.set(ONYXKEYS.RAM_ONLY_IS_LOADING_APP, isLoading);
+    Onyx.set(ONYXKEYS.IS_LOADING_APP, isLoading);
 }
 
 /**
@@ -297,9 +298,9 @@ function getPolicyParamsForOpenOrReconnect(): Promise<PolicyParamsForOpenOrRecon
 
 type OnyxDataForOpenOrReconnectKeys =
     | typeof ONYXKEYS.COLLECTION.REPORT
-    | typeof ONYXKEYS.RAM_ONLY_IS_LOADING_REPORT_DATA
+    | typeof ONYXKEYS.IS_LOADING_REPORT_DATA
     | typeof ONYXKEYS.HAS_LOADED_APP
-    | typeof ONYXKEYS.RAM_ONLY_IS_LOADING_APP
+    | typeof ONYXKEYS.IS_LOADING_APP
     | typeof ONYXKEYS.LAST_FULL_RECONNECT_TIME;
 
 /**
@@ -322,16 +323,16 @@ function getOnyxDataForOpenOrReconnect(
     Log.info(`[App] isLoadingReportData set to true`, false, {command: commandName});
 
     const result: OnyxData<
-        | typeof ONYXKEYS.RAM_ONLY_IS_LOADING_REPORT_DATA
+        | typeof ONYXKEYS.IS_LOADING_REPORT_DATA
         | typeof ONYXKEYS.HAS_LOADED_APP
-        | typeof ONYXKEYS.RAM_ONLY_IS_LOADING_APP
+        | typeof ONYXKEYS.IS_LOADING_APP
         | typeof ONYXKEYS.COLLECTION.REPORT
         | typeof ONYXKEYS.LAST_FULL_RECONNECT_TIME
     > = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.RAM_ONLY_IS_LOADING_REPORT_DATA,
+                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
                 value: true,
             },
         ],
@@ -339,7 +340,7 @@ function getOnyxDataForOpenOrReconnect(
         finallyData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.RAM_ONLY_IS_LOADING_REPORT_DATA,
+                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
                 value: false,
             },
         ],
@@ -355,13 +356,13 @@ function getOnyxDataForOpenOrReconnect(
     if (isOpenApp) {
         result.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.RAM_ONLY_IS_LOADING_APP,
+            key: ONYXKEYS.IS_LOADING_APP,
             value: true,
         });
 
         result.finallyData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.RAM_ONLY_IS_LOADING_APP,
+            key: ONYXKEYS.IS_LOADING_APP,
             value: false,
         });
     }
@@ -423,7 +424,7 @@ function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Re
     // Exception: When forceRun is true (exiting imported state), always make the API call
     if (isUsingImportedState && !forceRun) {
         Onyx.multiSet({
-            [ONYXKEYS.RAM_ONLY_IS_LOADING_APP]: false,
+            [ONYXKEYS.IS_LOADING_APP]: false,
             [ONYXKEYS.HAS_LOADED_APP]: true,
         });
         return Promise.resolve();
