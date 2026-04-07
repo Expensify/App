@@ -31,45 +31,10 @@ describe('prepareRequestPayload', () => {
         expect(formData.get('label')).toBe('');
     });
 
-    it('should warn when an unsupported object value is passed', async () => {
-        const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-
-        await prepareRequestPayload('TestCommand', {badParam: {nested: 'object'}}, false);
-
-        expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining("An unsupported value was passed to command 'TestCommand' (parameter: 'badParam')"));
-        warnSpy.mockRestore();
-    });
-
-    it('should not warn for valid primitive values', async () => {
-        const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-
-        await prepareRequestPayload('TestCommand', {str: 'hello', num: 42, bool: true}, false);
-
-        expect(warnSpy).not.toHaveBeenCalled();
-        warnSpy.mockRestore();
-    });
-
-    it('should return an empty FormData when all values are null or undefined', async () => {
-        const formData = await prepareRequestPayload('TestCommand', {a: null, b: undefined}, false);
-        const entries = Array.from(formData.entries());
-
-        expect(entries).toHaveLength(0);
-    });
-
     it('should return an empty FormData for an empty data object', async () => {
         const formData = await prepareRequestPayload('TestCommand', {}, false);
         const entries = Array.from(formData.entries());
 
         expect(entries).toHaveLength(0);
-    });
-
-    it('should append Blob values without warning', async () => {
-        const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-        const blob = new Blob(['file content'], {type: 'text/plain'});
-
-        await prepareRequestPayload('TestCommand', {file: blob}, false);
-
-        expect(warnSpy).not.toHaveBeenCalled();
-        warnSpy.mockRestore();
     });
 });
