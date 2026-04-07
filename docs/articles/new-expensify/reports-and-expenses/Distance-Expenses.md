@@ -2,7 +2,7 @@
 title: Distance Expenses
 description: Learn how to create a Distance expense using GPS tracking, map-based routes, or manual entry, and how the reimbursement rate is determined in New Expensify.
 keywords: [New Expensify, distance expense, mileage reimbursement, create expense, distance rate, workspace rate, map route, reimbursement rate, manual mileage, manual distance, global create, track distance, GPS, GPS tracking, start GPS, track route, track mileage, mileage tracking, calculate mileage reimbursement, mileage rate]
-internalScope: Audience is all members. Covers creating Distance expenses using GPS tracking, map-based routes, and manual entry, plus how reimbursement rates are applied. Does not cover configuring Workspace distance rates in detail or broader report submission workflows.
+internalScope: Audience is all members. Covers creating Distance expenses using GPS tracking, map-based routes, and manual entry, plus how reimbursement rates are applied — including selecting or creating Workspace rates for personal tracked expenses. Does not cover configuring Workspace distance rates in detail or broader report submission workflows.
 ---
 
 # Distance Expenses
@@ -77,15 +77,13 @@ If you are creating expenses on a Workspace:
 
 [Learn how to manage distance rates as a Workspace Admin](https://help.expensify.com/articles/new-expensify/reports-and-expenses/Managing-Distance-Rates)
 
-### Distance expenses created for personal tracking
+### Distance expenses tracked for personal use
 
-If you're creating expenses outside of a Workspace:
+If you're tracking a distance expense in your self-DM (not on a Workspace):
 
-- Expensify sets a default rate based on your payment currency. 
-   - Example: For USD, the rate is based on the current IRS reimbursement rate and uses miles.
-   - Distance default rates are updated annually.
-
-**Note:** Only Workspace Admins can set a custom distance rate. It's not possible to set a custom distance rate for personal expenses outside of a Workspace.
+- **If you have a default Workspace:** The distance rates from your default Workspace are automatically applied. You can tap the **Rate** field to choose a different rate from that Workspace.
+- **If you have multiple Workspaces but no default:** You'll be prompted to select a Workspace first, and then you can choose from that Workspace's available rates.
+- **If you don't have a group Workspace:** Expensify sets a default rate based on your payment currency (e.g., the current IRS rate for USD). When you tap the **Rate** field, you'll be guided through creating a Workspace with a custom distance rate.
 
 ---
 
@@ -112,7 +110,7 @@ Yes! You can edit the expense before it is approved. To learn how to edit an exp
 
 ## Can I update the Distance expense unit or rate?
 
-The distance unit and rate can only be updated by a Workspace Admin on the Workspace. It is not possible to adjust the distance rate or unit at the expense level. 
+For expenses on a Workspace, rates are managed by the Workspace Admin. For tracked distance expenses in your self-DM, you can tap the **Rate** field to select a rate from one of your Workspaces or create a new Workspace with a custom rate.
 
 ## What happens if a Distance expense is moved to a different Workspace?
 
