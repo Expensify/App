@@ -58,7 +58,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
     const {clearSelectedTransactions} = useSearchActionsContext();
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const {translate, localeCompare, toLocaleDigit, formatPhoneNumber} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP);
     const isRHPOnReportInSearch = isRHPOnSearchMoneyRequestReportPage();
@@ -132,8 +132,6 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                     reportNextStep,
                     policyCategories: undefined,
                     allTransactions,
-                    translate,
-                    toLocaleDigit,
                     formatPhoneNumber,
                 });
 

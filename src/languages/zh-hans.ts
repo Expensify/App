@@ -485,6 +485,7 @@ const translations: TranslationDeepObject<typeof en> = {
         on: '开打开',
         before: '之前',
         after: '之后',
+        range: '范围',
         reschedule: '重新安排',
         general: '常规',
         workspacesTabTitle: '工作区',
@@ -796,6 +797,9 @@ const translations: TranslationDeepObject<typeof en> = {
         emoji: '表情符号',
         collapse: '折叠',
         expand: '展开',
+        askConciergeToUpdate: '试试“更新一笔报销”…',
+        askConciergeToCorrect: '尝试搜索“更正一笔报销”…',
+        askConciergeForHelp: '向 Concierge AI 寻求帮助…',
     },
     reportActionContextMenu: {
         copyMessage: '复制消息',
@@ -1122,7 +1126,6 @@ const translations: TranslationDeepObject<typeof en> = {
         flash: '闪光',
         multiScan: '多重扫描',
         shutter: '快门',
-        flipCamera: '切换摄像头',
         gallery: '图库',
         deleteReceipt: '删除收据',
         deleteConfirmation: '确定要删除这张收据吗？',
@@ -1485,6 +1488,7 @@ const translations: TranslationDeepObject<typeof en> = {
         bookingArchived: '此预订已归档',
         bookingArchivedDescription: '此预订已归档，因为行程日期已过。如有需要，请为最终金额添加一笔报销。',
         attendees: '参与者',
+        totalPerAttendee: '每位参与者',
         whoIsYourAccountant: '你的会计是谁？',
         paymentComplete: '付款完成',
         time: '时间',
@@ -1555,7 +1559,9 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             addApprover: {
                 subtitle: '在将此报表提交到其余审批流程之前，请选择一位额外的审批人。',
+                bulkSubtitle: '在我们将这些报表提交给其余审批流程之前，请为其选择一位额外审批人。',
             },
+            bulkSubtitle: '选择一个选项来更改这些报表的审批人。',
         },
         chooseWorkspace: '选择工作区',
         routedDueToDEW: (to: string, reason?: string) => `报销单已转交给 ${to}${reason ? ` 因为 ${reason}` : ''}`,
@@ -1586,7 +1592,6 @@ const translations: TranslationDeepObject<typeof en> = {
         failedToAutoApproveViaDEW: (reason: string) => `未能通过<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">工作区规则</a>批准。${reason}`,
         failedToApproveViaDEW: (reason: string) => `批准失败。${reason}`,
         cannotDuplicateDistanceExpense: '你无法在不同工作区之间复制里程报销，因为各个工作区的费率可能不同。',
-        deleted: '已删除',
     },
     transactionMerge: {
         listPage: {
@@ -1957,7 +1962,7 @@ const translations: TranslationDeepObject<typeof en> = {
         accountSettings: '账户设置',
         account: '账户',
         general: '常规',
-        helpPage: {title: '帮助与支持', description: '我们全天候 24/7 为您提供帮助', helpSite: '帮助网站'},
+        helpPage: {title: '帮助与支持', description: '我们全天候 24/7 为您提供帮助', helpSite: '帮助网站', conciergeChat: 'Concierge', conciergeChatDescription: '你的个人 AI 助理'},
     },
     closeAccountPage: {
         closeAccount: '关闭账户',
@@ -2232,6 +2237,7 @@ const translations: TranslationDeepObject<typeof en> = {
         enableWallet: '启用钱包',
         addBankAccountToSendAndReceive: '添加银行账户以进行或接收付款。',
         addDebitOrCreditCard: '添加借记卡或信用卡',
+        cardInactive: '未激活',
         assignedCards: '已分配的卡片',
         assignedCardsDescription: '这些银行卡的交易会自动同步。',
         expensifyCard: 'Expensify 卡',
@@ -2412,6 +2418,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             title: '没有可显示的成员',
             expensesFromSubtitle: '所有工作区成员已经属于现有的审批流程。',
             approverSubtitle: '所有审批人都属于一个现有的工作流。',
+            bulkApproverSubtitle: '所选报表中没有符合条件的审批人。',
         },
     },
     workflowsDelayedSubmissionPage: {
@@ -3700,6 +3707,9 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         youCanChange: '您可以在您的中更改工作区货币',
         findCountry: '查找国家',
         selectCountry: '选择国家',
+        error: {
+            connectToWorkspace: (workspaceRoute: string) => `请将此银行账户连接到<a href="${workspaceRoute}">工作区</a>，以便您在后续步骤中邀请董事签名。`,
+        },
     },
     bankInfoStep: {
         whatAreYour: '您的企业银行账户信息是什么？',
@@ -3747,6 +3757,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             `正在连接一 个以 ${bankAccountLastFour} 结尾的 ${currency} 企业银行账户到 Expensify，以便以 ${currency} 支付员工。下一步需要一位董事的签署人信息。`,
         error: {
             emailsMustBeDifferent: '电子邮箱地址必须不同',
+            connectToWorkspace: (workspaceRoute: string) => `请将此银行账户关联到<a href="${workspaceRoute}">工作区</a>以邀请董事签署。`,
         },
     },
     agreementsStep: {
@@ -6472,6 +6483,7 @@ ${reportName}
                 duplicateRulePrompt: (merchantName: string) => `您现有针对“${merchantName}”的规则将优先于此规则。仍要保存吗？`,
                 saveAnyway: '仍然保存',
                 applyToExistingUnsubmittedExpenses: '应用到现有未提交的报销费用',
+                findRule: '查找商户规则',
             },
             categoryRules: {
                 title: '类别规则',
@@ -6513,6 +6525,24 @@ ${reportName}
             customRules: {
                 title: '报销政策',
                 cardSubtitle: '这是你们团队的报销政策所在之处，让所有人都清楚哪些内容在报销范围之内。',
+            },
+            spendRules: {
+                title: '支出',
+                subtitle: '实时批准或拒绝 Expensify 卡交易。',
+                defaultRuleDescription: '所有卡片',
+                block: '屏蔽',
+                defaultRuleTitle: '类别：成人服务、ATM、赌博、转账',
+                builtInProtectionModal: {
+                    title: 'Expensify 卡始终提供内置保护',
+                    description: `Expensify 始终会拒绝以下消费：
+
+  • 成人服务
+  • ATM
+  • 赌博
+  • 转账
+
+添加更多消费规则以保护公司现金流。`,
+                },
             },
         },
         planTypePage: {
@@ -7184,7 +7214,6 @@ ${reportName}
             unhold: '解除保留',
             reject: '拒绝',
             noOptionsAvailable: '所选报销的费用组没有可用选项。',
-            undelete: '取消删除',
         },
         filtersHeader: '筛选器',
         filters: {
@@ -7192,6 +7221,8 @@ ${reportName}
                 before: (date?: string) => `在 ${date ?? ''} 之前`,
                 after: (date?: string) => `在 ${date ?? ''} 之后`,
                 on: (date?: string) => `在 ${date ?? ''} 上`,
+                customDate: '自定义日期',
+                customRange: '自定义范围',
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: '从不',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: '上个月',
@@ -7313,6 +7344,9 @@ ${reportName}
         exportAll: {
             selectAllMatchingItems: '选择所有匹配的项目',
             allMatchingItemsSelected: '已选择所有匹配的项目',
+        },
+        errors: {
+            pleaseSelectDatesForBothFromAndTo: '请选择起始和结束日期',
         },
         spendOverTime: '随时间支出',
     },
@@ -7467,6 +7501,8 @@ ${reportName}
     chronos: {
         oooEventSummaryFullDay: (summary: string, dayCount: number, date: string) => `${summary}，共计 ${dayCount} ${dayCount === 1 ? '天' : '天'}，截至 ${date}`,
         oooEventSummaryPartialDay: (summary: string, timePeriod: string, date: string) => `${summary}，时间范围：${timePeriod}，日期：${date}`,
+        startTimer: '开始计时',
+        stopTimer: '停止计时器',
     },
     footer: {
         features: '功能',

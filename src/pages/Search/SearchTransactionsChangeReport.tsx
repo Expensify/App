@@ -28,7 +28,7 @@ type TransactionGroupListItem = ListItem & {
 };
 
 function SearchTransactionsChangeReport() {
-    const {translate, toLocaleDigit, formatPhoneNumber} = useLocalize();
+    const {formatPhoneNumber} = useLocalize();
     const {selectedTransactions} = useSearchStateContext();
     const {clearSelectedTransactions} = useSearchActionsContext();
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions), [selectedTransactions]);
@@ -118,8 +118,6 @@ function SearchTransactionsChangeReport() {
                 reportNextStep,
                 policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyForMovingExpensesID}`],
                 allTransactions: transactions,
-                translate,
-                toLocaleDigit,
                 formatPhoneNumber,
             });
             clearSelectedTransactions();
@@ -163,8 +161,6 @@ function SearchTransactionsChangeReport() {
             reportNextStep,
             policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
             allTransactions: transactions,
-            translate,
-            toLocaleDigit,
             formatPhoneNumber,
         });
         // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -186,8 +182,6 @@ function SearchTransactionsChangeReport() {
             email: session?.email ?? '',
             policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`],
             allTransactions: transactions,
-            translate,
-            toLocaleDigit,
             formatPhoneNumber,
         });
         clearSelectedTransactions();

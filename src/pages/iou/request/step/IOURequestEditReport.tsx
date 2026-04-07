@@ -34,7 +34,7 @@ type IOURequestEditReportProps = WithWritableReportOrNotFoundProps<typeof SCREEN
 
 function IOURequestEditReport({route}: IOURequestEditReportProps) {
     const {backTo, reportID, action, shouldTurnOffSelectionMode, transactionID: transactionIDFromParams} = route.params;
-    const {translate, toLocaleDigit, formatPhoneNumber} = useLocalize();
+    const {formatPhoneNumber} = useLocalize();
     const {selectedTransactionIDs} = useSearchStateContext();
     const transactionIDs = transactionIDFromParams ? [transactionIDFromParams] : selectedTransactionIDs;
     const {clearSelectedTransactions} = useSearchActionsContext();
@@ -83,8 +83,6 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
                 reportNextStep,
                 policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
                 allTransactions,
-                translate,
-                toLocaleDigit,
                 formatPhoneNumber,
             });
             turnOffMobileSelectionMode();
@@ -105,8 +103,6 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             email: session?.email ?? '',
             policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`],
             allTransactions,
-            translate,
-            toLocaleDigit,
             formatPhoneNumber,
         });
         if (shouldTurnOffSelectionMode) {

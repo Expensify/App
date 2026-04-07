@@ -78,7 +78,11 @@ function buildNextStepMessage(
     return `<next-step>${translate(`nextStep.message.${nextStep.messageKey}`, {actor, actorType, eta, etaType})}</next-step>`;
 }
 
-function buildOptimisticNextStep(params: BuildNextStepBaseParams): ReportNextStep | null {
+function doesReportContainTransactions(report: OnyxEntry<Report>): boolean {
+    return (report?.transactionCount ?? 0) > 0;
+}
+
+function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep | null {
     const {
         report,
         policy,
@@ -102,11 +106,7 @@ function buildOptimisticNextStep(params: BuildNextStepBaseParams): ReportNextSte
     const autoReportingFrequency = getCorrectedAutoReportingFrequency(policy);
     const isInstantSubmitEnabled = autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT;
     const shouldShowFixMessage = hasViolations && isInstantSubmitEnabled && !isASAPSubmitBetaEnabled;
-    const isReportContainingTransactions =
-        report &&
-        ((report.total !== 0 && report.total !== undefined) ||
-            (report.unheldTotal !== 0 && report.unheldTotal !== undefined) ||
-            (report.unheldNonReimbursableTotal !== 0 && report.unheldNonReimbursableTotal !== undefined));
+    const hasTransactions = doesReportContainTransactions(report);
     const approverAccountID = bypassNextApproverID ?? getNextApproverAccountID(report, isUnapprove);
     const reimburserAccountID = getReimburserAccountID(policy);
     const hasValidAccount = !!policy?.achAccount?.accountNumber || policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES;
@@ -161,7 +161,7 @@ function buildOptimisticNextStep(params: BuildNextStepBaseParams): ReportNextSte
             };
 
             // Scheduled submit enabled
-            if (policy?.harvesting?.enabled && isReportContainingTransactions) {
+            if (policy?.harvesting?.enabled && hasTransactions) {
                 nextStep = {
                     messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT,
                     icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
@@ -205,7 +205,7 @@ function buildOptimisticNextStep(params: BuildNextStepBaseParams): ReportNextSte
             }
 
             // Manual submission
-            if (report?.total !== 0 && !policy?.harvesting?.enabled) {
+            if (hasTransactions && !policy?.harvesting?.enabled) {
                 nextStep = {
                     messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
                     icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
@@ -285,8 +285,8 @@ function parseMessage(messages: Message[] | undefined, currentUserEmail: string)
             const nextPart = messages.at(index + 1);
 
             if (currentUserEmail === part.text || part.clickToCopyText === currentUserEmail) {
-                tagType = 'strong';
                 content = nextPart?.text === `'s` ? 'your' : 'you';
+                tagType = content === 'your' ? 'span' : 'strong';
             } else if (part.text === `'s` && (previousPart?.text === currentUserEmail || previousPart?.clickToCopyText === currentUserEmail)) {
                 content = '';
             } else if (isEmail) {
@@ -477,19 +477,12 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
         currentUserAccountID: currentUserAccountIDParam ?? CONST.DEFAULT_NUMBER_ID,
         shouldChangeUserDisplayName: true,
     });
-    const isReportContainingTransactions =
-        report &&
-        ((report.total !== 0 && report.total !== undefined) ||
-            (report.unheldTotal !== 0 && report.unheldTotal !== undefined) ||
-            (report.unheldNonReimbursableTotal !== 0 && report.unheldNonReimbursableTotal !== undefined));
+    const hasTransactions = doesReportContainTransactions(report);
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
 
-    const ownerDisplayName =
-        ownerPersonalDetails?.displayName ?? ownerPersonalDetails?.login ?? getDisplayNameForParticipant({accountID: ownerAccountID, formatPhoneNumber});
+    const ownerDisplayName = ownerPersonalDetails?.displayName ?? ownerPersonalDetails?.login ?? getDisplayNameForParticipant({accountID: ownerAccountID, formatPhoneNumber});
     const policyOwnerDisplayName =
-        policyOwnerPersonalDetails?.displayName ??
-        policyOwnerPersonalDetails?.login ??
-        getDisplayNameForParticipant({accountID: policy?.ownerAccountID, formatPhoneNumber});
+        policyOwnerPersonalDetails?.displayName ?? policyOwnerPersonalDetails?.login ?? getDisplayNameForParticipant({accountID: policy?.ownerAccountID, formatPhoneNumber});
     const nextApproverDisplayName = bypassNextApproverID
         ? (getDisplayNameForParticipant({accountID: bypassNextApproverID, formatPhoneNumber}) ?? getPersonalDetailsForAccountID(bypassNextApproverID).login)
         : getNextApproverDisplayName(report, formatPhoneNumber, isUnapprove);
@@ -623,7 +616,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
                         text: ' to ',
                     },
                     {
-                        text: isReportContainingTransactions ? 'submit' : 'add',
+                        text: hasTransactions ? 'submit' : 'add',
                     },
                     {
                         text: ' %expenses.',
@@ -632,7 +625,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
             };
 
             // Scheduled submit enabled
-            if (policy?.harvesting?.enabled && isReportContainingTransactions) {
+            if (policy?.harvesting?.enabled && hasTransactions) {
                 optimisticNextStep.message = [
                     {
                         text: 'Waiting for ',
@@ -686,7 +679,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
             }
 
             // Manual submission
-            if (report?.total !== 0 && !policy?.harvesting?.enabled) {
+            if (hasTransactions && !policy?.harvesting?.enabled) {
                 optimisticNextStep.message = [
                     {
                         text: 'Waiting for ',

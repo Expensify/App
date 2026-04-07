@@ -46,7 +46,7 @@ const getIOUActionsSelector = (actions: OnyxEntry<ReportActions>): ReportAction[
 
 function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const {backTo, action, iouType, transactionID, reportID: reportIDFromRoute, reportActionID} = route.params;
-    const {translate, toLocaleDigit, formatPhoneNumber} = useLocalize();
+    const {formatPhoneNumber} = useLocalize();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const transactionReport = Object.values(allReports ?? {}).find((report) => report?.reportID === transaction?.reportID);
@@ -185,8 +185,6 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                         reportNextStep: undefined,
                         policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
                         allTransactions,
-                        translate,
-                        toLocaleDigit,
                         formatPhoneNumber,
                     });
                     removeTransaction(transaction.transactionID);
@@ -232,8 +230,6 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                 email: session?.email ?? '',
                 policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`],
                 allTransactions,
-                translate,
-                toLocaleDigit,
                 formatPhoneNumber,
             });
             removeTransaction(transaction.transactionID);

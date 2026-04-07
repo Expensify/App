@@ -322,6 +322,16 @@ jest.mock('@shopify/react-native-skia', () => ({
     listFontFamilies: jest.fn(() => []),
 }));
 
+jest.mock('@sbaiahmed1/react-native-biometrics', () => ({
+    isSensorAvailable: jest.fn(() => Promise.resolve({available: false})),
+    createKeys: jest.fn(() => Promise.resolve({publicKey: ''})),
+    deleteKeys: jest.fn(() => Promise.resolve({success: true})),
+    getAllKeys: jest.fn(() => Promise.resolve({keys: []})),
+    signWithOptions: jest.fn(() => Promise.resolve({success: false})),
+    sha256: jest.fn(() => Promise.resolve({hash: ''})),
+    InputEncoding: {Base64: 'base64', Utf8: 'utf8'},
+}));
+
 jest.mock('victory-native', () => ({
     Bar: jest.fn(() => null),
     CartesianChart: jest.fn(
@@ -374,11 +384,4 @@ jest.mock('@src/hooks/useDomainDocumentTitle', () => ({
     // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: jest.fn(),
-}));
-
-jest.mock('react-native-vision-camera', () => ({
-    Camera: 'Camera',
-    useCameraDevice: jest.fn(() => null),
-    useCameraFormat: jest.fn(() => null),
-    useCameraPermission: jest.fn(() => ({hasPermission: false, requestPermission: jest.fn()})),
 }));
