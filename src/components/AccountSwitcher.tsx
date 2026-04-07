@@ -137,7 +137,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     ): PopoverMenuItem => {
         const error = Object.values(errors ?? {}).at(0) ?? '';
         return {
-            text: formatPhoneNumber(personalDetails?.displayName ?? personalDetails?.login ?? ''),
+            text: personalDetails?.displayName ?? personalDetails?.login ?? '',
             description: formatPhoneNumber(personalDetails?.login ?? ''),
             avatarID: personalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             icon: personalDetails?.avatar ?? '',
