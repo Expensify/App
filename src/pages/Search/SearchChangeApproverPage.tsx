@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -63,6 +63,7 @@ function SearchChangeApproverPage() {
     };
     const [onyxReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: getOnyxReports});
 
+    const hasAutoAppliedRef = useRef(false);
     const prevSelectedReportsLength = useRef(0);
     useEffect(() => {
         if (!hasLoadedApp || !selectedReports.length || prevSelectedReportsLength.current === selectedReports.length) {
@@ -73,7 +74,7 @@ function SearchChangeApproverPage() {
         openBulkChangeApproverPage(selectedReports.map((selectedReport) => selectedReport.reportID).filter((selectedReportID) => undefined !== selectedReportID));
     }, [hasLoadedApp, selectedReports]);
 
-    const getSelectedPolicies = () => {
+    const selectedPolicies = useMemo(() => {
         const policies = new Map<string, Policy>();
         for (const selectedReport of selectedReports) {
             const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
@@ -82,10 +83,9 @@ function SearchChangeApproverPage() {
             }
         }
         return Array.from(policies.values());
-    };
-    const selectedPolicies = getSelectedPolicies();
+    }, [selectedReports, allPolicies]);
 
-    const changeApprover = () => {
+    const changeApprover = useCallback(() => {
         if (!selectedApproverType) {
             setHasError(true);
             return;
@@ -126,9 +126,21 @@ function SearchChangeApproverPage() {
 
         // Note: This clears both reports and transactions
         clearSelectedTransactions();
-    };
+    }, [
+        selectedApproverType,
+        selectedPolicies,
+        selectedReports,
+        allPolicies,
+        onyxReports,
+        currentUserDetails.accountID,
+        currentUserDetails.email,
+        transactionViolations,
+        isASAPSubmitBetaEnabled,
+        allReportNextSteps,
+        clearSelectedTransactions,
+    ]);
 
-    const getApproverTypes = () => {
+    const approverTypes = useMemo(() => {
         const data: Array<ListItem<ApproverType>> = [
             {
                 text: translate('iou.changeApprover.actions.addApprover'),
@@ -171,8 +183,7 @@ function SearchChangeApproverPage() {
         }
 
         return data;
-    };
-    const approverTypes = getApproverTypes();
+    }, [translate, selectedApproverType, selectedReports, allPolicies, onyxReports, currentUserDetails.accountID]);
 
     useEffect(() => {
         if (selectedReports.length && approverTypes.at(0)) {
@@ -183,6 +194,17 @@ function SearchChangeApproverPage() {
             Navigation.closeRHPFlow();
         });
     }, [approverTypes, selectedReports.length]);
+
+    useEffect(() => {
+        if (hasAutoAppliedRef.current || isLoadingBulkChangeApproverPage) {
+            return;
+        }
+
+        if (approverTypes.length === 1 && selectedApproverType === approverTypes.at(0)?.keyForList) {
+            hasAutoAppliedRef.current = true;
+            changeApprover();
+        }
+    }, [approverTypes, selectedApproverType, changeApprover, isLoadingBulkChangeApproverPage]);
 
     const confirmButtonOptions = {
         showButton: true,
