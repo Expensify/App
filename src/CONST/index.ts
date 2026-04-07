@@ -6035,6 +6035,8 @@ const CONST = {
         MENUBAR: 'menubar',
         /** Use for items within a menu. */
         MENUITEM: 'menuitem',
+        /** Use for a menuitem with a checkable radio-like state (single-select within a group). */
+        MENUITEMRADIO: 'menuitemradio',
         /** Use for selectable options within a listbox. */
         OPTION: 'option',
         /** Use when no specific role is needed. */

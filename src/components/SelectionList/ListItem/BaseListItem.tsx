@@ -9,13 +9,11 @@ import getAccessibilityLabel from '@components/SelectionList/utils/getAccessibil
 import {getItemRole} from '@components/SelectionList/utils/getItemRole';
 import useHover from '@hooks/useHover';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
 import {useMouseActions, useMouseState} from '@hooks/useMouseContext';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getBrowser, isMobileChrome} from '@libs/Browser';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {BaseListItemProps, ListItem} from './types';
@@ -33,12 +31,11 @@ function getAccessibilityProps<TItem extends ListItem>({
     item,
     isFocused,
     canSelectMultiple,
-    selectedLabel,
-}: AccessibilityProps & Pick<BaseListItemProps<TItem>, 'item' | 'isFocused' | 'canSelectMultiple'> & {selectedLabel: string}) {
+}: AccessibilityProps & Pick<BaseListItemProps<TItem>, 'item' | 'isFocused' | 'canSelectMultiple'>) {
     const isSelectableOption = !canSelectMultiple && role !== CONST.ROLE.CHECKBOX && role !== CONST.ROLE.RADIO;
     const effectiveRole = getItemRole(role, isSelectableOption);
 
-    const isCheckableRole = effectiveRole === CONST.ROLE.CHECKBOX || effectiveRole === CONST.ROLE.RADIO;
+    const isCheckableRole = effectiveRole === CONST.ROLE.CHECKBOX || effectiveRole === CONST.ROLE.RADIO || (effectiveRole as string) === CONST.ROLE.MENUITEMRADIO;
     const accessibilityState = isCheckableRole ? {checked: !!item.isSelected, selected: !!isFocused} : {selected: !!item.isSelected};
 
     if (accessible === false) {
@@ -50,12 +47,7 @@ function getAccessibilityProps<TItem extends ListItem>({
         } satisfies CalculatedAccessibilityProps;
     }
 
-    // Chromium bug #337904204: aria-selected is not exposed to assistive technology in Chrome desktop.
-    // We append "selected" to the label as a workaround. Mobile Chrome is unaffected.
-    let accessibilityLabel = getAccessibilityLabel(item);
-    if (isSelectableOption && item.isSelected && getBrowser() === CONST.BROWSER.CHROME && !isMobileChrome()) {
-        accessibilityLabel = `${accessibilityLabel}, ${selectedLabel}`;
-    }
+    const accessibilityLabel = getAccessibilityLabel(item);
 
     return {
         role: effectiveRole,
@@ -106,7 +98,6 @@ function BaseListItem<TItem extends ListItem>({
     const {isMouseDownOnInput} = useMouseState();
     const {setMouseUp} = useMouseActions();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Checkmark', 'DotIndicator']);
-    const {translate} = useLocalize();
     const pressableRef = useRef<View>(null);
 
     // Sync focus on an item
@@ -142,7 +133,6 @@ function BaseListItem<TItem extends ListItem>({
         item,
         isFocused,
         canSelectMultiple,
-        selectedLabel: translate('common.selected'),
     });
 
     return (
