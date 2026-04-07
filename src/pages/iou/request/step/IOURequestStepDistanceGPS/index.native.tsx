@@ -26,7 +26,7 @@ import {setGPSTransactionDraftData} from '@libs/actions/IOU';
 import {handleMoneyRequestStepDistanceNavigation} from '@libs/actions/IOU/MoneyRequest';
 import {init as initMapboxToken, stop as stopMapboxToken} from '@libs/actions/MapboxToken';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {getGPSConvertedDistance, getGPSCoordinates, getGPSWaypoints} from '@libs/GPSDraftDetailsUtils';
+import {getGPSConvertedDistance, getGPSCoordinates, getGPSWaypoints, isTripCaptured as isTripCapturedUtil} from '@libs/GPSDraftDetailsUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
@@ -56,8 +56,10 @@ function IOURequestStepDistanceGPS({
 
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicatorUnfilled', 'Location']);
+    const {DotIndicatorUnfilled, Location} = useMemoizedLazyExpensifyIcons(['DotIndicatorUnfilled', 'Location']);
     const isInLandscapeMode = useIsInLandscapeMode();
+
+    const mapRef = useRef<MapViewHandle>(null);
 
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const isArchived = useReportIsArchived(report?.reportID);
@@ -165,49 +167,7 @@ function IOURequestStepDistanceGPS({
         return stopMapboxToken;
     }, []);
 
-    const mapRef = useRef<MapViewHandle>(null);
-
-    const getMarkerComponent = (icon: IconAsset): ReactNode => (
-        <ImageSVG
-            src={icon}
-            width={CONST.MAP_MARKER_SIZE}
-            height={CONST.MAP_MARKER_SIZE}
-            fill={theme.icon}
-        />
-    );
-
-    const directionCoordinates: Array<[number, number]> = (gpsDraftDetails?.gpsPoints ?? []).map(({lat, long}) => [long, lat]);
-    const isTripCaptured = !gpsDraftDetails?.isTracking && (gpsDraftDetails?.gpsPoints?.length ?? 0) > 0;
-
-    const getWaypointMarkers = (): WayPoint[] => {
-        const points = gpsDraftDetails?.gpsPoints ?? [];
-        const firstPoint = points.at(0);
-        const lastPoint = points.at(-1);
-        const markers: WayPoint[] = [];
-
-        if (firstPoint) {
-            const StartIcon = expensifyIcons.DotIndicatorUnfilled;
-            markers.push({
-                id: 'gps-start',
-                coordinate: [firstPoint.long, firstPoint.lat],
-                markerComponent: (): ReactNode => getMarkerComponent(StartIcon),
-            });
-        }
-
-        if (lastPoint && lastPoint !== firstPoint && isTripCaptured) {
-            const EndIcon = expensifyIcons.Location;
-            markers.push({
-                id: 'gps-end',
-                coordinate: [lastPoint.long, lastPoint.lat],
-                markerComponent: (): ReactNode => getMarkerComponent(EndIcon),
-            });
-        }
-
-        return markers;
-    };
-
-    const waypointMarkers = getWaypointMarkers();
-
+    // Fly to the latest point on location updates when the trip is ongoing
     useEffect(() => {
         if (!gpsDraftDetails?.isTracking) {
             return;
@@ -219,6 +179,47 @@ function IOURequestStepDistanceGPS({
         mapRef.current?.flyTo([latestPoint.long, latestPoint.lat], CONST.MAPBOX.DEFAULT_ZOOM, 1000);
     }, [gpsDraftDetails?.gpsPoints, gpsDraftDetails?.isTracking]);
 
+    const isTripCaptured = isTripCapturedUtil(gpsDraftDetails);
+
+    const getMarkerComponent = (icon: IconAsset): ReactNode => (
+        <ImageSVG
+            src={icon}
+            width={CONST.MAP_MARKER_SIZE}
+            height={CONST.MAP_MARKER_SIZE}
+            fill={theme.icon}
+        />
+    );
+
+    const getWaypointMarkers = (): WayPoint[] => {
+        const points = gpsDraftDetails?.gpsPoints ?? [];
+        const firstPoint = points.at(0);
+        const lastPoint = points.at(-1);
+        const markers: WayPoint[] = [];
+
+        if (firstPoint) {
+            markers.push({
+                id: 'gps-start',
+                coordinate: [firstPoint.long, firstPoint.lat],
+                markerComponent: (): ReactNode => getMarkerComponent(DotIndicatorUnfilled),
+            });
+        }
+
+        if (lastPoint && lastPoint !== firstPoint && isTripCaptured) {
+            markers.push({
+                id: 'gps-end',
+                coordinate: [lastPoint.long, lastPoint.lat],
+                markerComponent: (): ReactNode => getMarkerComponent(Location),
+            });
+        }
+
+        return markers;
+    };
+
+    const waypointMarkers = getWaypointMarkers();
+
+    const directionCoordinates: Array<[number, number]> = (gpsDraftDetails?.gpsPoints ?? []).map(({lat, long}) => [long, lat]);
+
+    // Show the full route after stopping the trip
     const showFullRouteAfterStopping = () => {
         if (directionCoordinates.length < 2) {
             return;

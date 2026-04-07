@@ -10,13 +10,14 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {initGpsDraft, resetGPSDraftDetails} from '@libs/actions/GPSDraftDetails';
-import {stopGpsTrip as stopGpsTripUtil} from '@libs/GPSDraftDetailsUtils';
+import {isTripCaptured as isTripCapturedUtil, stopGpsTrip as stopGpsTripUtil} from '@libs/GPSDraftDetailsUtils';
 import BackgroundLocationPermissionsFlow from '@pages/iou/request/step/IOURequestStepDistanceGPS/BackgroundLocationPermissionsFlow';
 import {BACKGROUND_LOCATION_TASK_OPTIONS, BACKGROUND_LOCATION_TRACKING_TASK_NAME} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
 import {startGpsTripNotification} from '@pages/iou/request/step/IOURequestStepDistanceGPS/GPSNotifications';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Unit} from '@src/types/onyx/Policy';
+import GPSTooltip from './GPSTooltip';
 import openSettings from './openSettings';
 
 type ButtonsProps = {
@@ -53,7 +54,7 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const isTripCaptured = !gpsDraftDetails?.isTracking && (gpsDraftDetails?.gpsPoints?.length ?? 0) > 0;
+    const isTripCaptured = isTripCapturedUtil(gpsDraftDetails);
 
     const checkSettingsAndPermissions = async () => {
         setShouldShowStartError(false);
@@ -125,17 +126,21 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
                     />
                 </View>
             ) : (
-                <Button
-                    onPress={gpsDraftDetails?.isTracking ? () => setShowStopConfirmation(true) : checkSettingsAndPermissions}
-                    success={!gpsDraftDetails?.isTracking}
-                    danger={gpsDraftDetails?.isTracking}
-                    allowBubble
-                    pressOnEnter
-                    large
-                    style={[styles.w100, styles.flexShrink0]}
-                    text={gpsDraftDetails?.isTracking ? translate('gps.stop') : translate('gps.start')}
-                    sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.GPS_START_STOP_BUTTON}
-                />
+                <GPSTooltip>
+                    <View>
+                        <Button
+                            onPress={gpsDraftDetails?.isTracking ? () => setShowStopConfirmation(true) : checkSettingsAndPermissions}
+                            success={!gpsDraftDetails?.isTracking}
+                            danger={gpsDraftDetails?.isTracking}
+                            allowBubble
+                            pressOnEnter
+                            large
+                            style={[styles.w100, styles.flexShrink0]}
+                            text={gpsDraftDetails?.isTracking ? translate('gps.stop') : translate('gps.start')}
+                            sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.GPS_START_STOP_BUTTON}
+                        />
+                    </View>
+                </GPSTooltip>
             )}
 
             <BackgroundLocationPermissionsFlow
