@@ -144,7 +144,6 @@ const translations: TranslationDeepObject<typeof en> = {
         resend: 'Renvoyer',
         save: 'Enregistrer',
         select: 'Sélectionner',
-        selected: 'sélectionné',
         deselect: 'Désélectionner',
         selectMultiple: 'Sélection multiple',
         saveChanges: 'Enregistrer les modifications',
