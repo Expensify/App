@@ -844,6 +844,11 @@ function getPolicyTagsData(policyID: string | undefined) {
     return allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
 }
 
+/**
+ * @deprecated This function uses Onyx.connect and should be replaced with useOnyx for reactive data access.
+ * TODO: remove `getMoneyRequestPolicyTags` from this file (https://github.com/Expensify/App/issues/72721)
+ * All usages of this function should be replaced with useOnyx hook in React components.
+ */
 function getMoneyRequestPolicyTags({
     existingIOUReport,
     moneyRequestReportID,
@@ -860,6 +865,7 @@ function getMoneyRequestPolicyTags({
         (moneyRequestReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReportID}`]?.policyID : undefined) ??
         parentChatReport?.policyID ??
         allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.reportID}`]?.policyID;
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     return getPolicyTagsData(iouReportPolicyID) ?? {};
 }
 
@@ -2448,6 +2454,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     } = moneyRequestInformation;
     const {payeeAccountID = deprecatedUserAccountID, payeeEmail = deprecatedCurrentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policyTags = getMoneyRequestPolicyTags({existingIOUReport, moneyRequestReportID, parentChatReport, participant});
 
     const {
