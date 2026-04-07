@@ -6692,6 +6692,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 duplicateRulePrompt: (merchantName: string) => `Ihre bestehende Regel für „${merchantName}“ hat Vorrang vor dieser. Trotzdem speichern?`,
                 saveAnyway: 'Trotzdem speichern',
                 applyToExistingUnsubmittedExpenses: 'Auf bestehende nicht eingereichte Ausgaben anwenden',
+                findRule: 'Händlerregel finden',
             },
             categoryRules: {
                 title: 'Kategorienregeln',
