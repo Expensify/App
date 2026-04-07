@@ -304,9 +304,6 @@ type PureReportActionItemProps = {
     /** Should the comment have the appearance of being grouped with the previous comment? */
     displayAsGroup: boolean;
 
-    /** Is this the most recent IOU Action? */
-    isMostRecentIOUReportAction: boolean;
-
     /** Should we display the new marker on top of the comment? */
     shouldDisplayNewMarker: boolean;
 
@@ -503,7 +500,6 @@ function PureReportActionItem({
     linkedReportActionID,
     displayAsGroup,
     index,
-    isMostRecentIOUReportAction,
     parentReportAction,
     shouldDisplayNewMarker,
     shouldHideThreadDividerLine = false,
@@ -1188,7 +1184,6 @@ function PureReportActionItem({
                     requestReportID={iouReportID}
                     reportID={reportID}
                     action={action}
-                    isMostRecentIOUReportAction={isMostRecentIOUReportAction}
                     isHovered={hovered}
                     contextMenuAnchor={popoverAnchorRef.current}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
@@ -2217,7 +2212,6 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
     return (
         prevProps.personalPolicyID === nextProps.personalPolicyID &&
         prevProps.displayAsGroup === nextProps.displayAsGroup &&
-        prevProps.isMostRecentIOUReportAction === nextProps.isMostRecentIOUReportAction &&
         prevProps.shouldDisplayNewMarker === nextProps.shouldDisplayNewMarker &&
         deepEqual(prevProps.action, nextProps.action) &&
         deepEqual(prevProps.report?.pendingFields, nextProps.report?.pendingFields) &&
