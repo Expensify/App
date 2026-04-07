@@ -30,7 +30,7 @@ import withPolicy from './withPolicy';
 import type {WithPolicyProps} from './withPolicy';
 
 function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Copy', 'Download', 'FallbackAvatar'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Copy', 'Download', 'FallbackAvatar']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();

@@ -391,10 +391,6 @@ function isPolicyChangeLogAction(reportAction: OnyxInputOrEntry<ReportAction>): 
     return reportAction?.actionName ? POLICY_CHANGE_LOG_ARRAY.has(reportAction.actionName) : false;
 }
 
-function isChronosOOOListAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CHRONOS_OOO_LIST> {
-    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CHRONOS_OOO_LIST);
-}
-
 function isAddCommentAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
 }
@@ -985,21 +981,6 @@ function canActionsBeGrouped(currentAction?: ReportAction, adjacentAction?: Repo
 
     return currentActionActorAccountID === adjacentActionActorAccountID;
 }
-function isChronosAutomaticTimerAction(reportAction: OnyxInputOrEntry<ReportAction>, isChronosReport: boolean): boolean {
-    const isAutomaticStartTimerAction = () => /start(?:ed|ing)?(?:\snow)?/i.test(getReportActionText(reportAction));
-    const isAutomaticStopTimerAction = () => /stop(?:ped|ping)?(?:\snow)?/i.test(getReportActionText(reportAction));
-    return isChronosReport && (isAutomaticStartTimerAction() || isAutomaticStopTimerAction());
-}
-
-/**
- * If the user sends consecutive actions to Chronos to automatically start/stop the timer,
- * then detect that and show each individually so that the user can easily see when they were sent.
- */
-function isConsecutiveChronosAutomaticTimerAction(reportActions: ReportAction[], actionIndex: number, isChronosReport: boolean, isOffline: boolean): boolean {
-    const previousAction = findPreviousAction(reportActions, actionIndex, isOffline);
-    const currentAction = reportActions?.at(actionIndex);
-    return isChronosAutomaticTimerAction(currentAction, isChronosReport) && isChronosAutomaticTimerAction(previousAction, isChronosReport);
-}
 
 /**
  * Checks if a reportAction is deprecated.
@@ -1251,7 +1232,7 @@ function shouldHideNewMarker(reportAction: OnyxEntry<ReportAction>, isOffline: b
  */
 function isReportActionVisible(
     reportAction: OnyxEntry<ReportAction>,
-    reportID: string,
+    reportID: string | undefined,
     canUserPerformWriteAction?: boolean,
     visibleReportActions?: VisibleReportActionsDerivedValue,
 ): boolean {
@@ -1271,7 +1252,7 @@ function isReportActionVisible(
         return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, undefined, reportActionsForReport);
     }
 
-    if (visibleReportActions) {
+    if (visibleReportActions && reportID) {
         const reportCache = visibleReportActions[reportID];
         if (!reportCache) {
             return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, undefined, reportActionsForReport);
@@ -2062,6 +2043,7 @@ function isOldDotLegacyAction(action: OldDotReportAction | PartialReportAction):
         CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_QUICK_BOOKS,
         CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REQUESTED,
         CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP,
+        CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
     ].some((oldDotActionName) => oldDotActionName === action?.actionName);
 }
 
@@ -2092,6 +2074,7 @@ function isOldDotReportAction(action: ReportAction | OldDotReportAction) {
         CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_QUICK_BOOKS,
         CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REQUESTED,
         CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP,
+        CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
     ].some((oldDotActionName) => oldDotActionName === action.actionName);
 }
 
@@ -2357,11 +2340,6 @@ function getReportActionMessageFragments(translate: LocalizedTranslate, action: 
 
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DESCRIPTION)) {
         const message = getWorkspaceDescriptionUpdatedMessage(translate, action);
-        return [{text: message, html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}];
-    }
-
-    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REIMBURSED)) {
-        const message = getReportActionMessageText(action);
         return [{text: message, html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}];
     }
 
@@ -3770,6 +3748,95 @@ function getRemovedConnectionMessage(translate: LocalizedTranslate, reportAction
     return connectionName ? translate('report.actions.type.removedConnection', {connectionName}) : '';
 }
 
+function getAddedCardFeedMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
+    if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CARD_FEED)) {
+        return '';
+    }
+    const originalMessage = getOriginalMessage(reportAction);
+    const feedName = originalMessage?.feedName;
+    return feedName ? translate('workspaceActions.addedCardFeed', feedName) : getReportActionText(reportAction);
+}
+
+function getRemovedCardFeedMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
+    if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CARD_FEED)) {
+        return '';
+    }
+    const originalMessage = getOriginalMessage(reportAction);
+    const feedName = originalMessage?.feedName;
+    return feedName ? translate('workspaceActions.removedCardFeed', feedName) : getReportActionText(reportAction);
+}
+
+function getRenamedCardFeedMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
+    if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.RENAME_CARD_FEED)) {
+        return '';
+    }
+    const originalMessage = getOriginalMessage(reportAction);
+    const oldName = originalMessage?.oldName;
+    const newName = originalMessage?.newName;
+    return oldName && newName ? translate('workspaceActions.renamedCardFeed', newName, oldName) : getReportActionText(reportAction);
+}
+
+function getAssignedCompanyCardMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
+    if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ASSIGN_COMPANY_CARD)) {
+        return '';
+    }
+    const originalMessage = getOriginalMessage(reportAction);
+    const cardLastFour = originalMessage?.cardLastFour;
+    const email = originalMessage?.email;
+    const feedName = originalMessage?.feedName ?? '';
+    return cardLastFour && email ? translate('workspaceActions.assignedCompanyCard', email, feedName, cardLastFour) : getReportActionText(reportAction);
+}
+
+function getUnassignedCompanyCardMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
+    if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UNASSIGN_COMPANY_CARD)) {
+        return '';
+    }
+    const originalMessage = getOriginalMessage(reportAction);
+    const cardLastFour = originalMessage?.cardLastFour;
+    const email = originalMessage?.email;
+    const feedName = originalMessage?.feedName ?? '';
+    return cardLastFour && email ? translate('workspaceActions.unassignedCompanyCard', email, feedName, cardLastFour) : getReportActionText(reportAction);
+}
+
+function getUpdatedCardFeedLiabilityMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
+    if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_LIABILITY)) {
+        return '';
+    }
+    const originalMessage = getOriginalMessage(reportAction);
+    const feedName = originalMessage?.feedName;
+    const liabilityType = originalMessage?.liabilityType;
+    const enabled = liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.ALLOW;
+    return feedName ? translate('workspaceActions.updatedCardFeedLiability', feedName, enabled) : getReportActionText(reportAction);
+}
+
+function formatStatementPeriodEndDay(translate: LocalizedTranslate, value?: string): string | undefined {
+    if (!value) {
+        return undefined;
+    }
+    if (value === CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH) {
+        return translate(`workspace.companyCards.statementCloseDate.${CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH}`);
+    }
+    if (value === CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_BUSINESS_DAY_OF_MONTH) {
+        return translate(`workspace.companyCards.statementCloseDate.${CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_BUSINESS_DAY_OF_MONTH}`);
+    }
+    return value;
+}
+
+function getUpdatedCardFeedStatementPeriodMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
+    if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_STATEMENT_PERIOD)) {
+        return '';
+    }
+    const originalMessage = getOriginalMessage(reportAction);
+    const feedName = originalMessage?.feedName;
+    const newValue = formatStatementPeriodEndDay(translate, originalMessage?.statementPeriodEndDay);
+    const previousValue = formatStatementPeriodEndDay(translate, originalMessage?.previousStatementPeriodEndDay) ?? '';
+
+    if (feedName && newValue && previousValue) {
+        return translate('workspaceActions.updatedCardFeedStatementPeriod', feedName, newValue, previousValue);
+    }
+    return getReportActionText(reportAction);
+}
+
 function getRenamedAction(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.RENAMED>>, isExpenseReport: boolean, actorName?: string) {
     const originalMessage = getOriginalMessage(reportAction);
     return translate('newRoomPage.renamedRoomAction', originalMessage?.oldName ?? '', originalMessage?.newName ?? '', isExpenseReport, actorName);
@@ -4518,10 +4585,8 @@ export {
     isApprovedOrSubmittedReportAction,
     isIOURequestReportAction,
     isNewerReportAction,
-    isChronosOOOListAction,
     isClosedAction,
     isConsecutiveActionMadeByPreviousActor,
-    isConsecutiveChronosAutomaticTimerAction,
     isExportedToIntegrationAction,
     hasNextActionMadeBySameActor,
     isCreatedAction,
@@ -4661,7 +4726,14 @@ export {
     getAddedBudgetMessage,
     getWorkspaceCustomUnitRateDeletedMessage,
     getWorkspaceCustomUnitSubRateUpdatedMessage,
+    getAddedCardFeedMessage,
     getAddedConnectionMessage,
+    getAssignedCompanyCardMessage,
+    getRemovedCardFeedMessage,
+    getRenamedCardFeedMessage,
+    getUnassignedCompanyCardMessage,
+    getUpdatedCardFeedLiabilityMessage,
+    getUpdatedCardFeedStatementPeriodMessage,
     getWorkspaceCustomUnitRateUpdatedMessage,
     getTagListNameUpdatedMessage,
     getTagListUpdatedMessage,
