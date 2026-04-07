@@ -11,9 +11,12 @@ import TripStatusIndicator from './TripStatusIndicator';
 type DistanceCounterProps = {
     /** Distance unit of the ongoing GPS trip */
     unit: Unit;
+
+    /** Whether the device is in landscape mode */
+    isInLandscapeMode: boolean;
 };
 
-function DistanceCounter({unit}: DistanceCounterProps) {
+function DistanceCounter({unit, isInLandscapeMode}: DistanceCounterProps) {
     const styles = useThemeStyles();
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
 
@@ -22,7 +25,7 @@ function DistanceCounter({unit}: DistanceCounterProps) {
     const tripInProgressOrStopped = (gpsDraftDetails?.gpsPoints?.length ?? 0) > 0 || gpsDraftDetails?.isTracking;
 
     return (
-        <View style={[styles.flex1, styles.pb40]}>
+        <View style={[styles.flex1, isInLandscapeMode ? [styles.pv6] : styles.pb40]}>
             <View style={[styles.justifyContentCenter, styles.h100, styles.w100]}>
                 <View style={[styles.pRelative, styles.w100, styles.alignItemsCenter]}>
                     <TripStatusIndicator />
