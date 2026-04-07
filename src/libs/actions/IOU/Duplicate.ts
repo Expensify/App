@@ -2,7 +2,7 @@ import {format} from 'date-fns';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {PartialDeep} from 'type-fest';
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import * as API from '@libs/API';
 import type {MergeDuplicatesParams, ResolveDuplicatesParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -573,6 +573,7 @@ function createExpenseByType({
     customUnitPolicyID,
     personalDetails,
     recentWaypoints,
+    formatPhoneNumber,
 }: {
     transactionType: string;
     params: RequestMoneyInformation;
@@ -585,6 +586,7 @@ function createExpenseByType({
     customUnitPolicyID?: string;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 }) {
     switch (transactionType) {
         case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE: {
@@ -628,6 +630,7 @@ function createExpenseByType({
                 },
                 hasViolations: false,
                 customUnitPolicyID,
+                formatPhoneNumber,
             };
             return submitPerDiemExpense(perDiemParams);
         }
@@ -656,6 +659,7 @@ type DuplicateExpenseTransactionParams = {
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     targetPolicyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 function duplicateExpenseTransaction({
@@ -678,6 +682,7 @@ function duplicateExpenseTransaction({
     personalDetails,
     recentWaypoints,
     targetPolicyTags,
+    formatPhoneNumber,
 }: DuplicateExpenseTransactionParams) {
     if (!transaction) {
         return;
@@ -775,6 +780,7 @@ function duplicateExpenseTransaction({
         customUnitPolicyID,
         personalDetails,
         recentWaypoints,
+        formatPhoneNumber,
     });
 }
 
@@ -796,6 +802,7 @@ type DuplicateReportParams = {
     isSelfTourViewed: boolean;
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
     translate: LocalizedTranslate;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
 };
 
@@ -817,6 +824,7 @@ function duplicateReport({
     isSelfTourViewed,
     transactionViolations,
     translate,
+    formatPhoneNumber,
     recentWaypoints,
 }: DuplicateReportParams) {
     if (!targetPolicy || !parentChatReport) {
@@ -827,7 +835,17 @@ function duplicateReport({
     const currentUserEmailValue = getCurrentUserEmail();
 
     const newReportName = translate('common.copyOfReportName', sourceReportName);
-    const {reportPreviewReportActionID, ...newReport} = createNewReport(ownerPersonalDetails, false, isASAPSubmitBetaEnabled, targetPolicy, betas, false, undefined, newReportName);
+    const {reportPreviewReportActionID, ...newReport} = createNewReport(
+        ownerPersonalDetails,
+        false,
+        isASAPSubmitBetaEnabled,
+        targetPolicy,
+        betas,
+        formatPhoneNumber,
+        false,
+        undefined,
+        newReportName,
+    );
 
     const isCrossWorkspace = !!sourceReport && sourceReport.policyID !== targetPolicy.id;
 
@@ -918,6 +936,7 @@ function duplicateReport({
             customUnitPolicyID: targetPolicy?.id,
             personalDetails,
             recentWaypoints,
+            formatPhoneNumber,
         });
 
         if (result?.iouReport) {

@@ -10,6 +10,7 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
 import type {PaymentMethod} from '@components/KYCWall/types';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SearchQueryJSON} from '@components/Search/types';
 import * as API from '@libs/API';
 import type {
@@ -452,6 +453,7 @@ type MoneyRequestInformationParams = {
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     policyRecentlyUsedCurrencies: string[];
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 type MoneyRequestOptimisticParams = {
@@ -498,6 +500,7 @@ type BuildOnyxDataForMoneyRequestParams = {
     hasViolations: boolean;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 type DistanceRequestTransactionParams = BaseTransactionParams & {
@@ -644,6 +647,7 @@ type PayMoneyRequestFunctionParams = {
     ownerBillingGracePeriodEnd?: OnyxEntry<number>;
     methodID?: number;
     onPaid?: () => void;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 type ApproveMoneyRequestFunctionParams = {
@@ -660,6 +664,7 @@ type ApproveMoneyRequestFunctionParams = {
     full?: boolean;
     onApproved?: () => void;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 type SubmitReportFunctionParams = {
@@ -674,6 +679,7 @@ type SubmitReportFunctionParams = {
     amountOwed: OnyxEntry<number>;
     onSubmitted?: () => void;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     delegateEmail: string | undefined;
 };
 
@@ -1681,6 +1687,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         hasViolations,
         quickAction,
         personalDetails,
+        formatPhoneNumber,
     } = moneyRequestParams;
     const {policy, policyCategories, policyTagList} = policyParams;
     const {
@@ -2307,6 +2314,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                 currentUserEmailParam,
                 hasViolations,
                 isASAPSubmitBetaEnabled,
+                formatPhoneNumber,
             }),
         });
         onyxData.optimisticData?.push({
@@ -2413,6 +2421,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         policyRecentlyUsedCurrencies,
         personalDetails,
         betas,
+        formatPhoneNumber,
     } = moneyRequestInformation;
     const {payeeAccountID = deprecatedUserAccountID, payeeEmail = deprecatedCurrentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
@@ -2725,6 +2734,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         currentUserEmailParam,
         hasViolations,
         isASAPSubmitBetaEnabled,
+        formatPhoneNumber,
     });
 
     const optimisticNextStep = buildOptimisticNextStep({
@@ -2781,6 +2791,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         hasViolations,
         quickAction,
         personalDetails,
+        formatPhoneNumber,
     });
 
     return {
@@ -2928,6 +2939,7 @@ type GetUpdateMoneyRequestParamsType = {
     policyRecentlyUsedCurrencies?: string[];
     iouReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     isSplitTransaction?: boolean;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 type UpdateMoneyRequestDataKeys =
@@ -2965,6 +2977,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         policyRecentlyUsedCurrencies,
         iouReportNextStep,
         isSplitTransaction,
+        formatPhoneNumber,
     } = params;
     const optimisticData: Array<
         OnyxUpdate<
@@ -3440,6 +3453,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
                     hasViolations,
                     isASAPSubmitBetaEnabled,
                     policy,
+                    formatPhoneNumber,
                 }),
             });
             optimisticData.push({
@@ -5973,7 +5987,7 @@ function getPayMoneyRequestParams({
         currentNextStepDeprecated = iouReportCurrentNextStepDeprecated ?? null;
         // buildOptimisticNextStep is used in parallel
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        optimisticNextStepDeprecated = buildNextStepNew({report: iouReport, predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED});
+        optimisticNextStepDeprecated = buildNextStepNew({report: iouReport, predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED, formatPhoneNumber});
         optimisticNextStep = buildOptimisticNextStep({report: iouReport, predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED});
     }
 
@@ -6431,6 +6445,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         full,
         onApproved,
         ownerBillingGracePeriodEnd,
+        formatPhoneNumber,
     } = params;
     if (!expenseReport) {
         return;
@@ -6469,6 +6484,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
               hasViolations,
               isASAPSubmitBetaEnabled,
               predictedNextStatus,
+              formatPhoneNumber,
           });
     const optimisticNextStep = isDEWPolicy
         ? null
@@ -6801,6 +6817,7 @@ function reopenReport(
     isASAPSubmitBetaEnabled: boolean,
     expenseReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
     chatReport: OnyxEntry<OnyxTypes.Report>,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ) {
     if (!expenseReport) {
         return;
@@ -6821,6 +6838,7 @@ function reopenReport(
         hasViolations,
         isASAPSubmitBetaEnabled,
         isReopen: true,
+        formatPhoneNumber,
     });
     const optimisticNextStep = buildOptimisticNextStep({
         report: expenseReport,
@@ -6984,6 +7002,7 @@ function retractReport(
     hasViolations: boolean,
     isASAPSubmitBetaEnabled: boolean,
     expenseReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     delegateEmail: string | undefined,
 ) {
     if (!expenseReport) {
@@ -7004,6 +7023,7 @@ function retractReport(
         currentUserEmailParam,
         hasViolations,
         isASAPSubmitBetaEnabled,
+        formatPhoneNumber,
     });
     const optimisticNextStep = buildOptimisticNextStep({
         report: expenseReport,
@@ -7158,6 +7178,7 @@ function unapproveExpenseReport(
     hasViolations: boolean,
     isASAPSubmitBetaEnabled: boolean,
     expenseReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     delegateEmail: string | undefined,
 ) {
     if (isEmptyObject(expenseReport)) {
@@ -7178,6 +7199,7 @@ function unapproveExpenseReport(
         isASAPSubmitBetaEnabled,
         shouldFixViolations: false,
         isUnapprove: true,
+        formatPhoneNumber,
     });
     const optimisticNextStep = buildOptimisticNextStep({
         report: expenseReport,
@@ -7326,6 +7348,7 @@ function submitReport({
     amountOwed,
     onSubmitted,
     ownerBillingGracePeriodEnd,
+    formatPhoneNumber,
     delegateEmail,
 }: SubmitReportFunctionParams) {
     if (!expenseReport) {
@@ -7365,6 +7388,7 @@ function submitReport({
               hasViolations,
               isASAPSubmitBetaEnabled,
               isUnapprove: true,
+              formatPhoneNumber,
           });
     const optimisticNextStep = isDEWPolicy
         ? null
@@ -7601,6 +7625,7 @@ function cancelPayment(
     currentUserAccountIDParam: number,
     currentUserEmailParam: string,
     hasViolations: boolean,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ) {
     if (isEmptyObject(expenseReport)) {
         return;
@@ -7627,6 +7652,7 @@ function cancelPayment(
         currentUserEmailParam,
         hasViolations,
         isASAPSubmitBetaEnabled,
+        formatPhoneNumber,
     });
     const optimisticNextStep = buildOptimisticNextStep({
         report: expenseReport,
@@ -7785,6 +7811,7 @@ function cancelPayment(
         value: buildNextStepNew({
             report: expenseReport,
             predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            formatPhoneNumber,
         }),
     });
 
@@ -9191,6 +9218,7 @@ function assignReportToMe(
     hasViolations: boolean,
     isASAPSubmitBetaEnabled: boolean,
     reportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ) {
     const takeControlReportAction = buildOptimisticChangeApproverReportAction(accountID, accountID);
 
@@ -9207,6 +9235,7 @@ function assignReportToMe(
         hasViolations,
         isASAPSubmitBetaEnabled,
         bypassNextApproverID: accountID,
+        formatPhoneNumber,
     });
     const optimisticNextStep = buildOptimisticNextStep({
         report: {...report, managerID: accountID},
@@ -9307,6 +9336,7 @@ function addReportApprover(
     hasViolations: boolean,
     isASAPSubmitBetaEnabled: boolean,
     reportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ) {
     const takeControlReportAction = buildOptimisticChangeApproverReportAction(newApproverAccountID, accountID);
 
@@ -9323,6 +9353,7 @@ function addReportApprover(
         hasViolations,
         isASAPSubmitBetaEnabled,
         bypassNextApproverID: newApproverAccountID,
+        formatPhoneNumber,
     });
     const optimisticNextStep = buildOptimisticNextStep({
         report: {...report, managerID: newApproverAccountID},
@@ -9947,6 +9978,7 @@ function rejectExpenseReport(
     currentUserAccountID: number | undefined,
     currentUserDisplayName: string | undefined,
     currentUserAvatarSource: AvatarSource | undefined,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ) {
     const {reportID} = report;
     const isRejectToSubmitter = targetAccountID === report.ownerAccountID;
@@ -10016,6 +10048,7 @@ function rejectExpenseReport(
                   report,
                   predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
                   isRejectedReport: true,
+                  formatPhoneNumber,
               })
             : // buildOptimisticNextStep is used in parallel
               // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -10023,6 +10056,7 @@ function rejectExpenseReport(
                   report,
                   predictedNextStatus: CONST.REPORT.STATUS_NUM.SUBMITTED,
                   bypassNextApproverID: targetAccountID,
+                  formatPhoneNumber,
               }),
     });
 

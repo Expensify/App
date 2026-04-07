@@ -112,18 +112,19 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
                     isReportLastVisibleArchived,
                 });
             } else {
-                changeReportPolicy(
+                changeReportPolicy({
                     report,
                     parentReport,
                     policy,
-                    session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                    session?.email ?? '',
-                    hasViolations,
+                    accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    email: session?.email ?? '',
+                    hasViolationsParam: hasViolations,
                     isChangePolicyTrainingModalDismissed,
                     isASAPSubmitBetaEnabled,
+                    formatPhoneNumber,
                     reportNextStep,
                     isReportLastVisibleArchived,
-                );
+                });
             }
         },
         [

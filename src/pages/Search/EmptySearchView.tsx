@@ -121,7 +121,7 @@ function EmptySearchViewContent({
     hasSeenTour,
     queryJSON,
 }: EmptySearchViewContentProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
 
     const illustrations = useMemoizedLazyIllustrations(['EmptyStateTravel']);
@@ -173,6 +173,7 @@ function EmptySearchViewContent({
             isASAPSubmitBetaEnabled,
             defaultChatEnabledPolicy,
             betas,
+            formatPhoneNumber,
             false,
             shouldDismissEmptyReportsConfirmation,
         );

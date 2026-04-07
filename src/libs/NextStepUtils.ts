@@ -9,7 +9,6 @@ import type {ReportNextStep} from '@src/types/onyx/Report';
 import type {Message} from '@src/types/onyx/ReportNextStepDeprecated';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import EmailUtils from './EmailUtils';
-import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 import {getLoginsByAccountIDs, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimburserAccountID} from './PolicyUtils';
 import {
@@ -25,7 +24,7 @@ import {
 } from './ReportUtils';
 import {hasSubmissionBlockingViolations} from './TransactionUtils';
 
-type BuildNextStepNewParams = {
+type BuildNextStepBaseParams = {
     report: OnyxEntry<Report>;
     policy?: OnyxEntry<Policy>;
     currentUserAccountIDParam?: number;
@@ -44,9 +43,18 @@ type BuildNextStepNewParams = {
     bypassNextApproverID?: number;
 };
 
-function buildNextStepMessage(nextStep: ReportNextStep, translate: LocaleContextProps['translate'], currentUserAccountID: number): string {
+type BuildNextStepNewParams = BuildNextStepBaseParams & {
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+};
+
+function buildNextStepMessage(
+    nextStep: ReportNextStep,
+    translate: LocaleContextProps['translate'],
+    currentUserAccountID: number,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+): string {
     // Escape actor name to prevent HTML injection since this will be rendered as HTML
-    const actor = Str.safeEscape(getDisplayNameForParticipant({accountID: nextStep.actorAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '');
+    const actor = Str.safeEscape(getDisplayNameForParticipant({accountID: nextStep.actorAccountID, formatPhoneNumber}) ?? '');
     let actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>;
     if (nextStep.actorAccountID === currentUserAccountID) {
         actorType = CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER;
@@ -298,10 +306,10 @@ function parseMessage(messages: Message[] | undefined, currentUserEmail: string)
 /**
  * @private
  */
-function getNextApproverDisplayName(report: OnyxEntry<Report>, isUnapprove?: boolean) {
+function getNextApproverDisplayName(report: OnyxEntry<Report>, formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], isUnapprove?: boolean) {
     const approverAccountID = getNextApproverAccountID(report, isUnapprove);
 
-    return getDisplayNameForParticipant({accountID: approverAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? getPersonalDetailsForAccountID(approverAccountID).login;
+    return getDisplayNameForParticipant({accountID: approverAccountID, formatPhoneNumber}) ?? getPersonalDetailsForAccountID(approverAccountID).login;
 }
 
 function buildOptimisticNextStepForPreventSelfApprovalsEnabled() {
@@ -453,6 +461,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
         isReopen,
         isRejectedReport,
         bypassNextApproverID,
+        formatPhoneNumber,
     } = params;
 
     if (!isExpenseReport(report)) {
@@ -471,15 +480,12 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
     const hasTransactions = doesReportContainTransactions(report);
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
 
-    const ownerDisplayName =
-        ownerPersonalDetails?.displayName ?? ownerPersonalDetails?.login ?? getDisplayNameForParticipant({accountID: ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils});
+    const ownerDisplayName = ownerPersonalDetails?.displayName ?? ownerPersonalDetails?.login ?? getDisplayNameForParticipant({accountID: ownerAccountID, formatPhoneNumber});
     const policyOwnerDisplayName =
-        policyOwnerPersonalDetails?.displayName ??
-        policyOwnerPersonalDetails?.login ??
-        getDisplayNameForParticipant({accountID: policy?.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils});
+        policyOwnerPersonalDetails?.displayName ?? policyOwnerPersonalDetails?.login ?? getDisplayNameForParticipant({accountID: policy?.ownerAccountID, formatPhoneNumber});
     const nextApproverDisplayName = bypassNextApproverID
-        ? (getDisplayNameForParticipant({accountID: bypassNextApproverID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? getPersonalDetailsForAccountID(bypassNextApproverID).login)
-        : getNextApproverDisplayName(report, isUnapprove);
+        ? (getDisplayNameForParticipant({accountID: bypassNextApproverID, formatPhoneNumber}) ?? getPersonalDetailsForAccountID(bypassNextApproverID).login)
+        : getNextApproverDisplayName(report, formatPhoneNumber, isUnapprove);
     const approverAccountID = bypassNextApproverID ?? getNextApproverAccountID(report, isUnapprove);
     const approvers = getLoginsByAccountIDs([approverAccountID ?? CONST.DEFAULT_NUMBER_ID]);
 
@@ -784,7 +790,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
             } else if (reimburserAccountID === -1) {
                 payerMessage = {text: 'an admin'};
             } else {
-                payerMessage = {text: getDisplayNameForParticipant({accountID: reimburserAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}), type: 'strong'};
+                payerMessage = {text: getDisplayNameForParticipant({accountID: reimburserAccountID, formatPhoneNumber}), type: 'strong'};
             }
 
             optimisticNextStep = {

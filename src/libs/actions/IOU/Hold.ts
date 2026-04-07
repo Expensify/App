@@ -1,5 +1,6 @@
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import * as API from '@libs/API';
 import type {HoldMoneyRequestParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -32,7 +33,7 @@ import {getAllReports, getAllTransactions, getAllTransactionViolations, getCurre
 /**
  * Put expense on HOLD
  */
-function putOnHold(transactionID: string, comment: string, initialReportID: string | undefined, isOffline: boolean, ancestors: Ancestor[] = []) {
+function putOnHold(transactionID: string, comment: string, initialReportID: string | undefined, isOffline: boolean, ancestors: Ancestor[] = [], formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) {
     const allTransactions = getAllTransactions();
     const allTransactionViolations = getAllTransactionViolations();
     const allReports = getAllReports();
@@ -252,6 +253,7 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
             shouldFixViolations: true,
             currentUserAccountIDParam: userAccountID,
             currentUserEmailParam: currentUserEmail,
+            formatPhoneNumber,
         });
         const optimisticNextStep = buildOptimisticNextStep({
             report: iouReport,
@@ -322,17 +324,17 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
     Navigation.setNavigationActionToMicrotaskQueue(() => notifyNewAction(currentReportID, undefined, true));
 }
 
-function putTransactionsOnHold(transactionsID: string[], comment: string, reportID: string, isOffline: boolean, ancestors: Ancestor[] = []) {
+function putTransactionsOnHold(transactionsID: string[], comment: string, reportID: string, isOffline: boolean, ancestors: Ancestor[] = [], formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) {
     for (const transactionID of transactionsID) {
         const {childReportID} = getIOUActionForReportID(reportID, transactionID) ?? {};
-        putOnHold(transactionID, comment, childReportID, isOffline, ancestors);
+        putOnHold(transactionID, comment, childReportID, isOffline, ancestors, formatPhoneNumber);
     }
 }
 
 /**
  * Remove expense from HOLD
  */
-function unholdRequest(transactionID: string, reportID: string, policy: OnyxEntry<Policy>, isOffline: boolean) {
+function unholdRequest(transactionID: string, reportID: string, policy: OnyxEntry<Policy>, isOffline: boolean, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) {
     const allTransactions = getAllTransactions();
     const allTransactionViolations = getAllTransactionViolations();
     const allReports = getAllReports();
@@ -464,6 +466,7 @@ function unholdRequest(transactionID: string, reportID: string, policy: OnyxEntr
             shouldFixViolations: updatedTransactionViolations.length > 0,
             currentUserAccountIDParam: userAccountID,
             currentUserEmailParam: currentUserEmail,
+            formatPhoneNumber,
         });
         const optimisticNextStep = buildOptimisticNextStep({
             report: iouReport,
