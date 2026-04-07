@@ -26,7 +26,7 @@ function InvoiceMenuItem({reportID}: InvoiceMenuItemProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['InvoiceGeneric']);
-    const {shouldRedirectToExpensifyClassic, canRedirectToExpensifyClassic, showRedirectToExpensifyClassicModal} = useRedirectToExpensifyClassic();
+    const {shouldRedirectToExpensifyClassic, canRedirectToExpensifyClassic, canUseAction, showRedirectToExpensifyClassicModal} = useRedirectToExpensifyClassic();
     const [allPolicies] = useMappedPolicies(policyMapper);
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
@@ -35,7 +35,7 @@ function InvoiceMenuItem({reportID}: InvoiceMenuItemProps) {
     return (
         <FABFocusableMenuItem
             itemId={ITEM_ID}
-            isVisible={canSendInvoice && (!shouldRedirectToExpensifyClassic || canRedirectToExpensifyClassic)}
+            isVisible={canSendInvoice && canUseAction}
             pressableTestID={CONST.SENTRY_LABEL.FAB_MENU.SEND_INVOICE}
             icon={icons.InvoiceGeneric}
             title={translate('workspace.invoices.sendInvoice')}

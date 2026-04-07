@@ -39,6 +39,7 @@ function useRedirectToExpensifyClassic() {
      */
     const [shouldRedirectToExpensifyClassic = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: shouldRedirectToExpensifyClassicSelector});
     const canRedirectToExpensifyClassic = shouldRedirectToExpensifyClassic && !isOldAppRedirectBlocked(tryNewDot, CONFIG.IS_HYBRID_APP);
+    const canUseAction = !shouldRedirectToExpensifyClassic || canRedirectToExpensifyClassic;
 
     const showRedirectToExpensifyClassicModal = async () => {
         if (!canRedirectToExpensifyClassic) {
@@ -61,7 +62,7 @@ function useRedirectToExpensifyClassic() {
         openOldDotLink(CONST.OLDDOT_URLS.INBOX);
     };
 
-    return {shouldRedirectToExpensifyClassic, canRedirectToExpensifyClassic, showRedirectToExpensifyClassicModal};
+    return {shouldRedirectToExpensifyClassic, canRedirectToExpensifyClassic, canUseAction, showRedirectToExpensifyClassicModal};
 }
 
 export type {PolicySelector};

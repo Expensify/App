@@ -16,7 +16,7 @@ type FABButtonsProps = {
 function FABButtons({isActive, fabRef, onPress}: FABButtonsProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {startScan, startQuickScan, canStartScan} = useScanActions();
+    const {startScan, startQuickScan, canUseAction} = useScanActions();
 
     return (
         <>
@@ -34,7 +34,7 @@ function FABButtons({isActive, fabRef, onPress}: FABButtonsProps) {
                 isActive={isActive}
                 ref={fabRef}
                 onPress={onPress}
-                onLongPress={canStartScan ? startScan : undefined}
+                onLongPress={canUseAction ? startScan : undefined}
                 sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.FLOATING_ACTION_BUTTON}
             />
         </>

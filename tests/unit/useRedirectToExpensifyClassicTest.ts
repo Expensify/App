@@ -73,6 +73,7 @@ describe('useRedirectToExpensifyClassic', () => {
             await waitFor(() => {
                 expect(result.current.shouldRedirectToExpensifyClassic).toBe(true);
                 expect(result.current.canRedirectToExpensifyClassic).toBe(false);
+                expect(result.current.canUseAction).toBe(false);
             });
 
             await act(async () => {
@@ -97,6 +98,7 @@ describe('useRedirectToExpensifyClassic', () => {
             await waitFor(() => {
                 expect(result.current.shouldRedirectToExpensifyClassic).toBe(true);
                 expect(result.current.canRedirectToExpensifyClassic).toBe(true);
+                expect(result.current.canUseAction).toBe(true);
             });
 
             await act(async () => {

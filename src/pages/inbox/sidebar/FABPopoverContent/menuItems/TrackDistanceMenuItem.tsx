@@ -23,12 +23,12 @@ function TrackDistanceMenuItem({reportID}: TrackDistanceMenuItemProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Location']);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
-    const {shouldRedirectToExpensifyClassic, canRedirectToExpensifyClassic, showRedirectToExpensifyClassicModal} = useRedirectToExpensifyClassic();
+    const {shouldRedirectToExpensifyClassic, canRedirectToExpensifyClassic, canUseAction, showRedirectToExpensifyClassicModal} = useRedirectToExpensifyClassic();
 
     return (
         <FABFocusableMenuItem
             itemId={ITEM_ID}
-            isVisible={!shouldRedirectToExpensifyClassic || canRedirectToExpensifyClassic}
+            isVisible={canUseAction}
             pressableTestID={CONST.SENTRY_LABEL.FAB_MENU.TRACK_DISTANCE}
             icon={icons.Location}
             title={translate('iou.trackDistance')}
