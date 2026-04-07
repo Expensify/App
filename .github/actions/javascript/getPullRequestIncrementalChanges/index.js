@@ -12723,20 +12723,35 @@ class Git {
             return false;
         }
     }
-    static async getChangedFileNames(fromRef, toRef, shouldIncludeUntrackedFiles = false) {
+    /**
+     * Get changed files with their status (added, modified, removed, renamed).
+     * In CI, uses the GitHub API with pagination for accuracy.
+     * Locally, uses git diff against the provided ref.
+     */
+    static async getChangedFilesWithStatus(fromRef, toRef, shouldIncludeUntrackedFiles = false) {
         if (IS_CI) {
-            const { data: changedFiles } = await GithubUtils_1.default.octokit.pulls.listFiles({
+            const files = await GithubUtils_1.default.paginate(GithubUtils_1.default.octokit.pulls.listFiles, {
                 owner: CONST_1.default.GITHUB_OWNER,
                 repo: CONST_1.default.APP_REPO,
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 pull_number: github_1.context.payload.pull_request?.number ?? 0,
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                per_page: 100,
             });
-            return changedFiles.map((file) => file.filename);
+            return files.map((file) => ({
+                filename: file.filename,
+                status: file.status,
+            }));
         }
-        // Get the diff output and check status
         const diffResult = this.diff(fromRef, toRef, undefined, shouldIncludeUntrackedFiles);
-        const files = diffResult.files.map((file) => file.filePath);
-        return files;
+        return diffResult.files.map((file) => ({
+            filename: file.filePath,
+            status: file.diffType,
+        }));
+    }
+    static async getChangedFileNames(fromRef, toRef, shouldIncludeUntrackedFiles = false) {
+        const files = await this.getChangedFilesWithStatus(fromRef, toRef, shouldIncludeUntrackedFiles);
+        return files.map((file) => file.filename);
     }
     /**
      * Get list of untracked files from git.
