@@ -5,7 +5,6 @@ import lodashSet from 'lodash/set';
 import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {Coordinate} from '@components/MapView/MapViewTypes';
 import utils from '@components/MapView/utils';
 import type {UnreportedExpenseListItemType} from '@components/Search/SearchList/ListItem/types';
@@ -136,10 +135,6 @@ type BuildOptimisticTransactionParams = {
     transactionParams: TransactionParams;
     isDemoTransactionParam?: boolean;
 };
-
-function isDeletedTransaction(transaction: {reportID?: string}): boolean {
-    return transaction.reportID === CONST.REPORT.TRASH_REPORT_ID;
-}
 
 function hasDistanceCustomUnit(transaction: OnyxEntry<Transaction> | Partial<Transaction>): boolean {
     return transaction?.comment?.type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && transaction?.comment?.customUnit?.name === CONST.CUSTOM_UNITS.NAME_DISTANCE;
@@ -613,8 +608,11 @@ function isPartialMerchant(merchant: string): boolean {
     return merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
 }
 
-function isAmountMissing(transaction: OnyxEntry<Transaction>) {
-    return transaction?.amount === undefined && (transaction?.modifiedAmount === undefined || transaction?.modifiedAmount === '');
+function isAmountMissing(transaction: OnyxEntry<Transaction>, isFromExpenseReport = true) {
+    if (isFromExpenseReport) {
+        return transaction?.amount === undefined && (transaction?.modifiedAmount === undefined || transaction?.modifiedAmount === '');
+    }
+    return (transaction?.amount === 0 || transaction?.amount === undefined) && (!transaction?.modifiedAmount || transaction?.modifiedAmount === 0 || transaction?.modifiedAmount === '');
 }
 
 function hasValidModifiedAmount(transaction: OnyxEntry<Transaction> | null): boolean {
@@ -898,6 +896,10 @@ function getUpdatedTransaction({
         lodashSet(updatedTransaction, 'comment.odometerEnd', transactionChanges.odometerEnd);
     }
 
+    if (Object.hasOwn(transactionChanges, 'reportID')) {
+        updatedTransaction.reportID = transactionChanges.reportID;
+    }
+
     // For distance split requests, if the amount is changed, we need to update the amount and merchant based on the new distance which we calculate before and save in transactionChanges
     if (isSplitTransaction && isDistanceRequest(transaction) && transactionChanges.amount) {
         const amount = transactionChanges.amount ?? Number(transaction.modifiedAmount) ?? transaction.amount ?? 0;
@@ -1174,7 +1176,7 @@ function getReportOwnerAsAttendee(transaction: OnyxInputOrEntry<Transaction>, cu
                 accountID: creatorAccountID,
                 text: creatorDisplayName,
                 searchText: creatorDisplayName,
-                avatarUrl: creatorDetails?.avatarThumbnail ?? '',
+                avatarUrl: (creatorDetails?.avatarThumbnail ?? creatorDetails?.avatar ?? '') as string,
                 selected: true,
             };
         }
@@ -2801,54 +2803,14 @@ function shouldReuseInitialTransaction(
 
 /**
  * A utility that ensures unreported transactions are unheld.
- * For distance expenses, it also updates the `customUnit` and recalculates the transaction's `amount`, `merchant`, and `currency`
  */
-function recalculateUnreportedTransactionDetails(
-    transaction: OnyxEntry<Transaction>,
-    destinationCurrency: string | undefined,
-    translateParam: LocaleContextProps['translate'],
-    toLocaleDigitParam: LocaleContextProps['toLocaleDigit'],
-) {
+function recalculateUnreportedTransactionDetails() {
     // If the transaction is on hold, we need to unhold it because unreported transactions (on selfDM) should never remain on hold.
     const comment: NullishDeep<Comment> = {
         hold: null,
     };
-    let modifiedAmount: number | undefined;
-    let modifiedCurrency: string | undefined;
-    let modifiedMerchant: string | undefined;
 
-    // For distance requests we need to update its custom unit ID to `_FAKE_P2P_ID_` so it's no longer tied to the policy's rate which would cause the "Rate out of policy" violation to appear.
-    // Let's also set the defaultP2PRate and update the distanceUnit, the quantity, the amount, the currency and the merchant to match the P2P rate.
-    if (isDistanceRequest(transaction)) {
-        const currency = destinationCurrency && CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE[destinationCurrency] ? destinationCurrency : CONST.CURRENCY.USD;
-        const {rate, unit} = CONST.CURRENCY_TO_DEFAULT_MILEAGE_RATE[currency];
-        const distance = parseFloat(
-            DistanceRequestUtils.getRoundedDistanceInUnits(getDistanceInMeters(transaction, transaction?.comment?.customUnit?.distanceUnit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES), unit),
-        );
-        const distanceInMeters = DistanceRequestUtils.convertToDistanceInMeters(distance, unit);
-        comment.customUnit = {
-            customUnitID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
-            customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
-            defaultP2PRate: rate,
-            distanceUnit: unit,
-            quantity: distance,
-        };
-        modifiedAmount = -DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
-        modifiedCurrency = currency;
-        modifiedMerchant = DistanceRequestUtils.getDistanceMerchant(
-            true,
-            distanceInMeters,
-            unit,
-            rate,
-            currency,
-            translateParam,
-            toLocaleDigitParam,
-            getCurrencySymbol,
-            isManualDistanceRequest(transaction),
-        );
-    }
-
-    return {comment, modifiedAmount, modifiedCurrency, modifiedMerchant};
+    return {comment};
 }
 
 /**
@@ -3001,7 +2963,6 @@ export {
     isDistanceTypeRequest,
     recalculateUnreportedTransactionDetails,
     hasSmartScanFailedWithMissingFields,
-    isDeletedTransaction,
 };
 
 export type {TransactionChanges};

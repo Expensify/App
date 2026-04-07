@@ -22,6 +22,9 @@ type DomainsListRowProps = {
     /** The text to display inside a badge next to the title */
     badgeText?: string;
 
+    /** Whether the badge should use success styling */
+    isBadgeSuccess?: boolean;
+
     /** Items for the three dots menu */
     menuItems?: PopoverMenuItem[];
 
@@ -29,7 +32,7 @@ type DomainsListRowProps = {
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
 };
 
-function DomainsListRow({title, isHovered, badgeText, brickRoadIndicator, menuItems}: DomainsListRowProps) {
+function DomainsListRow({title, isHovered, badgeText, isBadgeSuccess, brickRoadIndicator, menuItems}: DomainsListRowProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
 
@@ -53,6 +56,7 @@ function DomainsListRow({title, isHovered, badgeText, brickRoadIndicator, menuIt
                     <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.justifyContentEnd]}>
                         <Badge
                             text={badgeText}
+                            success={isBadgeSuccess}
                             textStyles={styles.textStrong}
                             badgeStyles={styles.alignSelfCenter}
                         />

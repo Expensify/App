@@ -9,6 +9,7 @@ import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionsByID from '@hooks/useTransactionsByID';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {READ_COMMANDS} from '@libs/API/types';
 import {isMobileSafari as isMobileSafariBrowser} from '@libs/Browser';
@@ -33,11 +34,12 @@ import {
     setMoneyRequestTag,
 } from '@userActions/IOU';
 import {setSplitShares} from '@userActions/IOU/Split';
-import {createDraftWorkspace} from '@userActions/Policy/Policy';
+import {createDraftWorkspace, newGenerateDefaultWorkspaceName} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {lastWorkspaceNumberSelector} from '@src/selectors/Policy';
 import type {Policy} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
@@ -78,10 +80,11 @@ function IOURequestStepParticipants({
     const [allPolicies] = useMappedPolicies(policyMapper);
 
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
-    const [transactions] = useOptimisticDraftTransactions(initialTransaction);
+    const [draftTransactions] = useOptimisticDraftTransactions(initialTransaction);
     // Depend on transactions.length to avoid updating transactionIDs when only the transaction details change
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    const transactionIDs = useMemo(() => transactions?.map((transaction) => transaction.transactionID), [transactions.length]);
+    const transactionIDs = useMemo(() => draftTransactions?.map((transaction) => transaction.transactionID), [draftTransactions.length]);
+    const [transactions] = useTransactionsByID(transactionIDs);
 
     // We need to set selectedReportID if user has navigated back from confirmation page and navigates to confirmation page with already selected participant
     const selectedReportID = useRef<string>(participants?.length === 1 ? (participants.at(0)?.reportID ?? reportID) : reportID);
@@ -113,8 +116,8 @@ function IOURequestStepParticipants({
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [userBillingGraceEndPeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
@@ -122,7 +125,7 @@ function IOURequestStepParticipants({
         iouType === CONST.IOU.TYPE.CREATE &&
         isPaidGroupPolicy(activePolicy) &&
         activePolicy?.isPolicyExpenseChatEnabled &&
-        !shouldRestrictUserBillableActions(activePolicy.id, ownerBillingGraceEndPeriod, userBillingGraceEndPeriods);
+        !shouldRestrictUserBillableActions(activePolicy.id, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds);
 
     const isAndroidNative = getPlatform() === CONST.PLATFORM.ANDROID;
     const isMobileSafari = isMobileSafariBrowser();
@@ -162,14 +165,14 @@ function IOURequestStepParticipants({
     // because we want to first check if the p2p rate exists on the workspace.
     // If it doesn't exist - we'll show an error message to force the user to choose a valid rate from the workspace.
     useEffect(() => {
-        if (!isMovingTransactionFromTrackExpense) {
+        if (!isMovingTransactionFromTrackExpense || !transactions || transactions?.length === 0) {
             return;
         }
 
-        for (const transactionID of transactionIDs) {
-            resetDraftTransactionsCustomUnit(transactionID);
+        for (const transaction of transactions) {
+            resetDraftTransactionsCustomUnit(transaction);
         }
-    }, [isFocused, isMovingTransactionFromTrackExpense, transactionIDs]);
+    }, [isFocused, isMovingTransactionFromTrackExpense, transactions]);
 
     const waitForKeyboardDismiss = useCallback(
         (callback: () => void) => {
@@ -192,7 +195,7 @@ function IOURequestStepParticipants({
         }
 
         const rateID = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
-        for (const transaction of transactions) {
+        for (const transaction of draftTransactions) {
             setCustomUnitRateID(transaction.transactionID, rateID, transaction, activePolicy);
             const shouldSetParticipantAutoAssignment = iouType === CONST.IOU.TYPE.CREATE;
             setMoneyRequestParticipantsFromReport(
@@ -219,7 +222,7 @@ function IOURequestStepParticipants({
         });
     }, [
         selfDMReportID,
-        transactions,
+        draftTransactions,
         action,
         initialTransactionID,
         waitForKeyboardDismiss,
@@ -250,8 +253,8 @@ function IOURequestStepParticipants({
 
             // Use transactions array if available, otherwise use initialTransactionID directly
             // This handles the case where initialTransaction hasn't loaded yet but we still need to set participants
-            if (transactions.length > 0) {
-                for (const transaction of transactions) {
+            if (draftTransactions.length > 0) {
+                for (const transaction of draftTransactions) {
                     setMoneyRequestParticipants(transaction.transactionID, val);
                 }
             } else {
@@ -264,8 +267,8 @@ function IOURequestStepParticipants({
                 // Otherwise, keep the original p2p rate and let the user manually change it to the one they want from the workspace.
                 const rateID = DistanceRequestUtils.getCustomUnitRateID({reportID: firstParticipantReportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates});
 
-                if (transactions.length > 0) {
-                    for (const transaction of transactions) {
+                if (draftTransactions.length > 0) {
+                    for (const transaction of draftTransactions) {
                         setCustomUnitRateID(transaction.transactionID, rateID, transaction, policy);
                     }
                 } else {
@@ -294,7 +297,7 @@ function IOURequestStepParticipants({
                 selectedReportID.current = firstParticipantReportID || generateReportID();
             }
         },
-        [isSplitRequest, allPolicies, iouType, transactions, isMovingTransactionFromTrackExpense, reportID, trackExpense, initialTransactionID, lastSelectedDistanceRates],
+        [isSplitRequest, allPolicies, iouType, draftTransactions, isMovingTransactionFromTrackExpense, reportID, trackExpense, initialTransactionID, lastSelectedDistanceRates],
     );
 
     const goToNextStep = useCallback(
@@ -312,7 +315,7 @@ function IOURequestStepParticipants({
             const shouldUpdateTransactionReportID = participants?.at(0)?.reportID !== newReportID;
             const transactionReportID = newReportID === selfDMReportID ? CONST.REPORT.UNREPORTED_REPORT_ID : newReportID;
             // TODO: probably should also change participants here for selectedParticipants.current, but out of scope of this PR
-            for (const transaction of transactions) {
+            for (const transaction of draftTransactions) {
                 const tag = isMovingTransactionFromTrackExpense && transaction?.tag ? transaction?.tag : '';
                 setMoneyRequestTag(transaction.transactionID, tag);
                 const firstParticipant = _participants?.at(0);
@@ -326,8 +329,10 @@ function IOURequestStepParticipants({
                 }
             }
             if ((isCategorizing || isShareAction) && numberOfParticipants.current === 0) {
-                const {expenseChatReportID, policyID, policyName} = createDraftWorkspace(introSelected);
-                for (const transaction of transactions) {
+                const email = currentUserPersonalDetails.email ?? '';
+                const lastWorkspaceNumber = lastWorkspaceNumberSelector(allPolicies, email);
+                const {expenseChatReportID, policyID, policyName} = createDraftWorkspace(introSelected, newGenerateDefaultWorkspaceName(email, lastWorkspaceNumber, translate));
+                for (const transaction of draftTransactions) {
                     setMoneyRequestParticipants(transaction.transactionID, [
                         {
                             selected: true,
@@ -385,13 +390,14 @@ function IOURequestStepParticipants({
             initialTransactionID,
             reportID,
             waitForKeyboardDismiss,
-            transactions,
+            draftTransactions,
             isMovingTransactionFromTrackExpense,
             allPolicies,
             policyForMovingExpenses,
             introSelected,
             backTo,
             selfDMReportID,
+            translate,
         ],
     );
 
@@ -413,7 +419,7 @@ function IOURequestStepParticipants({
         const isCategorizing = action === CONST.IOU.ACTION.CATEGORIZE;
         const isShareAction = action === CONST.IOU.ACTION.SHARE;
         if (isFocused && (isCategorizing || isShareAction)) {
-            for (const transaction of transactions) {
+            for (const transaction of draftTransactions) {
                 setMoneyRequestParticipants(transaction.transactionID, []);
             }
             numberOfParticipants.current = 0;
