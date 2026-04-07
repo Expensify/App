@@ -127,7 +127,7 @@ const DYNAMIC_ROUTES = {
         path: 'country',
         entryScreens: [
             SCREENS.SETTINGS.PROFILE.ADDRESS,
-            SCREENS.WORKSPACE.ADDRESS,
+            SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_ADDRESS,
             SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS,
             SCREENS.DOMAIN_CARD.DOMAIN_CARD_UPDATE_ADDRESS,
             SCREENS.TRAVEL.WORKSPACE_ADDRESS,
@@ -138,6 +138,10 @@ const DYNAMIC_ROUTES = {
     },
     WORKSPACE_OVERVIEW_PLAN: {
         path: 'plan',
+        entryScreens: [SCREENS.WORKSPACE.PROFILE],
+    },
+    WORKSPACE_OVERVIEW_ADDRESS: {
+        path: 'workspace-address',
         entryScreens: [SCREENS.WORKSPACE.PROFILE],
     },
     WORKSPACE_INVITE: {
@@ -1670,17 +1674,6 @@ const ROUTES = {
 
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             return getUrlWithBackToParam(`workspaces/${policyID}/overview` as const, backTo);
-        },
-    },
-    WORKSPACE_OVERVIEW_ADDRESS: {
-        route: 'workspaces/:policyID/overview/address',
-        getRoute: (policyID: string | undefined, backTo?: string) => {
-            if (!policyID) {
-                Log.warn('Invalid policyID is used to build the WORKSPACE_OVERVIEW_ADDRESS route');
-            }
-
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`workspaces/${policyID}/overview/address` as const, backTo);
         },
     },
     WORKSPACE_ACCOUNTING: {
