@@ -490,6 +490,7 @@ const translations: TranslationDeepObject<typeof en> = {
         on: 'Activé',
         before: 'Avant',
         after: 'Après',
+        range: 'Intervalle',
         reschedule: 'Reprogrammer',
         general: 'Général',
         workspacesTabTitle: 'Espaces de travail',
@@ -821,6 +822,9 @@ const translations: TranslationDeepObject<typeof en> = {
         emoji: 'Émoji',
         collapse: 'Réduire',
         expand: 'Agrandir',
+        askConciergeToUpdate: 'Essayez « Mettre à jour une dépense »…',
+        askConciergeToCorrect: 'Essayez « Corriger une dépense »...',
+        askConciergeForHelp: "Demander de l'aide à Concierge IA…",
     },
     reportActionContextMenu: {
         copyMessage: 'Copier le message',
@@ -1092,7 +1096,18 @@ const translations: TranslationDeepObject<typeof en> = {
         singleFieldMultipleColumns: (fieldName: string) => `Oups ! Vous avez associé un seul champ (« ${fieldName} ») à plusieurs colonnes. Veuillez vérifier et réessayer.`,
         emptyMappedField: (fieldName: string) => `Oups ! Le champ (« ${fieldName} ») contient une ou plusieurs valeurs vides. Veuillez vérifier et réessayer.`,
         importSuccessfulTitle: 'Importation réussie',
-        importCategoriesSuccessfulDescription: ({categories}: {categories: number}) => (categories > 1 ? `${categories} catégories ont été ajoutées.` : '1 catégorie a été ajoutée.'),
+        importCategoriesSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
+            if (!added && !updated) {
+                return 'Aucune catégorie n’a été ajoutée ou mise à jour.';
+            }
+            if (added && updated) {
+                return `${added} ${added === 1 ? 'catégorie' : 'catégories'} ajouté(s), ${updated} ${updated === 1 ? 'catégorie' : 'catégories'} mis(es) à jour.`;
+            }
+            if (added) {
+                return added === 1 ? '1 catégorie a été ajoutée.' : `${added} catégories ont été ajoutées.`;
+            }
+            return updated === 1 ? '1 catégorie a été mise à jour.' : `${updated} catégories ont été mises à jour.`;
+        },
         importCompanyCardTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
             transactions > 1 ? `${transactions} transactions ont été ajoutées.` : '1 transaction a été ajoutée.',
         importMembersSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
@@ -1154,7 +1169,6 @@ const translations: TranslationDeepObject<typeof en> = {
         flash: 'flash',
         multiScan: 'numérisation multiple',
         shutter: 'obturateur',
-        flipCamera: 'changer de caméra',
         gallery: 'galerie',
         deleteReceipt: 'Supprimer le reçu',
         deleteConfirmation: 'Voulez-vous vraiment supprimer ce reçu ?',
@@ -1436,6 +1450,11 @@ const translations: TranslationDeepObject<typeof en> = {
             manySplitsProvided: `Le nombre maximal de répartitions autorisées est de ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `La plage de dates ne peut pas dépasser ${CONST.IOU.SPLITS_LIMIT} jours.`,
             stitchOdometerImagesFailed: 'Échec de la combinaison des images de l’odomètre. Veuillez réessayer plus tard.',
+            nonReimbursablePayment: 'Impossible de payer via Expensify',
+            nonReimbursablePaymentDescription: (isMultiple?: boolean) =>
+                isMultiple
+                    ? 'Un ou plusieurs rapports sélectionnés ne contiennent pas de dépenses remboursables. Vérifiez les dépenses ou marquez-les manuellement comme payés.'
+                    : 'Le rapport ne contient pas de dépenses remboursables. Vérifiez les dépenses ou marquez-le manuellement comme payé.',
         },
         dismissReceiptError: 'Ignorer l’erreur',
         dismissReceiptErrorConfirmation: 'Attention ! Ignorer cette erreur supprimera complètement votre reçu téléversé. Êtes-vous sûr ?',
@@ -1524,6 +1543,7 @@ const translations: TranslationDeepObject<typeof en> = {
         bookingArchived: 'Cette réservation est archivée',
         bookingArchivedDescription: 'Cette réservation est archivée car la date du voyage est passée. Ajoutez une dépense pour le montant final si nécessaire.',
         attendees: 'Participants',
+        totalPerAttendee: 'Par participant',
         whoIsYourAccountant: 'Qui est votre comptable ?',
         paymentComplete: 'Paiement terminé',
         time: 'Heure',
@@ -1596,7 +1616,9 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             addApprover: {
                 subtitle: 'Choisissez un approbateur supplémentaire pour cette note de frais avant que nous la fassions passer par le reste du flux d’approbation.',
+                bulkSubtitle: 'Choisissez un approbateur supplémentaire pour ces rapports avant que nous ne les transmettions pour le reste du flux de validation.',
             },
+            bulkSubtitle: 'Choisissez une option pour changer l’approbateur de ces rapports.',
         },
         chooseWorkspace: 'Choisir un espace de travail',
         routedDueToDEW: (to: string, reason?: string) => `note de frais acheminée vers ${to}${reason ? ` parce que ${reason}` : ''}`,
@@ -1629,7 +1651,6 @@ const translations: TranslationDeepObject<typeof en> = {
             `impossible d’approuver via les <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">règles de l’espace de travail</a>. ${reason}`,
         failedToApproveViaDEW: (reason: string) => `échec de l’approbation. ${reason}`,
         cannotDuplicateDistanceExpense: 'Vous ne pouvez pas dupliquer des dépenses de distance entre espaces de travail, car les taux peuvent différer d’un espace de travail à l’autre.',
-        deleted: 'Supprimé',
     },
     transactionMerge: {
         listPage: {
@@ -2002,7 +2023,13 @@ const translations: TranslationDeepObject<typeof en> = {
         accountSettings: 'Paramètres du compte',
         account: 'Compte',
         general: 'Général',
-        helpPage: {title: 'Aide et assistance', description: 'Nous sommes là pour vous aider 24 h/24, 7 j/7', helpSite: 'Site d’aide'},
+        helpPage: {
+            title: 'Aide et assistance',
+            description: 'Nous sommes là pour vous aider 24 h/24, 7 j/7',
+            helpSite: 'Site d’aide',
+            conciergeChat: 'Concierge',
+            conciergeChatDescription: 'Votre agent IA personnel',
+        },
     },
     closeAccountPage: {
         closeAccount: 'Fermer le compte',
@@ -2285,6 +2312,7 @@ const translations: TranslationDeepObject<typeof en> = {
         enableWallet: 'Activer le portefeuille',
         addBankAccountToSendAndReceive: 'Ajoutez un compte bancaire pour effectuer ou recevoir des paiements.',
         addDebitOrCreditCard: 'Ajouter une carte de débit ou de crédit',
+        cardInactive: 'Inactif',
         assignedCards: 'Cartes assignées',
         assignedCardsDescription: 'Les transactions de ces cartes se synchronisent automatiquement.',
         expensifyCard: 'Carte Expensify',
@@ -2476,6 +2504,7 @@ ${amount} pour ${merchant} - ${date}`,
             title: 'Aucun membre à afficher',
             expensesFromSubtitle: 'Tous les membres de l’espace de travail appartiennent déjà à un circuit d’approbation existant.',
             approverSubtitle: 'Tous les approbateurs appartiennent à un workflow existant.',
+            bulkApproverSubtitle: 'Aucun approbateur ne correspond aux critères pour les rapports sélectionnés.',
         },
     },
     workflowsDelayedSubmissionPage: {
@@ -3378,11 +3407,6 @@ ${amount} pour ${merchant} - ${date}`,
         confirmationStepHeader: 'Vérifiez vos informations.',
         confirmationStepSubHeader: 'Vérifiez attentivement les détails ci-dessous et cochez la case des conditions pour confirmer.',
         toGetStarted: 'Ajoutez un compte bancaire personnel pour recevoir des remboursements, payer des factures ou activer le Portefeuille Expensify.',
-        updatePersonalInfo: 'Mettre à jour le compte bancaire',
-        updatePersonalInfoFailure: 'Impossible de mettre à jour les informations du compte bancaire. Veuillez réessayer plus tard.',
-        updateSuccessTitle: 'Compte bancaire mis à jour !',
-        updateSuccessHeader: 'Compte bancaire mis à jour',
-        updateSuccessMessage: 'Félicitations, votre compte bancaire est configuré et prêt à recevoir des remboursements.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Saisissez le mot de passe Expensify',
@@ -3800,6 +3824,10 @@ ${amount} pour ${merchant} - ${date}`,
         youCanChange: 'Vous pouvez modifier la devise de votre espace de travail dans vos',
         findCountry: 'Rechercher un pays',
         selectCountry: 'Sélectionner un pays',
+        error: {
+            connectToWorkspace: (workspaceRoute: string) =>
+                `Veuillez connecter ce compte bancaire à un <a href="${workspaceRoute}">espace de travail</a> afin de pouvoir inviter un directeur à signer lors d'une étape ultérieure.`,
+        },
     },
     bankInfoStep: {
         whatAreYour: 'Quelles sont les coordonnées de votre compte bancaire professionnel ?',
@@ -3847,6 +3875,8 @@ ${amount} pour ${merchant} - ${date}`,
             `est en train de connecter un compte bancaire professionnel en ${currency} se terminant par ${bankAccountLastFour} à Expensify pour payer des employés en ${currency}. L’étape suivante nécessite les informations de signature d’un directeur.`,
         error: {
             emailsMustBeDifferent: 'Les e-mails doivent être différents',
+            connectToWorkspace: (workspaceRoute: string) =>
+                `Veuillez connecter ce compte bancaire à un <a href="${workspaceRoute}">espace de travail</a> pour inviter un directeur à signer.`,
         },
     },
     agreementsStep: {
@@ -4092,6 +4122,7 @@ ${amount} pour ${merchant} - ${date}`,
             defaultNote: `Les reçus envoyés à ${CONST.EMAIL.RECEIPTS} apparaîtront dans cet espace de travail.`,
             deleteConfirmation: 'Voulez-vous vraiment supprimer cet espace de travail ?',
             deleteWithCardsConfirmation: 'Voulez-vous vraiment supprimer cet espace de travail ? Cela supprimera tous les flux de cartes et les cartes assignées.',
+            deleteOpenExpensifyCardsError: 'Votre entreprise a encore des cartes Expensify actives.',
             outstandingBalanceWarning:
                 'Vous avez un solde impayé qui doit être réglé avant de supprimer votre dernier espace de travail. Veuillez accéder à vos paramètres d’abonnement pour résoudre le paiement.',
             settleBalance: 'Aller à l’abonnement',
@@ -6728,6 +6759,24 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 title: 'Politique de dépenses',
                 cardSubtitle: 'C’est ici que se trouve la politique de dépenses de votre équipe, pour que tout le monde soit d’accord sur ce qui est couvert.',
             },
+            spendRules: {
+                title: 'Dépenser',
+                subtitle: 'Approuvez ou refusez les transactions Carte Expensify en temps réel.',
+                defaultRuleDescription: 'Toutes les cartes',
+                block: 'Bloquer',
+                defaultRuleTitle: 'Catégories : services pour adultes, DAB, jeux d’argent, transferts d’argent',
+                builtInProtectionModal: {
+                    title: 'Les Cartes Expensify offrent une protection intégrée – en permanence',
+                    description: `Expensify refuse toujours ces dépenses :
+
+  • Services pour adultes
+  • DAB
+  • Jeux d’argent
+  • Transferts d’argent
+
+Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’entreprise.`,
+                },
+            },
         },
         planTypePage: {
             planTypes: {
@@ -7424,7 +7473,6 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
             unhold: 'Supprimer la mise en attente',
             reject: 'Rejeter',
             noOptionsAvailable: 'Aucune option n’est disponible pour le groupe de dépenses sélectionné.',
-            undelete: 'Restaurer',
         },
         filtersHeader: 'Filtres',
         filters: {
@@ -7432,6 +7480,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 before: (date?: string) => `Avant ${date ?? ''}`,
                 after: (date?: string) => `Après ${date ?? ''}`,
                 on: (date?: string) => `Le ${date ?? ''}`,
+                customDate: 'Date personnalisée',
+                customRange: 'Intervalle personnalisé',
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Jamais',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Mois dernier',
@@ -7559,6 +7609,9 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
         exportAll: {
             selectAllMatchingItems: 'Sélectionnez tous les éléments correspondants',
             allMatchingItemsSelected: 'Tous les éléments correspondants sont sélectionnés',
+        },
+        errors: {
+            pleaseSelectDatesForBothFromAndTo: 'Veuillez sélectionner des dates pour De et À',
         },
         spendOverTime: 'Dépenses dans le temps',
     },
@@ -7719,6 +7772,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
     chronos: {
         oooEventSummaryFullDay: (summary: string, dayCount: number, date: string) => `${summary} pour ${dayCount} ${dayCount === 1 ? 'jour' : 'jours'} jusqu’au ${date}`,
         oooEventSummaryPartialDay: (summary: string, timePeriod: string, date: string) => `${summary} du ${timePeriod} le ${date}`,
+        startTimer: 'Démarrer le minuteur',
+        stopTimer: 'Arrêter le minuteur',
     },
     footer: {
         features: 'Fonctionnalités',

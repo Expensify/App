@@ -508,6 +508,7 @@ const translations = {
         on: 'On',
         before: 'Before',
         after: 'After',
+        range: 'Range',
         reschedule: 'Reschedule',
         general: 'General',
         workspacesTabTitle: 'Workspaces',
@@ -843,6 +844,9 @@ const translations = {
         addAttachment: 'Add attachment',
         writeSomething: 'Write something...',
         blockedFromConcierge: 'Communication is barred',
+        askConciergeToUpdate: 'Try "Update an expense"...',
+        askConciergeToCorrect: 'Try "Correct an expense"...',
+        askConciergeForHelp: 'Ask Concierge AI for help...',
         fileUploadFailed: 'Upload failed. File is not supported.',
         localTime: (user: string, time: string) => `It's ${time} for ${user}`,
         edited: '(edited)',
@@ -1138,7 +1142,21 @@ const translations = {
         singleFieldMultipleColumns: (fieldName: string) => `Oops! You've mapped a single field ("${fieldName}") to multiple columns. Please review and try again.`,
         emptyMappedField: (fieldName: string) => `Oops! The field ("${fieldName}") contains one or more empty values. Please review and try again.`,
         importSuccessfulTitle: 'Import successful',
-        importCategoriesSuccessfulDescription: ({categories}: {categories: number}) => (categories > 1 ? `${categories} categories have been added.` : '1 category has been added.'),
+        importCategoriesSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
+            if (!added && !updated) {
+                return 'No categories have been added or updated.';
+            }
+
+            if (added && updated) {
+                return `${added} ${added === 1 ? 'category' : 'categories'} added, ${updated} ${updated === 1 ? 'category' : 'categories'} updated.`;
+            }
+
+            if (added) {
+                return added === 1 ? '1 category has been added.' : `${added} categories have been added.`;
+            }
+
+            return updated === 1 ? '1 category has been updated.' : `${updated} categories have been updated.`;
+        },
         importCompanyCardTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
             transactions > 1 ? `${transactions} transactions have been added.` : '1 transaction has been added.',
         importMembersSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
@@ -1202,7 +1220,6 @@ const translations = {
         flash: 'flash',
         multiScan: 'multi-scan',
         shutter: 'shutter',
-        flipCamera: 'flip camera',
         gallery: 'gallery',
         deleteReceipt: 'Delete receipt',
         deleteConfirmation: 'Are you sure you want to delete this receipt?',
@@ -1363,7 +1380,6 @@ const translations = {
         }),
         settledExpensify: 'Paid',
         done: 'Done',
-        deleted: 'Deleted',
         settledElsewhere: 'Paid elsewhere',
         individual: 'Individual',
         business: 'Business',
@@ -1482,6 +1498,11 @@ const translations = {
             endDateSameAsStartDate: "The end date can't be the same as the start date",
             manySplitsProvided: `The maximum splits allowed is ${CONST.IOU.SPLITS_LIMIT}.`,
             dateRangeExceedsMaxDays: `The date range can't exceed ${CONST.IOU.SPLITS_LIMIT} days.`,
+            nonReimbursablePayment: 'Cannot pay via Expensify',
+            nonReimbursablePaymentDescription: (isMultiple?: boolean) =>
+                isMultiple
+                    ? "One or more selected reports don't have reimbursable expenses. Double check the expenses, or manually mark as paid."
+                    : "The report doesn't have reimbursable expenses. Double check the expenses, or manually mark as paid.",
         },
         dismissReceiptError: 'Dismiss error',
         dismissReceiptErrorConfirmation: 'Heads up! Dismissing this error will remove your uploaded receipt entirely. Are you sure?',
@@ -1570,6 +1591,7 @@ const translations = {
         bookingArchived: 'This booking is archived',
         bookingArchivedDescription: 'This booking is archived because the trip date has passed. Add an expense for the final amount if needed.',
         attendees: 'Attendees',
+        totalPerAttendee: 'Per attendee',
         whoIsYourAccountant: 'Who is your accountant?',
         paymentComplete: 'Payment complete',
         time: 'Time',
@@ -1641,7 +1663,9 @@ const translations = {
             },
             addApprover: {
                 subtitle: 'Choose an additional approver for this report before we route through the rest of the approval workflow.',
+                bulkSubtitle: 'Choose an additional approver for these reports before we route through the rest of the approval workflow.',
             },
+            bulkSubtitle: 'Choose an option to change the approver for these reports.',
         },
         chooseWorkspace: 'Choose a workspace',
         routedDueToDEW: (to: string, reason?: string) => `report routed to ${to}${reason ? ` because ${reason}` : ''}`,
@@ -1789,7 +1813,7 @@ const translations = {
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Waiting for <strong>your</strong> expenses to automatically submit${formattedETA}.`;
+                        return `Waiting for your expenses to automatically submit${formattedETA}.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `Waiting for <strong>${actor}'s</strong> expenses to automatically submit${formattedETA}.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
@@ -2066,6 +2090,8 @@ const translations = {
             title: 'Help and support',
             description: 'We are here to help you 24/7',
             helpSite: 'Help site',
+            conciergeChat: 'Concierge',
+            conciergeChatDescription: 'Your personal AI agent',
         },
         whatIsNew: "What's new",
         accountSettings: 'Account settings',
@@ -2352,6 +2378,7 @@ const translations = {
         enableWallet: 'Enable wallet',
         addBankAccountToSendAndReceive: 'Add a bank account to make or receive payments.',
         addDebitOrCreditCard: 'Add debit or credit card',
+        cardInactive: 'Inactive',
         assignedCards: 'Assigned cards',
         assignedCardsDescription: 'Transactions from these cards sync automatically.',
         expensifyCard: 'Expensify Card',
@@ -2528,6 +2555,7 @@ const translations = {
             title: 'No members to display',
             expensesFromSubtitle: 'All workspace members already belong to an existing approval workflow.',
             approverSubtitle: 'All approvers belong to an existing workflow.',
+            bulkApproverSubtitle: 'No approvers match the criteria for selected reports.',
         },
     },
     workflowsDelayedSubmissionPage: {
@@ -3432,11 +3460,6 @@ const translations = {
         confirmationStepHeader: 'Check your info.',
         confirmationStepSubHeader: 'Double check the details below, and check the terms box to confirm.',
         toGetStarted: 'Add a personal bank account to receive reimbursements, pay invoices, or enable the Expensify Wallet.',
-        updatePersonalInfo: 'Update bank account',
-        updatePersonalInfoFailure: 'Unable to update bank account information. Please try again later.',
-        updateSuccessTitle: 'Bank account updated!',
-        updateSuccessHeader: 'Bank account updated',
-        updateSuccessMessage: 'Congrats, your bank account is set up and ready to receive reimbursements.',
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Enter Expensify password',
@@ -3848,6 +3871,10 @@ const translations = {
         youCanChange: 'You can change your workspace currency in your',
         findCountry: 'Find country',
         selectCountry: 'Select country',
+        error: {
+            connectToWorkspace: (workspaceRoute: string) =>
+                `Please connect this bank account to a <a href="${workspaceRoute}">workspace</a> so you can invite a director to sign in a later step.`,
+        },
     },
     bankInfoStep: {
         whatAreYour: 'What are your business bank account details?',
@@ -3895,6 +3922,7 @@ const translations = {
             `is connecting a ${currency} business bank account ending in ${bankAccountLastFour} to Expensify to pay employees in ${currency}. The next step requires signer info from a director.`,
         error: {
             emailsMustBeDifferent: 'Emails must be different',
+            connectToWorkspace: (workspaceRoute: string) => `Please connect this bank account to a <a href="${workspaceRoute}">workspace</a> to invite a director to sign.`,
         },
     },
     agreementsStep: {
@@ -4145,6 +4173,7 @@ const translations = {
             defaultNote: `Receipts sent to ${CONST.EMAIL.RECEIPTS} will appear in this workspace.`,
             deleteConfirmation: 'Are you sure you want to delete this workspace?',
             deleteWithCardsConfirmation: 'Are you sure you want to delete this workspace? This will remove all card feeds and assigned cards.',
+            deleteOpenExpensifyCardsError: 'Your company still has open Expensify Cards.',
             outstandingBalanceWarning:
                 'You have an outstanding balance that must be settled before deleting your last workspace. Please go to your subscription settings to resolve the payment.',
             settleBalance: 'Go to subscription',
@@ -6689,6 +6718,17 @@ const translations = {
                 title: 'Expense policy',
                 cardSubtitle: "Here's where your team's expense policy lives, so everyone's on the same page about what's covered.",
             },
+            spendRules: {
+                title: 'Spend',
+                subtitle: 'Approve or decline Expensify Card transactions in realtime.',
+                defaultRuleDescription: 'All cards',
+                block: 'Block',
+                defaultRuleTitle: 'Categories: Adult services, ATMs, gambling, money transfers',
+                builtInProtectionModal: {
+                    title: 'Expensify Cards offer built-in protection - always',
+                    description: `Expensify always declines these charges:\n\n  • Adult services\n  • ATMs\n  • Gambling\n  • Money transfers\n\nAdd more spend rules to protect company cash flow.`,
+                },
+            },
         },
         planTypePage: {
             planTypes: {
@@ -7393,7 +7433,6 @@ const translations = {
             hold: 'Hold',
             unhold: 'Remove hold',
             reject: 'Reject',
-            undelete: 'Undelete',
             noOptionsAvailable: 'No options available for the selected group of expenses.',
         },
         filtersHeader: 'Filters',
@@ -7402,6 +7441,8 @@ const translations = {
                 before: (date?: string) => `Before ${date ?? ''}`,
                 after: (date?: string) => `After ${date ?? ''}`,
                 on: (date?: string) => `On ${date ?? ''}`,
+                customDate: 'Custom date',
+                customRange: 'Custom range',
                 presets: {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Never',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Last month',
@@ -7522,6 +7563,9 @@ const translations = {
         exportAll: {
             selectAllMatchingItems: 'Select all matching items',
             allMatchingItemsSelected: 'All matching items selected',
+        },
+        errors: {
+            pleaseSelectDatesForBothFromAndTo: 'Please select dates for both From and To',
         },
     },
     genericErrorPage: {
@@ -7678,6 +7722,8 @@ const translations = {
     chronos: {
         oooEventSummaryFullDay: (summary: string, dayCount: number, date: string) => `${summary} for ${dayCount} ${dayCount === 1 ? 'day' : 'days'} until ${date}`,
         oooEventSummaryPartialDay: (summary: string, timePeriod: string, date: string) => `${summary} from ${timePeriod} on ${date}`,
+        startTimer: 'Start Timer',
+        stopTimer: 'Stop Timer',
     },
     footer: {
         features: 'Features',
