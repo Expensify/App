@@ -27,7 +27,7 @@ type MenuListItem = ListItem & {
     value: ValueOf<typeof CONST.NETSUITE_EXPORT_DESTINATION>;
 };
 
-function NetSuiteExportExpensesDestinationSelectPage({policy}: WithPolicyConnectionsProps) {
+function DynamicNetSuiteExportExpensesDestinationSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
@@ -78,7 +78,7 @@ function NetSuiteExportExpensesDestinationSelectPage({policy}: WithPolicyConnect
     return (
         <>
             <SelectionScreen
-                displayName="NetSuiteExportExpensesDestinationSelectPage"
+                displayName="DynamicNetSuiteExportExpensesDestinationSelectPage"
                 title="workspace.accounting.exportAs"
                 data={data}
                 listItem={RadioListItem}
@@ -110,4 +110,4 @@ function NetSuiteExportExpensesDestinationSelectPage({policy}: WithPolicyConnect
     );
 }
 
-export default withPolicyConnections(NetSuiteExportExpensesDestinationSelectPage);
+export default withPolicyConnections(DynamicNetSuiteExportExpensesDestinationSelectPage);

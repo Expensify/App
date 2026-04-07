@@ -23,7 +23,7 @@ type CardListItem = ListItem & {
     value: string;
 };
 
-function NetSuitePreferredExporterSelectPage({policy}: WithPolicyConnectionsProps) {
+function DynamicNetSuitePreferredExporterSelectPage({policy}: WithPolicyConnectionsProps) {
     const config = policy?.connections?.netsuite?.options.config;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -93,7 +93,7 @@ function NetSuitePreferredExporterSelectPage({policy}: WithPolicyConnectionsProp
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName="NetSuitePreferredExporterSelectPage"
+            displayName="DynamicNetSuitePreferredExporterSelectPage"
             data={data}
             listItem={RadioListItem}
             headerContent={headerContent}
@@ -110,4 +110,4 @@ function NetSuitePreferredExporterSelectPage({policy}: WithPolicyConnectionsProp
     );
 }
 
-export default withPolicyConnections(NetSuitePreferredExporterSelectPage);
+export default withPolicyConnections(DynamicNetSuitePreferredExporterSelectPage);

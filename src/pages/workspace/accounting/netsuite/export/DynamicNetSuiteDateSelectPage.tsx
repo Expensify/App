@@ -23,7 +23,7 @@ type MenuListItem = ListItem & {
     value: ValueOf<typeof CONST.NETSUITE_EXPORT_DATE>;
 };
 
-function NetSuiteDateSelectPage({policy}: WithPolicyConnectionsProps) {
+function DynamicNetSuiteDateSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const policyID = policy?.id;
     const styles = useThemeStyles();
@@ -63,7 +63,7 @@ function NetSuiteDateSelectPage({policy}: WithPolicyConnectionsProps) {
 
     return (
         <SelectionScreen
-            displayName="NetSuiteDateSelectPage"
+            displayName="DynamicNetSuiteDateSelectPage"
             title="workspace.netsuite.exportDate.label"
             headerContent={headerContent}
             data={data}
@@ -83,4 +83,4 @@ function NetSuiteDateSelectPage({policy}: WithPolicyConnectionsProps) {
     );
 }
 
-export default withPolicyConnections(NetSuiteDateSelectPage);
+export default withPolicyConnections(DynamicNetSuiteDateSelectPage);

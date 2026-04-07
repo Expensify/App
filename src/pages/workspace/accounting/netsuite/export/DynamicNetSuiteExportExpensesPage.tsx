@@ -31,7 +31,7 @@ type MenuItemWithSubscribedSettings = Pick<MenuItem, 'description' | 'title' | '
     subscribedSettings?: string[];
 };
 
-function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
+function DynamicNetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
@@ -130,7 +130,7 @@ function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
 
     return (
         <ConnectionLayout
-            displayName="NetSuiteExportExpensesPage"
+            displayName="DynamicNetSuiteExportExpensesPage"
             onBackButtonPress={() => Navigation.goBack(backPath)}
             headerTitle={`workspace.accounting.${isReimbursable ? 'exportOutOfPocket' : 'exportCompanyCard'}`}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
@@ -162,4 +162,4 @@ function NetSuiteExportExpensesPage({policy}: WithPolicyConnectionsProps) {
     );
 }
 
-export default withPolicyConnections(NetSuiteExportExpensesPage);
+export default withPolicyConnections(DynamicNetSuiteExportExpensesPage);
