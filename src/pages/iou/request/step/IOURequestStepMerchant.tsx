@@ -19,8 +19,9 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getTransactionDetails, isExpenseRequest, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {hasReceipt} from '@libs/TransactionUtils';
 import {isInvalidMerchantValue, isValidInputLength} from '@libs/ValidationUtils';
-import {setMoneyRequestMerchant, updateMoneyRequestMerchant} from '@userActions/IOU';
+import {setMoneyRequestMerchant} from '@userActions/IOU';
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
+import {updateMoneyRequestMerchant} from '@userActions/IOU/UpdateMoneyRequest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -112,7 +113,9 @@ function IOURequestStepMerchant({
         const newMerchant = value.moneyRequestMerchant?.trim();
 
         if (isEditingSplitBill) {
-            setDraftSplitTransaction(transactionID, splitDraftTransaction, {merchant: newMerchant});
+            setDraftSplitTransaction(transactionID, splitDraftTransaction, {
+                merchant: newMerchant,
+            });
             setIsSaved(true);
             shouldNavigateAfterSaveRef.current = true;
             return;

@@ -20,8 +20,9 @@ import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getIOURequestPolicyID, setMoneyRequestCategory, updateMoneyRequestCategory} from '@libs/actions/IOU';
+import {getIOURequestPolicyID, setMoneyRequestCategory} from '@libs/actions/IOU';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
+import {updateMoneyRequestCategory} from '@libs/actions/IOU/UpdateMoneyRequest';
 import {enablePolicyCategories, getPolicyCategories} from '@libs/actions/Policy/Category';
 import {isCategoryMissing} from '@libs/CategoryUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -61,7 +62,13 @@ function IOURequestStepCategory({
     const report = reportReal ?? reportDraft ?? transactionReport;
     const policyIdReal = getIOURequestPolicyID(transaction, reportReal ?? transactionReport);
     const policyIdDraft = getIOURequestPolicyID(transaction, reportDraft);
-    const {policy} = usePolicyForTransaction({transaction, reportPolicyID: policyIdReal ?? policyIdDraft, action, iouType, isPerDiemRequest});
+    const {policy} = usePolicyForTransaction({
+        transaction,
+        reportPolicyID: policyIdReal ?? policyIdDraft,
+        action,
+        iouType,
+        isPerDiemRequest,
+    });
     const policyID = policy?.id;
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
