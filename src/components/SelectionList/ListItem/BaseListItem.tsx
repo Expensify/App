@@ -5,7 +5,7 @@ import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import type {PressableWithFeedbackProps} from '@components/Pressable/PressableWithFeedback';
-import SelectionCheckbox from '@components/SelectionList/components/SelectionCheckbox';
+import SelectionButton from '@components/SelectionList/components/SelectionButton';
 import getAccessibilityLabel from '@components/SelectionList/utils/getAccessibilityLabel';
 import useHover from '@hooks/useHover';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -249,10 +249,10 @@ function BaseListItem<TItem extends ListItem>({
                             style={[styles.flexRow, styles.alignItemsCenter, styles.ml3]}
                             accessible={false}
                         >
-                            <SelectionCheckbox
+                            <SelectionButton
+                                role={CONST.ROLE.RADIO}
                                 item={item}
                                 onSelectRow={onSelectRow}
-                                isCircular
                             />
                         </View>
                     )}

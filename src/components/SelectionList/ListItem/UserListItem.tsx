@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import ReportActionAvatars from '@components/ReportActionAvatars';
-import SelectionCheckbox from '@components/SelectionList/components/SelectionCheckbox';
+import SelectionButton from '@components/SelectionList/components/SelectionButton';
 import {ListItemFocusContext} from '@components/SelectionList/ListItemFocusContext';
 import getAccessibilityLabel from '@components/SelectionList/utils/getAccessibilityLabel';
 import Text from '@components/Text';
@@ -110,7 +110,8 @@ function UserListItem<TItem extends ListItem>({
                         style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
                     >
                         {!shouldUseDefaultRightHandSideCheckmark && !!canSelectMultiple && (
-                            <SelectionCheckbox
+                            <SelectionButton
+                                role={CONST.ROLE.CHECKBOX}
                                 item={item}
                                 onSelectRow={onCheckboxPress ?? onSelectRow}
                                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -166,13 +167,13 @@ function UserListItem<TItem extends ListItem>({
                             </View>
                         )}
                         {((!!shouldUseDefaultRightHandSideCheckmark && !!canSelectMultiple) || (!!shouldShowRadioButton && !canSelectMultiple)) && (
-                            <SelectionCheckbox
+                            <SelectionButton
+                                role={canSelectMultiple ? CONST.ROLE.CHECKBOX : CONST.ROLE.RADIO}
                                 item={item}
                                 onSelectRow={onCheckboxPress ?? onSelectRow}
                                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                 disabled={isDisabled || item.isDisabledCheckbox}
                                 style={styles.ml3}
-                                isCircular={!canSelectMultiple}
                             />
                         )}
                     </View>

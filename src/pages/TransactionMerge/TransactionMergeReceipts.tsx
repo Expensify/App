@@ -53,7 +53,6 @@ function TransactionMergeReceipts({transactions, selectedReceiptID, onSelect}: T
                                     isChecked={isSelected}
                                     onPress={() => onSelect(transaction.receipt)}
                                     accessibilityLabel={`${translate('transactionMerge.receiptPage.pageTitle')} ${transaction.transactionID}`}
-                                    shouldUseNewStyle
                                 />
                             </View>
                             <View style={[styles.mergeTransactionReceiptImage, styles.pRelative]}>

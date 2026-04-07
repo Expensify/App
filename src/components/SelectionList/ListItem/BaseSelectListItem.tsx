@@ -34,8 +34,6 @@ function BaseSelectListItem<TItem extends ListItem>({
     const indentsLength = (item.text?.length ?? 0) - (fullTitle?.length ?? 0);
     const paddingLeft = Math.floor(indentsLength / CONST.INDENTS.length) * styles.ml3.marginLeft;
     const alternateTextMaxWidth = variables.sideBarWidth - styles.ph5.paddingHorizontal * 2 - styles.ml3.marginLeft - variables.iconSizeNormal;
-    const CIRCULAR_BORDER_RADIUS = 999;
-
     const handleCheckboxPress = useCallback(() => {
         onSelectRow(item);
     }, [item, onSelectRow]);
@@ -44,7 +42,7 @@ function BaseSelectListItem<TItem extends ListItem>({
         () => (
             <Checkbox
                 shouldSelectOnPressEnter
-                containerBorderRadius={CIRCULAR_BORDER_RADIUS}
+                containerBorderRadius={variables.componentBorderRadiusCircle}
                 accessibilityLabel={item.text ?? ''}
                 isChecked={!!item.isSelected}
                 disabled={!!isDisabled && !item.isSelected}

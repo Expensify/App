@@ -68,6 +68,9 @@ type CheckboxProps = Partial<ChildrenProps> &
 
         /** Tab index for the checkbox */
         tabIndex?: 0 | -1;
+
+        /** Accessibility role override (defaults to checkbox) */
+        role?: typeof CONST.ROLE.CHECKBOX | typeof CONST.ROLE.RADIO;
     };
 
 function Checkbox({
@@ -91,6 +94,7 @@ function Checkbox({
     ref,
     sentryLabel,
     tabIndex,
+    role = CONST.ROLE.CHECKBOX,
 }: CheckboxProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -136,7 +140,7 @@ function Checkbox({
             style={[StyleUtils.getCheckboxPressableStyle(containerBorderRadius + 2), style]} // to align outline on focus, border-radius of pressable should be 2px more than Checkbox
             onKeyDown={handleSpaceOrEnterKey}
             tabIndex={tabIndex}
-            role={CONST.ROLE.CHECKBOX}
+            role={role}
             accessibilityState={{
                 checked: isIndeterminate ? 'mixed' : isChecked,
             }}

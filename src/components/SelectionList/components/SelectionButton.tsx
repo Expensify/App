@@ -2,52 +2,54 @@ import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
-type SelectionCheckboxProps<TItem extends ListItem> = {
-    /** The item to render the checkbox for */
+type SelectionButtonProps<TItem extends ListItem> = {
+    /** Whether the button renders as a radio button (circular) or checkbox (square) */
+    role: typeof CONST.ROLE.CHECKBOX | typeof CONST.ROLE.RADIO;
+
+    /** The item to render the selection button for */
     item: TItem;
 
     /** Callback to fire when the item is pressed */
     onSelectRow: (item: TItem) => void;
 
-    /** Custom accessibility label for the checkbox */
+    /** Custom accessibility label */
     accessibilityLabel?: string;
 
-    /** Whether the checkbox should have circular border radius (for single-select style) */
-    isCircular?: boolean;
-
-    /** Whether the checkbox is disabled */
+    /** Whether the button is disabled */
     disabled?: boolean;
 
-    /** Additional styles for the checkbox */
+    /** Additional styles */
     style?: StyleProp<ViewStyle>;
 
-    /** Additional styles for the checkbox container */
+    /** Additional styles for the container */
     containerStyle?: StyleProp<ViewStyle>;
 
     /** Whether to stop mouse down event propagation */
     shouldStopMouseDownPropagation?: boolean;
 
-    /** Test ID for the checkbox */
+    /** Test ID */
     testID?: string;
 };
 
-function SelectionCheckbox<TItem extends ListItem>({
+function SelectionButton<TItem extends ListItem>({
+    role,
     item,
     onSelectRow,
     accessibilityLabel,
-    isCircular = false,
     disabled,
     style,
     containerStyle,
     shouldStopMouseDownPropagation,
     testID,
-}: SelectionCheckboxProps<TItem>) {
+}: SelectionButtonProps<TItem>) {
     return (
         <Checkbox
             shouldSelectOnPressEnter
-            containerBorderRadius={isCircular ? 999 : undefined}
+            containerBorderRadius={role === CONST.ROLE.RADIO ? variables.componentBorderRadiusCircle : undefined}
+            role={role}
             accessibilityLabel={accessibilityLabel ?? item.text ?? ''}
             isChecked={item.isSelected}
             onPress={() => onSelectRow(item)}
@@ -61,4 +63,4 @@ function SelectionCheckbox<TItem extends ListItem>({
     );
 }
 
-export default SelectionCheckbox;
+export default SelectionButton;

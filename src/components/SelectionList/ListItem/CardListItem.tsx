@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Icon from '@components/Icon';
 import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
-import SelectionCheckbox from '@components/SelectionList/components/SelectionCheckbox';
+import SelectionButton from '@components/SelectionList/components/SelectionButton';
 import TextWithTooltip from '@components/TextWithTooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -158,7 +158,8 @@ function CardListItem<TItem extends ListItem>({
                     </View>
                 </View>
                 {!!canSelectMultiple && !item.isDisabled && (
-                    <SelectionCheckbox
+                    <SelectionButton
+                        role={CONST.ROLE.CHECKBOX}
                         item={item}
                         onSelectRow={onCheckboxPress ?? onSelectRow}
                         disabled={!!isDisabled}

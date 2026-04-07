@@ -1,6 +1,7 @@
 import React, {useCallback} from 'react';
-import SelectionCheckbox from '@components/SelectionList/components/SelectionCheckbox';
+import SelectionButton from '@components/SelectionList/components/SelectionButton';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import BaseSelectListItem from './BaseSelectListItem';
 import type {ListItem, SingleSelectListItemProps} from './types';
 
@@ -32,11 +33,11 @@ function SingleSelectListItem<TItem extends ListItem>({
 
     const radioCheckboxComponent = useCallback(() => {
         return (
-            <SelectionCheckbox
+            <SelectionButton
+                role={CONST.ROLE.RADIO}
                 item={item}
                 onSelectRow={onSelectRow}
                 accessibilityLabel="SingleSelectListItem"
-                isCircular
             />
         );
     }, [item, onSelectRow]);

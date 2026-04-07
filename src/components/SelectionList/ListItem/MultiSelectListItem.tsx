@@ -1,7 +1,7 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
-import SelectionCheckbox from '@components/SelectionList/components/SelectionCheckbox';
+import SelectionButton from '@components/SelectionList/components/SelectionButton';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import BaseSelectListItem from './BaseSelectListItem';
@@ -34,7 +34,8 @@ function MultiSelectListItem<TItem extends ListItem>({
 
     const checkboxComponent = useCallback(() => {
         return (
-            <SelectionCheckbox
+            <SelectionButton
+                role={CONST.ROLE.CHECKBOX}
                 item={item}
                 onSelectRow={onSelectRow}
             />

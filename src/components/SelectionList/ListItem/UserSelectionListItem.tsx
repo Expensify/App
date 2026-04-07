@@ -2,7 +2,7 @@ import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
-import SelectionCheckbox from '@components/SelectionList/components/SelectionCheckbox';
+import SelectionButton from '@components/SelectionList/components/SelectionButton';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -100,7 +100,8 @@ function UserSelectionListItem<TItem extends ListItem>({
                     )}
                 </View>
 
-                <SelectionCheckbox
+                <SelectionButton
+                    role={CONST.ROLE.CHECKBOX}
                     item={item}
                     onSelectRow={onCheckboxPress ?? onSelectRow}
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing

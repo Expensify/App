@@ -38,7 +38,6 @@ function MergeFieldReview({mergeField, onValueSelected, errorText}: MergeFieldRe
                             isChecked={isSelected}
                             onPress={() => onValueSelected(transaction, field)}
                             accessibilityLabel={displayValue}
-                            shouldUseNewStyle
                         />
                     </PressableWithoutFeedback>
                 );

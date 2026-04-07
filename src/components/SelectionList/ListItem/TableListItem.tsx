@@ -1,12 +1,13 @@
 import React from 'react';
 import {View} from 'react-native';
 import ReportActionAvatars from '@components/ReportActionAvatars';
-import SelectionCheckbox from '@components/SelectionList/components/SelectionCheckbox';
+import SelectionButton from '@components/SelectionList/components/SelectionButton';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
 import type {ListItem, TableListItemProps} from './types';
 
@@ -77,7 +78,8 @@ function TableListItem<TItem extends ListItem>({
             {(hovered) => (
                 <>
                     {!!canSelectMultiple && (
-                        <SelectionCheckbox
+                        <SelectionButton
+                            role={CONST.ROLE.CHECKBOX}
                             item={item}
                             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                             disabled={isDisabled || item.isDisabledCheckbox}

@@ -3,7 +3,7 @@ import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import ReportActionAvatars from '@components/ReportActionAvatars';
-import SelectionCheckbox from '@components/SelectionList/components/SelectionCheckbox';
+import SelectionButton from '@components/SelectionList/components/SelectionButton';
 import {ListItemFocusContext} from '@components/SelectionList/ListItemFocusContext';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
@@ -157,12 +157,12 @@ function InviteMemberListItem<TItem extends ListItem>({
                         </View>
                         {!!item.rightElement && <ListItemFocusContext.Provider value={{isFocused}}>{item.rightElement}</ListItemFocusContext.Provider>}
                         {!!shouldShowCheckbox && (
-                            <SelectionCheckbox
+                            <SelectionButton
+                                role={canSelectMultiple ? CONST.ROLE.CHECKBOX : CONST.ROLE.RADIO}
                                 item={item}
                                 onSelectRow={handleCheckboxPress}
                                 disabled={!!isDisabled}
                                 style={[styles.ml2, styles.optionSelectCircle]}
-                                isCircular={!canSelectMultiple}
                             />
                         )}
                     </View>

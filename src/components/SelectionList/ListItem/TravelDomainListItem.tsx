@@ -1,10 +1,11 @@
 import React from 'react';
 import {View} from 'react-native';
 import Badge from '@components/Badge';
-import SelectionCheckbox from '@components/SelectionList/components/SelectionCheckbox';
+import SelectionButton from '@components/SelectionList/components/SelectionButton';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
 import type {ListItem, TravelDomainListItemProps} from './types';
 
@@ -39,11 +40,11 @@ function TravelDomainListItem<TItem extends ListItem>({
         >
             <>
                 <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                    <SelectionCheckbox
+                    <SelectionButton
+                        role={CONST.ROLE.RADIO}
                         item={item}
                         onSelectRow={onCheckboxPress ?? onSelectRow}
                         disabled={isDisabled ?? undefined}
-                        isCircular
                         style={styles.mr2}
                     />
                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
