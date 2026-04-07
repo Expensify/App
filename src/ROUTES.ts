@@ -111,11 +111,23 @@ const DYNAMIC_ROUTES = {
         path: 'visibility',
         entryScreens: [SCREENS.REPORT_SETTINGS.ROOT],
     },
+    POLICY_ACCOUNTING_XERO_EXPORT_BANK_ACCOUNT_SELECT: {
+        path: 'bank-account-select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.XERO_EXPORT],
+    },
+    POLICY_ACCOUNTING_XERO_BILL_STATUS_SELECTOR: {
+        path: 'purchase-bill-status-selector',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.XERO_EXPORT],
+    },
+    POLICY_ACCOUNTING_XERO_ACCOUNTING_METHOD: {
+        path: 'accounting-method',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.XERO_AUTO_SYNC],
+    },
     ADDRESS_COUNTRY: {
         path: 'country',
         entryScreens: [
             SCREENS.SETTINGS.PROFILE.ADDRESS,
-            SCREENS.WORKSPACE.ADDRESS,
+            SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_ADDRESS,
             SCREENS.SETTINGS.WALLET.CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS,
             SCREENS.DOMAIN_CARD.DOMAIN_CARD_UPDATE_ADDRESS,
             SCREENS.TRAVEL.WORKSPACE_ADDRESS,
@@ -157,6 +169,10 @@ const DYNAMIC_ROUTES = {
     },
     WORKSPACE_OVERVIEW_PLAN: {
         path: 'plan',
+        entryScreens: [SCREENS.WORKSPACE.PROFILE],
+    },
+    WORKSPACE_OVERVIEW_ADDRESS: {
+        path: 'workspace-address',
         entryScreens: [SCREENS.WORKSPACE.PROFILE],
     },
     WORKSPACE_INVITE: {
@@ -1691,17 +1707,6 @@ const ROUTES = {
             return getUrlWithBackToParam(`workspaces/${policyID}/overview` as const, backTo);
         },
     },
-    WORKSPACE_OVERVIEW_ADDRESS: {
-        route: 'workspaces/:policyID/overview/address',
-        getRoute: (policyID: string | undefined, backTo?: string) => {
-            if (!policyID) {
-                Log.warn('Invalid policyID is used to build the WORKSPACE_OVERVIEW_ADDRESS route');
-            }
-
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`workspaces/${policyID}/overview/address` as const, backTo);
-        },
-    },
     WORKSPACE_ACCOUNTING: {
         route: 'workspaces/:policyID/accounting',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting` as const,
@@ -2813,8 +2818,8 @@ const ROUTES = {
     },
     WORKSPACE_CREATE_DISTANCE_RATE_UPGRADE: {
         route: 'workspaces/:policyID/distance-rates/new/upgrade',
-        getRoute: (policyID: string, transactionID?: string, reportID?: string) =>
-            `workspaces/${policyID}/distance-rates/new/upgrade${transactionID ? `?transactionID=${transactionID}` : ''}${reportID ? `&reportID=${reportID}` : ''}` as const,
+        getRoute: (policyID: string, transactionID?: string, reportID?: string, iouType?: string, action?: string) =>
+            `workspaces/${policyID}/distance-rates/new/upgrade${transactionID ? `?transactionID=${transactionID}` : ''}${reportID ? `&reportID=${reportID}` : ''}${iouType ? `&iouType=${iouType}` : ''}${action ? `&action=${action}` : ''}` as const,
     },
     WORKSPACE_DISTANCE_RATES_SETTINGS: {
         route: 'workspaces/:policyID/distance-rates/settings',
@@ -3390,12 +3395,6 @@ const ROUTES = {
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/accounting/xero/export/purchase-bill-date-select` as const, backTo),
     },
-    POLICY_ACCOUNTING_XERO_EXPORT_BANK_ACCOUNT_SELECT: {
-        route: 'workspaces/:policyID/accounting/xero/export/bank-account-select',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/accounting/xero/export/bank-account-select` as const, backTo),
-    },
     POLICY_ACCOUNTING_XERO_ADVANCED: {
         route: 'workspaces/:policyID/accounting/xero/advanced',
         getRoute: (policyID: string | undefined) => {
@@ -3419,23 +3418,6 @@ const ROUTES = {
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             return getUrlWithBackToParam(`workspaces/${policyID}/accounting/xero/advanced/autosync` as const, backTo);
         },
-    },
-    POLICY_ACCOUNTING_XERO_ACCOUNTING_METHOD: {
-        route: 'workspaces/:policyID/accounting/xero/advanced/autosync/accounting-method',
-        getRoute: (policyID: string | undefined, backTo?: string) => {
-            if (!policyID) {
-                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_XERO_ACCOUNTING_METHOD route');
-            }
-
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`workspaces/${policyID}/accounting/xero/advanced/autosync/accounting-method` as const, backTo);
-        },
-    },
-    POLICY_ACCOUNTING_XERO_BILL_STATUS_SELECTOR: {
-        route: 'workspaces/:policyID/accounting/xero/export/purchase-bill-status-selector',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/accounting/xero/export/purchase-bill-status-selector` as const, backTo),
     },
     POLICY_ACCOUNTING_XERO_INVOICE_SELECTOR: {
         route: 'workspaces/:policyID/accounting/xero/advanced/invoice-account-selector',
