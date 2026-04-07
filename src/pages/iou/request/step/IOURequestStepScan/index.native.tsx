@@ -21,6 +21,7 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import {pregenerateThumbnail} from '@hooks/useLocalReceiptThumbnail';
 import useNativeCamera from '@hooks/useNativeCamera';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -178,6 +179,10 @@ function IOURequestStepScan({
         }
         endSpan(CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE);
 
+        // Preload the confirmation screen module so its JS is parsed and ready
+        // when we navigate after capture — eliminates cold-start module load cost.
+        require('../IOURequestStepConfirmation');
+
         // Pre-create upload directory to avoid latency during capture
         const path = getReceiptsUploadFolderPath();
         ReactNativeBlobUtil.fs
@@ -325,6 +330,7 @@ function IOURequestStepScan({
                 const transactionID = transaction?.transactionID ?? initialTransactionID;
                 const source = getPhotoSource(photo.path);
                 const filename = photo.path;
+
                 endSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE);
 
                 const cameraFile = {
@@ -334,9 +340,8 @@ function IOURequestStepScan({
                     source,
                 };
 
-                setMoneyRequestReceipt(transactionID, source, filename, !isEditing, 'image/jpeg');
-
                 if (isEditing) {
+                    setMoneyRequestReceipt(transactionID, source, filename, !isEditing, 'image/jpeg');
                     updateScanAndNavigate(cameraFile as FileObject, source);
                     return;
                 }
@@ -345,14 +350,18 @@ function IOURequestStepScan({
                 setReceiptFiles(newReceiptFiles);
 
                 if (isMultiScanEnabled) {
+                    setMoneyRequestReceipt(transactionID, source, filename, !isEditing, 'image/jpeg');
                     setDidCapturePhoto(false);
                     isCapturingPhoto.current = false;
                     return;
                 }
 
-                // Defer navigation by one frame so React renders the frozen camera
-                // state (didCapturePhoto=true) before the screen transitions away.
-                requestAnimationFrame(() => submitReceipts(newReceiptFiles));
+                // Fire Onyx merge immediately (non-blocking) while we await thumbnail generation.
+                // Both run in parallel — navigation proceeds once the thumbnail is cached.
+                setMoneyRequestReceipt(transactionID, source, filename, !isEditing, 'image/jpeg');
+                pregenerateThumbnail(source).then(() => {
+                    submitReceipts(newReceiptFiles);
+                });
             })
             .catch((error: string) => {
                 isCapturingPhoto.current = false;
