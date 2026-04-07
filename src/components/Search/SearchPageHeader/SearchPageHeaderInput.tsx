@@ -15,10 +15,10 @@ import type {SearchQueryItem} from '@components/Search/SearchList/ListItem/Searc
 import {isSearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
 import {buildSubstitutionsMap} from '@components/Search/SearchRouter/buildSubstitutionsMap';
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
-import {getQueryWithSubstitutions, getSubstitutionMapKeyWithIndex} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
+import {getQueryWithSubstitutions} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import {getUpdatedSubstitutionsMap} from '@components/Search/SearchRouter/getUpdatedSubstitutionsMap';
 import {useSearchRouterActions} from '@components/Search/SearchRouter/SearchRouterContext';
-import type {SearchFilterKey, SearchQueryJSON, SearchQueryString} from '@components/Search/types';
+import type {SearchQueryJSON, SearchQueryString} from '@components/Search/types';
 import type {SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
