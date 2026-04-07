@@ -1689,7 +1689,7 @@ function getSpendRuleFormValuesFromCardRule(cardRule: ExpensifyCardRule): SpendR
         }
 
         if (left === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
-            formValues.maxAmount = right.at(0) ?? '';
+            formValues.maxAmount = typeof right === 'string' ? right : right.at(0) ?? '';
             return;
         }
 
