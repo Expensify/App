@@ -1399,6 +1399,8 @@ function leaveWorkspace(currentUserAccountID: number, currentUserEmail: string, 
 
 function addBillingCardAndRequestPolicyOwnerChange(
     policyID: string | undefined,
+    currentUserAccountID: number,
+    currentUserEmail: string,
     cardData: {
         cardNumber: string;
         cardYear: string;
@@ -1436,8 +1438,8 @@ function addBillingCardAndRequestPolicyOwnerChange(
                 isLoading: false,
                 isChangeOwnerSuccessful: true,
                 isChangeOwnerFailed: false,
-                owner: deprecatedSessionEmail,
-                ownerAccountID: deprecatedSessionAccountID,
+                owner: currentUserEmail,
+                ownerAccountID: currentUserAccountID,
             },
         },
     ];
@@ -1486,7 +1488,7 @@ function addBillingCardAndRequestPolicyOwnerChange(
  * Properly updates the nvp_privateStripeCustomerID onyx data for 3DS payment
  *
  */
-function verifySetupIntentAndRequestPolicyOwnerChange(policyID: string) {
+function verifySetupIntentAndRequestPolicyOwnerChange(policyID: string, currentUserAccountID: number, currentUserEmail: string) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1508,8 +1510,8 @@ function verifySetupIntentAndRequestPolicyOwnerChange(policyID: string) {
                 isLoading: false,
                 isChangeOwnerSuccessful: true,
                 isChangeOwnerFailed: false,
-                owner: deprecatedSessionEmail,
-                ownerAccountID: deprecatedSessionAccountID,
+                owner: currentUserEmail,
+                ownerAccountID: currentUserAccountID,
             },
         },
     ];
@@ -1525,7 +1527,7 @@ function verifySetupIntentAndRequestPolicyOwnerChange(policyID: string) {
             },
         },
     ];
-    API.write(WRITE_COMMANDS.VERIFY_SETUP_INTENT_AND_REQUEST_POLICY_OWNER_CHANGE, {accountID: deprecatedSessionAccountID, policyID}, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.VERIFY_SETUP_INTENT_AND_REQUEST_POLICY_OWNER_CHANGE, {accountID: currentUserAccountID, policyID}, {optimisticData, successData, failureData});
 }
 
 /**
@@ -1603,6 +1605,7 @@ function createPolicyExpenseChats(
             policyID,
             ownerAccountID: cleanAccountID,
             notificationPreference,
+            currentUserAccountID: deprecatedSessionAccountID,
         });
 
         // Set correct notification preferences: visible for the submitter, hidden for others until there's activity
@@ -2971,23 +2974,16 @@ function createWorkspace(options: CreateWorkspaceDataOptions): CreateWorkspacePa
 
 /**
  * Creates a draft workspace for various money request flows
- *
- * @param [policyOwnerEmail] the email of the account to make the owner of the policy
- * @param [makeMeAdmin] leave the calling account as an admin on the policy
- * @param [policyName] custom policy name we will use for created workspace
- * @param [policyID] custom policy id we will use for created workspace
  */
 function createDraftWorkspace(
     introSelected: OnyxEntry<IntroSelected>,
+    workspaceName: string,
     policyOwnerEmail = '',
     makeMeAdmin = false,
-    policyName = '',
     policyID = generatePolicyID(),
     currency = '',
     file?: File,
 ): CreateWorkspaceParams {
-    const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
-
     const {customUnits, customUnitID, customUnitRateID, outputCurrency} = buildOptimisticDistanceRateCustomUnits(currency);
 
     const {expenseChatData, adminsChatReportID, adminsCreatedReportActionID, expenseChatReportID, expenseCreatedReportActionID} = ReportUtils.buildOptimisticWorkspaceChats(
