@@ -1,8 +1,8 @@
-import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -10,24 +10,21 @@ import {updateNetSuiteReceivableAccount} from '@libs/actions/connections/NetSuit
 import {clearNetSuiteErrorField} from '@libs/actions/Policy/Policy';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getNetSuiteReceivableAccountOptions, settingsPendingAction} from '@libs/PolicyUtils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-function NetSuiteReceivableAccountSelectPage({policy}: WithPolicyConnectionsProps) {
+function DynamicNetSuiteReceivableAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
     const policyID = policy?.id;
-    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_RECEIVABLE_ACCOUNT_SELECT>>();
     const config = policy?.connections?.netsuite?.options.config;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_RECEIVABLE_ACCOUNT_SELECT.path);
     const netsuiteReceivableAccountOptions = useMemo<SelectorType[]>(
         () => getNetSuiteReceivableAccountOptions(policy ?? undefined, config?.receivableAccount),
         [config?.receivableAccount, policy],
@@ -36,8 +33,8 @@ function NetSuiteReceivableAccountSelectPage({policy}: WithPolicyConnectionsProp
     const initiallyFocusedOptionKey = useMemo(() => netsuiteReceivableAccountOptions?.find((mode) => mode.isSelected)?.keyForList, [netsuiteReceivableAccountOptions]);
 
     const goBack = useCallback(() => {
-        Navigation.goBack(route.params.backTo ?? (policyID && ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT.getRoute(policyID)));
-    }, [policyID, route.params.backTo]);
+        Navigation.goBack(backPath);
+    }, [backPath]);
 
     const updateReceivableAccount = useCallback(
         ({value}: SelectorType) => {
@@ -84,4 +81,4 @@ function NetSuiteReceivableAccountSelectPage({policy}: WithPolicyConnectionsProp
     );
 }
 
-export default withPolicyConnections(NetSuiteReceivableAccountSelectPage);
+export default withPolicyConnections(DynamicNetSuiteReceivableAccountSelectPage);
