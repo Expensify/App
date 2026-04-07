@@ -10,13 +10,13 @@ import type {Session, TryNewDot} from '@src/types/onyx';
 import type HybridAppSettings from './types';
 
 let currentTryNewDot: OnyxEntry<TryNewDot>;
-let currentSessionIdentifier = '';
+let currentSessionAccountID: Session['accountID'];
 let isLoadingApp = true;
 let isLoadingTryNewDot = true;
 let hasReceivedTryNewDotUpdate = false;
 
-function getSessionIdentifier(session: OnyxEntry<Session>): string {
-    return `${session?.accountID ?? ''}:${session?.authToken ?? ''}`;
+function getSessionAccountID(session: OnyxEntry<Session>): Session['accountID'] {
+    return session?.accountID;
 }
 
 function updateTryNewDotLoadingState(isTryNewDotUpdate = false, isInitialTryNewDotUpdate = false) {
@@ -54,15 +54,15 @@ Onyx.connectWithoutView({
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (session) => {
-        const nextSessionIdentifier = getSessionIdentifier(session);
-        if (nextSessionIdentifier === currentSessionIdentifier) {
+        const nextSessionAccountID = getSessionAccountID(session);
+        if (nextSessionAccountID === currentSessionAccountID) {
             return;
         }
 
-        currentSessionIdentifier = nextSessionIdentifier;
+        currentSessionAccountID = nextSessionAccountID;
         currentTryNewDot = undefined;
         hasReceivedTryNewDotUpdate = false;
-        isLoadingTryNewDot = nextSessionIdentifier !== '' || isLoadingApp !== false;
+        isLoadingTryNewDot = nextSessionAccountID !== undefined || isLoadingApp !== false;
     },
 });
 

@@ -155,6 +155,35 @@ describe('HybridApp actions', () => {
         expect(closeNativeAppSpy).toHaveBeenCalledWith({shouldSetNVP: true});
     });
 
+    it('preserves shouldSetNVP exits when the auth token rotates for the same session', async () => {
+        await Onyx.multiSet({
+            [ONYXKEYS.IS_LOADING_APP]: false,
+            [ONYXKEYS.SESSION]: {
+                accountID: 1,
+                authToken: 'old-auth-token',
+            },
+            [ONYXKEYS.NVP_TRY_NEW_DOT]: {
+                classicRedirect: {
+                    dismissed: true,
+                },
+            },
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        closeReactNativeApp({shouldSetNVP: true, isTrackingGPS: false});
+        expect(closeNativeAppSpy).toHaveBeenCalledWith({shouldSetNVP: true});
+
+        jest.clearAllMocks();
+
+        await Onyx.merge(ONYXKEYS.SESSION, {
+            authToken: 'rotated-auth-token',
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        closeReactNativeApp({shouldSetNVP: true, isTrackingGPS: false});
+        expect(closeNativeAppSpy).toHaveBeenCalledWith({shouldSetNVP: true});
+    });
+
     it('preserves shouldSetNVP false exits for existing non-force-mobile flows', () => {
         closeReactNativeApp({shouldSetNVP: false, isTrackingGPS: false});
 
