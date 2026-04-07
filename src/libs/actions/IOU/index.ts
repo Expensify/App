@@ -11357,7 +11357,9 @@ export {
     getReceiptError,
     getSearchOnyxUpdate,
     getPolicyTags,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     getPolicyTagsData,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     getMoneyRequestPolicyTags,
     setMoneyRequestTimeRate,
     setMoneyRequestTimeCount,
