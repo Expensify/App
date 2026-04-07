@@ -428,4 +428,30 @@ describe('IOURequestStepDistance - submitManualDistance', () => {
         // updateMoneyRequestDistance should not be called (either validation blocks or no-change early return)
         expect(updateMoneyRequestDistance).not.toHaveBeenCalled();
     });
+
+    it('should render both Map and Manual tabs with correct content in edit mode', async () => {
+        await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
+        const transaction = createDistanceTransaction();
+        const report = createTestReport();
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, null);
+            await Onyx.merge(ONYXKEYS.RAM_ONLY_IS_LOADING_APP, false);
+        });
+
+        renderEditMode();
+        await waitForBatchedUpdatesWithAct();
+
+        // Map tab content: waypoint addresses should be visible
+        expect(screen.getByAccessibilityHint(/123 Main St/)).toBeTruthy();
+        expect(screen.getByAccessibilityHint(/456 Oak Ave/)).toBeTruthy();
+
+        // Manual tab content: distance input and Save button should be present
+        const distanceInputs = screen.getAllByLabelText(/common\.distance/);
+        expect(distanceInputs.length).toBeGreaterThan(0);
+        const saveButtons = screen.getAllByText('common.save');
+        expect(saveButtons.length).toBeGreaterThan(0);
+    });
 });
