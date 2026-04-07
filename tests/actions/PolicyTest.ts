@@ -1779,6 +1779,61 @@ describe('actions/Policy', () => {
             apiWriteSpy.mockRestore();
             getAllWorkspaceReportsSpy.mockRestore();
         });
+
+        it('should use explicit currentUserAccountID for pendingChatMembers instead of Onyx session', async () => {
+            // Set Onyx session to a DIFFERENT accountID to verify the explicit parameter is used
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+            const policy: PolicyType = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                id: policyID,
+                name: WORKSPACE_NAME,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await waitForBatchedUpdates();
+
+            // Use a non-expense-chat report so it goes through the else branch where pendingChatMembers is set
+            const workspaceChat: Report = {
+                ...createRandomReport(100, undefined),
+                reportID: '100',
+                policyID,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            const getAllWorkspaceReportsSpy = jest.spyOn(ReportUtils, 'getAllWorkspaceReports').mockReturnValue([workspaceChat]);
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+
+            const customAccountID = 999;
+            const customEmail = 'custom@example.com';
+
+            Policy.leaveWorkspace(customAccountID, customEmail, policy);
+            await waitForBatchedUpdates();
+
+            const writeOptions = apiWriteSpy.mock.calls.at(0)?.at(2) as {
+                optimisticData?: Array<{key?: string; value?: Record<string, unknown> | null}>;
+            };
+
+            // Verify pendingChatMembers uses the explicit customAccountID, not the Onyx session accountID
+            const metadataUpdate = (writeOptions?.optimisticData ?? []).find((update) => (update.key ?? '').startsWith(ONYXKEYS.COLLECTION.REPORT_METADATA));
+            const pendingMembers = (metadataUpdate?.value as {pendingChatMembers?: Array<{accountID: string}>})?.pendingChatMembers ?? [];
+
+            expect(pendingMembers).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        accountID: String(customAccountID),
+                    }),
+                ]),
+            );
+
+            // Verify that the Onyx session accountID is NOT used
+            const usesOnyxSessionAccountID = pendingMembers.some((member) => member.accountID === String(ESH_ACCOUNT_ID));
+            expect(usesOnyxSessionAccountID).toBe(false);
+
+            apiWriteSpy.mockRestore();
+            getAllWorkspaceReportsSpy.mockRestore();
+        });
     });
 
     describe('createDraftInitialWorkspace', () => {
@@ -5645,6 +5700,73 @@ describe('actions/Policy', () => {
             const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
             expect(updatedPolicy?.customRules).toBe(initialRules);
             expect(updatedPolicy?.errorFields?.customRules).toBeDefined();
+        });
+    });
+
+    describe('createWorkspaceFromIOUPayment', () => {
+        it('should set ownerAccountID from explicit currentUserAccountID parameter', async () => {
+            // Set Onyx session to a DIFFERENT accountID to verify the explicit parameter is used
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const customAccountID = 999;
+            const customEmail = 'custom@example.com';
+            const iouReportOwnerEmail = 'owner@example.com';
+            const employeeAccountID = 200;
+
+            const iouReport: Report = {
+                ...createRandomReport(1, undefined),
+                reportID: '500',
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: employeeAccountID,
+                chatReportID: '501',
+                policyID: 'oldPolicyID',
+                currency: CONST.CURRENCY.USD,
+                total: 1000,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+            await waitForBatchedUpdates();
+
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const isIOUReportUsingReportSpy = jest.spyOn(ReportUtils, 'isIOUReportUsingReport').mockReturnValue(true);
+
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            const mockTranslate = ((key: string) => key) as unknown as Parameters<typeof Policy.createWorkspaceFromIOUPayment>[7];
+            Policy.createWorkspaceFromIOUPayment(iouReport, undefined, customAccountID, customEmail, iouReportOwnerEmail, undefined, undefined, mockTranslate);
+            await waitForBatchedUpdates();
+
+            const writeOptions = apiWriteSpy.mock.calls.at(0)?.at(2) as {
+                optimisticData?: Array<{key?: string; value?: Record<string, unknown> | null}>;
+            };
+
+            // Find the policy optimistic data entry
+            const policyOptimisticUpdate = (writeOptions?.optimisticData ?? []).find(
+                (update) => (update.key ?? '').startsWith(ONYXKEYS.COLLECTION.POLICY) && (update.value as {ownerAccountID?: number})?.ownerAccountID !== undefined,
+            );
+
+            // Verify ownerAccountID uses the explicit parameter, not the Onyx session
+            expect((policyOptimisticUpdate?.value as {ownerAccountID?: number})?.ownerAccountID).toBe(customAccountID);
+            expect((policyOptimisticUpdate?.value as {owner?: string})?.owner).toBe(customEmail);
+
+            // Verify that the Onyx session accountID is NOT used
+            expect((policyOptimisticUpdate?.value as {ownerAccountID?: number})?.ownerAccountID).not.toBe(ESH_ACCOUNT_ID);
+
+            apiWriteSpy.mockRestore();
+            isIOUReportUsingReportSpy.mockRestore();
+        });
+
+        it('should return undefined for non-IOU reports', () => {
+            const nonIOUReport: Report = {
+                ...createRandomReport(1, undefined),
+                reportID: '600',
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            const mockTranslate = ((key: string) => key) as unknown as Parameters<typeof Policy.createWorkspaceFromIOUPayment>[7];
+            const result = Policy.createWorkspaceFromIOUPayment(nonIOUReport, undefined, ESH_ACCOUNT_ID, ESH_EMAIL, 'owner@example.com', undefined, undefined, mockTranslate);
+            expect(result).toBeUndefined();
         });
     });
 });
