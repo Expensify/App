@@ -127,8 +127,8 @@ type BaseModalProps = Partial<ReanimatedModalProps> &
 
         /**
          * Internal accessibility handshake for bottom-docked popovers on native mobile.
-         * When `false`, dismiss affordances stay hidden from accessibility until the caller enables them.
-         * When `true` or `undefined`, dismiss affordances are exposed to accessibility.
+         * When `false`, dismiss controls stay hidden from accessibility until the caller enables them.
+         * When `true` or `undefined`, dismiss controls are exposed to accessibility.
          */
         shouldEnableBottomDockedDismissAccessibility?: boolean;
 

@@ -36,8 +36,9 @@ function Backdrop({
     if (!customBackdrop) {
         return (
             <PressableWithoutFeedback
-                accessible={shouldEnableBottomDockedDismissAccessibility}
-                accessibilityLabel={shouldEnableBottomDockedDismissAccessibility ? translate('modal.backdropLabel') : undefined}
+                {...(shouldEnableBottomDockedDismissAccessibility
+                    ? {accessible: true as const, accessibilityLabel: translate('modal.backdropLabel')}
+                    : {accessible: false as const})}
                 onPressIn={onBackdropPress}
                 sentryLabel={CONST.SENTRY_LABEL.REANIMATED_MODAL.BACKDROP}
             >
