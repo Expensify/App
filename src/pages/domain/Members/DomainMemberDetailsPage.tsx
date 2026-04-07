@@ -142,27 +142,29 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
                     errors={getLatestError(domainErrors?.memberErrors?.[memberLogin]?.vacationDelegateErrors)}
                     onCloseError={() => clearVacationDelegateError(domainAccountID, accountID, memberLogin, vacationDelegate?.previousDelegate)}
                 />
-                <ToggleSettingOptionRow
-                    wrapperStyle={[styles.mv3, styles.ph5]}
-                    switchAccessibilityLabel={translate('domain.common.forceTwoFactorAuth')}
-                    isActive={!domainSettings?.twoFactorAuthExemptEmails?.includes(memberLogin)}
-                    onToggle={(value) => {
-                        if (!personalDetails?.login) {
-                            return;
-                        }
+                {!!domainSettings?.twoFactorAuthRequired && (
+                    <ToggleSettingOptionRow
+                        wrapperStyle={[styles.mv3, styles.ph5]}
+                        switchAccessibilityLabel={translate('domain.common.forceTwoFactorAuth')}
+                        isActive={!domainSettings?.twoFactorAuthExemptEmails?.includes(memberLogin)}
+                        onToggle={(value) => {
+                            if (!personalDetails?.login) {
+                                return;
+                            }
 
-                        if (!value && accountRequiresTwoFactorAuth) {
-                            clearValidateDomainTwoFactorCodeError();
-                            Navigation.navigate(ROUTES.DOMAIN_MEMBER_FORCE_TWO_FACTOR_AUTH.getRoute(domainAccountID, accountID));
-                        } else {
-                            setTwoFactorAuthExemptEmailForDomain(domainAccountID, accountID, domainSettings?.twoFactorAuthExemptEmails ?? [], personalDetails.login, value);
-                        }
-                    }}
-                    title={translate('domain.common.forceTwoFactorAuth')}
-                    pendingAction={domainPendingActions?.member?.[accountID]?.twoFactorAuthExemptEmails}
-                    errors={getLatestError(domainErrors?.memberErrors?.[memberLogin]?.twoFactorAuthExemptEmailsError)}
-                    onCloseError={() => clearTwoFactorAuthExemptEmailsErrors(domainAccountID, memberLogin)}
-                />
+                            if (!value && accountRequiresTwoFactorAuth) {
+                                clearValidateDomainTwoFactorCodeError();
+                                Navigation.navigate(ROUTES.DOMAIN_MEMBER_FORCE_TWO_FACTOR_AUTH.getRoute(domainAccountID, accountID));
+                            } else {
+                                setTwoFactorAuthExemptEmailForDomain(domainAccountID, accountID, domainSettings?.twoFactorAuthExemptEmails ?? [], personalDetails.login, value);
+                            }
+                        }}
+                        title={translate('domain.common.forceTwoFactorAuth')}
+                        pendingAction={domainPendingActions?.member?.[accountID]?.twoFactorAuthExemptEmails}
+                        errors={getLatestError(domainErrors?.memberErrors?.[memberLogin]?.twoFactorAuthExemptEmailsError)}
+                        onCloseError={() => clearTwoFactorAuthExemptEmailsErrors(domainAccountID, memberLogin)}
+                    />
+                )}
                 <View style={styles.mt6} />
                 {!!accountRequiresTwoFactorAuth && (
                     <MenuItem

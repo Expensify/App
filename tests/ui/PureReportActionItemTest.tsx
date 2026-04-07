@@ -99,6 +99,7 @@ describe('PureReportActionItem', () => {
                         <PortalProvider>
                             <PureReportActionItem
                                 personalPolicyID={undefined}
+                                currentUserEmail={undefined}
                                 report={undefined}
                                 parentReportAction={undefined}
                                 action={action}
@@ -111,8 +112,9 @@ describe('PureReportActionItem', () => {
                                 linkedReport={undefined}
                                 iouReportOfLinkedReport={undefined}
                                 currentUserAccountID={ACTOR_ACCOUNT_ID}
-                                allTransactionDrafts={undefined}
-                                userBillingGraceEndPeriodCollection={undefined}
+                                betas={undefined}
+                                draftTransactionIDs={[]}
+                                userBillingGracePeriodEnds={undefined}
                             />
                         </PortalProvider>
                     </ScreenWrapper>
@@ -172,6 +174,25 @@ describe('PureReportActionItem', () => {
             const {textBeforeLink, linkText} = parsedText;
             expect(screen.getByText(textBeforeLink)).toBeOnTheScreen();
             expect(screen.getByText(linkText)).toBeOnTheScreen();
+        });
+
+        it('APPROVED action via workspace rules shows Explain when reasoning is present', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.APPROVED, {
+                automaticAction: true,
+                reasoning: 'This report met the workspace auto-approval criteria.',
+            });
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText('Explain')).toBeOnTheScreen();
+        });
+
+        it('APPROVED action via workspace rules does not show Explain when reasoning is absent', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.APPROVED, {automaticAction: true});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.queryByText('Explain')).not.toBeOnTheScreen();
         });
 
         it('CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS action', async () => {
@@ -267,6 +288,76 @@ describe('PureReportActionItem', () => {
             expect(screen.getByText(actorEmail)).toBeOnTheScreen();
             expect(screen.getByText('changed the foreign currency default tax rate to "Foreign Tax (10%)" (previously "Foreign Tax (15%)")')).toBeOnTheScreen();
         });
+
+        it('ADD_CARD_FEED action', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CARD_FEED, {feedName: 'Visa Commercial'});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            expect(screen.getByText('added card feed "Visa Commercial"')).toBeOnTheScreen();
+        });
+
+        it('DELETE_CARD_FEED action', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CARD_FEED, {feedName: 'Amex Corporate'});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            expect(screen.getByText('removed card feed "Amex Corporate"')).toBeOnTheScreen();
+        });
+
+        it('RENAME_CARD_FEED action', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.RENAME_CARD_FEED, {oldName: 'Old Feed', newName: 'New Feed'});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            expect(screen.getByText('renamed card feed to "New Feed" (previously "Old Feed")')).toBeOnTheScreen();
+        });
+
+        it('ASSIGN_COMPANY_CARD action', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ASSIGN_COMPANY_CARD, {email: 'user@example.com', feedName: 'US Bank', cardLastFour: '1234'});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            expect(screen.getByText('assigned user@example.com "US Bank" company card ending in 1234')).toBeOnTheScreen();
+        });
+
+        it('UNASSIGN_COMPANY_CARD action', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UNASSIGN_COMPANY_CARD, {email: 'user@example.com', feedName: 'US Bank', cardLastFour: '5678'});
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            expect(screen.getByText('unassigned user@example.com "US Bank" company card ending in 5678')).toBeOnTheScreen();
+        });
+
+        it('UPDATE_CARD_FEED_LIABILITY action', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_LIABILITY, {
+                feedName: 'Visa Commercial',
+                liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.ALLOW,
+            });
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            expect(screen.getByText('enabled cardholders to delete card transactions for card feed "Visa Commercial"')).toBeOnTheScreen();
+        });
+
+        it('UPDATE_CARD_FEED_STATEMENT_PERIOD action', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_STATEMENT_PERIOD, {
+                feedName: 'Visa Commercial',
+                statementPeriodEndDay: '15',
+                previousStatementPeriodEndDay: '20',
+            });
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(actorEmail)).toBeOnTheScreen();
+            expect(screen.getByText('changed card feed "Visa Commercial" statement period end day to "15" (previously "20")')).toBeOnTheScreen();
+        });
     });
 
     describe('DEW (Dynamic External Workflow) actions', () => {
@@ -303,6 +394,7 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     personalPolicyID={undefined}
+                                    currentUserEmail={undefined}
                                     policy={dewPolicy as Policy}
                                     report={{reportID: 'testReport', policyID: 'testPolicy'}}
                                     parentReportAction={undefined}
@@ -317,8 +409,9 @@ describe('PureReportActionItem', () => {
                                     iouReportOfLinkedReport={undefined}
                                     reportMetadata={reportMetadata}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
-                                    allTransactionDrafts={undefined}
-                                    userBillingGraceEndPeriodCollection={undefined}
+                                    betas={undefined}
+                                    draftTransactionIDs={[]}
+                                    userBillingGracePeriodEnds={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -361,6 +454,7 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     personalPolicyID={undefined}
+                                    currentUserEmail={undefined}
                                     policy={basicPolicy as Policy}
                                     report={{reportID: 'testReport', policyID: 'testPolicy'}}
                                     parentReportAction={undefined}
@@ -374,8 +468,9 @@ describe('PureReportActionItem', () => {
                                     linkedReport={undefined}
                                     iouReportOfLinkedReport={undefined}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
-                                    allTransactionDrafts={undefined}
-                                    userBillingGraceEndPeriodCollection={undefined}
+                                    betas={undefined}
+                                    draftTransactionIDs={[]}
+                                    userBillingGracePeriodEnds={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -431,6 +526,7 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     personalPolicyID={undefined}
+                                    currentUserEmail={undefined}
                                     report={report}
                                     parentReportAction={undefined}
                                     action={action}
@@ -443,8 +539,9 @@ describe('PureReportActionItem', () => {
                                     linkedReport={undefined}
                                     iouReportOfLinkedReport={undefined}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
-                                    allTransactionDrafts={undefined}
-                                    userBillingGraceEndPeriodCollection={undefined}
+                                    betas={undefined}
+                                    draftTransactionIDs={[]}
+                                    userBillingGracePeriodEnds={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -495,6 +592,7 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     personalPolicyID={undefined}
+                                    currentUserEmail={undefined}
                                     report={report}
                                     parentReportAction={undefined}
                                     action={action}
@@ -507,8 +605,9 @@ describe('PureReportActionItem', () => {
                                     linkedReport={undefined}
                                     iouReportOfLinkedReport={undefined}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
-                                    allTransactionDrafts={undefined}
-                                    userBillingGraceEndPeriodCollection={undefined}
+                                    betas={undefined}
+                                    draftTransactionIDs={[]}
+                                    userBillingGracePeriodEnds={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -545,6 +644,7 @@ describe('PureReportActionItem', () => {
                             <PortalProvider>
                                 <PureReportActionItem
                                     personalPolicyID={undefined}
+                                    currentUserEmail={undefined}
                                     report={report}
                                     parentReportAction={undefined}
                                     action={action}
@@ -557,9 +657,10 @@ describe('PureReportActionItem', () => {
                                     linkedReport={undefined}
                                     iouReportOfLinkedReport={undefined}
                                     currentUserAccountID={ACTOR_ACCOUNT_ID}
-                                    allTransactionDrafts={undefined}
+                                    betas={undefined}
+                                    draftTransactionIDs={[]}
                                     modifiedExpenseMessage={modifiedExpenseMessage}
-                                    userBillingGraceEndPeriodCollection={undefined}
+                                    userBillingGracePeriodEnds={undefined}
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
@@ -575,6 +676,46 @@ describe('PureReportActionItem', () => {
 
             expect(openLink).toHaveBeenCalledTimes(1);
             expect(openLink).toHaveBeenCalledWith(workspaceRulesUrl, expect.any(String));
+        });
+    });
+
+    describe('UNREPORTED_TRANSACTION action', () => {
+        const UNREPORTED_FROM_REPORT_ID = '300';
+
+        beforeEach(async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${UNREPORTED_FROM_REPORT_ID}`, {
+                    reportID: UNREPORTED_FROM_REPORT_ID,
+                    reportName: 'Source Report',
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('renders without Explain link when action has no reasoning', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION, {
+                fromReportID: UNREPORTED_FROM_REPORT_ID,
+            });
+
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            // The "Explain" link should NOT be present
+            expect(screen.queryByText('Explain')).not.toBeOnTheScreen();
+        });
+
+        it('renders Explain link when action has reasoning', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION, {
+                fromReportID: UNREPORTED_FROM_REPORT_ID,
+                reasoning: 'This expense was unreported due to RTER rejection.',
+            });
+
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            // The "Explain" link should be present
+            expect(screen.getByText('Explain')).toBeOnTheScreen();
         });
     });
 

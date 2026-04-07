@@ -3,7 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import useOnyx from '@hooks/useOnyx';
-import {changeTransactionsReport, dismissDuplicateTransactionViolation, markAsCash, saveWaypoint} from '@libs/actions/Transaction';
+import {changeTransactionsReport, dismissDuplicateTransactionViolation, markAsCash, sanitizeWaypointsForAPI, saveWaypoint} from '@libs/actions/Transaction';
 import DateUtils from '@libs/DateUtils';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import type {buildOptimisticNextStep} from '@libs/NextStepUtils';
@@ -127,8 +127,6 @@ describe('Transaction', () => {
                 newReport: report,
                 policy: undefined,
                 allTransactions,
-                translate: TestHelper.translateLocal,
-                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
             const reportActions = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
@@ -177,8 +175,6 @@ describe('Transaction', () => {
                 newReport: report,
                 policy: undefined,
                 allTransactions,
-                translate: TestHelper.translateLocal,
-                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
             const reportActions = await new Promise<OnyxEntry<ReportActions>>((resolve) => {
@@ -241,8 +237,6 @@ describe('Transaction', () => {
                 policy: undefined,
                 reportNextStep: mockReportNextStep,
                 allTransactions,
-                translate: TestHelper.translateLocal,
-                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
 
@@ -307,8 +301,6 @@ describe('Transaction', () => {
                 policy: undefined,
                 reportNextStep: mockReportNextStep,
                 allTransactions,
-                translate: TestHelper.translateLocal,
-                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
 
@@ -361,8 +353,6 @@ describe('Transaction', () => {
                 policy: undefined,
                 reportNextStep: undefined,
                 allTransactions,
-                translate: TestHelper.translateLocal,
-                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
 
@@ -427,8 +417,6 @@ describe('Transaction', () => {
                 newReport: report,
                 policy: undefined,
                 allTransactions,
-                translate: TestHelper.translateLocal,
-                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
 
@@ -485,8 +473,6 @@ describe('Transaction', () => {
                 newReport: report,
                 policy: undefined,
                 allTransactions,
-                translate: TestHelper.translateLocal,
-                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
 
@@ -540,8 +526,6 @@ describe('Transaction', () => {
                 newReport: report,
                 policy: undefined,
                 allTransactions,
-                translate: TestHelper.translateLocal,
-                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
 
@@ -601,8 +585,6 @@ describe('Transaction', () => {
                 newReport: expenseReport,
                 policy: undefined,
                 allTransactions,
-                translate: TestHelper.translateLocal,
-                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -662,8 +644,6 @@ describe('Transaction', () => {
                 newReport: expenseReport,
                 policy: undefined,
                 allTransactions,
-                translate: TestHelper.translateLocal,
-                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -730,8 +710,6 @@ describe('Transaction', () => {
                 newReport: newExpenseReport,
                 policy: undefined,
                 allTransactions,
-                translate: TestHelper.translateLocal,
-                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -797,8 +775,6 @@ describe('Transaction', () => {
                 newReport: newExpenseReport,
                 policy: undefined,
                 allTransactions,
-                translate: TestHelper.translateLocal,
-                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -857,8 +833,6 @@ describe('Transaction', () => {
                 newReport: fakeReport,
                 policy: undefined,
                 allTransactions,
-                translate: TestHelper.translateLocal,
-                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
 
@@ -919,8 +893,6 @@ describe('Transaction', () => {
                 newReport: fakeReport,
                 policy: undefined,
                 allTransactions,
-                translate: TestHelper.translateLocal,
-                toLocaleDigit: TestHelper.toLocaleDigit,
             });
             await waitForBatchedUpdates();
 
@@ -975,8 +947,6 @@ describe('Transaction', () => {
                 reportNextStep: undefined,
                 policyCategories,
                 allTransactions,
-                translate: TestHelper.translateLocal,
-                toLocaleDigit: TestHelper.toLocaleDigit,
             });
 
             await waitForBatchedUpdates();
@@ -986,6 +956,59 @@ describe('Transaction', () => {
             const nextStepMessage = nextStep?.message?.map((part) => part.text).join('');
 
             expect(nextStepMessage).toEqual('Waiting for You to submit %expenses.');
+        });
+
+        it('should decrement source and increment destination transactionCount on cross-currency move', async () => {
+            const sourceReportID = '901';
+            const destinationReportID = '902';
+            const transaction = generateTransaction({reportID: sourceReportID, currency: 'CAD'});
+
+            const sourceReport: Report = {
+                ...createExpenseReport(Number(sourceReportID)),
+                reportID: sourceReportID,
+                ownerAccountID: CURRENT_USER_ID,
+                currency: 'USD',
+                transactionCount: 1,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            const destinationReport: Report = {
+                ...createExpenseReport(Number(destinationReportID)),
+                reportID: destinationReportID,
+                ownerAccountID: CURRENT_USER_ID,
+                currency: 'EUR',
+                transactionCount: 0,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${sourceReportID}`, sourceReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`, destinationReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+            };
+
+            changeTransactionsReport({
+                transactionIDs: [transaction.transactionID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: CURRENT_USER_ID,
+                email: 'test@gmail.com',
+                newReport: destinationReport,
+                policy: undefined,
+                reportNextStep: undefined,
+                policyCategories: undefined,
+                allTransactions,
+            });
+
+            await waitForBatchedUpdates();
+
+            const updatedSourceReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${sourceReportID}`);
+            const updatedDestinationReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`);
+
+            expect(updatedSourceReport?.transactionCount).toBe(0);
+            expect(updatedDestinationReport?.transactionCount).toBe(1);
         });
     });
 
@@ -1098,6 +1121,126 @@ describe('Transaction', () => {
             expect(transaction?.errorFields?.route ?? null).toBeNull();
             expect(transaction?.routes?.route0?.distance ?? null).toBeNull();
             expect(transaction?.routes?.route0?.geometry?.coordinates ?? null).toBeNull();
+        });
+    });
+
+    describe('sanitizeWaypointsForAPI', () => {
+        it('should only include allowed fields (name, address, lat, lng)', () => {
+            // Given waypoints with extra fields that should be stripped out
+            const waypointsWithExtraFields = {
+                waypoint0: {
+                    name: 'Start Location',
+                    address: '123 Main St',
+                    lat: 40.7128,
+                    lng: -74.006,
+                    city: 'New York',
+                    state: 'NY',
+                    zipCode: '10001',
+                    country: 'US',
+                    street: '123 Main St',
+                    street2: 'Apt 4B',
+                    keyForList: 'unique-key-1',
+                    pendingAction: 'add',
+                    extraField: 'should be removed',
+                },
+                waypoint1: {
+                    address: '456 Oak Ave',
+                    lat: 40.7589,
+                    lng: -73.9851,
+                    city: 'New York',
+                    state: 'NY',
+                    zipCode: '10002',
+                    keyForList: 'unique-key-2',
+                    anotherExtraField: 'should also be removed',
+                },
+            };
+
+            // When sanitizing the waypoints
+            // Test intentionally passes extra fields not in WaypointCollection to verify they are stripped
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
+            const sanitizedWaypoints = sanitizeWaypointsForAPI(waypointsWithExtraFields as any);
+
+            // Then only allowed fields should remain
+            expect(sanitizedWaypoints.waypoint0).toEqual({
+                name: 'Start Location',
+                address: '123 Main St',
+                lat: 40.7128,
+                lng: -74.006,
+            });
+
+            // waypoint1 has no name field, so it should not be included
+            expect(sanitizedWaypoints.waypoint1).toEqual({
+                address: '456 Oak Ave',
+                lat: 40.7589,
+                lng: -73.9851,
+            });
+        });
+
+        it('should handle waypoints with only some allowed fields', () => {
+            // Given waypoints with only address
+            const waypointsWithPartialFields = {
+                waypoint0: {
+                    address: 'Partial Address Only',
+                },
+            };
+
+            // When sanitizing the waypoints
+            // Test uses a partial waypoint object to verify sanitization handles missing fields
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
+            const sanitizedWaypoints = sanitizeWaypointsForAPI(waypointsWithPartialFields as any);
+
+            // Then only the address should be present
+            expect(sanitizedWaypoints.waypoint0).toEqual({
+                address: 'Partial Address Only',
+            });
+        });
+
+        it('should handle empty waypoints', () => {
+            // Given empty waypoints
+            const emptyWaypoints = {};
+
+            // When sanitizing the waypoints
+            const sanitizedWaypoints = sanitizeWaypointsForAPI(emptyWaypoints);
+
+            // Then the result should also be empty
+            expect(sanitizedWaypoints).toEqual({});
+        });
+
+        it('should skip null waypoint entries without crashing', () => {
+            // Given waypoints where some entries are null (can happen during rollback of failed distance edits)
+            const waypointsWithNulls = {
+                waypoint0: {
+                    address: '123 Main St',
+                    lat: 40.7128,
+                    lng: -74.006,
+                },
+                waypoint1: null,
+                waypoint2: {
+                    address: '789 Pine Rd',
+                    lat: 40.73,
+                    lng: -73.99,
+                },
+            };
+
+            // When sanitizing the waypoints
+            // Null entries can occur at runtime even though WaypointCollection type doesn't include null
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
+            const sanitizedWaypoints = sanitizeWaypointsForAPI(waypointsWithNulls as any);
+
+            // Then null entries should be dropped and valid entries sanitized
+            expect(sanitizedWaypoints).toEqual({
+                waypoint0: {
+                    address: '123 Main St',
+                    lat: 40.7128,
+                    lng: -74.006,
+                },
+                waypoint2: {
+                    address: '789 Pine Rd',
+                    lat: 40.73,
+                    lng: -73.99,
+                },
+            });
+            expect(sanitizedWaypoints.waypoint1).toBeUndefined();
         });
     });
 

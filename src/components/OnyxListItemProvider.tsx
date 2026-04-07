@@ -4,7 +4,7 @@ import ComposeProviders from './ComposeProviders';
 import createOnyxContext from './createOnyxContext';
 
 /**
- * IMPORTANT: this should only be used for components that are rendered in a list (e.g. FlatList, SectionList, etc.)
+ * IMPORTANT: this should only be used for components that are rendered in a list (e.g. FlatList, etc.)
  * Set up any providers for individual keys. This should only be used in cases where many components will subscribe to
  * the same key (e.g. FlatList renderItem components)
  */

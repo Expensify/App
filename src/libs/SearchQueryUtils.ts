@@ -31,7 +31,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS, {ALLOWED_TYPE_FILTERS, AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
-import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
+import type {HasFilterValue, HasFilterValues, IsFilterValue, IsFilterValues, SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import arraysEqual from '@src/utils/arraysEqual';
@@ -46,7 +46,7 @@ import navigationRef from './Navigation/navigationRef';
 import type {SearchFullscreenNavigatorParamList} from './Navigation/types';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getCleanedTagName} from './PolicyUtils';
-import {getReportName} from './ReportUtils';
+import {getReportName} from './ReportNameUtils';
 import {parse as parseSearchQuery} from './SearchParser/searchParser';
 import StringUtils from './StringUtils';
 import {hashText} from './UserUtils';
@@ -440,6 +440,37 @@ function getUpdatedFilterValue(filterName: ValueOf<typeof CONST.SEARCH.SYNTAX_FI
  */
 const customCollator = new Intl.Collator('en', {usage: 'sort', sensitivity: 'variant', numeric: true, caseFirst: 'upper'});
 
+let defaultSearchQueryJSON: SearchQueryJSON | undefined;
+
+function getDefaultSearchQueryJSON() {
+    if (defaultSearchQueryJSON) {
+        return defaultSearchQueryJSON;
+    }
+
+    defaultSearchQueryJSON = parseSearchQuery('') as SearchQueryJSON;
+    return defaultSearchQueryJSON;
+}
+
+function wasViewExplicitlySet(queryJSON?: SearchQueryJSON) {
+    if (!queryJSON?.view) {
+        return false;
+    }
+
+    if (queryJSON.rawFilterList?.some((filter) => filter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW)) {
+        return true;
+    }
+
+    if (queryJSON.isViewExplicitlySet) {
+        return true;
+    }
+
+    if (queryJSON.view !== getDefaultSearchQueryJSON()?.view) {
+        return true;
+    }
+
+    return false;
+}
+
 /**
  * @private
  * Computes and returns a numerical hash for a given queryJSON.
@@ -488,6 +519,10 @@ function getQueryHashes(query: SearchQueryJSON) {
 
     const similarSearchHash = hashText(Array.from(filterSet).join(''), 2 ** 32);
     const recentSearchHash = hashText(orderedQuery, 2 ** 32);
+
+    if (query.groupBy && wasViewExplicitlySet(query)) {
+        orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW}:${query.view}`;
+    }
 
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY}:${query.sortBy}`;
     orderedQuery += ` ${CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER}:${query.sortOrder}`;
@@ -560,10 +595,12 @@ function buildSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQuerySt
     try {
         const result = parseSearchQuery(query) as SearchQueryJSON;
         const flatFilters = getFilters(result);
+        const rawFilterList = rawQuery ? getRawFilterListFromQuery(rawQuery) : result.rawFilterList;
 
         // Add the full input and hash to the results
         result.inputQuery = query;
         result.flatFilters = flatFilters;
+        result.isViewExplicitlySet = rawFilterList?.some((filter) => filter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW) ?? false;
 
         if (result.policyID && typeof result.policyID === 'string') {
             // Ensure policyID is always an array for consistency
@@ -583,7 +620,7 @@ function buildSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQuerySt
 
         delete result.rawFilterList;
         if (rawQuery) {
-            result.rawFilterList = getRawFilterListFromQuery(rawQuery);
+            result.rawFilterList = rawFilterList;
         }
 
         if (buildSearchQueryJSONCache.size >= BUILD_SEARCH_QUERY_JSON_CACHE_MAX_SIZE) {
@@ -609,14 +646,10 @@ function buildSearchQueryJSON(query: SearchQueryString, rawQuery?: SearchQuerySt
 function buildSearchQueryString(queryJSON?: SearchQueryJSON) {
     const queryParts: string[] = [];
     const defaultQueryJSON = buildSearchQueryJSON('');
-
-    // Check if view was explicitly set by the user (exists in rawFilterList or differs from default)
-    const wasViewExplicitlySet =
-        (queryJSON?.rawFilterList?.some((filter) => filter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW) ?? false) || (queryJSON?.view && queryJSON.view !== defaultQueryJSON?.view);
+    const isViewExplicitlySet = wasViewExplicitlySet(queryJSON);
 
     for (const [, key] of Object.entries(CONST.SEARCH.SYNTAX_ROOT_KEYS)) {
-        // Skip view if it wasn't explicitly set by the user
-        if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW && !wasViewExplicitlySet) {
+        if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW && (!isViewExplicitlySet || !queryJSON?.groupBy)) {
             continue;
         }
 
@@ -706,7 +739,6 @@ function getSanitizedRawFilters(queryJSON: SearchQueryJSON): RawQueryFilter[] | 
 type BuildQueryStringOptions = {
     sortBy?: string;
     sortOrder?: string;
-    limit?: number;
 };
 
 /**
@@ -927,9 +959,11 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
         filtersString.push(amountFilter);
     }
 
-    const limitValue = limit ?? options?.limit;
-    if (limitValue) {
-        filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT}:${sanitizeSearchValue(limitValue.toString())}`);
+    if (limit) {
+        const num = Number(limit);
+        if (Number.isInteger(num) && num > 0) {
+            filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT}:${num}`);
+        }
     }
 
     return filtersString.filter(Boolean).join(' ').trim();
@@ -996,10 +1030,10 @@ function buildFilterFormValuesFromQuery(
             filtersForm[key as typeof filterKey] = filterValues.filter((expenseType) => VALID_EXPENSE_TYPES.has(expenseType as ValueOf<typeof CONST.SEARCH.TRANSACTION_TYPE>));
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
-            filtersForm[key as typeof filterKey] = filterValues.filter((hasType) => VALID_HAS_TYPES.has(hasType as ValueOf<typeof CONST.SEARCH.HAS_VALUES>));
+            filtersForm[key as typeof filterKey] = filterValues.filter((hasType) => VALID_HAS_TYPES.has(hasType as HasFilterValue)) as HasFilterValues;
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.IS) {
-            filtersForm[key as typeof filterKey] = filterValues.filter((isType) => VALID_IS_TYPES.has(isType as ValueOf<typeof CONST.SEARCH.IS_VALUES>));
+            filtersForm[key as typeof filterKey] = filterValues.filter((isType) => VALID_IS_TYPES.has(isType as IsFilterValue)) as IsFilterValues;
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE) {
             filtersForm[key as typeof filterKey] = filterValues.find((withdrawalType): withdrawalType is SearchWithdrawalType =>
@@ -1261,21 +1295,36 @@ function getPolicyNameWithFallback(policyID: string, policies: OnyxCollection<On
     return reportWithPolicyName?.policyName ?? reportWithPolicyName?.oldPolicyName ?? policyID;
 }
 
+type GetFilterDisplayValueParams = {
+    filterName: string;
+    filterValue: string;
+    personalDetails: OnyxTypes.PersonalDetailsList | undefined;
+    reports: OnyxCollection<OnyxTypes.Report>;
+    cardList: OnyxTypes.CardList | undefined;
+    cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>;
+    policies: OnyxCollection<OnyxTypes.Policy>;
+    currentUserAccountID: number;
+    translate: LocalizedTranslate;
+    reportAttributes?: OnyxTypes.ReportAttributesDerivedValue['reports'];
+    feedKeysWithCards?: FeedKeysWithAssignedCards;
+};
+
 /**
  * Returns the human-readable "pretty" string for a specified filter value.
  */
-function getFilterDisplayValue(
-    filterName: string,
-    filterValue: string,
-    personalDetails: OnyxTypes.PersonalDetailsList | undefined,
-    reports: OnyxCollection<OnyxTypes.Report>,
-    cardList: OnyxTypes.CardList | undefined,
-    cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>,
-    policies: OnyxCollection<OnyxTypes.Policy>,
-    currentUserAccountID: number,
-    translate: LocalizedTranslate,
-    feedKeysWithCards?: FeedKeysWithAssignedCards,
-) {
+function getFilterDisplayValue({
+    filterName,
+    filterValue,
+    personalDetails,
+    reports,
+    cardList,
+    cardFeeds,
+    policies,
+    currentUserAccountID,
+    translate,
+    reportAttributes,
+    feedKeysWithCards,
+}: GetFilterDisplayValueParams) {
     if (
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
@@ -1294,11 +1343,11 @@ function getFilterDisplayValue(
         return getCardDescription(cardList?.[cardID], translate) || filterValue;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return getReportName({report: reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`]}) || filterValue;
+        return getReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`], reportAttributes) || filterValue;
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT) {
-        const frontendAmount = convertToFrontendAmountAsInteger(Number(filterValue));
+        // Added 2 here as this is the maximum number of decimals an amount can have. So, we can run a search with 2 decimals here.
+        const frontendAmount = convertToFrontendAmountAsInteger(Number(filterValue), 2);
         return Number.isNaN(frontendAmount) ? filterValue : frontendAmount.toString();
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG) {
@@ -1335,6 +1384,7 @@ function getDisplayQueryFiltersForKey(
     policies: OnyxCollection<OnyxTypes.Policy>,
     currentUserAccountID: number,
     translate: LocalizedTranslate,
+    reportAttributes?: OnyxTypes.ReportAttributesDerivedValue['reports'],
     feedKeysWithCards?: FeedKeysWithAssignedCards,
 ) {
     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
@@ -1390,7 +1440,19 @@ function getDisplayQueryFiltersForKey(
 
     return queryFilter.map((filter) => ({
         operator: filter.operator,
-        value: getFilterDisplayValue(key, getUserFriendlyValue(filter.value.toString()), personalDetails, reports, cardList, cardFeeds, policies, currentUserAccountID, translate),
+        value: getFilterDisplayValue({
+            filterName: key,
+            filterValue: getUserFriendlyValue(filter.value.toString()),
+            personalDetails,
+            reports,
+            cardList,
+            cardFeeds,
+            policies,
+            currentUserAccountID,
+            translate,
+            reportAttributes,
+            feedKeysWithCards,
+        }),
     }));
 }
 
@@ -1468,6 +1530,7 @@ function buildUserReadableQueryString({
     autoCompleteWithSpace = false,
     translate,
     feedKeysWithCards,
+    reportAttributes,
 }: {
     queryJSON: SearchQueryJSON;
     PersonalDetails: OnyxTypes.PersonalDetailsList | undefined;
@@ -1480,8 +1543,9 @@ function buildUserReadableQueryString({
     autoCompleteWithSpace: boolean;
     translate: LocalizedTranslate;
     feedKeysWithCards?: FeedKeysWithAssignedCards;
+    reportAttributes?: OnyxTypes.ReportAttributesDerivedValue['reports'];
 }) {
-    const {type, status, groupBy, columns, policyID, rawFilterList, flatFilters: filters = [], limit} = queryJSON;
+    const {type, status, groupBy, view, columns, policyID, rawFilterList, flatFilters: filters = [], limit} = queryJSON;
 
     if (rawFilterList && rawFilterList.length > 0) {
         const segments: string[] = [];
@@ -1523,6 +1587,7 @@ function buildUserReadableQueryString({
                 policies,
                 currentUserAccountID,
                 translate,
+                reportAttributes,
                 feedKeysWithCards,
             );
 
@@ -1550,6 +1615,10 @@ function buildUserReadableQueryString({
         title += ` group-by:${getUserFriendlyValue(groupBy)}`;
     }
 
+    if (view && groupBy && wasViewExplicitlySet(queryJSON)) {
+        title += ` view:${getUserFriendlyValue(view)}`;
+    }
+
     if (policyID && policyID.length > 0) {
         title += ` workspace:${policyID.map((id) => sanitizeSearchValue(getPolicyNameWithFallback(id, policies, reports))).join(',')}`;
     }
@@ -1572,6 +1641,7 @@ function buildUserReadableQueryString({
             policies,
             currentUserAccountID,
             translate,
+            reportAttributes,
             feedKeysWithCards,
         );
 
@@ -1770,54 +1840,76 @@ function shouldHighlight(referenceText: string, searchText: string) {
     return pattern.test(StringUtils.normalizeAccents(referenceText).toLowerCase());
 }
 
+const TIME_BASED_GROUP_BYS = new Set<string>([CONST.SEARCH.GROUP_BY.MONTH, CONST.SEARCH.GROUP_BY.WEEK, CONST.SEARCH.GROUP_BY.YEAR, CONST.SEARCH.GROUP_BY.QUARTER]);
+
 /**
- * Determines whether sortBy and sortOrder should be reset when filters change.
- * Each view/groupBy combination has its own defaults derived by the parser,
- * so we reset on any view or groupBy change to let the parser determine the correct defaults.
+ * Determines whether sortBy and sortOrder should be fully reset (re-derived by
+ * the parser) when filters change.  Returns true only when the groupBy value
+ * changes, because each groupBy has its own default sort column and order.
  */
-function shouldResetSort({
-    newView,
-    oldView,
-    newGroupBy,
-    oldGroupBy,
-}: {
-    newView: string | undefined;
-    oldView: string | undefined;
-    newGroupBy: string | undefined;
-    oldGroupBy: string | undefined;
-}): boolean {
-    const effectiveNewView = newView ?? CONST.SEARCH.VIEW.TABLE;
-    const effectiveOldView = oldView ?? CONST.SEARCH.VIEW.TABLE;
-    return effectiveNewView !== effectiveOldView || newGroupBy !== oldGroupBy;
+function shouldResetSort({newGroupBy, oldGroupBy}: {newGroupBy: string | undefined; oldGroupBy: string | undefined}): boolean {
+    return newGroupBy !== oldGroupBy;
 }
 
 /**
- * Builds a query string from filter form values, resetting sortBy and sortOrder when the view
- * or groupBy has changed so the parser can re-derive the correct defaults. When a reset is needed,
- * the query is round-tripped through the parser so that parser-derived defaults appear in the
- * final query string.
+ * Returns true when the view change requires resetting sort for proper display.
+ * For time-based groupBys (month/week/year/quarter):
+ * - Line charts need chronological (asc) order for left-to-right readability
+ * - Table view defaults to desc (most recent first)
+ * - Bar/Pie charts can display data in any order
+ *
+ * Reset occurs when:
+ * - Switching TO line view (needs chronological asc order)
+ * - Switching TO table view (needs default desc order)
+ * Preserve sort when switching TO bar/pie (any order is fine).
+ */
+function shouldResetSortForViewChange({newView, oldView, groupBy}: {newView: string | undefined; oldView: string | undefined; groupBy: string | undefined}): boolean {
+    if (newView === oldView || !groupBy) {
+        return false;
+    }
+    if (!TIME_BASED_GROUP_BYS.has(groupBy)) {
+        return false;
+    }
+    const isLineView = (view: string | undefined) => view === CONST.SEARCH.VIEW.LINE;
+    const isTableView = (view: string | undefined) => view === CONST.SEARCH.VIEW.TABLE;
+    // Reset when switching to line (asc) or table (desc) - both need their specific defaults
+    // Preserve when switching to bar/pie - they can display any order
+    return isLineView(newView) || isTableView(newView);
+}
+
+/**
+ * Builds a query string from filter form values, resetting sortBy and sortOrder
+ * when the groupBy has changed so the parser can re-derive the correct defaults.
+ * When only the view changes between table and chart with a time-based groupBy,
+ * both sortBy and sortOrder are reset to allow the parser to apply the appropriate
+ * defaults (e.g., groupMonth asc for charts, groupMonth desc for tables).
  *
  * Returns undefined if the parser round-trip fails.
  */
 function buildFilterQueryWithSortDefaults(
     filterValues: Partial<SearchAdvancedFiltersForm>,
     previousState: {view?: string; groupBy?: string},
-    currentQueryOptions: {sortBy?: string; sortOrder?: string; limit?: number},
+    currentQueryOptions: {sortBy?: string; sortOrder?: string},
 ): string | undefined {
     const resetSort = shouldResetSort({
-        newView: filterValues.view,
-        oldView: previousState.view,
         newGroupBy: filterValues.groupBy,
         oldGroupBy: previousState.groupBy,
     });
 
+    const resetSortForViewChange =
+        !resetSort &&
+        shouldResetSortForViewChange({
+            newView: filterValues.view,
+            oldView: previousState.view,
+            groupBy: filterValues.groupBy,
+        });
+
     const queryString = buildQueryStringFromFilterFormValues(filterValues, {
-        sortBy: resetSort ? undefined : currentQueryOptions.sortBy,
-        sortOrder: resetSort ? undefined : currentQueryOptions.sortOrder,
-        limit: currentQueryOptions.limit,
+        sortBy: resetSort || resetSortForViewChange ? undefined : currentQueryOptions.sortBy,
+        sortOrder: resetSort || resetSortForViewChange ? undefined : currentQueryOptions.sortOrder,
     });
 
-    if (!resetSort) {
+    if (!resetSort && !resetSortForViewChange) {
         return queryString;
     }
 
@@ -1883,6 +1975,30 @@ function getEmptyDateValues(): SearchDateValues {
 }
 
 /**
+ * Set of filter keys that represent free-text fields where the default `:` (eq) operator
+ * should be treated as a substring/partial match (`contains`) when querying the backend.
+ * This allows searches like `merchant:coffee` to match "Coffee shop".
+ */
+const TEXT_SEARCH_FIELDS = new Set<string>([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION]);
+
+/**
+ * Recursively traverses a search AST and replaces the `eq` operator with `contains`
+ * for free-text filter fields (merchant, description). This enables partial/substring
+ * matching on the backend for text searches while preserving the user-facing `:` syntax.
+ */
+function applyContainsOperatorToTextFields(node: ASTNode): ASTNode {
+    if (typeof node.left === 'string' && TEXT_SEARCH_FIELDS.has(node.left) && node.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
+        return {...node, operator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS};
+    }
+
+    return {
+        ...node,
+        left: typeof node.left === 'object' && node.left ? applyContainsOperatorToTextFields(node.left) : node.left,
+        right: typeof node.right === 'object' && !Array.isArray(node.right) && node.right ? applyContainsOperatorToTextFields(node.right) : node.right,
+    };
+}
+
+/**
  * Returns the display title for the date modifier sub-screen header.
  * Falls back to `fallbackTitle` when no modifier is selected.
  */
@@ -1896,6 +2012,25 @@ function getDateModifierTitle(modifier: ValueOf<typeof CONST.SEARCH.DATE_MODIFIE
     return fallbackTitle;
 }
 
+/**
+ * Serializes a query object to a JSON string for backend commands (Search, export, CSV).
+ * Applies text-field operator normalization (`eq` → `contains`) for `merchant` and `description`
+ * so all backend commands use consistent partial-match semantics — matching what the search view shows.
+ * Do NOT use for saving/persisting query definitions (e.g. saveSearch), where the original operators must be preserved.
+ */
+function serializeQueryJSONForBackend<T extends {filters?: ASTNode | null; rawFilterList?: RawQueryFilter[]}>(queryData: T): string {
+    const normalizedFilters = queryData.filters ? applyContainsOperatorToTextFields(queryData.filters) : queryData.filters;
+    const normalizedRawFilterList = queryData.rawFilterList
+        ? queryData.rawFilterList.map((filter) => {
+              if (TEXT_SEARCH_FIELDS.has(filter.key) && filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) {
+                  return {...filter, operator: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS};
+              }
+              return filter;
+          })
+        : queryData.rawFilterList;
+    return JSON.stringify({...queryData, filters: normalizedFilters, rawFilterList: normalizedRawFilterList});
+}
+
 export {
     getDateRangeDisplayValueFromFormValue,
     getRangeBoundariesFromFormValue,
@@ -1906,6 +2041,7 @@ export {
     buildSearchQueryJSON,
     buildSearchQueryString,
     buildUserReadableQueryString,
+    getDisplayQueryFiltersForKey,
     getFilterDisplayValue,
     getPolicyNameWithFallback,
     buildQueryStringFromFilterFormValues,
@@ -1924,11 +2060,14 @@ export {
     getUserFriendlyValue,
     getUserFriendlyKey,
     shouldResetSort,
+    shouldResetSortForViewChange,
     buildFilterQueryWithSortDefaults,
     buildOptimisticSnapshotData,
     getDateFilterKeys,
     getEmptyDateValues,
     getDateModifierTitle,
+    applyContainsOperatorToTextFields,
+    serializeQueryJSONForBackend,
 };
 
 export type {SearchDateValues};

@@ -66,7 +66,7 @@ const baseFilterConfig = {
     },
     groupBy: {
         getTitle: getFilterDisplayTitle,
-        description: 'search.groupBy' as const,
+        description: 'search.display.groupBy' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.GROUP_BY),
     },
     view: {
@@ -525,12 +525,12 @@ function getFilterDisplayTitle(
 
     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
         const filterValue = filters[key];
-        return filterValue ? filterValue.map((value) => translate(`common.${value as ValueOf<typeof CONST.SEARCH.HAS_VALUES>}`)).join(', ') : undefined;
+        return filterValue ? filterValue.map((value) => translate(`common.${value}`)).join(', ') : undefined;
     }
 
     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IS) {
         const filterValue = filters[key];
-        return filterValue ? filterValue.map((value) => translate(`common.${value as ValueOf<typeof CONST.SEARCH.IS_VALUES>}`)).join(', ') : undefined;
+        return filterValue ? filterValue.map((value) => translate(`common.${value}`)).join(', ') : undefined;
     }
 
     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO) {
@@ -634,7 +634,7 @@ function AdvancedSearchFilters() {
             buildFilterQueryWithSortDefaults(
                 searchAdvancedFilters,
                 {view: currentQueryJSON?.view, groupBy: currentQueryJSON?.groupBy},
-                {sortBy: currentQueryJSON?.sortBy, sortOrder: currentQueryJSON?.sortOrder, limit: currentQueryJSON?.limit},
+                {sortBy: currentQueryJSON?.sortBy, sortOrder: currentQueryJSON?.sortOrder},
             ) ?? ''
         );
     }, [searchAdvancedFilters]);

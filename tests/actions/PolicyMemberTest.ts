@@ -14,6 +14,7 @@ import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
+import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import type {MockFetch} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -240,7 +241,7 @@ describe('actions/PolicyMember', () => {
             mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             Onyx.merge(ONYXKEYS.SESSION, {email: fakeEmail, accountID: fakeAccountID});
-            Policy.addBillingCardAndRequestPolicyOwnerChange(fakePolicy.id, fakeCard);
+            Policy.addBillingCardAndRequestPolicyOwnerChange(fakePolicy.id, fakeAccountID, fakeEmail, fakeCard);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -267,6 +268,92 @@ describe('actions/PolicyMember', () => {
                         expect(policy?.isLoading).toBeFalsy();
                         expect(policy?.isChangeOwnerSuccessful).toBeTruthy();
                         expect(policy?.isChangeOwnerFailed)?.toBeFalsy();
+                        resolve();
+                    },
+                });
+            });
+        });
+
+        it('should set owner and ownerAccountID from explicit parameters on success', async () => {
+            const fakePolicy: PolicyType = createRandomPolicy(0);
+            const fakeEmail = 'newowner@gmail.com';
+            const fakeAccountID = 42;
+            const fakeCard = {
+                cardNumber: '1234567890123456',
+                cardYear: '2023',
+                cardMonth: '05',
+                cardCVV: '123',
+                addressName: 'John Doe',
+                addressZip: '12345',
+                currency: 'USD',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            Policy.addBillingCardAndRequestPolicyOwnerChange(fakePolicy.id, fakeAccountID, fakeEmail, fakeCard);
+            await waitForBatchedUpdates();
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                    waitForCollectionCallback: false,
+                    callback: (policy) => {
+                        Onyx.disconnect(connection);
+                        expect(policy?.isLoading).toBeFalsy();
+                        expect(policy?.isChangeOwnerSuccessful).toBeTruthy();
+                        expect(policy?.owner).toBe(fakeEmail);
+                        expect(policy?.ownerAccountID).toBe(fakeAccountID);
+                        resolve();
+                    },
+                });
+            });
+        });
+    });
+
+    describe('verifySetupIntentAndRequestPolicyOwnerChange', () => {
+        it('should set optimistic loading state', async () => {
+            const fakePolicy: PolicyType = createRandomPolicy(0);
+            const fakeEmail = 'newowner@gmail.com';
+            const fakeAccountID = 42;
+
+            mockFetch?.pause?.();
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            Policy.verifySetupIntentAndRequestPolicyOwnerChange(fakePolicy.id, fakeAccountID, fakeEmail);
+            await waitForBatchedUpdates();
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                    waitForCollectionCallback: false,
+                    callback: (policy) => {
+                        Onyx.disconnect(connection);
+                        expect(policy?.errorFields).toBeFalsy();
+                        expect(policy?.isLoading).toBeTruthy();
+                        expect(policy?.isChangeOwnerSuccessful).toBeFalsy();
+                        expect(policy?.isChangeOwnerFailed).toBeFalsy();
+                        resolve();
+                    },
+                });
+            });
+            await mockFetch?.resume?.();
+        });
+
+        it('should set owner and ownerAccountID from explicit parameters on success', async () => {
+            const fakePolicy: PolicyType = createRandomPolicy(0);
+            const fakeEmail = 'newowner@gmail.com';
+            const fakeAccountID = 42;
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            Policy.verifySetupIntentAndRequestPolicyOwnerChange(fakePolicy.id, fakeAccountID, fakeEmail);
+            await waitForBatchedUpdates();
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                    waitForCollectionCallback: false,
+                    callback: (policy) => {
+                        Onyx.disconnect(connection);
+                        expect(policy?.isLoading).toBeFalsy();
+                        expect(policy?.isChangeOwnerSuccessful).toBeTruthy();
+                        expect(policy?.isChangeOwnerFailed).toBeFalsy();
+                        expect(policy?.owner).toBe(fakeEmail);
+                        expect(policy?.ownerAccountID).toBe(fakeAccountID);
                         resolve();
                     },
                 });
@@ -1215,6 +1302,150 @@ describe('actions/PolicyMember', () => {
             expect(typeof draft?.[userEmail]).toBe('number');
             expect(draft?.[userEmail]).toBe(1234);
             expect(draft?.[userEmail]).not.toBe('1234');
+        });
+    });
+
+    describe('setWorkspaceInviteApproverDraft', () => {
+        it('should save approver email to draft storage', async () => {
+            // Given a policy ID and approver email
+            const policyID = '1';
+            const approverEmail = 'approver@example.com';
+
+            // When setWorkspaceInviteApproverDraft is called
+            Member.setWorkspaceInviteApproverDraft(policyID, approverEmail);
+            await waitForBatchedUpdates();
+
+            // Then the draft should be saved to the correct Onyx key
+            const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policyID}`);
+            expect(draft).toBe(approverEmail);
+        });
+
+        it('should update existing draft with new approver', async () => {
+            // Given an existing approver draft
+            const policyID = '1';
+            const initialApprover = 'initial@example.com';
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policyID}`, initialApprover);
+            await waitForBatchedUpdates();
+
+            // When a new approver is saved
+            const newApprover = 'newapprover@example.com';
+            Member.setWorkspaceInviteApproverDraft(policyID, newApprover);
+            await waitForBatchedUpdates();
+
+            // Then the draft should be updated
+            const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policyID}`);
+            expect(draft).toBe(newApprover);
+        });
+
+        it('should save draft for multiple different workspaces independently', async () => {
+            // Given two different workspace IDs
+            const policyID1 = '1';
+            const policyID2 = '2';
+            const approver1 = 'approver1@example.com';
+            const approver2 = 'approver2@example.com';
+
+            // When drafts are saved for both workspaces
+            Member.setWorkspaceInviteApproverDraft(policyID1, approver1);
+            Member.setWorkspaceInviteApproverDraft(policyID2, approver2);
+            await waitForBatchedUpdates();
+
+            // Then each workspace should have its own independent draft
+            const draft1 = await getOnyxValue(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policyID1}`);
+            const draft2 = await getOnyxValue(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policyID2}`);
+            expect(draft1).toBe(approver1);
+            expect(draft2).toBe(approver2);
+        });
+
+        it('should not save draft when approver email is empty string', async () => {
+            // Given a policy ID with an existing approver draft
+            const policyID = '1';
+            const existingApprover = 'existing@example.com';
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policyID}`, existingApprover);
+            await waitForBatchedUpdates();
+
+            // When setWorkspaceInviteApproverDraft is called with empty string
+            Member.setWorkspaceInviteApproverDraft(policyID, '');
+            await waitForBatchedUpdates();
+
+            // Then the existing draft should remain unchanged
+            const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policyID}`);
+            expect(draft).toBe(existingApprover);
+        });
+    });
+
+    describe('clearWorkspaceInviteApproverDraft', () => {
+        it('should clear the approver draft', async () => {
+            // Given an existing approver draft
+            const policyID = '1';
+            const approverEmail = 'approver@example.com';
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policyID}`, approverEmail);
+            await waitForBatchedUpdates();
+
+            const initialDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policyID}`);
+            expect(initialDraft).toBe(approverEmail);
+
+            // When clearWorkspaceInviteApproverDraft is called
+            Member.clearWorkspaceInviteApproverDraft(policyID);
+            await waitForBatchedUpdates();
+
+            // Then the draft should be cleared
+            const clearedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policyID}`);
+            expect(clearedDraft).toBeFalsy();
+        });
+
+        it('should only clear draft for specified workspace', async () => {
+            // Given approver drafts for two workspaces
+            const policyID1 = '1';
+            const policyID2 = '2';
+            const approver1 = 'approver1@example.com';
+            const approver2 = 'approver2@example.com';
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policyID1}`, approver1);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policyID2}`, approver2);
+            await waitForBatchedUpdates();
+
+            // When clearing draft for only one workspace
+            Member.clearWorkspaceInviteApproverDraft(policyID1);
+            await waitForBatchedUpdates();
+
+            // Then only that workspace's draft should be cleared
+            const draft1 = await getOnyxValue(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policyID1}`);
+            const draft2 = await getOnyxValue(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policyID2}`);
+            expect(draft1).toBeFalsy();
+            expect(draft2).toBe(approver2);
+        });
+    });
+
+    describe('clearInviteDraft', () => {
+        it('should clear all invite drafts including members, role, and approver', async () => {
+            // Given existing drafts for members, role, and approver
+            const policyID = '1';
+            const memberEmail = 'member@example.com';
+            const membersDraft = {[memberEmail]: 123};
+            const roleDraft = CONST.POLICY.ROLE.ADMIN;
+            const approverDraft = 'approver@example.com';
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`, membersDraft);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${policyID}`, roleDraft);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policyID}`, approverDraft);
+            await waitForBatchedUpdates();
+
+            // When clearInviteDraft is called
+            Member.clearInviteDraft(policyID);
+            await waitForBatchedUpdates();
+
+            // Then all drafts should be cleared
+            const clearedMembersDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`);
+            const clearedRoleDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${policyID}`);
+            const clearedApproverDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policyID}`);
+
+            // Members draft is set to empty object, role and approver drafts are cleared (null/undefined)
+            expect(clearedMembersDraft).toEqual({});
+            expect(clearedRoleDraft).toBeFalsy();
+            expect(clearedApproverDraft).toBeFalsy();
         });
     });
 });

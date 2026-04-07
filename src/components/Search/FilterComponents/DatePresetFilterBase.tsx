@@ -3,7 +3,7 @@ import type {Ref} from 'react';
 import CalendarPicker from '@components/DatePicker/CalendarPicker';
 import MenuItem from '@components/MenuItem';
 import type {SearchDatePreset} from '@components/Search/types';
-import SingleSelectListItem from '@components/SelectionListWithSections/SingleSelectListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import SpacerView from '@components/SpacerView';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -99,9 +99,6 @@ type DatePresetFilterBaseProps = {
     /** Callback when date values change */
     onDateValuesChange?: (dateValues: SearchDateValues) => void;
 
-    /** Backward-compatible alias for onDateValuesChange */
-    onDateValueChange?: (dateValues: SearchDateValues) => void;
-
     /** Callback when range validation error changes */
     onRangeValidationErrorChange?: (shouldShowRangeError: boolean) => void;
 
@@ -127,7 +124,6 @@ function DatePresetFilterBase({
     isSearchAdvancedFiltersFormLoading,
     shouldShowRangeError = false,
     onDateValuesChange,
-    onDateValueChange,
     onRangeValidationErrorChange,
     forceVerticalCalendars = false,
     ref,
@@ -151,11 +147,7 @@ function DatePresetFilterBase({
     }, []);
 
     const getRangeEphemeralValuesFromDateValues = useCallback((dateValues: SearchDateValues) => {
-        const rangeBoundaries = getRangeBoundariesFromFormValue(
-            dateValues[CONST.SEARCH.DATE_MODIFIERS.RANGE],
-            dateValues[CONST.SEARCH.DATE_MODIFIERS.AFTER],
-            dateValues[CONST.SEARCH.DATE_MODIFIERS.BEFORE],
-        );
+        const rangeBoundaries = getRangeBoundariesFromFormValue(dateValues[CONST.SEARCH.DATE_MODIFIERS.RANGE]);
 
         return {
             from: rangeBoundaries.from,
@@ -166,9 +158,8 @@ function DatePresetFilterBase({
     const notifyDateValuesChange = useCallback(
         (values: SearchDateValues) => {
             onDateValuesChange?.(values);
-            onDateValueChange?.(values);
         },
-        [onDateValueChange, onDateValuesChange],
+        [onDateValuesChange],
     );
 
     const [dateValues, setDateValues] = useState<SearchDateValues>(normalizedDefaultDateValues);
@@ -262,6 +253,17 @@ function DatePresetFilterBase({
 
     const [rangeEphemeralValues, setRangeEphemeralValues] = useState<{from?: string; to?: string}>(() => getRangeEphemeralValuesFromDateValues(normalizedDefaultDateValues));
 
+    // Synchronize dateValues when rangeEphemeralValues change, keeping the side effect
+    // out of the setRangeEphemeralValues state updater to avoid unpredictable batching on Android.
+    useEffect(() => {
+        if (selectedDateModifier !== CONST.SEARCH.DATE_MODIFIERS.RANGE) {
+            return;
+        }
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setDateValue(CONST.SEARCH.DATE_MODIFIERS.RANGE, getRangeQueryValue(rangeEphemeralValues.from, rangeEphemeralValues.to) || undefined);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [rangeEphemeralValues.from, rangeEphemeralValues.to]);
+
     // Used to discard unsaved range picks when the user leaves Range mode without saving.
     const rangeEntrySnapshotRef = useRef<string | undefined>(undefined);
 
@@ -330,6 +332,10 @@ function DatePresetFilterBase({
 
                 const updatedValue =
                     selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE ? getRangeQueryValue(rangeEphemeralValues.from, rangeEphemeralValues.to) || undefined : ephemeralDateValue;
+                if (updatedValue === undefined) {
+                    return;
+                }
+
                 updateDateValues(getExclusiveDateValues(selectedDateModifier, updatedValue));
             },
 
@@ -377,6 +383,7 @@ function DatePresetFilterBase({
 
     const rangeDescription = getRangeDisplayTextFromDateValues(dateValues) || undefined;
     const customDateModifier = useMemo(() => getCustomDateModifierFromDateValues(dateValues), [dateValues]);
+
     const customDateDescription = useMemo(() => {
         const customDateValue = dateDisplayValues[customDateModifier];
         if (!customDateValue) {
@@ -385,6 +392,9 @@ function DatePresetFilterBase({
 
         return `${translate(`common.${customDateModifier.toLowerCase() as SearchDateModifierLower}`)} ${customDateValue}`;
     }, [customDateModifier, dateDisplayValues, translate]);
+    const handleSingleDateSelected = useCallback((date: string) => {
+        setEphemeralDateValue(date);
+    }, []);
     const selectCustomDateMode = useCallback(() => selectDateModifier(customDateModifier), [customDateModifier, selectDateModifier]);
 
     if (!selectedDateModifier) {
@@ -393,8 +403,10 @@ function DatePresetFilterBase({
                 {presets?.map((preset) => (
                     <SingleSelectListItem
                         key={preset}
+                        keyForList={preset}
                         showTooltip
                         item={{
+                            keyForList: preset,
                             text: translate(`search.filters.date.presets.${preset}`),
                             isSelected: dateValues[CONST.SEARCH.DATE_MODIFIERS.ON] === preset,
                         }}
@@ -432,18 +444,12 @@ function DatePresetFilterBase({
                 fromValue={rangeEphemeralValues.from}
                 toValue={rangeEphemeralValues.to}
                 onFromSelected={(date) => {
-                    setRangeEphemeralValues((prev) => {
-                        const nextValues = {...prev, from: date};
-                        setDateValue(CONST.SEARCH.DATE_MODIFIERS.RANGE, getRangeQueryValue(nextValues.from, nextValues.to) || undefined);
-                        return nextValues;
-                    });
+                    setRangeEphemeralValues((prev) => ({...prev, from: date}));
+                    onRangeValidationErrorChange?.(false);
                 }}
                 onToSelected={(date) => {
-                    setRangeEphemeralValues((prev) => {
-                        const nextValues = {...prev, to: date};
-                        setDateValue(CONST.SEARCH.DATE_MODIFIERS.RANGE, getRangeQueryValue(nextValues.from, nextValues.to) || undefined);
-                        return nextValues;
-                    });
+                    setRangeEphemeralValues((prev) => ({...prev, to: date}));
+                    onRangeValidationErrorChange?.(false);
                 }}
                 shouldShowError={shouldShowRangeError}
                 forceVertical={forceVerticalCalendars}
@@ -455,7 +461,7 @@ function DatePresetFilterBase({
         <>
             <CalendarPicker
                 value={ephemeralDateValue}
-                onSelected={setEphemeralDateValue}
+                onSelected={handleSingleDateSelected}
                 minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                 maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
             />
@@ -466,8 +472,10 @@ function DatePresetFilterBase({
             {CONST.SEARCH.CUSTOM_DATE_MODIFIERS.map((dateModifier) => (
                 <SingleSelectListItem
                     key={dateModifier}
+                    keyForList={dateModifier}
                     showTooltip
                     item={{
+                        keyForList: dateModifier,
                         text: translate(`common.${dateModifier.toLowerCase() as SearchDateModifierLower}`),
                         isSelected: selectedDateModifier === dateModifier,
                     }}

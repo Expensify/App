@@ -74,7 +74,8 @@ jobs:
 
         # v4
       - name: Checkout target branch
-        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+        # v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           ref: ${{ inputs.TARGET }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
@@ -210,6 +211,79 @@ jobs:
             # Push E/App changes
             git push origin ${{ inputs.TARGET }}
           fi
+
+      - name: Find deploy workflow run
+        # Also runs for version-bump-only CPs where HAS_CONFLICTS is unset
+        if: ${{ steps.cherryPick.outputs.HAS_CONFLICTS != 'true' }}
+        id: findDeployRun
+        run: |
+          PUSH_SHA=$(git rev-parse HEAD)
+          echo "Push SHA: $PUSH_SHA"
+
+          DEPLOY_RUN_URL=""
+          for i in 1 2 3 4 5 6; do
+            echo "Polling for deploy run (attempt $i)..."
+            sleep 10
+            DEPLOY_RUN_URL=$(gh api \
+              "repos/${{ github.repository }}/actions/workflows/deploy.yml/runs?head_sha=$PUSH_SHA&per_page=1" \
+              --jq '.workflow_runs[0].html_url // empty' 2>/dev/null || true)
+            if [ -n "$DEPLOY_RUN_URL" ]; then
+              echo "Found deploy run: $DEPLOY_RUN_URL"
+              break
+            fi
+          done
+
+          FALLBACK_URL="https://github.com/${{ github.repository }}/actions/workflows/deploy.yml"
+          if [ -z "$DEPLOY_RUN_URL" ]; then
+            echo "::warning::Could not find deploy workflow run for SHA $PUSH_SHA"
+            {
+              echo "DEPLOY_RUN_FOUND=false"
+              echo "DEPLOY_RUN_URL=$FALLBACK_URL"
+              echo "DEPLOY_RUN_MESSAGE=⚠️ Could not locate deploy run — check $FALLBACK_URL"
+            } >> "$GITHUB_OUTPUT"
+          else
+            {
+              echo "DEPLOY_RUN_FOUND=true"
+              echo "DEPLOY_RUN_URL=$DEPLOY_RUN_URL"
+              echo "DEPLOY_RUN_MESSAGE=$DEPLOY_RUN_URL"
+            } >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Announce successful CP in #deployer
+        # Also runs for version-bump-only CPs where HAS_CONFLICTS is unset
+        if: ${{ steps.cherryPick.outputs.HAS_CONFLICTS != 'true' }}
+        uses: 8398a7/action-slack@1750b5085f3ec60384090fb7c52965ef822e869e
+        with:
+          status: custom
+          custom_payload: |
+            {
+              channel: '#deployer',
+              attachments: [{
+                color: 'good',
+                text: `🍒 Cherry-pick to *${{ inputs.TARGET }}* successful\nPR: ${{ inputs.PULL_REQUEST_URL || '(version bump only)' }}\nDeploy workflow: ${{ steps.findDeployRun.outputs.DEPLOY_RUN_MESSAGE }}`
+              }]
+            }
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
+      - name: Write workflow summary
+        # Also runs for version-bump-only CPs where HAS_CONFLICTS is unset
+        if: ${{ steps.cherryPick.outputs.HAS_CONFLICTS != 'true' }}
+        run: |
+          {
+            echo "## Cherry-pick successful"
+            echo ""
+            echo "**Target:** \`${{ inputs.TARGET }}\`"
+            echo "**PR:** ${{ inputs.PULL_REQUEST_URL || 'N/A (version bump only)' }}"
+            if [[ "${{ steps.findDeployRun.outputs.DEPLOY_RUN_FOUND }}" == "true" ]]; then
+              echo "**Deploy workflow:** ${{ steps.findDeployRun.outputs.DEPLOY_RUN_URL }}"
+            else
+              echo "**Deploy workflow:** :warning: Could not locate deploy run — check [${{ inputs.TARGET }} deploy runs](${{ steps.findDeployRun.outputs.DEPLOY_RUN_URL }})"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Create Pull Request to manually finish CP
         if: steps.cherryPick.outputs.HAS_CONFLICTS == 'true'

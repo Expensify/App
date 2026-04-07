@@ -105,6 +105,9 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Last update result */
     lastScrapeResult?: number;
 
+    /** Last import attempt */
+    lastImportAttempt?: string;
+
     /** Card related error messages */
     errors?: OnyxCommon.Errors;
 
@@ -119,6 +122,9 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Card's primary account identifier token */
     token?: string;
+
+    /** Whether the card is in an offline PIN market */
+    isOfflinePINMarket?: boolean;
 
     /** Additional card data */
     nameValuePairs?: OnyxCommon.OnyxValueWithOfflineFeedback<{
@@ -148,6 +154,9 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
         /** Issued card country */
         country?: string;
+
+        /** Program currency of the card (USD, GBP, or EUR) */
+        currency?: string;
 
         /** Is a virtual card */
         isVirtual?: boolean;

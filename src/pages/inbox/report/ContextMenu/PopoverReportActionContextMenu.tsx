@@ -15,10 +15,9 @@ import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactio
 import useGetIOUReportFromReportAction from '@hooks/useGetIOUReportFromReportAction';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
-import {deleteTrackExpense} from '@libs/actions/IOU';
+import {deleteTrackExpense} from '@libs/actions/IOU/TrackExpense';
 import {deleteAppReport, deleteReportComment} from '@libs/actions/Report';
 import calculateAnchorPosition from '@libs/calculateAnchorPosition';
 import refocusComposerAfterPreventFirstResponder from '@libs/refocusComposerAfterPreventFirstResponder';
@@ -48,7 +47,7 @@ type PopoverReportActionContextMenuProps = {
 };
 
 function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuProps) {
-    const {translate, toLocaleDigit} = useLocalize();
+    const {translate} = useLocalize();
     const reportIDRef = useRef<string | undefined>(undefined);
     const typeRef = useRef<ContextMenuType | undefined>(undefined);
     const reportActionRef = useRef<NonNullable<OnyxEntry<ReportAction>> | null>(null);
@@ -58,6 +57,8 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const reportActionDraftMessageRef = useRef<string | undefined>(undefined);
     const isReportArchived = useReportIsArchived(reportIDRef.current);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDRef.current}`);
+    const reportActionsRef = useRef(reportActions);
+    reportActionsRef.current = reportActions;
     const isOriginalReportArchived = useReportIsArchived(getOriginalReportID(reportIDRef.current, reportActionRef.current, reportActions));
     const {iouReport, chatReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(reportActionRef.current);
     const {transitionActionSheetState} = useActionSheetAwareScrollViewActions();
@@ -89,7 +90,6 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     const [isWithoutOverlay, setIsWithoutOverlay] = useState<boolean>(true);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
-    const personalPolicy = usePersonalPolicy();
 
     const contentRef = useRef<View>(null);
     const anchorRef = useRef<View | HTMLDivElement | null>(null);
@@ -369,7 +369,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                     currentUserAccountID,
                 });
             } else if (originalMessage?.IOUTransactionID) {
-                deleteTransactions([originalMessage.IOUTransactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash);
+                deleteTransactions([originalMessage.IOUTransactionID], duplicateTransactions, duplicateTransactionViolations, undefined);
             }
         } else if (isReportPreviewAction(reportAction)) {
             deleteAppReport({
@@ -380,15 +380,21 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                 reportTransactions,
                 allTransactionViolations,
                 bankAccountList,
-                personalPolicy,
-                translate,
-                toLocaleDigit,
                 hash: currentSearchHash,
             });
         } else if (reportAction) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
-                deleteReportComment(report, reportAction, ancestorsRef.current, isReportArchived, isOriginalReportArchived, email ?? '', visibleReportActionsData ?? undefined);
+                deleteReportComment(
+                    report,
+                    reportAction,
+                    ancestorsRef.current,
+                    isReportArchived,
+                    isOriginalReportArchived,
+                    email ?? '',
+                    visibleReportActionsData ?? undefined,
+                    reportActionsRef.current ?? undefined,
+                );
             });
         }
 
@@ -411,10 +417,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         email,
         reportTransactions,
         bankAccountList,
-        personalPolicy,
         isOriginalReportArchived,
-        translate,
-        toLocaleDigit,
         visibleReportActionsData,
     ]);
 

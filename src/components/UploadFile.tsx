@@ -64,7 +64,7 @@ function UploadFile({
     totalFilesSizeLimit = 0,
     fileLimit = 0,
 }: UploadFileProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Close', 'Paperclip'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Close', 'Paperclip']);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -75,7 +75,7 @@ function UploadFile({
 
         if (totalFilesSizeLimit) {
             if (totalSize > totalFilesSizeLimit) {
-                setError(translate('attachmentPicker.sizeExceededWithValue', {maxUploadSizeInMB: totalFilesSizeLimit / (1024 * 1024)}));
+                setError(translate('attachmentPicker.sizeExceededWithValue', totalFilesSizeLimit / (1024 * 1024)));
                 return;
             }
         }

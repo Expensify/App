@@ -36,7 +36,11 @@ type DateFilterBaseProps = {
     onSubmit: (values: SearchDateValues) => void;
     /** Callback when a date value changes (e.g. preset click or calendar save) */
     onDateValuesChange?: (values: SearchDateValues) => void;
-    /** Callback when the date modifier screen is opened or closed (on/after/before/range) */
+    /** Controlled selected date modifier */
+    selectedDateModifier?: SearchDateModifier | null;
+    /** Callback for controlled selected date modifier */
+    onSelectDateModifier?: (dateModifier: SearchDateModifier | null) => void;
+    /** Callback when the date modifier screen is opened or closed (on/after/before) */
     onDateModifierChange?: (isOpen: boolean) => void;
     /** If true, the Reset/Save buttons are only shown when a date modifier is selected. */
     shouldShowButtonsOnlyWithDateModifier?: boolean;
@@ -59,13 +63,15 @@ function DateFilterBase({
     shouldShowButtonsOnlyWithDateModifier = false,
     shouldShowHeader = true,
     ref,
+    selectedDateModifier: selectedDateModifierProp,
+    onSelectDateModifier,
 }: DateFilterBaseProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const normalizedDefaultDateValues = useMemo(() => ({...getEmptyDateValues(), ...defaultDateValues}), [defaultDateValues]);
     const searchDatePresetFilterBaseRef = useRef<SearchDatePresetFilterBaseHandle>(null);
-    const [selectedDateModifier, setSelectedDateModifier] = useState<SearchDateModifier | null>(null);
+    const [selectedDateModifierState, setSelectedDateModifierState] = useState<SearchDateModifier | null>(null);
     const [shouldShowRangeError, setShouldShowRangeError] = useState(false);
     const [rangeDisplayText, setRangeDisplayText] = useState(() =>
         getDateRangeDisplayValueFromFormValue(
@@ -95,13 +101,27 @@ function DateFilterBase({
         [onDateValuesChange],
     );
 
+    const isDateModifierControlled = selectedDateModifierProp !== undefined;
+    const selectedDateModifier = isDateModifierControlled ? selectedDateModifierProp : selectedDateModifierState;
+
+    const setSelectedDateModifier = useCallback(
+        (dateModifier: SearchDateModifier | null) => {
+            if (isDateModifierControlled) {
+                onSelectDateModifier?.(dateModifier);
+                return;
+            }
+            setSelectedDateModifierState(dateModifier);
+        },
+        [isDateModifierControlled, onSelectDateModifier],
+    );
+
     const handleSelectDateModifier = useCallback(
         (dateModifier: SearchDateModifier | null) => {
             setSelectedDateModifier(dateModifier);
             onDateModifierChange?.(!!dateModifier);
             onDateValuesChange?.(searchDatePresetFilterBaseRef.current?.getDateValues() ?? getEmptyDateValues());
         },
-        [onDateModifierChange, onDateValuesChange],
+        [onDateModifierChange, onDateValuesChange, setSelectedDateModifier],
     );
 
     const goBack = useCallback(() => {
@@ -116,7 +136,7 @@ function DateFilterBase({
         }
 
         onBackButtonPress?.();
-    }, [onBackButtonPress, onDateModifierChange, selectedDateModifier]);
+    }, [onBackButtonPress, onDateModifierChange, selectedDateModifier, setSelectedDateModifier]);
 
     useImperativeHandle(
         ref,
@@ -136,13 +156,15 @@ function DateFilterBase({
 
         if (selectedDateModifier) {
             searchDatePresetFilterBaseRef.current.clearDateValueOfSelectedDateModifier();
+            setSelectedDateModifier(null);
             setShouldShowRangeError(false);
+            onDateModifierChange?.(false);
             return;
         }
 
         searchDatePresetFilterBaseRef.current.clearDateValues();
         setShouldShowRangeError(false);
-    }, [selectedDateModifier]);
+    }, [onDateModifierChange, selectedDateModifier, setSelectedDateModifier]);
 
     const save = useCallback(() => {
         if (!searchDatePresetFilterBaseRef.current) {
@@ -164,7 +186,7 @@ function DateFilterBase({
         }
 
         onSubmit(searchDatePresetFilterBaseRef.current.getDateValues());
-    }, [onDateModifierChange, onSubmit, selectedDateModifier]);
+    }, [onDateModifierChange, onSubmit, selectedDateModifier, setSelectedDateModifier]);
 
     const shouldShowActionButtons = !shouldShowButtonsOnlyWithDateModifier || !!selectedDateModifier;
     const shouldShowRangeSummary = selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE && !!rangeDisplayText;
@@ -177,7 +199,10 @@ function DateFilterBase({
                     onBackButtonPress={goBack}
                 />
             )}
-            <ScrollView contentContainerStyle={[styles.flexGrow1]}>
+            <ScrollView
+                keyboardShouldPersistTaps="handled"
+                contentContainerStyle={[styles.flexGrow1]}
+            >
                 <DatePresetFilterBase
                     ref={searchDatePresetFilterBaseRef}
                     defaultDateValues={normalizedDefaultDateValues}
@@ -190,13 +215,13 @@ function DateFilterBase({
                     onRangeValidationErrorChange={setShouldShowRangeError}
                     forceVerticalCalendars
                 />
-                {shouldShowRangeSummary && (
-                    <Text style={[styles.textLabelSupporting, styles.mh5, styles.mt2]}>
-                        {`${translate('common.range')}: `}
-                        <Text style={[styles.textLabel]}>{rangeDisplayText}</Text>
-                    </Text>
-                )}
             </ScrollView>
+            {shouldShowRangeSummary && (
+                <Text style={[styles.textLabelSupporting, styles.mh5, styles.mt2]}>
+                    {`${translate('common.range')}: `}
+                    <Text style={[styles.textLabel]}>{rangeDisplayText}</Text>
+                </Text>
+            )}
             {shouldShowActionButtons && (
                 <>
                     <Button

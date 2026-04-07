@@ -1,7 +1,8 @@
 import {accountIDSelector, emailSelector} from '@selectors/Session';
 import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
@@ -57,7 +58,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
     const {clearSelectedTransactions} = useSearchActionsContext();
     const styles = useThemeStyles();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const {translate, localeCompare, toLocaleDigit} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP);
     const isRHPOnReportInSearch = isRHPOnSearchMoneyRequestReportPage();
@@ -70,7 +71,8 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [hasDismissedEmptyReportsConfirmation] = useOnyx(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [userBillingGracePeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -129,8 +131,6 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                     reportNextStep,
                     policyCategories: undefined,
                     allTransactions,
-                    translate,
-                    toLocaleDigit,
                 });
 
                 // eslint-disable-next-line rulesdir/no-default-id-values
@@ -151,7 +151,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
         navigateToNewReport(optimisticReport.reportID);
     };
 
-    const {openCreateReportConfirmation, CreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
+    const {openCreateReportConfirmation} = useCreateEmptyReportConfirmation({
         policyID: pendingPolicySelection?.policy.policyID,
         policyName: pendingPolicySelection?.policy.text ?? '',
         onConfirm: (shouldDismissEmptyReportsConfirmation: boolean) => {
@@ -181,7 +181,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
             return;
         }
 
-        if (shouldRestrictUserBillableActions(policy.policyID, undefined, undefined, ownerBillingGraceEndPeriod)) {
+        if (shouldRestrictUserBillableActions(policy.policyID, ownerBillingGracePeriodEnd, userBillingGracePeriods)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.policyID));
             return;
         }
@@ -265,9 +265,13 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                         title={translate('report.newReport.createReport')}
                         onBackButtonPress={Navigation.goBack}
                     />
-                    {CreateReportConfirmationModal}
                     {shouldShowLoadingIndicator ? (
-                        <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                        <View style={[styles.flex1, styles.fullScreenLoading]}>
+                            <ActivityIndicator
+                                size="large"
+                                reasonAttributes={{context: 'NewReportWorkspaceSelectionPage', isLoadingApp: !!isLoadingApp}}
+                            />
+                        </View>
                     ) : (
                         <>
                             <Text style={[styles.ph5, styles.mb3]}>{translate('report.newReport.chooseWorkspace')}</Text>

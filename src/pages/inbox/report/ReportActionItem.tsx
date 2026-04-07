@@ -1,3 +1,4 @@
+import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {useCallback} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useBlockedFromConcierge} from '@components/OnyxListItemProvider';
@@ -9,7 +10,7 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportTransactions from '@hooks/useReportTransactions';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getForReportActionTemp, getMovedReportID} from '@libs/ModifiedExpenseMessage';
+import {getForReportAction, getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import {getIOUReportIDFromReportActionPreview, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
     chatIncludesChronosWithID,
@@ -39,7 +40,15 @@ import PureReportActionItem from './PureReportActionItem';
 
 type ReportActionItemProps = Omit<
     PureReportActionItemProps,
-    'taskReport' | 'linkedReport' | 'iouReportOfLinkedReport' | 'currentUserAccountID' | 'personalPolicyID' | 'allTransactionDrafts' | 'userBillingGraceEndPeriodCollection'
+    | 'taskReport'
+    | 'linkedReport'
+    | 'iouReportOfLinkedReport'
+    | 'currentUserAccountID'
+    | 'currentUserEmail'
+    | 'personalPolicyID'
+    | 'draftTransactionIDs'
+    | 'userBillingGracePeriodEnds'
+    | 'betas'
 > & {
     /** Whether to show the draft message or not */
     shouldShowDraftMessage?: boolean;
@@ -93,7 +102,8 @@ function ReportActionItem({
     const policyIDForTags = report?.policyID === CONST.POLICY.OWNER_EMAIL_FAKE && policyForMovingExpensesID ? policyForMovingExpensesID : report?.policyID;
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyIDForTags}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`);
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`);
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getIOUReportIDFromReportActionPreview(action)}`);
@@ -112,7 +122,7 @@ function ReportActionItem({
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
-    const [userBillingGraceEndPeriodCollection] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const transactionsOnIOUReport = useReportTransactions(iouReport?.reportID);
     const transactionID = isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID;
 
@@ -134,12 +144,14 @@ function ReportActionItem({
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             introSelected={introSelected}
-            allTransactionDrafts={allTransactionDrafts}
+            betas={betas}
+            draftTransactionIDs={draftTransactionIDs}
             personalPolicyID={personalPolicyID}
             action={action}
             report={report}
             policy={policy}
             currentUserAccountID={currentUserAccountID}
+            currentUserEmail={currentUserEmail}
             draftMessage={draftMessage}
             iouReport={iouReport}
             taskReport={taskReport}
@@ -169,7 +181,7 @@ function ReportActionItem({
                 action as OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED | typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED>>,
                 report,
             )}
-            modifiedExpenseMessage={getForReportActionTemp({
+            modifiedExpenseMessage={getForReportAction({
                 translate,
                 reportAction: action,
                 policy,
@@ -186,7 +198,7 @@ function ReportActionItem({
             isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
             bankAccountList={bankAccountList}
             reportMetadata={reportMetadata}
-            userBillingGraceEndPeriodCollection={userBillingGraceEndPeriodCollection}
+            userBillingGracePeriodEnds={userBillingGracePeriodEnds}
         />
     );
 }

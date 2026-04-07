@@ -1,4 +1,4 @@
-import {StyleSheet} from 'react-native';
+import {PixelRatio, Dimensions as RNDimensions, StyleSheet} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {AnimatableNumericValue, Animated, ColorValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -834,6 +834,7 @@ type AvatarBorderStyleParams = {
     isInReportAction: boolean;
     shouldUseCardBackground: boolean;
     isActive?: boolean;
+    customPressedBorderColor?: string;
 };
 
 function getHorizontalStackedAvatarBorderStyle({
@@ -843,6 +844,7 @@ function getHorizontalStackedAvatarBorderStyle({
     isInReportAction = false,
     shouldUseCardBackground = false,
     isActive = false,
+    customPressedBorderColor,
 }: AvatarBorderStyleParams): ViewStyle {
     let borderColor = shouldUseCardBackground ? theme.cardBG : theme.appBG;
 
@@ -855,6 +857,9 @@ function getHorizontalStackedAvatarBorderStyle({
 
     if (isPressed) {
         borderColor = isInReportAction ? theme.hoverComponentBG : theme.buttonPressedBG;
+        if (customPressedBorderColor) {
+            borderColor = customPressedBorderColor;
+        }
     }
 
     return {borderColor};
@@ -863,9 +868,9 @@ function getHorizontalStackedAvatarBorderStyle({
 /**
  * Get computed avatar styles based on position and border size
  */
-function getHorizontalStackedAvatarStyle(index: number, overlapSize: number): ViewStyle {
+function getHorizontalStackedAvatarStyle(index: number, overlapSize: number, firstAvatarMarginLeft = 0): ViewStyle {
     return {
-        marginLeft: index > 0 ? -overlapSize : 0,
+        marginLeft: index > 0 ? -overlapSize : firstAvatarMarginLeft,
         zIndex: index + 2,
     };
 }
@@ -1017,8 +1022,10 @@ function getEmojiPickerListHeight(isRenderingShortcutRow: boolean, windowHeight:
     };
 
     if (windowHeight) {
-        // dimensions of content above the emoji picker list
-        const dimensions = isRenderingShortcutRow ? CONST.EMOJI_PICKER_TEXT_INPUT_SIZES + CONST.CATEGORY_SHORTCUT_BAR_HEIGHT : CONST.EMOJI_PICKER_TEXT_INPUT_SIZES;
+        // dimensions of content above and below the emoji picker list
+        const dimensions = isRenderingShortcutRow
+            ? CONST.EMOJI_PICKER_TEXT_INPUT_SIZES + CONST.EMOJI_PICKER_SKIN_TONE_LIST_HEIGHT + CONST.CATEGORY_SHORTCUT_BAR_HEIGHT
+            : CONST.EMOJI_PICKER_TEXT_INPUT_SIZES + CONST.EMOJI_PICKER_SKIN_TONE_LIST_HEIGHT;
         const maxHeight = windowHeight - dimensions;
         return {
             ...style,
@@ -1194,6 +1201,35 @@ function getAmountFontSizeAndLineHeight(isSmallScreenWidth: boolean, windowWidth
 }
 
 /**
+ * Returns fitting fontSize value for the money request amount input
+ * to prevent large amounts from overflowing on small screens.
+ */
+function getAmountInputFontSize(amountLength: number): TextStyle {
+    // Display Zoom ("Larger Text") shrinks the logical window width (e.g. ~320pt vs ~390pt normal).
+    // Accessibility large-text increases PixelRatio.getFontScale() above 1.
+    // Both cases reduce available space, so we compute a combined scale factor and apply it to
+    // both the base font size and the minimum font size.
+    const {width: windowWidth} = RNDimensions.get('window');
+    const referenceWidth = 390;
+    const displayZoomFactor = Math.min(1, windowWidth / referenceWidth);
+    const accessibilityFontScale = PixelRatio.getFontScale();
+    const accessibilityFactor = accessibilityFontScale > 1 ? 1 / accessibilityFontScale : 1;
+    const scaleFactor = Math.min(displayZoomFactor, accessibilityFactor);
+
+    const baseFontSize = Math.round(variables.iouAmountTextSizeLarge * scaleFactor);
+    const minFontSize = Math.max(14, Math.round(20 * scaleFactor));
+    const maxLengthBeforeScaling = 10;
+    const reductionPerChar = 2;
+
+    if (amountLength <= maxLengthBeforeScaling) {
+        return {fontSize: baseFontSize};
+    }
+
+    const reduction = Math.min((amountLength - maxLengthBeforeScaling) * reductionPerChar, baseFontSize - minFontSize);
+    return {fontSize: Math.max(baseFontSize - reduction, minFontSize)};
+}
+
+/**
  * Get transparent color by setting alpha value 0 of the passed hex(#xxxxxx) color code
  */
 function getTransparentColor(color: string) {
@@ -1293,6 +1329,7 @@ const staticStyleUtils = {
     combineStyles,
     displayIfTrue,
     getAmountFontSizeAndLineHeight,
+    getAmountInputFontSize,
     getAutoCompleteSuggestionContainerStyle,
     getAvatarBorderRadius,
     getAvatarBorderStyle,
@@ -1502,7 +1539,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
 
     getIconColorStyle: (isSuccess: boolean, isError: boolean, isStrong = false): string => {
         if (isStrong) {
-            return theme.white;
+            return theme.icon;
         }
         if (isSuccess) {
             return theme.badgeSuccessText;
@@ -1552,7 +1589,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         backgroundColor: theme.componentBG,
         height: size,
         width: size,
-        borderColor: theme.borderLighter,
+        borderColor: theme.bordersBold,
         borderWidth: 2,
         justifyContent: 'center',
         alignItems: 'center',
@@ -1599,7 +1636,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     getDotIndicatorTextStyles: (isErrorText = true): TextStyle => (isErrorText ? {...styles.offlineFeedbackText, color: styles.formError.color} : {...styles.offlineFeedbackText}),
 
     getEmojiReactionBubbleStyle: (isHovered: boolean, hasUserReacted: boolean, isContextMenu = false): ViewStyle => {
-        let backgroundColor = theme.border;
+        let backgroundColor = theme.buttonDefaultBG;
 
         if (isHovered) {
             backgroundColor = theme.buttonHoveredBG;
@@ -1823,6 +1860,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT:
             case CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT:
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL:
+            case CONST.SEARCH.TABLE_COLUMNS.TOTAL_PER_ATTENDEE:
             case CONST.SEARCH.TABLE_COLUMNS.TOTAL:
                 columnWidth = {...getWidthStyle(isAmountColumnWide ? variables.w130 : variables.w96), ...(!shouldRemoveTotalColumnFlex && styles.flex1), ...styles.alignItemsEnd};
                 break;
@@ -1841,6 +1879,9 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO:
                 columnWidth = {...getWidthStyle(variables.w72), ...styles.alignItemsCenter};
+                break;
+            case CONST.SEARCH.TABLE_COLUMNS.ATTENDEES:
+                columnWidth = {...getWidthStyle(variables.w72)};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_FEED:
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_BANK_ACCOUNT:
@@ -1881,7 +1922,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
 
         switch (size) {
             case CONST.AVATAR_SIZE.SMALL:
-                containerStyles = [styles.emptyAvatarSmall, styles.emptyAvatarMarginSmall];
+                containerStyles = [styles.emptyAvatarSmall, styles.emptyAvatarMargin];
                 break;
             case CONST.AVATAR_SIZE.SMALLER:
                 containerStyles = [styles.emptyAvatarSmaller, styles.emptyAvatarMarginSmaller];

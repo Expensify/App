@@ -7,6 +7,7 @@ import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 import MergeExpensesSkeleton from '@components/Skeletons/MergeExpensesSkeleton';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDebouncedState from '@hooks/useDebouncedState';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -45,10 +46,12 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     const currentUserLogin = session?.email;
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const {isOffline} = useNetwork();
+    const {getCurrencyDecimals} = useCurrencyListActions();
 
     const eligibleTransactions = mergeTransaction?.eligibleTransactions;
-    const {targetTransaction, sourceTransaction, targetTransactionReport, sourceTransactionReport} = useMergeTransactions({mergeTransaction});
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${targetTransactionReport?.policyID}`);
+    const {targetTransaction, sourceTransaction, targetTransactionReport, sourceTransactionReport, targetTransactionPolicy, sourceTransactionPolicy} = useMergeTransactions({
+        mergeTransaction,
+    });
 
     useEffect(() => {
         // If the eligible transactions are already loaded, don't fetch them again
@@ -60,11 +63,11 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
             isOffline,
             targetTransaction,
             transactions,
-            policy,
+            policy: targetTransactionPolicy,
             report: targetTransactionReport,
             currentUserLogin,
         });
-    }, [transactions, isOffline, mergeTransaction?.eligibleTransactions, policy, targetTransactionReport, currentUserLogin, targetTransaction]);
+    }, [transactions, isOffline, mergeTransaction?.eligibleTransactions, targetTransactionPolicy, targetTransactionReport, currentUserLogin, targetTransaction]);
 
     const data = !eligibleTransactions
         ? []
@@ -155,7 +158,10 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
         }
 
         const reports = targetTransactionReport && sourceTransactionReport ? [targetTransactionReport, sourceTransactionReport] : undefined;
-        setupMergeTransactionDataAndNavigate(transactionID, [targetTransaction, sourceTransaction], localeCompare, reports, true);
+        setupMergeTransactionDataAndNavigate(transactionID, [targetTransaction, sourceTransaction], localeCompare, getCurrencyDecimals, reports, true, undefined, [
+            targetTransactionPolicy,
+            sourceTransactionPolicy,
+        ]);
     };
 
     const confirmButtonOptions = {
