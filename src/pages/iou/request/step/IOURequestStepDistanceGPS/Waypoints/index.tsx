@@ -47,12 +47,12 @@ function Waypoints({unit, isInLandscapeMode}: WaypointsProps) {
     const Wrapper = isInLandscapeMode ? ScrollView : View;
 
     const getEndAddressTitle = () => {
-        if (isTripCaptured) {
-            return gpsDraftDetails?.endAddress?.value;
-        }
-
         if (shouldShowLoadingEndAddress) {
             return '...';
+        }
+
+        if (isTripCaptured) {
+            return gpsDraftDetails?.endAddress?.value;
         }
 
         return translate('gps.trackingDistance');
