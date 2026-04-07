@@ -1,13 +1,16 @@
 import React, {useRef, useState} from 'react';
 import type {ReactNode} from 'react';
+import {InteractionManager} from 'react-native';
 import useDecisionModal from '@hooks/useDecisionModal';
 import useHoldMenuModal from '@hooks/useHoldMenuModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import getPlatform from '@libs/getPlatform';
 import {getNonHeldAndFullAmount, hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils, hasOnlyNonReimbursableTransactions} from '@libs/ReportUtils';
 import {canIOUBePaid as canIOUBePaidAction} from '@userActions/IOU';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import MoneyReportHeaderEducationalModals from './MoneyReportHeaderEducationalModals';
 import type {MoneyReportHeaderEducationalModalsHandle, RejectModalAction} from './MoneyReportHeaderEducationalModals';
@@ -66,19 +69,31 @@ function MoneyReportHeaderModals({reportID, children}: MoneyReportHeaderModalsPr
         });
     };
 
-    const openHoldMenu = async ({requestType, paymentType, methodID, onConfirm}: HoldMenuParams) => {
-        await showHoldMenu({
-            reportID: moneyRequestReport?.reportID,
-            chatReportID: chatReport?.reportID,
-            requestType,
-            paymentType,
-            methodID,
-            nonHeldAmount: !hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined,
-            fullAmount,
-            hasNonHeldExpenses: !hasOnlyHeldExpenses,
-            transactionCount: transactionIDs.length,
-            onConfirm,
-        });
+    const openHoldMenu = ({requestType, paymentType, methodID, onConfirm}: HoldMenuParams): Promise<void> => {
+        const open = () =>
+            showHoldMenu({
+                reportID: moneyRequestReport?.reportID,
+                chatReportID: chatReport?.reportID,
+                requestType,
+                paymentType,
+                methodID,
+                nonHeldAmount: !hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined,
+                fullAmount,
+                hasNonHeldExpenses: !hasOnlyHeldExpenses,
+                transactionCount: transactionIDs.length,
+                onConfirm,
+            });
+
+        // On iOS, delay opening the hold menu until active touch interactions finish to prevent visual glitches
+        if (getPlatform() === CONST.PLATFORM.IOS) {
+            return new Promise<void>((resolve) => {
+                InteractionManager.runAfterInteractions(() => {
+                    open().then(() => resolve());
+                });
+            });
+        }
+
+        return open().then(() => {});
     };
 
     const contextValue = {
