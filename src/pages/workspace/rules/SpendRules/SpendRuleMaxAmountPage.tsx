@@ -23,7 +23,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/SpendRuleForm';
-import type {Card, WorkspaceCardsList} from '@src/types/onyx';
+import type {WorkspaceCardsList} from '@src/types/onyx';
 
 type SpendRuleMaxAmountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_SPEND_MAX_AMOUNT>;
 
@@ -32,15 +32,16 @@ function getSelectedCardsCurrency(cardIDs: string[] | undefined, cardsList: Onyx
         return undefined;
     }
 
-    const cardsRecord = (cardsList ?? {}) as Record<string, Card | Record<string, string> | undefined>;
+    const cardsRecord = cardsList ?? {};
     const currencies = new Set<string>();
     for (const id of cardIDs) {
         const card = cardsRecord[id];
         if (card === undefined || !isCard(card)) {
             continue;
         }
-        if (typeof card.nameValuePairs?.currency === 'string' && card.nameValuePairs.currency) {
-            currencies.add(String(card.nameValuePairs.currency));
+        const currency = card.nameValuePairs?.currency;
+        if (currency) {
+            currencies.add(currency);
         }
     }
 
