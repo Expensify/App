@@ -4,6 +4,7 @@ import AmountForm from '@components/AmountForm';
 import ConfirmModal from '@components/ConfirmModal';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -44,7 +45,18 @@ function WorkspaceTravelInvoicingMonthlyLimitPage({route}: WorkspaceTravelInvoic
         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
     };
 
-    const handleSubmit = ({limit}: {limit: string}) => {
+    const validate = ({
+        limit,
+    }: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TRAVEL_INVOICING_MONTHLY_LIMIT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_TRAVEL_INVOICING_MONTHLY_LIMIT_FORM> => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.EDIT_TRAVEL_INVOICING_MONTHLY_LIMIT_FORM> = {};
+        const parsed = parseFloat(limit);
+        if (Number.isNaN(parsed) || parsed < 0) {
+            errors[INPUT_IDS.LIMIT] = translate('iou.error.invalidAmount');
+        }
+        return errors;
+    };
+
+    const handleSubmit = ({limit}: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TRAVEL_INVOICING_MONTHLY_LIMIT_FORM>) => {
         const newLimitInCents = convertToBackendAmount(parseFloat(limit));
         if (newLimitInCents < currentLimit && currentLimit > 0) {
             setPendingLimit(newLimitInCents);
@@ -67,6 +79,7 @@ function WorkspaceTravelInvoicingMonthlyLimitPage({route}: WorkspaceTravelInvoic
             <FormProvider
                 style={[styles.flexGrow1, styles.mh5]}
                 formID={ONYXKEYS.FORMS.EDIT_TRAVEL_INVOICING_MONTHLY_LIMIT_FORM}
+                validate={validate}
                 onSubmit={handleSubmit}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
