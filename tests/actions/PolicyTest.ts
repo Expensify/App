@@ -1877,7 +1877,7 @@ describe('actions/Policy', () => {
 
             const policyID = Policy.generatePolicyID();
 
-            Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE}, ESH_EMAIL, WORKSPACE_NAME, policyID, false, CONST.CURRENCY.EUR);
+            Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE}, WORKSPACE_NAME, policyID, false, CONST.CURRENCY.EUR);
             await waitForBatchedUpdates();
 
             const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
@@ -1886,21 +1886,6 @@ describe('actions/Policy', () => {
             expect(draft?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT);
             expect(draft?.harvesting?.enabled).toBe(true);
             expect(draft?.outputCurrency).toBe(CONST.CURRENCY.EUR);
-        });
-
-        it('uses generated workspace name when policyName is not provided', async () => {
-            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
-            await waitForBatchedUpdates();
-
-            const policyID = Policy.generatePolicyID();
-            const expectedName = Policy.newGenerateDefaultWorkspaceName(ESH_EMAIL, undefined, TestHelper.translateLocal);
-
-            Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM}, ESH_EMAIL, '', policyID, false);
-            await waitForBatchedUpdates();
-
-            const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
-
-            expect(draft?.name).toBe(expectedName);
         });
     });
 
