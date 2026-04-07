@@ -3687,7 +3687,6 @@ function getUpdateTrackExpenseParams(
     };
 }
 
-
 function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string | undefined, participants: Participant[], participantAccountIDs: number[], currentUserAccountID: number) {
     // The existing chat report could be passed as reportID or exist on the sole "participant" (in this case a report option)
     const existingChatReportID = existingSplitChatReportID ?? participants.at(0)?.reportID;
@@ -4564,7 +4563,6 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
 
     return {iouReport: distanceIouReport};
 }
-
 
 /**
  *
