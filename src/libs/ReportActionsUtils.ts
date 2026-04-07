@@ -2099,7 +2099,7 @@ function getMessageOfOldDotReportAction(translate: LocalizedTranslate, oldDotAct
         case CONST.REPORT.ACTIONS.TYPE.MARK_REIMBURSED_FROM_INTEGRATION: {
             const {amount, currency} = originalMessage;
             if (!amount || !currency) {
-                return getMessageOfOldDotLegacyAction(oldDotAction);
+                return getMessageOfOldDotLegacyAction(oldDotAction as PartialReportAction);
             }
             return translate('report.actions.type.markedReimbursedFromIntegration', {amount, currency});
         }
