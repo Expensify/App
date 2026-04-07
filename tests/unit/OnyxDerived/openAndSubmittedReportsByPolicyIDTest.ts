@@ -4,7 +4,7 @@ import type {DerivedValueContext} from '@libs/actions/OnyxDerived/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, Session} from '@src/types/onyx';
-import createBaseReport from './helpers';
+import {createMockReport} from '../../utils/ReportTestUtils';
 
 const CURRENT_USER_ACCOUNT_ID = 1;
 const OTHER_USER_ACCOUNT_ID = 2;
@@ -12,7 +12,8 @@ const POLICY_ID_1 = 'policy1';
 const POLICY_ID_2 = 'policy2';
 
 function createReport(reportID: string, overrides: Partial<Report> = {}): Report {
-    return createBaseReport(reportID, {
+    return createMockReport({
+        reportID,
         type: CONST.REPORT.TYPE.EXPENSE,
         ownerAccountID: CURRENT_USER_ACCOUNT_ID,
         policyID: POLICY_ID_1,
