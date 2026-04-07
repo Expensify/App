@@ -23,6 +23,7 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import getAccountTabScreenToOpen from '@libs/Navigation/helpers/getAccountTabScreenToOpen';
 import isRoutePreloaded from '@libs/Navigation/helpers/isRoutePreloaded';
 import Navigation from '@libs/Navigation/Navigation';
+import {isDeletedAction} from '@libs/ReportActionsUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
 import navigationRef from '@navigation/navigationRef';
@@ -34,7 +35,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {Report} from '@src/types/onyx';
+import type {Report, ReportActions} from '@src/types/onyx';
 import getLastRoute from './getLastRoute';
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 import SearchTabButton from './SearchTabButton';
@@ -68,6 +69,13 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
     });
     const lastReportRouteReportID = (lastReportRoute?.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT])?.reportID;
     const [doesLastReportExist] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${lastReportRouteReportID}`, {selector: doesLastReportExistSelector}, [lastReportRouteReportID]);
+
+    const lastReportRouteReportActionID = (lastReportRoute?.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT])?.reportActionID;
+    const doesLastReportActionExistSelector = (reportActions: OnyxEntry<ReportActions>) => {
+        const reportAction = lastReportRouteReportActionID ? reportActions?.[lastReportRouteReportActionID] : undefined;
+        return !!reportAction && !isDeletedAction(reportAction);
+    };
+    const [doesLastReportActionExist] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${lastReportRouteReportID}`, {selector: doesLastReportActionExistSelector});
 
     const reportAttributes = useReportAttributes();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -105,10 +113,8 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
 
         if (!shouldUseNarrowLayout) {
             if (doesLastReportExist && lastReportRoute) {
-                const {reportID, referrer, backTo} = lastReportRoute.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
-                // Don't pass reportActionID from cached route — it's a transient deep-link target for GBR/RBR highlighting
-                // that may point to a now-deleted action, causing ReportScreen to show "Not here".
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, referrer, backTo));
+                const {reportID, reportActionID, referrer, backTo} = lastReportRoute.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, doesLastReportActionExist ? reportActionID : undefined, referrer, backTo));
                 return;
             }
 
