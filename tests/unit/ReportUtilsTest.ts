@@ -78,6 +78,7 @@ import {
     getChatByParticipants,
     getChatListItemReportName,
     getChatRoomSubtitle,
+    getChildReportNotificationPreference,
     getDefaultWorkspaceAvatar,
     getDisplayNameForParticipant,
     getDisplayNamesWithTooltips,
@@ -97,7 +98,6 @@ import {
     getReasonAndReportActionThatRequiresAttention,
     getReportIDFromLink,
     getReportName as getReportNameDeprecated,
-    getReportNotificationPreference,
     getReportOrDraftReport,
     getReportPreviewMessage,
     getReportStatusTranslation,
@@ -175,7 +175,7 @@ import type {
 import type {ErrorFields, Errors, OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {ACHAccount, PolicyReportField} from '@src/types/onyx/Policy';
-import type {NotificationPreference, Participant, Participants} from '@src/types/onyx/Report';
+import type {Participant, Participants} from '@src/types/onyx/Report';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {actionR14932 as mockIOUAction} from '../../__mocks__/reportData/actions';
@@ -13529,15 +13529,26 @@ describe('ReportUtils', () => {
         });
     });
 
-    describe('getReportNotificationPreference', () => {
-        it('should return hidden if notification preference is empty', () => {
-            const report: Report = {
-                ...LHNTestUtils.getFakeReport([currentUserAccountID]),
-                participants: {
-                    [currentUserAccountID]: {notificationPreference: '' as NotificationPreference},
-                },
+    describe('getChildReportNotificationPreference', () => {
+        it('should return hidden from existing child report even when current user is action creator', async () => {
+            const childReportID = '1234';
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(1),
+                reportActionID: '1',
+                actorAccountID: currentUserAccountID,
+                childReportID,
             };
-            expect(getReportNotificationPreference(report)).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`, {
+                ...LHNTestUtils.getFakeReport([currentUserAccountID]),
+                reportID: childReportID,
+                participants: {
+                    [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
+                },
+            });
+            await waitForBatchedUpdates();
+
+            expect(getChildReportNotificationPreference(reportAction)).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
         });
     });
 
