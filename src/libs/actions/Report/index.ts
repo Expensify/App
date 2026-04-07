@@ -6563,10 +6563,8 @@ function buildOptimisticChangePolicyData(
     updatePolicyIdForReportAndThreads(reportID, policy.id, reportIDToThreadsReportIDsMap, optimisticData, failureData);
 
     const newManagerAccountID = getManagerAccountID(policy, {...report, policyID: policy.id});
-    let shouldResetApprovalChain = false;
-    if (isProcessingReport(report) && newManagerAccountID !== report.managerID) {
-        shouldResetApprovalChain = true;
-
+    const shouldUpdateApprovalChain = isProcessingReport(report) && newManagerAccountID !== report.managerID;
+    if (shouldUpdateApprovalChain) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
