@@ -31,7 +31,6 @@ import {generateNewRandomInt, rand64} from '@libs/NumberUtils';
 import {
     getCombinedReportActions,
     getFilteredReportActionsForReportView,
-    getMostRecentIOURequestActionID,
     getOneTransactionThreadReportID,
     getOriginalMessage,
     getSortedReportActionsForDisplay,
@@ -275,7 +274,6 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
     );
 
     const newestReportAction = useMemo(() => reportActions?.at(0), [reportActions]);
-    const mostRecentIOUReportActionID = useMemo(() => getMostRecentIOURequestActionID(reportActions), [reportActions]);
     const lastActionCreated = visibleReportActions.at(0)?.created;
     const isNewestAction = (actionCreated: string | undefined, lastVisibleActionCreated: string | undefined) =>
         actionCreated && lastVisibleActionCreated ? actionCreated >= lastVisibleActionCreated : actionCreated === lastVisibleActionCreated;
@@ -413,7 +411,6 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
                 onLayout={recordTimeToMeasureItemLayout}
                 sortedReportActions={conciergeSidePanelFilteredReportActions}
                 sortedVisibleReportActions={conciergeSidePanelFilteredVisibleActions}
-                mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                 loadOlderChats={loadOlderChats}
                 loadNewerChats={loadNewerChats}
                 listID={listID}
