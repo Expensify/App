@@ -5843,7 +5843,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             error: {
                 genericAdd: 'Er is een probleem opgetreden bij het toevoegen van dit werkruimtelid',
                 cannotRemove: 'Je kunt jezelf of de eigenaar van de werkruimte niet verwijderen',
-                genericRemove: 'Er is een probleem opgetreden bij het verwijderen van dat werkpleklid',
+                genericRemove: 'Dit lid kon niet worden verwijderd. Dit kan veroorzaakt zijn door een probleem met een ander lid. Los eventuele fouten op en probeer het opnieuw.',
             },
             addedWithPrimary: 'Sommige leden zijn toegevoegd met hun primaire login.',
             invitedBySecondaryLogin: (secondaryLogin: string) => `Toegevoegd door secundair login ${secondaryLogin}.`,

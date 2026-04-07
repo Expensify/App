@@ -5875,7 +5875,7 @@ const translations = {
             error: {
                 genericAdd: 'There was a problem adding this workspace member',
                 cannotRemove: "You can't remove yourself or the workspace owner",
-                genericRemove: 'There was a problem removing that workspace member',
+                genericRemove: "Couldn't remove this member. This may be caused by an issue with another member. Please resolve any errors and try again.",
             },
             addedWithPrimary: 'Some members were added with their primary logins.',
             invitedBySecondaryLogin: (secondaryLogin: string) => `Added by secondary login ${secondaryLogin}.`,

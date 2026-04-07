@@ -5890,7 +5890,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             error: {
                 genericAdd: 'Un problème est survenu lors de l’ajout de ce membre de l’espace de travail',
                 cannotRemove: 'Vous ne pouvez pas vous supprimer vous-même ni supprimer le responsable de l’espace de travail',
-                genericRemove: 'Un problème est survenu lors de la suppression de ce membre de l’espace de travail',
+                genericRemove: 'Impossible de supprimer ce membre. Cela peut être dû à un problème avec un autre membre. Veuillez résoudre les erreurs et réessayer.',
             },
             addedWithPrimary: 'Certains membres ont été ajoutés avec leurs identifiants principaux.',
             invitedBySecondaryLogin: (secondaryLogin: string) => `Ajouté par la connexion secondaire ${secondaryLogin}.`,

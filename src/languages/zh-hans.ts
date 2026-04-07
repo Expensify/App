@@ -5691,7 +5691,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             error: {
                 genericAdd: '添加此工作区成员时出现问题',
                 cannotRemove: '你无法将自己或工作区所有者移除',
-                genericRemove: '移除该工作区成员时出现问题',
+                genericRemove: '无法移除此成员。这可能是由其他成员的问题引起的。请解决所有错误后重试。',
             },
             addedWithPrimary: '某些成员已通过其主登录名添加。',
             invitedBySecondaryLogin: (secondaryLogin: string) => `由次要登录账号 ${secondaryLogin} 添加。`,

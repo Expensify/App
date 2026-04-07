@@ -5796,7 +5796,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             error: {
                 genericAdd: 'このワークスペースメンバーを追加する際に問題が発生しました',
                 cannotRemove: '自分自身またはワークスペースのオーナーを削除することはできません',
-                genericRemove: 'そのワークスペースメンバーを削除する際に問題が発生しました',
+                genericRemove: 'このメンバーを削除できませんでした。他のメンバーに問題がある可能性があります。エラーを解決してから再度お試しください。',
             },
             addedWithPrimary: '一部のメンバーは、プライマリーログインで追加されました。',
             invitedBySecondaryLogin: (secondaryLogin: string) => `セカンダリログイン${secondaryLogin}によって追加されました。`,
