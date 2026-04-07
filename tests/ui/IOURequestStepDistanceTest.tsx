@@ -215,8 +215,7 @@ function createDistanceTransaction(overrides?: Partial<Transaction>): Transactio
     };
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function renderEditMode(_transaction: Transaction, _report: Report) {
+function renderEditMode() {
     return render(
         <OnyxListItemProvider>
             <CurrentUserPersonalDetailsProvider>
@@ -365,7 +364,7 @@ describe('IOURequestStepDistance - submitManualDistance', () => {
             await Onyx.merge(ONYXKEYS.RAM_ONLY_IS_LOADING_APP, false);
         });
 
-        renderEditMode(transaction, report);
+        renderEditMode();
         await waitForBatchedUpdatesWithAct();
 
         // The Save button from the manual tab should be visible (mock renders both tabs)
@@ -395,7 +394,7 @@ describe('IOURequestStepDistance - submitManualDistance', () => {
             await Onyx.merge(ONYXKEYS.RAM_ONLY_IS_LOADING_APP, false);
         });
 
-        renderEditMode(transaction, report);
+        renderEditMode();
         await waitForBatchedUpdatesWithAct();
 
         // The manual distance input should display the current quantity value
@@ -419,7 +418,7 @@ describe('IOURequestStepDistance - submitManualDistance', () => {
             await Onyx.merge(ONYXKEYS.RAM_ONLY_IS_LOADING_APP, false);
         });
 
-        renderEditMode(transaction, report);
+        renderEditMode();
         await waitForBatchedUpdatesWithAct();
 
         // Press Save — the distance value has not been changed via the number pad

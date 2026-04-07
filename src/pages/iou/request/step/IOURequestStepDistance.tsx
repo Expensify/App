@@ -521,7 +521,7 @@ function IOURequestStepDistance({
                     waypoints,
                     recentWaypoints,
                     ...(hasRouteChanged ? {routes: transaction?.routes} : {}),
-                    ...(routeDistanceInUnit ? {distance: routeDistanceInUnit} : {}),
+                    ...(routeDistanceInUnit != null ? {distance: routeDistanceInUnit} : {}),
                     policy,
                     policyTagList: policyTags,
                     policyCategories,
@@ -605,7 +605,6 @@ function IOURequestStepDistance({
             return;
         }
 
-        setMoneyRequestDistance(transactionID, distanceAsFloat, shouldUseTransactionDraft(action), distanceUnit);
         updateMoneyRequestDistance({
             transaction,
             transactionThreadReport: report,
