@@ -113,7 +113,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const [allReportMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_METADATA);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     let transactions: TransactionListItemType[];
@@ -133,7 +132,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
             isActionLoadingSet,
             allReportMetadata,
             cardFeeds,
-            cardList,
             conciergeReportID,
         }) as [TransactionListItemType[], number];
         transactions = sectionData.map((transactionItem) => ({

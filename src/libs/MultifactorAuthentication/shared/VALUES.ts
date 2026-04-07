@@ -73,10 +73,10 @@ const REASON = {
     },
     GENERIC: {
         SIGNATURE_MISSING: 'Signature is missing',
-        /** The device supports biometrics but the user has none enrolled (e.g. no fingerprint/face set up in device settings). */
-        NO_ELIGIBLE_METHODS: 'No eligible methods available',
-        /** The device hardware does not support biometrics at all (e.g. web/mWeb). */
-        UNSUPPORTED_DEVICE: 'Unsupported device',
+        /** The device type is correct for this scenario but no authentication methods are enrolled (e.g. no fingerprint/face/passcode set up in device settings). */
+        NO_AUTHENTICATION_METHODS_ENROLLED: 'No authentication methods enrolled',
+        /** The scenario does not allow this device's authentication type (e.g. biometrics-only scenario on web, or passkeys-only scenario on mobile). */
+        AUTHENTICATION_TYPE_NOT_SUPPORTED: 'Authentication type not supported',
         BAD_REQUEST: 'Bad request',
         LOCAL_REGISTRATION_COMPLETE: 'Local registration complete',
         UNHANDLED_ERROR: 'An unhandled error occurred',
@@ -105,6 +105,18 @@ const REASON = {
         REGISTRATION_REQUIRED: 'No matching passkey credentials found locally',
         UNEXPECTED_RESPONSE: 'WebAuthn credential response type is unexpected',
         GENERIC: 'An unknown WebAuthn error occurred',
+    },
+    HSM: {
+        CANCELED: 'Biometric authentication canceled by user',
+        NOT_AVAILABLE: 'Biometric authentication not available',
+        LOCKOUT: 'Biometric authentication locked out',
+        LOCKOUT_PERMANENT: 'Biometric authentication permanently locked out',
+        KEY_NOT_FOUND: 'Key not found',
+        SIGNATURE_FAILED: 'Signature creation failed',
+        KEY_CREATION_FAILED: 'Key creation failed',
+        KEY_ACCESS_FAILED: 'Failed to access cryptographic key',
+        AUTHENTICATION_FAILED: 'Biometric authentication failed',
+        GENERIC: 'An HSM error occurred',
     },
 } as const;
 
@@ -210,8 +222,8 @@ const ROUTINE_FAILURES = new Set<ReasonValue>([
     REASON.EXPO.NO_METHOD_AVAILABLE,
     REASON.EXPO.NOT_SUPPORTED,
     REASON.GENERIC.CANCELED,
-    REASON.GENERIC.NO_ELIGIBLE_METHODS,
-    REASON.GENERIC.UNSUPPORTED_DEVICE,
+    REASON.GENERIC.NO_AUTHENTICATION_METHODS_ENROLLED,
+    REASON.GENERIC.AUTHENTICATION_TYPE_NOT_SUPPORTED,
     REASON.BACKEND.TRANSACTION_EXPIRED,
     REASON.BACKEND.TRANSACTION_DENIED,
     REASON.BACKEND.TOO_MANY_ATTEMPTS,
@@ -224,6 +236,10 @@ const ROUTINE_FAILURES = new Set<ReasonValue>([
     REASON.WEBAUTHN.NOT_ALLOWED,
     REASON.WEBAUTHN.ABORT,
     REASON.WEBAUTHN.NOT_SUPPORTED,
+    REASON.HSM.CANCELED,
+    REASON.HSM.NOT_AVAILABLE,
+    REASON.HSM.LOCKOUT,
+    REASON.HSM.AUTHENTICATION_FAILED,
 ]);
 
 /** Known errors that should rarely happen and may indicate a bug or unexpected state. Logged at 'error' level. Any reason not in either set is treated as UNCLASSIFIED (e.g. 5xx, missing reason). */
@@ -254,6 +270,12 @@ const ANOMALOUS_FAILURES = new Set<ReasonValue>([
     REASON.WEBAUTHN.REGISTRATION_REQUIRED,
     REASON.WEBAUTHN.UNEXPECTED_RESPONSE,
     REASON.WEBAUTHN.GENERIC,
+    REASON.HSM.LOCKOUT_PERMANENT,
+    REASON.HSM.SIGNATURE_FAILED,
+    REASON.HSM.KEY_NOT_FOUND,
+    REASON.HSM.KEY_CREATION_FAILED,
+    REASON.HSM.KEY_ACCESS_FAILED,
+    REASON.HSM.GENERIC,
 ]);
 
 const SHARED_VALUES = {
@@ -271,14 +293,16 @@ const SHARED_VALUES = {
      * Maps authentication type to the corresponding prompt type.
      */
     PROMPT_TYPE_MAP: {
+        BIOMETRICS_HSM: PROMPT_NAMES.BIOMETRICS_HSM,
         BIOMETRICS: PROMPT_NAMES.BIOMETRICS,
         PASSKEYS: PROMPT_NAMES.PASSKEYS,
     },
 
     /**
-     * Authentication type identifiers.
+     * Authentication type identifiers used for identification of allowed authentication methods in scenarios
      */
     TYPE: {
+        BIOMETRICS_HSM: 'BIOMETRICS_HSM',
         BIOMETRICS: 'BIOMETRICS',
         PASSKEYS: 'PASSKEYS',
     },
