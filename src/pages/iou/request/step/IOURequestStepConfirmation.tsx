@@ -95,12 +95,12 @@ import {
     setMoneyRequestBillable,
     setMoneyRequestCategory,
     setMoneyRequestParticipantsFromReport,
-    setMoneyRequestReceipt,
     setMoneyRequestReimbursable,
     startMoneyRequest,
     updateLastLocationPermissionPrompt,
 } from '@userActions/IOU';
 import {submitPerDiemExpenseForSelfDM, submitPerDiemExpense as submitPerDiemExpenseIOUActions} from '@userActions/IOU/PerDiem';
+import {setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
 import {getReceiverType, sendInvoice} from '@userActions/IOU/SendInvoice';
 import {sendMoneyElsewhere, sendMoneyWithWallet} from '@userActions/IOU/SendMoney';
 import {splitBill, splitBillAndOpenReport, startSplitBill} from '@userActions/IOU/Split';

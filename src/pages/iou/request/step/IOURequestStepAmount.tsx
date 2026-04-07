@@ -30,17 +30,11 @@ import {getPolicyExpenseChat, getReportOrDraftReport, getTransactionDetails, isM
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getRequestType, getTaxValue, hasReceipt, isDistanceRequest, isExpenseUnreported} from '@libs/TransactionUtils';
 import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
-import {
-    getMoneyRequestParticipantsFromReport,
-    setMoneyRequestAmount,
-    setMoneyRequestParticipantsFromReport,
-    setMoneyRequestTaxAmount,
-    setMoneyRequestTaxRate,
-    updateMoneyRequestAmountAndCurrency,
-} from '@userActions/IOU';
+import {getMoneyRequestParticipantsFromReport, setMoneyRequestAmount, setMoneyRequestParticipantsFromReport, setMoneyRequestTaxAmount, setMoneyRequestTaxRate} from '@userActions/IOU';
 import {sendMoneyElsewhere, sendMoneyWithWallet} from '@userActions/IOU/SendMoney';
 import {resetSplitShares, setDraftSplitTransaction, setSplitShares} from '@userActions/IOU/Split';
 import {trackExpense} from '@userActions/IOU/TrackExpense';
+import {updateMoneyRequestAmountAndCurrency} from '@userActions/IOU/UpdateMoneyRequest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
