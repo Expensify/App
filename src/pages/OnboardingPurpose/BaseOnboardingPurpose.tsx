@@ -15,6 +15,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
 import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -74,6 +75,8 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const {isBetaEnabled} = usePermissions();
+    const canUseSubmit2026 = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
     const autoCreateTrackWorkspace = useAutoCreateTrackWorkspace();
     const paddingHorizontal = onboardingIsMediumOrLargerScreenWidth ? styles.ph8 : styles.ph5;
 
@@ -99,6 +102,17 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                 setOnboardingErrorMessage(null);
                 if (choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
                     Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(route.params?.backTo));
+                    return;
+                }
+
+                if (choice === CONST.ONBOARDING_CHOICES.EMPLOYER && canUseSubmit2026) {
+                    if (isPrivateDomainAndHasAccessiblePolicies) {
+                        Navigation.navigate(
+                            personalDetailsForm?.firstName ? ROUTES.ONBOARDING_WORKSPACES.getRoute(route.params?.backTo) : ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(route.params?.backTo),
+                        );
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(route.params?.backTo));
                     return;
                 }
 

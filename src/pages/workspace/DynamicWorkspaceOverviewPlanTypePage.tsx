@@ -55,7 +55,7 @@ function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
     }, [policy?.type]);
 
     const workspacePlanTypes = Object.values(CONST.POLICY.TYPE)
-        .filter((type) => type !== CONST.POLICY.TYPE.PERSONAL)
+        .filter((type) => type !== CONST.POLICY.TYPE.PERSONAL && type !== CONST.POLICY.TYPE.SUBMIT)
         .map<WorkspacePlanTypeItem>((policyType) => ({
             value: policyType,
             text: translate(`workspace.planTypePage.planTypes.${policyType as PersonalPolicyTypeExcludedProps}.label`),

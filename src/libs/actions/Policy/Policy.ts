@@ -206,7 +206,7 @@ type BuildPolicyDataOptions = {
     onboardingPurposeSelected?: OnboardingPurpose;
     shouldAddGuideWelcomeMessage?: boolean;
     shouldCreateControlPolicy?: boolean;
-    type?: typeof CONST.POLICY.TYPE.TEAM | typeof CONST.POLICY.TYPE.CORPORATE;
+    type?: typeof CONST.POLICY.TYPE.TEAM | typeof CONST.POLICY.TYPE.CORPORATE | typeof CONST.POLICY.TYPE.SUBMIT;
     // TODO: Make it required once we complete refactoring the buildPolicyData function to use isSelfTourViewed. Refactor issue: https://github.com/Expensify/App/issues/66424
     isSelfTourViewed?: boolean;
     betas: OnyxEntry<Beta[]>;
@@ -2326,7 +2326,7 @@ function createDraftInitialWorkspace(
     makeMeAdmin = false,
     currency = '',
     file?: File,
-    type: typeof CONST.POLICY.TYPE.TEAM | typeof CONST.POLICY.TYPE.CORPORATE = CONST.POLICY.TYPE.TEAM,
+    type: typeof CONST.POLICY.TYPE.TEAM | typeof CONST.POLICY.TYPE.CORPORATE | typeof CONST.POLICY.TYPE.SUBMIT = CONST.POLICY.TYPE.TEAM,
 ) {
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
     const {customUnits, outputCurrency} = buildOptimisticDistanceRateCustomUnits(currency);
@@ -2402,6 +2402,20 @@ type BuildPolicyDataKeys =
     | typeof ONYXKEYS.NVP_LAST_PAYMENT_METHOD
     | typeof ONYXKEYS.PERSONAL_DETAILS_LIST;
 
+function getApprovalModeForNewWorkspace(
+    isSubmitWorkspace: boolean,
+    shouldEnableWorkflowsByDefault: boolean,
+    engagementChoice?: OnboardingPurpose,
+): ValueOf<typeof CONST.POLICY.APPROVAL_MODE> {
+    if (isSubmitWorkspace) {
+        return CONST.POLICY.APPROVAL_MODE.ADVANCED;
+    }
+    if (shouldEnableWorkflowsByDefault && engagementChoice !== CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE) {
+        return CONST.POLICY.APPROVAL_MODE.BASIC;
+    }
+    return CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+}
+
 /**
  * Generates onyx data for creating a new workspace
  *
@@ -2463,7 +2477,9 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
     const optimisticCategoriesData = buildOptimisticPolicyCategories(policyID, Object.values(CONST.POLICY.DEFAULT_CATEGORIES));
     const optimisticMccGroupData = buildOptimisticMccGroup();
 
+    const isSubmitWorkspace = type === CONST.POLICY.TYPE.SUBMIT;
     const shouldEnableWorkflowsByDefault =
+        isSubmitWorkspace ||
         !engagementChoice ||
         engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ||
         engagementChoice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND ||
@@ -2477,7 +2493,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
 
     const workspaceType = type ?? (isCorporateFeature || isCorporateIntegration || shouldCreateControlPolicy ? CONST.POLICY.TYPE.CORPORATE : CONST.POLICY.TYPE.TEAM);
 
-    const areDistanceRatesEnabled = !!featuresMap?.find((feature) => feature.id === CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED && feature.enabled);
+    const areDistanceRatesEnabled = isSubmitWorkspace || !!featuresMap?.find((feature) => feature.id === CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED && feature.enabled);
 
     // WARNING: The data below should be kept in sync with the API so we create the policy with the correct configuration.
     const optimisticData: Array<
@@ -2512,8 +2528,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
                 autoReporting: true,
                 approver: currentUserEmailParam,
                 autoReportingFrequency: shouldEnableWorkflowsByDefault ? CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE : CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
-                approvalMode:
-                    shouldEnableWorkflowsByDefault && engagementChoice !== CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE ? CONST.POLICY.APPROVAL_MODE.BASIC : CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                approvalMode: getApprovalModeForNewWorkspace(isSubmitWorkspace, shouldEnableWorkflowsByDefault, engagementChoice),
                 harvesting: {
                     enabled: !shouldEnableWorkflowsByDefault,
                 },
@@ -2524,8 +2539,8 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
                 created: DateUtils.getDBTime(),
                 customUnits,
                 areCategoriesEnabled: true,
-                areCompanyCardsEnabled: true,
-                areTagsEnabled: false,
+                areCompanyCardsEnabled: !isSubmitWorkspace,
+                areTagsEnabled: isSubmitWorkspace,
                 areDistanceRatesEnabled,
                 areWorkflowsEnabled: shouldEnableWorkflowsByDefault,
                 areReportFieldsEnabled: false,
