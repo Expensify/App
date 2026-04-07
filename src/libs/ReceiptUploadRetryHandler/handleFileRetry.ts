@@ -1,4 +1,4 @@
-import * as IOU from '@userActions/IOU';
+import type * as IOU from '@userActions/IOU';
 import {replaceReceipt} from '@userActions/IOU/Receipt';
 import {startSplitBill} from '@userActions/IOU/Split';
 import * as TrackExpense from '@userActions/IOU/TrackExpense';
