@@ -122,6 +122,11 @@ const buildEmojisTrie = (locale: FullySupportedLocale) => {
     if (emojiTrieForLocale[locale]) {
         return; // Return early if the trie is already built
     }
+    // Don't build and cache the trie if locale emoji data hasn't been loaded yet,
+    // otherwise we'd permanently cache a trie with only English fallback names.
+    if (locale !== CONST.LOCALES.DEFAULT && !localeEmojis[locale]) {
+        return;
+    }
     startSpan(CONST.TELEMETRY.SPAN_LOCALE.EMOJI_TRIE_BUILD, {
         name: CONST.TELEMETRY.SPAN_LOCALE.EMOJI_TRIE_BUILD,
         op: CONST.TELEMETRY.SPAN_LOCALE.EMOJI_TRIE_BUILD,
