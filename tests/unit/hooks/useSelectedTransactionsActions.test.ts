@@ -58,6 +58,14 @@ jest.mock('@hooks/useLocalize', () => ({
     }),
 }));
 
+const mockGetCurrencyDecimals = jest.fn(() => 2);
+
+jest.mock('@hooks/useCurrencyList', () => ({
+    useCurrencyListActions: () => ({
+        getCurrencyDecimals: mockGetCurrencyDecimals,
+    }),
+}));
+
 const mockClearSelectedTransactions = jest.fn();
 const mockSelectedTransactionIDs: string[] = [];
 const mockSelectedTransactions: SelectedTransactions = {};
@@ -403,12 +411,45 @@ describe('useSelectedTransactionsActions', () => {
             }),
         );
 
-        result.current.handleDeleteTransactions();
+        act(() => {
+            result.current.handleDeleteTransactions();
+        });
 
-        expect(mockDeleteTransactions).toHaveBeenCalledWith([transactionID], mockDuplicateTransactions, mockDuplicateTransactionViolations, mockCurrentSearchHash, false);
+        expect(mockDeleteTransactions).toHaveBeenCalledWith([transactionID], mockDuplicateTransactions, mockDuplicateTransactionViolations, undefined, false);
         expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
         expect(Navigation.removeReportScreen).toHaveBeenCalledWith(new Set(['report1', 'report2']));
         expect(result.current.isDeleteModalVisible).toBe(false);
+    });
+
+    it('should pass currentSearchHash to delete transactions when on search', async () => {
+        const transactionID = '123';
+        const report = createRandomReport(1, undefined);
+        const reportActions: ReportAction[] = [];
+        const transaction = createRandomTransaction(1);
+        transaction.transactionID = transactionID;
+
+        mockSelectedTransactionIDs.push(transactionID);
+        (mockDeleteTransactions as jest.Mock<string[]>).mockReturnValue(['report1']);
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+
+        const {result} = renderHook(() =>
+            useSelectedTransactionsActions({
+                report,
+                reportActions,
+                allTransactionsLength: 1,
+                beginExportWithTemplate: mockBeginExportWithTemplate,
+                isOnSearch: true,
+            }),
+        );
+
+        act(() => {
+            result.current.handleDeleteTransactions();
+        });
+
+        expect(mockDeleteTransactions).toHaveBeenCalledWith([transactionID], mockDuplicateTransactions, mockDuplicateTransactionViolations, mockCurrentSearchHash, false);
+        expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
+        expect(Navigation.removeReportScreen).toHaveBeenCalledWith(new Set(['report1']));
     });
 
     it('should show and hide delete modal', async () => {
@@ -844,6 +885,6 @@ describe('useSelectedTransactionsActions', () => {
 
         mergeOption?.onSelected?.();
 
-        expect(setupMergeTransactionDataAndNavigate).toHaveBeenCalledWith(transaction.transactionID, [transaction], mockLocalCompare, [], false, false, undefined);
+        expect(setupMergeTransactionDataAndNavigate).toHaveBeenCalledWith(transaction.transactionID, [transaction], mockLocalCompare, mockGetCurrencyDecimals, [], false, false, undefined);
     });
 });

@@ -62,8 +62,6 @@ function createDefaultParams(): Parameters<typeof useReceiptScan>[0] {
         getSource: (file: {uri?: string}) => file?.uri ?? 'file://image.png',
         backTo: undefined,
         backToReport: undefined,
-        isMultiScanEnabled: false,
-        isStartingScan: true,
     };
 }
 
@@ -296,25 +294,6 @@ describe('useReceiptScan', () => {
             expect(result.current.receiptFiles).toHaveLength(1);
             expect(result.current.receiptFiles.at(0)).toEqual(receiptFile);
         });
-
-        it('should clear receiptFiles when isMultiScanEnabled changes from true to false', async () => {
-            const multiScanParams = {...params, isMultiScanEnabled: true};
-            const {result, rerender} = renderHook((p: Parameters<typeof useReceiptScan>[0]) => useReceiptScan(p), {
-                initialProps: multiScanParams,
-            });
-            await waitForBatchedUpdatesWithAct();
-
-            const receiptFile = {file: {uri: 'picture.jpg'}, source: 'file://picture.jpg', transactionID: INITIAL_TRANSACTION_ID};
-            await act(async () => {
-                result.current.setReceiptFiles([receiptFile]);
-            });
-            await waitForBatchedUpdatesWithAct();
-            expect(result.current.receiptFiles).toHaveLength(1);
-
-            rerender({...multiScanParams, isMultiScanEnabled: false});
-            await waitForBatchedUpdatesWithAct();
-            expect(result.current.receiptFiles).toEqual([]);
-        });
     });
 
     describe('processReceipts', () => {
@@ -382,6 +361,11 @@ describe('useReceiptScan', () => {
             const {result} = renderHook(() => useReceiptScan(params));
             await waitForBatchedUpdatesWithAct();
 
+            await act(async () => {
+                result.current.setIsMultiScanEnabled(false);
+            });
+            await waitForBatchedUpdatesWithAct();
+
             const files = [{uri: 'file://receipt.jpg', name: 'receipt.jpg', type: 'image/jpeg'}];
             await act(async () => {
                 result.current.validateFiles(files);
@@ -407,8 +391,12 @@ describe('useReceiptScan', () => {
         });
 
         it('should not call removeDraftTransactionsByIDs when multi-scan is enabled', async () => {
-            const multiScanParams = {...params, isMultiScanEnabled: true, setIsMultiScanEnabled: jest.fn()};
-            const {result} = renderHook(() => useReceiptScan(multiScanParams));
+            const {result} = renderHook(() => useReceiptScan(params));
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.setIsMultiScanEnabled(true);
+            });
             await waitForBatchedUpdatesWithAct();
 
             const files = [{uri: 'file://receipt.jpg', name: 'receipt.jpg', type: 'image/jpeg'}];
@@ -420,7 +408,7 @@ describe('useReceiptScan', () => {
         });
 
         it('should not call removeDraftTransactionsByIDs when isStartingScan is false', async () => {
-            const nonStartingParams = {...params, isStartingScan: false};
+            const nonStartingParams = {...params, action: CONST.IOU.ACTION.SUBMIT};
             const {result} = renderHook(() => useReceiptScan(nonStartingParams));
             await waitForBatchedUpdatesWithAct();
 
@@ -441,6 +429,11 @@ describe('useReceiptScan', () => {
             await waitForBatchedUpdatesWithAct();
 
             const {result} = renderHook(() => useReceiptScan(params));
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.setIsMultiScanEnabled(false);
+            });
             await waitForBatchedUpdatesWithAct();
 
             const files = [{uri: 'file://receipt.jpg', name: 'receipt.jpg', type: 'image/jpeg'}];
