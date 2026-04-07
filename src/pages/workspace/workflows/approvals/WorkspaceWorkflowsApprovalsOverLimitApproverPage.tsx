@@ -33,7 +33,7 @@ function WorkspaceWorkflowsApprovalsOverLimitApproverPage({policy, personalDetai
     const isApprovalWorkflowLoading = isLoadingOnyxValue(approvalWorkflowMetadata);
     const personalDetailsByEmail = usePersonalDetailsByEmail();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
 
     const policyID = route.params.policyID;
     const approverIndex = Number(route.params.approverIndex) ?? 0;
