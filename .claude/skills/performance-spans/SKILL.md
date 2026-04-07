@@ -286,9 +286,26 @@ Branch comparison format:
 | Max    | 1690ms | 1200ms   | -490ms (-29.0%)|
 | Min    | 562ms  | 480ms    | -82ms  (-14.6%)|
 | N      | 20     | 20       |                |
+
+**Verdict: Improvement** — P90 improved by 20.8%
 ```
 
 Delta sign: negative = improvement (faster), positive = regression (slower).
+
+### Verdict logic (based on P90 delta %)
+
+After the table, always append a **Verdict** line:
+
+| P90 delta | Verdict |
+|-----------|---------|
+| within ±5% | `Perf-neutral` |
+| >5% faster (negative delta) | `Improvement — validate with a second run` |
+| >5% slower (positive delta) | `Regression — investigate before shipping` |
+
+Example verdicts:
+- `-20.8%` → `**Verdict: Improvement** — P90 improved by 20.8%`
+- `+8.3%` → `**Verdict: Regression** — P90 regressed by 8.3%`
+- `+2.1%` → `**Verdict: Perf-neutral** — P90 delta within ±5%`
 
 ---
 
