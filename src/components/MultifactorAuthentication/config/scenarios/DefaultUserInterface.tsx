@@ -16,8 +16,8 @@ const DEFAULT_CONFIG = {
     defaultClientFailureScreen: <DefaultClientFailureScreen />,
     defaultServerFailureScreen: <DefaultServerFailureScreen />,
     failureScreens: {
-        [CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.NO_ELIGIBLE_METHODS]: <NoEligibleMethodsFailureScreen />,
-        [CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.UNSUPPORTED_DEVICE]: <UnsupportedDeviceFailureScreen />,
+        [CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.NO_AUTHENTICATION_METHODS_ENROLLED]: <NoEligibleMethodsFailureScreen />,
+        [CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.AUTHENTICATION_TYPE_NOT_SUPPORTED]: <UnsupportedDeviceFailureScreen />,
     },
     modals: {
         cancelConfirmation: DefaultCancelConfirmModal,
