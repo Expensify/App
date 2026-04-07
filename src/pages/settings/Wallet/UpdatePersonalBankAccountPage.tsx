@@ -125,17 +125,47 @@ function UpdatePersonalBankAccountPage() {
 
         const existingData = bankAccountList?.[String(personalBankAccount.bankAccountID)]?.accountData?.additionalData;
         const currentAddress = getCurrentAddress(privatePersonalDetails);
-        const [street1, street2] = getStreetLines(currentAddress?.street ?? currentAddress?.addressLine1);
 
         const legalFirstName = personalBankAccountDraft?.legalFirstName ?? privatePersonalDetails?.legalFirstName ?? existingData?.firstName ?? '';
         const legalLastName = personalBankAccountDraft?.legalLastName ?? privatePersonalDetails?.legalLastName ?? existingData?.lastName ?? '';
 
-        const addressStreet = personalBankAccountDraft?.addressStreet ?? homeAddressDraft?.addressLine1 ?? street1 ?? existingData?.addressStreet ?? '';
-        const addressStreet2 = personalBankAccountDraft?.addressStreet2 ?? homeAddressDraft?.addressLine2 ?? street2 ?? '';
-        const addressCity = personalBankAccountDraft?.addressCity ?? homeAddressDraft?.city ?? currentAddress?.city ?? existingData?.addressCity ?? '';
-        const addressState = personalBankAccountDraft?.addressState ?? homeAddressDraft?.state ?? currentAddress?.state ?? existingData?.addressState ?? '';
-        const addressZipCode =
-            personalBankAccountDraft?.addressZipCode ?? homeAddressDraft?.zipPostCode ?? currentAddress?.zip ?? currentAddress?.zipPostCode ?? existingData?.addressZipCode ?? '';
+        // Address: prefer user-edited draft, then pick a single complete source to avoid mixing partial data from different sources.
+        let addressStreet: string;
+        let addressStreet2: string;
+        let addressCity: string;
+        let addressState: string;
+        let addressZipCode: string;
+
+        if (homeAddressDraft?.addressLine1) {
+            // User edited the address step — use draft values
+            addressStreet = homeAddressDraft.addressLine1;
+            addressStreet2 = homeAddressDraft.addressLine2 ?? '';
+            addressCity = homeAddressDraft.city ?? '';
+            addressState = homeAddressDraft.state ?? '';
+            addressZipCode = homeAddressDraft.zipPostCode ?? '';
+        } else if (existingData?.addressStreet && existingData?.addressCity && existingData?.addressState && existingData?.addressZipCode) {
+            // Bank account additionalData has complete address
+            const [street1, street2] = getStreetLines(existingData.addressStreet);
+            addressStreet = street1 ?? '';
+            addressStreet2 = street2 ?? '';
+            addressCity = existingData.addressCity;
+            addressState = existingData.addressState;
+            addressZipCode = existingData.addressZipCode;
+        } else if (currentAddress) {
+            // Fall back to profile address as a whole
+            const [street1, street2] = getStreetLines(currentAddress.street ?? currentAddress.addressLine1);
+            addressStreet = street1 ?? '';
+            addressStreet2 = street2 ?? currentAddress.street2 ?? currentAddress.addressLine2 ?? '';
+            addressCity = currentAddress.city ?? '';
+            addressState = currentAddress.state ?? '';
+            addressZipCode = currentAddress.zip ?? currentAddress.zipPostCode ?? '';
+        } else {
+            addressStreet = '';
+            addressStreet2 = '';
+            addressCity = '';
+            addressState = '';
+            addressZipCode = '';
+        }
 
         const rawPhone = personalBankAccountDraft?.phoneNumber ?? privatePersonalDetails?.phoneNumber ?? existingData?.companyPhone ?? '';
         const parsed = parsePhoneNumber(rawPhone, {regionCode: CONST.COUNTRY.US});
