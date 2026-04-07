@@ -7929,6 +7929,7 @@ function buildOptimisticGroupChatReport(
     participantAccountIDs: number[],
     reportName: string,
     avatarUri: string,
+    currentUserAccountID: number,
     optimisticReportID?: string,
     notificationPreference?: NotificationPreference,
 ) {
@@ -7939,6 +7940,7 @@ function buildOptimisticGroupChatReport(
         notificationPreference,
         avatarUrl: avatarUri,
         optimisticReportID,
+        currentUserAccountID,
     });
 }
 

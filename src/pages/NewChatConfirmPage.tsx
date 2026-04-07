@@ -112,10 +112,11 @@ function NewChatConfirmPage() {
             introSelected,
             isSelfTourViewed,
             betas,
+            personalData.accountID,
             newGroupDraft.avatarUri ?? '',
             avatarFile,
         );
-    }, [newGroupDraft, avatarFile, personalData.login, introSelected, betas, isSelfTourViewed]);
+    }, [newGroupDraft, avatarFile, personalData.login, personalData.accountID, introSelected, betas, isSelfTourViewed]);
 
     const stashedLocalAvatarImage = newGroupDraft?.avatarUri;
 

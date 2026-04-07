@@ -5775,7 +5775,16 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // When create group chat is called
-            Report.navigateToAndCreateGroupChat([TEST_USER_LOGIN, PARTICIPANT_1_LOGIN], GROUP_CHAT_NAME, TEST_USER_LOGIN, GROUP_CHAT_REPORT_ID, TEST_INTRO_SELECTED, false, undefined);
+            Report.navigateToAndCreateGroupChat(
+                [TEST_USER_LOGIN, PARTICIPANT_1_LOGIN],
+                GROUP_CHAT_NAME,
+                TEST_USER_LOGIN,
+                GROUP_CHAT_REPORT_ID,
+                TEST_INTRO_SELECTED,
+                false,
+                undefined,
+                TEST_USER_ACCOUNT_ID,
+            );
             await waitForBatchedUpdates();
 
             // Then it should create a new group chat report in Onyx
@@ -5829,6 +5838,7 @@ describe('actions/Report', () => {
                 TEST_INTRO_SELECTED,
                 true,
                 undefined,
+                TEST_USER_ACCOUNT_ID,
                 AVATAR_URI,
             );
             await waitForBatchedUpdates();
@@ -5863,6 +5873,7 @@ describe('actions/Report', () => {
                 {...TEST_INTRO_SELECTED, isInviteOnboardingComplete: true},
                 true,
                 undefined,
+                TEST_USER_ACCOUNT_ID,
             );
             await waitForBatchedUpdates();
 
@@ -5889,6 +5900,7 @@ describe('actions/Report', () => {
                 {choice: CONST.ONBOARDING_CHOICES.ADMIN},
                 false,
                 undefined,
+                TEST_USER_ACCOUNT_ID,
                 undefined,
                 avatarFile,
             );
@@ -5919,6 +5931,7 @@ describe('actions/Report', () => {
                 {choice: CONST.ONBOARDING_CHOICES.ADMIN},
                 false,
                 undefined,
+                TEST_USER_ACCOUNT_ID,
             );
             await waitForBatchedUpdates();
 
