@@ -55,12 +55,17 @@ describe('TryNewDotUtils', () => {
     });
 
     it('blocks Hybrid OldApp exits while tryNewDot is still unresolved', () => {
-        expect(shouldBlockOldAppExit(undefined, false, true)).toBe(true);
+        expect(shouldBlockOldAppExit(undefined, true, true)).toBe(true);
     });
 
     it('keeps unlocked users unlocked once tryNewDot has resolved', () => {
-        expect(shouldBlockOldAppExit(undefined, true, true)).toBe(false);
-        expect(shouldBlockOldAppExit(undefined, true, false)).toBe(false);
+        expect(shouldBlockOldAppExit(undefined, false, true)).toBe(false);
+        expect(shouldBlockOldAppExit(undefined, false, false)).toBe(false);
+    });
+
+    it('blocks all Hybrid OldApp exits for users locked to NewApp', () => {
+        expect(shouldBlockOldAppExit({isLockedToNewApp: true} as TryNewDot, false, true)).toBe(true);
+        expect(shouldBlockOldAppExit({isLockedToNewApp: true} as TryNewDot, false, false)).toBe(true);
     });
 
     it('preserves isLockedToNewApp when nvp_tryNewDot is merged', async () => {
