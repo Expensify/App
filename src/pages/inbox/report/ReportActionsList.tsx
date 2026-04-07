@@ -19,7 +19,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
-import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -219,8 +218,23 @@ function ReportActionsList({
     const [actionIdToHighlight, setActionIdToHighlight] = useState('');
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`);
-    const allReportAttributes = useReportAttributes();
-    const reportAttributes = allReportAttributes?.[report.reportID];
+    const reportAttributesSelector = useCallback(
+        (value: OnyxEntry<OnyxTypes.ReportAttributesDerivedValue>) => {
+            const attrs = value?.reports?.[report.reportID];
+            if (!attrs) {
+                return undefined;
+            }
+            return {
+                actionBadge: attrs.actionBadge,
+                actionTargetReportActionID: attrs.actionTargetReportActionID,
+                brickRoadStatus: attrs.brickRoadStatus,
+            };
+        },
+        [report.reportID],
+    );
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
+        selector: reportAttributesSelector,
+    });
 
     const backTo = route?.params?.backTo as string;
     // Display the new message indicator when comment linking and not close to the newest message.
