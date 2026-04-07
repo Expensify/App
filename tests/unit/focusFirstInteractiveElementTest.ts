@@ -132,17 +132,26 @@ describe('focusFirstInteractiveElement', () => {
             expect(preventSpy).not.toHaveBeenCalled();
         });
 
-        it('on first non-Tab key, does not prevent default', () => {
+        it('on non-Tab keys, does not prevent default and keeps listener for Tab', () => {
+            // Reset to page-load modality so suppression path is taken
+            document.dispatchEvent(new MouseEvent('mousedown', {bubbles: true}));
+
             const button = document.createElement('button');
             const container = createContainer(button);
+            const focusSpy = jest.spyOn(button, 'focus');
 
             focusFirstInteractiveElement(container);
+            expect(focusSpy).toHaveBeenCalledTimes(1);
+            expect(button.getAttribute('data-programmatic-focus')).toBe('true');
 
+            // Arrow key should not trigger interception or remove the listener
             const arrowEvent = new KeyboardEvent('keydown', {key: 'ArrowDown', bubbles: true, cancelable: true});
-            const preventSpy = jest.spyOn(arrowEvent, 'preventDefault');
             document.dispatchEvent(arrowEvent);
+            expect(arrowEvent.defaultPrevented).toBe(false);
 
-            expect(preventSpy).not.toHaveBeenCalled();
+            // Suppression attributes should still be present (listener survived ArrowDown)
+            expect(button.getAttribute('data-programmatic-focus')).toBe('true');
+            expect(button.style.outline).toBe('none');
         });
     });
 

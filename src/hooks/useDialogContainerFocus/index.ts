@@ -36,10 +36,6 @@ function focusFirstInteractiveElement(container: HTMLElement | null): boolean {
         return false;
     }
     if (!hadKeyboardEvent) {
-        const cleanup = () => {
-            target.removeAttribute(PROGRAMMATIC_FOCUS_DATA_ATTRIBUTE);
-            target.style.removeProperty('outline');
-        };
         // On first Tab, prevent default and re-focus the same element with a visible ring
         // so the user sees focus land here instead of advancing past the silent focus.
         const onFirstTab = (e: KeyboardEvent) => {
@@ -47,13 +43,20 @@ function focusFirstInteractiveElement(container: HTMLElement | null): boolean {
                 return;
             }
             e.preventDefault();
-            cleanup();
+            document.removeEventListener('keydown', onFirstTab, true);
+            target.removeAttribute(PROGRAMMATIC_FOCUS_DATA_ATTRIBUTE);
+            target.style.removeProperty('outline');
             target.focus({preventScroll: true});
+        };
+        const cleanup = () => {
+            document.removeEventListener('keydown', onFirstTab, true);
+            target.removeAttribute(PROGRAMMATIC_FOCUS_DATA_ATTRIBUTE);
+            target.style.removeProperty('outline');
         };
         target.setAttribute(PROGRAMMATIC_FOCUS_DATA_ATTRIBUTE, 'true');
         target.style.setProperty('outline', 'none');
         target.addEventListener('blur', cleanup, {once: true});
-        document.addEventListener('keydown', onFirstTab, {once: true, capture: true});
+        document.addEventListener('keydown', onFirstTab, true);
     }
     target.focus({preventScroll: true});
     return true;
