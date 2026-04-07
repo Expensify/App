@@ -83,6 +83,7 @@ You can issue virtual or physical cards to employees:
    - Spending limit
    - Limit type
    - Card name
+   - Freeze or unfreeze the card
    - Deactivation
 4. To change the linked bank account or update settlement frequency, click **Settings**.
 
@@ -94,6 +95,19 @@ You can issue virtual or physical cards to employees:
 
 If a Single-use card completes its first successful transaction, it automatically deactivates.
 If a card reaches its expiration date, it automatically deactivates and declines new transactions.
+
+---
+
+## How to freeze or unfreeze an Expensify Card
+
+Workspace Admins can temporarily freeze an Expensify Card to block new purchases without deactivating it. When a card is frozen, all new transactions are declined until the card is unfrozen.
+
+1. From the navigation tabs (on the left on web, and at the bottom on mobile), select **Workspaces > [Workspace Name] > Expensify Card**.
+2. Click the card you want to freeze or unfreeze.
+3. Click **Freeze card** to freeze it, or **Unfreeze card** to unfreeze it.
+4. Confirm your choice.
+
+When a card is frozen or unfrozen, a system message is posted in the workspace chat so all members can see the status change.
 
 ---
 
