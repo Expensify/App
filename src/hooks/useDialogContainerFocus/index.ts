@@ -5,8 +5,6 @@ import type UseDialogContainerFocus from './types';
 const FOCUSABLE_SELECTOR = 'button, [href], input, textarea, select, [role="button"], [role="link"], [tabindex]:not([tabindex="-1"])';
 const PROGRAMMATIC_FOCUS_DATA_ATTRIBUTE = 'data-programmatic-focus';
 
-// Tracks whether the last user interaction was keyboard or mouse/page-load.
-// Keyboard: show focus ring immediately. Mouse/page-load: suppress ring.
 let hadKeyboardEvent = false;
 if (typeof document !== 'undefined') {
     document.addEventListener(
@@ -48,14 +46,9 @@ function focusFirstInteractiveElement(container: HTMLElement | null): boolean {
             target.style.removeProperty('outline');
             target.focus({preventScroll: true});
         };
-        const cleanup = () => {
-            document.removeEventListener('keydown', onFirstTab, true);
-            target.removeAttribute(PROGRAMMATIC_FOCUS_DATA_ATTRIBUTE);
-            target.style.removeProperty('outline');
-        };
         target.setAttribute(PROGRAMMATIC_FOCUS_DATA_ATTRIBUTE, 'true');
         target.style.setProperty('outline', 'none');
-        target.addEventListener('blur', cleanup, {once: true});
+        // No blur cleanup — attributes must survive browser tab-switch blur/re-focus cycles.
         document.addEventListener('keydown', onFirstTab, true);
     }
     target.focus({preventScroll: true});

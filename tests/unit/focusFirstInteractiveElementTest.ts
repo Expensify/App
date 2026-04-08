@@ -81,7 +81,7 @@ describe('focusFirstInteractiveElement', () => {
             expect(spy).toHaveBeenCalledWith({preventScroll: true});
         });
 
-        it('cleans up data-programmatic-focus and outline on blur', () => {
+        it('suppression attributes survive blur (tab-switch resilience)', () => {
             const button = document.createElement('button');
             const container = createContainer(button);
 
@@ -91,8 +91,8 @@ describe('focusFirstInteractiveElement', () => {
 
             button.dispatchEvent(new Event('blur'));
 
-            expect(button.getAttribute('data-programmatic-focus')).toBeNull();
-            expect(button.style.outline).toBe('');
+            expect(button.getAttribute('data-programmatic-focus')).toBe('true');
+            expect(button.style.outline).toBe('none');
         });
 
         it('on first Tab, prevents default and re-focuses without suppression', () => {
