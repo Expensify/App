@@ -1525,7 +1525,10 @@ function getCardCurrency(card?: OnyxEntry<Card>, cardSettings?: OnyxEntry<Expens
     return CONST.CURRENCY.USD;
 }
 
-function getSelectedCardsCurrency(cardIDs: string[] | undefined, cardsList: OnyxEntry<WorkspaceCardsList>): string | undefined {
+/**
+ * Returns the shared currency for the selected cards when they all match. Returns undefined otherwise.
+ */
+function getSelectedCardsSharedCurrency(cardIDs: string[] | undefined, cardsList: OnyxEntry<WorkspaceCardsList>): string | undefined {
     if (!cardIDs?.length) {
         return undefined;
     }
@@ -1535,7 +1538,7 @@ function getSelectedCardsCurrency(cardIDs: string[] | undefined, cardsList: Onyx
 
     for (const cardID of cardIDs) {
         const card = cardsRecord[cardID];
-        if (!card || !isCard(card)) {
+        if (!card) {
             continue;
         }
 
@@ -1703,7 +1706,7 @@ export {
     getDisplayableExpensifyCards,
     isExpiredCard,
     getCardCurrency,
-    getSelectedCardsCurrency,
+    getSelectedCardsSharedCurrency,
     getCardHintText,
     resolveTransactionCardFields,
 };

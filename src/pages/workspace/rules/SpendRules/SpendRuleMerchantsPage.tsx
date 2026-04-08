@@ -76,7 +76,8 @@ function SpendRuleMerchantsPage({route}: SpendRuleMerchantsPageProps) {
                     {merchantNames.length > 0 ? (
                         merchantNames.map((merchantName, index) => (
                             <MenuItemWithTopDescription
-                                key={`${merchantName}-${merchantMatchTypes.at(index) ?? ''}`}
+                                // eslint-disable-next-line react/no-array-index-key
+                                key={`${merchantName}-${merchantMatchTypes.at(index) ?? ''}-${index}`}
                                 description={
                                     merchantMatchTypes.at(index) === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO
                                         ? translate('workspace.rules.spendRules.merchantExactlyMatches')

@@ -19,7 +19,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getSpendRuleFormValuesFromCardRule} from '@libs/actions/Card';
 import {openPolicyExpensifyCardsPage} from '@libs/actions/Policy/Policy';
-import {filterInactiveCards, getCardDescriptionForSearchTable, getSelectedCardsCurrency, isCard} from '@libs/CardUtils';
+import {filterInactiveCards, getCardDescriptionForSearchTable, getSelectedCardsSharedCurrency, isCard} from '@libs/CardUtils';
 import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -28,6 +28,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SpendRuleForm} from '@src/types/form';
+import getTruncatedSpendRuleSummary from './SpendRuleSummaryUtils';
 
 type SpendRulesSectionProps = {
     policyID: string;
@@ -46,8 +47,11 @@ function getSpendRuleSummaryParts(
     translate: ReturnType<typeof useLocalize>['translate'],
 ): SpendRuleSummaryPart[] {
     const summaryParts: SpendRuleSummaryPart[] = [];
-    const merchantNames = formValues.merchantNames.filter(Boolean).join(', ');
-    const categories = formValues.categories.map((category) => translate(`workspace.rules.spendRules.categoryOptions.${category}`)).join(', ');
+    const merchantNames = getTruncatedSpendRuleSummary(formValues.merchantNames, (summary, count) => translate('workspace.rules.spendRules.summaryMoreCount', {summary, count}));
+    const categories = getTruncatedSpendRuleSummary(
+        formValues.categories.map((category) => translate(`workspace.rules.spendRules.categoryOptions.${category}`)),
+        (summary, count) => translate('workspace.rules.spendRules.summaryMoreCount', {summary, count}),
+    );
     const maxAmount = formValues.maxAmount.trim();
 
     if (merchantNames) {
@@ -119,10 +123,9 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
                 return undefined;
             }
             const actionLabel = formValues.restrictionAction === CONST.SPEND_RULES.ACTION.BLOCK ? blockLabel : allowLabel;
-            const selectedCurrency = getSelectedCardsCurrency(formValues.cardIDs, cardsList);
-
-            const cardSummary = formValues.cardIDs
-                .map((cardID) => {
+            const selectedCurrency = getSelectedCardsSharedCurrency(formValues.cardIDs, cardsList);
+            const cardSummary = getTruncatedSpendRuleSummary(
+                formValues.cardIDs.map((cardID) => {
                     const card = cardsList?.[cardID];
                     if (!card || !isCard(card)) {
                         return cardID;
@@ -131,8 +134,9 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
                     const accountID = card.accountID ?? CONST.DEFAULT_NUMBER_ID;
                     const displayName = getDisplayNameOrDefault(personalDetails?.[accountID], '', false);
                     return getCardDescriptionForSearchTable(card, displayName || undefined) || cardID;
-                })
-                .join(', ');
+                }),
+                (summary, count) => translate('workspace.rules.spendRules.summaryMoreCount', {summary, count}),
+            );
 
             return {
                 ruleID,
