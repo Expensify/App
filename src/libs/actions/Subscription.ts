@@ -211,7 +211,12 @@ function updateSubscriptionAddNewUsersAutomatically(addNewUsersAutomatically: bo
 }
 
 function updatePersonalKarma(enabled: boolean) {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_PERSONAL_OFFSETS>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_PERSONAL_OFFSETS> | OnyxUpdate<typeof ONYXKEYS.IS_PENDING_UPDATE_PERSONAL_KARMA>> = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.IS_PENDING_UPDATE_PERSONAL_KARMA,
+            value: true,
+        },
         {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_PERSONAL_OFFSETS,
@@ -219,7 +224,20 @@ function updatePersonalKarma(enabled: boolean) {
         },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_PERSONAL_OFFSETS>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IS_PENDING_UPDATE_PERSONAL_KARMA>> = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.IS_PENDING_UPDATE_PERSONAL_KARMA,
+            value: false,
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_PERSONAL_OFFSETS> | OnyxUpdate<typeof ONYXKEYS.IS_PENDING_UPDATE_PERSONAL_KARMA>> = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.IS_PENDING_UPDATE_PERSONAL_KARMA,
+            value: false,
+        },
         {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_PERSONAL_OFFSETS,
@@ -233,6 +251,7 @@ function updatePersonalKarma(enabled: boolean) {
 
     API.write(WRITE_COMMANDS.UPDATE_PERSONAL_KARMA, parameters, {
         optimisticData,
+        successData,
         failureData,
     });
 }

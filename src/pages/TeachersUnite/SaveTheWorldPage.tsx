@@ -1,15 +1,16 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
-import ConfirmModal from '@components/ConfirmModal';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemList from '@components/MenuItemList';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import PaymentCardDetails from '@components/PaymentCardDetails';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import SectionSubtitleHTML from '@components/SectionSubtitleHTML';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -42,7 +43,8 @@ function SaveTheWorldPage() {
     const [personalOffsetsEnabled = false] = useOnyx(ONYXKEYS.NVP_PERSONAL_OFFSETS);
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
-    const [isDisablePersonalKarmaModalVisible, setIsDisablePersonalKarmaModalVisible] = useState(false);
+    const [isPendingUpdatePersonalKarma = false] = useOnyx(ONYXKEYS.IS_PENDING_UPDATE_PERSONAL_KARMA);
+    const {showConfirmModal} = useConfirmModal();
     const pendingPersonalKarmaEnableRef = useRef(false);
     const saveTheWorldIllustration = useSaveTheWorldSectionIllustration();
     const personalKarmaTitle = translate('teachersUnitePage.personalKarma.title');
@@ -99,18 +101,24 @@ function SaveTheWorldPage() {
         }
     }, [isFocused, billingCard]);
 
-    const handleDisablePersonalKarma = () => {
-        setIsDisablePersonalKarmaModalVisible(false);
-        updatePersonalKarma(false);
-    };
-
     const handlePersonalKarmaToggle = () => {
         if (isActingAsDelegate) {
             showDelegateNoAccessModal();
             return;
         }
         if (personalOffsetsEnabled) {
-            setIsDisablePersonalKarmaModalVisible(true);
+            showConfirmModal({
+                title: personalKarmaTitle,
+                prompt: personalKarmaStopDonationsPrompt,
+                confirmText: translate('common.disable'),
+                cancelText: translate('common.cancel'),
+                danger: true,
+            }).then(({action}) => {
+                if (action !== ModalActions.CONFIRM) {
+                    return;
+                }
+                updatePersonalKarma(false);
+            });
             return;
         }
 
@@ -174,6 +182,8 @@ function SaveTheWorldPage() {
                             switchAccessibilityLabel={personalKarmaTitle}
                             onToggle={handlePersonalKarmaToggle}
                             isActive={personalOffsetsEnabled}
+                            pendingAction={isPendingUpdatePersonalKarma ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined}
+                            disabled={isPendingUpdatePersonalKarma}
                             wrapperStyle={styles.mt8}
                         />
                         {personalOffsetsEnabled && (
@@ -185,16 +195,6 @@ function SaveTheWorldPage() {
                     </Section>
                 </View>
             </ScrollView>
-            <ConfirmModal
-                title={personalKarmaTitle}
-                isVisible={isDisablePersonalKarmaModalVisible}
-                onConfirm={handleDisablePersonalKarma}
-                onCancel={() => setIsDisablePersonalKarmaModalVisible(false)}
-                prompt={personalKarmaStopDonationsPrompt}
-                confirmText={translate('common.disable')}
-                cancelText={translate('common.cancel')}
-                danger
-            />
         </ScreenWrapper>
     );
 }

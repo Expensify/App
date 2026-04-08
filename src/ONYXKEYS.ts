@@ -393,6 +393,9 @@ const ONYXKEYS = {
     /** Set when we are loading fresh subscription/billing data from the server */
     IS_LOADING_SUBSCRIPTION_DATA: 'isLoadingSubscriptionData',
 
+    /** Set while UpdatePersonalKarma is in flight (optimistic UI for Save The World toggle) */
+    IS_PENDING_UPDATE_PERSONAL_KARMA: 'isPendingUpdatePersonalKarma',
+
     /** Set whether we are loading the search filters card data */
     IS_SEARCH_FILTERS_CARD_DATA_LOADED: 'isSearchFiltersCardDataLoaded',
 
@@ -1406,6 +1409,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.RAM_ONLY_IS_LOADING_REPORT_DATA]: boolean;
     [ONYXKEYS.IS_SEARCH_FILTERS_CARD_DATA_LOADED]: boolean;
     [ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA]: boolean;
+    [ONYXKEYS.IS_PENDING_UPDATE_PERSONAL_KARMA]: boolean;
     [ONYXKEYS.IS_SEARCH_PAGE_DATA_LOADED]: boolean;
     [ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN]: boolean;
     [ONYXKEYS.RAM_ONLY_IS_LOADING_APP]: boolean;
