@@ -8,8 +8,8 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
-import type {RejectModalAction} from '@components/MoneyReportHeaderEducationalModals';
 import MoneyReportHeaderKYCDropdown from '@components/MoneyReportHeaderKYCDropdown';
+import {useMoneyReportHeaderModals} from '@components/MoneyReportHeaderModalsContext';
 import {usePaymentAnimationsContext} from '@components/PaymentAnimationsContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
@@ -46,13 +46,15 @@ const PAYMENT_ICONS = ['Send', 'ThumbsUp', 'Cash', 'ArrowRight'] as const;
 type MoneyReportHeaderSelectionDropdownProps = {
     reportID: string | undefined;
     primaryAction: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '';
-    onHoldMenuOpen: (requestType: string, paymentType?: PaymentMethodType, methodID?: number, onConfirm?: (full: boolean) => void) => void;
-    onRejectModalOpen: (action: RejectModalAction) => void;
     wrapperStyle?: StyleProp<ViewStyle>;
 };
 
-function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, onHoldMenuOpen, onRejectModalOpen, wrapperStyle}: MoneyReportHeaderSelectionDropdownProps) {
+function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, wrapperStyle}: MoneyReportHeaderSelectionDropdownProps) {
     const {startApprovedAnimation, startSubmittingAnimation} = usePaymentAnimationsContext();
+    const {openHoldMenu: openHoldMenuAsync, openRejectModal} = useMoneyReportHeaderModals();
+    const openHoldMenu = (params: Parameters<typeof openHoldMenuAsync>[0]) => {
+        openHoldMenuAsync(params);
+    };
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {isProduction} = useEnvironment();
@@ -115,7 +117,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, onHoldMenu
         reportID,
         startApprovedAnimation,
         startSubmittingAnimation,
-        onHoldMenuOpen: (requestType) => onHoldMenuOpen(requestType, undefined, undefined, () => clearSelectedTransactions(true)),
+        onHoldMenuOpen: (requestType) => openHoldMenu({requestType, onConfirm: () => clearSelectedTransactions(true)}),
     });
 
     const {
@@ -225,7 +227,12 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, onHoldMenu
             if (isDelegateAccessRestricted) {
                 showDelegateNoAccessModal();
             } else {
-                onHoldMenuOpen(CONST.IOU.REPORT_ACTION_TYPE.PAY, type, type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined, () => clearSelectedTransactions(true));
+                openHoldMenu({
+                    requestType: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                    paymentType: type,
+                    methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
+                    onConfirm: () => clearSelectedTransactions(true),
+                });
             }
         },
         shouldHidePaymentOptions: !shouldShowPayButton,
@@ -326,7 +333,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, onHoldMenu
                     if (dismissedRejectUseExplanation) {
                         option.onSelected?.();
                     } else {
-                        onRejectModalOpen(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK);
+                        openRejectModal(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT_BULK);
                     }
                 },
             };

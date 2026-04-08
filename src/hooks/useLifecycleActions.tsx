@@ -1,5 +1,6 @@
 import {delegateEmailSelector} from '@selectors/Account';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import type {ActionHandledType} from '@components/Modal/Global/HoldMenuModalWrapper';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {SecondaryActionEntry} from '@components/MoneyReportHeaderActions/types';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
@@ -40,7 +41,7 @@ type UseLifecycleActionsParams = {
     reportID: string | undefined;
     startApprovedAnimation: () => void;
     startSubmittingAnimation: () => void;
-    onHoldMenuOpen: (requestType: string) => void;
+    onHoldMenuOpen: (requestType: ActionHandledType) => void;
 };
 
 type UseLifecycleActionsResult = {

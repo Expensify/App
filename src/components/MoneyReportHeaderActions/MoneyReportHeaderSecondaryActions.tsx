@@ -7,8 +7,8 @@ import type {ValueOf} from 'type-fest';
 import type {ButtonWithDropdownMenuRef} from '@components/ButtonWithDropdownMenu/types';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
-import type {RejectModalAction} from '@components/MoneyReportHeaderEducationalModals';
 import MoneyReportHeaderKYCDropdown from '@components/MoneyReportHeaderKYCDropdown';
+import {useMoneyReportHeaderModals} from '@components/MoneyReportHeaderModalsContext';
 import {usePaymentAnimationsContext} from '@components/PaymentAnimationsContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchStateContext} from '@components/Search/SearchContext';
@@ -59,25 +59,16 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 type MoneyReportHeaderSecondaryActionsProps = {
     reportID: string | undefined;
     primaryAction: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '';
-    onHoldMenuOpen: (requestType: string, paymentType?: PaymentMethodType, methodID?: number, onConfirm?: (full: boolean) => void) => void;
-    onPDFModalOpen: () => void;
-    onHoldEducationalOpen: () => void;
-    onRejectModalOpen: (action: RejectModalAction) => void;
     isReportInSearch?: boolean;
     dropdownMenuRef?: React.RefObject<ButtonWithDropdownMenuRef>;
 };
 
-function MoneyReportHeaderSecondaryActions({
-    reportID,
-    primaryAction,
-    onHoldMenuOpen,
-    onPDFModalOpen,
-    onHoldEducationalOpen,
-    onRejectModalOpen,
-    isReportInSearch,
-    dropdownMenuRef,
-}: MoneyReportHeaderSecondaryActionsProps) {
+function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInSearch, dropdownMenuRef}: MoneyReportHeaderSecondaryActionsProps) {
     const {startAnimation, startApprovedAnimation, startSubmittingAnimation} = usePaymentAnimationsContext();
+    const {openHoldMenu: openHoldMenuAsync, openPDFDownload, openHoldEducational, openRejectModal} = useMoneyReportHeaderModals();
+    const openHoldMenu = (params: Parameters<typeof openHoldMenuAsync>[0]) => {
+        openHoldMenuAsync(params);
+    };
     const {translate, localeCompare} = useLocalize();
     const kycWallRef = useContext(KYCWallContext);
 
@@ -148,10 +139,20 @@ function MoneyReportHeaderSecondaryActions({
                 // InteractionManager delays modal until current interaction completes, preventing visual glitches on iOS
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() =>
-                    onHoldMenuOpen(CONST.IOU.REPORT_ACTION_TYPE.PAY, type, type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined, () => startAnimation()),
+                    openHoldMenu({
+                        requestType: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                        paymentType: type,
+                        methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
+                        onConfirm: () => startAnimation(),
+                    }),
                 );
             } else {
-                onHoldMenuOpen(CONST.IOU.REPORT_ACTION_TYPE.PAY, type, type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined, () => startAnimation());
+                openHoldMenu({
+                    requestType: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                    paymentType: type,
+                    methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
+                    onConfirm: () => startAnimation(),
+                });
             }
         } else if (isInvoiceReport) {
             startAnimation();
@@ -275,20 +276,20 @@ function MoneyReportHeaderSecondaryActions({
         reportID,
         startApprovedAnimation,
         startSubmittingAnimation,
-        onHoldMenuOpen: (requestType) => onHoldMenuOpen(requestType, undefined, undefined, () => startApprovedAnimation()),
+        onHoldMenuOpen: (requestType) => openHoldMenu({requestType, onConfirm: () => startApprovedAnimation()}),
     });
 
     const {actions: expenseActions, handleOptionsMenuHide} = useExpenseActions({reportID, isReportInSearch});
 
     const holdRejectActions = useHoldRejectActions({
         reportID,
-        onHoldEducationalOpen,
-        onRejectModalOpen,
+        onHoldEducationalOpen: openHoldEducational,
+        onRejectModalOpen: openRejectModal,
     });
 
     const {exportActionEntries} = useExportActions({
         reportID,
-        onPDFModalOpen,
+        onPDFModalOpen: openPDFDownload,
     });
 
     // Compute list of applicable secondary action keys

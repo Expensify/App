@@ -2,8 +2,6 @@ import React, {useRef} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type {ButtonWithDropdownMenuRef} from '@components/ButtonWithDropdownMenu/types';
-import type {ActionHandledType} from '@components/Modal/Global/HoldMenuModalWrapper';
-import {useMoneyReportHeaderModals} from '@components/MoneyReportHeaderModalsContext';
 import MoneyReportHeaderPrimaryAction from '@components/MoneyReportHeaderPrimaryAction';
 import {useSearchStateContext} from '@components/Search/SearchContext';
 import useExportAgainModal from '@hooks/useExportAgainModal';
@@ -15,7 +13,6 @@ import useTransactionThreadReport from '@hooks/useTransactionThreadReport';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import MoneyReportHeaderSecondaryActions from './MoneyReportHeaderSecondaryActions';
 import MoneyReportHeaderSelectionDropdown from './MoneyReportHeaderSelectionDropdown';
 
@@ -52,12 +49,6 @@ function MoneyReportHeaderActions({reportID, primaryAction, isReportInSearch}: M
 
     const {transactionThreadReportID} = useTransactionThreadReport(reportID);
 
-    const {openHoldMenu, openPDFDownload, openHoldEducational, openRejectModal} = useMoneyReportHeaderModals();
-
-    const onHoldMenuOpen = (requestType: string, paymentType?: PaymentMethodType, methodID?: number, onConfirm?: (full: boolean) => void) => {
-        openHoldMenu({requestType: requestType as ActionHandledType, paymentType, methodID, onConfirm});
-    };
-
     const {triggerExportOrConfirm} = useExportAgainModal(moneyRequestReport?.reportID, moneyRequestReport?.policyID);
 
     const {selectedTransactionIDs} = useSearchStateContext();
@@ -71,8 +62,6 @@ function MoneyReportHeaderActions({reportID, primaryAction, isReportInSearch}: M
                 <MoneyReportHeaderSelectionDropdown
                     reportID={reportID}
                     primaryAction={narrowedPrimaryAction}
-                    onHoldMenuOpen={onHoldMenuOpen}
-                    onRejectModalOpen={openRejectModal}
                     wrapperStyle={shouldDisplayNarrowMoreButton ? undefined : styles.w100}
                 />
             </View>
@@ -92,10 +81,6 @@ function MoneyReportHeaderActions({reportID, primaryAction, isReportInSearch}: M
             <MoneyReportHeaderSecondaryActions
                 reportID={reportID}
                 primaryAction={narrowedPrimaryAction}
-                onHoldMenuOpen={onHoldMenuOpen}
-                onPDFModalOpen={openPDFDownload}
-                onHoldEducationalOpen={openHoldEducational}
-                onRejectModalOpen={openRejectModal}
                 isReportInSearch={isReportInSearch}
                 dropdownMenuRef={dropdownMenuRef}
             />
