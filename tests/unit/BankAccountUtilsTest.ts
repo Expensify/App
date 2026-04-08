@@ -236,6 +236,48 @@ describe('BankAccountUtils', () => {
             it('still returns false with additionalData alone when no profile is passed', () => {
                 expect(isPersonalBankAccountMissingInfo(completeAccountData)).toBe(false);
             });
+
+            it('returns false when profile address uses only street (no addressLine1)', () => {
+                const profileStreetOnly: PrivatePersonalDetails = {
+                    legalFirstName: 'Jane',
+                    legalLastName: 'Smith',
+                    phoneNumber: '+15559876543',
+                    addresses: [{street: '456 Oak Ave', city: 'Boston', state: 'MA', zip: '02101', country: 'US', current: true}],
+                };
+                expect(isPersonalBankAccountMissingInfo(accountMissingAll, profileStreetOnly)).toBe(false);
+            });
+
+            it('returns false when profile address uses only addressLine1 (no street)', () => {
+                const profileAddressLine1Only: PrivatePersonalDetails = {
+                    legalFirstName: 'Jane',
+                    legalLastName: 'Smith',
+                    phoneNumber: '+15559876543',
+                    addresses: [{addressLine1: '456 Oak Ave', city: 'Boston', state: 'MA', zipPostCode: '02101', country: 'US', current: true}],
+                };
+                expect(isPersonalBankAccountMissingInfo(accountMissingAll, profileAddressLine1Only)).toBe(false);
+            });
+
+            it('returns false when profile address uses only zip (no zipPostCode)', () => {
+                const profileZipOnly: PrivatePersonalDetails = {
+                    legalFirstName: 'Jane',
+                    legalLastName: 'Smith',
+                    phoneNumber: '+15559876543',
+                    addresses: [{street: '456 Oak Ave', city: 'Boston', state: 'MA', zip: '02101', country: 'US', current: true}],
+                };
+                expect(isPersonalBankAccountMissingInfo(accountMissingAll, profileZipOnly)).toBe(false);
+            });
+
+            it('returns true when profile address has city/state but no street and no addressLine1', () => {
+                const profileNoStreet: PrivatePersonalDetails = {
+                    legalFirstName: 'Jane',
+                    legalLastName: 'Smith',
+                    phoneNumber: '+15559876543',
+                    addresses: [
+                        {city: 'Boston', state: 'MA', zipPostCode: '02101', country: 'US', current: true} as PrivatePersonalDetails['addresses'] extends (infer U)[] | undefined ? U : never,
+                    ],
+                };
+                expect(isPersonalBankAccountMissingInfo(accountMissingAll, profileNoStreet)).toBe(true);
+            });
         });
     });
 
@@ -379,6 +421,43 @@ describe('BankAccountUtils', () => {
         it('returns false for undefined bank account list', () => {
             expect(hasPersonalBankAccountMissingInfo(undefined)).toBe(false);
         });
+
+        it('returns false when additionalData missing but profile has all info', () => {
+            const bankAccountList = {
+                accountOne: {
+                    accountData: {
+                        type: CONST.BANK_ACCOUNT.TYPE.PERSONAL,
+                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                        additionalData: {country: CONST.COUNTRY.US},
+                    },
+                    bankCurrency: 'USD',
+                    bankCountry: 'US',
+                },
+            } as unknown as BankAccountList;
+            const profile: PrivatePersonalDetails = {
+                legalFirstName: 'Jane',
+                legalLastName: 'Smith',
+                phoneNumber: '+15559876543',
+                addresses: [{street: '456 Oak Ave', city: 'Boston', state: 'MA', zip: '02101', country: 'US', current: true}],
+            };
+            expect(hasPersonalBankAccountMissingInfo(bankAccountList, profile)).toBe(false);
+        });
+
+        it('returns true when additionalData missing and profile is incomplete', () => {
+            const bankAccountList = {
+                accountOne: {
+                    accountData: {
+                        type: CONST.BANK_ACCOUNT.TYPE.PERSONAL,
+                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                        additionalData: {country: CONST.COUNTRY.US},
+                    },
+                    bankCurrency: 'USD',
+                    bankCountry: 'US',
+                },
+            } as unknown as BankAccountList;
+            const profile: PrivatePersonalDetails = {legalFirstName: 'Jane'};
+            expect(hasPersonalBankAccountMissingInfo(bankAccountList, profile)).toBe(true);
+        });
     });
 
     describe('getCompletedStepsForBankAccount', () => {
@@ -471,6 +550,49 @@ describe('BankAccountUtils', () => {
                 },
             } as unknown as BankAccountList;
             expect(getCompletedStepsForBankAccount(bankAccountList, bankAccountID)).toEqual([]);
+        });
+
+        describe('privatePersonalDetails fallback', () => {
+            const emptyAdditionalData = {
+                [bankAccountKey]: {accountData: {additionalData: {}}, bankCurrency: 'USD', bankCountry: 'US'},
+            } as unknown as BankAccountList;
+
+            const completeProfile: PrivatePersonalDetails = {
+                legalFirstName: 'Jane',
+                legalLastName: 'Smith',
+                phoneNumber: '+15559876543',
+                addresses: [{street: '456 Oak Ave', city: 'Boston', state: 'MA', zip: '02101', country: 'US', current: true}],
+            };
+
+            it('returns all steps when additionalData empty but profile has everything', () => {
+                expect(getCompletedStepsForBankAccount(emptyAdditionalData, bankAccountID, completeProfile)).toEqual([
+                    PERSONAL_INFO_STEP.NAME,
+                    PERSONAL_INFO_STEP.ADDRESS,
+                    PERSONAL_INFO_STEP.PHONE,
+                ]);
+            });
+
+            it('returns NAME step from profile when additionalData has no name', () => {
+                const profileNameOnly: PrivatePersonalDetails = {legalFirstName: 'Jane', legalLastName: 'Smith'};
+                expect(getCompletedStepsForBankAccount(emptyAdditionalData, bankAccountID, profileNameOnly)).toEqual([PERSONAL_INFO_STEP.NAME]);
+            });
+
+            it('returns PHONE step from profile when additionalData has no phone', () => {
+                const profilePhoneOnly: PrivatePersonalDetails = {phoneNumber: '+15559876543'};
+                expect(getCompletedStepsForBankAccount(emptyAdditionalData, bankAccountID, profilePhoneOnly)).toEqual([PERSONAL_INFO_STEP.PHONE]);
+            });
+
+            it('returns empty when profile is undefined', () => {
+                expect(getCompletedStepsForBankAccount(emptyAdditionalData, bankAccountID, undefined)).toEqual([]);
+            });
+
+            it('combines additionalData and profile steps', () => {
+                const bankAccountList = {
+                    [bankAccountKey]: {accountData: {additionalData: {companyPhone: '+15551234567'}}, bankCurrency: 'USD', bankCountry: 'US'},
+                } as unknown as BankAccountList;
+                const profileNameOnly: PrivatePersonalDetails = {legalFirstName: 'Jane', legalLastName: 'Smith'};
+                expect(getCompletedStepsForBankAccount(bankAccountList, bankAccountID, profileNameOnly)).toEqual([PERSONAL_INFO_STEP.NAME, PERSONAL_INFO_STEP.PHONE]);
+            });
         });
     });
 });
