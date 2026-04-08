@@ -13,8 +13,8 @@ You can share both direct company card feeds and commercial card feeds across mu
 
 If you haven’t set up a feed yet, learn how to connect to your bank: 
 
- - [Learn how to set up a direct company card feed connection](/articles/new-expensify/billing-and-subscriptions/Set-up-a-Direct-Company-Card-Feed-Connection).
- - [Learn how to set up a commercial card feed connection](/articles/new-expensify/billing-and-subscriptions/Set-up-a-Commercial-Card-Feed-Connection). 
+ - [Learn how to set up a direct company card feed connection](/articles/new-expensify/connect-credit-cards/Set-up-a-Direct-Company-Card-Feed-Connection).
+ - [Learn how to set up a commercial card feed connection](/articles/new-expensify/connect-credit-cards/Set-up-a-Commercial-Card-Feed-Connection). 
 
 ---
 
@@ -33,7 +33,7 @@ Workspace Admins with an email on a private domain can share a company card feed
 
 1. Click the navigation tabs (on the left on web, on the bottom on mobile) and select **Workspaces > [Workspace Name]**
 2. Choose **Company cards** to view your company’s card setup page.
- - If you don't see **Company cards**, enable the feature under **More Features > Company cards**
+ - If you don't see **Company cards**, enable the feature under **More features > Company cards**
 3. Select your existing card connection.
 4. In **From other workspaces**, choose a company card feed to add to the Workspace.
 
