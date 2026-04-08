@@ -10,6 +10,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import usePaymentAnimations from '@hooks/usePaymentAnimations';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useReportPrimaryAction from '@hooks/useReportPrimaryAction';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
@@ -39,7 +40,6 @@ import {
     hasPendingDEWSubmit,
     isMoneyRequestAction,
 } from '@libs/ReportActionsUtils';
-import {getReportPrimaryAction} from '@libs/ReportPrimaryActionUtils';
 import {
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     getReasonAndReportActionThatRequiresAttention,
@@ -49,9 +49,6 @@ import {
     shouldBlockSubmitDueToStrictPolicyRules,
 } from '@libs/ReportUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import {
-    isTransactionPendingDelete,
-} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
@@ -109,7 +106,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
         | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT>
     >();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {login: currentUserLogin, accountID, email} = currentUserPersonalDetails;
+    const {accountID, email} = currentUserPersonalDetails;
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID}`);
     const {isOffline} = useNetwork();
     const allReportTransactions = useReportTransactionsCollection(reportIDProp);
@@ -119,8 +116,6 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
     const transactionThreadReportID = getOneTransactionThreadReportID(moneyRequestReport, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
     const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`);
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-
 
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${moneyRequestReport?.reportID}`);
 
@@ -136,17 +131,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
 
     const {transactions: reportTransactions, violations} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
 
-    const {transactions, nonPendingDeleteTransactions} = useMemo(() => {
-        const all: OnyxTypes.Transaction[] = [];
-        const filtered: OnyxTypes.Transaction[] = [];
-        for (const transaction of Object.values(reportTransactions)) {
-            all.push(transaction);
-            if (!isTransactionPendingDelete(transaction)) {
-                filtered.push(transaction);
-            }
-        }
-        return {transactions: all, nonPendingDeleteTransactions: filtered};
-    }, [reportTransactions]);
+    const transactions = Object.values(reportTransactions);
 
     const isBlockSubmitDueToStrictPolicyRules = useMemo(() => {
         return shouldBlockSubmitDueToStrictPolicyRules(moneyRequestReport?.reportID, violations, areStrictPolicyRulesEnabled, accountID, email ?? '', transactions);
@@ -154,12 +139,6 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
 
     const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
-
-
-    const [invoiceReceiverPolicy] = useOnyx(
-        `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`,
-        {},
-    );
 
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const isDEWPolicy = hasDynamicExternalWorkflow(policy);
@@ -184,9 +163,6 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
     const policyType = policy?.type;
 
     const isArchivedReport = useReportIsArchived(moneyRequestReport?.reportID);
-    const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
-
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${moneyRequestReport?.reportID}`);
 
     const isInvoiceReport = isInvoiceReportUtil(moneyRequestReport);
 
@@ -241,7 +217,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
     const isReportInSearch = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT || route.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT;
 
     const isSelectionModePaymentRef = useRef(false);
-    
+
     useEffect(() => {
         if (selectedTransactionIDs.length !== 0) {
             return;
@@ -249,44 +225,16 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
         isSelectionModePaymentRef.current = false;
     }, [selectedTransactionIDs.length]);
 
-    const primaryAction = useMemo(() => {
-        return getReportPrimaryAction({
-            currentUserLogin: currentUserLogin ?? '',
-            currentUserAccountID: accountID,
-            report: moneyRequestReport,
-            chatReport,
-            reportTransactions: nonPendingDeleteTransactions,
-            violations,
-            bankAccountList,
-            policy,
-            reportNameValuePairs,
-            reportActions,
-            reportMetadata,
-            isChatReportArchived,
-            invoiceReceiverPolicy,
-            isPaidAnimationRunning,
-            isApprovedAnimationRunning,
-            isSubmittingAnimationRunning,
-        });
-    }, [
-        isPaidAnimationRunning,
-        isApprovedAnimationRunning,
-        isSubmittingAnimationRunning,
-        moneyRequestReport,
-        chatReport,
-        nonPendingDeleteTransactions,
-        violations,
-        policy,
-        reportNameValuePairs,
-        reportActions,
-        reportMetadata,
-        isChatReportArchived,
-        invoiceReceiverPolicy,
-        currentUserLogin,
-        accountID,
-        bankAccountList,
-    ]);
-
+    let runningAction: 'pay' | 'submit' | undefined;
+    if (isPaidAnimationRunning || isApprovedAnimationRunning) {
+        runningAction = 'pay';
+    } else if (isSubmittingAnimationRunning) {
+        runningAction = 'submit';
+    }
+    const primaryAction = useReportPrimaryAction({
+        reportID: reportIDProp,
+        runningAction,
+    });
 
     useEffect(() => {
         if (!transactionThreadReportID) {
