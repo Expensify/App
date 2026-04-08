@@ -208,11 +208,11 @@ type Account = {
     /** Whether or not the user is on a public domain email account or not */
     isFromPublicDomain?: boolean;
 
+    /** Whether the user's email domain is an internal Expensify domain (e.g. expensify.com) */
+    isFromInternalDomain?: boolean;
+
     /** Whether or not the user uses expensify card */
     isUsingExpensifyCard?: boolean;
-
-    /** Whether Expensify Card approval flow is ongoing - checking loginList for private domains */
-    isCheckingDomain?: boolean;
 
     /** Whether or not the user has lounge access */
     hasLoungeAccess?: boolean;
@@ -234,6 +234,9 @@ type Account = {
 
     /** Epoch timestamp (in milliseconds) until which extended access is valid without requiring validateCode */
     validateCodeExtendedAccessExpires?: number;
+
+    /** List of registered multifactor authentication public keys. Empty if the user had set up at some point but they have since been revoked. Undefined if the user had never set it up to begin with. */
+    multifactorAuthenticationPublicKeyIDs?: string[];
 };
 
 export default Account;

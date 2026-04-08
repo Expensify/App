@@ -5,29 +5,35 @@ import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
-import EmptyStateComponent from '@components/EmptyStateComponent';
+import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import LottieAnimations from '@components/LottieAnimations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import SearchBar from '@components/SearchBar';
 import TableListItem from '@components/SelectionList/ListItem/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
-import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Text from '@components/Text';
 import useAutoTurnSelectionModeOffWhenHasNoActiveOption from '@hooks/useAutoTurnSelectionModeOffWhenHasNoActiveOption';
+import useDocumentTitle from '@hooks/useDocumentTitle';
+import useGenericEmptyStateIllustration from '@hooks/useGenericEmptyStateIllustration';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {clearDraftRule, setDraftRule, setNameValuePair} from '@libs/actions/User';
+import {clearDraftRule, deleteExpenseRules, setDraftRule} from '@libs/actions/User';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {formatExpenseRuleChanges, getKeyForRule} from '@libs/ExpenseRuleUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import Parser from '@libs/Parser';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import tokenizedSearch from '@libs/tokenizedSearch';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -39,12 +45,15 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 const getKeyForList = (rule: ExpenseRule, index: number) => `${getKeyForRule(rule)}-${index}`;
 
 function ExpenseRulesPage() {
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
+    const {isOffline} = useNetwork();
     const icons = useMemoizedLazyExpensifyIcons(['Pencil', 'Plus', 'Trashcan']);
     const illustrations = useMemoizedLazyIllustrations(['Flash']);
+    const genericIllustration = useGenericEmptyStateIllustration();
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
-    const [expenseRules = getEmptyArray<ExpenseRule>(), expenseRulesResult] = useOnyx(ONYXKEYS.NVP_EXPENSE_RULES, {canBeMissing: true});
+    const [expenseRules = getEmptyArray<ExpenseRule>(), expenseRulesResult] = useOnyx(ONYXKEYS.NVP_EXPENSE_RULES);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    useDocumentTitle(translate('expenseRulesPage.title'));
     const [selectedRules, setSelectedRules] = useState<string[]>([]);
     const [deleteConfirmModalVisible, setDeleteConfirmModalVisible] = useState(false);
     const styles = useThemeStyles();
@@ -55,12 +64,47 @@ function ExpenseRulesPage() {
         setSelectedRules([]);
     }, [expenseRules]);
 
-    const hasRules = expenseRules.length > 0;
+    const hasRules = expenseRules.filter((rule) => isOffline || rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length > 0;
     const isLoading = !hasRules && isLoadingOnyxValue(expenseRulesResult);
 
     const canSelectMultiple = shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true;
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
     const isInSelectionMode = shouldUseNarrowLayout ? canSelectMultiple : selectedRules.length > 0;
+
+    const filterRules = (ruleOption: ListItem, searchInput: string) => {
+        const results = tokenizedSearch([ruleOption], searchInput, (option) => [option.text ?? '', option.alternateText ?? '']);
+        return results.length > 0;
+    };
+    const sortRules = (data: ListItem[]) => {
+        return [...data].sort((a, b) => localeCompare(a.text ?? '', b?.text ?? ''));
+    };
+
+    const rulesList: ListItem[] = expenseRules.map((rule, index) => {
+        const changes = formatExpenseRuleChanges(rule, translate);
+        return {
+            text: rule.merchantToMatch,
+            alternateText: changes,
+            shouldHideAlternateText: !shouldUseNarrowLayout,
+            keyForList: getKeyForList(rule, index),
+            pendingAction: rule.pendingAction,
+            errors: rule.errors,
+            isDisabled: rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            rightElement: !shouldUseNarrowLayout && (
+                <View style={[styles.flex1]}>
+                    <Text
+                        numberOfLines={1}
+                        style={[styles.alignSelfStart]}
+                    >
+                        {changes}
+                    </Text>
+                </View>
+            ),
+        };
+    });
+
+    useAutoTurnSelectionModeOffWhenHasNoActiveOption(rulesList);
+
+    const [inputValue, setInputValue, filteredRuleList] = useSearchResults(rulesList, filterRules, sortRules);
 
     const toggleRule = (rule: ListItem) => {
         setSelectedRules((prev) => {
@@ -72,8 +116,9 @@ function ExpenseRulesPage() {
     };
 
     const toggleAllRules = () => {
-        const someSelected = selectedRules.length > 0;
-        setSelectedRules(someSelected ? [] : expenseRules.map(getKeyForList));
+        const selectableRules = filteredRuleList.filter((rule) => !rule.isDisabled);
+        const someSelected = selectableRules.some((rule) => selectedRules.includes(rule.keyForList));
+        setSelectedRules(someSelected ? [] : selectableRules.map(({keyForList}) => keyForList));
     };
 
     const navigateToNewRulePage = () => {
@@ -90,8 +135,11 @@ function ExpenseRulesPage() {
         if (!expenseRule) {
             return;
         }
+
+        const commentMarkdown = expenseRule.comment ? Parser.htmlToMarkdown(expenseRule.comment) : undefined;
         setDraftRule({
             ...expenseRule,
+            comment: commentMarkdown,
             tax: expenseRule.tax?.field_id_TAX ? expenseRule.tax.field_id_TAX.externalID : undefined,
         });
         Navigation.navigate(ROUTES.SETTINGS_RULES_EDIT.getRoute(hash));
@@ -107,8 +155,7 @@ function ExpenseRulesPage() {
 
     const handleDeleteRules = () => {
         if (selectedRules.length > 0) {
-            const rulesToDelete = expenseRules.filter((rule, index) => !selectedRules.includes(getKeyForList(rule, index)));
-            setNameValuePair(ONYXKEYS.NVP_EXPENSE_RULES, rulesToDelete, expenseRules);
+            deleteExpenseRules(expenseRules, selectedRules, getKeyForRule);
         }
         setDeleteConfirmModalVisible(false);
         setSelectedRules([]);
@@ -131,27 +178,6 @@ function ExpenseRulesPage() {
         });
     }
 
-    const rulesList: ListItem[] = expenseRules.map((rule, index) => {
-        const changes = formatExpenseRuleChanges(rule, translate);
-        return {
-            text: rule.merchantToMatch,
-            alternateText: shouldUseNarrowLayout ? changes : undefined,
-            keyForList: getKeyForList(rule, index),
-            rightElement: !shouldUseNarrowLayout && (
-                <View style={[styles.flex1]}>
-                    <Text
-                        numberOfLines={1}
-                        style={[styles.alignSelfStart]}
-                    >
-                        {changes}
-                    </Text>
-                </View>
-            ),
-        };
-    });
-
-    useAutoTurnSelectionModeOffWhenHasNoActiveOption(rulesList);
-
     const headerButton = isInSelectionMode ? (
         <ButtonWithDropdownMenu
             buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
@@ -172,18 +198,30 @@ function ExpenseRulesPage() {
                 icon={icons.Plus}
                 text={translate('expenseRulesPage.newRule')}
                 style={[shouldUseNarrowLayout && styles.flex1]}
+                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_RULES.NEW_RULE}
             />
         </View>
     );
 
     const headerContent = (
-        <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout && styles.workspaceSectionMobile]}>
-            <Text style={[styles.textNormal, styles.colorMuted]}>{translate('expenseRulesPage.subtitle')}</Text>
-        </View>
+        <>
+            <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout && styles.workspaceSectionMobile]}>
+                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('expenseRulesPage.subtitle')}</Text>
+            </View>
+            {rulesList.length > CONST.SEARCH_ITEM_LIMIT && (
+                <SearchBar
+                    label={translate('expenseRulesPage.findRule')}
+                    inputValue={inputValue}
+                    onChangeText={setInputValue}
+                    shouldShowEmptyState={hasRules && !isLoading && filteredRuleList.length === 0}
+                />
+            )}
+        </>
     );
 
     const getCustomListHeader = () =>
-        !shouldUseNarrowLayout && (
+        !shouldUseNarrowLayout &&
+        filteredRuleList.length > 0 && (
             <CustomListHeader
                 canSelectMultiple={canSelectMultiple}
                 leftHeaderText={translate('common.merchant')}
@@ -192,6 +230,11 @@ function ExpenseRulesPage() {
                 shouldShowRightCaret
             />
         );
+
+    const loadingReasonAttributes: SkeletonSpanReasonAttributes = {
+        context: 'ExpenseRulesPage.loading',
+        isLoading,
+    };
 
     return (
         <ScreenWrapper
@@ -210,27 +253,33 @@ function ExpenseRulesPage() {
                         return;
                     }
 
-                    Navigation.popToSidebar();
+                    Navigation.goBack();
                 }}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldUseHeadlineHeader={!selectionModeHeader}
+                shouldDisplayHelpButton
                 title={selectionModeHeader ? translate('common.selectMultiple') : translate('expenseRulesPage.title')}
             >
-                {!shouldUseNarrowLayout && headerButton}
+                {!shouldUseNarrowLayout && hasRules && headerButton}
             </HeaderWithBackButton>
-            {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{headerButton}</View>}
+            {shouldUseNarrowLayout && hasRules && <View style={[styles.pl5, styles.pr5]}>{headerButton}</View>}
             {!hasRules && !isLoading && headerContent}
             {!hasRules && !isLoading && (
                 <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
-                    <EmptyStateComponent
-                        SkeletonComponent={TableListItemSkeleton}
-                        headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
-                        headerMedia={LottieAnimations.GenericEmptyState}
+                    <GenericEmptyStateComponent
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...genericIllustration}
                         title={translate('expenseRulesPage.emptyRules.title')}
                         subtitle={translate('expenseRulesPage.emptyRules.subtitle')}
-                        headerStyles={[styles.emptyStateCardIllustrationContainer, styles.emptyFolderBG]}
-                        lottieWebViewStyles={styles.emptyStateFolderWebStyles}
-                        headerContentStyles={styles.emptyStateFolderWebStyles}
+                        headerStyles={styles.emptyStateCardIllustrationContainer}
+                        buttons={[
+                            {
+                                success: true,
+                                buttonAction: navigateToNewRulePage,
+                                icon: icons.Plus,
+                                buttonText: translate('expenseRulesPage.newRule'),
+                            },
+                        ]}
                     />
                 </ScrollView>
             )}
@@ -238,6 +287,7 @@ function ExpenseRulesPage() {
                 <ActivityIndicator
                     size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                     style={[styles.flex1]}
+                    reasonAttributes={loadingReasonAttributes}
                 />
             )}
             {hasRules && (
@@ -246,10 +296,10 @@ function ExpenseRulesPage() {
                     canSelectMultiple={canSelectMultiple}
                     customListHeader={getCustomListHeader()}
                     customListHeaderContent={headerContent}
-                    data={rulesList}
+                    data={filteredRuleList}
                     ListItem={TableListItem}
                     onCheckboxPress={toggleRule}
-                    onSelectAll={expenseRules.length > 0 ? toggleAllRules : undefined}
+                    onSelectAll={filteredRuleList.length > 0 ? toggleAllRules : undefined}
                     onSelectRow={onSelectRow}
                     onTurnOnSelectionMode={(item) => item && toggleRule(item)}
                     selectedItems={selectedRules}
@@ -257,9 +307,8 @@ function ExpenseRulesPage() {
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                     shouldShowRightCaret
                     shouldUseDefaultRightHandSideCheckmark={false}
-                    showListEmptyContent={false}
+                    shouldShowListEmptyContent={false}
                     showScrollIndicator={false}
-                    style={{listHeaderWrapperStyle: [styles.ph9, styles.pv3, styles.pb5]}}
                     turnOnSelectionModeOnLongPress={shouldUseNarrowLayout}
                 />
             )}

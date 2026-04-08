@@ -1,7 +1,10 @@
 import type {ReactElement, ReactNode} from 'react';
-import type {AccessibilityState, BlurEvent, NativeSyntheticEvent, StyleProp, TargetedEvent, TextStyle, ViewStyle} from 'react-native';
+import type {AccessibilityState, BlurEvent, NativeSyntheticEvent, Role, StyleProp, TargetedEvent, TextStyle, ViewStyle} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
+import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
+import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
+import type {TransactionPreviewData} from '@libs/actions/Search';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 // eslint-disable-next-line no-restricted-imports
@@ -10,6 +13,7 @@ import type CONST from '@src/CONST';
 import type {SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import type BaseListItem from './BaseListItem';
 import type InviteMemberListItem from './InviteMemberListItem';
 import type MultiSelectListItem from './MultiSelectListItem';
@@ -28,6 +32,9 @@ type ListItem<K extends string | number = string> = {
 
     /** Alternate text to display */
     alternateText?: string | null;
+
+    /** Whether to force hide the alternate text even if it exists */
+    shouldHideAlternateText?: boolean;
 
     /** Accessibility label for screen readers */
     accessibilityLabel?: string;
@@ -135,6 +142,9 @@ type ListItem<K extends string | number = string> = {
 
     /** Used to initiate payment from search page */
     hash?: number;
+
+    /** BCP 47 language tag for screen reader pronunciation (maps to HTML lang attribute on web) */
+    lang?: string;
 };
 
 type CommonListItemProps<TItem extends ListItem> = {
@@ -151,10 +161,10 @@ type CommonListItemProps<TItem extends ListItem> = {
     canSelectMultiple?: boolean;
 
     /** Callback to fire when the item is pressed */
-    onSelectRow: (item: TItem) => void;
+    onSelectRow: (item: TItem, transactionPreviewData?: TransactionPreviewData) => void;
 
     /** Callback to fire when a checkbox is pressed */
-    onCheckboxPress?: (item: TItem) => void;
+    onCheckboxPress?: (item: TItem, itemTransactions?: TransactionListItemType[]) => void;
 
     /** Callback to fire when an error is dismissed */
     onDismissError?: (item: TItem) => void;
@@ -174,6 +184,9 @@ type CommonListItemProps<TItem extends ListItem> = {
     /** Styles for the checkbox wrapper view if select multiple option is on */
     selectMultipleStyle?: StyleProp<ViewStyle>;
 
+    /** Styles applied for the error row of the list item */
+    errorRowStyles?: StyleProp<ViewStyle>;
+
     /** Whether to wrap long text up to 2 lines */
     isMultilineSupported?: boolean;
 
@@ -183,18 +196,31 @@ type CommonListItemProps<TItem extends ListItem> = {
     /** Number of lines to show for alternate text */
     alternateTextNumberOfLines?: number;
 
+    /** Number of lines to show for title text when multiline is supported */
+    titleNumberOfLines?: number;
+
+    /** Whether to show the default right hand side component */
+    shouldUseDefaultRightHandSideComponent?: boolean;
+
     /** Handles what to do when the item is focused */
     onFocus?: ListItemFocusEventHandler;
 
     /** Callback to fire when the item is long pressed */
-    onLongPressRow?: (item: TItem) => void;
+    onLongPressRow?: (item: TItem, itemTransactions?: TransactionListItemType[]) => void;
 
     /** Accessibility State tells a person using either VoiceOver on iOS or TalkBack on Android the state of the element currently focused on */
     accessibilityState?: AccessibilityState;
 
+    /** Accessibility role for the list item (e.g. 'checkbox' for multi-select options so screen readers announce checked state) */
+    accessibilityRole?: Role;
+
     /** Whether to show the right caret icon */
     shouldShowRightCaret?: boolean;
-} & TRightHandSideComponent<TItem>;
+
+    /** Whether product training tooltips can be displayed */
+    canShowProductTrainingTooltip?: boolean;
+} & TRightHandSideComponent<TItem> &
+    WithSentryLabel;
 
 type ListItemFocusEventHandler = (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void;
 
@@ -266,8 +292,8 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** Whether to disable the hover style of the item */
     shouldDisableHoverStyle?: boolean;
 
-    /** Whether to call stopPropagation on the mouseleave event in BaseListItem */
-    shouldStopMouseLeavePropagation?: boolean;
+    /** Whether the network is offline */
+    isOffline?: boolean;
 };
 
 type ValidListItem =
@@ -275,6 +301,7 @@ type ValidListItem =
     | typeof InviteMemberListItem
     | typeof MultiSelectListItem
     | typeof RadioListItem
+    | typeof SearchRouterItem
     | typeof SingleSelectListItem
     | typeof SpendCategorySelectorListItem
     | typeof SplitListItem
@@ -283,35 +310,41 @@ type ValidListItem =
     | typeof UserListItem
     | typeof UserSelectionListItem;
 
-type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
-    item: TItem;
-    shouldPreventDefaultFocusOnSelectRow?: boolean;
-    shouldPreventEnterKeySubmit?: boolean;
-    shouldShowBlueBorderOnFocus?: boolean;
-    keyForList: string;
-    errors?: Errors | ReceiptErrors | null;
-    pendingAction?: PendingAction | null;
-    FooterComponent?: ReactElement;
-    children?: ReactElement<ListItemProps<TItem>> | ((hovered: boolean) => ReactElement<ListItemProps<TItem>>);
-    shouldSyncFocus?: boolean;
-    hoverStyle?: StyleProp<ViewStyle>;
-    /** Errors that this user may contain */
-    shouldDisplayRBR?: boolean;
-    /** Test ID of the component. Used to locate this view in end-to-end tests. */
-    testID?: string;
-    /** Whether to show the default right hand side checkmark */
-    shouldUseDefaultRightHandSideCheckmark?: boolean;
-    /** Whether to show the right caret icon */
-    shouldShowRightCaret?: boolean;
-    /** Whether to highlight the selected item */
-    shouldHighlightSelectedItem?: boolean;
+type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> &
+    ForwardedFSClassProps & {
+        item: TItem;
+        shouldPreventDefaultFocusOnSelectRow?: boolean;
+        shouldPreventEnterKeySubmit?: boolean;
+        shouldShowBlueBorderOnFocus?: boolean;
+        keyForList: string;
+        errors?: Errors | ReceiptErrors | null;
+        /** Additional style object for the error row */
+        errorRowStyles?: StyleProp<ViewStyle>;
+        pendingAction?: PendingAction | null;
+        FooterComponent?: ReactElement;
+        children?: ReactElement<ListItemProps<TItem>> | ((hovered: boolean) => ReactElement<ListItemProps<TItem>>);
+        shouldSyncFocus?: boolean;
+        hoverStyle?: StyleProp<ViewStyle>;
+        /** Whether to show RBR */
+        shouldDisplayRBR?: boolean;
+        /** Test ID of the component. Used to locate this view in end-to-end tests. */
+        testID?: string;
+        /** Whether to show the default right hand side checkmark */
+        shouldUseDefaultRightHandSideCheckmark?: boolean;
+        /** Whether to show the right caret icon */
+        shouldShowRightCaret?: boolean;
+        /** Whether to highlight the selected item */
+        shouldHighlightSelectedItem?: boolean;
 
-    /** Whether to disable the hover style of the item */
-    shouldDisableHoverStyle?: boolean;
+        /** Whether to disable the hover style of the item */
+        shouldDisableHoverStyle?: boolean;
 
-    /** Whether to call stopPropagation on the mouseleave event in BaseListItem */
-    shouldStopMouseLeavePropagation?: boolean;
-};
+        /**
+         * Whether the pressable should be accessible as a single element.
+         * When false, allows child elements (like TextInput) to be independently focusable by screen readers.
+         */
+        accessible?: boolean;
+    };
 
 type SplitListItemType = ListItem &
     SplitExpense & {

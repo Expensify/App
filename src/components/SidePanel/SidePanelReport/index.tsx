@@ -1,8 +1,9 @@
 import {NavigationRouteContext} from '@react-navigation/native';
 import React from 'react';
+import {IsInSidePanelContext} from '@hooks/useIsInSidePanel';
 import type {ExtraContentProps, PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
-import ReportScreen from '@pages/home/ReportScreen';
+import ReportScreen from '@pages/inbox/ReportScreen';
 import SCREENS from '@src/SCREENS';
 
 type SidePanelReportProps = Pick<ExtraContentProps, 'navigation'> & {
@@ -14,13 +15,14 @@ function SidePanelReport({navigation, reportID}: SidePanelReportProps) {
     const route = {name: SCREENS.REPORT, params: {reportID}, key: `Report-SidePanel-${reportID}`} as const;
 
     return (
-        <NavigationRouteContext.Provider value={route}>
-            <ReportScreen
-                route={route}
-                navigation={navigation as unknown as PlatformStackNavigationProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>}
-                isInSidePanel
-            />
-        </NavigationRouteContext.Provider>
+        <IsInSidePanelContext.Provider value>
+            <NavigationRouteContext.Provider value={route}>
+                <ReportScreen
+                    route={route}
+                    navigation={navigation as unknown as PlatformStackNavigationProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>}
+                />
+            </NavigationRouteContext.Provider>
+        </IsInSidePanelContext.Provider>
     );
 }
 

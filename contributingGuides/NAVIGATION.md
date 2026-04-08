@@ -13,10 +13,25 @@ The navigation in the app is built on top of the `react-navigation` library. To 
     - [Dismissing modals with opening a report](#dismissing-modals-with-opening-a-report)
     - [Summary](#summary)
   - [Adding new screens](#adding-new-screens)
+  - [Multi-step flows with URL synchronization](#multi-step-flows-with-url-synchronization)
+    - [When to use](#when-to-use)
+    - [Implementation pattern](#implementation-pattern)
   - [Debugging](#debugging)
     - [Reading state when it changes](#reading-state-when-it-changes)
     - [Finding the code that calls the navigation function](#finding-the-code-that-calls-the-navigation-function)
-  - [How to remove backTo from URL](#how-to-remove-backto-from-url)
+  - [Dynamic routes](#dynamic-routes)
+    - [What are dynamic routes?](#what-are-dynamic-routes)
+    - [When to use dynamic routes](#when-to-use-dynamic-routes)
+    - [When not to use dynamic routes](#when-not-to-use-dynamic-routes)
+    - [Dynamic routes configuration](#dynamic-routes-configuration)
+    - [Entry screens (access control)](#entry-screens-access-control)
+    - [Current limitations (work in progress)](#current-limitations-work-in-progress)
+    - [Multi-segment dynamic routes](#multi-segment-dynamic-routes)
+    - [Suffix layering (stacking dynamic routes)](#suffix-layering-stacking-dynamic-routes)
+    - [Dynamic routes with query parameters](#dynamic-routes-with-query-parameters)
+    - [How to add a new dynamic route](#how-to-add-a-new-dynamic-route)
+    - [Migrating from backTo to dynamic routes](#migrating-from-backto-to-dynamic-routes)
+  - [How to remove backTo from URL (Legacy)](#how-to-remove-backto-from-url)
     - [Separating routes for each screen instance](#separating-routes-for-each-screen-instance)
   - [Generating state from a path](#generating-state-from-a-path)
   - [Setting the correct screen underneath RHP](#setting-the-correct-screen-underneath-rhp)
@@ -61,7 +76,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 
 // Basic navigation to a route
-Navigation.navigate(ROUTES.HOME);
+Navigation.navigate(ROUTES.INBOX);
 
 // Navigation with parameters
 Navigation.navigate(
@@ -115,7 +130,7 @@ Navigation.goBack();
 It also allows dynamic setting of `backToRoute` which is pretty handy when RHP can be opened from multiple pages. Then we should set `backTo` parameter in the URL, so it is possible to go to the previous page even after refreshing! 
 
 > [!WARNING]
-> **Deprecated**: The `backTo` parameter is deprecated and should not be used in new implementations. Most problems that `backTo` solved can be resolved by adding one or more routes for a single screen. If you don't know how to solve your problem, contact someone from the navigation team.
+> **Deprecated**: The `backTo` parameter is deprecated and should not be used in new implementations. Most problems that `backTo` solved can be resolved by [Dynamic Routes](#dynamic-routes) or by adding one or more routes for a single screen. If you don't know how to solve your problem, contact someone from the navigation team. Old documentation on how to use `backTo` can be found below.
 
 More information on how to use backTo route param can be found [here](#how-to-use-backto-route-param).
 
@@ -396,7 +411,7 @@ export default NewSettingsScreen;
     });
     ```
 
-    Let's assume that we want to have PreferencesPage below our new Settings RHP screen.
+   Let's assume that we want to have PreferencesPage below our new Settings RHP screen.
 
     ```ts
     // src/libs/Navigation/linkingConfig/RELATIONS/SETTINGS_TO_RHP.ts
@@ -414,6 +429,236 @@ export default NewSettingsScreen;
 
     export default SETTINGS_TO_RHP;
     ```
+
+## Multi-step flows with URL synchronization
+
+Multi-step flows (wizards, forms with multiple screens) should use URL-based navigation via the `useSubPage` hook or via basic navigation between plain static routes. This approach ensures browser navigation works correctly and page refreshes preserve the current position.
+
+### When to use
+
+You can use `useSubPage` hook for any multi-step flow where:
+- Users progress through a series of screens to complete a task
+- Each step collects or displays different information
+- The flow has a final confirmation or summary step
+- You need proper browser back/forward button support
+- Page refresh should preserve the user's current position
+
+Common examples include:
+- Account setup wizards
+- Form flows with multiple sections
+- Settings configuration flows
+
+### Implementation pattern
+
+#### 1. Define your routes
+
+Add routes with a `subPage` parameter to `ROUTES.ts`. The `action` parameter is used for edit mode:
+
+```ts
+MY_FLOW: {
+    route: 'my-flow/:subPage?/:action?',
+    getRoute: (subPage?: string, action?: 'edit') => {
+        if (!subPage) {
+            return 'my-flow' as const;
+        }
+        return `my-flow/${subPage}${action ? `/${action}` : ''}` as const;
+    },
+},
+```
+
+#### 2. Add navigation config
+
+Register the screen in `linkingConfig/config.ts`:
+
+```ts
+[SCREENS.MY_FLOW]: {
+    path: ROUTES.MY_FLOW.route,
+    exact: true,
+},
+```
+
+#### 3. Define page constants
+
+Add page name constants to `CONST.ts`:
+
+```ts
+MY_FLOW: {
+    STEP_INDEX_LIST: ['1', '2', '3'],
+    PAGE_NAME: {
+        STEP_ONE: 'step-one',
+        STEP_TWO: 'step-two',
+        CONFIRMATION: 'confirmation',
+    },
+},
+```
+
+#### 4. Create sub-page components
+
+Each sub-page receives `SubPageProps` and any custom props you define:
+
+```ts
+import type {SubPageProps} from '@hooks/useSubPage/types';
+
+type CustomSubPageProps = SubPageProps & {
+    // Add custom props specific to your flow
+    formValues: MyFormType;
+};
+
+function StepOne({isEditing, onNext, onMove, formValues}: CustomSubPageProps) {
+    const handleSubmit = (data: FormData) => {
+        saveData(data);
+        onNext();
+    };
+
+    return (
+        <FormProvider onSubmit={handleSubmit}>
+            {/* Form fields */}
+        </FormProvider>
+    );
+}
+```
+
+#### 5. Implement the main flow component
+
+```ts
+import useSubPage from '@hooks/useSubPage';
+import type {SubPageProps} from '@hooks/useSubPage/types';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import InteractiveStepSubPageHeader from '@components/InteractiveStepSubPageHeader';
+
+type CustomSubPageProps = SubPageProps & {
+    formValues: MyFormType;
+};
+
+const pages = [
+    {pageName: CONST.MY_FLOW.PAGE_NAME.STEP_ONE, component: StepOne},
+    {pageName: CONST.MY_FLOW.PAGE_NAME.STEP_TWO, component: StepTwo},
+    {pageName: CONST.MY_FLOW.PAGE_NAME.CONFIRMATION, component: Confirmation},
+];
+
+function MyFlowContent() {
+    const {
+        CurrentPage,
+        isEditing,
+        pageIndex,
+        prevPage,
+        nextPage,
+        lastPageIndex,
+        moveTo,
+        resetToPage,
+        isRedirecting,
+    } = useSubPage<CustomSubPageProps>({
+        pages,
+        startFrom: 0,
+        onFinished: () => {
+            // Handle flow completion
+            Navigation.goBack();
+        },
+        buildRoute: (pageName, action) => ROUTES.MY_FLOW.getRoute(pageName, action),
+    });
+
+    const handleBackButtonPress = () => {
+        if (isEditing) {
+            Navigation.goBack();
+            return;
+        }
+
+        if (pageIndex === 0) {
+            Navigation.closeRHPFlow();
+            return;
+        }
+
+        prevPage();
+    };
+
+    if (isRedirecting) {
+        return <FullScreenLoadingIndicator />;
+    }
+
+    return (
+        <ScreenWrapper>
+            <HeaderWithBackButton
+                title={translate('myFlow.title')}
+                onBackButtonPress={handleBackButtonPress}
+            />
+            <View style={[styles.ph5, styles.mb3, styles.mt3, {height: CONST.NETSUITE_FORM_STEPS_HEADER_HEIGHT}]}>
+                <InteractiveStepSubPageHeader
+                    stepNames={CONST.MY_FLOW.STEP_INDEX_LIST}
+                    currentStepIndex={pageIndex}
+                    onStepSelected={moveTo}
+                />
+            </View>
+            <CurrentPage
+                isEditing={isEditing}
+                onNext={nextPage}
+                onMove={moveTo}
+                formValues={formValues}
+            />
+        </ScreenWrapper>
+    );
+}
+```
+
+### Using InteractiveStepSubPageHeader
+
+The `InteractiveStepSubPageHeader` component is designed to work with the `useSubPage` hook for URL-based multi-step flows.
+
+Key features:
+- Displays numbered step indicators with connecting lines
+- Shows completed steps with a checkmark icon
+- Allows users to tap on completed steps to navigate back (entering edit mode)
+- Locked (future) steps are disabled
+- Automatically syncs with the current page index from the URL
+
+```ts
+<InteractiveStepSubPageHeader
+    stepNames={CONST.MY_FLOW.STEP_INDEX_LIST}
+    currentStepIndex={pageIndex}
+    onStepSelected={moveTo}
+/>
+```
+
+> **Note**: The `stepNames` array determines the number of steps displayed. The `currentStepIndex` is 0-based. When a user taps a completed step, `onStepSelected` is called with that step's index, which triggers edit mode navigation.
+
+#### 6. Handle edit mode
+
+The hook automatically manages edit mode via the `action=edit` URL parameter. When users navigate to a previous step using `moveTo()`, they enter edit mode. In edit mode, calling `nextPage()` returns them to the last page (typically confirmation) instead of advancing sequentially:
+
+```ts
+// In Confirmation component - allow editing previous steps
+function Confirmation({onMove, formValues}: CustomSubPageProps) {
+    return (
+        <View>
+            <MenuItem
+                title={formValues.name}
+                description={translate('myFlow.name')}
+                onPress={() => onMove(0)}
+            />
+            {/* More review items */}
+        </View>
+    );
+}
+```
+
+#### 7. Skip pages conditionally
+
+Use `skipPages` to conditionally skip steps based on user input or feature flags:
+
+```ts
+const skipPages = useMemo(() => {
+    const pagesToSkip: string[] = [];
+    if (!requiresAdditionalInfo) {
+        pagesToSkip.push(CONST.MY_FLOW.PAGE_NAME.STEP_TWO);
+    }
+    return pagesToSkip;
+}, [requiresAdditionalInfo]);
+
+const {...} = useSubPage<CustomSubPageProps>({
+    pages,
+    skipPages,
+    // ...other props
+});
+```
 
 ## Debugging
 
@@ -435,10 +680,265 @@ const handleStateChange = (state: NavigationState | undefined) => {
 
 The easiest way to find the piece of code from which the navigation method was called is to use a debugger and breakpoints. You should attach a breakpoint in the navigation method and check the call stack, this way you can easily find the navigation method that caused the problem.
 
+## Dynamic routes
+
+Dynamic routes allow the same screen to be reused across multiple flows while preserving the correct "back" destination based on where the user came from without using the deprecated `backTo` URL parameter.
+
+### What are dynamic routes?
+
+A dynamic route is a URL suffix (e.g. `verify-account`) that can be appended to any base path the user is currently on. The resulting URL is `{currentPath}/{suffix}` (e.g. `/settings/wallet/verify-account`).
+
+- **Static route:** A fixed path like `/workspaces/:policyID/members`. The screen has one URL and typically one back destination.
+- **Dynamic route:** The same screen and suffix are reused across many base paths. The "back" destination is derived from the current URL (by removing the suffix), not from a `backTo` param. Dynamic routes guarantee deterministic back navigation by removing the suffix from the current path and preserving query parameters.
+
+
+### When to use dynamic routes
+
+- Use dynamic routes when:
+  - The same screen is reused in multiple flows (e.g. Verify Account from Wallet, Travel, Reports).
+  - The intended "back" behavior is wherever the user came from (current URL minus the suffix).
+
+### When not to use dynamic routes
+
+Do not use dynamic routes when:
+- Your use case falls under the [current limitations](#current-limitations-work-in-progress):
+  - You need path parameters in dynamic suffixes (e.g. `a/:reportID`).
+- The screen has a single, fixed entry and a fixed back destination. In this case, use a normal static route instead.
+
+### Dynamic routes configuration
+
+`DYNAMIC_ROUTES` in `src/ROUTES.ts`: each entry has:
+
+- `path`: The URL suffix (e.g. `'verify-account'`).
+- `entryScreens`: List of screen names that are allowed to have this suffix appended (access control; see [Entry Screens (Access Control)](#entry-screens-access-control)). Use `['*']` to allow all screens.
+
+`createDynamicRoute(suffix)` — [`createDynamicRoute.ts`](src/libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute.ts). Accepts a `DynamicRouteSuffix` (from `DYNAMIC_ROUTES`), appends it to the current active route and returns the full route. Use the following when navigating to a dynamic route:
+
+```ts
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import Navigation from '@libs/Navigation/Navigation';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+// From Wallet: navigate to verify-account on top of current path
+Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
+```
+
+### Entry screens (access control)
+
+The `entryScreens` array in `DYNAMIC_ROUTES` defines which base screens are allowed to open this dynamic route.
+
+When parsing a URL, `src/libs/Navigation/helpers/getStateFromPath.ts` resolves the base path (without the dynamic suffix), gets the focused route for that path, and checks whether it is in `entryScreens`. If it is not, the dynamic route state is not built and a warning is logged. This prevents opening e.g. `/some/random/path/verify-account` when that path's screen is not allowed.
+
+When adding or extending a dynamic route, list every screen that should be able to open it (e.g. `SCREENS.SETTINGS.WALLET.ROOT` for Verify Account from Wallet).
+
+#### Wildcard access (`'*'`)
+
+Setting `entryScreens` to `['*']` grants access to the dynamic route from any screen. This bypasses per-screen authorization entirely for that route.
+
+```ts
+KEYBOARD_SHORTCUTS: {
+    path: 'keyboard-shortcuts',
+    entryScreens: ['*'],
+},
+```
+
+> [!CAUTION]
+> **Use `'*'` only when the dynamic route genuinely needs to be reachable from every screen.**
+> If only a subset of screens should access the route, list them explicitly.
+> Overusing `'*'` weakens the access control that `entryScreens` provides
+> and makes it harder to reason about which screens can trigger a given flow.
+> When in doubt, prefer an explicit list.
+
+### Current limitations (work in progress)
+
+- **Path parameters:** Suffixes must not include path params (e.g. `a/:reportID`). Query parameters are supported - see [Dynamic routes with query parameters](#dynamic-routes-with-query-parameters).
+
+If you try to use dynamic routes for this case now, you will either fail to navigate to the page at all or end up on a non-existent page, and the navigation will be broken.
+
+### Multi-segment dynamic routes
+
+Dynamic route suffixes are not limited to a single path segment -
+they can span multiple segments separated by `/`.
+For example, the suffix `add-bank-account/verify-account` is a valid
+multi-segment suffix that combines two segments into one dynamic route.
+
+When the URL is parsed, the matching algorithm
+iterates from the longest candidate suffix to the shortest,
+so overlapping registrations are resolved deterministically.
+For instance, if both `verify-account` and `add-bank-account/verify-account`
+are registered, a path ending with `/add-bank-account/verify-account`
+will always match the longer, more specific suffix.
+
+### Suffix layering (stacking dynamic routes)
+
+Dynamic route suffixes can be stacked on top of each other,
+producing URLs like `/base-path/suffix-a/suffix-b`.
+Each suffix in the chain is resolved recursively: the parser strips the outermost suffix first,
+resolves the remaining path (which may itself contain another dynamic suffix),
+and repeats until it reaches a static base path.
+
+For example, given the path `/settings/wallet/verify-account/country`:
+
+1. The outermost suffix `country` is identified and stripped, leaving `/settings/wallet/verify-account`.
+2. `/settings/wallet/verify-account` still contains a dynamic suffix `verify-account`, which is stripped to get `/settings/wallet`.
+3. `/settings/wallet` is a static path - standard React Navigation parsing returns the base state.
+4. The parser walks back up: it checks that the focused screen of `/settings/wallet` is listed in `VERIFY_ACCOUNT.entryScreens`.
+5. Then it checks that the focused screen of the resolved `/settings/wallet/verify-account` state is listed in `COUNTRY.entryScreens`.
+6. If all authorization checks pass, the final navigation state is built for the full path.
+
+#### Authorization per layer
+
+Each suffix independently validates access via its own `entryScreens` array.
+The focused screen resolved from the layer directly beneath must be listed
+in the current suffix's `entryScreens`. If any layer fails authorization,
+the path falls back to standard React Navigation parsing and a warning is logged.
+
+#### Configuration example
+
+```ts
+DYNAMIC_ROUTES: {
+    VERIFY_ACCOUNT: {
+        path: 'verify-account',
+        entryScreens: [SCREENS.SETTINGS.WALLET.ROOT, SCREENS.TRAVEL.MY_TRIPS],
+    },
+    ADDRESS_COUNTRY: {
+        path: 'country',
+        entryScreens: [SCREENS.SETTINGS.DYNAMIC_VERIFY_ACCOUNT],
+        getRoute: (country = '') => `country${country ? `?country=${country}` : ''}`,
+        queryParams: ['country'],
+    },
+},
+```
+
+With this configuration, `country` can be opened on top of `verify-account`
+because `DYNAMIC_VERIFY_ACCOUNT` is listed in `ADDRESS_COUNTRY.entryScreens`.
+Back navigation removes one suffix at a time:
+`/settings/wallet/verify-account/country` → `/settings/wallet/verify-account` → `/settings/wallet`.
+
+#### Multi-segment suffixes in layered paths
+
+Suffix layering works with multi-segment suffixes as well.
+For example, if `deep/verify-account` and `country` are both registered,
+the path `/settings/wallet/deep/verify-account/country` will first strip `country`,
+then strip `deep/verify-account`, and resolve `/settings/wallet` as the base.
+The matching algorithm always tests the longest candidate suffix first,
+so overlapping registrations are resolved deterministically.
+
+### Dynamic routes with query parameters
+
+Dynamic route suffixes can carry query parameters
+(e.g. `country?country=US`).
+This is useful when a dynamic screen needs initial data passed
+through the URL - for example, a country selector that
+pre-selects the current country.
+
+#### How to add query parameters to a dynamic route
+
+1. In `DYNAMIC_ROUTES` (in [`src/ROUTES.ts`](../src/ROUTES.ts)), add a `getRoute` function
+that returns the suffix with query parameters and a `queryParams`
+array listing every parameter key that the suffix may add:
+
+```ts
+ADDRESS_COUNTRY: {
+    path: 'country',
+    entryScreens: [SCREENS.SETTINGS.PROFILE.ADDRESS, /* ... */],
+    getRoute: (country = '') => `country${country ? `?country=${country}` : ''}`,
+    queryParams: ['country'],
+},
+```
+
+2. Navigate using `createDynamicRoute` with the output of `getRoute`:
+
+```ts
+Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADDRESS_COUNTRY.getRoute(countryCode)));
+// Produces e.g. /settings/profile/address/country?country=US
+```
+
+3. In the page component, read query params from `route.params` as usual:
+
+```ts
+const currentCountry = route.params?.country ?? '';
+```
+
+> [!CAUTION]
+> **`queryParams` array is mandatory.**
+> When you define a `getRoute` function that adds query parameters
+> after `?` in a dynamic route, you **must** also define a `queryParams`
+> array containing **every** parameter key that `getRoute` may produce.
+> The `queryParams` array is used to strip suffix-specific parameters when navigating back.
+> Without it, query parameters will leak into the parent path
+> and break back navigation.
+
+> [!CAUTION]
+> **Query parameter names must not collide with inherited entry screen parameters.**
+> Do not use a query parameter name in a dynamic suffix that
+> already exists as a parameter of any entry screen listed
+> in `entryScreens`.
+> For example, if an entry screen has a `country` query parameter,
+> do not add `country` as a query parameter in your dynamic route.
+> When both paths carry the same parameter key,
+> `createDynamicRoute` will throw an error:
+> `Query param "X" exists in both base path and dynamic suffix.`
+> `This is not allowed.`
+> This guard prevents non-deterministic parameter handling
+> and accidental overwriting of inherited parameters.
+
+The Address Country flow is the reference implementation for
+dynamic routes with query parameters:
+see [`src/components/CountrySelector.tsx`](../src/components/CountrySelector.tsx) (navigation call)
+and [`src/pages/settings/Profile/PersonalDetails/DynamicCountrySelectionPage.tsx`](../src/pages/settings/Profile/PersonalDetails/DynamicCountrySelectionPage.tsx)
+(page component).
+
+### How to add a new dynamic route
+
+1. Add to `DYNAMIC_ROUTES` in [`src/ROUTES.ts`](../src/ROUTES.ts): define `path` and
+`entryScreens` (screen names that may open this route).
+If the suffix needs query parameters, also define `getRoute`
+and `queryParams` - see
+[Dynamic routes with query parameters](#dynamic-routes-with-query-parameters).
+2. Add a screen constant in [`src/SCREENS.ts`](../src/SCREENS.ts).
+The name must start with the `DYNAMIC_` prefix
+(e.g. `SETTINGS.DYNAMIC_VERIFY_ACCOUNT`) so dynamic screens
+can be distinguished from static ones.
+3. Register in linking config in
+[`src/libs/Navigation/linkingConfig/config.ts`](../src/libs/Navigation/linkingConfig/config.ts):
+map the new screen to `DYNAMIC_ROUTES.<KEY>.path`.
+4. Implement the page component:
+Use `createDynamicRoute(DYNAMIC_ROUTES.<KEY>.path)` to navigate
+to the flow and `useDynamicBackPath(DYNAMIC_ROUTES.<KEY>.path)`
+to get the back path. Pass these into your base UI
+(e.g. `VerifyAccountPageBase` with `navigateBackTo` /
+`navigateForwardTo`).
+5. Register the screen in the appropriate modal/stack navigator
+(e.g. [`src/libs/Navigation/AppNavigator/ModalStackNavigators/index.tsx`](../src/libs/Navigation/AppNavigator/ModalStackNavigators/index.tsx)).
+6. Types: Add the screen to the navigator param list in
+[`src/libs/Navigation/types.ts`](../src/libs/Navigation/types.ts) (no params for the new screen).
+
+The Verify Account flow (Wallet → Dynamic Verify Account) is the
+reference implementation:
+see [`src/pages/settings/DynamicVerifyAccountPage.tsx`](../src/pages/settings/DynamicVerifyAccountPage.tsx) and the
+Wallet entry point in
+[`src/pages/settings/Wallet/WalletPage/index.tsx`](../src/pages/settings/Wallet/WalletPage/index.tsx).
+
+### Migrating from backTo to dynamic routes
+
+If you are migrating an existing flow that uses `backTo` (or multiple static routes) to dynamic routes:
+
+1. Identify the screen and all entry points (screens that navigate to it).
+2. Add (or extend) an entry in `DYNAMIC_ROUTES` with the chosen suffix and `entryScreens` set to those entry screens.
+3. Add a single dynamic screen (e.g. `DYNAMIC_VERIFY_ACCOUNT`) and one component that uses `createDynamicRoute` and `useDynamicBackPath` to compute back path.
+4. Replace navigation calls: instead of `getRoute(..., backTo)` or multiple static routes, use `Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.<KEY>.path))` from each entry screen.
+5. In the page, use `useDynamicBackPath(suffix)` for the back path.
+6. Remove old static route constants and old screen bindings that are replaced by the single dynamic screen.
+
+For the legacy approach (e.g. separating routes per screen instance) and edge cases like RHP underlay, see [How to remove backTo from URL](#how-to-remove-backto-from-url) and [Separating routes for each screen instance](#separating-routes-for-each-screen-instance).
+
 ## How to remove backTo from URL
 
+**Preferred approach:** For new flows where a screen is reused across multiple entry points, use [Dynamic Routes](#dynamic-routes) and the [Migrating from backTo to Dynamic Routes](#migrating-from-backto-to-dynamic-routes) guide instead of `backTo` or multiple static routes.
+
 > [!WARNING]
-> **Deprecated**: The `backTo` parameter is deprecated and should not be used in new implementations. Most problems that `backTo` solved can be resolved by adding one or more routes for a single screen. If you don't know how to solve your problem, contact someone from the navigation team. Old documentation on how to use `backTo` can be found below.
+> **Deprecated**: The `backTo` parameter is deprecated and should not be used in new implementations. Most problems that `backTo` solved can be resolved by [Dynamic Routes](#dynamic-routes) or by adding one or more routes for a single screen. If you don't know how to solve your problem, contact someone from the navigation team. Old documentation on how to use `backTo` can be found below.
 
 <details>
 <summary>Using `backTo` route param</summary>
@@ -503,7 +1003,7 @@ function NewSettingsScreen({route}: NewSettingsScreenNavigationProps) {
 
 ### Separating routes for each screen instance
 
-Often, you will need to reuse a single screen across multiple navigation flows. For example, the `VerifyAccountPage` can be viewed in many different RHP flows. The proper approach to implementing such a mechanism is to create a new route for each screen instance within a single flow.
+Often, you will need to reuse a single screen across multiple navigation flows. For many cases, [Dynamic Routes](#dynamic-routes) are the simpler and preferred approach (one screen, one suffix, back derived from the current URL). Alternatively, you can create a new static route for each screen instance within a single flow, as described below.
 
 Considerations when removing `backTo` from a URL:
 
@@ -601,7 +1101,8 @@ In Expensify, we use an extended implementation of this function because:
 -   When opening a link leading to an onboarding screen, all previous screens in this flow have to be present in the navigation state.
 -   In case of opening the RHP, appropriate screens should be pushed to the navigation to be displayed below the overlay. A guide on how to set up a good screen for RHP can be found [here](#how-to-set-a-correct-screen-below-the-rhp).
 -   When opening the settings of a specific workspace, the workspace list needs to be pushed to the state.
--   When the `backTo` parameter is in the URL, we need to build a state also for the screen we want to return to. (`backTo` parameter is deprecated, more information can be found [here](#how-to-properly-remove-backto-from-url))
+-   When the `backTo` parameter is in the URL, we need to build a state also for the screen we want to return to. (`backTo` parameter is deprecated, more information can be found [here](#how-to-remove-backto-from-url))
+-   For dynamic routes, state is built from the current path and [entryScreens](#entry-screens-access-control) access control.
 
 Here are examples how the state is generated based on route:
 
@@ -720,7 +1221,7 @@ In the above example, we can see that when building a state from a link leading 
 RHP screens can usually be opened from a specific central screen. Of course there are cases where one RHP screen can be used in different tabs. However, most often one RHP screen has a specific central screen assigned underneath.
 
 > [!WARNING]
-> **Deprecated**: The `backTo` parameter is deprecated and should not be used in new implementations. Most problems that `backTo` solved can be resolved by adding one or more routes for a single screen. If you don't know how to solve your problem, contact someone from the navigation team.
+> **Deprecated**: The `backTo` parameter is deprecated and should not be used in new implementations. Most problems that `backTo` solved can be resolved by [Dynamic Routes](#dynamic-routes) or by adding one or more routes for a single screen. If you don't know how to solve your problem, contact someone from the navigation team. Old documentation on how to use `backTo` can be found below.
 
 To assign RHP to the appropriate central screen, you need to add it to the proper relation (`src/libs/Navigation/linkingConfig/RELATIONS`)
 
@@ -741,6 +1242,9 @@ const SETTINGS_TO_RHP: Partial<Record<keyof SettingsSplitNavigatorParamList, str
 
 > [!NOTE]
 > When an RHP screen has a `backTo` parameter in its route, the navigation logic will check which screen should be displayed underneath based on the screen specified in `backTo`, rather than using the default relation mapping. This means you can reuse the same RHP screen across different tabs - for example, a settings screen could appear over either the Account tab or Workspaces tab depending on where the user came from.
+
+> [!NOTE]
+> For dynamic routes, the screen underneath is determined by the base path (the path without the dynamic suffix).
 
 ## Performance solutions
 
@@ -1117,7 +1621,7 @@ import {ROUTES} from '@src/ROUTES';
 Navigation.goBack();
 
 // Back navigation with fallback
-Navigation.goBack(ROUTES.HOME);
+Navigation.goBack(ROUTES.INBOX);
 
 const reportID = 123;
 // Back navigation to a route with specific params

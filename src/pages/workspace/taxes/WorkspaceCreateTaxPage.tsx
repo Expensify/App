@@ -67,8 +67,8 @@ function WorkspaceCreateTaxPage({
             return {};
         }
         return {
-            ...validateTaxName(policy, values),
-            ...validateTaxValue(values),
+            ...validateTaxName(policy, values, translate),
+            ...validateTaxValue(values, translate),
         };
     };
 
@@ -98,6 +98,7 @@ function WorkspaceCreateTaxPage({
                             enabledWhenOffline
                             shouldValidateOnBlur={false}
                             addBottomSafeAreaPadding
+                            shouldUseStrictHtmlTagValidation
                         >
                             <View style={styles.mhn5}>
                                 <InputWrapper
@@ -112,6 +113,7 @@ function WorkspaceCreateTaxPage({
                                     role={CONST.ROLE.PRESENTATION}
                                     required
                                     customValidate={customValidateForName}
+                                    shouldUseStrictHtmlTagValidation
                                 />
                                 <InputWrapper
                                     InputComponent={AmountPicker}

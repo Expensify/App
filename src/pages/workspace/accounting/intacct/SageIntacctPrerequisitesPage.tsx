@@ -8,6 +8,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImageSVG from '@components/ImageSVG';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -17,7 +18,7 @@ import fileDownload from '@libs/fileDownload';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -51,6 +52,7 @@ function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps
                         selection: CONST.EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT,
                         contextMenuAnchor: popoverAnchor.current,
                     }),
+                shouldShowContextMenuHint: true,
                 numberOfLinesTitle: 2,
             },
             {
@@ -69,6 +71,7 @@ function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps
                         selection: CONST.HOW_TO_CONNECT_TO_SAGE_INTACCT,
                         contextMenuAnchor: popoverAnchor.current,
                     }),
+                shouldShowContextMenuHint: true,
                 numberOfLinesTitle: 3,
             },
         ],
@@ -87,7 +90,7 @@ function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack(backTo)}
             />
-            <View style={styles.flex1}>
+            <ScrollView>
                 <View style={[styles.alignSelfCenter, styles.computerIllustrationContainer]}>
                     <ImageSVG src={illustrations.Computer} />
                 </View>
@@ -97,20 +100,19 @@ function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps
                     menuItems={menuItems}
                     shouldUseSingleExecution
                 />
-
-                <FixedFooter
-                    style={[styles.mtAuto]}
-                    addBottomSafeAreaPadding
-                >
-                    <Button
-                        success
-                        text={translate('common.next')}
-                        onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ENTER_CREDENTIALS.getRoute(policyID))}
-                        pressOnEnter
-                        large
-                    />
-                </FixedFooter>
-            </View>
+            </ScrollView>
+            <FixedFooter
+                style={[styles.mtAuto]}
+                addBottomSafeAreaPadding
+            >
+                <Button
+                    success
+                    text={translate('common.next')}
+                    onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ENTER_CREDENTIALS.getRoute(policyID))}
+                    pressOnEnter
+                    large
+                />
+            </FixedFooter>
         </ScreenWrapper>
     );
 }

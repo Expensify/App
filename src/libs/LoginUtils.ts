@@ -87,7 +87,7 @@ function areEmailsFromSamePrivateDomain(email1: string, email2: string): boolean
 }
 
 function postSAMLLogin(body: FormData): Promise<Response | void> {
-    return fetch(CONFIG.EXPENSIFY.SAML_URL, {
+    return fetch(`${CONFIG.EXPENSIFY.SAML_URL}/login`, {
         method: CONST.NETWORK.METHOD.POST,
         body,
         credentials: 'omit',
@@ -105,7 +105,7 @@ function handleSAMLLoginError(errorMessage: string, shouldClearSignInData: boole
     }
 
     setAccountError(errorMessage);
-    Navigation.goBack(ROUTES.HOME);
+    Navigation.goBack(ROUTES.INBOX);
 }
 
 function formatE164PhoneNumber(phoneNumber: string, countryCode: number) {

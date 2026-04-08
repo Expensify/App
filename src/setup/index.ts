@@ -59,7 +59,19 @@ export default function () {
             [ONYXKEYS.IS_OPEN_APP_FAILURE_MODAL_OPEN]: false,
         },
         skippableCollectionMemberIDs: CONST.SKIPPABLE_COLLECTION_MEMBER_IDS,
+        snapshotMergeKeys: ['pendingAction', 'pendingFields'],
+        ramOnlyKeys: [
+            ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS,
+            ONYXKEYS.RAM_ONLY_UPDATE_AVAILABLE,
+            ONYXKEYS.RAM_ONLY_UPDATE_REQUIRED,
+            ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS,
+            ONYXKEYS.RAM_ONLY_WALLET_ONFIDO,
+        ],
     });
+
+    // Must be imported after Onyx.init() and outside the React lifecycle so that push notification
+    // handlers are registered before any push arrives, including Android headless/background wake-ups.
+    import('@libs/Notification/PushNotification/subscribeToPushNotifications');
 
     initOnyxDerivedValues();
 

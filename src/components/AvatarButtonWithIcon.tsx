@@ -10,13 +10,14 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import Avatar from './Avatar';
 import Icon from './Icon';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Tooltip from './Tooltip';
 
-type AvatarButtonWithIconProps = {
+type AvatarButtonWithIconProps = WithSentryLabel & {
     /** Text to be used as a tooltip */
     text: string;
 
@@ -86,6 +87,7 @@ function AvatarButtonWithIcon({
     editIcon,
     anchorRef,
     name = '',
+    sentryLabel,
 }: AvatarButtonWithIconProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -104,6 +106,7 @@ function AvatarButtonWithIcon({
                 disabledStyle={disabledStyle}
                 style={[styles.pRelative, type === CONST.ICON_TYPE_AVATAR && styles.alignSelfCenter, avatarStyle]}
                 ref={anchorRef}
+                sentryLabel={sentryLabel}
             >
                 <OfflineWithFeedback pendingAction={pendingAction}>
                     {source ? (

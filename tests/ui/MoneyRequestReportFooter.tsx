@@ -69,9 +69,10 @@ const FAKE_UNREPORTED_REPORT_ID = CONST.REPORT.UNREPORTED_REPORT_ID;
 const renderMoneyRequestConfirmationListFooter = (transaction: Transaction) => {
     const defaultProps = {
         action: CONST.IOU.ACTION.CREATE,
-        currency: 'USD',
+        distanceRateCurrency: 'USD',
         didConfirm: false,
         distance: 0,
+        amount: 10000,
         formattedAmount: '100',
         formattedAmountPerAttendee: '50',
         formError: '',
@@ -87,6 +88,7 @@ const renderMoneyRequestConfirmationListFooter = (transaction: Transaction) => {
         isCategoryRequired: false,
         isDistanceRequest: false,
         isManualDistanceRequest: false,
+        isGPSDistanceRequest: false,
         isPerDiemRequest: false,
         isMerchantEmpty: false,
         isMerchantRequired: false,
@@ -97,6 +99,7 @@ const renderMoneyRequestConfirmationListFooter = (transaction: Transaction) => {
         policyTags: {},
         policyTagLists: [],
         rate: undefined,
+        distanceRateName: undefined,
         receiptFilename: '',
         receiptPath: '',
         reportActionID: '',
@@ -122,6 +125,8 @@ const renderMoneyRequestConfirmationListFooter = (transaction: Transaction) => {
         iouTimeCount: undefined,
         iouTimeRate: undefined,
         isTimeRequest: false,
+        showMoreFields: false,
+        setShowMoreFields: jest.fn(),
     };
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>

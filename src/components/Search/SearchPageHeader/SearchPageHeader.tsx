@@ -1,16 +1,12 @@
-import React, {useMemo} from 'react';
-import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import type {PaymentMethodType} from '@components/KYCWall/types';
-import {useSearchContext} from '@components/Search/SearchContext';
-import type {BankAccountMenuItem, SearchQueryJSON} from '@components/Search/types';
-import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
+// NOTE: The narrow-layout rendering of this component has a static twin in
+// SearchPageNarrow/StaticSearchPageHeader.tsx used for fast perceived
+// performance. If you change the narrow-layout UI here, verify the static
+// version still looks visually identical.
+import React from 'react';
+import type {SearchQueryJSON} from '@components/Search/types';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import {getTypeOptions} from '@libs/SearchUIUtils';
 import SearchSelectedNarrow from '@pages/Search/SearchSelectedNarrow';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import {emailSelector} from '@src/selectors/Session';
+import type CONST from '@src/CONST';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import SearchPageHeaderInput from './SearchPageHeaderInput';
 
@@ -19,13 +15,9 @@ type SearchPageHeaderProps = {
     searchRouterListVisible?: boolean;
     hideSearchRouterList?: () => void;
     onSearchRouterFocus?: () => void;
-    headerButtonsOptions: Array<DropdownOption<SearchHeaderOptionValue>>;
     handleSearch: (value: string) => void;
     isMobileSelectionModeEnabled: boolean;
-    currentSelectedPolicyID?: string | undefined;
-    currentSelectedReportID?: string | undefined;
-    confirmPayment?: (paymentType: PaymentMethodType | undefined) => void;
-    latestBankItems?: BankAccountMenuItem[] | undefined;
+    skipInputSkeleton?: boolean;
 };
 
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
@@ -35,59 +27,14 @@ function SearchPageHeader({
     searchRouterListVisible,
     hideSearchRouterList,
     onSearchRouterFocus,
-    headerButtonsOptions,
     handleSearch,
     isMobileSelectionModeEnabled,
-    currentSelectedPolicyID,
-    currentSelectedReportID,
-    confirmPayment,
-    latestBankItems,
+    skipInputSkeleton,
 }: SearchPageHeaderProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {selectedTransactions} = useSearchContext();
-    const {translate} = useLocalize();
-
-    const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
-
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const [email] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: emailSelector});
-    const {type: unsafeType} = queryJSON;
-    const [type] = useMemo(() => {
-        const options = getTypeOptions(translate, allPolicies, email);
-        const value = options.find((option) => option.value === unsafeType) ?? null;
-        return [value];
-    }, [allPolicies, email, unsafeType, translate]);
-
-    const selectedItemsCount = useMemo(() => {
-        if (!selectedTransactions) {
-            return 0;
-        }
-
-        if (type?.value === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
-            // In expense report mode, count unique reports instead of individual transactions
-            const reportIDs = new Set(
-                Object.values(selectedTransactions)
-                    .map((transaction) => transaction?.reportID)
-                    .filter((reportID): reportID is string => !!reportID),
-            );
-            return reportIDs.size;
-        }
-
-        // Otherwise count transactions
-        return selectedTransactionsKeys.length;
-    }, [selectedTransactionsKeys.length, type?.value, selectedTransactions]);
 
     if (shouldUseNarrowLayout && isMobileSelectionModeEnabled) {
-        return (
-            <SearchSelectedNarrow
-                options={headerButtonsOptions}
-                itemsLength={selectedItemsCount}
-                currentSelectedPolicyID={currentSelectedPolicyID}
-                currentSelectedReportID={currentSelectedReportID}
-                confirmPayment={confirmPayment}
-                latestBankItems={latestBankItems}
-            />
-        );
+        return <SearchSelectedNarrow queryJSON={queryJSON} />;
     }
 
     return (
@@ -97,6 +44,7 @@ function SearchPageHeader({
             queryJSON={queryJSON}
             hideSearchRouterList={hideSearchRouterList}
             handleSearch={handleSearch}
+            skipInputSkeleton={skipInputSkeleton}
         />
     );
 }

@@ -1,5 +1,5 @@
 import noop from 'lodash/noop';
-import React, {useCallback, useContext, useMemo, useState} from 'react';
+import React, {useContext, useRef, useState} from 'react';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
 
@@ -28,68 +28,71 @@ const ModalContext = React.createContext<ModalContextType>({
 
 const useModal = () => useContext(ModalContext);
 
-let modalID = 1;
-
 type ModalInfo = {
     id: string;
     component: React.FunctionComponent<ModalProps>;
     props?: Record<string, unknown>;
-    promiseWithResolvers: ReturnType<typeof Promise.withResolvers<ModalStateChangePayload>>;
     isCloseable: boolean;
 };
 
+type CloseModalPromiseWithResolvers = ReturnType<typeof Promise.withResolvers<ModalStateChangePayload>>;
+
 function ModalProvider({children}: {children: React.ReactNode}) {
     const [modalStack, setModalStack] = useState<{modals: ModalInfo[]}>({modals: []});
+    const modalIDRef = useRef(1);
+    const modalPromisesStack = useRef<Record<string, CloseModalPromiseWithResolvers>>({});
 
-    const showModal = useCallback<ModalContextType['showModal']>(({component, props, id, isCloseable = true}) => {
+    const showModal: ModalContextType['showModal'] = ({component, props, id, isCloseable = true}) => {
         // This is a promise that will resolve when the modal is closed
-        let closeModalPromise: Promise<ModalStateChangePayload> | null = null;
+        let closeModalPromise: CloseModalPromiseWithResolvers | null = id ? modalPromisesStack.current?.[id] : null;
 
-        setModalStack((prevState) => {
-            // Check current state for existing modal
-            const existingModal = id ? prevState.modals.find((modal: ModalInfo) => modal.id === id) : undefined;
-            if (existingModal) {
-                // There is already a modal with this ID. Return the existing promise and don't modify state.
-                closeModalPromise = existingModal.promiseWithResolvers.promise;
-                return prevState; // No state change needed
-            }
+        const newModalId = id ?? String(modalIDRef.current++);
 
+        if (!closeModalPromise) {
             // Create a new promise with resolvers to be resolved when the modal is closed
             const promiseWithResolvers = Promise.withResolvers<ModalStateChangePayload>();
-            closeModalPromise = promiseWithResolvers.promise;
+            closeModalPromise = promiseWithResolvers;
 
-            return {
+            // New modal => update modals stack
+            setModalStack((prevState) => ({
                 ...prevState,
-                modals: [...prevState.modals, {component: component as React.FunctionComponent<ModalProps>, props, promiseWithResolvers, isCloseable, id: id ?? String(modalID++)}],
-            };
-        });
-
-        // At this point, closeModalPromise should always be assigned
-        if (!closeModalPromise) {
-            Log.alert(`${CONST.ERROR.ENSURE_BUG_BOT} Failed to create modal promise. This should never happen.`);
-            throw new Error('Failed to create modal promise');
+                modals: [...prevState.modals, {component: component as React.FunctionComponent<ModalProps>, props, isCloseable, id: newModalId}],
+            }));
         }
 
-        return closeModalPromise;
-    }, []);
+        modalPromisesStack.current[newModalId] = closeModalPromise;
 
-    const closeModal = useCallback<ModalContextType['closeModal']>((data = {action: 'CLOSE'}) => {
+        return closeModalPromise.promise;
+    };
+
+    const closeModal: ModalContextType['closeModal'] = (data = {action: 'CLOSE'}) => {
         setModalStack((prevState) => {
-            const lastModal = prevState.modals.at(-1);
-            lastModal?.promiseWithResolvers.resolve(data);
+            const lastModalId = prevState.modals.at(-1)?.id;
+
+            if (!lastModalId) {
+                Log.alert(`${CONST.ERROR.ENSURE_BUG_BOT} Empty modals stack while attempting to close one. This should never happen.`);
+            } else {
+                const lastModalPromise = modalPromisesStack.current?.[lastModalId];
+                if (!lastModalPromise) {
+                    Log.alert(`${CONST.ERROR.ENSURE_BUG_BOT} Missing modal promise while attempting to close modal with id ${lastModalId}. This should never happen.`);
+                } else {
+                    lastModalPromise.resolve(data);
+                    delete modalPromisesStack.current[lastModalId];
+                }
+            }
+
             return {
                 ...prevState,
                 modals: prevState.modals.slice(0, -1),
             };
         });
-    }, []);
+    };
 
-    const contextValue = useMemo(() => ({showModal, closeModal}), [closeModal, showModal]);
     const modalToRender = modalStack.modals.length > 0 ? modalStack.modals.at(modalStack.modals.length - 1) : null;
     const ModalComponent = modalToRender?.component;
 
     return (
-        <ModalContext.Provider value={contextValue}>
+        <ModalContext.Provider value={{showModal, closeModal}}>
             {children}
             {!!ModalComponent && (
                 <ModalComponent

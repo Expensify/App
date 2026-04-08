@@ -10,8 +10,8 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getEmojiReactionDetails, getLocalizedEmojiName} from '@libs/EmojiUtils';
-import {ReactionListContext} from '@pages/home/ReportScreenContext';
-import type {ReactionListAnchor, ReactionListEvent} from '@pages/home/ReportScreenContext';
+import {ReactionListContext} from '@pages/inbox/ReportScreenContext';
+import type {ReactionListAnchor, ReactionListEvent} from '@pages/inbox/ReportScreenContext';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Locale, ReportAction, ReportActionReactions} from '@src/types/onyx';
@@ -89,7 +89,7 @@ function ReportActionItemEmojiReactions({
     const styles = useThemeStyles();
     const reactionListRef = useContext(ReactionListContext);
     const popoverReactionListAnchors = useRef<PopoverReactionListAnchors>({});
-    const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {canBeMissing: true});
+    const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
 
     const reportActionID = reportAction.reportActionID;
 

@@ -6,8 +6,8 @@ import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {editReportComment} from '@libs/actions/Report';
-import ReportActionItemMessageEdit from '@pages/home/report/ReportActionItemMessageEdit';
-import type {ReportActionItemMessageEditProps} from '@pages/home/report/ReportActionItemMessageEdit';
+import ReportActionItemMessageEdit from '@pages/inbox/report/ReportActionItemMessageEdit';
+import type {ReportActionItemMessageEditProps} from '@pages/inbox/report/ReportActionItemMessageEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
@@ -31,6 +31,8 @@ jest.mock('@hooks/useLocalize', () =>
         numberFormat: jest.fn((num: number) => num.toString()),
     })),
 );
+
+jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
 
 jest.mock('@react-navigation/native', () => ({
     ...((): typeof NativeNavigation => {

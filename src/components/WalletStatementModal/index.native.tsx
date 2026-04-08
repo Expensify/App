@@ -1,3 +1,4 @@
+import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React, {useCallback, useRef} from 'react';
 import type {WebViewMessageEvent, WebViewNavigation} from 'react-native-webview';
 import {WebView} from 'react-native-webview';
@@ -13,26 +14,33 @@ type WebViewMessageType = ValueOf<typeof CONST.WALLET.WEB_MESSAGE_TYPE>;
 
 type WebViewNavigationEvent = WebViewNavigation & {type?: WebViewMessageType};
 
-const renderLoading = () => <FullScreenLoadingIndicator />;
+const renderLoading = () => <FullScreenLoadingIndicator reasonAttributes={{context: 'WalletStatementModal'}} />;
 
 function WalletStatementModal({statementPageURL}: WalletStatementProps) {
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const webViewRef = useRef<WebView>(null);
     const authToken = session?.authToken ?? null;
 
-    const onMessage = useCallback((event: WebViewMessageEvent) => {
-        try {
-            const parsedData = JSON.parse(event.nativeEvent.data) as WebViewNavigationEvent;
-            const {type, url} = parsedData || {};
-            if (!webViewRef.current) {
-                return;
-            }
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const onMessage = useCallback(
+        (event: WebViewMessageEvent) => {
+            try {
+                const parsedData = JSON.parse(event.nativeEvent.data) as WebViewNavigationEvent;
+                const {type, url} = parsedData || {};
+                if (!webViewRef.current) {
+                    return;
+                }
 
-            handleWalletStatementNavigation(type, url);
-        } catch (error) {
-            console.error('Error parsing message from WebView:', error);
-        }
-    }, []);
+                handleWalletStatementNavigation(conciergeReportID, introSelected, session?.accountID, isSelfTourViewed, betas, type, url);
+            } catch (error) {
+                console.error('Error parsing message from WebView:', error);
+            }
+        },
+        [conciergeReportID, session?.accountID, introSelected, isSelfTourViewed, betas],
+    );
 
     return (
         <WebView

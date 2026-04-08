@@ -94,6 +94,7 @@ export default {
     iconHeader: 48,
     iconSection: 68,
     iouAmountTextSize: 40,
+    iouAmountTextSizeLarge: 48,
     extraSmallMobileResponsiveWidthBreakpoint: 320,
     extraSmallMobileResponsiveHeightBreakpoint: 667,
     mobileResponsiveWidthBreakpoint: 800,
@@ -104,7 +105,10 @@ export default {
     sideBarWidth: 375,
     sidePanelWidth: 375,
     receiptPaneRHPMaxWidth: 465,
-    superWideRHPMaxWidth: 1260,
+    receiptPreviewMaxWidth: 440,
+    receiptPreviewMaxHeight: 440,
+    homePageLeftColumnMaxWidth: 680,
+    homePageRightColumnMaxWidth: 488,
     minScanTooltipWidth: 320,
     uploadViewMargin: 20,
     chooseFilesViewMargin: 8,
@@ -116,6 +120,8 @@ export default {
     gutterWidth: 12,
     optionRowHeight: 64,
     optionRowHeightCompact: 52,
+    sectionMenuItemHeight: 52,
+    sectionMenuItemHeightCompact: 44,
     optionsListSectionHeaderHeight: getValueUsingPixelRatio(32, 38),
     overlayOpacity: 0.72,
     lineHeightXSmall: getValueUsingPixelRatio(11, 17),
@@ -144,8 +150,12 @@ export default {
     checkboxLabelActiveOpacity: 0.7,
     checkboxLabelHoverOpacity: 1,
     avatarChatSpacing: 12,
+    cornerHandleSize: 12,
+    cornerTapTargetSize: 40,
+    edgeHandleTapTargetThickness: 12,
     chatInputSpacing: 52, // 40 + avatarChatSpacing
     borderTopWidth: 1,
+    cropBorderWidth: 1,
     emptyLHNIconWidth: 24, // iconSizeSmall + 4*2 horizontal margin
     emptyLHNIconHeight: 16,
     emptySelectionListIconWidth: 120,
@@ -181,6 +191,8 @@ export default {
     signInLogoWidthPill: 132,
     tabSelectorButtonHeight: 40,
     tabSelectorButtonPadding: 12,
+    tabSelectorScrollMarginInline: 20,
+    tabSelectorMaxTabLabelWidth: 256,
     lhnLogoWidth: 95.09,
     lhnLogoHeight: 22.33,
     signInLogoWidthLargeScreenPill: 162,
@@ -220,6 +232,7 @@ export default {
     receiptPlaceholderIconWidth: 80,
     receiptPlaceholderIconHeight: 80,
     reportPreviewMaxWidth: 335,
+    previewEReceiptHeight: 186,
     reportActionImagesSingleImageHeight: 160,
     reportActionImagesDoubleImageHeight: 138,
     reportActionImagesMultipleImageHeight: 110,
@@ -233,14 +246,18 @@ export default {
     sectionMargin: 16,
     workspaceSectionMaxWidth: 680,
     sectionIllustrationHeight: 220,
+    tripsIllustrationW: 168,
+    tripsIllustrationH: 150,
     restrictedActionIllustrationHeight: 136,
     photoUploadPopoverWidth: 335,
     featureTrainingModalWidth: 500,
     onboardingModalWidth: 640,
     holdEducationModalWidth: 400,
     changePolicyEducationModalWidth: 400,
+    builtInProtectionModalWidth: 400,
     changePolicyEducationModalIconWidth: 147.69,
     changePolicyEducationModalIconHeight: 180,
+    transactionReceiptButtonWidth: 100,
 
     fontSizeToWidthRatio: getValueUsingPixelRatio(0.8, 1),
 
@@ -267,6 +284,9 @@ export default {
 
     cardPreviewHeight: 148,
     cardPreviewWidth: 235,
+    cardScarfOverlayWidth: 264,
+    cardScarfOverlayHeight: 172,
+    cardScarfOverlayZIndex: 2,
     cardIconWidth: 40,
     cardIconHeight: 26,
     cardBorderRadius: 4,
@@ -280,6 +300,8 @@ export default {
     cardNameWidth: 156,
     updateAnimationW: 390,
     updateAnimationH: 240,
+    updateRocketW: 292,
+    updateRocketH: 180,
     updateTextViewContainerWidth: 310,
     updateViewHeaderHeight: 70,
 
@@ -305,13 +327,16 @@ export default {
     expenseReportsTypeTooltipShiftHorizontal: 10,
     inviteMemberListItemTooltipShiftVertical: -8,
     inviteMemberListItemTooltipShiftHorizontal: 4,
+    hasFilterNegationTooltipShiftHorizontal: -16,
+    hasFilterNegationTooltipShiftVertical: 40,
+    hasFilterNegationTooltipMaxWidth: 260,
 
     inlineImagePreviewMinSize: 64,
     inlineImagePreviewMaxSize: 148,
 
-    minimalTopBarOffset: -124,
+    minimalTopBarOffset: -176,
     searchHeaderDefaultOffset: 0,
-    searchListContentMarginTop: 124,
+    searchListContentMarginTop: 176,
     searchTopBarZIndex: 9,
     searchTopBarHeight: 52,
     searchRouterInputMargin: 52,
@@ -323,6 +348,9 @@ export default {
 
     errorPageIconWidth: 116,
     errorPageIconHeight: 168,
+
+    companyCardsPageNotFoundIconWidth: 97,
+    companyCardsPageNotFoundIconHeight: 140,
 
     h20: 20,
     h28: 28,
@@ -394,15 +422,28 @@ export default {
     reportSearchHeaderMaxWidth: 700,
 
     // Split expense tabs
-    splitExpenseAmountMobileWidth: 82,
-    splitExpensePercentageWidth: 42,
-    splitExpensePercentageMobileWidth: 62,
+    splitExpensePercentageWidth: 66,
 
     // Multifactor Authentication illustrations size
     openPadlockWidth: 140,
     openPadlockHeight: 140,
+    transactionHandWidth: 118,
+    transactionHandHeight: 191,
     runOutOfTimeWidth: 218,
     runOutOfTimeHeight: 200,
     humptyDumptyWidth: 245,
     humptyDumptyHeight: 165,
+    magnifyingGlassSpyMouthClosedWidth: 161,
+    magnifyingGlassSpyMouthClosedHeight: 169,
+
+    // Odometer photo information container
+    leftPositionOdometerPhotoInformationContainer: 20,
+    rightPositionOdometerPhotoInformationContainer: 20,
+    bottomPositionOdometerPhotoInformationContainer: 20,
+    paddingOdometerPhotoInformationContainer: 13.5,
+
+    // Camera permission view padding
+    permissionViewPaddingVertical: 108,
+    permissionViewPaddingHorizontal: 61,
+    permissionViewPaddingVerticalLandscape: 16,
 } as const;

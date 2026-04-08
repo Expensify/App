@@ -19,11 +19,13 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {cleanFileName, resizeImageIfNeeded, showCameraPermissionsAlert, verifyFileFormat} from '@libs/fileDownload/FileUtils';
+import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {FileObject, ImagePickerResponse as FileResponse} from '@src/types/utils/Attachment';
 import type IconAsset from '@src/types/utils/IconAsset';
-import launchCamera from './launchCamera/launchCamera';
+import AttachmentCamera from './AttachmentCamera';
+import type {CapturedPhoto} from './AttachmentCamera';
 import type AttachmentPickerProps from './types';
 
 type LocalCopy = {
@@ -135,6 +137,10 @@ function AttachmentPicker({
     const onClosed = useRef<() => void>(() => {});
     const popoverRef = useRef(null);
 
+    // In-app camera state — uses VisionCamera to keep the app in the foreground during photo capture
+    const [showAttachmentCamera, setShowAttachmentCamera] = useState(false);
+    const cameraResolveRef = useRef<((photos?: CapturedPhoto[]) => void) | null>(null);
+
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
@@ -147,6 +153,43 @@ function AttachmentPicker({
         },
         [translate],
     );
+
+    /**
+     * Launch the in-app camera using VisionCamera.
+     * Returns a Promise that resolves with the captured photo as an Asset-compatible object,
+     * or resolves with void if the user closes the camera without capturing.
+     */
+    const launchInAppCamera = useCallback((): Promise<Asset[] | void> => {
+        return new Promise((resolve) => {
+            cameraResolveRef.current = (photos?: CapturedPhoto[]) => {
+                if (!photos || photos.length === 0) {
+                    resolve();
+                    return;
+                }
+                const assets: Asset[] = photos.map((photo) => ({
+                    uri: photo.uri,
+                    fileName: photo.fileName,
+                    type: photo.type,
+                    width: photo.width,
+                    height: photo.height,
+                }));
+                resolve(assets);
+            };
+            setShowAttachmentCamera(true);
+        });
+    }, []);
+
+    const handleCameraCapture = (photos: CapturedPhoto[]) => {
+        setShowAttachmentCamera(false);
+        cameraResolveRef.current?.(photos);
+        cameraResolveRef.current = null;
+    };
+
+    const handleCameraClose = () => {
+        setShowAttachmentCamera(false);
+        cameraResolveRef.current?.();
+        cameraResolveRef.current = null;
+    };
 
     /**
      * Common image picker handling
@@ -219,7 +262,9 @@ function AttachmentPicker({
                                                 checkAllProcessed();
                                             })
                                             .catch((error: Error) => {
-                                                showGeneralAlert(error.message ?? 'An unknown error occurred');
+                                                Log.warn('Failed to convert HEIC image, falling back to original', {error: error.message});
+                                                const fallbackAsset = processAssetWithFallbacks(asset);
+                                                processedAssets.push(fallbackAsset);
                                                 checkAllProcessed();
                                             });
                                     } else {
@@ -298,12 +343,12 @@ function AttachmentPicker({
             data.unshift({
                 icon: icons.Camera,
                 textTranslationKey: 'attachmentPicker.takePhoto',
-                pickAttachment: () => showImagePicker(launchCamera),
+                pickAttachment: launchInAppCamera,
             });
         }
 
         return data;
-    }, [icons.Camera, icons.Paperclip, icons.Gallery, showDocumentPicker, shouldHideGalleryOption, shouldHideCameraOption, showImagePicker]);
+    }, [icons.Camera, icons.Paperclip, icons.Gallery, showDocumentPicker, shouldHideGalleryOption, shouldHideCameraOption, showImagePicker, launchInAppCamera]);
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: -1, maxIndex: menuItemData.length - 1, isActive: isVisible});
 
@@ -313,6 +358,25 @@ function AttachmentPicker({
     const showImageCorruptionAlert = useCallback(() => {
         Alert.alert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
     }, [translate]);
+
+    /**
+     * Handles errors during image processing (resize, dimension check, etc.)
+     */
+    const handleImageProcessingError = useCallback(
+        (error: unknown) => {
+            const errorMessage = error instanceof Error ? error.message : undefined;
+
+            if (errorMessage === CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE) {
+                showGeneralAlert(translate('attachmentPicker.imageDimensionsTooLarge'));
+            } else if (errorMessage) {
+                showGeneralAlert(errorMessage);
+            } else {
+                showImageCorruptionAlert();
+            }
+            return null;
+        },
+        [showGeneralAlert, showImageCorruptionAlert, translate],
+    );
 
     /**
      * Opens the attachment modal
@@ -373,10 +437,7 @@ function AttachmentPicker({
                                 height,
                             })),
                         )
-                        .catch(() => {
-                            showImageCorruptionAlert();
-                            return null;
-                        });
+                        .catch(handleImageProcessingError);
                 }
 
                 if (fileDataName && Str.isImage(fileDataName)) {
@@ -396,10 +457,7 @@ function AttachmentPicker({
                                 };
                             }),
                         )
-                        .catch(() => {
-                            showImageCorruptionAlert();
-                            return null;
-                        });
+                        .catch(handleImageProcessingError);
                 }
 
                 return getDataForUpload(fileDataObject).catch((error: Error) => {
@@ -425,7 +483,7 @@ function AttachmentPicker({
                     }
                 });
         },
-        [shouldValidateImage, showGeneralAlert, showImageCorruptionAlert],
+        [handleImageProcessingError, shouldValidateImage, showGeneralAlert, showImageCorruptionAlert],
     );
 
     /**
@@ -512,6 +570,13 @@ function AttachmentPicker({
                     ))}
                 </View>
             </Popover>
+            {showAttachmentCamera && (
+                <AttachmentCamera
+                    isVisible={showAttachmentCamera}
+                    onCapture={handleCameraCapture}
+                    onClose={handleCameraClose}
+                />
+            )}
             {renderChildren()}
         </>
     );

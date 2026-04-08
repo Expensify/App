@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Alert, AppState, InteractionManager, View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
@@ -16,6 +16,9 @@ import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import {shouldValidateFile} from '@libs/ReceiptUtils';
 import ShareActionHandler from '@libs/ShareActionHandlerModule';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import {close as closeModal} from '@userActions/Modal';
+import Tab from '@userActions/Tab';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -29,15 +32,15 @@ function showErrorAlert(title: string, message: string) {
     Alert.alert(title, message, [
         {
             onPress: () => {
-                Navigation.navigate(ROUTES.HOME);
+                Navigation.navigate(ROUTES.INBOX);
             },
         },
     ]);
-    Navigation.navigate(ROUTES.HOME);
+    Navigation.navigate(ROUTES.INBOX);
 }
 
 function ShareRootPage() {
-    const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE, {canBeMissing: true});
+    const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE);
 
     const {validateFiles} = useFilesValidation(addValidatedShareFile);
     const isTextShared = currentAttachment?.mimeType === 'txt';
@@ -118,6 +121,9 @@ function ShareRootPage() {
                 if (tempFile.mimeType) {
                     if (receiptFileFormats.includes(tempFile.mimeType) && fileExtension) {
                         setIsFileScannable(true);
+                        // Reset the persisted tab to SUBMIT so that defaultSelectedTab takes effect
+                        // even when a previous Share session left the tab on SHARE.
+                        Tab.setSelectedTab(CONST.TAB.SHARE.NAVIGATOR_ID, CONST.TAB.SHARE.SUBMIT);
                     } else {
                         setIsFileScannable(false);
                     }
@@ -150,6 +156,18 @@ function ShareRootPage() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    useEffect(() => {
+        closeModal();
+    }, []);
+
+    const reasonAttributes = useMemo<SkeletonSpanReasonAttributes>(
+        () => ({
+            context: 'ShareRootPage',
+            isFileReady,
+        }),
+        [isFileReady],
+    );
+
     const shareTabInputRef = useRef<AnimatedTextInputRef | null>(null);
     const submitTabInputRef = useRef<AnimatedTextInputRef | null>(null);
 
@@ -171,8 +189,7 @@ function ShareRootPage() {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            shouldEnableKeyboardAvoidingView={false}
+            includeSafeAreaPaddingBottom
             shouldEnableMinHeight={canUseTouchScreen()}
             testID="ShareRootPage"
         >
@@ -180,12 +197,13 @@ function ShareRootPage() {
                 <HeaderWithBackButton
                     title={translate('share.shareToExpensify')}
                     shouldShowBackButton
-                    onBackButtonPress={() => Navigation.navigate(ROUTES.HOME)}
+                    onBackButtonPress={() => Navigation.navigate(ROUTES.INBOX)}
                 />
                 {isFileReady ? (
                     <OnyxTabNavigator
                         id={CONST.TAB.SHARE.NAVIGATOR_ID}
                         tabBar={TabSelector}
+                        defaultSelectedTab={CONST.TAB.SHARE.SUBMIT}
                         lazyLoadEnabled
                         onTabSelect={onTabSelectFocusHandler}
                     >
@@ -193,7 +211,7 @@ function ShareRootPage() {
                         {isFileScannable && <TopTab.Screen name={CONST.TAB.SHARE.SUBMIT}>{() => <SubmitTab ref={submitTabInputRef} />}</TopTab.Screen>}
                     </OnyxTabNavigator>
                 ) : (
-                    <TabNavigatorSkeleton />
+                    <TabNavigatorSkeleton reasonAttributes={reasonAttributes} />
                 )}
             </View>
         </ScreenWrapper>

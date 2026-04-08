@@ -1,18 +1,18 @@
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
-import {render, screen} from '@testing-library/react-native';
+import {act, render, screen} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
-import type {AuthScreensParamList} from '@libs/Navigation/types';
+import type {WorkspaceNavigatorParamList} from '@libs/Navigation/types';
 import WorkspacesListPage from '@pages/workspace/WorkspacesListPage';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-const Stack = createPlatformStackNavigator<AuthScreensParamList>();
+const Stack = createPlatformStackNavigator<WorkspaceNavigatorParamList>();
 
 const renderPage = (initialRouteName: typeof SCREENS.WORKSPACES_LIST = SCREENS.WORKSPACES_LIST) => {
     return render(
@@ -38,8 +38,11 @@ describe('WorkspaceListPage', () => {
         });
     });
 
-    afterAll(() => {
-        Onyx.clear();
+    afterEach(async () => {
+        await act(async () => {
+            await Onyx.clear();
+        });
+        jest.clearAllMocks();
     });
 
     it('should not show new workspace button when the restrict creation policy in the group domain is enabled', async () => {

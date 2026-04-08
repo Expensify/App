@@ -1,11 +1,11 @@
-// eslint-disable-next-line no-restricted-imports
-import React, {forwardRef, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import RenderHTML from '@components/RenderHTML';
+import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
 import CONST from '@src/CONST';
-import type {ValidateCodeCountdownHandle, ValidateCodeCountdownProps} from './types';
+import type {ValidateCodeCountdownProps} from './types';
 
-function ValidateCodeCountdown({onCountdownFinish}: ValidateCodeCountdownProps, ref: React.ForwardedRef<ValidateCodeCountdownHandle>) {
+function ValidateCodeCountdown({onCountdownFinish, ref}: ValidateCodeCountdownProps) {
     const {translate} = useLocalize();
 
     const [timeRemaining, setTimeRemaining] = useState<number>(CONST.REQUEST_CODE_DELAY);
@@ -28,6 +28,18 @@ function ValidateCodeCountdown({onCountdownFinish}: ValidateCodeCountdownProps, 
         };
     }, [onCountdownFinish, timeRemaining]);
 
+    // Announce countdown start/reset/expiration for screen readers.
+    // We check timeRemaining === 1 (not 0) because the component unmounts immediately at 0s, so the expired announcement wouldn't be spoken.
+    // We use timeRemaining % 10 === 1 to announce every 10 seconds (at 21s, 11s, 1s) to avoid overwhelming screen reader users.
+    useAccessibilityAnnouncement(
+        timeRemaining === 1 ? translate('validateCodeForm.timeExpiredAnnouncement') : translate('validateCodeForm.timeRemainingAnnouncement', {timeRemaining: timeRemaining - 1}),
+        timeRemaining % 10 === 1,
+        {
+            shouldAnnounceOnNative: true,
+            shouldAnnounceOnWeb: true,
+        },
+    );
+
     return (
         <RenderHTML
             html={translate('validateCodeForm.requestNewCode', {
@@ -37,4 +49,4 @@ function ValidateCodeCountdown({onCountdownFinish}: ValidateCodeCountdownProps, 
     );
 }
 
-export default forwardRef(ValidateCodeCountdown);
+export default ValidateCodeCountdown;

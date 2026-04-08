@@ -5,6 +5,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import {ModalProvider} from '@components/Modal/Global/ModalContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
@@ -21,24 +22,23 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 TestHelper.setupGlobalFetchMock();
 
-jest.unmock('react-native-reanimated');
-jest.unmock('react-native-worklets');
-
 const Stack = createPlatformStackNavigator<WorkspaceSplitNavigatorParamList>();
 
 const renderPage = (initialRouteName: typeof SCREENS.WORKSPACE.TAGS, initialParams: WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.TAGS]) => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <PortalProvider>
-                <NavigationContainer>
-                    <Stack.Navigator initialRouteName={initialRouteName}>
-                        <Stack.Screen
-                            name={SCREENS.WORKSPACE.TAGS}
-                            component={WorkspaceTagsPage}
-                            initialParams={initialParams}
-                        />
-                    </Stack.Navigator>
-                </NavigationContainer>
+                <ModalProvider>
+                    <NavigationContainer>
+                        <Stack.Navigator initialRouteName={initialRouteName}>
+                            <Stack.Screen
+                                name={SCREENS.WORKSPACE.TAGS}
+                                component={WorkspaceTagsPage}
+                                initialParams={initialParams}
+                            />
+                        </Stack.Navigator>
+                    </NavigationContainer>
+                </ModalProvider>
             </PortalProvider>
         </ComposeProviders>,
     );

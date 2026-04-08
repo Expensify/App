@@ -1,10 +1,10 @@
 import React, {useCallback, useMemo} from 'react';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import DistanceMapView from '@components/DistanceMapView';
-import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
 import type {WayPoint} from '@components/MapView/MapViewTypes';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -36,18 +36,21 @@ type DistanceRequestFooterProps = {
 
     /** The policy */
     policy: OnyxEntry<Policy>;
+
+    /** Optional style for the map container */
+    mapContainerStyle?: StyleProp<ViewStyle>;
 };
 
-function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPage, policy}: DistanceRequestFooterProps) {
+function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPage, policy, mapContainerStyle}: DistanceRequestFooterProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location']);
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
-    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'DotIndicatorUnfilled', 'Location', 'Plus']);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID);
     const activePolicy = usePolicy(activePolicyID);
     const personalPolicy = usePolicy(personalPolicyID);
-    const [mapboxAccessToken] = useOnyx(ONYXKEYS.MAPBOX_ACCESS_TOKEN, {canBeMissing: true});
+    const [mapboxAccessToken] = useOnyx(ONYXKEYS.MAPBOX_ACCESS_TOKEN);
 
     const numberOfWaypoints = Object.keys(waypoints ?? {}).length;
     const numberOfFilledWaypoints = Object.values(waypoints ?? {}).filter((waypoint) => waypoint?.address).length;
@@ -80,11 +83,11 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
                     const index = getWaypointIndex(key);
                     let MarkerComponent: IconAsset;
                     if (index === 0) {
-                        MarkerComponent = Expensicons.DotIndicatorUnfilled;
+                        MarkerComponent = expensifyIcons.DotIndicatorUnfilled;
                     } else if (index === lastWaypointIndex) {
                         MarkerComponent = expensifyIcons.Location;
                     } else {
-                        MarkerComponent = Expensicons.DotIndicator;
+                        MarkerComponent = expensifyIcons.DotIndicator;
                     }
 
                     return {
@@ -94,7 +97,7 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
                     };
                 })
                 .filter((waypoint): waypoint is WayPoint => !!waypoint),
-        [waypoints, lastWaypointIndex, getMarkerComponent, expensifyIcons.Location],
+        [waypoints, lastWaypointIndex, getMarkerComponent, expensifyIcons.DotIndicator, expensifyIcons.DotIndicatorUnfilled, expensifyIcons.Location],
     );
 
     return (
@@ -103,7 +106,7 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
                 <View style={[styles.flexRow, styles.justifyContentCenter, styles.pt1]}>
                     <Button
                         small
-                        icon={Expensicons.Plus}
+                        icon={expensifyIcons.Plus}
                         onPress={() => navigateToWaypointEditPage(Object.keys(transaction?.comment?.waypoints ?? {}).length)}
                         text={translate('distance.addStop')}
                         isDisabled={numberOfWaypoints === MAX_WAYPOINTS}
@@ -111,7 +114,7 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
                     />
                 </View>
             )}
-            <View style={styles.mapViewContainer}>
+            <View style={[styles.mapViewContainer, mapContainerStyle]}>
                 <DistanceMapView
                     accessToken={mapboxAccessToken?.token ?? ''}
                     mapPadding={CONST.MAPBOX.PADDING}

@@ -130,7 +130,7 @@ Enter any of the following formulas into the Formula field for each column. Be s
 | {report:policyName} | Same as the workspace name. Policy is an older term for workspace.|
 | Status | Is the current state of the report when it was exported.|
 | {report:status} | Outputs the current report status using the historical labels (Open, Processing, Approved, Reimbursed or Closed).|
-| {report:newStatus} | Outputs the current report status using the new labels (Draft, Outstanding, Approved, Paid, or Done). |
+| {report:displaystatus} | Outputs the current report status (Draft, Outstanding, Approved, Paid, or Done). |
 | Custom Fields | |
 | {report:submit:from:customfield1} | Would output the custom field 1 entry associated with the user who submitted the report. If John Smith’s Custom Field 1 contains 100, then this formula would output 100.|
 | {report:submit:from:customfield2} | Would output the custom field 2 entry associated with the user who submitted the report. If John Smith’s Custom Field 2 contains 1234, then this formula would output 1234. |

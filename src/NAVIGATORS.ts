@@ -13,10 +13,10 @@ export default {
     TEST_DRIVE_DEMO_NAVIGATOR: 'TestDriveDemoNavigator',
     REPORTS_SPLIT_NAVIGATOR: 'ReportsSplitNavigator',
     SETTINGS_SPLIT_NAVIGATOR: 'SettingsSplitNavigator',
+    WORKSPACE_NAVIGATOR: 'WorkspaceNavigator',
     WORKSPACE_SPLIT_NAVIGATOR: 'WorkspaceSplitNavigator',
     DOMAIN_SPLIT_NAVIGATOR: 'DomainSplitNavigator',
     SEARCH_FULLSCREEN_NAVIGATOR: 'SearchFullscreenNavigator',
     SHARE_MODAL_NAVIGATOR: 'ShareModalNavigator',
-    PUBLIC_RIGHT_MODAL_NAVIGATOR: 'PublicRightModalNavigator',
     TEST_TOOLS_MODAL_NAVIGATOR: 'TestToolsModalNavigator',
 } as const;

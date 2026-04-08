@@ -1,12 +1,14 @@
 import {PortalProvider} from '@gorhom/portal';
+import type * as CoreNavigation from '@react-navigation/core';
 import {NavigationContainer} from '@react-navigation/native';
-import type {InitialState} from '@react-navigation/native';
+import type * as reactNavigationNativeImport from '@react-navigation/native';
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import FullScreenBlockingViewContextProvider from '@components/FullScreenBlockingViewContextProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import {SearchContextProvider} from '@components/Search/SearchContext';
 import {PlaybackContextProvider} from '@components/VideoPlayerContexts/PlaybackContext';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import createRootStackNavigator from '@libs/Navigation/AppNavigator/createRootStackNavigator';
@@ -23,7 +25,17 @@ import SCREENS from '@src/SCREENS';
 
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 
-type TestNavigationContainerProps = {initialState: InitialState};
+jest.mock('@react-navigation/core', () => ({
+    ...jest.requireActual<typeof CoreNavigation>('@react-navigation/core'),
+    useNavigation: jest.fn(() => ({getState: jest.fn(() => undefined)})),
+}));
+
+jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<typeof reactNavigationNativeImport>('@react-navigation/native'),
+    useNavigationState: () => {},
+}));
+
+type TestNavigationContainerProps = {initialState: reactNavigationNativeImport.InitialState};
 
 const RootStack = createRootStackNavigator<AuthScreensParamList>();
 const SearchStack = createPlatformStackNavigator<SearchFullscreenNavigatorParamList>();
@@ -61,24 +73,26 @@ const renderPage = () => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, PlaybackContextProvider, FullScreenBlockingViewContextProvider]}>
             <PortalProvider>
-                <TestNavigationContainer
-                    initialState={{
-                        index: 0,
-                        routes: [
-                            {
-                                name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
-                                state: {
-                                    index: 0,
-                                    routes: [
-                                        {
-                                            name: SCREENS.SEARCH.ROOT,
-                                        },
-                                    ],
+                <SearchContextProvider>
+                    <TestNavigationContainer
+                        initialState={{
+                            index: 0,
+                            routes: [
+                                {
+                                    name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
+                                    state: {
+                                        index: 0,
+                                        routes: [
+                                            {
+                                                name: SCREENS.SEARCH.ROOT,
+                                            },
+                                        ],
+                                    },
                                 },
-                            },
-                        ],
-                    }}
-                />
+                            ],
+                        }}
+                    />
+                </SearchContextProvider>
             </PortalProvider>
         </ComposeProviders>,
     );
@@ -100,20 +114,27 @@ describe('SearchPageNarrow', () => {
         });
     });
 
-    afterAll(() => {
-        Onyx.clear();
+    afterEach(async () => {
+        await act(async () => {
+            await Onyx.clear();
+        });
+        jest.clearAllMocks();
     });
 
     it('NavigationTabBar should be hidden when the search input is focused', async () => {
         renderPage();
 
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+
         expect(screen.getByTestId('SearchPageNarrow')).toBeTruthy();
 
         // Initially, there are two NavigationTabBars on screen: one from TopLevelNavigationTabBar and one from SearchPageNarrow.
-        let navigationTabBars = screen.getAllByTestId('NavigationTabBar');
+        let navigationTabBars = screen.getAllByTestId('NavigationTabBar', {includeHiddenElements: true});
         expect(navigationTabBars).toHaveLength(2);
 
-        const searchAutocompleteInput = await screen.findByTestId('search-autocomplete-text-input');
+        const searchAutocompleteInput = screen.getByTestId('search-autocomplete-text-input', {includeHiddenElements: true});
         expect(searchAutocompleteInput).toBeTruthy();
 
         // When the search input is focused, the NavigationTabBar from SearchPageNarrow will unmount, and the one from TopLevelNavigationTabBar will be hidden.
@@ -123,12 +144,12 @@ describe('SearchPageNarrow', () => {
         });
 
         await waitFor(() => {
-            navigationTabBars = screen.getAllByTestId('NavigationTabBar');
+            navigationTabBars = screen.getAllByTestId('NavigationTabBar', {includeHiddenElements: true});
             expect(navigationTabBars).toHaveLength(1);
         });
 
         await waitFor(() => {
-            const topLevelNavigationTabBar = screen.getByTestId('TopLevelNavigationTabBar');
+            const topLevelNavigationTabBar = screen.getByTestId('TopLevelNavigationTabBar', {includeHiddenElements: true});
             expect(topLevelNavigationTabBar).toHaveStyle({pointerEvents: 'none', opacity: 0});
         });
 
@@ -139,12 +160,12 @@ describe('SearchPageNarrow', () => {
         });
 
         await waitFor(() => {
-            navigationTabBars = screen.getAllByTestId('NavigationTabBar');
+            navigationTabBars = screen.getAllByTestId('NavigationTabBar', {includeHiddenElements: true});
             expect(navigationTabBars).toHaveLength(2);
         });
 
         await waitFor(() => {
-            const topLevelNavigationTabBar = screen.getByTestId('TopLevelNavigationTabBar');
+            const topLevelNavigationTabBar = screen.getByTestId('TopLevelNavigationTabBar', {includeHiddenElements: true});
             expect(topLevelNavigationTabBar).toHaveStyle({pointerEvents: 'auto', opacity: 1});
         });
     });

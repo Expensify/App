@@ -20,9 +20,10 @@ type PolicyRouteName =
     | typeof SCREENS.WORKSPACE.MEMBERS
     | typeof SCREENS.WORKSPACE.EXPENSIFY_CARD
     | typeof SCREENS.WORKSPACE.COMPANY_CARDS
-    | typeof SCREENS.WORKSPACE.INVITE
-    | typeof SCREENS.WORKSPACE.INVITE_MESSAGE
-    | typeof SCREENS.WORKSPACE.INVITE_MESSAGE_ROLE
+    | typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_INVITE
+    | typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_INVITE_MESSAGE
+    | typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_INVITE_MESSAGE_ROLE
+    | typeof SCREENS.WORKSPACE.INVITE_MESSAGE_APPROVER
     | typeof SCREENS.WORKSPACE.WORKFLOWS_PAYER
     | typeof SCREENS.WORKSPACE.WORKFLOWS
     | typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_NEW
@@ -40,7 +41,7 @@ type PolicyRouteName =
     | typeof SCREENS.WORKSPACE.INVOICES
     | typeof SCREENS.WORKSPACE.OWNER_CHANGE_CHECK
     | typeof SCREENS.WORKSPACE.TAX_EDIT
-    | typeof SCREENS.WORKSPACE.ADDRESS
+    | typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_ADDRESS
     | typeof SCREENS.WORKSPACE.CATEGORIES_SETTINGS
     | typeof SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_SETTINGS
     | typeof SCREENS.WORKSPACE.DISTANCE_RATE_TAX_RATE_EDIT
@@ -53,7 +54,11 @@ type PolicyRouteName =
     | typeof SCREENS.WORKSPACE.RULES
     | typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW
     | typeof SCREENS.WORKSPACE.COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION
-    | typeof SCREENS.WORKSPACE.ACCOUNTING.CLAIM_OFFER;
+    | typeof SCREENS.WORKSPACE.COMPANY_CARDS_REFRESH_CARD_FEED_CONNECTION
+    | typeof SCREENS.WORKSPACE.COMPANY_CARD_ADD_WORK_EMAIL
+    | typeof SCREENS.WORKSPACE.COMPANY_CARD_VERIFY_WORK_EMAIL
+    | typeof SCREENS.WORKSPACE.ACCOUNTING.CLAIM_OFFER
+    | typeof SCREENS.WORKSPACE.TIME_TRACKING;
 
 type PolicyRoute = PlatformStackRouteProp<NavigatorsParamList, PolicyRouteName>;
 
@@ -83,11 +88,11 @@ const policyDefaultProps: WithPolicyOnyxProps = {
 export default function <TProps extends WithPolicyProps>(WrappedComponent: ComponentType<TProps>): React.ComponentType<Omit<TProps, keyof WithPolicyOnyxProps>> {
     function WithPolicy(props: Omit<TProps, keyof WithPolicyOnyxProps>) {
         const policyID = getPolicyIDFromRoute(props.route as PolicyRoute);
-        const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP, {canBeMissing: true});
-        const [policy, policyResults] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
-        const [policyDraft, policyDraftResults] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`, {canBeMissing: true});
+        const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
+        const [policy, policyResults] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+        const [policyDraft, policyDraftResults] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
         /* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */
-        const isLoadingPolicy = !hasLoadedApp || isLoadingOnyxValue(policyResults, policyDraftResults);
+        const isLoadingPolicy = !hasLoadedApp || (!!policyID && isLoadingOnyxValue(policyResults, policyDraftResults));
 
         if (policyID && policyID.length > 0) {
             updateLastAccessedWorkspace(policyID);

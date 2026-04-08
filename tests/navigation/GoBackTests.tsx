@@ -13,7 +13,7 @@ import TestNavigationContainer from '../utils/TestNavigationContainer';
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 jest.mock('@libs/getIsNarrowLayout', () => jest.fn());
 
-jest.mock('@pages/home/sidebar/NavigationTabBarAvatar');
+jest.mock('@pages/inbox/sidebar/NavigationTabBarAvatar');
 jest.mock('@src/components/Navigation/TopLevelNavigationTabBar');
 
 const mockedGetIsNarrowLayout = getIsNarrowLayout as jest.MockedFunction<typeof getIsNarrowLayout>;
@@ -185,7 +185,7 @@ describe('Go back on the narrow layout', () => {
                                     index: 2,
                                     routes: [
                                         {
-                                            name: SCREENS.HOME,
+                                            name: SCREENS.INBOX,
                                         },
                                         {
                                             name: SCREENS.REPORT,
@@ -248,7 +248,7 @@ describe('Go back on the narrow layout', () => {
                                     index: 2,
                                     routes: [
                                         {
-                                            name: SCREENS.HOME,
+                                            name: SCREENS.INBOX,
                                         },
                                         {
                                             name: SCREENS.REPORT,
@@ -307,7 +307,7 @@ describe('Go back on the narrow layout', () => {
                                     index: 3,
                                     routes: [
                                         {
-                                            name: SCREENS.HOME,
+                                            name: SCREENS.INBOX,
                                         },
                                         {
                                             name: SCREENS.REPORT,
@@ -359,7 +359,7 @@ describe('Go back on the narrow layout', () => {
                                     index: 2,
                                     routes: [
                                         {
-                                            name: SCREENS.HOME,
+                                            name: SCREENS.INBOX,
                                         },
                                         {
                                             name: SCREENS.REPORT,
@@ -407,7 +407,7 @@ describe('Go back on the narrow layout', () => {
                                     index: 3,
                                     routes: [
                                         {
-                                            name: SCREENS.HOME,
+                                            name: SCREENS.INBOX,
                                         },
                                         {
                                             name: SCREENS.REPORT,
@@ -459,20 +459,31 @@ describe('Go back on the wide layout', () => {
     });
 
     it('should preserved backTo params between central screen and side bar screen', () => {
-        // Given the initialized navigation with workspaces split navigator
+        // Given the initialized navigation with workspaces navigator containing a workspace split navigator
         render(
             <TestNavigationContainer
                 initialState={{
                     index: 0,
                     routes: [
                         {
-                            name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
+                            name: NAVIGATORS.WORKSPACE_NAVIGATOR,
                             state: {
-                                index: 0,
+                                index: 1,
                                 routes: [
                                     {
-                                        name: SCREENS.WORKSPACE.PER_DIEM,
-                                        params: {policyID: mockedPolicyID, backTo: mockedBackToRoute},
+                                        name: SCREENS.WORKSPACES_LIST,
+                                    },
+                                    {
+                                        name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
+                                        state: {
+                                            index: 0,
+                                            routes: [
+                                                {
+                                                    name: SCREENS.WORKSPACE.PER_DIEM,
+                                                    params: {policyID: mockedPolicyID, backTo: mockedBackToRoute},
+                                                },
+                                            ],
+                                        },
                                     },
                                 ],
                             },
@@ -485,8 +496,10 @@ describe('Go back on the wide layout', () => {
         // Then the backTo params should be preserved in the sidebar route
         const initialRootState = navigationRef.current?.getRootState();
         const initialWorkspaceNavigator = initialRootState?.routes.at(0);
-        const initialRoutes = initialWorkspaceNavigator?.state?.routes ?? [];
-        const initialSidebarRoute = initialRoutes.find((route) => route.name === SCREENS.WORKSPACE.INITIAL);
+        const workspacesNavRoutes = initialWorkspaceNavigator?.state?.routes ?? [];
+        const workspaceSplitNavigator = workspacesNavRoutes.find((route) => route.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR);
+        const initialSplitRoutes = workspaceSplitNavigator?.state?.routes ?? [];
+        const initialSidebarRoute = initialSplitRoutes.find((route) => route.name === SCREENS.WORKSPACE.INITIAL);
         expect(initialSidebarRoute?.params).toMatchObject({
             policyID: mockedPolicyID,
             backTo: mockedBackToRoute,

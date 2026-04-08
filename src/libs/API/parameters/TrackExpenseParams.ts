@@ -26,6 +26,7 @@ type TrackExpenseParams = {
     tag?: string;
     taxCode: string;
     taxAmount: number;
+    taxPolicyID?: string;
     billable?: boolean;
     reimbursable?: boolean;
     receiptGpsPoints?: string;
@@ -36,7 +37,10 @@ type TrackExpenseParams = {
     customUnitRateID?: string;
     description?: string;
     distance?: number;
+    gpsCoordinates?: string;
     isDistance?: boolean;
+    odometerStart?: number;
+    odometerEnd?: number;
 };
 
 export default TrackExpenseParams;

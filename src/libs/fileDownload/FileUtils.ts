@@ -154,6 +154,44 @@ const splitExtensionFromFileName: SplitExtensionFromFileName = (fullFileName) =>
 };
 
 /**
+ * Returns the MIME type for a given file extension.
+ * Falls back to 'application/octet-stream' for unrecognized extensions.
+ */
+function getMimeType(fileExtension: string): string {
+    const ext = fileExtension.toLowerCase();
+    const MIME_TYPES: Record<string, string> = {
+        txt: CONST.SHARE_FILE_MIMETYPE.TEXT,
+        csv: CONST.SHARE_FILE_MIMETYPE.CSV,
+        pdf: CONST.SHARE_FILE_MIMETYPE.PDF,
+        html: CONST.SHARE_FILE_MIMETYPE.HTML,
+        xml: CONST.SHARE_FILE_MIMETYPE.XML,
+        zip: CONST.SHARE_FILE_MIMETYPE.ZIP,
+    };
+    return MIME_TYPES[ext] ?? 'application/octet-stream';
+}
+
+/**
+ * Derives an image MIME type from a file URI or filename.
+ * Returns undefined for unrecognized extensions so callers can apply their own fallback.
+ */
+function getMimeTypeFromUri(uri: string): string | undefined {
+    const {fileExtension} = splitExtensionFromFileName(uri.split('/').pop() ?? uri);
+    const ext = fileExtension.toLowerCase();
+    const IMAGE_EXTENSION_TO_MIME: Record<string, string> = {
+        jpg: CONST.SHARE_FILE_MIMETYPE.JPEG,
+        jpeg: CONST.SHARE_FILE_MIMETYPE.JPEG,
+        png: CONST.SHARE_FILE_MIMETYPE.PNG,
+        heic: CONST.SHARE_FILE_MIMETYPE.HEIC,
+        heif: CONST.SHARE_FILE_MIMETYPE.HEIF,
+        webp: CONST.SHARE_FILE_MIMETYPE.WEBP,
+        gif: CONST.SHARE_FILE_MIMETYPE.GIF,
+        tif: CONST.SHARE_FILE_MIMETYPE.TIF,
+        tiff: CONST.SHARE_FILE_MIMETYPE.TIFF,
+    };
+    return ext ? IMAGE_EXTENSION_TO_MIME[ext] : undefined;
+}
+
+/**
  * Returns the filename replacing special characters with underscore
  */
 function cleanFileName(fileName: string): string {
@@ -465,14 +503,95 @@ function isHighResolutionImage(resolution: {width: number; height: number} | nul
     return resolution !== null && (resolution.width > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD || resolution.height > CONST.IMAGE_HIGH_RESOLUTION_THRESHOLD);
 }
 
-const getImageDimensionsAfterResize = (file: FileObject) =>
-    ImageSize.getSize(file.uri ?? '').then(({width, height}) => {
-        const scaleFactor = CONST.MAX_IMAGE_DIMENSION / (width < height ? height : width);
-        const newWidth = Math.max(1, width * scaleFactor);
-        const newHeight = Math.max(1, height * scaleFactor);
+/**
+ * Reads image dimensions directly from the file header (JPEG SOF marker or PNG IHDR chunk).
+ * This bypasses browser Image API which may downsample large images on mobile browsers.
+ */
+// eslint-disable-next-line no-bitwise
+const getImageDimensionsFromFileHeader = (blob: Blob): Promise<{width: number; height: number} | null> => {
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+            const arr = new Uint8Array(reader.result as ArrayBuffer);
 
-        return {width: newWidth, height: newHeight};
+            // Check for JPEG (starts with 0xFF 0xD8)
+            if (arr[0] === 0xff && arr[1] === 0xd8) {
+                let offset = 2;
+                while (offset < arr.length) {
+                    if (arr[offset] !== 0xff) {
+                        break;
+                    }
+                    const marker = arr[offset + 1];
+                    // SOF0 (0xC0), SOF1 (0xC1), SOF2 (0xC2) contain dimensions
+                    if (marker === 0xc0 || marker === 0xc1 || marker === 0xc2) {
+                        // eslint-disable-next-line no-bitwise
+                        const height = (arr[offset + 5] << 8) | arr[offset + 6];
+                        // eslint-disable-next-line no-bitwise
+                        const width = (arr[offset + 7] << 8) | arr[offset + 8];
+                        resolve({width, height});
+                        return;
+                    }
+                    // eslint-disable-next-line no-bitwise
+                    const segmentLength = (arr[offset + 2] << 8) | arr[offset + 3];
+                    offset += 2 + segmentLength;
+                }
+            }
+
+            // Check for PNG (starts with 0x89 0x50 0x4E 0x47)
+            if (arr[0] === 0x89 && arr[1] === 0x50 && arr[2] === 0x4e && arr[3] === 0x47) {
+                // PNG IHDR chunk is at offset 16, dimensions are at offset 16+4=20
+                // eslint-disable-next-line no-bitwise
+                const width = (arr[16] << 24) | (arr[17] << 16) | (arr[18] << 8) | arr[19];
+                // eslint-disable-next-line no-bitwise
+                const height = (arr[20] << 24) | (arr[21] << 16) | (arr[22] << 8) | arr[23];
+                resolve({width, height});
+                return;
+            }
+
+            resolve(null);
+        };
+        reader.onerror = () => resolve(null);
+        // Read first 64KB which should be enough for headers
+        reader.readAsArrayBuffer(blob.slice(0, 65536));
     });
+};
+
+/**
+ * Calculates the scaled dimensions for an image, throwing if the image exceeds the max pixel count.
+ */
+const calculateScaledDimensions = (width: number, height: number): {width: number; height: number} => {
+    const totalPixels = width * height;
+
+    if (totalPixels > CONST.MAX_IMAGE_PIXEL_COUNT) {
+        throw new Error(CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE);
+    }
+
+    const scaleFactor = CONST.MAX_IMAGE_DIMENSION / (width < height ? height : width);
+    const newWidth = Math.max(1, width * scaleFactor);
+    const newHeight = Math.max(1, height * scaleFactor);
+
+    return {width: newWidth, height: newHeight};
+};
+
+const getImageDimensionsAfterResize = async (file: FileObject): Promise<{width: number; height: number}> => {
+    // For blob URLs (web), read dimensions directly from file header to avoid
+    // Android Chrome's Image API downsampling which returns incorrect dimensions
+    if (file.uri?.startsWith('blob:')) {
+        const response = await fetch(file.uri);
+        const blob = await response.blob();
+        const headerDimensions = await getImageDimensionsFromFileHeader(blob);
+
+        if (headerDimensions) {
+            return calculateScaledDimensions(headerDimensions.width, headerDimensions.height);
+        }
+
+        const {width, height} = await ImageSize.getSize(file.uri ?? '');
+        return calculateScaledDimensions(width, height);
+    }
+
+    const {width, height} = await ImageSize.getSize(file.uri ?? '');
+    return calculateScaledDimensions(width, height);
+};
 
 const createFile = (file: File): FileObject => {
     if (getPlatform() === CONST.PLATFORM.ANDROID || getPlatform() === CONST.PLATFORM.IOS) {
@@ -546,9 +665,9 @@ const hasHeicOrHeifExtension = (file: FileObject) => {
  * Otherwise, it attempts to fetch the file via its URI and reconstruct a File
  * with full metadata (name, size, type).
  */
-const normalizeFileObject = (file: FileObject): Promise<FileObject> => {
+const normalizeFileObject = async (file: FileObject): Promise<FileObject> => {
     if (file instanceof File || file instanceof Blob) {
-        return Promise.resolve(file);
+        return file;
     }
 
     const isAndroidNative = getPlatform() === CONST.PLATFORM.ANDROID;
@@ -556,60 +675,34 @@ const normalizeFileObject = (file: FileObject): Promise<FileObject> => {
     const isNativePlatform = isAndroidNative || isIOSNative;
 
     if (!isNativePlatform || 'size' in file) {
-        return Promise.resolve(file);
+        return file;
     }
 
     if (typeof file.uri !== 'string') {
-        return Promise.resolve(file);
+        return file;
     }
 
-    return fetch(file.uri)
-        .then((response) => response.blob())
-        .then((blob) => {
-            const name = file.name ?? 'unknown';
-            const type = file.type ?? blob.type ?? 'application/octet-stream';
-            const normalizedFile = new File([blob], name, {type});
-            return normalizedFile;
-        })
-        .catch((error) => {
-            return Promise.reject(error);
-        });
+    const response = await fetch(file.uri);
+    const blob = await response.blob();
+    const name = file.name ?? 'unknown';
+    const type = file.type ?? blob.type ?? 'application/octet-stream';
+    return new File([blob], name, {type});
 };
 
-type ValidateAttachmentOptions = {
-    isValidatingReceipts?: boolean;
+type FileValidationError = {
+    error: ValueOf<typeof CONST.FILE_VALIDATION_ERRORS>;
     isValidatingMultipleFiles?: boolean;
-};
-
-const validateAttachment = (file: FileObject, validationOptions?: ValidateAttachmentOptions) => {
-    const maxFileSize = validationOptions?.isValidatingReceipts ? CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE : CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE;
-
-    if (validationOptions?.isValidatingReceipts && !isValidReceiptExtension(file)) {
-        return validationOptions?.isValidatingMultipleFiles ? CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE_MULTIPLE : CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE;
-    }
-
-    if (!Str.isImage(file.name ?? '') && !hasHeicOrHeifExtension(file) && (file?.size ?? 0) > maxFileSize) {
-        return validationOptions?.isValidatingMultipleFiles ? CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE_MULTIPLE : CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE;
-    }
-
-    if (validationOptions?.isValidatingReceipts && (file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
-        return CONST.FILE_VALIDATION_ERRORS.FILE_TOO_SMALL;
-    }
-
-    return '';
-};
-
-type TranslationAdditionalData = {
-    maxUploadSizeInMB?: number;
-    fileLimit?: number;
     fileType?: string;
+};
+
+type GetFileValidationErrorTextOptions = {
+    isValidatingReceipt?: boolean;
 };
 
 const getFileValidationErrorText = (
     translate: LocalizedTranslate,
-    validationError: ValueOf<typeof CONST.FILE_VALIDATION_ERRORS> | null,
-    additionalData: TranslationAdditionalData = {},
-    isValidatingReceipt = false,
+    validationError: FileValidationError | null,
+    options: GetFileValidationErrorTextOptions = {},
 ): {
     title: string;
     reason: string;
@@ -620,48 +713,50 @@ const getFileValidationErrorText = (
             reason: '',
         };
     }
-    const maxSize = isValidatingReceipt ? CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE : CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE;
-    switch (validationError) {
+    const maxSize = options.isValidatingReceipt ? CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE : CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE;
+
+    if (validationError.isValidatingMultipleFiles) {
+        switch (validationError.error) {
+            case CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE:
+                return {
+                    title: translate('attachmentPicker.someFilesCantBeUploaded'),
+                    reason: translate('attachmentPicker.unsupportedFileType', validationError.fileType ?? ''),
+                };
+            case CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE:
+                return {
+                    title: translate('attachmentPicker.someFilesCantBeUploaded'),
+                    reason: translate('attachmentPicker.sizeLimitExceeded', maxSize / 1024 / 1024),
+                };
+            case CONST.FILE_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED:
+                return {
+                    title: translate('attachmentPicker.attachmentError'),
+                    reason: translate('attachmentPicker.folderNotAllowedMessage'),
+                };
+            case CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED:
+                return {
+                    title: translate('attachmentPicker.someFilesCantBeUploaded'),
+                    reason: translate('attachmentPicker.maxFileLimitExceeded'),
+                };
+            default:
+                break;
+        }
+    }
+
+    switch (validationError.error) {
         case CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE:
             return {
                 title: translate('attachmentPicker.wrongFileType'),
                 reason: translate('attachmentPicker.notAllowedExtension'),
             };
-        case CONST.FILE_VALIDATION_ERRORS.WRONG_FILE_TYPE_MULTIPLE:
-            return {
-                title: translate('attachmentPicker.someFilesCantBeUploaded'),
-                reason: translate('attachmentPicker.unsupportedFileType', additionalData.fileType ?? ''),
-            };
         case CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE:
             return {
                 title: translate('attachmentPicker.attachmentTooLarge'),
-                reason: isValidatingReceipt
-                    ? translate('attachmentPicker.sizeExceededWithLimit', {
-                          maxUploadSizeInMB: additionalData.maxUploadSizeInMB ?? CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE / 1024 / 1024,
-                      })
-                    : translate('attachmentPicker.sizeExceeded'),
-            };
-        case CONST.FILE_VALIDATION_ERRORS.FILE_TOO_LARGE_MULTIPLE:
-            return {
-                title: translate('attachmentPicker.someFilesCantBeUploaded'),
-                reason: translate('attachmentPicker.sizeLimitExceeded', {
-                    maxUploadSizeInMB: additionalData.maxUploadSizeInMB ?? maxSize / 1024 / 1024,
-                }),
+                reason: options.isValidatingReceipt ? translate('attachmentPicker.sizeExceededWithLimit', maxSize / 1024 / 1024) : translate('attachmentPicker.sizeExceeded'),
             };
         case CONST.FILE_VALIDATION_ERRORS.FILE_TOO_SMALL:
             return {
                 title: translate('attachmentPicker.attachmentTooSmall'),
                 reason: translate('attachmentPicker.sizeNotMet'),
-            };
-        case CONST.FILE_VALIDATION_ERRORS.FOLDER_NOT_ALLOWED:
-            return {
-                title: translate('attachmentPicker.attachmentError'),
-                reason: translate('attachmentPicker.folderNotAllowedMessage'),
-            };
-        case CONST.FILE_VALIDATION_ERRORS.MAX_FILE_LIMIT_EXCEEDED:
-            return {
-                title: translate('attachmentPicker.someFilesCantBeUploaded'),
-                reason: translate('attachmentPicker.maxFileLimitExceeded'),
             };
         case CONST.FILE_VALIDATION_ERRORS.FILE_CORRUPTED:
             return {
@@ -673,22 +768,19 @@ const getFileValidationErrorText = (
                 title: translate('attachmentPicker.attachmentError'),
                 reason: translate('attachmentPicker.protectedPDFNotSupported'),
             };
-        default:
+        case CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE:
             return {
                 title: translate('attachmentPicker.attachmentError'),
-                reason: translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'),
+                reason: translate('attachmentPicker.imageDimensionsTooLarge'),
             };
+        default:
+            break;
     }
-};
 
-const getConfirmModalPrompt = (translate: LocalizedTranslate, attachmentInvalidReason: TranslationPaths | undefined) => {
-    if (!attachmentInvalidReason) {
-        return '';
-    }
-    if (attachmentInvalidReason === 'attachmentPicker.sizeExceededWithLimit') {
-        return translate(attachmentInvalidReason, {maxUploadSizeInMB: CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE / (1024 * 1024)});
-    }
-    return translate(attachmentInvalidReason);
+    return {
+        title: translate('attachmentPicker.attachmentError'),
+        reason: translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'),
+    };
 };
 
 const MAX_CANVAS_SIZE = 4096;
@@ -783,6 +875,7 @@ export {
     showPermissionErrorAlert,
     showCameraPermissionsAlert,
     splitExtensionFromFileName,
+    getMimeType,
     getFileName,
     getFileType,
     cleanFileName,
@@ -801,16 +894,15 @@ export {
     resizeImageIfNeeded,
     createFile,
     validateReceipt,
-    validateAttachment,
     normalizeFileObject,
+    getMimeTypeFromUri,
     isValidReceiptExtension,
     getFileValidationErrorText,
     hasHeicOrHeifExtension,
-    getConfirmModalPrompt,
     canvasFallback,
     getFilesFromClipboardEvent,
     cleanFileObject,
     cleanFileObjectName,
+    JPEG_QUALITY,
 };
-
-export type {ValidateAttachmentOptions};
+export type {FileValidationError};

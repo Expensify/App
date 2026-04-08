@@ -1,0 +1,24 @@
+diff --git a/node_modules/react-native-pdf/android/src/main/java/org/wonday/pdf/PdfView.java b/node_modules/react-native-pdf/android/src/main/java/org/wonday/pdf/PdfView.java
+index efde3b0..58f33bd 100644
+--- a/node_modules/react-native-pdf/android/src/main/java/org/wonday/pdf/PdfView.java
++++ b/node_modules/react-native-pdf/android/src/main/java/org/wonday/pdf/PdfView.java
+@@ -26,6 +26,11 @@ import android.view.MotionEvent;
+ import android.graphics.Canvas;
+ import android.graphics.pdf.PdfRenderer;
+ 
++import io.legere.pdfiumandroid.util.Config;
++import io.legere.pdfiumandroid.util.ConfigKt;
++import io.legere.pdfiumandroid.util.AlreadyClosedBehavior;
++import io.legere.pdfiumandroid.DefaultLogger;
++
+ import com.facebook.react.uimanager.ThemedReactContext;
+ import com.facebook.react.uimanager.UIManagerHelper;
+ import com.github.barteksc.pdfviewer.PDFView;
+@@ -91,6 +96,7 @@ public class PdfView extends PDFView implements OnPageChangeListener,OnLoadCompl
+ 
+     public PdfView(Context context, AttributeSet set){
+         super(context, set);
++        ConfigKt.setPdfiumConfig(new Config(new DefaultLogger(), AlreadyClosedBehavior.IGNORE));
+     }
+ 
+     @Override

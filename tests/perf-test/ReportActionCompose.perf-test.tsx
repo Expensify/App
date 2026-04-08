@@ -6,12 +6,13 @@ import {measureRenders} from 'reassure';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {EmojiPickerRef} from '@libs/actions/EmojiPickerAction';
 import type Navigation from '@libs/Navigation/Navigation';
+import ReportActionCompose from '@pages/inbox/report/ReportActionCompose/ReportActionCompose';
 import ComposeProviders from '@src/components/ComposeProviders';
 import {LocaleContextProvider} from '@src/components/LocaleContextProvider';
 import {KeyboardStateProvider} from '@src/components/withKeyboardState';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ReportActionCompose from '@src/pages/home/report/ReportActionCompose/ReportActionCompose';
-import * as LHNTestUtils from '../utils/LHNTestUtils';
+import type {Report} from '@src/types/onyx';
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -74,20 +75,20 @@ beforeAll(() =>
     }),
 );
 
-// Initialize the network key for OfflineWithFeedback
+// Initialize the network key for OfflineWithFeedback and seed report data
 beforeEach(() => {
     Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {
+        reportID: '1',
+        reportName: 'Test Report',
+        type: CONST.REPORT.TYPE.CHAT,
+    } as Report);
 });
 
 function ReportActionComposeWrapper() {
     return (
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, KeyboardStateProvider]}>
-            <ReportActionCompose
-                onSubmit={() => jest.fn()}
-                reportID="1"
-                report={LHNTestUtils.getFakeReport()}
-                isComposerFullSize
-            />
+            <ReportActionCompose reportID="1" />
         </ComposeProviders>
     );
 }

@@ -1016,6 +1016,8 @@ So, if a new language feature isn't something we have agreed to support it's off
 
 ## React Coding Standards
 
+For additional React best practices and patterns that are automatically enforced during code review, see the [Coding Standards](../.claude/skills/coding-standards/SKILL.md).
+
 ### Code Documentation
 
 * Add descriptions to all component props using a block comment above the definition. No need to document the types, but add some context for each property so that other developers understand the intended use.
@@ -1219,7 +1221,7 @@ We love React and learning about all the new features that are regularly being a
 
 ### Problem
 
-When using `SelectionList` alongside other components (e.g., `Text`, `Button`), wrapping them inside a `ScrollView` can lead to alignment and performance issues. Additionally, using `ScrollView` with nested `FlatList` or `SectionList` causes the error:
+When using `SelectionList` alongside other components (e.g., `Text`, `Button`), wrapping them inside a `ScrollView` can lead to alignment and performance issues. Additionally, using `ScrollView` with nested `FlatList` causes the error:
 
 > "VirtualizedLists should never be nested inside plain ScrollViews with the same orientation."
 

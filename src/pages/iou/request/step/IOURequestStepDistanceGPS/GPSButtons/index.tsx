@@ -1,4 +1,4 @@
-import {hasServicesEnabledAsync, startLocationUpdatesAsync, stopLocationUpdatesAsync} from 'expo-location';
+import {hasServicesEnabledAsync, startLocationUpdatesAsync} from 'expo-location';
 import React, {useState} from 'react';
 import {Linking, View} from 'react-native';
 import Button from '@components/Button';
@@ -6,33 +6,47 @@ import ConfirmModal from '@components/ConfirmModal';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {initGpsDraft, resetGPSDraftDetails, setEndAddress, setIsTracking} from '@libs/actions/GPSDraftDetails';
+import {initGpsDraft, resetGPSDraftDetails} from '@libs/actions/GPSDraftDetails';
+import {stopGpsTrip} from '@libs/GPSDraftDetailsUtils';
 import BackgroundLocationPermissionsFlow from '@pages/iou/request/step/IOURequestStepDistanceGPS/BackgroundLocationPermissionsFlow';
-import {BACKGROUND_LOCATION_TRACKING_TASK_NAME, getBackgroundLocationTaskOptions} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
-import addressFromGpsPoint from '@pages/iou/request/step/IOURequestStepDistanceGPS/utils/addressFromGpsPoint';
-import coordinatesToString from '@pages/iou/request/step/IOURequestStepDistanceGPS/utils/coordinatesToString';
+import {BACKGROUND_LOCATION_TASK_OPTIONS, BACKGROUND_LOCATION_TRACKING_TASK_NAME} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
+import {startGpsTripNotification} from '@pages/iou/request/step/IOURequestStepDistanceGPS/GPSNotifications';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Unit} from '@src/types/onyx/Policy';
 import openSettings from './openSettings';
 
 type ButtonsProps = {
+    /** Function to call when user clicks next button after ending a trip */
     navigateToNextStep: () => void;
+
+    /** Function to call when there is an error starting GPS tracking */
     setShouldShowStartError: React.Dispatch<React.SetStateAction<boolean>>;
+
+    /** Function to call when there is a permissions error */
     setShouldShowPermissionsError: React.Dispatch<React.SetStateAction<boolean>>;
+
+    /** reportID of the ongoing GPS trip */
     reportID: string;
+
+    /** Distance unit of the ongoing GPS trip */
+    unit: Unit;
 };
 
-function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowPermissionsError, reportID}: ButtonsProps) {
+function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowPermissionsError, reportID, unit}: ButtonsProps) {
     const [startPermissionsFlow, setStartPermissionsFlow] = useState(false);
     const [showLocationRequiredModal, setShowLocationRequiredModal] = useState(false);
     const [showDiscardConfirmation, setShowDiscardConfirmation] = useState(false);
     const [showStopConfirmation, setShowStopConfirmation] = useState(false);
     const [showZeroDistanceModal, setShowZeroDistanceModal] = useState(false);
     const [showDisabledServicesModal, setShowDisabledServicesModal] = useState(false);
+    const {isOffline} = useNetwork();
 
     const {asset: ReceiptLocationMarker} = useMemoizedLazyAsset(() => loadIllustration('ReceiptLocationMarker'));
-    const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true});
+    const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -51,46 +65,22 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
         setStartPermissionsFlow(true);
     };
 
-    const stopGpsTrip = async () => {
-        await stopLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME).catch((error) => console.error('[GPS distance request] Failed to stop location tracking', error));
-
-        setIsTracking(false);
-
-        const lastPoint = gpsDraftDetails?.gpsPoints?.at(-1);
-
-        if (!lastPoint) {
-            return;
-        }
-
-        const endAddress = await addressFromGpsPoint(lastPoint);
-
-        if (endAddress === null) {
-            const formattedCoordinates = coordinatesToString(lastPoint);
-            setEndAddress({value: formattedCoordinates, type: 'coordinates'});
-            return;
-        }
-
-        setEndAddress({value: endAddress, type: 'address'});
-    };
-
     const startGpsTrip = async () => {
         try {
-            await startLocationUpdatesAsync(
-                BACKGROUND_LOCATION_TRACKING_TASK_NAME,
-                getBackgroundLocationTaskOptions(translate('gps.notification.title'), translate('gps.notification.body')),
-            );
+            await startLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME, BACKGROUND_LOCATION_TASK_OPTIONS);
         } catch (error) {
             console.error('[GPS distance request] Failed to start location tracking', error);
             setShouldShowStartError(true);
             return;
         }
-
-        initGpsDraft(reportID);
+        initGpsDraft(reportID, unit);
+        startGpsTripNotification(translate, reportID, unit);
     };
 
     const onNext = () => {
         if (gpsDraftDetails?.distanceInMeters === 0) {
             setShowZeroDistanceModal(true);
+            return;
         }
 
         navigateToNextStep();
@@ -112,6 +102,7 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
                         large
                         style={[styles.w100, styles.flexShrink0]}
                         text={translate('gps.discard')}
+                        sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.GPS_DISCARD_BUTTON}
                     />
                     <Button
                         onPress={onNext}
@@ -121,6 +112,7 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
                         large
                         style={[styles.w100, styles.flexShrink0]}
                         text={translate('common.next')}
+                        sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.GPS_NEXT_BUTTON}
                     />
                 </View>
             ) : (
@@ -133,6 +125,7 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
                     large
                     style={[styles.w100, styles.mb5, styles.ph5, styles.flexShrink0]}
                     text={gpsDraftDetails?.isTracking ? translate('gps.stop') : translate('gps.start')}
+                    sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.GPS_START_STOP_BUTTON}
                 />
             )}
 
@@ -151,7 +144,7 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
                 isVisible={showStopConfirmation}
                 onConfirm={() => {
                     setShowStopConfirmation(false);
-                    stopGpsTrip();
+                    stopGpsTrip(isOffline);
                 }}
                 onCancel={() => setShowStopConfirmation(false)}
                 confirmText={translate('gps.stopGpsTrackingModal.confirm')}

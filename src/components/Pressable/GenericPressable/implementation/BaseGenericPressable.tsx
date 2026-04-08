@@ -1,15 +1,16 @@
 import type {ForwardedRef} from 'react';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import type {GestureResponderEvent, View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import {Pressable} from 'react-native';
+import type {ValueOf} from 'type-fest';
 import type PressableProps from '@components/Pressable/GenericPressable/types';
+import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Accessibility from '@libs/Accessibility';
 import HapticFeedback from '@libs/HapticFeedback';
-import KeyboardShortcut from '@libs/KeyboardShortcut';
 import CONST from '@src/CONST';
 
 function GenericPressable({
@@ -141,13 +142,35 @@ function GenericPressable({
         [onPressHandler],
     );
 
-    useEffect(() => {
-        if (!keyboardShortcut) {
-            return () => {};
-        }
-        const {shortcutKey, descriptionKey, modifiers} = keyboardShortcut;
-        return KeyboardShortcut.subscribe(shortcutKey, onKeyboardShortcutPressHandler, descriptionKey, modifiers, true, false, 0, false);
-    }, [keyboardShortcut, onKeyboardShortcutPressHandler]);
+    const {shortcutKey, descriptionKey, modifiers} = keyboardShortcut ?? {};
+    useKeyboardShortcut({shortcutKey, descriptionKey, modifiers} as ValueOf<typeof CONST.KEYBOARD_SHORTCUTS>, onKeyboardShortcutPressHandler, {
+        isActive: !!keyboardShortcut,
+        shouldBubble: false,
+        shouldPreventDefault: false,
+    });
+
+    const isRoleLink = rest.role === CONST.ROLE.LINK;
+
+    /**
+     * Handles keyboard events for the pressable element.
+     * If a custom onKeyDown handler is provided, it delegates to that handler.
+     * Otherwise, for elements with role="link", it triggers onPress when Enter is pressed
+     * to comply with W3C APG Link Pattern (https://www.w3.org/WAI/ARIA/apg/patterns/link/).
+     */
+    const handleKeyDown = useCallback(
+        (event: React.KeyboardEvent) => {
+            if (onKeyDown) {
+                onKeyDown(event as unknown as React.KeyboardEvent<Element>);
+                return;
+            }
+
+            if (isRoleLink && event.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
+                event.preventDefault();
+                onPressHandler(event.nativeEvent as unknown as KeyboardEvent);
+            }
+        },
+        [onKeyDown, isRoleLink, onPressHandler],
+    );
 
     return (
         <Pressable
@@ -157,7 +180,7 @@ function GenericPressable({
             disabled={fullDisabled}
             onPress={!isDisabled ? singleExecution(onPressHandler) : undefined}
             onLongPress={!isDisabled && onLongPress ? onLongPressHandler : undefined}
-            onKeyDown={!isDisabled ? onKeyDown : undefined}
+            onKeyDown={!isDisabled ? handleKeyDown : undefined}
             onPressIn={!isDisabled ? onPressIn : undefined}
             onPressOut={!isDisabled ? onPressOut : undefined}
             dataSet={{...(isRoleButton ? {[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true} : {}), ...(dataSet ?? {})}}
@@ -177,7 +200,9 @@ function GenericPressable({
                 ...accessibilityState,
             }}
             aria-disabled={isDisabled}
+            aria-checked={accessibilityState?.checked}
             aria-selected={accessibilityState?.selected}
+            aria-expanded={accessibilityState?.expanded}
             aria-keyshortcuts={keyboardShortcut && `${keyboardShortcut.modifiers.join('')}+${keyboardShortcut.shortcutKey}`}
             // ios-only form of inputs
             onMagicTap={!isDisabled ? voidOnPressHandler : undefined}

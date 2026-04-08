@@ -1,4 +1,25 @@
 {
+    "hooks": {
+        "PostToolUse": [
+            {
+                "matcher": "Edit|Write",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "FILE=$(jq -r '.tool_input.file_path') && [ -f \"$FILE\" ] && ./node_modules/.bin/prettier --experimental-cli --no-cache --write --ignore-unknown \"$FILE\""
+                    }
+                ]
+            }
+        ]
+    },
+    "extraKnownMarketplaces": {
+        "callstack-agent-skills": {
+            "source": {
+                "source": "github",
+                "repo": "callstackincubator/agent-skills"
+            }
+        }
+    },
     "permissions": {
         "allow": [
             "mcp__playwright__browser_navigate",
@@ -17,7 +38,24 @@
             "mcp__playwright__browser_wait_for",
             "mcp__playwright__browser_close",
             "mcp__playwright__browser_evaluate",
-            "mcp__playwright__browser_handle_dialog"
+            "mcp__playwright__browser_handle_dialog",
+            "mcp__sentry__find_organizations",
+            "mcp__sentry__find_projects",
+            "mcp__sentry__find_releases",
+            "mcp__sentry__find_teams",
+            "mcp__sentry__get_doc",
+            "mcp__sentry__get_event_attachment",
+            "mcp__sentry__get_issue_details",
+            "mcp__sentry__get_issue_tag_values",
+            "mcp__sentry__get_trace_details",
+            "mcp__sentry__search_docs",
+            "mcp__sentry__search_events",
+            "mcp__sentry__search_issue_events",
+            "mcp__sentry__search_issues",
+            "mcp__sentry__whoami"
         ]
+    },
+    "enabledPlugins": {
+        "react-native-best-practices@callstack-agent-skills": true
     }
 }
