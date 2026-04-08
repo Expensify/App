@@ -56,7 +56,7 @@ If you see an error while reconnecting, use the guidance below:
  - **What to do:** Import the new card using the updated number
 
 **Error: General connection issue**
- - **What it means: **Temporary downtime or maintenance from your bank or connection provider
+ - **What it means:** Temporary downtime or maintenance from your bank or connection provider
  - **What to do:** Wait and try again later
 
 ---
