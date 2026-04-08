@@ -6048,9 +6048,9 @@ function deleteAppReport({
 function moveIOUReportToPolicy(
     iouReport: OnyxEntry<Report>,
     policy: Policy,
+    allReports: OnyxCollection<Report>,
     isFromSettlementButton?: boolean,
     reportTransactions: Transaction[] = [],
-    allReports?: OnyxCollection<Report>,
 ): {policyExpenseChatReportID?: string; useTemporaryOptimisticExpenseChatReportID: boolean} | undefined {
     // This flow only works for IOU reports
     if (!policy || !iouReport || !isIOUReportUsingReport(iouReport)) {
@@ -6099,8 +6099,8 @@ function moveIOUReportToPolicyAndInviteSubmitter(
     policy: Policy,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     reportActions: OnyxCollection<ReportActions>,
+    allReports: OnyxCollection<Report>,
     reportTransactions: Transaction[] = [],
-    allReports?: OnyxCollection<Report>,
 ): {policyExpenseChatReportID?: string} | undefined {
     if (!policy || !iouReport) {
         return;

@@ -91,9 +91,9 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
             const {backTo} = route.params;
             Navigation.goBack(backTo);
             if (isIOUReport(reportID)) {
-                const invite = moveIOUReportToPolicyAndInviteSubmitter(report, policy, formatPhoneNumber, filteredReportActions, reportTransactions, allReports);
+                const invite = moveIOUReportToPolicyAndInviteSubmitter(report, policy, formatPhoneNumber, filteredReportActions, allReports, reportTransactions);
                 if (!invite?.policyExpenseChatReportID) {
-                    moveIOUReportToPolicy(report, policy, false, reportTransactions, allReports);
+                    moveIOUReportToPolicy(report, policy, allReports, false, reportTransactions);
                 }
                 // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
                 // eslint-disable-next-line @typescript-eslint/no-deprecated

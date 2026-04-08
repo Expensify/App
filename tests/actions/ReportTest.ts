@@ -3410,7 +3410,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
             // When moving iou to a workspace
-            Report.moveIOUReportToPolicy(iouReport, policy);
+            Report.moveIOUReportToPolicy(iouReport, policy, {[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]: iouReport});
             await waitForBatchedUpdates();
 
             // Then MOVED report action should be added to the expense report
@@ -3517,7 +3517,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
             // When moving iou to a workspace and invite the submitter
-            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, (phone: string) => phone, {});
+            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, (phone: string) => phone, {}, {[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]: iouReport});
             await waitForBatchedUpdates();
 
             // Then MOVED report action should be added to the expense report
@@ -3584,7 +3584,7 @@ describe('actions/Report', () => {
 
             // Call moveIOUReportToPolicyAndInviteSubmitter
             const formatPhoneNumber = (phoneNumber: string) => phoneNumber;
-            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, formatPhoneNumber, {});
+            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, formatPhoneNumber, {}, {[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]: iouReport});
             await waitForBatchedUpdates();
 
             // Simulate network failure
@@ -3641,7 +3641,9 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 
             // When moving IOU to a workspace with reportTransactions
-            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, (phone: string) => phone, {}, [transaction]);
+            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, (phone: string) => phone, {}, {[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]: iouReport}, [
+                transaction,
+            ]);
             await waitForBatchedUpdates();
 
             // Then the transaction amounts should be negated optimistically
@@ -3686,7 +3688,9 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 
             // When moving IOU to a workspace with transactions
-            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, (phone: string) => phone, {}, [transaction]);
+            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, (phone: string) => phone, {}, {[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]: iouReport}, [
+                transaction,
+            ]);
             await waitForBatchedUpdates();
 
             // Then the report should be converted to an expense report with the new policyID
