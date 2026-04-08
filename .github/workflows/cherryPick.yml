@@ -49,7 +49,7 @@ jobs:
       - name: Verify PR is merged
         if: ${{ inputs.PULL_REQUEST_URL != '' }}
         run: |
-          if gh pr view "${{  inputs.PULL_REQUEST_URL }}" --json mergedAt | jq --exit-status '.mergedAt'; then
+          if gh pr view "${{ inputs.PULL_REQUEST_URL }}" --json mergedAt | jq --exit-status '.mergedAt'; then
             echo "PR is merged: ${{ inputs.PULL_REQUEST_URL }}"
           else
             echo "::error::❌ PR is not merged: ${{ inputs.PULL_REQUEST_URL }}"
