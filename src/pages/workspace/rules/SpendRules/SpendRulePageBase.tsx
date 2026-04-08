@@ -25,14 +25,13 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SpendRuleRestrictionTypeToggle from './SpendRuleRestrictionTypeToggle';
+import getTruncatedSpendRuleSummary from './SpendRuleSummaryUtils';
 
 type SpendRulePageBaseProps = {
     policyID: string;
     titleKey: TranslationPaths;
     testID: string;
 };
-
-const MAX_SUMMARY_CHARS = 74;
 
 function getErrorMessage(hasSelectedCards: boolean, hasAnyRuleApplied: boolean, translate: (path: TranslationPaths) => string) {
     if (!hasSelectedCards && !hasAnyRuleApplied) {
@@ -103,25 +102,7 @@ function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps)
     };
 
     function getMerchantMenuTitle(merchantNamesToSummarize: string[] | undefined): string {
-        const normalizedMerchantNames = (merchantNamesToSummarize ?? []).map((merchantName) => merchantName.trim()).filter((merchantName) => merchantName !== '');
-        if (!normalizedMerchantNames.length) {
-            return '';
-        }
-
-        let text = '';
-        let shownCount = 0;
-
-        for (const merchantName of normalizedMerchantNames) {
-            const nextText = text ? `${text}, ${merchantName}` : merchantName;
-            if (nextText.length > MAX_SUMMARY_CHARS) {
-                continue;
-            }
-            text = nextText;
-            shownCount++;
-        }
-
-        const hiddenCount = Math.max(normalizedMerchantNames.length - shownCount, 0);
-        return text && hiddenCount > 0 ? translate('workspace.rules.spendRules.merchantsMoreCount', {summary: text, count: hiddenCount}) : text;
+        return getTruncatedSpendRuleSummary(merchantNamesToSummarize, (summary, count) => translate('workspace.rules.spendRules.summaryMoreCount', {summary, count}));
     }
 
     const hasSelectedCards = !!cardIDs?.length;

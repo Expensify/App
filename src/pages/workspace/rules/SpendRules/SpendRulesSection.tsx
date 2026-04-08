@@ -28,6 +28,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SpendRuleForm} from '@src/types/form';
+import getTruncatedSpendRuleSummary from './SpendRuleSummaryUtils';
 
 type SpendRulesSectionProps = {
     policyID: string;
@@ -120,9 +121,8 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
             }
             const actionLabel = formValues.restrictionAction === CONST.SPEND_RULES.ACTION.BLOCK ? blockLabel : allowLabel;
             const selectedCurrency = getSelectedCardsCurrency(formValues.cardIDs, cardsList);
-
-            const cardSummary = formValues.cardIDs
-                .map((cardID) => {
+            const cardSummary = getTruncatedSpendRuleSummary(
+                formValues.cardIDs.map((cardID) => {
                     const card = cardsList?.[cardID];
                     if (!card || !isCard(card)) {
                         return cardID;
@@ -131,8 +131,9 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
                     const accountID = card.accountID ?? CONST.DEFAULT_NUMBER_ID;
                     const displayName = getDisplayNameOrDefault(personalDetails?.[accountID], '', false);
                     return getCardDescriptionForSearchTable(card, displayName || undefined) || cardID;
-                })
-                .join(', ');
+                }),
+                (summary, count) => translate('workspace.rules.spendRules.summaryMoreCount', {summary, count}),
+            );
 
             return {
                 ruleID,
