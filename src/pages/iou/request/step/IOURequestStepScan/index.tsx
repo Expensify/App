@@ -12,7 +12,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
-import {checkIfScanFileCanBeRead, replaceReceipt, updateLastLocationPermissionPrompt} from '@userActions/IOU';
+import {updateLastLocationPermissionPrompt} from '@userActions/IOU';
+import {checkIfScanFileCanBeRead, replaceReceipt} from '@userActions/IOU/Receipt';
 import {removeDraftTransactionsByIDs, removeTransactionReceipt} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -27,6 +28,7 @@ import type IOURequestStepScanProps from './types';
 function IOURequestStepScan({
     report,
     route: {
+        name: routeName,
         params: {action, iouType, reportID, transactionID: initialTransactionID, backTo, backToReport},
     },
     transaction: initialTransaction,
@@ -85,6 +87,7 @@ function IOURequestStepScan({
         currentUserPersonalDetails,
         backTo,
         backToReport,
+        routeName,
         updateScanAndNavigate,
         getSource,
     });
@@ -125,10 +128,11 @@ function IOURequestStepScan({
             if (isAllScanFilesCanBeRead) {
                 return;
             }
+            setIsMultiScanEnabled(false);
             removeTransactionReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
             removeDraftTransactionsByIDs(draftTransactionIDs, true);
         });
-    }, [transactions, draftTransactionIDs]);
+    }, [setIsMultiScanEnabled, transactions, draftTransactionIDs]);
 
     // this effect will pre-fetch location in web if the location permission is already granted to optimize the flow
     useEffect(() => {

@@ -4,6 +4,7 @@ import type {AppStateStatus} from 'react-native';
 import {AppState} from 'react-native';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import * as API from '@libs/API';
 import type {GetMissingOnyxMessagesParams, HandleRestrictedEventParams, OpenAppParams, ReconnectAppParams, UpdatePreferredLocaleParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -26,7 +27,7 @@ import type Locale from '@src/types/onyx/Locale';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {setShouldForceOffline} from './Network';
 import {getAll, rollbackOngoingRequest, save} from './PersistedRequests';
-import {createDraftInitialWorkspace, createWorkspace, generatePolicyID} from './Policy/Policy';
+import {createDraftInitialWorkspace, createWorkspace, generatePolicyID, newGenerateDefaultWorkspaceName} from './Policy/Policy';
 
 type PolicyParamsForOpenOrReconnect = {
     policyIDList: string[];
@@ -52,8 +53,9 @@ Onyx.connectWithoutView({
 // `useOnyx` would trigger extra rerenders without affecting the View, so `Onyx.connectWithoutView` is used instead
 let isSidebarLoaded: boolean | undefined;
 Onyx.connectWithoutView({
-    key: ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED,
+    key: ONYXKEYS.IS_SIDEBAR_LOADED,
     callback: (val) => (isSidebarLoaded = val),
+    initWithStoredValues: false,
 });
 
 // `isUsingImportedState` is used in `openApp`, `reconnectApp`, and `clearOnyxAndResetApp` to prevent API calls when using imported state.
@@ -120,9 +122,9 @@ Onyx.connectWithoutView({
 
 const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.ACCOUNT,
-    ONYXKEYS.RAM_ONLY_IS_LOADING_APP,
-    ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED,
     ONYXKEYS.IS_CHECKING_PUBLIC_ROOM,
+    ONYXKEYS.IS_LOADING_APP,
+    ONYXKEYS.IS_SIDEBAR_LOADED,
     ONYXKEYS.MODAL,
     ONYXKEYS.NETWORK,
     ONYXKEYS.SESSION,
@@ -219,11 +221,11 @@ function setSidebarLoaded() {
         return;
     }
 
-    Onyx.set(ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED, true);
+    Onyx.set(ONYXKEYS.IS_SIDEBAR_LOADED, true);
 }
 
 function setAppLoading(isLoading: boolean) {
-    Onyx.set(ONYXKEYS.RAM_ONLY_IS_LOADING_APP, isLoading);
+    Onyx.set(ONYXKEYS.IS_LOADING_APP, isLoading);
 }
 
 /**
@@ -297,9 +299,9 @@ function getPolicyParamsForOpenOrReconnect(): Promise<PolicyParamsForOpenOrRecon
 
 type OnyxDataForOpenOrReconnectKeys =
     | typeof ONYXKEYS.COLLECTION.REPORT
-    | typeof ONYXKEYS.RAM_ONLY_IS_LOADING_REPORT_DATA
+    | typeof ONYXKEYS.IS_LOADING_REPORT_DATA
     | typeof ONYXKEYS.HAS_LOADED_APP
-    | typeof ONYXKEYS.RAM_ONLY_IS_LOADING_APP
+    | typeof ONYXKEYS.IS_LOADING_APP
     | typeof ONYXKEYS.LAST_FULL_RECONNECT_TIME;
 
 /**
@@ -322,16 +324,16 @@ function getOnyxDataForOpenOrReconnect(
     Log.info(`[App] isLoadingReportData set to true`, false, {command: commandName});
 
     const result: OnyxData<
-        | typeof ONYXKEYS.RAM_ONLY_IS_LOADING_REPORT_DATA
+        | typeof ONYXKEYS.IS_LOADING_REPORT_DATA
         | typeof ONYXKEYS.HAS_LOADED_APP
-        | typeof ONYXKEYS.RAM_ONLY_IS_LOADING_APP
+        | typeof ONYXKEYS.IS_LOADING_APP
         | typeof ONYXKEYS.COLLECTION.REPORT
         | typeof ONYXKEYS.LAST_FULL_RECONNECT_TIME
     > = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.RAM_ONLY_IS_LOADING_REPORT_DATA,
+                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
                 value: true,
             },
         ],
@@ -339,7 +341,7 @@ function getOnyxDataForOpenOrReconnect(
         finallyData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.RAM_ONLY_IS_LOADING_REPORT_DATA,
+                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
                 value: false,
             },
         ],
@@ -355,13 +357,13 @@ function getOnyxDataForOpenOrReconnect(
     if (isOpenApp) {
         result.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.RAM_ONLY_IS_LOADING_APP,
+            key: ONYXKEYS.IS_LOADING_APP,
             value: true,
         });
 
         result.finallyData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.RAM_ONLY_IS_LOADING_APP,
+            key: ONYXKEYS.IS_LOADING_APP,
             value: false,
         });
     }
@@ -423,7 +425,7 @@ function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Re
     // Exception: When forceRun is true (exiting imported state), always make the API call
     if (isUsingImportedState && !forceRun) {
         Onyx.multiSet({
-            [ONYXKEYS.RAM_ONLY_IS_LOADING_APP]: false,
+            [ONYXKEYS.IS_LOADING_APP]: false,
             [ONYXKEYS.HAS_LOADED_APP]: true,
         });
         return Promise.resolve();
@@ -553,12 +555,12 @@ type CreateWorkspaceWithPolicyDraftParams = {
     isSelfTourViewed: boolean | undefined;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
     policyOwnerEmail?: string;
-    policyName?: string;
+    policyName: string;
     transitionFromOldDot?: boolean;
     makeMeAdmin?: boolean;
     backTo?: string;
     policyID?: string;
-    currency?: string;
+    currency: string;
     file?: File;
     routeToNavigateAfterCreate?: Route;
     lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType;
@@ -578,7 +580,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
     const {
         introSelected,
         policyOwnerEmail = '',
-        policyName = '',
+        policyName,
         transitionFromOldDot = false,
         makeMeAdmin = false,
         backTo = '',
@@ -598,7 +600,7 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
     } = params;
 
     const policyIDWithDefault = policyID || generatePolicyID();
-    createDraftInitialWorkspace(introSelected, policyOwnerEmail, policyName, policyIDWithDefault, makeMeAdmin, currency, file, type);
+    createDraftInitialWorkspace(introSelected, policyName, policyIDWithDefault, makeMeAdmin, currency, file, type);
     Navigation.isNavigationReady().then(() => {
         if (transitionFromOldDot) {
             // We must call goBack() to remove the /transition route from history
@@ -632,7 +634,7 @@ function createWorkspaceWithPolicyDraft(params: CreateWorkspaceWithPolicyDraftPa
     const {
         introSelected,
         policyOwnerEmail = '',
-        policyName = '',
+        policyName,
         makeMeAdmin = false,
         policyID = '',
         currency,
@@ -647,7 +649,7 @@ function createWorkspaceWithPolicyDraft(params: CreateWorkspaceWithPolicyDraftPa
         hasActiveAdminPolicies,
     } = params;
 
-    createDraftInitialWorkspace(introSelected, policyOwnerEmail, policyName, policyID, makeMeAdmin, currency, file);
+    createDraftInitialWorkspace(introSelected, policyName, policyID, makeMeAdmin, currency, file);
     savePolicyDraftByNewWorkspace({
         policyID,
         policyName,
@@ -750,10 +752,13 @@ function savePolicyDraftByNewWorkspace({
 function setUpPoliciesAndNavigate(
     session: OnyxEntry<OnyxTypes.Session>,
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
+    currency: string,
     activePolicyID: string | undefined,
     isSelfTourViewed: boolean | undefined,
     betas: OnyxEntry<OnyxTypes.Beta[]>,
     hasActiveAdminPolicies: boolean,
+    lastWorkspaceNumber: number | undefined,
+    translate: LocalizedTranslate,
 ) {
     const currentUrl = getCurrentUrl();
     if (!session || !currentUrl?.includes('exitTo')) {
@@ -766,7 +771,7 @@ function setUpPoliciesAndNavigate(
 
     // Approved Accountants and Guides can enter a flow where they make a workspace for other users,
     // and those are passed as a search parameter when using transition links
-    const policyOwnerEmail = url.searchParams.get('ownerEmail') ?? '';
+    const policyOwnerEmail = url.searchParams.get('ownerEmail') ?? session.email ?? '';
     const makeMeAdmin = !!url.searchParams.get('makeMeAdmin');
     const policyName = url.searchParams.get('policyName') ?? '';
 
@@ -777,8 +782,9 @@ function setUpPoliciesAndNavigate(
     if (shouldCreateFreePolicy) {
         createWorkspaceWithPolicyDraftAndNavigateToIt({
             introSelected,
+            currency,
             policyOwnerEmail,
-            policyName,
+            policyName: policyName || newGenerateDefaultWorkspaceName(policyOwnerEmail, lastWorkspaceNumber, translate),
             transitionFromOldDot: true,
             makeMeAdmin,
             activePolicyID,

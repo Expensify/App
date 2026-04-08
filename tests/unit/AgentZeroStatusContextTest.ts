@@ -49,7 +49,7 @@ function simulateReasoning(data: {reasoning: string; agentZeroRequestID: string;
 }
 
 function wrapper({children}: {children: React.ReactNode}) {
-    return React.createElement(AgentZeroStatusProvider, {reportID, chatType: undefined}, children);
+    return React.createElement(AgentZeroStatusProvider, {reportID}, children);
 }
 
 describe('AgentZeroStatusContext', () => {

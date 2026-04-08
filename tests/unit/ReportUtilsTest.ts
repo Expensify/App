@@ -78,7 +78,9 @@ import {
     getChatByParticipants,
     getChatListItemReportName,
     getChatRoomSubtitle,
+    getChildReportNotificationPreference,
     getDefaultWorkspaceAvatar,
+    getDeletedTransactionMessage,
     getDisplayNameForParticipant,
     getDisplayNamesWithTooltips,
     getHarvestOriginalReportID,
@@ -87,6 +89,8 @@ import {
     getIOUReportActionDisplayMessage,
     getLinkedIOUTransaction,
     getMostRecentlyVisitedReport,
+    getMovedActionMessage,
+    getMovedTransactionMessage,
     getOriginalReportID,
     getOutstandingChildRequest,
     getParentNavigationSubtitle,
@@ -95,9 +99,9 @@ import {
     getPolicyIDsWithEmptyReportsForAccount,
     getPolicyName,
     getReasonAndReportActionThatRequiresAttention,
+    getReportActionWithSmartscanError,
     getReportIDFromLink,
     getReportName as getReportNameDeprecated,
-    getReportNotificationPreference,
     getReportOrDraftReport,
     getReportPreviewMessage,
     getReportStatusTranslation,
@@ -112,6 +116,7 @@ import {
     hasActionWithErrorsForTransaction,
     hasEmptyReportsForPolicy,
     hasReceiptError,
+    hasSmartscanError,
     hasVisibleReportFieldViolations,
     isAllowedToApproveExpenseReport,
     isArchivedNonExpenseReport,
@@ -175,7 +180,7 @@ import type {
 import type {ErrorFields, Errors, OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {ACHAccount, PolicyReportField} from '@src/types/onyx/Policy';
-import type {NotificationPreference, Participant, Participants} from '@src/types/onyx/Report';
+import type {Participant, Participants} from '@src/types/onyx/Report';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {actionR14932 as mockIOUAction} from '../../__mocks__/reportData/actions';
@@ -12136,7 +12141,7 @@ describe('ReportUtils', () => {
                 iouReportID: expenseReportID,
             };
 
-            // Closed/approved report — stateNum > 1, so it won't be in reportsByPolicyID
+            // Closed/approved report — stateNum > 1, so it won't be in openAndSubmittedReportsByPolicyID
             // and won't pass isOpenOrProcessingReport
             const expenseReport: Report = {
                 ...createExpenseReport(806),
@@ -13529,15 +13534,26 @@ describe('ReportUtils', () => {
         });
     });
 
-    describe('getReportNotificationPreference', () => {
-        it('should return hidden if notification preference is empty', () => {
-            const report: Report = {
-                ...LHNTestUtils.getFakeReport([currentUserAccountID]),
-                participants: {
-                    [currentUserAccountID]: {notificationPreference: '' as NotificationPreference},
-                },
+    describe('getChildReportNotificationPreference', () => {
+        it('should return hidden from existing child report even when current user is action creator', async () => {
+            const childReportID = '1234';
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(1),
+                reportActionID: '1',
+                actorAccountID: currentUserAccountID,
+                childReportID,
             };
-            expect(getReportNotificationPreference(report)).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`, {
+                ...LHNTestUtils.getFakeReport([currentUserAccountID]),
+                reportID: childReportID,
+                participants: {
+                    [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
+                },
+            });
+            await waitForBatchedUpdates();
+
+            expect(getChildReportNotificationPreference(reportAction)).toBe(CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
         });
     });
 
@@ -15885,6 +15901,259 @@ describe('ReportUtils', () => {
             const action = buildOptimisticClosedReportAction('user@example.com', 'Test Policy', currentUserAccountID);
 
             expect(action.reportActionID).toBeTruthy();
+        });
+    });
+
+    describe('getDeletedTransactionMessage', () => {
+        it('should return a formatted deleted transaction message', () => {
+            const action = {
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION,
+                originalMessage: {
+                    amount: -5000,
+                    currency: 'USD',
+                    merchant: 'Starbucks',
+                },
+            } as unknown as ReportAction;
+
+            const result = getDeletedTransactionMessage(translateLocal, action);
+            expect(typeof result).toBe('string');
+            expect(result.length).toBeGreaterThan(0);
+        });
+
+        it('should handle missing amount and currency gracefully', () => {
+            const action = {
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION,
+                originalMessage: {},
+            } as unknown as ReportAction;
+
+            const result = getDeletedTransactionMessage(translateLocal, action);
+            expect(typeof result).toBe('string');
+        });
+    });
+
+    describe('getMovedTransactionMessage', () => {
+        it('should return movedTransactionTo message when fromReportID is undefined', async () => {
+            const toReport = LHNTestUtils.getFakeReport();
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${toReport.reportID}`, toReport);
+
+            const action = {
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+                originalMessage: {
+                    toReportID: toReport.reportID,
+                },
+            } as unknown as ReportAction;
+
+            const result = getMovedTransactionMessage(translateLocal, action, undefined);
+            expect(typeof result).toBe('string');
+            expect(result.length).toBeGreaterThan(0);
+        });
+
+        it('should return movedTransactionFrom message when fromReportID is defined', async () => {
+            const fromReport = LHNTestUtils.getFakeReport();
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fromReport.reportID}`, fromReport);
+
+            const action = {
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+                originalMessage: {
+                    fromReportID: fromReport.reportID,
+                    toReportID: '99999',
+                },
+            } as unknown as ReportAction;
+
+            const result = getMovedTransactionMessage(translateLocal, action, undefined);
+            expect(typeof result).toBe('string');
+            expect(result.length).toBeGreaterThan(0);
+        });
+
+        it('should handle conciergeReportID parameter', async () => {
+            const toReport = LHNTestUtils.getFakeReport();
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${toReport.reportID}`, toReport);
+
+            const action = {
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+                originalMessage: {
+                    toReportID: toReport.reportID,
+                },
+            } as unknown as ReportAction;
+
+            const result = getMovedTransactionMessage(translateLocal, action, '12345');
+            expect(typeof result).toBe('string');
+        });
+    });
+
+    describe('getMovedActionMessage', () => {
+        it('should return empty string for non-moved action', () => {
+            const action = {
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            } as unknown as ReportAction;
+
+            const report = LHNTestUtils.getFakeReport();
+            const result = getMovedActionMessage(translateLocal, action, report);
+            expect(result).toBe('');
+        });
+
+        it('should return empty string when original message is missing', () => {
+            const action = {
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED,
+                originalMessage: undefined,
+            } as unknown as ReportAction;
+
+            const report = LHNTestUtils.getFakeReport();
+            const result = getMovedActionMessage(translateLocal, action, report);
+            expect(result).toBe('');
+        });
+
+        it('should return moved action message with policy name', async () => {
+            const testPolicy = createRandomPolicy(0);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${testPolicy.id}`, testPolicy);
+
+            const action = {
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED,
+                originalMessage: {
+                    toPolicyID: testPolicy.id,
+                    newParentReportID: '11111',
+                    movedReportID: '22222',
+                },
+            } as unknown as ReportAction;
+
+            const report = LHNTestUtils.getFakeReport();
+            const result = getMovedActionMessage(translateLocal, action, report);
+            expect(typeof result).toBe('string');
+            expect(result.length).toBeGreaterThan(0);
+        });
+    });
+    describe('getReportActionWithSmartscanError', () => {
+        const chatReportID = '100';
+        const expenseReportID = '200';
+        const transactionID = '300';
+        const iouReportActionID = '400';
+
+        const chatReport: Report = {
+            ...LHNTestUtils.getFakeReport(),
+            reportID: chatReportID,
+            type: CONST.REPORT.TYPE.CHAT,
+        };
+
+        const expenseReport: Report = {
+            ...LHNTestUtils.getFakeReport(),
+            reportID: expenseReportID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            parentReportID: chatReportID,
+            ownerAccountID: currentUserAccountID,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+
+        // Transaction with $0 amount but valid merchant and created date.
+        // On an expense report this should NOT be a smartscan error (amount is
+        // irrelevant; only merchant matters). On a chat report the old code path
+        // would incorrectly flag getAmount(txn) === 0 as a missing field.
+        const transaction: Transaction = {
+            ...createRandomTransaction(Number(transactionID)),
+            transactionID,
+            reportID: expenseReportID,
+            amount: 0,
+            merchant: 'Coffee Shop',
+            modifiedMerchant: '',
+            created: testDate,
+        };
+
+        // Money-request (IOU) action that lives inside the expense report's actions
+        const iouAction = {
+            ...createRandomReportAction(Number(iouReportActionID)),
+            reportActionID: iouReportActionID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            actorAccountID: currentUserAccountID,
+            originalMessage: {
+                IOUTransactionID: transactionID,
+                IOUReportID: expenseReportID,
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: 0,
+                currency: CONST.CURRENCY.USD,
+                comment: '',
+                participantAccountIDs: [currentUserAccountID],
+            },
+        };
+
+        // REPORT_PREVIEW action that sits in the chat report and links to the expense report
+        const reportPreviewAction = buildOptimisticReportPreview(chatReport, expenseReport, '', transaction);
+
+        beforeAll(async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReportID}`, {[iouReportActionID]: iouAction});
+            return waitForBatchedUpdates();
+        });
+
+        it('should NOT flag $0 manual expense as smartscan error when expense report is resolved via reports collection', () => {
+            // With the reports collection the function can look up the actual
+            // expense report (type 'expense') via IOUReportID. For expense
+            // reports areRequiredFieldsEmpty checks isMerchantMissing (not
+            // amount), so a $0 expense with a valid merchant is fine.
+            const reportsCollection = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`]: expenseReport,
+            };
+
+            const result = getReportActionWithSmartscanError([reportPreviewAction], chatReport, reportsCollection);
+            expect(result).toBeUndefined();
+            expect(hasSmartscanError([reportPreviewAction], chatReport, reportsCollection)).toBe(false);
+        });
+
+        it('should flag smartscan error when expense report has a missing merchant', async () => {
+            // Replace the transaction with one that has an empty merchant
+            const transactionMissingMerchant: Transaction = {
+                ...transaction,
+                merchant: '',
+                modifiedMerchant: '',
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transactionMissingMerchant);
+            await waitForBatchedUpdates();
+
+            const reportsCollection = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`]: expenseReport,
+            };
+
+            expect(hasSmartscanError([reportPreviewAction], chatReport, reportsCollection)).toBe(true);
+
+            // Restore original transaction for subsequent tests
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+            await waitForBatchedUpdates();
+        });
+
+        it('should NOT flag settled (reimbursed) expense reports even with missing fields', async () => {
+            const settledExpenseReport: Report = {
+                ...expenseReport,
+                statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            };
+
+            // Even with missing merchant, a settled report should not show error
+            const transactionMissingMerchant: Transaction = {
+                ...transaction,
+                merchant: '',
+                modifiedMerchant: '',
+            };
+            // isSettled reads from the global allReports Onyx store, so we must persist the settled status there
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transactionMissingMerchant);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, settledExpenseReport);
+            await waitForBatchedUpdates();
+
+            const reportsCollection = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`]: settledExpenseReport,
+            };
+
+            expect(hasSmartscanError([reportPreviewAction], chatReport, reportsCollection)).toBe(false);
+
+            // Restore
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, expenseReport);
+            await waitForBatchedUpdates();
         });
     });
 });

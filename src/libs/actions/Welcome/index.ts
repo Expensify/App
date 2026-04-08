@@ -115,7 +115,8 @@ function completeHybridAppOnboarding() {
 // We use `connectWithoutView` here since this connection only to get loading flag
 // and doesn't need to trigger component re-renders.
 Onyx.connectWithoutView({
-    key: ONYXKEYS.RAM_ONLY_IS_LOADING_REPORT_DATA,
+    key: ONYXKEYS.IS_LOADING_REPORT_DATA,
+    initWithStoredValues: false,
     callback: (value) => {
         isLoadingReportData = value ?? false;
         checkServerDataReady();

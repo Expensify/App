@@ -1,5 +1,5 @@
-import React, {createContext, useContext, useMemo} from 'react';
-import type {ValueOf} from 'type-fest';
+import {getReportChatType} from '@selectors/Report';
+import React, {createContext, useContext} from 'react';
 import useAgentZeroStatusIndicator from '@hooks/useAgentZeroStatusIndicator';
 import useOnyx from '@hooks/useOnyx';
 import type {ReasoningEntry} from '@libs/ConciergeReasoningStore';
@@ -41,7 +41,8 @@ const AgentZeroStatusActionsContext = createContext<AgentZeroStatusActions>(defa
  *
  * AgentZero chats include Concierge DMs and policy #admins rooms.
  */
-function AgentZeroStatusProvider({reportID, chatType, children}: React.PropsWithChildren<{reportID: string | undefined; chatType: ValueOf<typeof CONST.REPORT.CHAT_TYPE> | undefined}>) {
+function AgentZeroStatusProvider({reportID, children}: React.PropsWithChildren<{reportID: string | undefined}>) {
+    const [chatType] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getReportChatType});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const isConciergeChat = reportID === conciergeReportID;
     const isAdmin = chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
@@ -63,7 +64,7 @@ function AgentZeroStatusProvider({reportID, chatType, children}: React.PropsWith
 
 function AgentZeroStatusGate({reportID, children}: React.PropsWithChildren<{reportID: string}>) {
     const {kickoffWaitingIndicator, ...stateValue} = useAgentZeroStatusIndicator(reportID, true);
-    const actionsValue = useMemo(() => ({kickoffWaitingIndicator}), [kickoffWaitingIndicator]);
+    const actionsValue = {kickoffWaitingIndicator};
 
     return (
         <AgentZeroStatusActionsContext.Provider value={actionsValue}>
