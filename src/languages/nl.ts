@@ -5234,7 +5234,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             chooseCard: 'Kies een kaart',
             chooseCardFor: (assignee: string) =>
                 `Kies een kaart voor <strong>${assignee}</strong>. Kun je de kaart die je zoekt niet vinden? <concierge-link>Laat het ons weten.</concierge-link>`,
-            noActiveCards: 'Geen actieve kaarten in deze feed',
+            noAvailableCards: 'Geen actieve kaarten in deze feed',
             somethingMightBeBroken:
                 '<muted-text><centered-text>Of er er is iets kapot. Hoe dan ook, als je vragen hebt, <concierge-link>neem dan contact op met Concierge</concierge-link>.</centered-text></muted-text>',
             chooseTransactionStartDate: 'Kies een startdatum voor transacties',

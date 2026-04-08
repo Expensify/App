@@ -5269,7 +5269,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             chooseCard: 'Choisir une carte',
             chooseCardFor: (assignee: string) =>
                 `Choisissez une carte pour <strong>${assignee}</strong>. Vous ne trouvez pas la carte que vous cherchez ? <concierge-link>Dites-le-nous.</concierge-link>`,
-            noActiveCards: 'Aucune carte active dans ce flux',
+            noAvailableCards: 'Aucune carte active dans ce flux',
             somethingMightBeBroken:
                 '<muted-text><centered-text>Ou quelque chose est peut-être cassé. Dans tous les cas, si vous avez des questions, il vous suffit de <concierge-link>contacter Concierge</concierge-link>.</centered-text></muted-text>',
             chooseTransactionStartDate: 'Choisissez une date de début de transaction',

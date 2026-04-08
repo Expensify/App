@@ -227,7 +227,7 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
                                 icon={illustrations.Telescope}
                                 iconWidth={variables.emptyListIconWidth}
                                 iconHeight={variables.emptyListIconHeight}
-                                title={inputValue.trim() ? translate('common.noResultsFound') : translate('workspace.companyCards.noActiveCards')}
+                                title={inputValue.trim() ? translate('common.noResultsFound') : translate('workspace.companyCards.noAvailableCards')}
                             />
                         }
                         footerContent={
