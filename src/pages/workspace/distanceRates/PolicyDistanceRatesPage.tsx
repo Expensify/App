@@ -376,7 +376,7 @@ function PolicyDistanceRatesPage({
                         showWarningModal();
                         return;
                     }
-                    const action = await showConfirmModal({
+                    const {action} = await showConfirmModal({
                         title: translate('workspace.distanceRates.deleteDistanceRate'),
                         prompt: translate('workspace.distanceRates.areYouSureDelete', {count: selectedDistanceRates.length}),
                         confirmText: translate('common.delete'),

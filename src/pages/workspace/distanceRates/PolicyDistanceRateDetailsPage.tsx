@@ -263,7 +263,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                                 showWarningModal();
                                 return;
                             }
-                            const action = await showConfirmModal({
+                            const {action} = await showConfirmModal({
                                 title: translate('workspace.distanceRates.deleteDistanceRate'),
                                 prompt: translate('workspace.distanceRates.areYouSureDelete', {count: 1}),
                                 confirmText: translate('common.delete'),

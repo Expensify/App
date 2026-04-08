@@ -353,7 +353,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                 text: translate('workspace.perDiem.deleteRates', {count: selectedPerDiem.length}),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
                 onSelected: async () => {
-                    const action = await showConfirmModal({
+                    const {action} = await showConfirmModal({
                         title: translate('workspace.perDiem.deletePerDiemRate'),
                         prompt: translate('workspace.perDiem.areYouSureDelete', {count: selectedPerDiem.length}),
                         confirmText: translate('common.delete'),

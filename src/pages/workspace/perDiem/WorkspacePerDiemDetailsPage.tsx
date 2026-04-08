@@ -109,7 +109,7 @@ function WorkspacePerDiemDetailsPage({route}: WorkspacePerDiemDetailsPageProps) 
                         icon={icons.Trashcan}
                         title={translate('common.delete')}
                         onPress={async () => {
-                            const action = await showConfirmModal({
+                            const {action} = await showConfirmModal({
                                 title: translate('workspace.perDiem.deletePerDiemRate'),
                                 prompt: translate('workspace.perDiem.areYouSureDelete', {count: 1}),
                                 confirmText: translate('common.delete'),
