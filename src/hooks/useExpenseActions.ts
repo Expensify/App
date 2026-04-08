@@ -63,7 +63,7 @@ type UseExpenseActionsReturn = {
     addExpenseDropdownOptions: Array<DropdownOption<string>>;
     handleOptionsMenuHide: () => void;
     isDuplicateReportActive: boolean;
-    wasDuplicateReportTriggered: React.MutableRefObject<boolean>;
+    wasDuplicateReportTriggered: React.RefObject<boolean>;
 };
 
 function useExpenseActions({reportID, isReportInSearch = false}: UseExpenseActionsParams): UseExpenseActionsReturn {
