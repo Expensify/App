@@ -51,6 +51,7 @@ import {
     hasMissingSmartscanFields,
     hasRoute as hasRouteUtil,
     hasTaxRateWithMatchingValue,
+    hasValidModifiedAmount,
     isMerchantMissing,
     isScanning,
     isScanRequest as isScanRequestUtil,
@@ -296,7 +297,7 @@ function MoneyRequestConfirmationList({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
 
-    const iouAmount = transaction?.amount ?? 0;
+    const iouAmount = hasValidModifiedAmount(transaction) ? Number(transaction?.modifiedAmount) : (transaction?.amount ?? 0);
     const iouComment = getDescription(transaction);
     const iouCurrencyCode = getCurrency(transaction);
     const iouMerchant = getMerchant(transaction);
