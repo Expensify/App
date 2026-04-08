@@ -100,7 +100,7 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
             case CONST.POLICY.CONNECTIONS.ROUTE.QBO:
                 return `${environmentURL}/${ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_AUTO_SYNC.getRoute(policyID, backTo)}`;
             case CONST.POLICY.CONNECTIONS.ROUTE.XERO:
-                return `${environmentURL}/${ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID)}/${DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_AUTO_SYNC.path}`;
+                return `${environmentURL}/${ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, connection)}/${DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_AUTO_SYNC.path}`;
             case CONST.POLICY.CONNECTIONS.ROUTE.NETSUITE:
                 return `${environmentURL}/${ROUTES.POLICY_ACCOUNTING_NETSUITE_AUTO_SYNC.getRoute(policyID, backTo)}`;
             case CONST.POLICY.CONNECTIONS.ROUTE.SAGE_INTACCT:
