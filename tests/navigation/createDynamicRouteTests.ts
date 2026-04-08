@@ -10,22 +10,16 @@ jest.mock('@libs/Log', () => ({
     warn: jest.fn(),
 }));
 
-jest.mock('@src/ROUTES', () => {
-    // eslint-disable-next-line @typescript-eslint/consistent-type-imports
-    const actualRoutes = jest.requireActual<typeof import('@src/ROUTES')>('@src/ROUTES');
-
-    return {
-        ...actualRoutes,
-        DYNAMIC_ROUTES: {
-            VERIFY_ACCOUNT: {path: 'verify-account'},
-            CUSTOM_FLOW: {path: 'custom-flow'},
-            DETAILS: {path: 'details'},
-            INVITE: {path: 'invite'},
-            FILTERS: {path: 'filters'},
-            ADDRESS_COUNTRY: {path: 'country', getRoute: (country: string) => `country?country=${country}`},
-        },
-    };
-});
+jest.mock('@src/ROUTES', () => ({
+    DYNAMIC_ROUTES: {
+        VERIFY_ACCOUNT: {path: 'verify-account'},
+        CUSTOM_FLOW: {path: 'custom-flow'},
+        DETAILS: {path: 'details'},
+        INVITE: {path: 'invite'},
+        FILTERS: {path: 'filters'},
+        ADDRESS_COUNTRY: {path: 'country', getRoute: (country: string) => `country?country=${country}`},
+    },
+}));
 
 describe('createDynamicRoute', () => {
     const mockGetActiveRoute = Navigation.getActiveRoute as jest.Mock;
