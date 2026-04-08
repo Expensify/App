@@ -28,11 +28,11 @@ Report actions guide the submitter, approver, and payer regarding the report's s
 |------------|---------------------|---------------------|------------------|
 | **Submit** | For draft/unsubmitted reports | Submitter | Sends the report into the approval workflow |
 | **Approve** | When the report is submitted and pending approval | Approver | Confirms the report is accurate and ready to move to payment or to the next approver |
-
-**Note:** If you selected "Track and budget expenses" during onboarding and your workspace does not use an approval workflow, **Submit** and **Approve** will both display as **Mark as done**.
 | **Pay** | After the report is approved | Payer | Initiates payment via Expensify or logs a manual payment |
 | **Export** | When the report is approved and not yet exported | Admin, Exporter | Sends report data to an integrated accounting system |
 | **Review** | When a report has violations (duplicate expenses, a missing receipt, etc.) | All roles | Prompts to resolve issues before submitting, approving, or paying |
+
+**Note:** If you selected "Track and budget expenses" during onboarding and your workspace does not use an approval workflow, **Submit** and **Approve** will both display as **Mark as done**.
 
 ---
 
