@@ -3831,7 +3831,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         regulationRequiresUs: '法规要求我们核实任何持有该企业超过 25% 股权的个人身份。',
         iAmAuthorized: '我已被授权使用该公司银行账户进行业务支出。',
         iCertify: '本人证明所提供的信息真实且准确。',
-        iAcceptTheTermsAndConditions: `我接受<a href="https://cross-border.corpay.com/tc/">条款和条件</a>。`,
+        iAcceptTheTermsAndConditions: `我接受<a href="https://www.corpay.com/cross-border/terms">条款和条件</a>。`,
         iAcceptTheTermsAndConditionsAccessibility: '我接受条款和条件。',
         accept: '接受并添加银行账户',
         iConsentToThePrivacyNotice: '我同意<a href="https://payments.corpay.com/compliance">隐私声明</a>。',
@@ -4844,13 +4844,13 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
 
 _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS})_。`,
                             customSegmentScriptIDTitle: '脚本 ID 是什么？',
-                            customSegmentScriptIDFooter: `您可以在 NetSuite 中通过以下路径找到自定义段脚本 ID：  
+                            customSegmentScriptIDFooter: `您可以在 NetSuite 中通过以下路径找到自定义段脚本 ID：
 
-1. 进入 *Customization > Lists, Records, & Fields > Custom Segments*。  
-2. 点击进入某个自定义段。  
-3. 在页面底部附近点击 *Application and Sourcing* 选项卡，然后：  
-   a. 如果您希望在 Expensify 中将自定义段显示为*标签*（行项目级别），请点击 *Transaction Columns* 子选项卡，并使用其中的 *Field ID*。  
-   b. 如果您希望在 Expensify 中将自定义段显示为*报表字段*（报表级别），请点击 *Transactions* 子选项卡，并使用其中的 *Field ID*。  
+1. 进入 *Customization > Lists, Records, & Fields > Custom Segments*。
+2. 点击进入某个自定义段。
+3. 在页面底部附近点击 *Application and Sourcing* 选项卡，然后：
+   a. 如果您希望在 Expensify 中将自定义段显示为*标签*（行项目级别），请点击 *Transaction Columns* 子选项卡，并使用其中的 *Field ID*。
+   b. 如果您希望在 Expensify 中将自定义段显示为*报表字段*（报表级别），请点击 *Transactions* 子选项卡，并使用其中的 *Field ID*。
 
 _如需更详细的说明，[请访问我们的帮助网站](${CONST.NETSUITE_IMPORT.HELP_LINKS.CUSTOM_LISTS})_。`,
                             customRecordScriptIDTitle: '交易列的 ID 是什么？',
