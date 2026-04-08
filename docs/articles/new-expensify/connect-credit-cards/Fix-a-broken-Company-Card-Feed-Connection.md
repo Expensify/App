@@ -1,5 +1,5 @@
 ---
-title: Fix a broken company card connection in Expensify
+title: Fix a Broken Company Card Feed Connection
 description: Learn how to fix a broken company card connection in Expensify so transactions resume importing correctly.
 keywords: [fix company card connection, troubleshoot card feed, Expensify card errors, reconnect bank feed]
 internalScope: Audience is Workspace Admins. Covers fixing broken company card connections and resolving connection errors. Does not cover CSV imports, missing transactions, or feed monitoring.
