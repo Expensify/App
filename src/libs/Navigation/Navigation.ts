@@ -1,6 +1,6 @@
 import {findFocusedRoute, getActionFromState} from '@react-navigation/core';
-import type {EventArg, NavigationAction, NavigationContainerEventMap, NavigationState, PartialState} from '@react-navigation/native';
-import {CommonActions, StackActions} from '@react-navigation/native';
+import type {EventArg, NavigationAction, NavigationContainerEventMap, NavigationState, ParamListBase, PartialState, StackNavigationState} from '@react-navigation/native';
+import {CommonActions, StackActions, TabActions} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 // eslint-disable-next-line you-dont-need-lodash-underscore/omit
 import omit from 'lodash/omit';
@@ -373,12 +373,9 @@ function doesRouteMatchToMinimalActionPayload(route: NavigationStateRoute | Navi
         return true;
     }
 
-    if (!('params' in minimalAction.payload)) {
-        return false;
-    }
-
     const routeParams = getRouteParamsToCompare(route.params as Record<string, string | undefined>);
-    const minimalActionParams = getRouteParamsToCompare(minimalAction.payload.params as Record<string, string | undefined>);
+    const minimalActionParams =
+        'params' in minimalAction.payload ? getRouteParamsToCompare(minimalAction.payload.params as Record<string, string | undefined>) : ({} as Record<string, string | undefined>);
 
     return shallowCompare(routeParams, minimalActionParams);
 }
@@ -437,6 +434,21 @@ function goUp(backToRoute: Route, options?: GoBackOptions) {
 
     if (minimalAction.type !== CONST.NAVIGATION.ACTION_TYPE.NAVIGATE || !targetState) {
         Log.hmmm('[Navigation] Unable to go up. Minimal action type is wrong.');
+        return;
+    }
+
+    // TabRouter does not handle POP or REPLACE (BaseRouter returns null). Switch tabs with jumpTo.
+    if (targetState.type === 'tab' && targetState?.key) {
+        const payload = minimalAction.payload as NavigationRoute;
+        if (!payload?.name) {
+            Log.hmmm('[Navigation] Unable to go up. Tab target missing screen name.');
+            return;
+        }
+        const jumpParams = 'params' in payload ? payload.params : undefined;
+        navigationRef.current.dispatch({
+            ...TabActions.jumpTo(payload.name, jumpParams),
+            target: targetState.key,
+        });
         return;
     }
 
@@ -937,23 +949,17 @@ function dismissToSuperWideRHP() {
 
 /**
  * Reveals the destination fullscreen route under the currently open RHP before dismissing it.
- * Wide-layout only. Used after expense submission so the user sees the target screen (e.g. Search)
- * sliding in behind the closing RHP instead of a blank flash.
+ * Used after expense submission (and similar flows) so the target screen (e.g. Search inside TabNavigator)
+ * is ready behind the modal: one dismiss animation instead of dismiss-then-navigate (two animations).
  *
  * Two-frame sequence:
  *   Frame 1 - REPLACE_FULLSCREEN_UNDER_RHP inserts the target fullscreen route underneath
- *             the modal: [Home, RHP] -> [Home, Search, RHP]. Browser history is NOT touched
- *             (the custom history extension preserves the old history array).
- *   Frame 2 - DISMISS_MODAL pops the RHP: [Home, Search, RHP] -> [Home, Search].
- *             useLinking detects the stale Home+RHP entry and replaces it with a Search
- *             push, yielding correct browser history [Home, Search].
+ *             the modal (e.g. a new TabNavigator slice with Search selected): [Tab, RHP] -> [Tab, Tab', RHP].
+ *             Browser history is NOT touched (the custom history extension preserves the old history array).
+ *   Frame 2 - DISMISS_MODAL pops the RHP: [Tab, Tab', RHP] -> [Tab, Tab'].
+ *             useLinking syncs browser history to the new top fullscreen route.
  */
 function revealRouteBeforeDismissingModal(route: Route) {
-    if (getIsNarrowLayout()) {
-        Log.warn('[Navigation] revealRouteBeforeDismissingModal should only be used on wide layouts.');
-        return;
-    }
-
     if (!canNavigate('revealRouteBeforeDismissingModal', {route}) || !navigationRef.current) {
         Log.hmmm(`[Navigation] Unable to reveal route before dismissing modal. Can't navigate.`, {route});
         return;
