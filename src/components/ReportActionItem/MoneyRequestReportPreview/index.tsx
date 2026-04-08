@@ -39,6 +39,7 @@ function MoneyRequestReportPreview({
     onPaymentOptionsHide,
     shouldDisplayContextMenu = true,
     shouldShowBorder,
+    originalReportID,
 }: MoneyRequestReportPreviewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -148,6 +149,7 @@ function MoneyRequestReportPreview({
             onPreviewPressed={openReportFromPreview}
             shouldShowPayerAndReceiver={shouldShowPayerAndReceiver}
             shouldHighlight={!!newTransactionIDs?.has(item.transactionID)}
+            originalReportID={originalReportID}
         />
     );
 
@@ -180,6 +182,7 @@ function MoneyRequestReportPreview({
             onPress={openReportFromPreview}
             shouldShowBorder={shouldShowBorder}
             forwardedFSClass={CONST.FULLSTORY.CLASS.UNMASK}
+            originalReportID={originalReportID}
         />
     );
 }

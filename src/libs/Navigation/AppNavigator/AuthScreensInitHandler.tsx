@@ -1,7 +1,9 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {useEffect, useRef} from 'react';
 import {useInitialURLActions, useInitialURLState} from '@components/InitialURLContextProvider';
+import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import useOnyx from '@hooks/useOnyx';
+import useReportAttributes from '@hooks/useReportAttributes';
 import {init, isClientTheLeader} from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
@@ -22,14 +24,15 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {ReportAttributesDerivedValue} from '@src/types/onyx';
 
-function initializePusher(currentUserAccountID?: number) {
+function initializePusher(currentUserAccountID?: number, getReportAttributes?: () => ReportAttributesDerivedValue['reports'] | undefined) {
     return Pusher.init({
         appKey: CONFIG.PUSHER.APP_KEY,
         cluster: CONFIG.PUSHER.CLUSTER,
         authEndpoint: `${CONFIG.EXPENSIFY.DEFAULT_API_ROOT}api/AuthenticatePusher?`,
     }).then(() => {
-        User.subscribeToUserEvents(currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID);
+        User.subscribeToUserEvents(currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, getReportAttributes);
     });
 }
 
@@ -47,13 +50,14 @@ function AuthScreensInitHandler() {
     const delegatorEmail = getSearchParamFromUrl(currentUrl, 'delegatorEmail');
     const {initialURL, isAuthenticatedAtStartup} = useInitialURLState();
     const {setIsAuthenticatedAtStartup} = useInitialURLActions();
+    const hasActiveAdminPolicies = useHasActiveAdminPolicies();
 
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [initialLastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-
     const [lastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const lastUpdateIDAppliedToClientRef = useRef(lastUpdateIDAppliedToClient);
@@ -61,6 +65,11 @@ function AuthScreensInitHandler() {
 
     lastUpdateIDAppliedToClientRef.current = lastUpdateIDAppliedToClient;
     isLoadingAppRef.current = isLoadingApp;
+
+    const reportAttributes = useReportAttributes();
+    // We use a ref so the Pusher callback (registered once on mount) always reads the latest value without re-subscribing.
+    const reportAttributesRef = useRef(reportAttributes);
+    reportAttributesRef.current = reportAttributes;
 
     const handleNetworkReconnect = () => {
         if (isLoadingAppRef.current) {
@@ -76,7 +85,7 @@ function AuthScreensInitHandler() {
             return;
         }
         // This means sign in in RHP was successful, so we can subscribe to user events
-        initializePusher(session?.accountID);
+        initializePusher(session?.accountID, () => reportAttributesRef.current);
     }, [session?.accountID]);
 
     useEffect(() => {
@@ -99,7 +108,8 @@ function AuthScreensInitHandler() {
             parentSpan: getSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT),
         });
         PusherConnectionManager.init();
-        initializePusher(session?.accountID).finally(() => {
+
+        initializePusher(session?.accountID, () => reportAttributesRef.current).finally(() => {
             endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.PUSHER_INIT);
         });
 
@@ -117,7 +127,7 @@ function AuthScreensInitHandler() {
         } else if (SessionUtils.didUserLogInDuringSession()) {
             const reportID = getReportIDFromLink(initialURL ?? null);
             if (reportID && !isAuthenticatedAtStartup) {
-                Report.openReport({reportID, introSelected});
+                Report.openReport({reportID, introSelected, betas});
                 // Don't want to call `openReport` again when logging out and then logging in
                 setIsAuthenticatedAtStartup(true);
             }
@@ -127,7 +137,7 @@ function AuthScreensInitHandler() {
             App.reconnectApp(initialLastUpdateIDAppliedToClient);
         }
 
-        App.setUpPoliciesAndNavigate(session, introSelected, activePolicyID, isSelfTourViewed);
+        App.setUpPoliciesAndNavigate(session, introSelected, activePolicyID, isSelfTourViewed, betas, hasActiveAdminPolicies);
 
         Download.clearDownloads();
 

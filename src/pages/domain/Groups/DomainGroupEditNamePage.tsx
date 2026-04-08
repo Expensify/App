@@ -69,10 +69,14 @@ function DomainGroupEditNamePage({route}: DomainGroupEditNamePageProps) {
                         if (!group) {
                             return;
                         }
-                        updateDomainSecurityGroup(domainAccountID, groupID, group, {name: values.name}, 'name');
+
+                        if (values.name !== group.name) {
+                            updateDomainSecurityGroup(domainAccountID, groupID, group, {name: values.name}, 'name');
+                        }
                         Navigation.goBack(ROUTES.DOMAIN_GROUP_DETAILS.getRoute(domainAccountID, groupID));
                     }}
                     submitButtonText={translate('common.save')}
+                    enabledWhenOffline
                     style={[styles.flex1, styles.ph5, styles.pb3]}
                 >
                     <InputWrapper

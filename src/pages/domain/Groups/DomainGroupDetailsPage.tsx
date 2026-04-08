@@ -15,7 +15,6 @@ import {clearDomainSecurityGroupSettingError} from '@userActions/Domain';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import DefaultGroupToggle from './DefaultGroupToggle';
 import HTMLMessagesRow from './HTMLMessagesRow';
 
 type DomainGroupDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.GROUP_DETAILS>;
@@ -56,11 +55,6 @@ function DomainGroupDetailsPage({route}: DomainGroupDetailsPageProps) {
                             onDismiss={() => clearDomainSecurityGroupSettingError(domainAccountID, groupID, 'nameErrors')}
                         />
                     </OfflineWithFeedback>
-                    <DefaultGroupToggle
-                        domainAccountID={domainAccountID}
-                        groupID={groupID}
-                        groupName={group?.name}
-                    />
                 </ScrollView>
             </ScreenWrapper>
         </DomainNotFoundPageWrapper>

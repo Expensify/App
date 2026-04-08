@@ -1,12 +1,13 @@
 import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
-import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import type {NativeSyntheticEvent} from 'react-native';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import type {KeyboardTypeOptions, NativeSyntheticEvent} from 'react-native';
 import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import {useMouseActions} from '@hooks/useMouseContext';
 import usePrevious from '@hooks/usePrevious';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileSafari} from '@libs/Browser';
 import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
@@ -76,11 +77,14 @@ type NumberWithSymbolFormProps = {
     /** Function to clear the negative amount */
     clearNegative?: () => void;
 
-    /** Whether to allow flipping amount */
+    /** Whether to allow flipping amount (shows flip button and enables toggle mechanism) */
     allowFlippingAmount?: boolean;
 
     /** Whether to allow direct negative input (for split amounts where value is already negative) */
     allowNegativeInput?: boolean;
+
+    /** Whether to use dynamic font size for the amount input */
+    shouldUseDynamicFontSize?: boolean;
 
     /** Whether the input is disabled or not */
     disabled?: boolean;
@@ -90,6 +94,18 @@ type NumberWithSymbolFormProps = {
 
     /** Callback when the user presses the submit key (Enter) */
     onSubmitEditing?: () => void;
+
+    /** Determines which keyboard to open */
+    keyboardType?: KeyboardTypeOptions;
+
+    /** Whether to show the flip (+/-) button */
+    shouldShowFlipButton?: boolean;
+
+    /** Whether to show the currency selection button */
+    shouldShowCurrencyButton?: boolean;
+
+    /** Callback when currency button is pressed */
+    onCurrencyButtonPress?: () => void;
 } & Omit<TextInputWithSymbolProps, 'formattedAmount' | 'onAmountChange' | 'placeholder' | 'onSelectionChange' | 'onKeyPress' | 'onMouseDown' | 'onMouseUp'>;
 
 type NumberWithSymbolFormRef = {
@@ -138,6 +154,7 @@ function NumberWithSymbolForm({
     style,
     containerStyle,
     symbolTextStyle,
+    shouldUseDynamicFontSize = false,
     autoGrow = true,
     disableKeyboard = true,
     prefixCharacter = '',
@@ -153,10 +170,15 @@ function NumberWithSymbolForm({
     ref,
     disabled,
     onSubmitEditing,
+    shouldShowFlipButton = false,
+    shouldShowCurrencyButton = false,
+    onCurrencyButtonPress,
     ...props
 }: NumberWithSymbolFormProps) {
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'PlusMinus']);
+
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {toLocaleDigit, numberFormat, translate} = useLocalize();
 
     const textInput = useRef<BaseTextInputRef | null>(null);
@@ -372,6 +394,58 @@ function NumberWithSymbolForm({
 
     const formattedNumber = replaceAllDigits(currentNumber, toLocaleDigit);
 
+    // Calculate dynamic font size based on the total length of the amount display
+    const dynamicAmountStyle = useMemo(() => {
+        const totalLength = formattedNumber.length + (hideSymbol ? 0 : symbol.length) + (isNegative ? 1 : 0);
+        return StyleUtils.getAmountInputFontSize(totalLength);
+    }, [StyleUtils, formattedNumber.length, hideSymbol, symbol.length, isNegative]);
+
+    /**
+     * Handles pressing the flip button (+/-) to toggle negative sign
+     * Only available in displayAsTextInput mode for manual expense flow
+     */
+    const handleFlipPress = useCallback(() => {
+        // Toggle the minus sign prefix in the value
+        const newValue = currentNumber.startsWith('-') ? currentNumber.slice(1) : `-${currentNumber}`;
+        setCurrentNumber(newValue);
+        onInputChange?.(newValue);
+    }, [currentNumber, onInputChange]);
+
+    /**
+     * Creates the right-hand side component for text input mode
+     * Renders flip (+/-) button and/or currency selection button when enabled
+     * Only shown when clear button is not visible (see TextInput conditional rendering)
+     */
+    const textInputRightHandSideComponent = useMemo(() => {
+        return (
+            <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
+                {shouldShowFlipButton && canUseTouchScreen && (
+                    <Button
+                        small
+                        icon={icons.PlusMinus}
+                        onPress={handleFlipPress}
+                        onMouseDown={(e) => e.preventDefault()}
+                        isContentCentered
+                        accessibilityLabel={translate('iou.flip')}
+                        isDisabled={disabled}
+                    />
+                )}
+                {shouldShowCurrencyButton && !!currency && (
+                    <Button
+                        shouldShowRightIcon
+                        small
+                        iconRight={icons.DownArrow}
+                        onPress={onCurrencyButtonPress}
+                        isContentCentered
+                        text={currency}
+                        accessibilityLabel={`${translate('common.selectCurrency')}, ${currency}`}
+                        isDisabled={disabled}
+                    />
+                )}
+            </View>
+        );
+    }, [shouldShowFlipButton, shouldShowCurrencyButton, styles, icons, handleFlipPress, onCurrencyButtonPress, currency, translate]);
+
     if (displayAsTextInput) {
         return (
             <TextInput
@@ -386,15 +460,16 @@ function NumberWithSymbolForm({
                         // eslint-disable-next-line no-param-reassign
                         ref.current = newRef;
                     }
+                    textInput.current = newRef;
                 }}
                 disabled={disabled}
                 prefixCharacter={symbol}
                 prefixStyle={styles.colorMuted}
-                keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
+                keyboardType={props.keyboardType ?? CONST.KEYBOARD_TYPE.DECIMAL_PAD}
                 // On android autoCapitalize="words" is necessary when keyboardType="decimal-pad" or inputMode="decimal" to prevent input lag.
                 // See https://github.com/Expensify/App/issues/51868 for more information
                 autoCapitalize="words"
-                inputMode={CONST.INPUT_MODE.DECIMAL}
+                inputMode={!props.keyboardType ? CONST.INPUT_MODE.DECIMAL : undefined}
                 errorText={errorText}
                 style={style}
                 autoFocus={props.autoFocus}
@@ -402,6 +477,7 @@ function NumberWithSymbolForm({
                 autoGrowMarginSide={props.autoGrowMarginSide}
                 onSubmitEditing={onSubmitEditing}
                 onFocus={props.onFocus}
+                rightHandSideComponent={shouldShowCurrencyButton || shouldShowFlipButton ? textInputRightHandSideComponent : undefined}
             />
         );
     }
@@ -443,8 +519,8 @@ function NumberWithSymbolForm({
             }}
             onKeyPress={textInputKeyPress}
             isSymbolPressable={isSymbolPressable && !shouldWrapInputInContainer}
-            symbolTextStyle={symbolTextStyle}
-            style={style}
+            symbolTextStyle={[symbolTextStyle, shouldUseDynamicFontSize ? dynamicAmountStyle : undefined]}
+            style={[style, shouldUseDynamicFontSize ? dynamicAmountStyle : undefined]}
             containerStyle={containerStyle}
             onMouseDown={handleMouseDown}
             onMouseUp={handleMouseUp}
@@ -469,6 +545,7 @@ function NumberWithSymbolForm({
             toggleNegative={toggleNegative}
             onFocus={props.onFocus}
             accessibilityLabel={props.accessibilityLabel}
+            keyboardType={props.keyboardType}
         />
     );
 

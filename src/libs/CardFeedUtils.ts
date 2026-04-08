@@ -1,6 +1,6 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
-import type {AdditionalCardProps} from '@components/SelectionListWithSections/Search/CardListItem';
+import type {AdditionalCardProps} from '@components/Search/SearchList/ListItem/CardListItem';
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
 import type IllustrationsType from '@styles/theme/illustrations/types';
 import CONST from '@src/CONST';
@@ -23,6 +23,7 @@ import {
     isCardHiddenFromSearch,
     isCustomFeed,
     isDirectFeed,
+    isPersonalCard,
 } from './CardUtils';
 import type {CompanyCardFeedIcons} from './CardUtils';
 import {getDescriptionForPolicyDomainCard} from './PolicyUtils';
@@ -43,6 +44,8 @@ type CardFeedForDisplay = {
     feed: CardFeedWithNumber;
     fundID: string;
     name: string;
+    country?: string;
+    linkedPolicyIDs?: string[];
 };
 type CardFeedsForDisplay = Record<string, CardFeedForDisplay>;
 
@@ -87,20 +90,35 @@ function getWorkspaceCardFeedKey(cardFeedKey: string) {
     return cardFeedKey;
 }
 
+/**
+ * Resolves the display name of a linked policy when preferredPolicy differs from the current policyID.
+ */
+function getLinkedPolicyName(allPolicies: OnyxCollection<Policy>, preferredPolicy: string | undefined, currentPolicyID: string, fallbackName: string | undefined): string | undefined {
+    if (preferredPolicy && preferredPolicy !== currentPolicyID) {
+        return allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${preferredPolicy}`]?.name ?? fallbackName;
+    }
+    return fallbackName;
+}
+
 function createCardFilterItem(
     card: Card,
     personalDetailsList: PersonalDetailsList,
     selectedCards: string[],
     illustrations: IllustrationsType,
     companyCardIcons: CompanyCardFeedIcons,
+    customCardNames?: Record<string, string>,
 ): CardFilterItem {
     const personalDetails = personalDetailsList[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
     const isSelected = selectedCards.includes(card.cardID.toString());
     const icon = getCardFeedIcon(card?.bank, illustrations, companyCardIcons);
-    const cardName = card?.nameValuePairs?.cardTitle;
+    let cardName = card?.nameValuePairs?.cardTitle;
     const text = personalDetails?.displayName ?? cardName;
     const plaidUrl = getPlaidInstitutionIconUrl(card?.bank);
     const isCSVImportCard = card?.bank === CONST.PERSONAL_CARDS.BANK_NAME.CSV;
+    const isPersonal = isPersonalCard(card);
+    if (isPersonal && !isCSVImportCard) {
+        cardName = customCardNames?.[card?.cardID] ?? card?.cardName;
+    }
 
     return {
         lastFourPAN: isCSVImportCard ? card?.cardName : card.lastFourPAN,
@@ -128,12 +146,13 @@ function buildCardsData(
     illustrations: IllustrationsType,
     companyCardIcons: CompanyCardFeedIcons,
     isClosedCards = false,
+    customCardNames?: Record<string, string>,
 ): ItemsGroupedBySelection {
     // Filter condition to build different cards data for closed cards and individual cards based on the isClosedCards flag, we don't want to show closed cards in the individual cards section
     const filterCondition = (card: Card) => (isClosedCards ? isCardClosed(card) : !isCardHiddenFromSearch(card) && !isCardClosed(card) && isCard(card));
     const userAssignedCards: CardFilterItem[] = Object.values(userCardList ?? {})
         .filter((card) => filterCondition(card))
-        .map((card) => createCardFilterItem(card, personalDetailsList, selectedCards, illustrations, companyCardIcons));
+        .map((card) => createCardFilterItem(card, personalDetailsList, selectedCards, illustrations, companyCardIcons, customCardNames));
 
     // When user is admin of a workspace he sees all the cards of workspace under cards_ Onyx key
     const allWorkspaceCards: CardFilterItem[] = Object.values(workspaceCardFeeds)
@@ -141,7 +160,7 @@ function buildCardsData(
         .flatMap((cardFeed) => {
             return Object.values(cardFeed as CardList)
                 .filter((card) => card && isCard(card) && !userCardList?.[card.cardID] && filterCondition(card))
-                .map((card) => createCardFilterItem(card, personalDetailsList, selectedCards, illustrations, companyCardIcons));
+                .map((card) => createCardFilterItem(card, personalDetailsList, selectedCards, illustrations, companyCardIcons, customCardNames));
         });
 
     const allCardItems = [...userAssignedCards, ...allWorkspaceCards];
@@ -436,6 +455,36 @@ const generateSelectedCards = (
 };
 
 /**
+ * Given a card list, return a map of Expensify Card feeds keyed by "${fundID}_${BANK}".
+ * This is extracted from getCardFeedsForDisplay so it can be called independently
+ * (e.g. from selectors that only need Expensify Card feeds).
+ */
+function getExpensifyCardFeedsForDisplay(allCards: CardList | undefined): CardFeedsForDisplay {
+    const result = {} as CardFeedsForDisplay;
+
+    for (const card of Object.values(allCards ?? {})) {
+        if (card.bank !== CONST.EXPENSIFY_CARD.BANK || !card.fundID) {
+            continue;
+        }
+
+        const id = `${card.fundID}_${CONST.EXPENSIFY_CARD.BANK}`;
+
+        if (result[id]) {
+            continue;
+        }
+
+        result[id] = {
+            id,
+            feed: CONST.EXPENSIFY_CARD.BANK,
+            fundID: card.fundID,
+            name: CONST.EXPENSIFY_CARD.BANK,
+        };
+    }
+
+    return result;
+}
+
+/**
  * Given a collection of card feeds, return formatted card feeds.
  *
  * The `allCards` parameter is only used to determine if we should add the "Expensify Card" feeds.
@@ -472,24 +521,7 @@ function getCardFeedsForDisplay(
         }
     }
 
-    for (const card of Object.values(allCards ?? {})) {
-        if (card.bank !== CONST.EXPENSIFY_CARD.BANK || !card.fundID) {
-            continue;
-        }
-
-        const id = `${card.fundID}_${CONST.EXPENSIFY_CARD.BANK}`;
-
-        if (cardFeedsForDisplay[id]) {
-            continue;
-        }
-
-        cardFeedsForDisplay[id] = {
-            id,
-            feed: CONST.EXPENSIFY_CARD.BANK,
-            fundID: card.fundID,
-            name: CONST.EXPENSIFY_CARD.BANK,
-        };
-    }
+    Object.assign(cardFeedsForDisplay, getExpensifyCardFeedsForDisplay(allCards));
 
     return cardFeedsForDisplay;
 }
@@ -515,19 +547,43 @@ function getCardFeedsForDisplayPerPolicy(
 
         for (const [key, feedData] of Object.entries(getOriginalCompanyFeeds(cardFeeds, feedKeysWithCards, Number(fundID)))) {
             const preferredPolicy = feedData && 'preferredPolicy' in feedData ? (feedData.preferredPolicy ?? '') : '';
+            const country = feedData && 'country' in feedData ? (feedData.country ?? '') : '';
+            const linkedPolicyIDs = feedData && 'linkedPolicyIDs' in feedData ? feedData.linkedPolicyIDs : undefined;
             const feed = key as CardFeedWithNumber;
             const id = `${fundID}_${feed}`;
 
             (cardFeedsForDisplayPerPolicy[preferredPolicy] ||= []).push({
                 id,
                 feed,
+                country,
                 fundID,
+                linkedPolicyIDs,
                 name: getCustomOrFormattedFeedName(translate, feed, cardFeeds?.settings?.companyCardNicknames?.[feed], false) ?? feed,
             });
         }
     }
 
     return cardFeedsForDisplayPerPolicy;
+}
+
+/**
+ * Finds a feed by id in the card feeds grouped by policy.
+ *
+ * @param feedId - The feed id (e.g. `${fundID}_${feed}`) to look up
+ * @param cardFeedsByPolicy - Card feeds per policy from getCardFeedsForDisplayPerPolicy
+ * @returns The matching CardFeedForDisplay or undefined
+ */
+function getFeedInfo(feedId: string, cardFeedsByPolicy?: Record<string, CardFeedForDisplay[]>): CardFeedForDisplay | undefined {
+    if (!feedId || !cardFeedsByPolicy) {
+        return undefined;
+    }
+    for (const cardFeeds of Object.values(cardFeedsByPolicy)) {
+        const found = cardFeeds.find((item) => item.id === feedId);
+        if (found) {
+            return found;
+        }
+    }
+    return undefined;
 }
 
 function getCardFeedStatus(feed: CardFeeds | undefined): CardFeedsStatus {
@@ -615,9 +671,12 @@ export {
     createCardFeedKey,
     getCardFeedKey,
     getWorkspaceCardFeedKey,
+    getFeedInfo,
+    getLinkedPolicyName,
     generateDomainFeedData,
     getDomainFeedData,
     getCardFeedsForDisplay,
+    getExpensifyCardFeedsForDisplay,
     getCardFeedsForDisplayPerPolicy,
     getCombinedCardFeedsFromAllFeeds,
     getCardFeedStatus,

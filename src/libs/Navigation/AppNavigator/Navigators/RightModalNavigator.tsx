@@ -33,6 +33,7 @@ import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigati
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList, RightModalNavigatorParamList} from '@navigation/types';
+import {PINContextProvider} from '@pages/MissingPersonalDetails/PINContext';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -47,6 +48,17 @@ const Stack = createPlatformStackNavigator<RightModalNavigatorParamList, string>
 
 const singleRHPWidth = variables.sideBarWidth;
 const getWideRHPWidth = (windowWidth: number) => variables.sideBarWidth + calculateReceiptPaneRHPWidth(windowWidth);
+
+function MissingPersonalDetailsWithPINContext(props: Record<string, unknown>) {
+    return (
+        <PINContextProvider>
+            <ModalStackNavigators.MissingPersonalDetailsModalStackNavigator
+                /* eslint-disable-next-line react/jsx-props-no-spreading */
+                {...props}
+            />
+        </PINContextProvider>
+    );
+}
 
 function SecondaryOverlay() {
     const {shouldRenderSecondaryOverlayForWideRHP, shouldRenderSecondaryOverlayForRHPOnWideRHP, shouldRenderSecondaryOverlayForRHPOnSuperWideRHP} = useWideRHPState();
@@ -143,10 +155,19 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
             return;
         }
         isExecutingRef.current = true;
-        navigation.goBack();
-        setTimeout(() => {
+        const currentState = navigationRef.getRootState();
+
+        // There is a brief moment when the RHP is not in the state anymore but the overlay is still visible (closing RHP animation)
+        // We need to block overlay press function in such case because it would go back from the currently active full screen.
+        // Without this, the bug described in https://github.com/Expensify/App/issues/78440 would occur.
+        if (currentState.routes.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+            navigation.goBack();
+            setTimeout(() => {
+                isExecutingRef.current = false;
+            }, CONST.ANIMATED_TRANSITION);
+        } else {
             isExecutingRef.current = false;
-        }, CONST.ANIMATED_TRANSITION);
+        }
     }, [navigation]);
 
     const clearWideRHPKeysAfterTabChanged = useCallback(() => {
@@ -189,10 +210,6 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             screenListeners={screenListeners}
                             id={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
                         >
-                            <Stack.Screen
-                                name={SCREENS.RIGHT_MODAL.SEARCH_ROUTER}
-                                component={ModalStackNavigators.SearchRouterModalStackNavigator}
-                            />
                             <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.SETTINGS}
                                 component={ModalStackNavigators.SettingsModalStackNavigator}
@@ -366,7 +383,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                             />
                             <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.MISSING_PERSONAL_DETAILS}
-                                component={ModalStackNavigators.MissingPersonalDetailsModalStackNavigator}
+                                component={MissingPersonalDetailsWithPINContext}
                             />
                             <Stack.Screen
                                 name={SCREENS.RIGHT_MODAL.ADD_UNREPORTED_EXPENSE}

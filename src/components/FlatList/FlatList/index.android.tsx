@@ -8,7 +8,7 @@ import type {CustomFlatListProps} from './types';
 
 // FlatList wrapped with the freeze component will lose its scroll state when frozen (only for Android).
 // CustomFlatList saves the offset and use it for scrollToOffset() when unfrozen.
-function CustomFlatList<T>({ref, enableAnimatedKeyboardDismissal = false, onMomentumScrollEnd, shouldHideContent = false, ...props}: CustomFlatListProps<T>) {
+function CustomFlatList<T>({ref, enableAnimatedKeyboardDismissal = false, onMomentumScrollEnd, onScroll, shouldHideContent = false, ...props}: CustomFlatListProps<T>) {
     const lastScrollOffsetRef = useRef(0);
     const styles = useThemeStyles();
 
@@ -33,6 +33,11 @@ function CustomFlatList<T>({ref, enableAnimatedKeyboardDismissal = false, onMome
         [onMomentumScrollEnd],
     );
 
+    const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+        lastScrollOffsetRef.current = event.nativeEvent.contentOffset.y;
+        onScroll?.(event);
+    };
+
     useFocusEffect(
         useCallback(() => {
             onScreenFocus();
@@ -47,6 +52,7 @@ function CustomFlatList<T>({ref, enableAnimatedKeyboardDismissal = false, onMome
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
                 ref={ref}
+                onScroll={handleScroll}
                 onMomentumScrollEnd={handleScrollEnd}
                 contentContainerStyle={contentContainerStyle}
             />
@@ -58,6 +64,7 @@ function CustomFlatList<T>({ref, enableAnimatedKeyboardDismissal = false, onMome
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             ref={ref}
+            onScroll={handleScroll}
             onMomentumScrollEnd={handleScrollEnd}
             contentContainerStyle={contentContainerStyle}
         />

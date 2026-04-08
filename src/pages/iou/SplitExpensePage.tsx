@@ -1,5 +1,5 @@
 import {deepEqual} from 'fast-equals';
-import React, {useEffect} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {InteractionManager, Keyboard, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -50,6 +50,7 @@ import type {SplitExpenseParamList} from '@libs/Navigation/types';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {getReportOrDraftReport, getTransactionDetails, isReportApproved, isSettled as isSettledReportUtils} from '@libs/ReportUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
+import {getActiveGroupSearchHashes} from '@libs/SearchUIUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
 import {getChildTransactions, getExpenseTypeTranslationKey, getTransactionType, isDistanceRequest, isManagedCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
@@ -74,7 +75,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const {showConfirmModal} = useConfirmModal();
 
     const [errorMessage, setErrorMessage] = React.useState<string>('');
-    const {currentSearchResults, currentSearchHash} = useSearchStateContext();
+    const {currentSearchResults, currentSearchHash, currentSearchQueryJSON} = useSearchStateContext();
     const {clearSelectedTransactions} = useSearchActionsContext();
 
     const {getCurrencySymbol} = useCurrencyListActions();
@@ -95,6 +96,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const [allSnapshots] = useOnyx(ONYXKEYS.COLLECTION.SNAPSHOT);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
     const currentReport = report ?? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`];
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
@@ -104,6 +106,9 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const currentPolicy = Object.keys(policy?.employeeList ?? {}).length
         ? policy
         : currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(currentReport?.policyID)}`];
+    const normalizedBackTo = backTo?.replace(/^\//, '');
+    const isSearchBackToRoute = normalizedBackTo?.startsWith(ROUTES.SEARCH_ROOT.route) ?? false;
+    const activeGroupSearchHashes = isSearchBackToRoute ? getActiveGroupSearchHashes(currentSearchResults?.data, currentSearchQueryJSON) : [];
 
     const isSplitExpenseEditable = (splitExpense: SplitExpense) => {
         const currentTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${splitExpense?.transactionID}`];
@@ -122,7 +127,12 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         isSplitAction(currentReport, [transaction], originalTransaction, currentUserPersonalDetails.login ?? '', currentUserPersonalDetails.accountID, currentPolicy);
 
     const transactionDetails: Partial<TransactionDetails> = getTransactionDetails(transaction, undefined, currentPolicy) ?? {};
-    const transactionDetailsAmount = transactionDetails?.amount ?? 0;
+    const transactionDetailsAmount = useMemo(() => {
+        if (typeof transactionDetails?.amount !== 'number') {
+            return 0;
+        }
+        return transactionDetails.amount;
+    }, [transactionDetails.amount]);
     const sumOfSplitExpenses = (draftTransaction?.comment?.splitExpenses ?? []).reduce((acc, item) => acc + (item.amount ?? 0), 0);
     const splitExpenses = draftTransaction?.comment?.splitExpenses ?? [];
     const invalidSplit = splitExpenses.find((split) => {
@@ -132,6 +142,10 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     });
     const difference = sumOfSplitExpenses - transactionDetailsAmount;
     const currencySymbol = getCurrencySymbol(transactionDetails.currency ?? '') ?? transactionDetails.currency ?? CONST.CURRENCY.USD;
+
+    useEffect(() => {
+        setErrorMessage('');
+    }, [splitExpenses.length]);
 
     const isPerDiem = isPerDiemRequest(transaction);
     const isDistance = isDistanceRequest(transaction);
@@ -153,7 +167,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowsLeftRight', 'Plus'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowsLeftRight', 'Plus']);
 
     const {isBetaEnabled} = usePermissions();
 
@@ -288,13 +302,14 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportNameValuePairsList: allReportNameValuePairs,
+            allSnapshots,
             transactionData: {
                 reportID: draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
                 originalTransactionID: draftTransaction?.comment?.originalTransactionID ?? String(CONST.DEFAULT_NUMBER_ID),
                 splitExpenses,
                 splitExpensesTotal: draftTransaction?.comment?.splitExpensesTotal ?? 0,
             },
-            searchContext: {currentSearchHash, clearSelectedTransactions},
+            searchContext: {currentSearchHash: isSearchBackToRoute ? currentSearchHash : undefined, activeGroupSearchHashes, clearSelectedTransactions},
             policyCategories,
             policy: expenseReportPolicy,
             policyRecentlyUsedCategories,

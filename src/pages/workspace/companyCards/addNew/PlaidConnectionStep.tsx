@@ -16,6 +16,7 @@ import {setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@libs/a
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
 import {getDomainNameForPolicy} from '@libs/PolicyUtils';
+import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import Navigation from '@navigation/Navigation';
 import {handleRestrictedEvent} from '@userActions/App';
 import {setPlaidEvent} from '@userActions/BankAccounts';
@@ -26,7 +27,14 @@ import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-function PlaidConnectionStep({feed, policyID, onExit}: {feed?: CompanyCardFeedWithDomainID; policyID?: string; onExit?: () => void}) {
+type PlaidConnectionStepProps = {
+    feed?: CompanyCardFeedWithDomainID;
+    policyID?: string;
+    onExit?: () => void;
+    title?: string;
+};
+
+function PlaidConnectionStep({feed, policyID, onExit, title}: PlaidConnectionStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
@@ -194,9 +202,16 @@ function PlaidConnectionStep({feed, policyID, onExit}: {feed?: CompanyCardFeedWi
         }
 
         if (plaidData?.isLoading) {
+            const reasonAttributes: SkeletonSpanReasonAttributes = {
+                context: 'PlaidConnectionStep.renderPlaidLink',
+                isPlaidDataLoading: plaidData?.isLoading,
+            };
             return (
                 <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                        reasonAttributes={reasonAttributes}
+                    />
                 </View>
             );
         }
@@ -210,7 +225,7 @@ function PlaidConnectionStep({feed, policyID, onExit}: {feed?: CompanyCardFeedWi
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
-                title={translate('workspace.companyCards.addCards')}
+                title={title ?? translate('workspace.companyCards.addCards')}
                 onBackButtonPress={handleBackButtonPress}
             />
             {isPlaidDisabled ? (
