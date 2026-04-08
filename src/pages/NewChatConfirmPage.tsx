@@ -10,6 +10,7 @@ import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMembe
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -36,19 +37,84 @@ function navigateToEditChatName() {
     Navigation.navigate(ROUTES.NEW_CHAT_EDIT_NAME);
 }
 
+function AvatarAndGroupNameSection({setAvatarFile}: {setAvatarFile: (avatarFile: File | CustomRNImageManipulatorResult | undefined) => void}) {
+    const optimisticReportID = useRef<string>(generateReportID());
+    const {translate, formatPhoneNumber} = useLocalize();
+    const styles = useThemeStyles();
+    const [newGroupDraft, newGroupDraftMetaData] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
+
+    const icons = useMemoizedLazyExpensifyIcons(['Camera']);
+    const groupName = newGroupDraft?.reportName ? newGroupDraft?.reportName : getGroupChatName(formatPhoneNumber, newGroupDraft?.participants);
+
+    const stashedLocalAvatarImage = newGroupDraft?.avatarUri;
+
+    useEffect(() => {
+        if (!stashedLocalAvatarImage || isLoadingOnyxValue(newGroupDraftMetaData)) {
+            return;
+        }
+
+        const onSuccess = (file: File) => {
+            setAvatarFile(file);
+        };
+
+        const onFailure = () => {
+            setAvatarFile(undefined);
+            setGroupDraft({avatarUri: null, avatarFileName: null, avatarFileType: null});
+        };
+
+        // If the user navigates back to the member selection page and then returns to the confirmation page, the component will re-mount, causing avatarFile to be null.
+        // To handle this, we re-read the avatar image file from disk whenever the component re-mounts.
+        readFileAsync(stashedLocalAvatarImage, newGroupDraft?.avatarFileName ?? '', onSuccess, onFailure, newGroupDraft?.avatarFileType ?? '');
+
+        // we only need to run this when the component re-mounted and when the onyx is loaded completely
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [newGroupDraftMetaData]);
+
+    return (
+        <>
+            <View style={styles.avatarSectionWrapper}>
+                <AvatarWithImagePicker
+                    isUsingDefaultAvatar={!stashedLocalAvatarImage}
+                    source={stashedLocalAvatarImage ?? getDefaultGroupAvatar(optimisticReportID.current)}
+                    onImageSelected={(image) => {
+                        setAvatarFile(image);
+                        setGroupDraft({avatarUri: image.uri ?? '', avatarFileName: image.name ?? '', avatarFileType: image.type});
+                    }}
+                    onImageRemoved={() => {
+                        setAvatarFile(undefined);
+                        setGroupDraft({avatarUri: null, avatarFileName: null, avatarFileType: null});
+                    }}
+                    size={CONST.AVATAR_SIZE.X_LARGE}
+                    avatarStyle={styles.avatarXLarge}
+                    editIcon={icons.Camera}
+                    editIconStyle={styles.smallEditIconAccount}
+                    style={styles.w100}
+                />
+            </View>
+            <MenuItemWithTopDescription
+                title={groupName}
+                onPress={navigateToEditChatName}
+                shouldShowRightIcon
+                shouldCheckActionAllowedOnPress={false}
+                description={translate('newRoomPage.groupName')}
+                wrapperStyle={[styles.ph4]}
+            />
+        </>
+    );
+}
+
 function NewChatConfirmPage() {
+    const isInLandscapeMode = useIsInLandscapeMode();
     const optimisticReportID = useRef<string>(generateReportID());
     const [avatarFile, setAvatarFile] = useState<File | CustomRNImageManipulatorResult | undefined>();
-    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const personalData = useCurrentUserPersonalDetails();
-    const [newGroupDraft, newGroupDraftMetaData] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-
-    const icons = useMemoizedLazyExpensifyIcons(['Camera']);
+    const [newGroupDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
 
     const selectedOptions = useMemo((): Participant[] => {
         if (!newGroupDraft?.participants) {
@@ -58,9 +124,8 @@ function NewChatConfirmPage() {
             getParticipantsOption({accountID: participant.accountID, login: participant?.login, reportID: ''}, allPersonalDetails),
         );
         return options;
-    }, [allPersonalDetails, newGroupDraft?.participants]);
+    }, [allPersonalDetails, newGroupDraft]);
 
-    const groupName = newGroupDraft?.reportName ? newGroupDraft?.reportName : getGroupChatName(formatPhoneNumber, newGroupDraft?.participants);
     const selectedParticipants: ListItem[] = useMemo(
         () =>
             selectedOptions
@@ -117,63 +182,15 @@ function NewChatConfirmPage() {
         );
     }, [newGroupDraft, avatarFile, personalData.login, introSelected, betas, isSelfTourViewed]);
 
-    const stashedLocalAvatarImage = newGroupDraft?.avatarUri;
-
-    useEffect(() => {
-        if (!stashedLocalAvatarImage || isLoadingOnyxValue(newGroupDraftMetaData)) {
-            return;
-        }
-
-        const onSuccess = (file: File) => {
-            setAvatarFile(file);
-        };
-
-        const onFailure = () => {
-            setAvatarFile(undefined);
-            setGroupDraft({avatarUri: null, avatarFileName: null, avatarFileType: null});
-        };
-
-        // If the user navigates back to the member selection page and then returns to the confirmation page, the component will re-mount, causing avatarFile to be null.
-        // To handle this, we re-read the avatar image file from disk whenever the component re-mounts.
-        readFileAsync(stashedLocalAvatarImage, newGroupDraft?.avatarFileName ?? '', onSuccess, onFailure, newGroupDraft?.avatarFileType ?? '');
-
-        // we only need to run this when the component re-mounted and when the onyx is loaded completely
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [newGroupDraftMetaData]);
-
     return (
         <ScreenWrapper testID="NewChatConfirmPage">
             <HeaderWithBackButton
                 title={translate('common.group')}
                 onBackButtonPress={navigateBack}
             />
-            <View style={styles.avatarSectionWrapper}>
-                <AvatarWithImagePicker
-                    isUsingDefaultAvatar={!stashedLocalAvatarImage}
-                    source={stashedLocalAvatarImage ?? getDefaultGroupAvatar(optimisticReportID.current)}
-                    onImageSelected={(image) => {
-                        setAvatarFile(image);
-                        setGroupDraft({avatarUri: image.uri ?? '', avatarFileName: image.name ?? '', avatarFileType: image.type});
-                    }}
-                    onImageRemoved={() => {
-                        setAvatarFile(undefined);
-                        setGroupDraft({avatarUri: null, avatarFileName: null, avatarFileType: null});
-                    }}
-                    size={CONST.AVATAR_SIZE.X_LARGE}
-                    avatarStyle={styles.avatarXLarge}
-                    editIcon={icons.Camera}
-                    editIconStyle={styles.smallEditIconAccount}
-                    style={styles.w100}
-                />
-            </View>
-            <MenuItemWithTopDescription
-                title={groupName}
-                onPress={navigateToEditChatName}
-                shouldShowRightIcon
-                shouldCheckActionAllowedOnPress={false}
-                description={translate('newRoomPage.groupName')}
-                wrapperStyle={[styles.ph4]}
-            />
+
+            {!isInLandscapeMode && <AvatarAndGroupNameSection setAvatarFile={setAvatarFile} />}
+
             <View style={[styles.flex1, styles.mt3]}>
                 <SelectionList
                     data={selectedParticipants}
@@ -185,10 +202,14 @@ function NewChatConfirmPage() {
                         text: translate('newChatPage.startGroup'),
                         onConfirm: createGroup,
                     }}
+                    shouldHeaderBeInsideList={isInLandscapeMode}
                     customListHeader={
-                        <View style={[styles.mt8, styles.mb4, styles.justifyContentCenter]}>
-                            <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('common.members')}</Text>
-                        </View>
+                        <>
+                            {isInLandscapeMode && <AvatarAndGroupNameSection setAvatarFile={setAvatarFile} />}
+                            <View style={[styles.mt8, styles.mb4, styles.justifyContentCenter]}>
+                                <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('common.members')}</Text>
+                            </View>
+                        </>
                     }
                 />
             </View>
