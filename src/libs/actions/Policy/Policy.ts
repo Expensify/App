@@ -1296,7 +1296,7 @@ function leaveWorkspace(currentUserAccountID: number, currentUserEmail: string, 
     ];
 
     const currentTime = DateUtils.getDBTime();
-    const pendingChatMembers = ReportUtils.getPendingChatMembers([deprecatedSessionAccountID], [], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const pendingChatMembers = ReportUtils.getPendingChatMembers([currentUserAccountID], [], CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
     for (const report of workspaceChats) {
         if (!report?.reportID) {
@@ -2310,25 +2310,15 @@ function buildOptimisticDistanceRateCustomUnits(reportCurrency?: string): Optimi
 
 /**
  * Optimistically creates a Policy Draft for a new workspace
- *
- * @param [policyOwnerEmail] the email of the account to make the owner of the policy
- * @param [policyName] custom policy name we will use for created workspace
- * @param [policyID] custom policy id we will use for created workspace
- * @param [makeMeAdmin] leave the calling account as an admin on the policy
- * @param [currency] Optional, selected currency for the workspace
- * @param [file], avatar file for workspace
  */
 function createDraftInitialWorkspace(
     introSelected: OnyxEntry<IntroSelected>,
-    currency: string,
-    policyOwnerEmail = '',
-    policyName = '',
+    workspaceName: string,
     policyID = generatePolicyID(),
     makeMeAdmin = false,
     file?: File,
     type: typeof CONST.POLICY.TYPE.TEAM | typeof CONST.POLICY.TYPE.CORPORATE = CONST.POLICY.TYPE.TEAM,
 ) {
-    const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
     const {customUnits, outputCurrency} = buildOptimisticDistanceRateCustomUnits(currency);
     const shouldEnableWorkflowsByDefault =
         !introSelected?.choice || introSelected.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM || introSelected.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
@@ -3941,6 +3931,7 @@ function dismissAddedWithPrimaryLoginMessages(policyID: string) {
 function createWorkspaceFromIOUPayment(
     iouReport: OnyxEntry<Report>,
     reportPreviewAction: ReportAction | undefined,
+    currentUserAccountID: number,
     currentUserEmail: string,
     iouReportOwnerEmail: string,
     conciergeReportID: string | undefined,
@@ -3988,7 +3979,7 @@ function createWorkspaceFromIOUPayment(
         name: workspaceName,
         role: CONST.POLICY.ROLE.ADMIN,
         owner: currentUserEmail,
-        ownerAccountID: deprecatedSessionAccountID,
+        ownerAccountID: currentUserAccountID,
         isPolicyExpenseChatEnabled: true,
 
         // Setting the new workspace currency to the currency of the iouReport

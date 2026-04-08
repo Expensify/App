@@ -71,6 +71,7 @@ function KYCWall({
 
     const {formatPhoneNumber, translate} = useLocalize();
     const currentUserDetails = useCurrentUserPersonalDetails();
+    const currentUserAccountID = currentUserDetails.accountID;
     const currentUserEmail = currentUserDetails.email ?? '';
     const localCurrency = currentUserDetails.localCurrencyCode ?? CONST.CURRENCY.USD;
     const reportPreviewAction = useParentReportAction(iouReport);
@@ -171,8 +172,16 @@ function KYCWall({
 
                     const lastWorkspaceNumber = lastWorkspaceNumberSelector(policies, currentUserEmail);
                     const {policyID, workspaceChatReportID, reportPreviewReportActionID, adminsChatReportID} =
-                        createWorkspaceFromIOUPayment(iouReport, reportPreviewAction, currentUserEmail, employeeEmail, conciergeReportID, localCurrency, lastWorkspaceNumber, translate) ??
-                        {};
+                        createWorkspaceFromIOUPayment(
+                            iouReport,
+                            reportPreviewAction,
+                            currentUserAccountID,
+                            currentUserEmail,
+                            employeeEmail,
+                            conciergeReportID,
+                            lastWorkspaceNumber,
+                            translate,
+                        ) ?? {};
                     if (policyID && iouReport?.policyID) {
                         savePreferredPaymentMethod(iouReport.policyID, policyID, CONST.LAST_PAYMENT_METHOD.IOU, lastPaymentMethod?.[iouReport?.policyID]);
                     }
@@ -215,6 +224,7 @@ function KYCWall({
             chatReport,
             policies,
             reportPreviewAction,
+            currentUserAccountID,
             currentUserEmail,
             employeeEmail,
             introSelected,
