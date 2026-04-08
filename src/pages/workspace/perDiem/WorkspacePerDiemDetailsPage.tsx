@@ -60,7 +60,7 @@ function WorkspacePerDiemDetailsPage({route}: WorkspacePerDiemDetailsPageProps) 
                 subRateID,
             },
         ]);
-        Navigation.goBack();
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack());
     };
 
     return (

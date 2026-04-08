@@ -138,8 +138,8 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
     };
 
     const deleteRate = () => {
-        Navigation.goBack();
         deletePolicyDistanceRates(policyID, customUnit, [rateID], Array.from(eligibleTransactionIDs ?? []), transactionViolations);
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack());
     };
 
     const rateValueToDisplay = convertAmountToDisplayString(rate?.rate, currency);
