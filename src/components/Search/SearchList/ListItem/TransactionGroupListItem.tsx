@@ -77,6 +77,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     newTransactionID,
     lastPaymentMethod,
     personalPolicyID,
+    isFirstItem,
     isLastItem,
 }: TransactionGroupListItemProps<TItem>) {
     const groupItem = item as unknown as TransactionGroupListItemType;
@@ -480,7 +481,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                     styles.mh5,
                     animatedHighlightStyle,
                     styles.userSelectNone,
-                    isLargeScreenWidth && StyleUtils.getSearchTableRowBorderStyle(isLastItem, isItemSelected),
+                    isLargeScreenWidth && StyleUtils.getSearchTableGroupRowBorderStyle(isFirstItem, isLastItem, isItemSelected),
                 ]}
             >
                 {({hovered}) => (

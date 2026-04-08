@@ -451,6 +451,7 @@ function SearchList({
                         onFocus={onFocus}
                         newTransactionID={newTransactionID}
                         keyForList={item.keyForList}
+                        isFirstItem={index === 0}
                         isLastItem={index === data.length - 1 && !ListFooterComponent}
                     />
                 </Animated.View>

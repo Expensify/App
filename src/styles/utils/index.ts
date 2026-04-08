@@ -1800,6 +1800,13 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         ...(isLastItem ? styles.searchTableBottomRadius : {}),
     }),
 
+    getSearchTableGroupRowBorderStyle: (isFirstItem?: boolean, isLastItem?: boolean, isSelected?: boolean): ViewStyle => ({
+        borderRadius: 0,
+        borderTopWidth: isFirstItem ? 0 : 1,
+        borderColor: isSelected ? theme.buttonHoveredBG : theme.border,
+        ...(isLastItem ? styles.searchTableBottomRadius : {}),
+    }),
+
     getSearchTableRowPressableStyle: (isLastItem?: boolean, isSelected?: boolean, padding?: {vertical?: number; horizontal?: number}): ViewStyle => ({
         minHeight: variables.tableRowHeight,
         borderRadius: 0,
