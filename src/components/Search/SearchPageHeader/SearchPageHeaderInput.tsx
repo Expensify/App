@@ -14,6 +14,7 @@ import SearchInputSelectionWrapper from '@components/Search/SearchInputSelection
 import type {SearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
 import {isSearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQueryListItem';
 import {buildSubstitutionsMap} from '@components/Search/SearchRouter/buildSubstitutionsMap';
+import getAutocompleteSelectionSubstitutionKey from '@components/Search/SearchRouter/getAutocompleteSelectionSubstitutionKey';
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import {getQueryWithSubstitutions} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import {getUpdatedSubstitutionsMap} from '@components/Search/SearchRouter/getUpdatedSubstitutionsMap';
@@ -35,7 +36,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getTrimmedUserSearchQueryPreservingComma} from '@libs/SearchAutocompleteUtils';
-import {parse as parseSearchQuery} from '@libs/SearchParser/autocompleteParser';
 import {buildUserReadableQueryString, getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 import variables from '@styles/variables';
@@ -231,14 +231,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                     setSelection({start: newSearchQuery.length, end: newSearchQuery.length});
 
                     if (item.mapKey && item.autocompleteID && fieldKey) {
-                        const parsed = parseSearchQuery(newSearchQuery) as {ranges: Array<{key: string; value: string}>};
-                        const sameKeyRanges = parsed.ranges?.filter((r) => r.key === fieldKey) ?? [];
-                        const lastRange = sameKeyRanges.at(-1);
-                        const rangeValue = lastRange?.value ?? item.searchQuery;
-                        // Index must be per (key, value), not just key, so mixed values don't collide.
-                        const index = sameKeyRanges.filter((range) => range.value === rangeValue).length - 1;
-                        const substitutionBaseKey = `${fieldKey}:${rangeValue}`;
-                        const substitutionKey = index <= 0 ? substitutionBaseKey : `${substitutionBaseKey}:${index}`;
+                        const substitutionKey = getAutocompleteSelectionSubstitutionKey(newSearchQuery, fieldKey, item.mapKey, item.searchQuery);
                         const substitutions = {...autocompleteSubstitutions, [substitutionKey]: item.autocompleteID};
                         setAutocompleteSubstitutions(substitutions);
                     }

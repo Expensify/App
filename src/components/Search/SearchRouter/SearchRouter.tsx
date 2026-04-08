@@ -34,7 +34,6 @@ import {getReportAction} from '@libs/ReportActionsUtils';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getTrimmedUserSearchQueryPreservingComma} from '@libs/SearchAutocompleteUtils';
-import {parse as parseSearchQuery} from '@libs/SearchParser/autocompleteParser';
 import {getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 import Navigation from '@navigation/Navigation';
@@ -45,6 +44,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type Report from '@src/types/onyx/Report';
+import getAutocompleteSelectionSubstitutionKey from './getAutocompleteSelectionSubstitutionKey';
 import type {SubstitutionMap} from './getQueryWithSubstitutions';
 import {getQueryWithSubstitutions} from './getQueryWithSubstitutions';
 import {getUpdatedSubstitutionsMap} from './getUpdatedSubstitutionsMap';
@@ -280,14 +280,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     setSelection({start: newSearchQuery.length, end: newSearchQuery.length});
 
                     if (item.mapKey && item.autocompleteID && fieldKey) {
-                        const parsed = parseSearchQuery(newSearchQuery) as {ranges: Array<{key: string; value: string}>};
-                        const sameKeyRanges = parsed.ranges?.filter((r) => r.key === fieldKey) ?? [];
-                        const lastRange = sameKeyRanges.at(-1);
-                        const rangeValue = lastRange?.value ?? item.searchQuery;
-                        // Index must be per (key, value), not just key, so mixed values don't collide.
-                        const index = sameKeyRanges.filter((range) => range.value === rangeValue).length - 1;
-                        const substitutionBaseKey = `${fieldKey}:${rangeValue}`;
-                        const substitutionKey = index <= 0 ? substitutionBaseKey : `${substitutionBaseKey}:${index}`;
+                        const substitutionKey = getAutocompleteSelectionSubstitutionKey(newSearchQuery, fieldKey, item.mapKey, item.searchQuery);
                         const substitutions = {...autocompleteSubstitutions, [substitutionKey]: item.autocompleteID};
                         setAutocompleteSubstitutions(substitutions);
                     }

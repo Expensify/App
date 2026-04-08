@@ -89,4 +89,17 @@ describe('getQueryWithSubstitutions should compute and return correct new query'
 
         expect(result).toBe('foo in:wave2,zxcv123 from:zzzz');
     });
+
+    test('when query has duplicate workspace names with indexed substitution keys', () => {
+        const userTypedQuery = 'workspace:"Test Workspace","Test Workspace","Test Workspace"';
+        const substitutionsMock = {
+            'policyID:Test Workspace': 'policyA',
+            'policyID:Test Workspace:1': 'policyB',
+            'policyID:Test Workspace:2': 'policyC',
+        };
+
+        const result = getQueryWithSubstitutions(userTypedQuery, substitutionsMock);
+
+        expect(result).toBe('workspace:policyA,policyB,policyC');
+    });
 });
