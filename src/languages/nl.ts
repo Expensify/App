@@ -1070,15 +1070,12 @@ const translations: TranslationDeepObject<typeof en> = {
             if (!added && !updated) {
                 return 'Er zijn geen categorieën toegevoegd of bijgewerkt.';
             }
-
             if (added && updated) {
                 return `${added} ${added === 1 ? 'categorie' : 'categorieën'} toegevoegd, ${updated} ${updated === 1 ? 'categorie' : 'categorieën'} bijgewerkt.`;
             }
-
             if (added) {
                 return added === 1 ? '1 categorie is toegevoegd.' : `${added} categorieën zijn toegevoegd.`;
             }
-
             return updated === 1 ? '1 categorie is bijgewerkt.' : `${updated} categorieën zijn bijgewerkt.`;
         },
         importCompanyCardTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
@@ -6783,6 +6780,62 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
   • Geldoverschrijvingen  
 
 Voeg meer bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
+                },
+                addSpendRule: 'Uitgaveregel toevoegen',
+                cardPageTitle: 'Kaart',
+                cardsSectionTitle: 'Kaarten',
+                chooseCards: 'Kaarten kiezen',
+                saveRule: 'Regel opslaan',
+                allow: 'Toestaan',
+                spendRuleSectionTitle: 'Bestedingsregel',
+                restrictionType: 'Restrictietype',
+                restrictionTypeHelpAllow: 'Kosten worden goedgekeurd als ze overeenkomen met een handelaar of categorie en een maximumbedrag niet overschrijden.',
+                restrictionTypeHelpBlock: 'Betalingen worden geweigerd als ze overeenkomen met een handelaar of categorie, of een maximumbedrag overschrijden.',
+                addMerchant: 'Handelaar toevoegen',
+                merchantContains: 'Handelaar bevat',
+                merchantExactlyMatches: 'Handelaar komt exact overeen',
+                noBlockedMerchants: 'Geen geblokkeerde handelaren',
+                addMerchantToBlockSpend: 'Voeg een handelaar toe om uitgaven te blokkeren',
+                noAllowedMerchants: 'Geen toegestane handelaren',
+                addMerchantToAllowSpend: 'Voeg een handelaar toe om uitgaven toe te staan',
+                matchType: 'Overeenkomsttype',
+                matchTypeContains: 'Bevat',
+                matchTypeExact: 'Komt exact overeen',
+                spendCategory: 'Uitgavencategorie',
+                maxAmount: 'Maximumbedrag',
+                maxAmountHelp: 'Elke betaling boven dit bedrag wordt geweigerd, ongeacht beperkingen voor handelaar en uitgavencategorie.',
+                currencyMismatchTitle: 'Valutamismatch',
+                currencyMismatchPrompt: 'Om een maximumbedrag in te stellen, selecteer je kaarten die in dezelfde valuta worden vereffend.',
+                reviewSelectedCards: 'Geselecteerde kaarten bekijken',
+                summaryMoreCount: ({summary, count}: {summary: string; count: number}) => `${summary}, +${count} meer`,
+                confirmErrorApplyAtLeastOneSpendRuleToOneCard: 'Pas minstens één bestedingsregel toe op één kaart',
+                confirmErrorCardRequired: 'Kaart is een verplicht veld',
+                confirmErrorApplyAtLeastOneSpendRule: 'Pas minstens één bestedingsregel toe',
+                categories: 'Categorieën',
+                merchants: 'Handelaars',
+                max: 'Max',
+                categoryOptions: {
+                    [CONST.SPEND_RULES.CATEGORIES.AIRLINES]: 'Luchtvaartmaatschappijen',
+                    [CONST.SPEND_RULES.CATEGORIES.ALCOHOL_AND_BARS]: 'Alcohol en bars',
+                    [CONST.SPEND_RULES.CATEGORIES.AMAZON_AND_BOOKSTORES]: 'Amazon en boekhandels',
+                    [CONST.SPEND_RULES.CATEGORIES.AUTOMOTIVE]: 'Auto-industrie',
+                    [CONST.SPEND_RULES.CATEGORIES.CAR_RENTALS]: 'Autoverhuur',
+                    [CONST.SPEND_RULES.CATEGORIES.DINING]: 'Eten en drinken',
+                    [CONST.SPEND_RULES.CATEGORIES.FUEL_AND_GAS]: 'Brandstof en gas',
+                    [CONST.SPEND_RULES.CATEGORIES.GOVERNMENT_AND_NON_PROFITS]: 'Overheid en non-profitorganisaties',
+                    [CONST.SPEND_RULES.CATEGORIES.GROCERIES]: 'Boodschappen',
+                    [CONST.SPEND_RULES.CATEGORIES.GYMS_AND_FITNESS]: 'Sportscholen en fitness',
+                    [CONST.SPEND_RULES.CATEGORIES.HEALTHCARE]: 'Gezondheidszorg',
+                    [CONST.SPEND_RULES.CATEGORIES.HOTELS]: 'Hotels',
+                    [CONST.SPEND_RULES.CATEGORIES.INTERNET_AND_PHONE]: 'Internet en telefoon',
+                    [CONST.SPEND_RULES.CATEGORIES.OFFICE_SUPPLIES]: 'Kantoorbenodigdheden',
+                    [CONST.SPEND_RULES.CATEGORIES.PARKING_AND_TOLLS]: 'Parkeren en tol',
+                    [CONST.SPEND_RULES.CATEGORIES.PROFESSIONAL_SERVICES]: 'Professionele diensten',
+                    [CONST.SPEND_RULES.CATEGORIES.RETAIL]: 'Detailhandel',
+                    [CONST.SPEND_RULES.CATEGORIES.SHIPPING_AND_DELIVERY]: 'Verzending en levering',
+                    [CONST.SPEND_RULES.CATEGORIES.SOFTWARE]: 'Software',
+                    [CONST.SPEND_RULES.CATEGORIES.TRANSIT_AND_RIDESHARE]: 'Openbaar vervoer en ritdiensten',
+                    [CONST.SPEND_RULES.CATEGORIES.TRAVEL_AGENCIES]: 'Reisbureaus',
                 },
             },
         },

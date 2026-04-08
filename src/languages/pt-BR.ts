@@ -1069,15 +1069,12 @@ const translations: TranslationDeepObject<typeof en> = {
             if (!added && !updated) {
                 return 'Nenhuma categoria foi adicionada ou atualizada.';
             }
-
             if (added && updated) {
                 return `${added} ${added === 1 ? 'categoria' : 'categorias'} adicionada${added === 1 ? '' : 's'}, ${updated} ${updated === 1 ? 'categoria' : 'categorias'} atualizada${updated === 1 ? '' : 's'}.`;
             }
-
             if (added) {
                 return added === 1 ? '1 categoria foi adicionada.' : `${added} categorias foram adicionadas.`;
             }
-
             return updated === 1 ? '1 categoria foi atualizada.' : `${updated} categorias foram atualizadas.`;
         },
         importCompanyCardTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
@@ -6781,6 +6778,62 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
   • Transferências de dinheiro
 
 Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
+                },
+                addSpendRule: 'Adicionar regra de gasto',
+                cardPageTitle: 'Cartão',
+                cardsSectionTitle: 'Cartões',
+                chooseCards: 'Escolher cartões',
+                saveRule: 'Salvar regra',
+                allow: 'Permitir',
+                spendRuleSectionTitle: 'Regra de gasto',
+                restrictionType: 'Tipo de restrição',
+                restrictionTypeHelpAllow: 'As cobranças são aprovadas se corresponderem a qualquer comerciante ou categoria e não excederem um valor máximo.',
+                restrictionTypeHelpBlock: 'As cobranças são recusadas se corresponderem a qualquer estabelecimento ou categoria, ou se excederem um valor máximo.',
+                addMerchant: 'Adicionar comerciante',
+                merchantContains: 'Comerciante contém',
+                merchantExactlyMatches: 'Estabelecimento corresponde exatamente',
+                noBlockedMerchants: 'Nenhum comerciante bloqueado',
+                addMerchantToBlockSpend: 'Adicionar um comerciante para bloquear gastos',
+                noAllowedMerchants: 'Nenhum comerciante permitido',
+                addMerchantToAllowSpend: 'Adicione um comerciante para permitir gastos',
+                matchType: 'Tipo de correspondência',
+                matchTypeContains: 'Contém',
+                matchTypeExact: 'Corresponde exatamente',
+                spendCategory: 'Categoria de gasto',
+                maxAmount: 'Valor máximo',
+                maxAmountHelp: 'Qualquer cobrança acima desse valor será recusada, independentemente das restrições de estabelecimento e categoria de gasto.',
+                currencyMismatchTitle: 'Incompatibilidade de moeda',
+                currencyMismatchPrompt: 'Para definir um valor máximo, selecione cartões que liquidem na mesma moeda.',
+                reviewSelectedCards: 'Revisar cartões selecionados',
+                summaryMoreCount: ({summary, count}: {summary: string; count: number}) => `${summary}, +${count} mais`,
+                confirmErrorApplyAtLeastOneSpendRuleToOneCard: 'Aplicar pelo menos uma regra de gasto a um cartão',
+                confirmErrorCardRequired: 'O campo Cartão é obrigatório',
+                confirmErrorApplyAtLeastOneSpendRule: 'Aplicar pelo menos uma regra de gasto',
+                categories: 'Categorias',
+                merchants: 'Comerciantes',
+                max: 'Máx.',
+                categoryOptions: {
+                    [CONST.SPEND_RULES.CATEGORIES.AIRLINES]: 'Companhias aéreas',
+                    [CONST.SPEND_RULES.CATEGORIES.ALCOHOL_AND_BARS]: 'Álcool e bares',
+                    [CONST.SPEND_RULES.CATEGORIES.AMAZON_AND_BOOKSTORES]: 'Amazon e livrarias',
+                    [CONST.SPEND_RULES.CATEGORIES.AUTOMOTIVE]: 'Automotivo',
+                    [CONST.SPEND_RULES.CATEGORIES.CAR_RENTALS]: 'Aluguel de carros',
+                    [CONST.SPEND_RULES.CATEGORIES.DINING]: 'Refeições',
+                    [CONST.SPEND_RULES.CATEGORIES.FUEL_AND_GAS]: 'Combustível e gás',
+                    [CONST.SPEND_RULES.CATEGORIES.GOVERNMENT_AND_NON_PROFITS]: 'Governo e organizações sem fins lucrativos',
+                    [CONST.SPEND_RULES.CATEGORIES.GROCERIES]: 'Supermercado',
+                    [CONST.SPEND_RULES.CATEGORIES.GYMS_AND_FITNESS]: 'Academias e fitness',
+                    [CONST.SPEND_RULES.CATEGORIES.HEALTHCARE]: 'Saúde',
+                    [CONST.SPEND_RULES.CATEGORIES.HOTELS]: 'Hotéis',
+                    [CONST.SPEND_RULES.CATEGORIES.INTERNET_AND_PHONE]: 'Internet e telefone',
+                    [CONST.SPEND_RULES.CATEGORIES.OFFICE_SUPPLIES]: 'Material de escritório',
+                    [CONST.SPEND_RULES.CATEGORIES.PARKING_AND_TOLLS]: 'Estacionamento e pedágios',
+                    [CONST.SPEND_RULES.CATEGORIES.PROFESSIONAL_SERVICES]: 'Serviços profissionais',
+                    [CONST.SPEND_RULES.CATEGORIES.RETAIL]: 'Varejo',
+                    [CONST.SPEND_RULES.CATEGORIES.SHIPPING_AND_DELIVERY]: 'Envio e entrega',
+                    [CONST.SPEND_RULES.CATEGORIES.SOFTWARE]: 'Software',
+                    [CONST.SPEND_RULES.CATEGORIES.TRANSIT_AND_RIDESHARE]: 'Transporte público e carros de aplicativo',
+                    [CONST.SPEND_RULES.CATEGORIES.TRAVEL_AGENCIES]: 'Agências de viagens',
                 },
             },
         },
