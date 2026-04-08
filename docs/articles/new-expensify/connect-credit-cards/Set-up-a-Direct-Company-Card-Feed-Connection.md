@@ -26,11 +26,11 @@ Any Workspace Admin can set up a direct company card feed connection.
 
 ## How to set up a direct company card feed connection 
 
-1. Click the navigation tabs (on the left on web, on the bottom on mobile) and select **Workspaces > [Workspace name]**
+1. Click the navigation tabs (on the left on web, on the bottom on mobile) and select **Workspaces > [Workspace name]**.
 2. Choose **Company cards** to view your company’s card setup page.
- - If you don't see **Company cards**, enable the feature under **More features > Company cards**
+ - If you don't see **Company cards**, enable the feature under **More features > Company cards**.
 3. Click **Add cards** to set up your first connection.
-    -  If you don't see **Add cards**, click on your existing company card feed connection then **Add cards**
+    -  If you don't see **Add cards**, click on your existing company card feed connection then **Add cards**.
 4. Select the country your bank is located in and select **Next**.
 5. Choose **Direct feed** and select **Next**.
 6. Choose your bank from the list, or select **Other** to see additional banks supported by Plaid.
@@ -47,6 +47,16 @@ Any Workspace Admin can set up a direct company card feed connection.
 
 [Learn how to assign company cards](/articles/new-expensify/connect-credit-cards/How-to-assign-company-cards).
 
+--
+
+## What bank requirements affect company card connections
+
+Some banks have specific requirements for successful connections:
+
+ - **Chase:** Password must be 8–32 characters
+ - **Wells Fargo:** Password must be under 14 characters
+ - **SVB:** Enable Direct Connect and use a Direct Connect PIN instead of your online banking password
+   
 ---
 
 # FAQ
