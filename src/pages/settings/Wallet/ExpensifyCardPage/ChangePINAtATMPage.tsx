@@ -3,7 +3,7 @@ import OutcomeScreenBase from '@components/MultifactorAuthentication/components/
 import useLocalize from '@hooks/useLocalize';
 import variables from '@styles/variables';
 
-function ChangePINATMPage() {
+function ChangePINAtATMPage() {
     const {translate} = useLocalize();
 
     return (
@@ -18,6 +18,6 @@ function ChangePINATMPage() {
     );
 }
 
-ChangePINATMPage.displayName = 'ChangePINATMPage';
+ChangePINAtATMPage.displayName = 'ChangePINAtATMPage';
 
-export default ChangePINATMPage;
+export default ChangePINAtATMPage;
