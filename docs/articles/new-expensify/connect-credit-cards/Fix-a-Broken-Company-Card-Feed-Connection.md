@@ -74,7 +74,7 @@ When a company card connection is fixed, the card feed reconnects to your bank a
 
 If the company card feed connection continues to fail, you can connect your card using an alternative method.
 
-Expensify supports connecting company cards through Plaid as a fallback option. Learn how to set up a direct connection using Plaid in [Set up a Direct Company Card Feed Connection](/articles/new-expensify/connect-credit-cards/Set-up-a-Direct-Company-Card-Feed-Connection).
+Expensify supports connecting company cards through Plaid as a fallback option. [Learn how to set up a direct connection using Plaid](/articles/new-expensify/connect-credit-cards/Set-up-a-Direct-Company-Card-Feed-Connection).
 
 ---
 
