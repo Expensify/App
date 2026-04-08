@@ -1,35 +1,33 @@
-import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import type {ValueOf} from 'type-fest';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateQuickbooksOnlineExportDate} from '@libs/actions/connections/QuickbooksOnline';
 import {getLatestErrorField} from '@libs/ErrorUtils';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import {clearQBOErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 type CardListItem = ListItem & {
     value: ValueOf<typeof CONST.QUICKBOOKS_EXPORT_DATE>;
 };
-function QuickbooksExportDateSelectPage({policy}: WithPolicyConnectionsProps) {
+
+function DynamicQuickbooksExportDateSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
-    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT_DATE_SELECT>>();
-    const backTo = route.params.backTo;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_DATE_SELECT.path);
+
     const data: CardListItem[] = Object.values(CONST.QUICKBOOKS_EXPORT_DATE).map((dateType) => ({
         value: dateType,
         text: translate(`workspace.qbo.exportDate.values.${dateType}.label`),
@@ -41,8 +39,8 @@ function QuickbooksExportDateSelectPage({policy}: WithPolicyConnectionsProps) {
     const exportDate = useMemo(() => qboConfig?.exportDate, [qboConfig?.exportDate]);
 
     const goBack = useCallback(() => {
-        Navigation.goBack(backTo ?? ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID));
-    }, [policyID, backTo]);
+        Navigation.goBack(backPath || ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID));
+    }, [policyID, backPath]);
 
     const selectExportDate = useCallback(
         (row: CardListItem) => {
@@ -77,4 +75,4 @@ function QuickbooksExportDateSelectPage({policy}: WithPolicyConnectionsProps) {
     );
 }
 
-export default withPolicyConnections(QuickbooksExportDateSelectPage);
+export default withPolicyConnections(DynamicQuickbooksExportDateSelectPage);
