@@ -34,9 +34,33 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  validate:
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    steps:
+      - name: Validate PR URL
+        if: ${{ inputs.PULL_REQUEST_URL != '' }}
+        run: |
+          if [[ "${{ inputs.PULL_REQUEST_URL }}" != *"github.com"* ]]; then
+            echo "::error::❌ Invalid PR URL: ${{ inputs.PULL_REQUEST_URL }}"
+            exit 1
+          else
+            echo "PR URL is valid: ${{ inputs.PULL_REQUEST_URL }}"
+          fi
+
+      - name: Verify PR is merged
+        if: ${{ inputs.PULL_REQUEST_URL != '' }}
+        run: |
+          if [[ gh pr view "${{  inputs.PULL_REQUEST_URL }}" --json mergedAt | jq --exit-status '.mergedAt' ]]; then
+            echo "PR is merged: ${{ inputs.PULL_REQUEST_URL }}"
+          else
+            echo "::error::❌ PR is not merged: ${{ inputs.PULL_REQUEST_URL }}"
+            exit 1
+          fi
+
   createNewVersion:
     uses: ./.github/workflows/createNewVersion.yml
     secrets: inherit
+    needs: [validate]
     with:
       # In order to submit a new build for production review, it must have a higher PATCH version than the previously-submitted build.
       # The typical case is that with each staging deploy, we bump the BUILD version, and with each prod deploy we bump the PATCH version.
@@ -58,14 +82,6 @@ jobs:
         run: |
           echo "REPO_FULL_NAME=$(echo '${{ inputs.PULL_REQUEST_URL }}' | sed -E 's|https?://github.com/([^/]+/[^/]+)/pull/.*|\1|')" >> "$GITHUB_OUTPUT"
           echo "PR_NUMBER=$(echo '${{ inputs.PULL_REQUEST_URL }}' | sed -E 's|.*/pull/([0-9]+).*|\1|')" >> "$GITHUB_OUTPUT"
-
-      - name: Verify pull request URL
-        if: ${{ inputs.PULL_REQUEST_URL != '' }}
-        run: |
-          if [[ "${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}" != ${{ github.repository }} ]] && [[ ! "${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}" =~ Expensify/Mobile-Expensify* ]]; then
-            echo "::error::❌ Cherry picks are only supported for the Expensify/App and Expensify/Mobile-Expensify repositories. Found: ${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}"
-            exit 1
-          fi
 
       - name: Set conflict branch name
         if: ${{ inputs.PULL_REQUEST_URL != '' }}
