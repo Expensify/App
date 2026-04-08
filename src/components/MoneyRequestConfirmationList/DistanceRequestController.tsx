@@ -197,11 +197,9 @@ function DistanceRequestController({
         translate,
         toLocaleDigit,
         isDistanceRequest,
-        isPolicyExpenseChat,
         transaction,
         transactionID,
         isReadOnly,
-        isMovingTransactionFromTrackExpense,
         getCurrencySymbol,
         isManualDistanceRequest,
     ]);
