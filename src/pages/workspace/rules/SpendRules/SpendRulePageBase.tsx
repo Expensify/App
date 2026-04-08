@@ -20,6 +20,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import type {SpendRuleCategory} from '@src/types/form/SpendRuleForm';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -103,7 +104,7 @@ function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps)
         return getTruncatedSpendRuleSummary(merchantNamesToSummarize, (summary, count) => translate('workspace.rules.spendRules.summaryMoreCount', {summary, count}));
     }
 
-    function getCategoryMenuTitle(categoriesToSummarize: string[] | undefined): string {
+    function getCategoryMenuTitle(categoriesToSummarize: SpendRuleCategory[] | undefined): string {
         return getTruncatedSpendRuleSummary(
             categoriesToSummarize?.map((category) => translate(`workspace.rules.spendRules.categoryOptions.${category}`)),
             (summary, count) => translate('workspace.rules.spendRules.summaryMoreCount', {summary, count}),
