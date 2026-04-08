@@ -16,7 +16,6 @@ import useTransactionsAndViolationsForReport from './useTransactionsAndViolation
 type UseReportActionsVisibilityResult = {
     visibleReportActions: ReportAction[];
     mostRecentIOUReportActionID: string | null;
-    isOffline: boolean;
     isConciergeSidePanel: boolean;
     hasPreviousMessages: boolean;
     showConciergeSidePanelWelcome: boolean;
@@ -89,7 +88,6 @@ function useReportActionsVisibility(
     return {
         visibleReportActions,
         mostRecentIOUReportActionID: getMostRecentIOURequestActionID(reportActions),
-        isOffline,
         isConciergeSidePanel,
         hasPreviousMessages: concierge.hasPreviousMessages,
         showConciergeSidePanelWelcome: concierge.showConciergeSidePanelWelcome,

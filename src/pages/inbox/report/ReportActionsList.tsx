@@ -5,7 +5,6 @@ import {tierNameSelector} from '@selectors/UserWallet';
 import React, {useContext, useEffect, useRef, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
 import InvertedFlatList from '@components/FlatList/InvertedFlatList';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -15,6 +14,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLoadReportActions from '@hooks/useLoadReportActions';
 import useLocalize from '@hooks/useLocalize';
 import useMarkAsRead from '@hooks/useMarkAsRead';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
 import usePendingConciergeResponse from '@hooks/usePendingConciergeResponse';
@@ -82,8 +82,6 @@ function keyExtractor(item: OnyxTypes.ReportAction): string {
 
 const onScrollToIndexFailed = () => {};
 
-const selectNetworkOffline = (network: OnyxEntry<OnyxTypes.Network>) => ({isOffline: !!network?.isOffline});
-
 function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
     // ─── Side effects ───
     useCopySelectionHelper();
@@ -98,8 +96,7 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
     const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
 
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
-    const [networkState] = useOnyx(ONYXKEYS.NETWORK, {selector: selectNetworkOffline});
-    const isOffline = !!networkState?.isOffline;
+    const {isOffline} = useNetwork();
 
     // ─── Pipeline: pagination → load → visibility ───
     const pagination = useReportActionsPagination(reportID);
@@ -155,7 +152,7 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
         shouldScrollToEndAfterLayout,
         setShouldScrollToEndAfterLayout,
         shouldFocusToTopOnMount,
-        isOffline: visibility.isOffline,
+        isOffline,
         hasOnceLoadedReportActions: !!reportMetadata?.hasOnceLoadedReportActions,
         onLayout,
     });
@@ -204,8 +201,8 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
     // ═══════════════════════════════════════════════════════
 
     // ─── Derived values for renderItem ───
-    const shouldHideThreadDividerLine = getFirstVisibleReportActionID(pagination.reportActions, visibility.isOffline) === unreadMarkerReportActionID;
-    const firstVisibleReportActionID = getFirstVisibleReportActionID(pagination.reportActions, visibility.isOffline);
+    const shouldHideThreadDividerLine = getFirstVisibleReportActionID(pagination.reportActions, isOffline) === unreadMarkerReportActionID;
+    const firstVisibleReportActionID = getFirstVisibleReportActionID(pagination.reportActions, isOffline);
 
     let shouldUseThreadDividerLine = false;
     const topReport = sortedVisibleReportActions.length > 0 ? sortedVisibleReportActions.at(sortedVisibleReportActions.length - 1) : null;
@@ -229,7 +226,7 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
     const numToRender = Math.ceil(availableHeight / minimumReportActionHeight);
 
     let initialNumToRender: number | undefined;
-    if (shouldScrollToEndAfterLayout && (!pagination.shouldAddCreatedAction || visibility.isOffline)) {
+    if (shouldScrollToEndAfterLayout && (!pagination.shouldAddCreatedAction || isOffline)) {
         initialNumToRender = sortedVisibleReportActions.length;
     } else if (linkedReportActionID) {
         initialNumToRender = getInitialNumToRender(numToRender);
@@ -241,7 +238,7 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
     const isLoadingInitialReportActions = reportMetadata?.isLoadingInitialReportActions;
     const isMissingReportActions = sortedVisibleReportActions.length === 0;
 
-    const shouldShowSkeleton = isLoadingInitialReportActions && isMissingReportActions && !visibility.isOffline;
+    const shouldShowSkeleton = isLoadingInitialReportActions && isMissingReportActions && !isOffline;
 
     useEffect(() => {
         if (!shouldShowSkeleton || !report) {
@@ -264,7 +261,7 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
     const topReportAction = sortedVisibleReportActions.at(-1);
 
     // ─── Offline footer skeleton ───
-    const shouldShowOfflineSkeleton = visibility.isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
+    const shouldShowOfflineSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
 
     // ─── extraData for native re-render ───
     const extraData = [shouldUseNarrowLayout ? unreadMarkerReportActionID : undefined];
@@ -290,8 +287,8 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
                     transactionThreadReport={pagination.transactionThreadReport}
                     linkedReportActionID={linkedReportActionID}
                     displayAsGroup={
-                        !isConsecutiveChronosAutomaticTimerAction(sortedVisibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID), visibility.isOffline) &&
-                        isConsecutiveActionMadeByPreviousActor(sortedVisibleReportActions, index, visibility.isOffline)
+                        !isConsecutiveChronosAutomaticTimerAction(sortedVisibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
+                        isConsecutiveActionMadeByPreviousActor(sortedVisibleReportActions, index, isOffline)
                     }
                     shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                     shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
