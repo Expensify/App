@@ -1151,12 +1151,12 @@ describe('ReportActionsUtils', () => {
         });
 
         it('should return false for a deleted IOU report action', () => {
-            const result = ReportActionsUtils.hasRequestFromCurrentAccount(deletedIOUReportID, currentUserAccountID);
+            const result = ReportActionsUtils.hasRequestFromCurrentAccount(deletedIOUReportID, currentUserAccountID, undefined);
             expect(result).toBe(false);
         });
 
         it('should return true for an active IOU report action', () => {
-            const result = ReportActionsUtils.hasRequestFromCurrentAccount(activeIOUReportID, currentUserAccountID);
+            const result = ReportActionsUtils.hasRequestFromCurrentAccount(activeIOUReportID, currentUserAccountID, undefined);
             expect(result).toBe(true);
         });
 
@@ -1182,8 +1182,12 @@ describe('ReportActionsUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionFromCurrentUser.transactionID}`, transactionFromCurrentUser);
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionFromOtherUser.transactionID}`, transactionFromOtherUser);
 
+            const allReportsData = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${unloadedActionsReportID}`]: iouReport,
+            };
+
             // Then: should return true
-            let result = ReportActionsUtils.hasRequestFromCurrentAccount(unloadedActionsReportID, currentUserAccountID);
+            let result = ReportActionsUtils.hasRequestFromCurrentAccount(unloadedActionsReportID, currentUserAccountID, allReportsData);
             expect(result).toBe(true);
 
             // When: all transactions from the current user account have been deleted
@@ -1193,7 +1197,7 @@ describe('ReportActionsUtils', () => {
             });
 
             // Then: should return false
-            result = ReportActionsUtils.hasRequestFromCurrentAccount(unloadedActionsReportID, currentUserAccountID);
+            result = ReportActionsUtils.hasRequestFromCurrentAccount(unloadedActionsReportID, currentUserAccountID, allReportsData);
             expect(result).toBe(false);
         });
 

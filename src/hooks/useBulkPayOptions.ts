@@ -65,6 +65,7 @@ function useBulkPayOptions({
     const paymentMethods = useSettlementButtonPaymentMethods(hasActivatedWallet, translate);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`);
     const {isBetaEnabled} = usePermissions();
@@ -74,7 +75,8 @@ function useBulkPayOptions({
     const isExpenseReport = isExpenseReportUtil(selectedReportID);
     const isInvoiceReport = isInvoiceReportUtil(selectedReportID);
     const shouldShowPayElsewhereOption = !isInvoiceReport;
-    const canUseBusinessBankAccount = isExpenseReport || (isIOUReport && selectedReportID && !hasRequestFromCurrentAccount(selectedReportID, accountID ?? CONST.DEFAULT_NUMBER_ID));
+    const canUseBusinessBankAccount =
+        isExpenseReport || (isIOUReport && selectedReportID && !hasRequestFromCurrentAccount(selectedReportID, accountID ?? CONST.DEFAULT_NUMBER_ID, allReports));
     const canUsePersonalBankAccount = isIOUReport;
     const isPersonalOnlyOption = canUsePersonalBankAccount && !canUseBusinessBankAccount;
     const shouldShowBusinessBankAccountOptions = isExpenseReport && !isPersonalOnlyOption;

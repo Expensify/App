@@ -1018,13 +1018,13 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
             return [];
         }
 
-        const canUseBusinessBankAccount = moneyRequestReport?.reportID && !hasRequestFromCurrentAccount(moneyRequestReport.reportID, accountID ?? CONST.DEFAULT_NUMBER_ID);
+        const canUseBusinessBankAccount = moneyRequestReport?.reportID && !hasRequestFromCurrentAccount(moneyRequestReport.reportID, accountID ?? CONST.DEFAULT_NUMBER_ID, allReports);
         if (!canUseBusinessBankAccount) {
             return [];
         }
 
         return sortPoliciesByName(activeAdminPolicies, localeCompare);
-    }, [moneyRequestReport, paymentButtonOptions, activeAdminPolicies, accountID, localeCompare]);
+    }, [moneyRequestReport, paymentButtonOptions, activeAdminPolicies, accountID, allReports, localeCompare]);
 
     const buildPaymentSubMenuItems = useCallback(
         (onWorkspaceSelected: (workspacePolicy: OnyxTypes.Policy) => void): PopoverMenuItem[] => {
