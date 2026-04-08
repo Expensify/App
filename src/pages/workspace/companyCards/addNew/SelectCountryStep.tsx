@@ -9,12 +9,14 @@ import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import Text from '@components/Text';
 import {useCurrencyListState} from '@hooks/useCurrencyList';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useInitialSelection from '@hooks/useInitialSelection';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getPlaidCountry, isPlaidSupportedCountry} from '@libs/CardUtils';
 import searchOptions from '@libs/searchOptions';
+import {moveInitialSelectionToTopByValue} from '@libs/SelectionListOrderUtils';
 import StringUtils from '@libs/StringUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
@@ -42,6 +44,9 @@ function SelectCountryStep({policyID}: CountryStepProps) {
 
     const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
     const currentCountry = selectedCountry ?? addNewCard?.data?.selectedCountry ?? getPlaidCountry(policy?.outputCurrency, currencyList, countryByIp);
+    const initialSelectedValue = useInitialSelection(currentCountry || undefined, {resetOnFocus: true});
+    const initialSelectedValues = initialSelectedValue ? [initialSelectedValue] : [];
+    const initiallyFocusedCountry = initialSelectedValue;
 
     const [hasError, setHasError] = useState(false);
     const doesCountrySupportPlaid = isPlaidSupportedCountry(currentCountry);
@@ -84,8 +89,9 @@ function SelectCountryStep({policyID}: CountryStepProps) {
                 searchValue: StringUtils.sanitizeString(`${countryISO}${countryName}`),
             };
         });
-
-    const searchResults = searchOptions(debouncedSearchValue, countries);
+    const orderedCountries = moveInitialSelectionToTopByValue(countries, initialSelectedValues);
+    const filteredCountries = searchOptions(debouncedSearchValue, debouncedSearchValue ? countries : orderedCountries);
+    const searchResults = filteredCountries.map((country) => ({...country, isSelected: currentCountry === country.value}));
     const headerMessage = debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
 
     const textInputOptions = {
@@ -121,11 +127,13 @@ function SelectCountryStep({policyID}: CountryStepProps) {
                     setSelectedCountry(countryOption.value ?? null);
                 }}
                 textInputOptions={textInputOptions}
+                searchValueForFocusSync={debouncedSearchValue}
                 confirmButtonOptions={confirmButtonOptions}
-                initiallyFocusedItemKey={currentCountry}
+                initiallyFocusedItemKey={initiallyFocusedCountry}
                 disableMaintainingScrollPosition
                 shouldSingleExecuteRowSelect
-                shouldUpdateFocusedIndex
+                shouldScrollToFocusedIndex={false}
+                shouldScrollToFocusedIndexOnMount={false}
                 addBottomSafeAreaPadding
                 shouldStopPropagation
             >
