@@ -540,13 +540,14 @@ function MoneyRequestConfirmationListFooter({
     // For local files: use the pre-generated thumbnail if it was ready by first render.
     // If the thumbnail arrives late we keep showing the full-res image to avoid a
     // visible source swap (flash).  For remote files: existing behavior unchanged.
-    const initialLocalSourceRef = useRef<string | undefined>(undefined);
-    if (isLocalFile && initialLocalSourceRef.current === undefined) {
+    const resolvedReceiptImageStr = resolvedReceiptImage != null ? String(resolvedReceiptImage) : undefined;
+    const initialLocalSourceRef = useRef<{source: string | undefined; resolvedImage: string | undefined}>({source: undefined, resolvedImage: undefined});
+    if (isLocalFile && (initialLocalSourceRef.current.source === undefined || initialLocalSourceRef.current.resolvedImage !== resolvedReceiptImageStr)) {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        initialLocalSourceRef.current = thumbnailUri || String(resolvedReceiptImage ?? '') || '';
+        initialLocalSourceRef.current = {source: thumbnailUri || resolvedReceiptImageStr || '', resolvedImage: resolvedReceiptImageStr};
     }
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const effectiveReceiptSource = isLocalFile ? initialLocalSourceRef.current || '' : resolvedThumbnail || resolvedReceiptImage || '';
+    const effectiveReceiptSource = isLocalFile ? initialLocalSourceRef.current.source || '' : resolvedThumbnail || resolvedReceiptImage || '';
 
     const shouldNavigateToUpgradePath = !policyForMovingExpensesID && !shouldSelectPolicy;
     // Time requests appear as regular expenses after they're created, with editable amount and merchant, not hours and rate
