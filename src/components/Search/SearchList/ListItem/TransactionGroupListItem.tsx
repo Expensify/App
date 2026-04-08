@@ -1,5 +1,5 @@
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 // Use the original useOnyx hook to get the real-time data from Onyx and not from the snapshot
@@ -157,7 +157,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const shouldDisplayEmptyView = isEmpty && isExpenseReportType;
     const isDisabledOrEmpty = isEmpty || isDisabled;
 
-    const refreshTransactions = useCallback(() => {
+    const refreshTransactions = () => {
         if (!groupItem.transactionsQueryJSON) {
             return;
         }
@@ -170,26 +170,23 @@ function TransactionGroupListItem<TItem extends ListItem>({
             isLoading: !!transactionsSnapshot?.search?.isLoading,
             isOffline,
         });
-    }, [groupItem.transactionsQueryJSON, isOffline, transactionsSnapshot?.search?.isLoading]);
+    };
 
     // Search transactions for pagination (current offset + pageSize)
-    const searchTransactions = useCallback(
-        (pageSize = 0) => {
-            if (!groupItem.transactionsQueryJSON) {
-                return;
-            }
+    const searchTransactions = (pageSize = 0) => {
+        if (!groupItem.transactionsQueryJSON) {
+            return;
+        }
 
-            search({
-                queryJSON: groupItem.transactionsQueryJSON,
-                searchKey: undefined,
-                offset: (transactionsSnapshot?.search?.offset ?? 0) + pageSize,
-                shouldCalculateTotals: false,
-                isLoading: !!transactionsSnapshot?.search?.isLoading,
-                isOffline,
-            });
-        },
-        [groupItem.transactionsQueryJSON, isOffline, transactionsSnapshot?.search?.isLoading, transactionsSnapshot?.search?.offset],
-    );
+        search({
+            queryJSON: groupItem.transactionsQueryJSON,
+            searchKey: undefined,
+            offset: (transactionsSnapshot?.search?.offset ?? 0) + pageSize,
+            shouldCalculateTotals: false,
+            isLoading: !!transactionsSnapshot?.search?.isLoading,
+            isOffline,
+        });
+    };
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: variables.componentBorderRadius,
@@ -209,8 +206,19 @@ function TransactionGroupListItem<TItem extends ListItem>({
         if (!newTransactionID || !isExpanded) {
             return;
         }
-        refreshTransactions();
-    }, [newTransactionID, isExpanded, refreshTransactions]);
+        if (!groupItem.transactionsQueryJSON) {
+            return;
+        }
+
+        search({
+            queryJSON: groupItem.transactionsQueryJSON,
+            searchKey: undefined,
+            offset: 0,
+            shouldCalculateTotals: false,
+            isLoading: !!transactionsSnapshot?.search?.isLoading,
+            isOffline,
+        });
+    }, [newTransactionID, isExpanded, groupItem.transactionsQueryJSON, isOffline, transactionsSnapshot?.search?.isLoading]);
 
     const wasScreenFocusedRef = useRef(isScreenFocused);
     useEffect(() => {
@@ -222,8 +230,19 @@ function TransactionGroupListItem<TItem extends ListItem>({
         }
 
         // Keep expanded group rows in sync with updated grouped totals after returning from RHP flows.
-        refreshTransactions();
-    }, [isScreenFocused, isExpanded, isExpenseReportType, refreshTransactions]);
+        if (!groupItem.transactionsQueryJSON) {
+            return;
+        }
+
+        search({
+            queryJSON: groupItem.transactionsQueryJSON,
+            searchKey: undefined,
+            offset: 0,
+            shouldCalculateTotals: false,
+            isLoading: !!transactionsSnapshot?.search?.isLoading,
+            isOffline,
+        });
+    }, [isScreenFocused, isExpanded, isExpenseReportType, groupItem.transactionsQueryJSON, isOffline, transactionsSnapshot?.search?.isLoading]);
 
     const handleToggle = () => {
         setIsExpanded((prev) => {
