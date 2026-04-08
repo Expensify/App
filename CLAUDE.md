@@ -183,6 +183,9 @@ The skill provides guidance on:
 - **Build Compliance**: Android 16KB page alignment (Google Play requirement)
 - **Platform Tooling**: Xcode/Android Studio profiling and debugging setup
 
+### React Compiler
+React Compiler is enabled (`babel.config.js`) and auto-memoizes components/hooks. New files must be fully compliant - no manual `useMemo`/`useCallback`/`React.memo`. After editing any React component, verify it compiles with `npm run react-compiler-compliance-check check <file>`. If it fails, fix the issue (see `contributingGuides/REACT_COMPILER.md`) or prompt the user.
+
 ### Code Quality
 - **TypeScript**: Strict mode enabled
 - **ESLint**: Linter
