@@ -42,7 +42,7 @@ jest.mock('@userActions/TransactionEdit', () => ({
     buildOptimisticTransactionAndCreateDraft: (...args: unknown[]) => mockBuildOptimisticTransactionAndCreateDraft(...args),
 }));
 
-jest.mock('@userActions/IOU', () => ({
+jest.mock('@userActions/IOU/Receipt', () => ({
     setMoneyRequestReceipt: (...args: unknown[]) => mockSetMoneyRequestReceipt(...args),
 }));
 
