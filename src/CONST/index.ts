@@ -9045,8 +9045,11 @@ const CONST = {
         },
         CALENDAR_PICKER: {
             YEAR_PICKER: 'CalendarPicker-YearPicker',
+            MONTH_PICKER: 'CalendarPicker-MonthPicker',
             PREV_MONTH: 'CalendarPicker-PrevMonth',
             NEXT_MONTH: 'CalendarPicker-NextMonth',
+            PREV_YEAR: 'CalendarPicker-PrevYear',
+            NEXT_YEAR: 'CalendarPicker-NextYear',
             DAY: 'CalendarPicker-Day',
         },
         PREV_NEXT_BUTTONS: {
