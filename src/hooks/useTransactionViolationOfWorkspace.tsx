@@ -1,14 +1,16 @@
 import {useCallback} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import {extractCollectionItemID} from '@libs/CollectionUtils';
-import {getReportTransactions, isChatRoom, isPolicyExpenseChat, isPolicyRelatedReport, isTaskReport} from '@libs/ReportUtils';
+import {isChatRoom, isPolicyExpenseChat, isPolicyRelatedReport, isTaskReport} from '@libs/ReportUtils';
 import type {OnyxCollectionKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {transactionsByReportIDSelector} from '@src/selectors/Transaction';
 import type {Report, TransactionViolations} from '@src/types/onyx';
 import useOnyx from './useOnyx';
 
 function useTransactionViolationOfWorkspace(policyID?: string) {
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [transactionsByReportID] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {selector: transactionsByReportIDSelector});
     const reportsToArchive = Object.values(allReports ?? {}).filter(
         (report): report is Report => report != null && isPolicyRelatedReport(report, policyID) && (isChatRoom(report) || isPolicyExpenseChat(report) || isTaskReport(report)),
     );
@@ -17,7 +19,7 @@ function useTransactionViolationOfWorkspace(policyID?: string) {
         if (!report?.iouReportID) {
             continue;
         }
-        const reportTransactions = getReportTransactions(report.iouReportID);
+        const reportTransactions = transactionsByReportID?.[report.iouReportID] ?? [];
         for (const transaction of reportTransactions) {
             transactionIDSet.add(transaction.transactionID);
         }
