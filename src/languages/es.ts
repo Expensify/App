@@ -41,6 +41,10 @@ const translations: TranslationDeepObject<typeof en> = {
         next: 'Siguiente',
         create: 'Crear',
         previous: 'Anterior',
+        previousMonth: 'Mes anterior',
+        nextMonth: 'Próximo mes',
+        previousYear: 'Año anterior',
+        nextYear: 'Próximo año',
         goBack: 'Volver',
         add: 'Añadir',
         resend: 'Reenviar',
@@ -3160,6 +3164,10 @@ ${amount} para ${merchant} - ${date}`,
     yearPickerPage: {
         year: 'Año',
         selectYear: 'Por favor, selecciona un año',
+    },
+    monthPickerPage: {
+        month: 'Mes',
+        selectMonth: 'Por favor, selecciona un mes',
     },
     focusModeUpdateModal: {
         title: '¡Bienvenido al modo #concentración!',

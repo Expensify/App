@@ -507,6 +507,10 @@ const translations: TranslationDeepObject<typeof en> = {
         approver: 'Approbateur',
         enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `saisir le chiffre ${digitIndex} sur ${totalDigits}`,
         copyOfReportName: (reportName: string) => `Copie de ${reportName}`,
+        previousMonth: 'Mois précédent',
+        nextMonth: 'Le mois prochain',
+        previousYear: 'Année précédente',
+        nextYear: 'L’an prochain',
     },
     socials: {
         podcast: 'Suivez-nous sur Podcast',
@@ -9017,5 +9021,6 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         positiveButton: 'Oui !',
         negativeButton: 'Pas vraiment',
     },
+    monthPickerPage: {month: 'Mois', selectMonth: 'Veuillez sélectionner un mois'},
 };
 export default translations;

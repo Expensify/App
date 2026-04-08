@@ -506,6 +506,10 @@ const translations: TranslationDeepObject<typeof en> = {
         approver: '承認者',
         enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `${totalDigits}桁中${digitIndex}桁目を入力`,
         copyOfReportName: (reportName: string) => `${reportName} のコピー`,
+        previousMonth: '前月',
+        nextMonth: '来月',
+        previousYear: '前年',
+        nextYear: '来年',
     },
     socials: {
         podcast: 'ポッドキャストでフォロー',
@@ -8870,5 +8874,6 @@ ${reportName}
         positiveButton: 'やった！',
         negativeButton: 'そうでもありません',
     },
+    monthPickerPage: {month: '月', selectMonth: '月を選択してください'},
 };
 export default translations;
