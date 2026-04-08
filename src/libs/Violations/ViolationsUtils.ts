@@ -542,7 +542,7 @@ const ViolationsUtils = {
             isAttendeeTrackingEnabled &&
             !!policyCategories?.[categoryName ?? '']?.areAttendeesRequired &&
             isControlPolicy &&
-            (attendees.length === 0 || attendeesMinusOwnerCount === 0);
+            (attendees.length < 2 || attendeesMinusOwnerCount === 0);
 
         const hasFutureDateViolation = transactionViolations.some((violation) => violation.name === 'futureDate');
         // Add 'futureDate' violation if transaction date is in the future and policy type is corporate

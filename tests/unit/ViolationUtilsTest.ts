@@ -929,6 +929,14 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).toEqual(expect.arrayContaining([missingAttendeesViolation]));
         });
 
+        it('should add missingAttendees violation when there is only one non-owner attendee (total < 2)', () => {
+            transaction.comment = {
+                attendees: [{email: 'other@example.com', displayName: 'Other', avatarUrl: '', accountID: otherAccountID}],
+            };
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false, false, iouReport);
+            expect(result.value).toEqual(expect.arrayContaining([missingAttendeesViolation]));
+        });
+
         it('should not add missingAttendees violation when there is at least one non-owner attendee', () => {
             transaction.comment = {
                 attendees: [

@@ -56,7 +56,7 @@ function getIsMissingAttendeesViolation(
         return attendeeIdentifier !== creatorLogin && attendeeIdentifier !== creatorEmail;
     }).length;
 
-    if (attendees.length === 0 || attendeesMinusCreatorCount === 0) {
+    if (attendees.length < 2 || attendeesMinusCreatorCount === 0) {
         return true;
     }
 
