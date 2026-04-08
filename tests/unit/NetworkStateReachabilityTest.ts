@@ -1,4 +1,5 @@
 import type {NetInfoState} from '@react-native-community/netinfo';
+import type * as NetworkState from '@src/libs/NetworkState';
 
 let netInfoListener: ((state: NetInfoState) => void) | null = null;
 
@@ -33,15 +34,15 @@ function fireNetInfoState(overrides: Partial<NetInfoState>) {
 }
 
 describe('NetworkState — reachability recovery triggers reconnect', () => {
-    let onReachabilityConfirmed: typeof import('@src/libs/NetworkState').onReachabilityConfirmed;
-    let setForceOffline: typeof import('@src/libs/NetworkState').setForceOffline;
+    let onReachabilityConfirmed: typeof NetworkState.onReachabilityConfirmed;
+    let setForceOffline: typeof NetworkState.setForceOffline;
 
     beforeEach(() => {
         jest.resetModules();
         netInfoListener = null;
 
         // Fresh import each test so prevIsInternetReachable resets
-        const mod = require<typeof import('@src/libs/NetworkState')>('@src/libs/NetworkState');
+        const mod = require<typeof NetworkState>('@src/libs/NetworkState');
         onReachabilityConfirmed = mod.onReachabilityConfirmed;
         setForceOffline = mod.setForceOffline;
     });
