@@ -204,7 +204,7 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
                 >
                     <HeaderWithBackButton
                         title={translate('workspace.rules.spendRules.cardPageTitle')}
-                        onBackButtonPress={() => Navigation.goBack(ROUTES.RULES_SPEND_NEW.getRoute(policyID))}
+                        onBackButtonPress={() => Navigation.goBack(parentRoute)}
                     />
                     <SelectionList
                         canSelectMultiple

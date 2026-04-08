@@ -153,7 +153,7 @@ function SpendRulePageBase({policyID, ruleID, titleKey, testID}: SpendRulePageBa
         }
 
         clearError();
-        setExpensifyCardRule(domainAccountID, isEditing ? currentRuleID : rand64(), spendRuleForm);
+        setExpensifyCardRule(domainAccountID, isEditing ? currentRuleID : rand64(), spendRuleForm, existingRule);
         clearDraftSpendRule();
         Navigation.goBack();
     };

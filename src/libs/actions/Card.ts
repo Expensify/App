@@ -1709,7 +1709,7 @@ function getSpendRuleFormValuesFromCardRule(cardRule: ExpensifyCardRule): SpendR
     return formValues;
 }
 
-function setExpensifyCardRule(domainAccountID: number, cardRuleID: string, spendRuleValues: SpendRuleForm) {
+function setExpensifyCardRule(domainAccountID: number, cardRuleID: string, spendRuleValues: SpendRuleForm, previousRule?: ExpensifyCardRule) {
     const ruleID = cardRuleID;
     const ruleAST = buildSpendRuleAST(spendRuleValues);
     if (!ruleAST) {
@@ -1734,7 +1734,7 @@ function setExpensifyCardRule(domainAccountID: number, cardRuleID: string, spend
             key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`,
             value: {
                 cardRules: {
-                    [ruleID]: null,
+                    [ruleID]: previousRule ?? null,
                 },
             },
         },
