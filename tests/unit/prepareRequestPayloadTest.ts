@@ -1,13 +1,5 @@
 import prepareRequestPayload from '@libs/prepareRequestPayload';
 
-beforeAll(() => {
-    jest.useRealTimers();
-});
-
-afterAll(() => {
-    jest.useFakeTimers();
-});
-
 describe('prepareRequestPayload', () => {
     it('should append string values to FormData', async () => {
         const formData = await prepareRequestPayload('TestCommand', {authToken: 'abc123', email: 'test@example.com'}, false);
