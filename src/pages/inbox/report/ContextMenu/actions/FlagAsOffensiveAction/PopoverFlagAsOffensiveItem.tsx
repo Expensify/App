@@ -5,6 +5,7 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -31,17 +32,19 @@ export default function PopoverFlagAsOffensiveItem({reportID, reportAction, hide
         <FocusableMenuItem
             title={translate('reportActionContextMenu.flagAsOffensive')}
             icon={icons.Flag}
-            onPress={() => {
-                if (!reportID) {
-                    return;
-                }
-                const activeRoute = Navigation.getActiveRoute();
-                hideAndRun(() => {
-                    KeyboardUtils.dismiss().then(() => {
-                        Navigation.navigate(ROUTES.FLAG_COMMENT.getRoute(reportID, reportAction?.reportActionID, activeRoute));
+            onPress={() =>
+                interceptAnonymousUser(() => {
+                    if (!reportID) {
+                        return;
+                    }
+                    const activeRoute = Navigation.getActiveRoute();
+                    hideAndRun(() => {
+                        KeyboardUtils.dismiss().then(() => {
+                            Navigation.navigate(ROUTES.FLAG_COMMENT.getRoute(reportID, reportAction?.reportActionID, activeRoute));
+                        });
                     });
-                });
-            }}
+                })
+            }
             wrapperStyle={[styles.pr8]}
             style={StyleUtils.getContextMenuItemStyles(windowWidth)}
             focused={isFocused}

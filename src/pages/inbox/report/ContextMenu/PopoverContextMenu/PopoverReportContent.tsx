@@ -5,6 +5,7 @@ import type {View as ViewType} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -19,6 +20,7 @@ import {shouldShowMarkAsUnreadForReport} from '@pages/inbox/report/ContextMenu/a
 import PopoverMarkAsUnreadItem from '@pages/inbox/report/ContextMenu/actions/MarkAsUnreadAction/PopoverMarkAsUnreadItem';
 import {PopoverPinItem, shouldShowPinAction} from '@pages/inbox/report/ContextMenu/actions/PinAction';
 import {PopoverUnpinItem, shouldShowUnpinAction} from '@pages/inbox/report/ContextMenu/actions/UnpinAction';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
 
@@ -37,6 +39,8 @@ function PopoverReportContent({reportID, reportActionID, originalReportID, hideA
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const StyleUtils = useStyleUtils();
     const {isProduction} = useEnvironment();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentUserAccountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {canEvict: false});
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
@@ -77,7 +81,7 @@ function PopoverReportContent({reportID, reportActionID, originalReportID, hideA
                 reportID={reportID}
                 reportActions={reportActions}
                 reportAction={reportAction}
-                currentUserAccountID={0}
+                currentUserAccountID={currentUserAccountID}
                 hideAndRun={hideAndRun}
             />,
         );

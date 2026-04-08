@@ -2144,7 +2144,7 @@ function PureReportActionItem({
                     shouldFreezeCapture={isPaymentMethodPopoverActive}
                     onHoverIn={() => {
                         setIsReportActionActive(false);
-                        if (!shouldDisplayContextMenu || draftMessage !== undefined || hasErrors) {
+                        if (!shouldDisplayContextMenuValue || draftMessage !== undefined || hasErrors) {
                             return;
                         }
                         isPointerOverReportActionRowRef.current = true;

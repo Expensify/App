@@ -5,6 +5,7 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {showDeleteModal} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
@@ -31,12 +32,14 @@ export default function PopoverDeleteItem({reportID, reportAction, moneyRequestA
         <FocusableMenuItem
             title={translate('common.delete')}
             icon={icons.Trashcan}
-            onPress={() => {
-                const iouReportID = isMoneyRequestAction(moneyRequestAction) ? getOriginalMessage(moneyRequestAction)?.IOUReportID : undefined;
-                const effectiveReportID = iouReportID && Number(iouReportID) !== 0 ? iouReportID : reportID;
-                const actionSourceID = effectiveReportID !== reportID ? reportID : undefined;
-                hideAndRun(() => showDeleteModal(effectiveReportID, moneyRequestAction ?? reportAction, undefined, undefined, undefined, actionSourceID));
-            }}
+            onPress={() =>
+                interceptAnonymousUser(() => {
+                    const iouReportID = isMoneyRequestAction(moneyRequestAction) ? getOriginalMessage(moneyRequestAction)?.IOUReportID : undefined;
+                    const effectiveReportID = iouReportID && Number(iouReportID) !== 0 ? iouReportID : reportID;
+                    const actionSourceID = effectiveReportID !== reportID ? reportID : undefined;
+                    hideAndRun(() => showDeleteModal(effectiveReportID, moneyRequestAction ?? reportAction, undefined, undefined, undefined, actionSourceID));
+                })
+            }
             wrapperStyle={[styles.pr8]}
             style={StyleUtils.getContextMenuItemStyles(windowWidth)}
             focused={isFocused}
