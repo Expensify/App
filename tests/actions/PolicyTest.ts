@@ -5995,7 +5995,18 @@ describe('actions/Policy', () => {
 
             // eslint-disable-next-line @typescript-eslint/naming-convention
             const mockTranslate = ((key: string) => key) as unknown as Parameters<typeof Policy.createWorkspaceFromIOUPayment>[7];
-            const result = Policy.createWorkspaceFromIOUPayment(iouReport, undefined, ESH_ACCOUNT_ID, ESH_EMAIL, iouReportOwnerEmail, undefined, undefined, mockTranslate, reportActionsList);
+            const result = Policy.createWorkspaceFromIOUPayment(
+                iouReport,
+                undefined,
+                ESH_ACCOUNT_ID,
+                ESH_EMAIL,
+                iouReportOwnerEmail,
+                undefined,
+                CONST.CURRENCY.USD,
+                undefined,
+                mockTranslate,
+                reportActionsList,
+            );
 
             // Verify the function returns a valid result (not undefined)
             expect(result).toBeDefined();
