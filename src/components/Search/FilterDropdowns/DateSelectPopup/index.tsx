@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import ScrollView from '@components/ScrollView';
 import DatePresetFilterBase from '@components/Search/FilterComponents/DatePresetFilterBase';
 import type {SearchDatePresetFilterBaseHandle} from '@components/Search/FilterComponents/DatePresetFilterBase';
+import type {ModalHeadingRef} from '@components/Search/FilterDropdowns/DropdownButton';
 import type {SearchDatePreset} from '@components/Search/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -13,7 +14,6 @@ import type {SearchDateValues} from '@libs/SearchQueryUtils';
 import {getDateModifierTitle, getDateRangeDisplayValueFromFormValue} from '@libs/SearchQueryUtils';
 import type {SearchDateModifier} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
-import type {ModalHeadingRef} from '../DropdownButton';
 import ActionButtons from './ActionButtons';
 import SelectedDateModifierHeader from './SelectedDateModifierHeader';
 

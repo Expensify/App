@@ -1,5 +1,5 @@
 import {willAlertModalBecomeVisibleSelector} from '@selectors/Modal';
-import type {ComponentProps, ReactNode, Ref} from 'react';
+import type {ComponentProps, ComponentType, Ref} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
@@ -41,7 +41,7 @@ type DropdownButtonProps = WithSentryLabel & {
     viewportOffsetTop: number;
 
     /** The component to render in the popover */
-    PopoverComponent: (props: PopoverComponentProps) => ReactNode;
+    PopoverComponent: ComponentType<PopoverComponentProps>;
 
     /** Whether to use medium size button instead of small */
     medium?: boolean;
@@ -113,18 +113,31 @@ function DropdownButton({
         modalAccessibilityHeadingElementRef.current = node;
     }, []);
 
+    const clearDismissAccessibilityTimeout = useCallback(() => {
+        if (!dismissAccessibilityTimeoutRef.current) {
+            return;
+        }
+
+        clearTimeout(dismissAccessibilityTimeoutRef.current);
+        dismissAccessibilityTimeoutRef.current = null;
+    }, []);
+
+    const updateDismissAccessibilityForLayout = useCallback(() => {
+        clearDismissAccessibilityTimeout();
+        setShouldEnableBottomDockedDismissAccessibility(!shouldDelayDismissAccessibilityForCurrentLayout);
+    }, [clearDismissAccessibilityTimeout, shouldDelayDismissAccessibilityForCurrentLayout]);
+
     /**
      * Toggle the overlay between open & closed
      */
     const toggleOverlay = useCallback(() => {
-        setIsOverlayVisible((previousValue) => {
-            if (!previousValue && willAlertModalBecomeVisible) {
-                return false;
-            }
+        if (!isOverlayVisible && willAlertModalBecomeVisible) {
+            return;
+        }
 
-            return !previousValue;
-        });
-    }, [willAlertModalBecomeVisible]);
+        updateDismissAccessibilityForLayout();
+        setIsOverlayVisible((previousValue) => !previousValue);
+    }, [isOverlayVisible, updateDismissAccessibilityForLayout, willAlertModalBecomeVisible]);
 
     /**
      * Calculate popover position and toggle overlay
@@ -157,25 +170,7 @@ function DropdownButton({
         return {width: actualPopoverWidth};
     }, [isSmallScreenWidth, styles, actualPopoverWidth]);
 
-    const popoverContent = useMemo(() => {
-        return PopoverComponent({
-            closeOverlay: toggleOverlay,
-            isExpanded: isOverlayVisible,
-            setPopoverWidth: setCustomPopoverWidth,
-            modalHeadingRef: shouldUseWebModalHeadingFocus ? handleModalHeadingRef : undefined,
-        });
-    }, [PopoverComponent, toggleOverlay, isOverlayVisible, shouldUseWebModalHeadingFocus, handleModalHeadingRef]);
-
     const initialFocus = shouldUseWebModalHeadingFocus ? () => modalAccessibilityHeadingElementRef.current as never : undefined;
-
-    const clearDismissAccessibilityTimeout = useCallback(() => {
-        if (!dismissAccessibilityTimeoutRef.current) {
-            return;
-        }
-
-        clearTimeout(dismissAccessibilityTimeoutRef.current);
-        dismissAccessibilityTimeoutRef.current = null;
-    }, []);
 
     const handleModalShow = useCallback(() => {
         if (!shouldDelayDismissAccessibilityForCurrentLayout) {
@@ -189,20 +184,6 @@ function DropdownButton({
             dismissAccessibilityTimeoutRef.current = null;
         }, BOTTOM_DOCKED_DISMISS_ACCESSIBILITY_DELAY);
     }, [clearDismissAccessibilityTimeout, shouldDelayDismissAccessibilityForCurrentLayout]);
-
-    useEffect(() => {
-        if (!shouldDelayDismissAccessibilityForCurrentLayout) {
-            setShouldEnableBottomDockedDismissAccessibility(true);
-            return;
-        }
-
-        if (isOverlayVisible) {
-            return;
-        }
-
-        clearDismissAccessibilityTimeout();
-        setShouldEnableBottomDockedDismissAccessibility(false);
-    }, [clearDismissAccessibilityTimeout, isOverlayVisible, shouldDelayDismissAccessibilityForCurrentLayout]);
 
     useEffect(
         () => () => {
@@ -267,7 +248,12 @@ function DropdownButton({
                 shouldDisplayBelowModals
                 shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={false}
             >
-                {popoverContent}
+                <PopoverComponent
+                    closeOverlay={toggleOverlay}
+                    isExpanded={isOverlayVisible}
+                    setPopoverWidth={setCustomPopoverWidth}
+                    modalHeadingRef={shouldUseWebModalHeadingFocus ? handleModalHeadingRef : undefined}
+                />
             </PopoverWithMeasuredContent>
         </View>
     );

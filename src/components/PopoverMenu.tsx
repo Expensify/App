@@ -570,7 +570,7 @@ function BasePopoverMenu({
         }
 
         return stylesArray;
-    }, [isSmallScreenWidth, shouldEnableMaxHeight, styles.createMenuContainer, shouldUseScrollView]);
+    }, [isInLandscapeMode, isSmallScreenWidth, shouldEnableMaxHeight, styles.createMenuContainer, shouldUseScrollView]);
 
     const {paddingTop, paddingBottom, paddingVertical, ...restScrollContainerStyle} = (StyleSheet.flatten([styles.pv4, scrollContainerStyle]) as ViewStyle) ?? {};
     const {

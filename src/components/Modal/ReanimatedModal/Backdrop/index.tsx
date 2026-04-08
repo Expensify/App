@@ -34,11 +34,22 @@ function Backdrop({
     );
 
     if (!customBackdrop) {
+        if (shouldEnableBottomDockedDismissAccessibility) {
+            return (
+                <PressableWithoutFeedback
+                    accessible
+                    accessibilityLabel={translate('modal.backdropLabel')}
+                    onPressIn={onBackdropPress}
+                    sentryLabel={CONST.SENTRY_LABEL.REANIMATED_MODAL.BACKDROP}
+                >
+                    {BackdropOverlay}
+                </PressableWithoutFeedback>
+            );
+        }
+
         return (
             <PressableWithoutFeedback
-                {...(shouldEnableBottomDockedDismissAccessibility
-                    ? {accessible: true as const, accessibilityLabel: translate('modal.backdropLabel')}
-                    : {accessible: false as const})}
+                accessible={false}
                 onPressIn={onBackdropPress}
                 sentryLabel={CONST.SENTRY_LABEL.REANIMATED_MODAL.BACKDROP}
             >
