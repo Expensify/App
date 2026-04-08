@@ -70,7 +70,7 @@ function PopoverReportContent({reportID, reportActionID, originalReportID, hideA
             />,
         );
     }
-    if (showMarkAsUnread && reportAction) {
+    if (showMarkAsUnread) {
         visibleItems.push(
             <PopoverMarkAsUnreadItem
                 key="markAsUnread"

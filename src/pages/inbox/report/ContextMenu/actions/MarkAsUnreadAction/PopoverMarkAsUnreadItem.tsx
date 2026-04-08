@@ -12,7 +12,7 @@ import type {ReportAction, ReportActions} from '@src/types/onyx';
 type PopoverMarkAsUnreadItemProps = {
     reportID: string | undefined;
     reportActions: OnyxEntry<ReportActions>;
-    reportAction: ReportAction;
+    reportAction?: ReportAction;
     currentUserAccountID: number;
     hideAndRun: (callback?: () => void) => void;
     isFocused?: boolean;
