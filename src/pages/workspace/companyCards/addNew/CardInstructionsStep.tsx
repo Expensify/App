@@ -43,12 +43,20 @@ function CardInstructionsStep({policyID}: CardInstructionsStepProps) {
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
 
     const data = addNewCard?.data;
-    const feedProvider = data?.feedType ?? CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
+    const rawFeedProvider = data?.feedType ?? CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
     const bank = data?.selectedBank;
+    const isMockFeed = rawFeedProvider === CONST.COMPANY_CARD.FEED_BANK_NAME.MOCK_COMMERCIAL_FEED;
+    const feedProvider = isMockFeed ? CONST.COMPANY_CARD.FEED_BANK_NAME.VISA : rawFeedProvider;
     const isStripeFeedProvider = feedProvider === CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE;
     const isOtherBankSelected = bank === CONST.COMPANY_CARDS.BANKS.OTHER;
     const translationKey = getCardInstructionHeader(feedProvider);
     const workspaceAccountID = useWorkspaceAccountID(policyID);
+
+    // Mock commercial feed bypasses this step — redirect back if somehow reached
+    if (isMockFeed) {
+        setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.CARD_TYPE});
+        return null;
+    }
 
     const buttonTranslation = isStripeFeedProvider ? translate('common.submit') : translate('common.next');
 
