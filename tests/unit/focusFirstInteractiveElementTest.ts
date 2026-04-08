@@ -49,7 +49,11 @@ describe('focusFirstInteractiveElement', () => {
         });
     });
 
-    describe('focus behavior', () => {
+    describe('focus behavior (page-load modality)', () => {
+        beforeEach(() => {
+            document.dispatchEvent(new MouseEvent('mousedown', {bubbles: true}));
+        });
+
         it('focuses the first button with data-programmatic-focus and outline suppressed', () => {
             const button = document.createElement('button');
             button.setAttribute('aria-label', 'Back');
@@ -133,9 +137,6 @@ describe('focusFirstInteractiveElement', () => {
         });
 
         it('on non-Tab keys, does not prevent default and keeps listener for Tab', () => {
-            // Reset to page-load modality so suppression path is taken
-            document.dispatchEvent(new MouseEvent('mousedown', {bubbles: true}));
-
             const button = document.createElement('button');
             const container = createContainer(button);
             const focusSpy = jest.spyOn(button, 'focus');
@@ -238,9 +239,10 @@ describe('focusFirstInteractiveElement', () => {
         });
     });
 
-    // These tests run after the 'non-Tab key' test above dispatched a keydown,
-    // which sets the module-level hadKeyboardEvent = true (keyboard mode).
     describe('after keyboard interaction (hadKeyboardEvent = true)', () => {
+        beforeEach(() => {
+            document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', bubbles: true}));
+        });
         it('focuses without data-programmatic-focus or outline suppression', () => {
             const button = document.createElement('button');
             const container = createContainer(button);
@@ -270,14 +272,13 @@ describe('focusFirstInteractiveElement', () => {
         });
     });
 
-    // This test runs last — after keyboard tests set hadKeyboardEvent = true,
-    // a mousedown resets it back to false, restoring suppression behavior.
     describe('after mouse resets keyboard flag (mousedown after keydown)', () => {
-        it('restores focus ring suppression and onFirstTab after mousedown', () => {
-            // hadKeyboardEvent is true from previous tests' keydown dispatches.
-            // Mousedown resets it to false.
+        beforeEach(() => {
+            document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', bubbles: true}));
             document.dispatchEvent(new MouseEvent('mousedown', {bubbles: true}));
+        });
 
+        it('restores focus ring suppression and onFirstTab after mousedown', () => {
             const button = document.createElement('button');
             const container = createContainer(button);
             const focusSpy = jest.spyOn(button, 'focus');
