@@ -17,8 +17,8 @@ Workspace Admins can assign company cards after a company card feed is connected
 
 If you haven’t set up a feed yet, learn how to set one up:
 
- - [Learn how to set up a direct company card feed connection](/articles/new-expensify/billing-and-subscriptions/Set-up-a-Direct-Company-Card-Feed-Connection).
- - [Learn how to set up a commercial card feed connection](/articles/new-expensify/billing-and-subscriptions/Set-up-a-Commercial-Card-Feed-Connection). 
+ - [Learn how to set up a direct company card feed connection](/articles/new-expensify/connect-credit-cards/Set-up-a-Direct-Company-Card-Feed-Connection).
+ - [Learn how to set up a commercial card feed connection](/articles/new-expensify/connect-credit-cards/Set-up-a-Commercial-Card-Feed-Connection). 
 
 ## How to assign company cards 
 
@@ -34,7 +34,7 @@ If you haven’t set up a feed yet, learn how to set one up:
 ## What happens after you assign company cards
 
  - Posted transactions from the assigned card import automatically into the member's account as expenses.
- - The imported company card expenses are added to reports and submitted submitted according to Workspace rules.
+ - The imported company card expenses are added to reports and submitted according to Workspace rules.
 
 # FAQ
 
