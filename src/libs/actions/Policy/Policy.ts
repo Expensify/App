@@ -2316,6 +2316,7 @@ function createDraftInitialWorkspace(
     workspaceName: string,
     policyID = generatePolicyID(),
     makeMeAdmin = false,
+    currency = '',
     file?: File,
     type: typeof CONST.POLICY.TYPE.TEAM | typeof CONST.POLICY.TYPE.CORPORATE = CONST.POLICY.TYPE.TEAM,
 ) {
