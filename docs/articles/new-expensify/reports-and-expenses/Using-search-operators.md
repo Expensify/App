@@ -58,7 +58,7 @@ type:expense merchant:Starbucks category:Meals amount>20 has:receipt
 - `tag:` – tag or multiple tags
 - `amount:` / `purchase-amount:` – supports `=`, `>`, `<`, `>=`, `<=`
 - `status:` – unreported, draft, outstanding, approved, paid, done
-- `date:` – expense date, supports relative dates like `date:this-month`, `date:last-month`, `date:year-to-date`, `date:this-week`
+- `date:` – expense date, supports relative dates like `date:this-month`, `date:last-month`, `date:year-to-date`, `date:this-week`. Also supports comparisons (`date>=2024-01-01 date<=2024-01-31`) for date ranges
 - `has:` – attachment, receipt, category, tag
 - `expense-type:` – cash, card, distance, per-diem
 - `reimbursable:` and `billable:` – yes or no
@@ -69,7 +69,7 @@ type:expense merchant:Starbucks category:Meals amount>20 has:receipt
 
 - `report-id:` – unique report reference
 - `status:` – draft, outstanding, approved, paid, done
-- `submitted:` / `approved:` / `paid:` / `exported:` – supports absolute or relative dates
+- `submitted:` / `approved:` / `paid:` / `exported:` – supports absolute or relative dates, and comparisons for date ranges (e.g., `submitted>=2024-01-01 submitted<=2024-01-31`)
 - `title:` – report title
 - `total:` – total amount with relative comparisons
 - `withdrawn:` – ACH withdrawal date
