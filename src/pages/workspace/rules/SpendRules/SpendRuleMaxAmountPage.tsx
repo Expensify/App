@@ -12,7 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateDraftSpendRule} from '@libs/actions/User';
-import {filterInactiveCards, getSelectedCardsCurrency} from '@libs/CardUtils';
+import {filterInactiveCards, getSelectedCardsSharedCurrency} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -35,7 +35,7 @@ function SpendRuleMaxAmountPage({route}: SpendRuleMaxAmountPageProps) {
     const [spendRuleForm] = useOnyx(ONYXKEYS.FORMS.SPEND_RULE_FORM);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
 
-    const selectedCurrency = getSelectedCardsCurrency(spendRuleForm?.cardIDs, cardsList) ?? CONST.CURRENCY.USD;
+    const selectedCurrency = getSelectedCardsSharedCurrency(spendRuleForm?.cardIDs, cardsList) ?? CONST.CURRENCY.USD;
     const defaultValue = spendRuleForm?.maxAmount ?? '';
 
     return (

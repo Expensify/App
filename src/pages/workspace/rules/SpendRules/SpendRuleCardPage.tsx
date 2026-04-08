@@ -28,7 +28,6 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getHeaderMessage} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
 import {openPolicyExpensifyCardsPage} from '@userActions/Policy/Policy';
@@ -190,7 +189,7 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
                             context: 'SpendRuleCardPage',
                             isOffline,
                             hasOnceLoaded: !!expensifyCardSettings?.hasOnceLoaded,
-                        } satisfies SkeletonSpanReasonAttributes
+                        }
                     }
                 />
             ) : (

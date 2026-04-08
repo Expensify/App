@@ -14,7 +14,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setExpensifyCardRule} from '@libs/actions/Card';
 import {clearDraftSpendRule, updateDraftSpendRule} from '@libs/actions/User';
-import {filterInactiveCards, getCardDescriptionForSearchTable, getSelectedCardsCurrency, isCard} from '@libs/CardUtils';
+import {filterInactiveCards, getCardDescriptionForSearchTable, getSelectedCardsSharedCurrency} from '@libs/CardUtils';
 import {convertToBackendAmount, convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
@@ -73,7 +73,7 @@ function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps)
         : cardIDs
               .map((id) => {
                   const card = cardsList?.[id];
-                  if (card === undefined || !isCard(card)) {
+                  if (card === undefined) {
                       return id;
                   }
                   const accountID = card.accountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -84,7 +84,7 @@ function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps)
 
     const categoriesMenuTitle = categories.map((category) => translate(`workspace.rules.spendRules.categoryOptions.${category}`)).join(', ');
 
-    const selectedCurrency = getSelectedCardsCurrency(cardIDs, cardsList);
+    const selectedCurrency = getSelectedCardsSharedCurrency(cardIDs, cardsList);
     const parsedMaxAmount = Number.parseFloat(maxAmount);
     const maxAmountMenuTitle = Number.isFinite(parsedMaxAmount) ? convertToDisplayString(convertToBackendAmount(parsedMaxAmount), selectedCurrency ?? CONST.CURRENCY.USD) : '';
 
