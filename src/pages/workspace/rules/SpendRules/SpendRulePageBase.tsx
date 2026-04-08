@@ -82,8 +82,6 @@ function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps)
               })
               .join(', ');
 
-    const categoriesMenuTitle = categories.map((category) => translate(`workspace.rules.spendRules.categoryOptions.${category}`)).join(', ');
-
     const selectedCurrency = getSelectedCardsSharedCurrency(cardIDs, cardsList);
     const parsedMaxAmount = Number.parseFloat(maxAmount);
     const maxAmountMenuTitle = Number.isFinite(parsedMaxAmount) ? convertToDisplayString(convertToBackendAmount(parsedMaxAmount), selectedCurrency ?? CONST.CURRENCY.USD) : '';
@@ -104,6 +102,15 @@ function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps)
     function getMerchantMenuTitle(merchantNamesToSummarize: string[] | undefined): string {
         return getTruncatedSpendRuleSummary(merchantNamesToSummarize, (summary, count) => translate('workspace.rules.spendRules.summaryMoreCount', {summary, count}));
     }
+
+    function getCategoryMenuTitle(categoriesToSummarize: string[] | undefined): string {
+        return getTruncatedSpendRuleSummary(
+            categoriesToSummarize?.map((category) => translate(`workspace.rules.spendRules.categoryOptions.${category}`)),
+            (summary, count) => translate('workspace.rules.spendRules.summaryMoreCount', {summary, count}),
+        );
+    }
+
+    const categoriesMenuTitle = getCategoryMenuTitle(categories);
 
     const hasSelectedCards = !!cardIDs?.length;
     const hasAnyMerchant = merchantNames.some((name) => name.trim() !== '');
