@@ -84,7 +84,7 @@ To set up an Amex Corporate Feed, you’ll need to complete and email their requ
    - **Page 4:** Add country, authorization name, title, and signature (DD/MM/YY format).
 3. Email the completed forms to: **electronictransmissionsteam@aexp.com**
 4. Wait for the **Production Letter** containing your feed’s file name.
-5. 3. In Expensify, go to **Workspaces > [Workspace Name] > Company Cards > Add Cards**.
+5. In Expensify, go to **Workspaces > [Workspace Name] > Company Cards > Add Cards**.
 6. Choose **Commercial Feed**, then select **American Express Corporate Cards**.
 
 Expensify will notify you when the feed is connected.
@@ -104,7 +104,7 @@ Expensify will notify you when the feed is connected.
 
 ## What can I do if my bank doesn't offer a commercial card feed? 
 
-If you're not eligible for a commercial card feed,  connect company cards using a direct feed or through Plaid using your online banking credentials. [Learn how to set up a direct company card feed connection](articles/new-expensify/connect-credit-cards/Set-up-a-Direct-Company-Card-Feed-connection). 
+If you're not eligible for a commercial card feed,  connect company cards using a direct feed or through Plaid using your online banking credentials. [Learn how to set up a direct company card feed connection](/articles/new-expensify/connect-credit-cards/Set-up-a-Direct-Company-Card-Feed-Connection). 
 
 ## Can I connect the same commercial card feed connection across different workspaces? 
 
