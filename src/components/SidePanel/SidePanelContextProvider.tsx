@@ -28,7 +28,6 @@ type SidePanelStateContextProps = {
     sidePanelOffset: RefObject<Animated.Value>;
     sidePanelTranslateX: RefObject<Animated.Value>;
     sidePanelNVP?: SidePanel;
-    reportID?: string;
     sessionStartTime: string | null;
 };
 
@@ -48,6 +47,8 @@ const SidePanelStateContext = createContext<SidePanelStateContextProps>({
     sidePanelTranslateX: {current: new Animated.Value(0)},
     sessionStartTime: null,
 });
+
+const SidePanelReportIDContext = createContext<string | undefined>(undefined);
 
 const SidePanelActionsContext = createContext<SidePanelActionsContextProps>({
     openSidePanel: () => {},
@@ -80,11 +81,12 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
     });
 
     const isRHPAdminsRoom = onboardingRHPVariant === CONST.ONBOARDING_RHP_VARIANT.RHP_ADMINS_ROOM;
+    const isRHPHomePage = onboardingRHPVariant === CONST.ONBOARDING_RHP_VARIANT.RHP_HOME_PAGE;
     const isUserAdmin = isPolicyAdmin(activePolicy, sessionEmail);
     const isPolicyActive = shouldShowPolicy(activePolicy, false, sessionEmail ?? '');
     const adminsChatReportID = activePolicy?.chatReportIDAdmins?.toString();
 
-    const reportID = isRHPAdminsRoom && isUserAdmin && isPolicyActive && adminsChatReportID ? adminsChatReportID : conciergeReportID;
+    const reportID = (isRHPAdminsRoom || isRHPHomePage) && isUserAdmin && isPolicyActive && adminsChatReportID ? adminsChatReportID : conciergeReportID;
 
     const [sessionStartTime, setSessionStartTime] = useState<string | null>(null);
     const [prevShouldHideSidePanel, setPrevShouldHideSidePanel] = useState(shouldHideSidePanel);
@@ -145,7 +147,6 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
         sidePanelOffset,
         sidePanelTranslateX,
         sidePanelNVP,
-        reportID,
         sessionStartTime,
     };
 
@@ -158,10 +159,12 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
 
     return (
         <SidePanelStateContext.Provider value={stateValue}>
-            <SidePanelActionsContext.Provider value={actionsValue}>{children}</SidePanelActionsContext.Provider>
+            <SidePanelReportIDContext.Provider value={reportID}>
+                <SidePanelActionsContext.Provider value={actionsValue}>{children}</SidePanelActionsContext.Provider>
+            </SidePanelReportIDContext.Provider>
         </SidePanelStateContext.Provider>
     );
 }
 
 export default SidePanelContextProvider;
-export {SidePanelStateContext, SidePanelActionsContext};
+export {SidePanelStateContext, SidePanelReportIDContext, SidePanelActionsContext};

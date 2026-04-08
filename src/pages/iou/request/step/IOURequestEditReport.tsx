@@ -5,7 +5,6 @@ import {useSearchActionsContext, useSearchStateContext} from '@components/Search
 import type {ListItem} from '@components/SelectionList/types';
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
 import useHasPerDiemTransactions from '@hooks/useHasPerDiemTransactions';
-import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
@@ -34,7 +33,6 @@ type IOURequestEditReportProps = WithWritableReportOrNotFoundProps<typeof SCREEN
 
 function IOURequestEditReport({route}: IOURequestEditReportProps) {
     const {backTo, reportID, action, shouldTurnOffSelectionMode, transactionID: transactionIDFromParams} = route.params;
-    const {translate, toLocaleDigit} = useLocalize();
     const {selectedTransactionIDs} = useSearchStateContext();
     const transactionIDs = transactionIDFromParams ? [transactionIDFromParams] : selectedTransactionIDs;
     const {clearSelectedTransactions} = useSearchActionsContext();
@@ -58,7 +56,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
 
     const hasPerDiemTransactions = useHasPerDiemTransactions(transactionIDs);
 
-    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(hasPerDiemTransactions, undefined, selectedReport?.policyID);
+    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(hasPerDiemTransactions, undefined, undefined);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const policyForMovingExpenses = policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined;
@@ -83,8 +81,6 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
                 reportNextStep,
                 policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
                 allTransactions,
-                translate,
-                toLocaleDigit,
             });
             turnOffMobileSelectionMode();
             clearSelectedTransactions(true);
@@ -104,8 +100,6 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             email: session?.email ?? '',
             policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`],
             allTransactions,
-            translate,
-            toLocaleDigit,
         });
         if (shouldTurnOffSelectionMode) {
             turnOffMobileSelectionMode();

@@ -9,7 +9,7 @@ let mockGetLocalCredentialID: jest.Mock;
 let mockServerKnownCredentialIDs: string[];
 let mockHaveCredentialsEverBeenConfigured: boolean;
 
-jest.mock('@components/MultifactorAuthentication/biometrics/useNativeBiometrics', () => ({
+jest.mock('@components/MultifactorAuthentication/biometrics/useBiometrics', () => ({
     // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => ({
