@@ -290,6 +290,7 @@ function MoneyRequestConfirmationList({
     const isManualDistanceRequest = isManualDistanceRequestUtil(transaction);
     const isGPSDistanceRequest = isGPSDistanceRequestUtil(transaction);
 
+
     const iouAmount = hasValidModifiedAmount(transaction) ? Number(transaction?.modifiedAmount) : (transaction?.amount ?? 0);
     const iouComment = getDescription(transaction);
     const iouCurrencyCode = getCurrency(transaction);
