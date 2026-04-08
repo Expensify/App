@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useCallback, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Pdf from 'react-native-pdf';
 import LoadingIndicator from '@components/LoadingIndicator';
@@ -13,6 +13,16 @@ function PDFThumbnail({previewSourceURL, style, enabled = true, fitPolicy = 0, o
     const styles = useThemeStyles();
     const sizeStyles = [styles.w100, styles.h100];
     const [failedToLoad, setFailedToLoad] = useState(false);
+    const lastReportedLoadSuccessSource = useRef<string | undefined>(undefined);
+
+    const reportLoadSuccess = useCallback(() => {
+        if (!onLoadSuccess || lastReportedLoadSuccessSource.current === previewSourceURL) {
+            return;
+        }
+
+        lastReportedLoadSuccessSource.current = previewSourceURL;
+        onLoadSuccess();
+    }, [onLoadSuccess, previewSourceURL]);
 
     return (
         <View style={[style, styles.overflowHidden]}>
@@ -35,12 +45,7 @@ function PDFThumbnail({previewSourceURL, style, enabled = true, fitPolicy = 0, o
                             }
                             setFailedToLoad(true);
                         }}
-                        onLoadComplete={() => {
-                            if (!onLoadSuccess) {
-                                return;
-                            }
-                            onLoadSuccess();
-                        }}
+                        onLoadComplete={reportLoadSuccess}
                     />
                 )}
                 {failedToLoad && <PDFThumbnailError />}
