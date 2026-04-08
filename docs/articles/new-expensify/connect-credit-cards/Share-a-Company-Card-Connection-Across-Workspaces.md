@@ -5,16 +5,16 @@ keywords: [New Expensify, share company card feed Expensify, connect existing co
 internalScope: Audience is Workspace Admins. Covers sharing an existing company card feed across Workspaces. Does not cover setting up new feeds, assigning cards, or troubleshooting feeds.
 ---
 
-# Share a company card feed across Workspaces
+# Share a Company Card Feed Across Workspaces
 
-Sharing a company card feed lets you reuse an existing card connection in another Workspace instead of creating a new one. This helps centralize card management and avoids duplicate connections.
+Sharing a company card feed lets you reuse an existing card connection in another Workspace instead of creating a new one. This keeps card management centralized and prevents duplicate connections.
 
 You can share both direct company card feeds and commercial card feeds across multiple Workspaces.
 
-If you haven’t set up a feed yet, learn how to set one up:
+If you haven’t set up a feed yet, learn how to connect to your bank: 
 
- - [Learn how to set up a Direct Company Card feed](/articles/new-expensify/billing-and-subscriptions/How-to-Set-up-a-Direct-Company-Card-Feed).
- - [Learn how to set up a Direct Company Card feed](/articles/new-expensify/billing-and-subscriptions/How-to-Set-up-a-Commercial-Card-Feed). 
+ - [Learn how to set up a direct company card feed connection](/articles/new-expensify/billing-and-subscriptions/Set-up-a-Direct-Company-Card-Feed-Connection).
+ - [Learn how to set up a commercial card feed connection](/articles/new-expensify/billing-and-subscriptions/Set-up-a-Commercial-Card-Feed-Connection). 
 
 ---
 
@@ -22,8 +22,8 @@ If you haven’t set up a feed yet, learn how to set one up:
 
 Workspace Admins with an email on a private domain can share a company card feed. 
 
- - On the Collect plan, you can add one company card feed per Workspace. 
- - On the Control plan, you can add unlimited company card feeds. 
+ - On the **Collect** plan, you can add one company card feed per Workspace. 
+ - On the **Control** plan, you can add unlimited company card feeds. 
 
 [Learn about the different plan types available in Expensify.](/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing)
 
@@ -48,12 +48,11 @@ Design request:https://github.com/Expensify/Expensify/issues/XXXX
 
 ## What happens after you share a company card feed across Workspaces
 
- - The selected card feed is linked to the Workspace
  - Workspace members with assigned cards on the company card feed appear in the card list
  - Unassigned cards can be assigned to Workspace Members
- - Once assigned, transactions automatically import into the member’s account
+ - After a card is assigned, posted transactions import into the assigned member's account automatically as expenses.
 
-[Learn how to assign company cards](/articles/new-expensify/connect-credit-cards/How-to-assign-company-cards).
+[Learn how to assign company cards](/articles/new-expensify/connect-credit-cards/Assign-Company-Cards).
 
 # FAQ
 
@@ -61,12 +60,11 @@ Design request:https://github.com/Expensify/Expensify/issues/XXXX
 
 Removing a company card feed from a Workspace disconnects that Workspace and removes its members from the feed. The feed itself is only deleted if it is no longer connected to any Workspaces.
 
-## Why don’t I see the “From other workspaces” section
+## Why don’t I see the “From other workspaces” section?
 
 This can happen if:
 
  - There are no existing company card feeds available to share
- - You are not a Workspace Admin
  - Your email is not on a private domain
 
 ## Does sharing a company card feed duplicate transactions
