@@ -62,7 +62,7 @@ import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
 import MoneyReportHeaderStatusBarSection from './MoneyReportHeaderStatusBarSection';
 import MoneyReportHeaderStatusBarSkeleton from './MoneyReportHeaderStatusBarSkeleton';
 import MoneyRequestReportNavigation from './MoneyRequestReportView/MoneyRequestReportNavigation';
-import {useSearchActionsContext, useSearchStateContext} from './Search/SearchContext';
+import {useSearchActionsContext} from './Search/SearchContext';
 
 type MoneyReportHeaderProps = {
     /** The reportID of the report currently being looked at */
@@ -166,7 +166,6 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
 
     const isInvoiceReport = isInvoiceReportUtil(moneyRequestReport);
 
-    const {selectedTransactionIDs} = useSearchStateContext();
     const {clearSelectedTransactions} = useSearchActionsContext();
 
     const {isWideRHPDisplayedOnWideLayout, isSuperWideRHPDisplayedOnWideLayout} = useResponsiveLayoutOnWideRHP();
@@ -215,15 +214,6 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
     const isReportInRHP = route.name !== SCREENS.REPORT;
     const shouldDisplaySearchRouter = !isReportInRHP || isSmallScreenWidth;
     const isReportInSearch = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT || route.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT;
-
-    const isSelectionModePaymentRef = useRef(false);
-
-    useEffect(() => {
-        if (selectedTransactionIDs.length !== 0) {
-            return;
-        }
-        isSelectionModePaymentRef.current = false;
-    }, [selectedTransactionIDs.length]);
 
     let runningAction: 'pay' | 'submit' | undefined;
     if (isPaidAnimationRunning || isApprovedAnimationRunning) {
