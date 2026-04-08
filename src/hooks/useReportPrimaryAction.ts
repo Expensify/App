@@ -32,16 +32,15 @@ function useReportPrimaryAction({reportID, runningAction}: UseReportPrimaryActio
     const {reportActions} = useTransactionThreadReport(reportID);
     const {transactions: reportTransactions, violations} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
 
-    
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
-    
+
     if (runningAction === 'pay') {
         return CONST.REPORT.PRIMARY_ACTIONS.PAY;
     }
     if (runningAction === 'submit') {
         return CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
     }
-    
+
     const nonPendingDeleteTransactions = Object.values(reportTransactions).filter((t) => !isTransactionPendingDelete(t));
 
     return getReportPrimaryAction({
