@@ -11,6 +11,7 @@
  */
 import {CONST as COMMON_CONST} from 'expensify-common';
 import startCase from 'lodash/startCase';
+import type {ValueOf} from 'type-fest';
 import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
 import StringUtils from '@libs/StringUtils';
 import dedent from '@libs/StringUtils/dedent';
@@ -40,14 +41,11 @@ import type {
     MarkReimbursedFromIntegrationParams,
     MissingPropertyParams,
     MovedFromPersonalSpaceParams,
-    MultifactorAuthenticationTranslationParams,
-    NextStepParams,
     NotAllowedExtensionParams,
     OptionalParam,
     PaidElsewhereParams,
     ParentNavigationSummaryParams,
     RemovedFromApprovalWorkflowParams,
-    RemovedPolicyCustomUnitSubRateParams,
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsMergedParams,
@@ -60,44 +58,21 @@ import type {
     UnshareParams,
     UpdatedBudgetParams,
     UpdatedPolicyApprovalRuleParams,
-    UpdatedPolicyBudgetNotificationParams,
     UpdatedPolicyCategoryMaxAmountNoReceiptParams,
     UpdatedPolicyCurrencyDefaultTaxParams,
     UpdatedPolicyCustomTaxNameParams,
-    UpdatedPolicyCustomUnitSubRateParams,
-    UpdatedPolicyDefaultTitleParams,
     UpdatedPolicyForeignCurrencyDefaultTaxParams,
     UpdatedPolicyManualApprovalThresholdParams,
-    UpdatedPolicyOwnershipParams,
-    UpdatedPolicyPreventSelfApprovalParams,
-    UpdatedPolicyReimbursementChoiceParams,
-    UpdatedPolicyReimburserParams,
-    UpdatedPolicyReportFieldDefaultValueParams,
-    UpdatedPolicyTagFieldParams,
-    UpdatedPolicyTagListRequiredParams,
-    UpdatedPolicyTagNameParams,
-    UpdatedPolicyTagParams,
-    UpdatedPolicyTaxParams,
-    UpdatedPolicyTimeRateParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
     UpdatePolicyCustomUnitDefaultCategoryParams,
     UpdatePolicyCustomUnitParams,
     UpdateRoleParams,
-    UpgradeSuccessMessageParams,
     UserIsAlreadyMemberParams,
     ViolationsIncreasedDistanceParams,
     ViolationsMissingTagParams,
     ViolationsModifiedAmountParams,
-    ViolationsProhibitedExpenseParams,
-    ViolationsReceiptRequiredParams,
-    ViolationsRterParams,
-    ViolationsTagOutOfPolicyParams,
-    ViolationsTaxOutOfPolicyParams,
-    WeSentYouMagicSignInLinkParams,
     WorkspaceLockedPlanTypeParams,
-    WorkspaceMemberList,
-    WorkspaceYouMayJoin,
     YourPlanPriceParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
@@ -654,8 +629,8 @@ const translations: TranslationDeepObject<typeof en> = {
         biometricsTest: {
             biometricsTest: '生物识别测试',
             authenticationSuccessful: '认证成功',
-            successfullyAuthenticatedUsing: ({authType}: MultifactorAuthenticationTranslationParams) => `您已成功使用 ${authType} 完成验证。`,
-            troubleshootBiometricsStatus: ({status}: MultifactorAuthenticationTranslationParams) => `生物识别（${status}）`,
+            successfullyAuthenticatedUsing: (authType?: string) => `您已成功使用 ${authType} 完成验证。`,
+            troubleshootBiometricsStatus: ({status}: {status?: string}) => `生物识别（${status}）`,
             yourAttemptWasUnsuccessful: '您的身份验证尝试未成功。',
             youCouldNotBeAuthenticated: '无法验证您的身份',
             areYouSureToReject: '您确定吗？如果您关闭此界面，此次身份验证尝试将被拒绝。',
@@ -693,7 +668,7 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmationPromptAll: '您确定吗？您在任何设备上进行下一次验证时都需要输入魔法验证码。',
             ctaAll: '全部撤销',
             thisDevice: '此设备',
-            otherDevices: ({otherDeviceCount}: MultifactorAuthenticationTranslationParams) => {
+            otherDevices: (otherDeviceCount?: number) => {
                 const numberWords = ['一', '二', '三', '四', '五', '六', '七', '八', '九'];
                 const displayCount = otherDeviceCount !== undefined && otherDeviceCount >= 1 && otherDeviceCount <= 9 ? numberWords.at(otherDeviceCount - 1) : `${otherDeviceCount}`;
                 return `${displayCount} 个其他 ${otherDeviceCount === 1 ? '设备' : '设备'}`;
@@ -1663,8 +1638,17 @@ const translations: TranslationDeepObject<typeof en> = {
         backdropLabel: '模态背景',
     },
     nextStep: {
+        // All nextStep.message functions share a common positional signature (actor, actorType, eta, etaType) for type compatibility, so unused params are expected
+        /* eslint-disable @typescript-eslint/no-unused-vars */
         message: {
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS]: ({actor, actorType}: NextStepParams) => {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS]: (
+                actor: string,
+                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
+                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `正在等待<strong>你</strong>添加报销。`;
@@ -1674,7 +1658,14 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `正在等待管理员添加报销。`;
                 }
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT]: ({actor, actorType}: NextStepParams) => {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT]: (
+                actor: string,
+                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
+                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `正在等待<strong>你</strong>提交报销。`;
@@ -1684,8 +1675,20 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `正在等待管理员提交报销。`;
                 }
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_: NextStepParams) => `无需执行其他操作！`,
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
+            [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => `无需执行其他操作！`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: (
+                actor: string,
+                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
+                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `正在等待<strong>你</strong>添加银行账户。`;
@@ -1695,11 +1698,18 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `正在等待管理员添加银行账户。`;
                 }
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: ({actor, actorType, eta, etaType}: NextStepParams) => {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: (
+                actor: string,
+                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                eta?: string,
+                etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
                 let formattedETA = '';
                 if (eta) {
                     formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `在每个月的 ${eta} 日` : ` ${eta}`;
                 }
+                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
+                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `正在等待<strong>你的</strong>报销费用自动提交${formattedETA}。`;
@@ -1709,7 +1719,14 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `正在等待管理员的报销在${formattedETA}自动提交。`;
                 }
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES]: ({actor, actorType}: NextStepParams) => {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES]: (
+                actor: string,
+                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
+                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `正在等待<strong>你</strong>来解决这些问题。`;
@@ -1719,7 +1736,14 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `正在等待管理员修复这些问题。`;
                 }
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: ({actor, actorType}: NextStepParams) => {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: (
+                actor: string,
+                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
+                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `正在等待<strong>你</strong>审批报销。`;
@@ -1729,7 +1753,14 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `正在等待管理员批准报销。`;
                 }
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: ({actor, actorType}: NextStepParams) => {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: (
+                actor: string,
+                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
+                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `正在等待<strong>你</strong>导出此报表。`;
@@ -1739,7 +1770,14 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `正在等待管理员导出此报表。`;
                 }
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType}: NextStepParams) => {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: (
+                actor: string,
+                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
+                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `正在等待<strong>你</strong>报销费用。`;
@@ -1749,7 +1787,14 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `正在等待管理员报销费用。`;
                 }
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: (
+                actor: string,
+                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
+                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `正在等待<strong>你</strong>完成设置企业银行账户。`;
@@ -1759,16 +1804,31 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `正在等待管理员完成企业银行账户的设置。`;
                 }
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: ({eta, etaType}: NextStepParams) => {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                eta?: string,
+                etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
                 let formattedETA = '';
                 if (eta) {
                     formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `于 ${eta} 前` : ` ${eta}`;
                 }
                 return `正在等待付款完成${formattedETA}。`;
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (_: NextStepParams) =>
+            [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) =>
                 `哎呀！看起来你正在将报销单提交给<strong>自己</strong>。根据你的工作区规定，审批自己的报销单是<strong>禁止的</strong>。请将此报销单提交给其他人，或联系管理员更改你提交报销单的审批人。`,
-            [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: ({actor, actorType}: NextStepParams) => {
+            [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: (
+                actor: string,
+                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `此报表已被拒绝。正在等待<strong>你</strong>修复问题并手动重新提交。`;
@@ -2716,10 +2776,10 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         getStarted: '开始使用',
         whatsYourName: '你叫什么名字？',
         peopleYouMayKnow: '你可能认识的人已经在这里了！验证你的邮箱以加入他们。',
-        workspaceYouMayJoin: ({domain, email}: WorkspaceYouMayJoin) => `${domain} 中的某位成员已经创建了一个工作区。请输入发送到 ${email} 的魔法验证码。`,
+        workspaceYouMayJoin: (domain: string, email: string) => `${domain} 中的某位成员已经创建了一个工作区。请输入发送到 ${email} 的魔法验证码。`,
         joinAWorkspace: '加入工作区',
         listOfWorkspaces: '以下是你可以加入的工作空间列表。别担心，如果你愿意，你随时都可以稍后再加入。',
-        workspaceMemberList: ({employeeCount, policyOwner}: WorkspaceMemberList) => `${employeeCount} 位成员${employeeCount > 1 ? '秒' : ''} • ${policyOwner}`,
+        workspaceMemberList: (employeeCount: number, policyOwner: string) => `${employeeCount} 位成员${employeeCount > 1 ? '秒' : ''} • ${policyOwner}`,
         whereYouWork: '你在哪里工作？',
         errorSelection: '选择一个选项以继续',
         purpose: {
@@ -3086,7 +3146,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
     },
     resendValidationForm: {
         linkHasBeenResent: '链接已重新发送',
-        weSentYouMagicSignInLink: ({login, loginType}: WeSentYouMagicSignInLinkParams) => `我已向 ${login} 发送了魔法登录链接。请检查你的 ${loginType} 以登录。`,
+        weSentYouMagicSignInLink: (login: string, loginType: string) => `我已向 ${login} 发送了魔法登录链接。请检查你的 ${loginType} 以登录。`,
         resendLink: '重新发送链接',
     },
     unlinkLoginForm: {
@@ -6308,7 +6368,7 @@ ${reportName}
             upgradeToUnlock: '解锁此功能',
             completed: {
                 headline: `您已升级您的工作区！`,
-                successMessage: ({policyName, subscriptionLink}: UpgradeSuccessMessageParams) =>
+                successMessage: (policyName: string, subscriptionLink: string) =>
                     `<centered-text>您已成功将 ${policyName} 升级到 Control 方案！有关更多详情，请<a href="${subscriptionLink}">查看您的订阅</a>。</centered-text>`,
                 categorizeMessage: `您已成功升级至 Collect 方案。现在您可以为报销费用分类了！`,
                 travelMessage: `您已成功升级到 Collect 方案。现在可以开始预订和管理行程了！`,
@@ -6483,6 +6543,7 @@ ${reportName}
                 duplicateRulePrompt: (merchantName: string) => `您现有针对“${merchantName}”的规则将优先于此规则。仍要保存吗？`,
                 saveAnyway: '仍然保存',
                 applyToExistingUnsubmittedExpenses: '应用到现有未提交的报销费用',
+                findRule: '查找商户规则',
             },
             categoryRules: {
                 title: '类别规则',
@@ -6714,12 +6775,12 @@ ${reportName}
             return !oldValue ? `已为类别“${categoryName}”添加描述提示“${newValue}”` : `已将“${categoryName}”类别的描述提示更改为“${newValue}”（之前为“${oldValue}”）`;
         },
         updateTagListName: (oldName: string, newName: string) => `已将标签列表名称更改为“${newName}”（原为“${oldName}”）`,
-        addTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `已将标签“${tagName}”添加到列表“${tagListName}”`,
-        updateTagName: ({tagListName, newName, oldName}: UpdatedPolicyTagNameParams) => `通过将标签“${oldName}”更改为“${newName}”更新了标签列表“${tagListName}”`,
-        updateTagEnabled: ({tagListName, tagName, enabled}: UpdatedPolicyTagParams) => `${enabled ? '已启用' : '已禁用'} 列表“${tagListName}”上的标签“${tagName}”`,
-        deleteTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `已从列表“${tagListName}”中移除标签“${tagName}”`,
-        deleteMultipleTags: ({count, tagListName}: UpdatedPolicyTagParams) => `已从列表“${tagListName}”中移除“${count}”个标签`,
-        updateTag: ({tagListName, newValue, tagName, updatedField, oldValue}: UpdatedPolicyTagFieldParams) => {
+        addTag: (tagListName: string, tagName?: string) => `已将标签“${tagName}”添加到列表“${tagListName}”`,
+        updateTagName: (tagListName: string, newName: string, oldName: string) => `通过将标签“${oldName}”更改为“${newName}”更新了标签列表“${tagListName}”`,
+        updateTagEnabled: (tagListName: string, tagName?: string, enabled?: boolean) => `${enabled ? '已启用' : '已禁用'} 列表“${tagListName}”上的标签“${tagName}”`,
+        deleteTag: (tagListName: string, tagName?: string) => `已从列表“${tagListName}”中移除标签“${tagName}”`,
+        deleteMultipleTags: (count?: string, tagListName?: string) => `已从列表“${tagListName}”中移除“${count}”个标签`,
+        updateTag: (tagListName: string, newValue: string, tagName: string, updatedField: string, oldValue?: string) => {
             if (oldValue) {
                 return `通过将${updatedField}从“${oldValue}”更改为“${newValue}”，更新了列表“${tagListName}”中的标签“${tagName}”`;
             }
@@ -6747,7 +6808,7 @@ ${reportName}
             return `${newValue ? '已启用' : '已禁用'}${customUnitName}费率“${customUnitRateName}”`;
         },
         deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `已删除“${customUnitName}”费率“${rateName}”`,
-        updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) => `将报表字段“${fieldName}”的默认值设置为“${defaultValue}”`,
+        updateReportFieldDefaultValue: (defaultValue?: string, fieldName?: string) => `将报表字段“${fieldName}”的默认值设置为“${defaultValue}”`,
         addedReportFieldOption: (fieldName: string, optionName: string) => `已将选项“${optionName}”添加到报表字段“${fieldName}”`,
         removedReportFieldOption: (fieldName: string, optionName: string) => `已从报表字段“${fieldName}”中移除选项“${optionName}”`,
         updateReportFieldOptionDisabled: (fieldName: string, optionName: string, optionEnabled: boolean) =>
@@ -6759,7 +6820,7 @@ ${reportName}
             return `将报表字段“${fieldName}”的选项“${optionName}”设置为${allEnabled ? '已启用' : '已禁用'}，使所有选项均为${allEnabled ? '已启用' : '已禁用'}`;
         },
         deleteReportField: ({fieldType, fieldName}: {fieldType: string; fieldName?: string}) => `已移除 ${fieldType} 报告字段“${fieldName}”`,
-        preventSelfApproval: ({oldValue, newValue}: UpdatedPolicyPreventSelfApprovalParams) =>
+        preventSelfApproval: (oldValue: string, newValue: string) =>
             `已将“禁止自我审批”更新为“${newValue === 'true' ? '已启用' : '已禁用'}”（之前为“${oldValue === 'true' ? '已启用' : '已禁用'}”）`,
         updateMonthlyOffset: (oldValue: string, newValue: string) => {
             if (!oldValue) {
@@ -6889,15 +6950,15 @@ ${reportName}
             oldValue ? `将发票公司名称更改为“${newValue}”（原为“${oldValue}”）` : `将发票公司名称设置为“${newValue}”`,
         changedInvoiceCompanyWebsite: ({newValue, oldValue}: {newValue: string; oldValue?: string}) =>
             oldValue ? `将发票公司的网站更改为“${newValue}”（原为“${oldValue}”）` : `将发票公司网站设置为“${newValue}”`,
-        changedReimburser: ({newReimburser, previousReimburser}: UpdatedPolicyReimburserParams) =>
+        changedReimburser: (newReimburser: string, previousReimburser?: string) =>
             previousReimburser ? `将授权付款人更改为“${newReimburser}”（之前为“${previousReimburser}”）` : `已将授权付款人更改为“${newReimburser}”`,
         updateReimbursementEnabled: (enabled: boolean) => `${enabled ? '已启用' : '已禁用'} 笔报销`,
         updateCustomTaxName: ({oldName, newName}: UpdatedPolicyCustomTaxNameParams) => `将自定义税种名称更改为"${newName}"（之前为"${oldName}"）`,
         updateCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyCurrencyDefaultTaxParams) => `将工作区货币的默认税率更改为"${newName}"（之前为"${oldName}"）`,
         updateForeignCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyForeignCurrencyDefaultTaxParams) => `将外币默认税率更改为"${newName}"（之前为"${oldName}"）`,
-        addTax: ({taxName}: UpdatedPolicyTaxParams) => `已添加税费"${taxName}"`,
-        deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `已移除税费“${taxName}”`,
-        updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
+        addTax: (taxName: string) => `已添加税费"${taxName}"`,
+        deleteTax: (taxName: string) => `已移除税费“${taxName}”`,
+        updateTax: (oldValue?: string | boolean | number, taxName?: string, updatedField?: string, newValue?: string | boolean | number) => {
             if (!updatedField) {
                 return '';
             }
@@ -6930,15 +6991,15 @@ ${reportName}
         removedMaxExpenseAge: (oldValue: string) => `已移除费用最长期限（之前为“${oldValue}”天）`,
         updateCategories: (count: number) => `已更新 ${count} 个类别`,
         updateTagList: (tagListName: string) => `已更新列表“${tagListName}”上的标签`,
-        updateTagListRequired: ({tagListsName, isRequired}: UpdatedPolicyTagListRequiredParams) => `将标签列表“${tagListsName}”更改为 ${isRequired ? '必填' : '非必填'}`,
+        updateTagListRequired: (tagListsName: string, isRequired: boolean) => `将标签列表“${tagListsName}”更改为 ${isRequired ? '必填' : '非必填'}`,
         importTags: '已从电子表格导入标签',
         deletedAllTags: '已删除所有标签',
         updateCustomUnitDefaultCategory: ({customUnitName, newValue, oldValue}: UpdatePolicyCustomUnitDefaultCategoryParams) =>
             `已将${customUnitName}的默认类别更改为“${newValue}” ${oldValue ? `（原为“${oldValue}”）` : ''}`,
         importCustomUnitRates: (customUnitName: string) => `已导入自定义单位“${customUnitName}”的费率`,
-        updateCustomUnitSubRate: ({customUnitName, customUnitRateName, customUnitSubRateName, oldValue, newValue, updatedField}: UpdatedPolicyCustomUnitSubRateParams) =>
+        updateCustomUnitSubRate: (customUnitName: string, customUnitRateName: string, customUnitSubRateName: string, oldValue: string, newValue: string, updatedField: string) =>
             `已将“${customUnitName}”费率“${customUnitRateName}”子费率“${customUnitSubRateName}”的${updatedField}修改为“${newValue}”（之前为“${oldValue}”）`,
-        removedCustomUnitSubRate: ({customUnitName, customUnitRateName, removedSubRateName}: RemovedPolicyCustomUnitSubRateParams) =>
+        removedCustomUnitSubRate: (customUnitName: string, customUnitRateName: string, removedSubRateName: string) =>
             `已移除“${customUnitName}”费率“${customUnitRateName}”子费率“${removedSubRateName}”`,
         addBudget: ({frequency, entityName, entityType, shared, individual, notificationThreshold}: AddBudgetParams) => {
             const thresholdSuffix = typeof notificationThreshold === 'number' ? `，通知阈值为“${notificationThreshold}%”` : '';
@@ -7012,43 +7073,44 @@ ${reportName}
         updatedTimeEnabled: (enabled?: boolean) => {
             return `${enabled ? '已启用' : '已禁用'} 时间追踪`;
         },
-        updatedTimeRate: ({newRate, oldRate}: UpdatedPolicyTimeRateParams) => {
+        updatedTimeRate: (newRate?: string, oldRate?: string) => {
             return `将时薪更改为“${newRate}”（之前为“${oldRate}”）`;
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `已将“${prohibitedExpense}”添加到禁止报销的费用中`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `已从禁用报销类别中移除“${prohibitedExpense}”`,
-        updatedReimbursementChoice: ({newReimbursementChoice, oldReimbursementChoice}: UpdatedPolicyReimbursementChoiceParams) =>
-            `将报销方式更改为“${newReimbursementChoice}”（原为“${oldReimbursementChoice}”）`,
+        updatedReimbursementChoice: (newReimbursementChoice: string, oldReimbursementChoice: string) => `将报销方式更改为“${newReimbursementChoice}”（原为“${oldReimbursementChoice}”）`,
         setAutoJoin: ({enabled}: {enabled: boolean}) => `${enabled ? '已启用' : '已禁用'} 预先批准加入工作区的请求`,
-        updatedDefaultTitle: ({newDefaultTitle, oldDefaultTitle}: UpdatedPolicyDefaultTitleParams) => `将自定义报表名称公式更改为“${newDefaultTitle}”（之前为“${oldDefaultTitle}”）`,
-        updatedOwnership: ({oldOwnerEmail, oldOwnerName, policyName}: UpdatedPolicyOwnershipParams) => `从 ${oldOwnerName}（${oldOwnerEmail}）接管了 ${policyName} 的所有权`,
+        updatedDefaultTitle: (newDefaultTitle: string, oldDefaultTitle: string) => `将自定义报表名称公式更改为“${newDefaultTitle}”（之前为“${oldDefaultTitle}”）`,
+        updatedOwnership: (oldOwnerEmail: string, oldOwnerName: string, policyName: string) => `从 ${oldOwnerName}（${oldOwnerEmail}）接管了 ${policyName} 的所有权`,
         updatedAutoHarvesting: (enabled: boolean) => `已计划提交 ${enabled ? '已启用' : '已禁用'}`,
-        updatedIndividualBudgetNotification: ({
-            budgetAmount,
-            budgetFrequency,
-            budgetName,
-            budgetTypeForNotificationMessage,
-            summaryLink,
-            thresholdPercentage,
-            totalSpend,
-            unsubmittedSpend,
-            userEmail,
-            awaitingApprovalSpend,
-            approvedReimbursedClosedSpend,
-        }: UpdatedPolicyBudgetNotificationParams) =>
+        // This function requires 11 params to match the budget notification data model; reducing further would hurt readability
+        // eslint-disable-next-line @typescript-eslint/max-params
+        updatedIndividualBudgetNotification: (
+            budgetAmount: string,
+            budgetFrequency: string,
+            budgetName: string,
+            budgetTypeForNotificationMessage: string,
+            thresholdPercentage: number,
+            totalSpend: number,
+            unsubmittedSpend: number,
+            awaitingApprovalSpend: number,
+            approvedReimbursedClosedSpend: number,
+            summaryLink?: string,
+            userEmail?: string,
+        ) =>
             `注意！此工作区的「${budgetTypeForNotificationMessage}：${budgetName}」有一项${budgetFrequency}预算，金额为「${budgetAmount}」。${userEmail} 当前支出为 ${approvedReimbursedClosedSpend}，已超过预算的 ${thresholdPercentage}%。另外还有 ${awaitingApprovalSpend} 正在等待审批，以及 ${unsubmittedSpend} 尚未提交，总计为 ${totalSpend}。${summaryLink ? `<a href="${summaryLink}">这里有一份报表</a>，包含了所有这些报销，供你留档！` : ''}`,
-        updatedSharedBudgetNotification: ({
-            budgetAmount,
-            budgetFrequency,
-            budgetName,
-            budgetTypeForNotificationMessage,
-            summaryLink,
-            thresholdPercentage,
-            totalSpend,
-            unsubmittedSpend,
-            awaitingApprovalSpend,
-            approvedReimbursedClosedSpend,
-        }: UpdatedPolicyBudgetNotificationParams) =>
+        updatedSharedBudgetNotification: (
+            budgetAmount: string,
+            budgetFrequency: string,
+            budgetName: string,
+            budgetTypeForNotificationMessage: string,
+            summaryLink: string | undefined,
+            thresholdPercentage: number,
+            totalSpend: number,
+            unsubmittedSpend: number,
+            awaitingApprovalSpend: number,
+            approvedReimbursedClosedSpend: number,
+        ) =>
             `提醒！此工作区的${budgetTypeForNotificationMessage}“${budgetName}”设有${budgetFrequency}预算“${budgetAmount}”。你当前已花费${approvedReimbursedClosedSpend}，已超过预算的${thresholdPercentage}%。另外还有${awaitingApprovalSpend}在等待审批，以及${unsubmittedSpend}尚未提交，总计${totalSpend}。${summaryLink ? `<a href="${summaryLink}">这里有一份报表</a>，包含了所有相关报销记录，供你留档保存！` : ''}`,
         addedCardFeed: (feedName: string) => `已添加卡片流水“${feedName}”`,
         removedCardFeed: (feedName: string) => `已移除卡片流水 “${feedName}”`,
@@ -7826,7 +7888,7 @@ ${reportName}
         overLimitAttendee: (formattedLimit: string) => `超出每人限额 ${formattedLimit} 的金额`,
         perDayLimit: (formattedLimit: string) => `金额超过每日 ${formattedLimit}/人类别限额`,
         receiptNotSmartScanned: '已手动添加收据和报销详情。',
-        receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
+        receiptRequired: (formattedLimit?: string, category?: string) => {
             if (formattedLimit && category) {
                 return `超过${formattedLimit}类别限额需提供收据`;
             }
@@ -7839,7 +7901,7 @@ ${reportName}
             return '需要收据';
         },
         itemizedReceiptRequired: (formattedLimit?: string) => `需要逐项明细收据${formattedLimit ? `超过 ${formattedLimit}` : ''}`,
-        prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
+        prohibitedExpense: (prohibitedExpenseTypes: string | string[]) => {
             const preMessage = '禁止报销的费用：';
             const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
                 switch (prohibitedExpenseType) {
@@ -7870,7 +7932,17 @@ ${reportName}
         },
         customRules: (message: string) => message,
         reviewRequired: '需要审核',
-        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL, connectionLink, isPersonalCard, isMarkAsCash}: ViolationsRterParams) => {
+        rter: (
+            brokenBankConnection: boolean,
+            isAdmin: boolean,
+            isTransactionOlderThan7Days: boolean,
+            member?: string,
+            rterType?: string,
+            companyCardPageURL?: string,
+            connectionLink?: string,
+            isPersonalCard?: boolean,
+            isMarkAsCash?: boolean,
+        ) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return '由于银行连接中断，无法自动匹配收据。';
             }
@@ -7897,10 +7969,10 @@ ${reportName}
         markAsCashToIgnore: '标记为现金以忽略并请求付款。',
         smartscanFailed: ({canEdit = true}) => `收据扫描失败。${canEdit ? '手动输入详细信息。' : ''}`,
         receiptGeneratedWithAI: '可能由 AI 生成的收据',
-        someTagLevelsRequired: ({tagName}: ViolationsTagOutOfPolicyParams = {}) => `缺少 ${tagName ?? '标签'}`,
-        tagOutOfPolicy: ({tagName}: ViolationsTagOutOfPolicyParams = {}) => `${tagName ?? '标签'} 不再有效`,
+        someTagLevelsRequired: (tagName?: string) => `缺少 ${tagName ?? '标签'}`,
+        tagOutOfPolicy: (tagName?: string) => `${tagName ?? '标签'} 不再有效`,
         taxAmountChanged: '税额已被修改',
-        taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams = {}) => `${taxName ?? '税'} 不再有效`,
+        taxOutOfPolicy: (taxName?: string) => `${taxName ?? '税'} 不再有效`,
         taxRateChanged: '税率已被修改',
         taxRequired: '缺少税率',
         none: '无',

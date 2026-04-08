@@ -4521,7 +4521,7 @@ const CONST = {
     FORM_CHARACTER_LIMIT: 50,
     STANDARD_LENGTH_LIMIT: 100,
     STANDARD_LIST_ITEM_LIMIT: 12,
-    APPROVAL_WORKFLOW_SEARCH_LIMIT: 3,
+    SEARCH_BAR_THRESHOLD: 3,
     LEGAL_NAMES_CHARACTER_LIMIT: 150,
     LOGIN_CHARACTER_LIMIT: 254,
     CATEGORY_NAME_LIMIT: 256,
@@ -6089,6 +6089,8 @@ const CONST = {
         NAVIGATION: 'navigation',
         /** Use for Tooltips */
         TOOLTIP: 'tooltip',
+        /** Use for dialog/modal elements */
+        DIALOG: 'dialog',
         /** Use for data table containers. */
         TABLE: 'table',
         /** Use for table rows. */
@@ -8444,9 +8446,9 @@ const CONST = {
             SIGN_UP: 'sign_up',
             WORKSPACE_CREATED: 'workspace_created',
             PAID_ADOPTION: 'paid_adoption',
-            PRODUCT_TRAINING_SCAN_TEST_TOOLTIP_SHOWN: 'prod_training_scan_test_tooltip_shown',
-            PRODUCT_TRAINING_SCAN_TEST_TOOLTIP_DISMISSED: 'prod_training_scan_test_tooltip_dismissed',
-            PRODUCT_TRAINING_SCAN_TEST_TOOLTIP_CONFIRMED: 'prod_training_scan_test_tooltip_confirmed',
+            PRODUCT_TRAINING_SCAN_TEST_TOOLTIP_SHOWN: 'training_scan_test_tooltip_shown',
+            PRODUCT_TRAINING_SCAN_TEST_TOOLTIP_DISMISSED: 'training_scan_test_tooltip_dismissed',
+            PRODUCT_TRAINING_SCAN_TEST_TOOLTIP_CONFIRMED: 'training_scan_test_tooltip_confirmed',
         },
     },
 
