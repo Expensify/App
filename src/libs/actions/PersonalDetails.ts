@@ -550,6 +550,15 @@ function updatePersonalDetailsAndShipExpensifyCards(values: FormOnyxValues<typeo
                 },
             },
         ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                value: {
+                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('cardPage.invalidCardLimit'),
+                },
+            },
+        ],
         finallyData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
