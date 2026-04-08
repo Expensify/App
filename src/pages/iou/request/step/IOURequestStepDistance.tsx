@@ -110,6 +110,7 @@ function IOURequestStepDistance({
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && isEditing;
@@ -345,6 +346,7 @@ function IOURequestStepDistance({
             userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,
             defaultP2PMileageRate,
+            conciergeReportID,
         });
     }, [
         iouType,
@@ -383,6 +385,7 @@ function IOURequestStepDistance({
         userBillingGracePeriodEnds,
         ownerBillingGracePeriodEnd,
         defaultP2PMileageRate,
+        conciergeReportID,
     ]);
 
     const getError = () => {
