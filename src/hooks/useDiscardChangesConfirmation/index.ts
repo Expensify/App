@@ -51,20 +51,14 @@ function useDiscardChangesConfirmation({getHasUnsavedChanges, onCancel, onVisibi
         });
     }, [showConfirmModal, translate, navigateBack, onCancel, onVisibilityChange]);
 
-    useBeforeRemove(
-        useCallback(
-            (e) => {
-                if (!getHasUnsavedChanges() || shouldNavigateBack.current) {
-                    return;
-                }
-
-                e.preventDefault();
-                blockedNavigationAction.current = e.data.action;
-                navigateAfterInteraction(showDiscardModal);
-            },
-            [getHasUnsavedChanges, showDiscardModal],
-        ),
-    );
+    useBeforeRemove((e) => {
+        if (!getHasUnsavedChanges() || shouldNavigateBack.current) {
+            return;
+        }
+        e.preventDefault();
+        blockedNavigationAction.current = e.data.action;
+        navigateAfterInteraction(showDiscardModal);
+    });
 
     /**
      * We cannot programmatically stop the browser's back navigation like react-navigation's beforeRemove.

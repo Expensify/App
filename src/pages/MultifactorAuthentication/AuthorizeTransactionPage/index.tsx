@@ -76,16 +76,13 @@ function MultifactorAuthenticationScenarioAuthorizeTransactionPage({route}: Mult
         setConfirmModalVisibility(false);
     };
 
-    const onBeforeRemove: Parameters<typeof useBeforeRemove>[0] = useCallback(
-        (e) => {
-            if (allowNavigatingAwayRef.current || !transaction || !!denyOutcomeScreen) {
-                return;
-            }
-            e.preventDefault();
-            showConfirmModal();
-        },
-        [showConfirmModal, transaction, denyOutcomeScreen],
-    );
+    const onBeforeRemove: Parameters<typeof useBeforeRemove>[0] = (e) => {
+        if (allowNavigatingAwayRef.current || !transaction || !!denyOutcomeScreen) {
+            return;
+        }
+        e.preventDefault();
+        showConfirmModal();
+    };
 
     useBeforeRemove(onBeforeRemove);
 
