@@ -10,19 +10,23 @@ jest.mock('@libs/Log', () => ({
     warn: jest.fn(),
 }));
 
-jest.mock('@src/ROUTES', () => ({
-    default: {
+jest.mock('@src/ROUTES', () => {
+    const routesMock = {
         HOME: 'home',
-    },
-    DYNAMIC_ROUTES: {
-        VERIFY_ACCOUNT: {path: 'verify-account'},
-        CUSTOM_FLOW: {path: 'custom-flow'},
-        DETAILS: {path: 'details'},
-        INVITE: {path: 'invite'},
-        FILTERS: {path: 'filters'},
-        ADDRESS_COUNTRY: {path: 'country', getRoute: (country: string) => `country?country=${country}`},
-    },
-}));
+        DYNAMIC_ROUTES: {
+            VERIFY_ACCOUNT: {path: 'verify-account'},
+            CUSTOM_FLOW: {path: 'custom-flow'},
+            DETAILS: {path: 'details'},
+            INVITE: {path: 'invite'},
+            FILTERS: {path: 'filters'},
+            ADDRESS_COUNTRY: {path: 'country', getRoute: (country: string) => `country?country=${country}`},
+        },
+    };
+
+    Object.defineProperty(routesMock, '__esModule', {value: true});
+
+    return routesMock;
+});
 
 describe('createDynamicRoute', () => {
     const mockGetActiveRoute = Navigation.getActiveRoute as jest.Mock;
@@ -132,5 +136,11 @@ describe('appendDynamicRouteSuffixToBasePath', () => {
         const result = appendDynamicRouteSuffixToBasePath('workspace/123/categories?foo=bar', 'imported' as DynamicRouteSuffix);
 
         expect(result).toBe('workspace/123/categories/imported?foo=bar');
+    });
+
+    it('should return HOME when base path is empty', () => {
+        const result = appendDynamicRouteSuffixToBasePath('', 'imported' as DynamicRouteSuffix);
+
+        expect(result).toBe('home');
     });
 });
