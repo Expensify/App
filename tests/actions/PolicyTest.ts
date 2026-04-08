@@ -5709,7 +5709,7 @@ describe('actions/Policy', () => {
             expect(rate.currency).toBe('EUR');
         });
 
-        it('falls back to USD when no currency is provided and no personal details exist', () => {
+        it('falls back to USD when no currency is provided', () => {
             const result = Policy.buildOptimisticDistanceRateCustomUnits();
 
             expect(result.outputCurrency).toBe(CONST.CURRENCY.USD);
@@ -5730,6 +5730,24 @@ describe('actions/Policy', () => {
 
             // Empty string is falsy, so it should fall back
             expect(result.outputCurrency).toBe(CONST.CURRENCY.USD);
+        });
+
+        it('falls back to USD regardless of personal details in Onyx', async () => {
+            // Set personal details with a non-USD currency to verify the function does NOT read from Onyx
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [ESH_ACCOUNT_ID]: {
+                    accountID: ESH_ACCOUNT_ID,
+                    localCurrencyCode: 'GBP',
+                },
+            });
+            await waitForBatchedUpdates();
+
+            const result = Policy.buildOptimisticDistanceRateCustomUnits();
+
+            // Should fall back to USD, not GBP from personal details
+            expect(result.outputCurrency).toBe(CONST.CURRENCY.USD);
+            const rate = result.customUnits[result.customUnitID].rates[result.customUnitRateID];
+            expect(rate.currency).toBe(CONST.CURRENCY.USD);
         });
     });
 

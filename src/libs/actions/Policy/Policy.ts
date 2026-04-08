@@ -2277,7 +2277,7 @@ function generateCustomUnitID(): string {
 
 function buildOptimisticDistanceRateCustomUnits(reportCurrency?: string): OptimisticCustomUnits {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
-    const currency = reportCurrency || (deprecatedAllPersonalDetails?.[deprecatedSessionAccountID]?.localCurrencyCode ?? CONST.CURRENCY.USD);
+    const currency = reportCurrency || CONST.CURRENCY.USD;
     const customUnitID = generateCustomUnitID();
     const customUnitRateID = generateCustomUnitID();
 
