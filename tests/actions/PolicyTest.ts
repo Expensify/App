@@ -1843,7 +1843,7 @@ describe('actions/Policy', () => {
 
             const policyID = Policy.generatePolicyID();
 
-            Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE}, WORKSPACE_NAME, policyID, false, CONST.CURRENCY.EUR);
+            Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE}, WORKSPACE_NAME, ESH_ACCOUNT_ID, ESH_EMAIL, policyID, false, CONST.CURRENCY.EUR);
             await waitForBatchedUpdates();
 
             const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
@@ -1852,6 +1852,69 @@ describe('actions/Policy', () => {
             expect(draft?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT);
             expect(draft?.harvesting?.enabled).toBe(true);
             expect(draft?.outputCurrency).toBe(CONST.CURRENCY.EUR);
+        });
+
+        it('should set owner and ownerAccountID from explicit parameters', async () => {
+            // Set Onyx session to a DIFFERENT accountID/email to verify the explicit parameters are used
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const customAccountID = 999;
+            const customEmail = 'custom@example.com';
+            const policyID = Policy.generatePolicyID();
+
+            Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM}, WORKSPACE_NAME, customAccountID, customEmail, policyID);
+            await waitForBatchedUpdates();
+
+            const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
+
+            // Verify owner and ownerAccountID use the explicit parameters, not the Onyx session
+            expect(draft?.owner).toBe(customEmail);
+            expect(draft?.ownerAccountID).toBe(customAccountID);
+
+            // Verify that the Onyx session values are NOT used
+            expect(draft?.owner).not.toBe(ESH_EMAIL);
+            expect(draft?.ownerAccountID).not.toBe(ESH_ACCOUNT_ID);
+        });
+
+        it('should set approver from explicit currentUserEmail parameter', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const customAccountID = 888;
+            const customEmail = 'approver@example.com';
+            const policyID = Policy.generatePolicyID();
+
+            Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM}, WORKSPACE_NAME, customAccountID, customEmail, policyID);
+            await waitForBatchedUpdates();
+
+            const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
+
+            expect(draft?.approver).toBe(customEmail);
+            expect(draft?.approver).not.toBe(ESH_EMAIL);
+        });
+
+        it('should set employeeList using explicit currentUserEmail parameter', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await waitForBatchedUpdates();
+
+            const customAccountID = 777;
+            const customEmail = 'employee@example.com';
+            const policyID = Policy.generatePolicyID();
+
+            Policy.createDraftInitialWorkspace({choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM}, WORKSPACE_NAME, customAccountID, customEmail, policyID);
+            await waitForBatchedUpdates();
+
+            const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
+
+            // Verify the employeeList uses the explicit email parameter
+            expect(draft?.employeeList?.[customEmail]).toBeDefined();
+            expect(draft?.employeeList?.[customEmail]?.email).toBe(customEmail);
+            expect(draft?.employeeList?.[customEmail]?.submitsTo).toBe(customEmail);
+            expect(draft?.employeeList?.[customEmail]?.role).toBe(CONST.POLICY.ROLE.ADMIN);
+
+            // Verify the Onyx session email is NOT used in employeeList
+            expect(draft?.employeeList?.[ESH_EMAIL]).toBeUndefined();
         });
     });
 
