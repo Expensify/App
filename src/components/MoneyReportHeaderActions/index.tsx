@@ -22,13 +22,6 @@ import MoneyReportHeaderSelectionDropdown from './MoneyReportHeaderSelectionDrop
 type MoneyReportHeaderActionsProps = {
     reportID: string | undefined;
     primaryAction: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | ValueOf<typeof CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS> | '';
-    isPaidAnimationRunning: boolean;
-    isApprovedAnimationRunning: boolean;
-    isSubmittingAnimationRunning: boolean;
-    stopAnimation: () => void;
-    startAnimation: () => void;
-    startApprovedAnimation: () => void;
-    startSubmittingAnimation: () => void;
     isReportInSearch?: boolean;
 };
 
@@ -43,18 +36,7 @@ function narrowPrimaryAction(primaryAction: MoneyReportHeaderActionsProps['prima
     return '';
 }
 
-function MoneyReportHeaderActions({
-    reportID,
-    primaryAction,
-    isPaidAnimationRunning,
-    isApprovedAnimationRunning,
-    isSubmittingAnimationRunning,
-    stopAnimation,
-    startAnimation,
-    startApprovedAnimation,
-    startSubmittingAnimation,
-    isReportInSearch,
-}: MoneyReportHeaderActionsProps) {
+function MoneyReportHeaderActions({reportID, primaryAction, isReportInSearch}: MoneyReportHeaderActionsProps) {
     const styles = useThemeStyles();
     const dropdownMenuRef = useRef<ButtonWithDropdownMenuRef>(null) as React.RefObject<ButtonWithDropdownMenuRef>;
 
@@ -91,8 +73,6 @@ function MoneyReportHeaderActions({
                     primaryAction={narrowedPrimaryAction}
                     onHoldMenuOpen={onHoldMenuOpen}
                     onRejectModalOpen={openRejectModal}
-                    startApprovedAnimation={startApprovedAnimation}
-                    startSubmittingAnimation={startSubmittingAnimation}
                     wrapperStyle={shouldDisplayNarrowMoreButton ? undefined : styles.w100}
                 />
             </View>
@@ -101,21 +81,14 @@ function MoneyReportHeaderActions({
 
     return (
         <View style={[styles.flexRow, styles.gap2, ...(!shouldDisplayNarrowMoreButton ? [styles.pb3, styles.ph5, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter] : [])]}>
-                <View style={!!primaryAction && !shouldDisplayNarrowMoreButton ? [styles.flex1] : undefined}>
-                    <MoneyReportHeaderPrimaryAction
-                        reportID={reportID}
-                        chatReportID={chatReport?.reportID}
-                        primaryAction={primaryAction}
-                        isPaidAnimationRunning={isPaidAnimationRunning}
-                        isApprovedAnimationRunning={isApprovedAnimationRunning}
-                        isSubmittingAnimationRunning={isSubmittingAnimationRunning}
-                        stopAnimation={stopAnimation}
-                        startAnimation={startAnimation}
-                        startApprovedAnimation={startApprovedAnimation}
-                        startSubmittingAnimation={startSubmittingAnimation}
-                        onExportModalOpen={() => triggerExportOrConfirm(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION)}
-                    />
-                </View>
+            <View style={!!primaryAction && !shouldDisplayNarrowMoreButton ? [styles.flex1] : undefined}>
+                <MoneyReportHeaderPrimaryAction
+                    reportID={reportID}
+                    chatReportID={chatReport?.reportID}
+                    primaryAction={primaryAction}
+                    onExportModalOpen={() => triggerExportOrConfirm(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION)}
+                />
+            </View>
             <MoneyReportHeaderSecondaryActions
                 reportID={reportID}
                 primaryAction={narrowedPrimaryAction}
@@ -123,9 +96,6 @@ function MoneyReportHeaderActions({
                 onPDFModalOpen={openPDFDownload}
                 onHoldEducationalOpen={openHoldEducational}
                 onRejectModalOpen={openRejectModal}
-                startAnimation={startAnimation}
-                startApprovedAnimation={startApprovedAnimation}
-                startSubmittingAnimation={startSubmittingAnimation}
                 isReportInSearch={isReportInSearch}
                 dropdownMenuRef={dropdownMenuRef}
             />

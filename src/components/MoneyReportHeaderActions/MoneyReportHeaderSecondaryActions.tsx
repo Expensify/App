@@ -9,6 +9,7 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {RejectModalAction} from '@components/MoneyReportHeaderEducationalModals';
 import MoneyReportHeaderKYCDropdown from '@components/MoneyReportHeaderKYCDropdown';
+import {usePaymentAnimationsContext} from '@components/PaymentAnimationsContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchStateContext} from '@components/Search/SearchContext';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
@@ -62,9 +63,6 @@ type MoneyReportHeaderSecondaryActionsProps = {
     onPDFModalOpen: () => void;
     onHoldEducationalOpen: () => void;
     onRejectModalOpen: (action: RejectModalAction) => void;
-    startAnimation: () => void;
-    startApprovedAnimation: () => void;
-    startSubmittingAnimation: () => void;
     isReportInSearch?: boolean;
     dropdownMenuRef?: React.RefObject<ButtonWithDropdownMenuRef>;
 };
@@ -76,12 +74,10 @@ function MoneyReportHeaderSecondaryActions({
     onPDFModalOpen,
     onHoldEducationalOpen,
     onRejectModalOpen,
-    startAnimation,
-    startApprovedAnimation,
-    startSubmittingAnimation,
     isReportInSearch,
     dropdownMenuRef,
 }: MoneyReportHeaderSecondaryActionsProps) {
+    const {startAnimation, startApprovedAnimation, startSubmittingAnimation} = usePaymentAnimationsContext();
     const {translate, localeCompare} = useLocalize();
     const kycWallRef = useContext(KYCWallContext);
 

@@ -10,6 +10,7 @@ import {useLockedAccountActions, useLockedAccountState} from '@components/Locked
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {RejectModalAction} from '@components/MoneyReportHeaderEducationalModals';
 import MoneyReportHeaderKYCDropdown from '@components/MoneyReportHeaderKYCDropdown';
+import {usePaymentAnimationsContext} from '@components/PaymentAnimationsContext';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
@@ -47,20 +48,11 @@ type MoneyReportHeaderSelectionDropdownProps = {
     primaryAction: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '';
     onHoldMenuOpen: (requestType: string, paymentType?: PaymentMethodType, methodID?: number, onConfirm?: (full: boolean) => void) => void;
     onRejectModalOpen: (action: RejectModalAction) => void;
-    startApprovedAnimation: () => void;
-    startSubmittingAnimation: () => void;
     wrapperStyle?: StyleProp<ViewStyle>;
 };
 
-function MoneyReportHeaderSelectionDropdown({
-    reportID,
-    primaryAction,
-    onHoldMenuOpen,
-    onRejectModalOpen,
-    startApprovedAnimation,
-    startSubmittingAnimation,
-    wrapperStyle,
-}: MoneyReportHeaderSelectionDropdownProps) {
+function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, onHoldMenuOpen, onRejectModalOpen, wrapperStyle}: MoneyReportHeaderSelectionDropdownProps) {
+    const {startApprovedAnimation, startSubmittingAnimation} = usePaymentAnimationsContext();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {isProduction} = useEnvironment();

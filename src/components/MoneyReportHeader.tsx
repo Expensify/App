@@ -8,7 +8,6 @@ import useMoneyReportHeaderStatusBar from '@hooks/useMoneyReportHeaderStatusBar'
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
-import usePaymentAnimations from '@hooks/usePaymentAnimations';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportPrimaryAction from '@hooks/useReportPrimaryAction';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
@@ -62,6 +61,7 @@ import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
 import MoneyReportHeaderStatusBarSection from './MoneyReportHeaderStatusBarSection';
 import MoneyReportHeaderStatusBarSkeleton from './MoneyReportHeaderStatusBarSkeleton';
 import MoneyRequestReportNavigation from './MoneyRequestReportView/MoneyRequestReportNavigation';
+import {PaymentAnimationsProvider, usePaymentAnimationsContext} from './PaymentAnimationsContext';
 import {useSearchActionsContext} from './Search/SearchContext';
 
 type MoneyReportHeaderProps = {
@@ -78,11 +78,13 @@ type MoneyReportHeaderProps = {
 function MoneyReportHeader({reportID, shouldDisplayBackButton = false, onBackButtonPress}: MoneyReportHeaderProps) {
     return (
         <MoneyReportHeaderModals reportID={reportID}>
-            <MoneyReportHeaderContent
-                reportID={reportID}
-                shouldDisplayBackButton={shouldDisplayBackButton}
-                onBackButtonPress={onBackButtonPress}
-            />
+            <PaymentAnimationsProvider>
+                <MoneyReportHeaderContent
+                    reportID={reportID}
+                    shouldDisplayBackButton={shouldDisplayBackButton}
+                    onBackButtonPress={onBackButtonPress}
+                />
+            </PaymentAnimationsProvider>
         </MoneyReportHeaderModals>
     );
 }
@@ -143,8 +145,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const isDEWPolicy = hasDynamicExternalWorkflow(policy);
 
-    const {isPaidAnimationRunning, isApprovedAnimationRunning, isSubmittingAnimationRunning, startAnimation, stopAnimation, startApprovedAnimation, startSubmittingAnimation} =
-        usePaymentAnimations();
+    const {isPaidAnimationRunning, isApprovedAnimationRunning, isSubmittingAnimationRunning} = usePaymentAnimationsContext();
     const styles = useThemeStyles();
     const theme = useTheme();
 
@@ -295,13 +296,6 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                     <MoneyReportHeaderActions
                         reportID={reportIDProp}
                         primaryAction={primaryAction}
-                        isPaidAnimationRunning={isPaidAnimationRunning}
-                        isApprovedAnimationRunning={isApprovedAnimationRunning}
-                        isSubmittingAnimationRunning={isSubmittingAnimationRunning}
-                        stopAnimation={stopAnimation}
-                        startAnimation={startAnimation}
-                        startApprovedAnimation={startApprovedAnimation}
-                        startSubmittingAnimation={startSubmittingAnimation}
                         isReportInSearch={isReportInSearch}
                     />
                 )}
@@ -310,13 +304,6 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                 <MoneyReportHeaderActions
                     reportID={reportIDProp}
                     primaryAction={primaryAction}
-                    isPaidAnimationRunning={isPaidAnimationRunning}
-                    isApprovedAnimationRunning={isApprovedAnimationRunning}
-                    isSubmittingAnimationRunning={isSubmittingAnimationRunning}
-                    stopAnimation={stopAnimation}
-                    startAnimation={startAnimation}
-                    startApprovedAnimation={startApprovedAnimation}
-                    startSubmittingAnimation={startSubmittingAnimation}
                     isReportInSearch={isReportInSearch}
                 />
             )}

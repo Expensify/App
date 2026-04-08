@@ -6,16 +6,6 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type CONST from '@src/CONST';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
-type AnimationCallbacks = {
-    isPaidAnimationRunning: boolean;
-    isApprovedAnimationRunning: boolean;
-    isSubmittingAnimationRunning: boolean;
-    stopAnimation: () => void;
-    startAnimation: () => void;
-    startApprovedAnimation: () => void;
-    startSubmittingAnimation: () => void;
-};
-
 type ModalTriggers = {
     onHoldMenuOpen: (requestType: string, paymentType?: PaymentMethodType, methodID?: number) => void;
     onPDFModalOpen: () => void;
@@ -25,11 +15,12 @@ type ModalTriggers = {
 
 type SecondaryActionEntry = DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon'>;
 
-type MoneyReportHeaderActionsProps = AnimationCallbacks & {
+type MoneyReportHeaderActionsProps = {
     reportID: string | undefined;
     primaryAction: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | ValueOf<typeof CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS> | '';
     /** Style to apply when rendered inline (narrow layout inside HeaderWithBackButton) */
     style?: StyleProp<ViewStyle>;
+    isReportInSearch?: boolean;
 };
 
-export type {AnimationCallbacks, ModalTriggers, SecondaryActionEntry, MoneyReportHeaderActionsProps};
+export type {ModalTriggers, SecondaryActionEntry, MoneyReportHeaderActionsProps};
