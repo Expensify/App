@@ -167,7 +167,7 @@ function useExpenseActions({reportID, isReportInSearch = false}: UseExpenseActio
         return children.length > 1;
     })();
     const isReportOpen = isOpenReport(moneyRequestReport);
-    const shouldShowSplitIndicator = isExpenseSplit && (hasMultipleSplits || isReportOpen);
+    const hasSplitIndicator = isExpenseSplit && (hasMultipleSplits || isReportOpen);
 
     // Duplicate report throttle
     const [isDuplicateReportActive, temporarilyDisableDuplicateReportAction] = useThrottledButtonState();
@@ -285,7 +285,7 @@ function useExpenseActions({reportID, isReportInSearch = false}: UseExpenseActio
 
     const actions: Partial<Record<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>, SecondaryActionEntry>> = {
         [CONST.REPORT.SECONDARY_ACTIONS.SPLIT]: {
-            text: shouldShowSplitIndicator ? translate('iou.editSplits') : translate('iou.split'),
+            text: hasSplitIndicator ? translate('iou.editSplits') : translate('iou.split'),
             icon: expensifyIcons.ArrowSplit,
             value: CONST.REPORT.SECONDARY_ACTIONS.SPLIT,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.SPLIT,

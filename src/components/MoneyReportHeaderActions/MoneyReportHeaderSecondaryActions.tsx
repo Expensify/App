@@ -213,9 +213,9 @@ function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInS
         !reportHasOnlyNonReimbursableTransactions &&
         !canIOUBePaid &&
         canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, undefined, true, undefined, invoiceReceiverPolicy);
-    const shouldShowPayButton = canIOUBePaid || onlyShowPayElsewhere || (reportHasOnlyNonReimbursableTransactions && (moneyRequestReport?.total ?? 0) !== 0);
-    const shouldShowApproveButton = canApproveIOU(moneyRequestReport, policy, reportMetadata, allTransactions);
-    const shouldDisableApproveButton = shouldShowApproveButton && !isAllowedToApproveExpenseReport(moneyRequestReport);
+    const isPayable = canIOUBePaid || onlyShowPayElsewhere || (reportHasOnlyNonReimbursableTransactions && (moneyRequestReport?.total ?? 0) !== 0);
+    const isApprovable = canApproveIOU(moneyRequestReport, policy, reportMetadata, allTransactions);
+    const isApproveDisabled = isApprovable && !isAllowedToApproveExpenseReport(moneyRequestReport);
 
     const totalAmount = getTotalAmountForIOUReportPreviewButton(moneyRequestReport, policy, CONST.REPORT.PRIMARY_ACTIONS.PAY, nonPendingDeleteTransactions);
 
@@ -226,9 +226,9 @@ function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInS
         formattedAmount: totalAmount,
         policyID: moneyRequestReport?.policyID,
         onPress: confirmPayment,
-        shouldHidePaymentOptions: !shouldShowPayButton,
-        shouldShowApproveButton,
-        shouldDisableApproveButton,
+        shouldHidePaymentOptions: !isPayable,
+        shouldShowApproveButton: isApprovable,
+        shouldDisableApproveButton: isApproveDisabled,
         onlyShowPayElsewhere,
     });
 

@@ -52,11 +52,12 @@ function MoneyReportHeaderActions({reportID, primaryAction, isReportInSearch}: M
     const {triggerExportOrConfirm} = useExportAgainModal(moneyRequestReport?.reportID, moneyRequestReport?.policyID);
 
     const {selectedTransactionIDs} = useSearchStateContext();
-    const shouldShowSelectedTransactionsButton = !!selectedTransactionIDs.length && !transactionThreadReportID;
+    const hasSelectedTransactions = !!selectedTransactionIDs.length;
+    const isTransactionThread = !!transactionThreadReportID;
 
     const narrowedPrimaryAction = narrowPrimaryAction(primaryAction);
 
-    if (shouldShowSelectedTransactionsButton) {
+    if (hasSelectedTransactions && !isTransactionThread) {
         return (
             <View style={shouldDisplayNarrowMoreButton ? undefined : [styles.dFlex, styles.w100, styles.ph5, styles.pb3]}>
                 <MoneyReportHeaderSelectionDropdown

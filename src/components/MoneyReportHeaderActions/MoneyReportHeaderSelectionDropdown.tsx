@@ -182,7 +182,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, wrapperSty
 
     const canIOUBePaid = canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, undefined, false, undefined, invoiceReceiverPolicy);
 
-    const shouldShowPayButton = hasPayAction && canIOUBePaid;
+    const isPayable = hasPayAction && canIOUBePaid;
 
     const confirmPayment = ({paymentType: type, methodID}: PaymentActionParams) => {
         if (!type || !chatReport) {
@@ -235,7 +235,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, wrapperSty
                 });
             }
         },
-        shouldHidePaymentOptions: !shouldShowPayButton,
+        shouldHidePaymentOptions: !isPayable,
         shouldShowApproveButton: false,
         shouldDisableApproveButton: false,
         onlyShowPayElsewhere: false,
