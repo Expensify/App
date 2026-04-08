@@ -12,10 +12,13 @@ import Text from '@components/Text';
 import {useCompanyCardBankIcons} from '@hooks/useCompanyCardIcons';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {isUsingStagingApi} from '@libs/ApiUtils';
 import {isPlaidSupportedCountry} from '@libs/CardUtils';
 import variables from '@styles/variables';
 import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeedProvider} from '@src/types/onyx/CardFeeds';
@@ -81,17 +84,39 @@ function getAvailableCompanyCardTypes({translate, typeSelected, styles, companyC
 function CardTypeStep() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const illustrations = useThemeIllustrations();
     const companyCardBankIcons = useCompanyCardBankIcons();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
-    const [localTypeSelected, setLocalTypeSelected] = useState<CardFeedProvider>();
+    const [shouldUseStagingServer = isUsingStagingApi()] = useOnyx(ONYXKEYS.SHOULD_USE_STAGING_SERVER);
+    const [localTypeSelected, setLocalTypeSelected] = useState<CardFeedProvider | typeof CONST.COMPANY_CARD.FEED_BANK_NAME.MOCK_COMMERCIAL_FEED>();
     const typeSelected = localTypeSelected ?? addNewCard?.data.feedType;
     const [isError, setIsError] = useState(false);
-    const data = getAvailableCompanyCardTypes({
+    const isMockFeedVisible = CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.PRODUCTION || shouldUseStagingServer;
+    const baseData = getAvailableCompanyCardTypes({
         translate,
-        typeSelected,
+        typeSelected: typeSelected === CONST.COMPANY_CARD.FEED_BANK_NAME.MOCK_COMMERCIAL_FEED ? undefined : typeSelected,
         styles: styles.mr3,
         companyCardBankIcons,
     });
+    const data = isMockFeedVisible
+        ? [
+              ...baseData,
+              {
+                  value: CONST.COMPANY_CARD.FEED_BANK_NAME.MOCK_COMMERCIAL_FEED,
+                  text: 'Mock Commercial Feed (Testing)',
+                  keyForList: CONST.COMPANY_CARD.FEED_BANK_NAME.MOCK_COMMERCIAL_FEED,
+                  isSelected: typeSelected === CONST.COMPANY_CARD.FEED_BANK_NAME.MOCK_COMMERCIAL_FEED,
+                  leftElement: (
+                      <Icon
+                          src={illustrations.GenericCompanyCard}
+                          height={variables.iconSizeExtraLarge}
+                          width={variables.iconSizeExtraLarge}
+                          additionalStyles={styles.mr3}
+                      />
+                  ),
+              },
+          ]
+        : baseData;
     const {bankName, selectedBank, feedType} = addNewCard?.data ?? {};
     const isOtherBankSelected = selectedBank === CONST.COMPANY_CARDS.BANKS.OTHER;
     const isNewCardTypeSelected = typeSelected !== feedType;
@@ -100,6 +125,15 @@ function CardTypeStep() {
     const submit = useCallback(() => {
         if (!typeSelected) {
             setIsError(true);
+        } else if (typeSelected === CONST.COMPANY_CARD.FEED_BANK_NAME.MOCK_COMMERCIAL_FEED) {
+            setAddNewCompanyCardStepAndData({
+                step: CONST.COMPANY_CARDS.STEP.SELECT_STATEMENT_CLOSE_DATE,
+                data: {
+                    feedType: typeSelected,
+                    feedDetails: {},
+                },
+                isEditing: false,
+            });
         } else {
             setAddNewCompanyCardStepAndData({
                 step: CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS,
