@@ -825,6 +825,9 @@ type SettingsNavigatorParamList = {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_REUSE_EXISTING_CONNECTIONS]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_SETUP_MODAL]: {
         policyID: string;
     };
@@ -1439,6 +1442,25 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.RULES_MERCHANT_NEW]: {
         policyID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_SPEND_NEW]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_SPEND_CARD]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_SPEND_CATEGORY]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_SPEND_MAX_AMOUNT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_SPEND_MERCHANTS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_SPEND_MERCHANT_EDIT]: {
+        policyID: string;
+        merchantIndex: string;
     };
     [SCREENS.WORKSPACE.RULES_MERCHANT_MERCHANT_TO_MATCH]: {
         policyID: string;
