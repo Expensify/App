@@ -115,7 +115,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const currentPolicy = Object.keys(policy?.employeeList ?? {}).length
         ? policy
         : currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(currentReport?.policyID)}`];
-    const isSearchBackToRoute = backTo?.startsWith('search') ?? false;
+    const normalizedBackTo = backTo?.replace(/^\//, '');
+    const isSearchBackToRoute = normalizedBackTo?.startsWith(ROUTES.SEARCH_ROOT.route) ?? false;
     const activeGroupSearchHashes = isSearchBackToRoute ? getActiveGroupSearchHashes(currentSearchResults?.data, currentSearchQueryJSON) : [];
 
     const isSplitExpenseEditable = (splitExpense: SplitExpense) => {
