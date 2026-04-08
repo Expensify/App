@@ -184,13 +184,11 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
             {isCardSettingsLoading ? (
                 <FullScreenLoadingIndicator
                     shouldUseGoBackButton
-                    reasonAttributes={
-                        {
-                            context: 'SpendRuleCardPage',
-                            isOffline,
-                            hasOnceLoaded: !!expensifyCardSettings?.hasOnceLoaded,
-                        }
-                    }
+                    reasonAttributes={{
+                        context: 'SpendRuleCardPage',
+                        isOffline,
+                        hasOnceLoaded: !!expensifyCardSettings?.hasOnceLoaded,
+                    }}
                 />
             ) : (
                 <ScreenWrapper
