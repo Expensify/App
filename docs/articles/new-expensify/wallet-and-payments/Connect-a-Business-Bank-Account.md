@@ -36,7 +36,7 @@ To connect a business bank account, the Workspace must have Workflows enabled. [
 If your business bank account already exists in Expensify, an admin with access can share it with you instead. Learn how to [share a business bank account](/articles/new-expensify/wallet-and-payments/Share-a-Business-Bank-Account).
 
 <!-- SCREENSHOT:
-Suggestion: Update current screendhots
+Suggestion: Update current screenshots
 -->
 
 ![Workflows screen with Connect Bank Account button]({{site.url}}/assets/images/Help-ConnectBusinessBankAccount-2.png){:width="100%"}
@@ -62,7 +62,7 @@ Purpose: Shows the new Wallet entry point for business bank accounts
 
 ## How to link an existing business bank account to a workspace
 
-If you already have a verified business bank accoun, you can share it to another workspace without needing to add it again. [Learn how to share a business bank account](/articles/new-expensify/wallet-and-payments/Share-a-Business-Bank-Account). 
+If you already have a verified business bank account, you can share it to another workspace without needing to add it again. [Learn how to share a business bank account](/articles/new-expensify/wallet-and-payments/Share-a-Business-Bank-Account). 
 
 ---
 
