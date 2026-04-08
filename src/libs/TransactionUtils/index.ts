@@ -136,140 +136,62 @@ type BuildOptimisticTransactionParams = {
     isDemoTransactionParam?: boolean;
 };
 
-function hasDistanceCustomUnit(transaction: OnyxEntry<Transaction> | Partial<Transaction>): boolean {
-    return transaction?.comment?.type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && transaction?.comment?.customUnit?.name === CONST.CUSTOM_UNITS.NAME_DISTANCE;
+function isRequestOfType(transaction: OnyxEntry<Transaction> | Partial<Transaction>, type: IOURequestType): boolean {
+    if (!transaction || !Object.hasOwn(transaction, 'iouRequestType')) {
+        return false;
+    }
+
+    return transaction.iouRequestType === type;
 }
 
 function isDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
-    // This is used during the expense creation flow before the transaction has been saved to the server
-    if (transaction && Object.hasOwn(transaction, 'iouRequestType')) {
-        return (
-            transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE ||
-            transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP ||
-            transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER ||
-            transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_GPS ||
-            transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL
-        );
+    if (!transaction || !Object.hasOwn(transaction, 'iouRequestType')) {
+        return false;
     }
 
-    // This is the case for transaction objects once they have been saved to the server
-    return hasDistanceCustomUnit(transaction);
+    return (
+        transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE ||
+        transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP ||
+        transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER ||
+        transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_GPS ||
+        transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL
+    );
 }
 
 function isDistanceTypeRequest(transaction: OnyxEntry<Transaction>): boolean {
-    // This is used during the expense creation flow before the transaction has been saved to the server
-    if (transaction && Object.hasOwn(transaction, 'iouRequestType')) {
-        return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
-    }
-
-    // This is the case for transaction objects once they have been saved to the server
-    return hasDistanceCustomUnit(transaction);
-}
-
-/**
- * todo: Currently there is no way to tell server map transaction object from
- * server GPS transaction object, this will be discussed and updated later.
- * To fix this temporarily we set keyForList of GPS waypoints to 'gps_start' and 'gps_end'
- * and use that to determine if it's a GPS or Map transaction. This should be changed before
- * the first GPS release.
- */
-function hasGPSWaypoints(transaction: OnyxEntry<Transaction>) {
-    const waypoints = transaction?.comment?.waypoints;
-
-    if (!waypoints) {
-        return false;
-    }
-
-    const waypoint = Object.values(waypoints).at(0);
-
-    return !!waypoint?.keyForList?.startsWith('gps');
+    return isRequestOfType(transaction, CONST.IOU.REQUEST_TYPE.DISTANCE);
 }
 
 function isMapDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
-    // This is used during the expense creation flow before the transaction has been saved to the server
-    if (transaction && Object.hasOwn(transaction, 'iouRequestType')) {
-        return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
-    }
-
-    // This is the case for transaction objects once they have been saved to the server
-    return hasDistanceCustomUnit(transaction) && !hasGPSWaypoints(transaction);
+    return isRequestOfType(transaction, CONST.IOU.REQUEST_TYPE.DISTANCE_MAP);
 }
 
 function isGPSDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
-    // This is used during the expense creation flow before the transaction has been saved to the server
-    if (transaction && Object.hasOwn(transaction, 'iouRequestType')) {
-        return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_GPS;
-    }
-
-    // This is the case for transaction objects once they have been saved to the server
-    return hasGPSWaypoints(transaction);
+    return isRequestOfType(transaction, CONST.IOU.REQUEST_TYPE.DISTANCE_GPS);
 }
 
-function isManualDistanceRequest(transaction: OnyxEntry<Transaction>, isUpdatedMergeTransaction = false): boolean {
-    // This is used during the expense creation flow before the transaction has been saved to the server
-    if (transaction && Object.hasOwn(transaction, 'iouRequestType') && !isUpdatedMergeTransaction) {
-        return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL;
-    }
-
-    // This is the case for transaction objects once they have been saved to the server
-    // Exclude odometer requests which also have no waypoints but have odometer readings
-    return (
-        hasDistanceCustomUnit(transaction) &&
-        isEmptyObject(transaction?.comment?.waypoints) &&
-        transaction?.comment?.odometerStart === undefined &&
-        transaction?.comment?.odometerEnd === undefined
-    );
+function isManualDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
+    return isRequestOfType(transaction, CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL);
 }
 
 function isOdometerDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
-    // This is used during the expense creation flow before the transaction has been saved to the server
-    if (transaction && Object.hasOwn(transaction, 'iouRequestType')) {
-        return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER;
-    }
-
-    // This is the case for transaction objects once they have been saved to the server
-    // Odometer requests have odometerStart and odometerEnd in comment, and no waypoints
-    return (
-        hasDistanceCustomUnit(transaction) &&
-        isEmptyObject(transaction?.comment?.waypoints) &&
-        (transaction?.comment?.odometerStart !== undefined || transaction?.comment?.odometerEnd !== undefined)
-    );
+    return isRequestOfType(transaction, CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER);
 }
 
 function isScanRequest(transaction: OnyxEntry<Transaction> | Partial<Transaction>): boolean {
-    // This is used during the expense creation flow before the transaction has been saved to the server
-    if (transaction && Object.hasOwn(transaction, 'iouRequestType')) {
-        return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN;
-    }
-
-    // Distance requests can have a receipt source (for the map), so we need to exclude them
-    if (hasDistanceCustomUnit(transaction)) {
-        return false;
-    }
-
-    return !!transaction?.receipt?.source && transaction?.amount === 0;
+    return isRequestOfType(transaction, CONST.IOU.REQUEST_TYPE.SCAN);
 }
 
 function isPerDiemRequest(transaction: OnyxEntry<Transaction>): boolean {
-    // This is used during the expense creation flow before the transaction has been saved to the server
-    if (transaction && Object.hasOwn(transaction, 'iouRequestType')) {
-        return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.PER_DIEM;
-    }
-
-    // This is the case for transaction objects once they have been saved to the server
-    const type = transaction?.comment?.type;
-    const customUnitName = transaction?.comment?.customUnit?.name;
-    return type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && customUnitName === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL;
+    return isRequestOfType(transaction, CONST.IOU.REQUEST_TYPE.PER_DIEM);
 }
 
 function isTimeRequest(transaction: OnyxEntry<Transaction>): boolean {
-    // This is used during the expense creation flow before the transaction has been saved to the server
-    if (transaction && Object.hasOwn(transaction, 'iouRequestType')) {
-        return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.TIME;
-    }
+    return isRequestOfType(transaction, CONST.IOU.REQUEST_TYPE.TIME);
+}
 
-    // This is the case for transaction objects once they have been saved to the server
-    return transaction?.comment?.type === CONST.TRANSACTION.TYPE.TIME;
+function isManualRequest(transaction: Transaction): boolean {
+    return isRequestOfType(transaction, CONST.IOU.REQUEST_TYPE.MANUAL);
 }
 
 function isCorporateCardTransaction(transaction: OnyxEntry<Transaction>): boolean {
@@ -277,32 +199,7 @@ function isCorporateCardTransaction(transaction: OnyxEntry<Transaction>): boolea
 }
 
 function getRequestType(transaction: OnyxEntry<Transaction>): IOURequestType {
-    if (isOdometerDistanceRequest(transaction)) {
-        return CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER;
-    }
-    if (isManualDistanceRequest(transaction)) {
-        return CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL;
-    }
-    if (isMapDistanceRequest(transaction)) {
-        return CONST.IOU.REQUEST_TYPE.DISTANCE_MAP;
-    }
-    if (isDistanceTypeRequest(transaction)) {
-        return CONST.IOU.REQUEST_TYPE.DISTANCE;
-    }
-    if (isScanRequest(transaction)) {
-        return CONST.IOU.REQUEST_TYPE.SCAN;
-    }
-    if (isPerDiemRequest(transaction)) {
-        return CONST.IOU.REQUEST_TYPE.PER_DIEM;
-    }
-    if (isTimeRequest(transaction)) {
-        return CONST.IOU.REQUEST_TYPE.TIME;
-    }
-    if (isGPSDistanceRequest(transaction)) {
-        return CONST.IOU.REQUEST_TYPE.DISTANCE_GPS;
-    }
-
-    return CONST.IOU.REQUEST_TYPE.MANUAL;
+    return transaction?.iouRequestType ?? CONST.IOU.REQUEST_TYPE.MANUAL;
 }
 
 /**
@@ -360,15 +257,6 @@ function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.T
         case CONST.SEARCH.TRANSACTION_TYPE.TIME:
             return 'iou.time';
     }
-}
-
-function isManualRequest(transaction: Transaction): boolean {
-    // This is used during the expense creation flow before the transaction has been saved to the server
-    if (transaction && Object.hasOwn(transaction, 'iouRequestType')) {
-        return transaction.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
-    }
-
-    return getRequestType(transaction) === CONST.IOU.REQUEST_TYPE.MANUAL;
 }
 
 function isPartialTransaction(transaction: OnyxEntry<Transaction>): boolean {
