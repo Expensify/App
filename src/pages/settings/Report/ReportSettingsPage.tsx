@@ -71,7 +71,7 @@ function ReportSettingsPage({report, policy, route}: ReportSettingsPageProps) {
                             title={notificationPreference}
                             description={translate('notificationPreferencesPage.label')}
                             onPress={() => {
-                                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NOTIFICATION_PREFERENCES.getRoute(reportID)));
+                                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NOTIFICATION_PREFERENCES.path));
                             }}
                         />
                     )}
