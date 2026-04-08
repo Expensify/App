@@ -45,9 +45,9 @@ Any Workspace Admin can set up a direct company card feed connection.
  - Cards with recent expenses will appear as a list and can be assigned to Workspace members.
  - After a card is assigned, posted transactions import into the assigned member's account automatically as expenses.
 
-[Learn how to assign company cards](/articles/new-expensify/connect-credit-cards/How-to-assign-company-cards).
+[Learn how to assign company cards](/articles/new-expensify/connect-credit-cards/Assign-Company-Cards).
 
---
+---
 
 ## What bank requirements affect company card connections
 
