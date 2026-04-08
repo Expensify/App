@@ -101,8 +101,7 @@ function MoneyReportHeaderActions({
 
     return (
         <View style={[styles.flexRow, styles.gap2, ...(!shouldDisplayNarrowMoreButton ? [styles.pb3, styles.ph5, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter] : [])]}>
-            {!!primaryAction && (
-                <View style={!shouldDisplayNarrowMoreButton ? [styles.flex1] : undefined}>
+                <View style={!!primaryAction && !shouldDisplayNarrowMoreButton ? [styles.flex1] : undefined}>
                     <MoneyReportHeaderPrimaryAction
                         reportID={reportID}
                         chatReportID={chatReport?.reportID}
@@ -117,7 +116,6 @@ function MoneyReportHeaderActions({
                         onExportModalOpen={() => triggerExportOrConfirm(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION)}
                     />
                 </View>
-            )}
             <MoneyReportHeaderSecondaryActions
                 reportID={reportID}
                 primaryAction={narrowedPrimaryAction}
