@@ -35,7 +35,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import type {ViolationField} from '@hooks/useViolations';
 import useViolations from '@hooks/useViolations';
-import {updateMoneyRequestBillable, updateMoneyRequestReimbursable} from '@libs/actions/IOU/index';
+import {updateMoneyRequestBillable, updateMoneyRequestReimbursable} from '@libs/actions/IOU/UpdateMoneyRequest';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import {getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import {getBrokenConnectionUrlToFixPersonalCard, getCompanyCardDescription} from '@libs/CardUtils';
@@ -612,18 +612,17 @@ function MoneyRequestView({
                 .map((violation) => {
                     const cardID = violation.data?.cardID;
                     const card = cardID ? cardList?.[cardID] : undefined;
-                    return ViolationsUtils.getViolationTranslation(
+                    return ViolationsUtils.getViolationTranslation({
                         violation,
                         translate,
                         canEdit,
-                        undefined,
                         companyCardPageURL,
                         connectionLink,
                         card,
                         isMarkAsCash,
-                        transaction?.comment?.customUnit?.routeDistanceMeters,
-                        transaction?.comment?.customUnit?.distanceUnit,
-                    );
+                        routeDistanceMeters: transaction?.comment?.customUnit?.routeDistanceMeters,
+                        distanceUnit: transaction?.comment?.customUnit?.distanceUnit,
+                    });
                 })
                 .join('. ')}.`;
         }
