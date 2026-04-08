@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -133,10 +134,11 @@ function IOURequestStepDistanceOdometer({
     const currentTransaction = isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction;
     const isEditingConfirmation = routeName !== SCREENS.MONEY_REQUEST.DISTANCE_CREATE && !isEditing;
     const isCreatingNewRequest = !isEditingConfirmation && !isEditing;
-    const shouldEnableDiscardConfirmation = !isEditingConfirmation && !isEditing;
     const isTransactionDraft = shouldUseTransactionDraft(action, iouType);
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
+    const shouldEnableDiscardConfirmation = !isEditing;
+    const isFocused = useIsFocused();
 
     const shouldUseDefaultExpensePolicy = useMemo(
         () => shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd),
@@ -544,7 +546,7 @@ function IOURequestStepDistanceOdometer({
 
     useDiscardChangesConfirmation({
         getHasUnsavedChanges: () => {
-            if (!shouldEnableDiscardConfirmation || shouldBypassDiscardConfirmationRef.current) {
+            if (!isFocused || !shouldEnableDiscardConfirmation || shouldBypassDiscardConfirmationRef.current || didSaveEditingConfirmationRef.current) {
                 return false;
             }
             const hasReadingChanges = startReadingRef.current !== initialStartReadingRef.current || endReadingRef.current !== initialEndReadingRef.current;
