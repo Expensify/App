@@ -6,13 +6,18 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {AuthorizeTransactionCancelConfirmModal} from '@components/MultifactorAuthentication/components/Modals';
 import ScenarioConfigs from '@components/MultifactorAuthentication/config/scenarios';
-import {DeniedTransactionServerFailureScreen, DeniedTransactionSuccessScreen} from '@components/MultifactorAuthentication/config/scenarios/AuthorizeTransaction';
+import {
+    AlreadyReviewedFailureScreen,
+    DeniedTransactionServerFailureScreen,
+    DeniedTransactionSuccessScreen,
+} from '@components/MultifactorAuthentication/config/scenarios/AuthorizeTransaction';
 import {useMultifactorAuthentication} from '@components/MultifactorAuthentication/Context';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import useNetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
 import useOnyx from '@hooks/useOnyx';
+import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {denyTransaction, fireAndForgetDenyTransaction} from '@libs/actions/MultifactorAuthentication';
 import Navigation from '@libs/Navigation/Navigation';
@@ -116,28 +121,29 @@ function MultifactorAuthenticationScenarioAuthorizeTransactionPage({route}: Mult
 
     // Automatically navigate away if transaction becomes nullish and we didn't deny it here
     // User must have actioned it on a different device.
-    // Disabling prefer-early-return because I think the affirmative conditional is much easier
-    // to read than inverting it for an early return.
-    // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
-        if (!transaction && !isDenyingTransaction && !denyOutcomeScreen) {
-            Navigation.closeRHPFlow();
+        if (transaction || isDenyingTransaction || denyOutcomeScreen) {
+            return;
         }
-    }, [denyOutcomeScreen, transaction, isDenyingTransaction]);
+        addBreadcrumb('Transaction disappeared (actioned on another device)', {transactionID}, 'info');
+        Navigation.closeRHPFlow();
+    }, [denyOutcomeScreen, transaction, isDenyingTransaction, transactionID]);
+
+    // Keep track of the previous value of transaction to avoid a brief flash in the deny flow
+    // Onyx removes the transaction a moment before denyTransaction resolves
+    const previousTransaction = usePrevious(transaction);
+    const displayTransaction = transaction ?? previousTransaction;
 
     if (denyOutcomeScreen) {
         return <ScreenWrapper testID={MultifactorAuthenticationScenarioAuthorizeTransactionPage.displayName}>{denyOutcomeScreen}</ScreenWrapper>;
     }
 
-    if (!transaction) {
+    // This case should not be possible to reach given the useEffect above, but we must satisfy the type system
+    if (!displayTransaction) {
         addBreadcrumb('Transaction unavailable', {transactionID, isDenyingTransaction}, 'warning');
-        // The only way to reach this point is if we're mid-deny and Onyx removed the transaction
-        // before denyTransaction resolved. Show the success screen to avoid a flash
-        // When the transaction denial succeeds, the transaction gets removed from the queue slightly sooner than denyTransaction resolves.
-        // We handle this case specially here so that the user does not see a momentary flash of the AlreadyReviewedFailureScreen
         return (
             <ScreenWrapper testID={MultifactorAuthenticationScenarioAuthorizeTransactionPage.displayName}>
-                <DeniedTransactionSuccessScreen />
+                <AlreadyReviewedFailureScreen />
             </ScreenWrapper>
         );
     }
@@ -151,7 +157,7 @@ function MultifactorAuthenticationScenarioAuthorizeTransactionPage({route}: Mult
             />
             <FullPageOfflineBlockingView>
                 <View style={[styles.flex1, styles.flexColumn, styles.justifyContentBetween]}>
-                    <MultifactorAuthenticationAuthorizeTransactionContent transaction={transaction} />
+                    <MultifactorAuthenticationAuthorizeTransactionContent transaction={displayTransaction} />
                     <MultifactorAuthenticationAuthorizeTransactionActions
                         isLoading={isDenyingTransaction}
                         onAuthorize={onApproveTransaction}
