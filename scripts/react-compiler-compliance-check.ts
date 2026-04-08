@@ -133,7 +133,7 @@ async function checkChangedFiles(remote: string, verbose: boolean): Promise<bool
 
     const failures: Array<{file: string; reason: string}> = [];
 
-    for (const {filename, status} of reactFiles) {
+    for (const {filename, status, previousFilename} of reactFiles) {
         const absolutePath = path.resolve(filename);
         if (!fs.existsSync(absolutePath)) {
             continue;
@@ -156,11 +156,11 @@ async function checkChangedFiles(remote: string, verbose: boolean): Promise<bool
         // Modified or renamed files: check for regression
         if (result === 'failed') {
             let mainResult: CompilationResult = 'no-components';
+            const mainPath = previousFilename ?? filename;
             try {
-                const mainSource = Git.show(`origin/main`, filename);
-                mainResult = checkReactCompilerCompliance(mainSource, filename);
+                const mainSource = Git.show('origin/main', mainPath);
+                mainResult = checkReactCompilerCompliance(mainSource, mainPath);
             } catch {
-                // File didn't exist on main (e.g. renamed from different path) -- treat as new
                 mainResult = 'no-components';
             }
 

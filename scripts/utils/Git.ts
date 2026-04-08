@@ -79,6 +79,12 @@ type DiffResult = {
     hasChanges: boolean;
 };
 
+type ChangedFile = {
+    filename: string;
+    status: 'added' | 'modified' | 'removed' | 'renamed';
+    previousFilename?: string;
+};
+
 /**
  * Utility class for git operations.
  */
@@ -463,11 +469,7 @@ class Git {
      * In CI, uses the GitHub API with pagination for accuracy.
      * Locally, uses git diff against the provided ref.
      */
-    static async getChangedFilesWithStatus(
-        fromRef: string,
-        toRef?: string,
-        shouldIncludeUntrackedFiles = false,
-    ): Promise<Array<{filename: string; status: 'added' | 'modified' | 'removed' | 'renamed'}>> {
+    static async getChangedFilesWithStatus(fromRef: string, toRef?: string, shouldIncludeUntrackedFiles = false): Promise<ChangedFile[]> {
         if (IS_CI) {
             const files = await GitHubUtils.paginate(GitHubUtils.octokit.pulls.listFiles, {
                 owner: CONST.GITHUB_OWNER,
@@ -481,6 +483,7 @@ class Git {
             return files.map((file) => ({
                 filename: file.filename,
                 status: file.status as 'added' | 'modified' | 'removed' | 'renamed',
+                previousFilename: file.previous_filename,
             }));
         }
 
@@ -601,8 +604,6 @@ class Git {
         return fileDiffs;
     }
 }
-
-type ChangedFile = {filename: string; status: 'added' | 'modified' | 'removed' | 'renamed'};
 
 export default Git;
 export type {DiffResult, FileDiff, DiffHunk, DiffLine, ChangedFile};
