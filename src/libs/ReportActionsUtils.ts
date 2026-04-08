@@ -1070,6 +1070,33 @@ function isReportActionDeprecated(reportAction: OnyxEntry<ReportAction>, key: st
     return false;
 }
 
+function isActionable(reportAction: OnyxInputOrEntry<ReportAction>, currentUserAccountID: number) {
+    if (!reportAction) {
+        return false;
+    }
+
+    const actionableTypes = [
+        CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+        CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
+        CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER,
+        CONST.REPORT.ACTIONS.TYPE.CREATED,
+        CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM,
+        CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.LEAVE_ROOM,
+        CONST.REPORT.ACTIONS.TYPE.CONCIERGE_CATEGORY_OPTIONS,
+    ] as const;
+
+    if ((actionableTypes as readonly string[]).includes(reportAction.actionName)) {
+        return true;
+    }
+
+    const originalMessage = getOriginalMessage(reportAction);
+    const actionableForAccountIDs = (
+        originalMessage && typeof originalMessage === 'object' && 'actionableForAccountIDs' in originalMessage ? originalMessage?.actionableForAccountIDs : []
+    ) as number[];
+
+    return actionableForAccountIDs.includes(currentUserAccountID);
+}
+
 /**
  * Checks if a given report action corresponds to an actionable mention whisper.
  * @param reportAction
@@ -3046,20 +3073,15 @@ function getWorkspaceTaxUpdateMessage(translate: LocalizedTranslate, action: Rep
         typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean' ? value : undefined;
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_TAX && taxName) {
-        return translate('workspaceActions.addTax', {taxName});
+        return translate('workspaceActions.addTax', taxName);
     }
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_TAX && taxName) {
-        return translate('workspaceActions.deleteTax', {taxName});
+        return translate('workspaceActions.deleteTax', taxName);
     }
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAX && taxName) {
-        return translate('workspaceActions.updateTax', {
-            taxName,
-            updatedField,
-            oldValue: normalizeTaxValue(oldValue),
-            newValue: normalizeTaxValue(newValue),
-        });
+        return translate('workspaceActions.updateTax', normalizeTaxValue(oldValue), taxName, updatedField, normalizeTaxValue(newValue));
     }
 
     return getReportActionText(action);
@@ -3100,41 +3122,24 @@ function getWorkspaceTagUpdateMessage(translate: LocalizedTranslate, action: Rep
         getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
 
     if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_TAG && tagListName && tagName) {
-        return translate('workspaceActions.addTag', {
-            tagListName,
-            tagName,
-        });
+        return translate('workspaceActions.addTag', tagListName, tagName);
     }
 
     if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_TAG && tagListName && tagName) {
-        return translate('workspaceActions.deleteTag', {
-            tagListName,
-            tagName,
-        });
+        return translate('workspaceActions.deleteTag', tagListName, tagName);
     }
 
     if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_MULTIPLE_TAGS && count && tagListName) {
         const formattedCount = typeof count === 'number' ? count.toString() : count;
-        return translate('workspaceActions.deleteMultipleTags', {
-            count: formattedCount,
-            tagListName,
-        });
+        return translate('workspaceActions.deleteMultipleTags', formattedCount, tagListName);
     }
 
     if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_ENABLED && tagListName && tagName) {
-        return translate('workspaceActions.updateTagEnabled', {
-            tagListName,
-            tagName,
-            enabled,
-        });
+        return translate('workspaceActions.updateTagEnabled', tagListName, tagName, enabled);
     }
 
     if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_NAME && tagListName && newName && oldName) {
-        return translate('workspaceActions.updateTagName', {
-            tagListName,
-            newName,
-            oldName,
-        });
+        return translate('workspaceActions.updateTagName', tagListName, newName, oldName);
     }
 
     if (
@@ -3145,13 +3150,7 @@ function getWorkspaceTagUpdateMessage(translate: LocalizedTranslate, action: Rep
         tagName &&
         updatedField
     ) {
-        return translate('workspaceActions.updateTag', {
-            tagListName,
-            oldValue,
-            newValue,
-            tagName,
-            updatedField,
-        });
+        return translate('workspaceActions.updateTag', tagListName, newValue, tagName, updatedField, oldValue);
     }
 
     return getReportActionText(action);
@@ -3176,10 +3175,7 @@ function getTagListUpdatedMessage(translate: LocalizedTranslate, action: ReportA
 function getTagListUpdatedRequiredMessage(translate: LocalizedTranslate, action: ReportAction): string {
     const {tagListsName, isRequired} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST_REQUIRED>) ?? {};
     if (tagListsName) {
-        return translate('workspaceActions.updateTagListRequired', {
-            tagListsName,
-            isRequired: !!isRequired,
-        });
+        return translate('workspaceActions.updateTagListRequired', tagListsName, !!isRequired);
     }
     return getReportActionText(action);
 }
@@ -3272,14 +3268,7 @@ function getWorkspaceCustomUnitSubRateUpdatedMessage(translate: LocalizedTransla
     const {customUnitName, customUnitRateName, oldValue, newValue, updatedField, customUnitSubRateName} =
         getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_SUB_RATE>) ?? {};
     if (customUnitName && customUnitRateName && customUnitSubRateName && updatedField && typeof oldValue === 'string' && typeof newValue === 'string') {
-        return translate('workspaceActions.updateCustomUnitSubRate', {
-            customUnitName,
-            customUnitRateName,
-            customUnitSubRateName,
-            oldValue,
-            newValue,
-            updatedField,
-        });
+        return translate('workspaceActions.updateCustomUnitSubRate', customUnitName, customUnitRateName, customUnitSubRateName, oldValue, newValue, updatedField);
     }
     return getReportActionText(action);
 }
@@ -3288,11 +3277,7 @@ function getWorkspaceCustomUnitSubRateDeletedMessage(translate: LocalizedTransla
     const {customUnitName, customUnitRateName, removedSubRateName} =
         getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_SUB_RATE>) ?? {};
     if (customUnitName && customUnitRateName && removedSubRateName) {
-        return translate('workspaceActions.removedCustomUnitSubRate', {
-            customUnitName,
-            customUnitRateName,
-            removedSubRateName,
-        });
+        return translate('workspaceActions.removedCustomUnitSubRate', customUnitName, customUnitRateName, removedSubRateName);
     }
     return getReportActionText(action);
 }
@@ -3316,10 +3301,7 @@ function getWorkspaceReportFieldUpdateMessage(translate: LocalizedTranslate, act
         getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REPORT_FIELD>) ?? {};
 
     if (updateType === 'updatedDefaultValue' && fieldName && defaultValue) {
-        return translate('workspaceActions.updateReportFieldDefaultValue', {
-            fieldName,
-            defaultValue,
-        });
+        return translate('workspaceActions.updateReportFieldDefaultValue', defaultValue, fieldName);
     }
 
     if (updateType === 'addedOption' && fieldName && optionName) {
@@ -3369,10 +3351,7 @@ function getWorkspaceUpdateFieldMessage(translate: LocalizedTranslate, action: R
     }
 
     if (updatedField && updatedField === CONST.POLICY.EXPENSE_REPORT_RULES.PREVENT_SELF_APPROVAL && typeof oldValue === 'string' && typeof newValue === 'string') {
-        return translate('workspaceActions.preventSelfApproval', {
-            oldValue,
-            newValue,
-        });
+        return translate('workspaceActions.preventSelfApproval', oldValue, newValue);
     }
 
     if (
@@ -3643,7 +3622,7 @@ function getReimburserUpdateMessage(translate: LocalizedTranslate, action: Repor
         const newReimburser = formatPhoneNumber(originalMessage.reimburser.email);
         const previousReimburser = formatPhoneNumber(originalMessage.previousReimburser.email);
 
-        return translate('workspaceActions.changedReimburser', {newReimburser, previousReimburser});
+        return translate('workspaceActions.changedReimburser', newReimburser, previousReimburser);
     }
 
     return getReportActionText(action);
@@ -4132,7 +4111,7 @@ function getUpdatedTimeRateMessage(translate: LocalizedTranslate, reportAction: 
     const oldRateText = oldRate !== undefined ? convertToDisplayString(convertToBackendAmount(oldRate), currency) : undefined;
 
     if (newRate !== undefined && oldRate !== undefined) {
-        return translate('workspaceActions.updatedTimeRate', {newRate: newRateText, oldRate: oldRateText});
+        return translate('workspaceActions.updatedTimeRate', newRateText, oldRateText);
     }
 
     return getReportActionText(reportAction);
@@ -4168,7 +4147,7 @@ function getUpdatedReimbursementChoiceMessage(translate: LocalizedTranslate, rep
     const newReimbursementChoice = translate(`workspace.common.reimbursementChoice.${newChoice}`);
     const oldReimbursementChoice = translate(`workspace.common.reimbursementChoice.${oldChoice}`);
 
-    return translate('workspaceActions.updatedReimbursementChoice', {newReimbursementChoice, oldReimbursementChoice});
+    return translate('workspaceActions.updatedReimbursementChoice', newReimbursementChoice, oldReimbursementChoice);
 }
 
 function getSetAutoJoinMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>) {
@@ -4188,7 +4167,7 @@ function getUpdatedDefaultTitleMessage(translate: LocalizedTranslate, reportActi
         return getReportActionText(reportAction);
     }
 
-    return translate('workspaceActions.updatedDefaultTitle', {newDefaultTitle, oldDefaultTitle});
+    return translate('workspaceActions.updatedDefaultTitle', newDefaultTitle, oldDefaultTitle);
 }
 
 function getUpdatedAutoHarvestingMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>) {
@@ -4235,19 +4214,20 @@ function getUpdatedIndividualBudgetNotificationMessage(translate: LocalizedTrans
         summaryLink = extractLinksFromMessageHtmlString(summaryLinkMessage);
     }
 
-    return translate('workspaceActions.updatedIndividualBudgetNotification', {
+    return translate(
+        'workspaceActions.updatedIndividualBudgetNotification',
         budgetAmount,
-        budgetFrequency: translate(`workspace.common.budgetFrequency.${budgetFrequency}` as TranslationPaths),
+        translate(`workspace.common.budgetFrequency.${budgetFrequency}` as TranslationPaths),
         budgetName,
-        budgetTypeForNotificationMessage: translate(`workspace.common.budgetTypeForNotificationMessage.${budgetTypeForNotificationMessage}`),
-        summaryLink,
+        translate(`workspace.common.budgetTypeForNotificationMessage.${budgetTypeForNotificationMessage}`),
         thresholdPercentage,
         totalSpend,
         unsubmittedSpend,
-        userEmail,
         awaitingApprovalSpend,
         approvedReimbursedClosedSpend,
-    });
+        summaryLink,
+        userEmail,
+    );
 }
 
 function getUpdatedSharedBudgetNotificationMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>) {
@@ -4283,18 +4263,19 @@ function getUpdatedSharedBudgetNotificationMessage(translate: LocalizedTranslate
         summaryLink = extractLinksFromMessageHtmlString(summaryLinkMessage);
     }
 
-    return translate('workspaceActions.updatedSharedBudgetNotification', {
+    return translate(
+        'workspaceActions.updatedSharedBudgetNotification',
         budgetAmount,
-        budgetFrequency: translate(`workspace.common.budgetFrequency.${budgetFrequency}` as TranslationPaths),
+        translate(`workspace.common.budgetFrequency.${budgetFrequency}` as TranslationPaths),
         budgetName,
-        budgetTypeForNotificationMessage: translate(`workspace.common.budgetTypeForNotificationMessage.${budgetTypeForNotificationMessage}`),
+        translate(`workspace.common.budgetTypeForNotificationMessage.${budgetTypeForNotificationMessage}`),
         summaryLink,
         thresholdPercentage,
         totalSpend,
         unsubmittedSpend,
         awaitingApprovalSpend,
         approvedReimbursedClosedSpend,
-    });
+    );
 }
 
 function getUpdatedOwnershipMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>, policy: OnyxEntry<Policy>) {
@@ -4304,7 +4285,7 @@ function getUpdatedOwnershipMessage(translate: LocalizedTranslate, reportAction:
         return getReportActionText(reportAction);
     }
 
-    return translate('workspaceActions.updatedOwnership', {oldOwnerEmail, oldOwnerName, policyName: policy?.name ?? ''});
+    return translate('workspaceActions.updatedOwnership', oldOwnerEmail, oldOwnerName, policy?.name ?? '');
 }
 
 function getChangedApproverActionMessage<T extends typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL | typeof CONST.REPORT.ACTIONS.TYPE.REROUTE>(
@@ -4649,6 +4630,7 @@ export {
     hasReasoning,
     hasRequestFromCurrentAccount,
     isActionOfType,
+    isActionable,
     isActionableWhisper,
     isActionableJoinRequest,
     isActionableJoinRequestPending,

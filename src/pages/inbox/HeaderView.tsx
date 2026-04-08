@@ -3,7 +3,7 @@ import {accountGuideDetailsSelector} from '@selectors/Account';
 import {pendingChatMembersSelector} from '@selectors/ReportMetaData';
 import {isPast} from 'date-fns';
 import React, {useMemo} from 'react';
-import {View} from 'react-native';
+import {Keyboard, View} from 'react-native';
 import Button from '@components/Button';
 import CaretWrapper from '@components/CaretWrapper';
 import ChronosTimerHeaderButton from '@components/ChronosTimerHeaderButton';
@@ -100,7 +100,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
 
     const icons = useMemoizedLazyExpensifyIcons(['BackArrow', 'Close', 'DotIndicator']);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isSmallScreenWidth, shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const isInSidePanel = useIsInSidePanel();
     const route = useRoute();
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID) ?? getNonEmptyStringOnyxID(report?.reportID)}`);
@@ -270,6 +270,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
             <View
                 style={[styles.borderBottom]}
                 dataSet={{dragArea: true}}
+                onTouchStart={isInLandscapeMode ? () => Keyboard.dismiss() : undefined}
             >
                 <View style={[styles.appContentHeader, styles.pr3]}>
                     {isLoading ? (

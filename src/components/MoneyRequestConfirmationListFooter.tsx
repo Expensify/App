@@ -1,4 +1,4 @@
-import {emailSelector} from '@selectors/Session';
+import {accountIDSelector, emailSelector} from '@selectors/Session';
 import {format} from 'date-fns';
 import {Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
@@ -10,6 +10,7 @@ import type {ValueOf} from 'type-fest';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useLocalReceiptThumbnail from '@hooks/useLocalReceiptThumbnail';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useOutstandingReports from '@hooks/useOutstandingReports';
@@ -20,11 +21,11 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {setMoneyRequestAmount} from '@libs/actions/IOU';
+import {setMoneyRequestAmount, setMoneyRequestDescription, setMoneyRequestMerchant} from '@libs/actions/IOU';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {convertToBackendAmount, convertToDisplayString, convertToFrontendAmountAsString, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {isMovingTransactionFromTrackExpense, shouldShowReceiptEmptyState} from '@libs/IOUUtils';
+import {calculateAmount, isMovingTransactionFromTrackExpense, shouldShowReceiptEmptyState} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDestinationForDisplay, getSubratesFields, getSubratesForDisplay, getTimeDifferenceIntervals, getTimeForDisplay} from '@libs/PerDiemRequestUtils';
 import {canSendInvoice, getPerDiemCustomUnit} from '@libs/PolicyUtils';
@@ -38,6 +39,7 @@ import {
     getTagForDisplay,
     getTaxAmount,
     getTaxRateTitle,
+    hasReceipt,
     isAmountMissing,
     isCreatedMissing,
     isFetchingWaypointsFromServer,
@@ -47,9 +49,11 @@ import {
     willFieldBeAutomaticallyFilled,
 } from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+import {isValidInputLength} from '@libs/ValidationUtils';
 import IOURequestStepCurrencyModal from '@pages/iou/request/step/IOURequestStepCurrencyModal';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import variables from '@styles/variables';
+import {resetSplitShares, setDraftSplitTransaction} from '@userActions/IOU/Split';
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -76,6 +80,7 @@ import ReceiptEmptyState from './ReceiptEmptyState';
 import ReceiptImage from './ReceiptImage';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from './ShowContextMenuContext';
 import Text from './Text';
+import TextInput from './TextInput';
 
 type MoneyRequestConfirmationListFooterProps = {
     /** The action to perform */
@@ -170,6 +175,9 @@ type MoneyRequestConfirmationListFooterProps = {
 
     /** Flag indicating if it is read-only */
     isReadOnly: boolean;
+
+    /** Whether we're editing a split expense */
+    isEditingSplitBill?: boolean;
 
     /** Flag indicating if it is an invoice type */
     isTypeInvoice: boolean;
@@ -300,6 +308,7 @@ function MoneyRequestConfirmationListFooter({
     isMerchantRequired,
     isPolicyExpenseChat,
     isReadOnly,
+    isEditingSplitBill = false,
     isTypeInvoice,
     onToggleBillable,
     policy,
@@ -349,6 +358,7 @@ function MoneyRequestConfirmationListFooter({
 
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
 
     const reportAttributes = useReportAttributes();
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
@@ -356,8 +366,47 @@ function MoneyRequestConfirmationListFooter({
     const {policyForMovingExpensesID, policyForMovingExpenses, shouldSelectPolicy} = usePolicyForMovingExpenses();
 
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
+    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isCreatingTrackExpense = action === CONST.IOU.ACTION.CREATE && iouType === CONST.IOU.TYPE.TRACK;
+
+    const handleMerchantInputChange = useCallback(
+        (newMerchant: string) => {
+            if (!transactionID) {
+                return;
+            }
+
+            // When editing a split expense, persist directly to the split draft so that
+            // SplitBillDetailsPage and completeSplitBill read the latest value.
+            if (isEditingSplitBill) {
+                setDraftSplitTransaction(transactionID, splitDraftTransaction, {merchant: newMerchant});
+                return;
+            }
+
+            setMoneyRequestMerchant(transactionID, newMerchant, true, hasReceipt(transaction));
+        },
+        [transactionID, transaction, isEditingSplitBill, splitDraftTransaction],
+    );
+
+    const handleDescriptionInputChange = useCallback(
+        (newDescription: string) => {
+            if (!transactionID) {
+                return;
+            }
+
+            // When editing a split expense, persist directly to the split draft so that
+            // SplitBillDetailsPage and completeSplitBill read the latest value.
+            // Trimming is deferred to submission time, not during keystrokes, to avoid
+            // silently stripping trailing spaces as the user types.
+            if (isEditingSplitBill) {
+                setDraftSplitTransaction(transactionID, splitDraftTransaction, {comment: newDescription});
+                return;
+            }
+
+            setMoneyRequestDescription(transactionID, newDescription, true, hasReceipt(transaction));
+        },
+        [transactionID, transaction, isEditingSplitBill, splitDraftTransaction],
+    );
 
     const decodedCategoryName = useMemo(() => getDecodedCategoryName(iouCategory), [iouCategory]);
     const isScan = isScanRequest(transaction);
@@ -448,8 +497,25 @@ function MoneyRequestConfirmationListFooter({
     // Get the tax rate title based on the policy and transaction
     const taxRateTitle = getTaxRateTitle(policy, transaction, isMovingCurrentTransactionFromTrackExpense, policyForMovingExpenses);
 
+    const merchantErrorText = useMemo(() => {
+        const merchantValue = iouMerchant ?? '';
+        const {isValid, byteLength} = isValidInputLength(merchantValue, CONST.MERCHANT_NAME_MAX_BYTES);
+
+        if (!isValid) {
+            return translate('common.error.characterLimitExceedCounter', byteLength, CONST.MERCHANT_NAME_MAX_BYTES);
+        }
+
+        // Guard with isMerchantEmpty to avoid showing a "field required" error when the merchant
+        // is already filled in — matching the original shouldDisplayMerchantError condition.
+        if ((shouldDisplayFieldError || formError === 'iou.error.invalidMerchant') && isMerchantRequired && isMerchantEmpty) {
+            return translate('common.error.fieldRequired');
+        }
+
+        return '';
+    }, [formError, iouMerchant, isMerchantRequired, isMerchantEmpty, shouldDisplayFieldError, translate]);
+
     // Determine if the merchant error should be displayed
-    const shouldDisplayMerchantError = isMerchantRequired && (shouldDisplayFieldError || formError === 'iou.error.invalidMerchant') && isMerchantEmpty;
+    const shouldDisplayMerchantError = !!merchantErrorText;
     const shouldDisplayDistanceRateError = formError === 'iou.error.invalidRate';
     const shouldDisplayTagError = formError === 'violations.tagOutOfPolicy';
     const shouldDisplayTaxRateError = formError === 'violations.taxOutOfPolicy';
@@ -468,6 +534,20 @@ function MoneyRequestConfirmationListFooter({
     } = receiptPath && receiptFilename ? getThumbnailAndImageURIs(transaction, receiptPath, receiptFilename) : ({} as ThumbnailAndImageURI);
     const resolvedThumbnail = isLocalFile ? receiptThumbnail : tryResolveUrlFromApiRoot(receiptThumbnail ?? '');
     const resolvedReceiptImage = isLocalFile ? receiptImage : tryResolveUrlFromApiRoot(receiptImage ?? '');
+
+    const {thumbnailUri} = useLocalReceiptThumbnail(resolvedReceiptImage as string, !!isLocalFile);
+
+    // For local files: use the pre-generated thumbnail if it was ready by first render.
+    // If the thumbnail arrives late we keep showing the full-res image to avoid a
+    // visible source swap (flash).  For remote files: existing behavior unchanged.
+    const resolvedReceiptImageStr = resolvedReceiptImage != null ? String(resolvedReceiptImage) : undefined;
+    const initialLocalSourceRef = useRef<{source: string | undefined; resolvedImage: string | undefined}>({source: undefined, resolvedImage: undefined});
+    if (isLocalFile && (initialLocalSourceRef.current.source === undefined || initialLocalSourceRef.current.resolvedImage !== resolvedReceiptImageStr)) {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        initialLocalSourceRef.current = {source: thumbnailUri || resolvedReceiptImageStr || '', resolvedImage: resolvedReceiptImageStr};
+    }
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const effectiveReceiptSource = isLocalFile ? initialLocalSourceRef.current.source || '' : resolvedThumbnail || resolvedReceiptImage || '';
 
     const shouldNavigateToUpgradePath = !policyForMovingExpensesID && !shouldSelectPolicy;
     // Time requests appear as regular expenses after they're created, with editable amount and merchant, not hours and rate
@@ -549,6 +629,48 @@ function MoneyRequestConfirmationListFooter({
     }, []);
 
     /**
+     * Shared helper that recalculates split shares for a given amount + currency and persists
+     * the result to the split draft.  Extracted to avoid duplicating the logic between
+     * updateCurrency and handleAmountChange.
+     */
+    const buildAndSaveSplitShares = useCallback(
+        (updatedAmount: number, updatedCurrency: string) => {
+            if (!transactionID) {
+                return;
+            }
+
+            const splitShares = splitDraftTransaction?.splitShares ?? transaction?.splitShares;
+            const accountID = currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
+            const newAccountIDs = Object.keys(splitShares ?? {}).map((key) => Number(key));
+            const oldAccountIDs = Object.keys(transaction?.splitShares ?? {}).map((key) => Number(key));
+            const accountIDs = [...new Set<number>([accountID, ...newAccountIDs, ...oldAccountIDs])];
+
+            const participantsLength = newAccountIDs.includes(accountID) ? newAccountIDs.length - 1 : newAccountIDs.length;
+
+            const updatedSplitShares = accountIDs.reduce<NonNullable<OnyxTypes.Transaction['splitShares']>>((acc, splitShareAccountID) => {
+                if (!newAccountIDs.includes(splitShareAccountID) && splitShareAccountID !== accountID) {
+                    acc[splitShareAccountID] = null;
+                    return acc;
+                }
+
+                const isPayer = splitShareAccountID === accountID;
+                acc[splitShareAccountID] = {
+                    amount: calculateAmount(participantsLength, updatedAmount, updatedCurrency, isPayer),
+                    isModified: false,
+                };
+                return acc;
+            }, {});
+
+            setDraftSplitTransaction(transactionID, splitDraftTransaction, {
+                amount: updatedAmount,
+                currency: updatedCurrency,
+                ...(accountIDs.length > 0 ? {splitShares: updatedSplitShares} : {}),
+            });
+        },
+        [transactionID, splitDraftTransaction, transaction?.splitShares, currentUserAccountID],
+    );
+
+    /**
      * Updates the selected currency for the transaction.
      * Updates local display state and persists the value to draft transaction.
      */
@@ -561,9 +683,16 @@ function MoneyRequestConfirmationListFooter({
             }
 
             const parsedAmount = getBackendAmountFromInput(transactionAmount);
-            setMoneyRequestAmount(transactionID, parsedAmount ?? amount, value);
+            const updatedAmount = parsedAmount ?? amount;
+
+            if (isEditingSplitBill) {
+                buildAndSaveSplitShares(updatedAmount, value);
+                return;
+            }
+
+            setMoneyRequestAmount(transactionID, updatedAmount, value);
         },
-        [hideCurrencyPicker, transactionID, getBackendAmountFromInput, transactionAmount, amount],
+        [hideCurrencyPicker, transactionID, getBackendAmountFromInput, transactionAmount, amount, isEditingSplitBill, buildAndSaveSplitShares],
     );
 
     /**
@@ -580,10 +709,19 @@ function MoneyRequestConfirmationListFooter({
             if (parsedAmount === null) {
                 return;
             }
+            // Edits to the amount from the splits page should reset the split shares.
+            if (transaction?.splitShares) {
+                resetSplitShares(transaction, parsedAmount);
+            }
+
+            if (isEditingSplitBill) {
+                buildAndSaveSplitShares(parsedAmount, currency);
+                return;
+            }
 
             setMoneyRequestAmount(transactionID, parsedAmount, currency);
         },
-        [transactionID, getBackendAmountFromInput, currency],
+        [transactionID, getBackendAmountFromInput, isEditingSplitBill, transaction, buildAndSaveSplitShares, currency],
     );
 
     const shouldShowAmountRequiredError = useMemo(() => {
@@ -598,7 +736,7 @@ function MoneyRequestConfirmationListFooter({
         {
             item:
                 isNewManualExpenseFlowEnabled && !isAmountFieldDisabled ? (
-                    <View style={[styles.mh4, styles.mb2]}>
+                    <View style={[styles.mh4, styles.mv2]}>
                         <NumberWithSymbolForm
                             displayAsTextInput
                             value={transactionAmount}
@@ -657,29 +795,45 @@ function MoneyRequestConfirmationListFooter({
                     <ShowContextMenuStateContext.Provider value={contextMenuStateValue}>
                         <ShowContextMenuActionsContext.Provider value={contextMenuActionsValue}>
                             <MentionReportContext.Provider value={mentionReportContextValue}>
-                                <MenuItemWithTopDescription
-                                    shouldShowRightIcon={!isReadOnly}
-                                    shouldParseTitle
-                                    excludedMarkdownRules={!policy ? ['reportMentions'] : []}
-                                    title={iouComment}
-                                    description={translate('common.description')}
-                                    onPress={() => {
-                                        if (!transactionID) {
-                                            return;
-                                        }
+                                {isNewManualExpenseFlowEnabled && !isReadOnly ? (
+                                    <View style={[styles.mh4, styles.mv2]}>
+                                        <TextInput
+                                            value={iouComment ?? ''}
+                                            readOnly={didConfirm}
+                                            onChangeText={handleDescriptionInputChange}
+                                            label={translate('common.description')}
+                                            accessibilityLabel={translate('common.description')}
+                                            autoGrowHeight
+                                            maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
+                                            type="markdown"
+                                            excludedMarkdownStyles={!policy ? ['mentionReport'] : []}
+                                        />
+                                    </View>
+                                ) : (
+                                    <MenuItemWithTopDescription
+                                        shouldShowRightIcon={!isReadOnly}
+                                        shouldParseTitle
+                                        excludedMarkdownRules={!policy ? ['reportMentions'] : []}
+                                        title={iouComment}
+                                        description={translate('common.description')}
+                                        onPress={() => {
+                                            if (!transactionID) {
+                                                return;
+                                            }
 
-                                        Navigation.navigate(
-                                            ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID),
-                                        );
-                                    }}
-                                    style={[styles.moneyRequestMenuItem]}
-                                    titleStyle={styles.flex1}
-                                    disabled={didConfirm}
-                                    interactive={!isReadOnly}
-                                    numberOfLinesTitle={2}
-                                    rightLabel={isDescriptionRequired ? translate('common.required') : ''}
-                                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DESCRIPTION_FIELD}
-                                />
+                                            Navigation.navigate(
+                                                ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID),
+                                            );
+                                        }}
+                                        style={[styles.moneyRequestMenuItem]}
+                                        titleStyle={styles.flex1}
+                                        disabled={didConfirm}
+                                        interactive={!isReadOnly}
+                                        numberOfLinesTitle={2}
+                                        rightLabel={isDescriptionRequired ? translate('common.required') : ''}
+                                        sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DESCRIPTION_FIELD}
+                                    />
+                                )}
                             </MentionReportContext.Provider>
                         </ShowContextMenuActionsContext.Provider>
                     </ShowContextMenuStateContext.Provider>
@@ -770,30 +924,42 @@ function MoneyRequestConfirmationListFooter({
             shouldShowAboveShowMore: false,
         },
         {
-            item: (
-                <MenuItemWithTopDescription
-                    key={translate('common.merchant')}
-                    shouldShowRightIcon={!isReadOnly}
-                    title={isMerchantEmpty ? '' : iouMerchant}
-                    description={translate('common.merchant')}
-                    style={[styles.moneyRequestMenuItem]}
-                    titleStyle={styles.flex1}
-                    onPress={() => {
-                        if (!transactionID) {
-                            return;
-                        }
+            item:
+                isNewManualExpenseFlowEnabled && !isReadOnly ? (
+                    <View style={[styles.mh4, styles.mv2]}>
+                        <TextInput
+                            value={isMerchantEmpty ? '' : (iouMerchant ?? '')}
+                            readOnly={didConfirm}
+                            onChangeText={handleMerchantInputChange}
+                            label={translate('common.merchant')}
+                            accessibilityLabel={translate('common.merchant')}
+                            errorText={merchantErrorText}
+                        />
+                    </View>
+                ) : (
+                    <MenuItemWithTopDescription
+                        key={translate('common.merchant')}
+                        shouldShowRightIcon={!isReadOnly}
+                        title={isMerchantEmpty ? '' : iouMerchant}
+                        description={translate('common.merchant')}
+                        style={[styles.moneyRequestMenuItem]}
+                        titleStyle={styles.flex1}
+                        onPress={() => {
+                            if (!transactionID) {
+                                return;
+                            }
 
-                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
-                    }}
-                    disabled={didConfirm}
-                    interactive={!isReadOnly}
-                    brickRoadIndicator={shouldDisplayMerchantError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    errorText={shouldDisplayMerchantError ? translate('common.error.fieldRequired') : ''}
-                    rightLabel={isMerchantRequired && !shouldDisplayMerchantError ? translate('common.required') : ''}
-                    numberOfLinesTitle={2}
-                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.MERCHANT_FIELD}
-                />
-            ),
+                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_MERCHANT.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
+                        }}
+                        disabled={didConfirm}
+                        interactive={!isReadOnly}
+                        brickRoadIndicator={shouldDisplayMerchantError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                        errorText={shouldDisplayMerchantError ? translate('common.error.fieldRequired') : ''}
+                        rightLabel={isMerchantRequired && !shouldDisplayMerchantError ? translate('common.required') : ''}
+                        numberOfLinesTitle={2}
+                        sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.MERCHANT_FIELD}
+                    />
+                ),
             shouldShow: shouldShowMerchant,
             shouldShowAboveShowMore: false,
         },
@@ -1275,7 +1441,7 @@ function MoneyRequestConfirmationListFooter({
                             <ReceiptImage
                                 isThumbnail={isThumbnail}
                                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                                source={resolvedThumbnail || resolvedReceiptImage || ''}
+                                source={effectiveReceiptSource}
                                 // AuthToken is required when retrieving the image from the server
                                 // but we don't need it to load the blob:// or file:// image when starting an expense/split
                                 // So if we have a thumbnail, it means we're retrieving the image from the server
@@ -1311,7 +1477,7 @@ function MoneyRequestConfirmationListFooter({
         onPDFLoadError,
         onPDFPassword,
         isThumbnail,
-        resolvedThumbnail,
+        effectiveReceiptSource,
         receiptThumbnail,
         fileExtension,
         isDistanceRequest,
