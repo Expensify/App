@@ -584,7 +584,7 @@ const SCREENS = {
             XERO_EXPORT: 'Policy_Accounting_Xero_Export',
             XERO_EXPORT_PURCHASE_BILL_DATE_SELECT: 'Policy_Accounting_Xero_Export_Purchase_Bill_Date_Select',
             XERO_ADVANCED: 'Policy_Accounting_Xero_Advanced',
-            XERO_AUTO_SYNC: 'Policy_Accounting_Xero_Auto_Sync',
+            DYNAMIC_XERO_AUTO_SYNC: 'Dynamic_Policy_Accounting_Xero_Auto_Sync',
             DYNAMIC_XERO_ACCOUNTING_METHOD: 'Dynamic_Policy_Accounting_Xero_Accounting_Method',
             DYNAMIC_XERO_BILL_STATUS_SELECTOR: 'Dynamic_Policy_Accounting_Xero_Export_Bill_Status_Selector',
             XERO_INVOICE_ACCOUNT_SELECTOR: 'Policy_Accounting_Xero_Invoice_Account_Selector',

@@ -169,9 +169,13 @@ const DYNAMIC_ROUTES = {
         path: 'purchase-bill-status-selector',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.XERO_EXPORT],
     },
+    POLICY_ACCOUNTING_XERO_AUTO_SYNC: {
+        path: 'xero-autosync',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.XERO_ADVANCED, SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION],
+    },
     POLICY_ACCOUNTING_XERO_ACCOUNTING_METHOD: {
-        path: 'accounting-method',
-        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.XERO_AUTO_SYNC],
+        path: 'xero-accounting-method',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION, SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_AUTO_SYNC],
     },
     ADDRESS_COUNTRY: {
         path: 'country',
@@ -3430,17 +3434,6 @@ const ROUTES = {
     POLICY_ACCOUNTING_CLAIM_OFFER: {
         route: 'workspaces/:policyID/accounting/claim-offer/:integration',
         getRoute: (policyID: string, integration: string) => `workspaces/${policyID}/accounting/claim-offer/${integration}` as const,
-    },
-    POLICY_ACCOUNTING_XERO_AUTO_SYNC: {
-        route: 'workspaces/:policyID/accounting/xero/advanced/autosync',
-        getRoute: (policyID: string | undefined, backTo?: string) => {
-            if (!policyID) {
-                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_XERO_AUTO_SYNC route');
-            }
-
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`workspaces/${policyID}/accounting/xero/advanced/autosync` as const, backTo);
-        },
     },
     POLICY_ACCOUNTING_XERO_INVOICE_SELECTOR: {
         route: 'workspaces/:policyID/accounting/xero/advanced/invoice-account-selector',

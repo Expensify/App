@@ -24,7 +24,7 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 import {toggleContinuousReconciliation} from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type ExpensifyCardSettings from '@src/types/onyx/ExpensifyCardSettings';
 import type {ConnectionName} from '@src/types/onyx/Policy';
@@ -99,7 +99,7 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
             case CONST.POLICY.CONNECTIONS.ROUTE.QBO:
                 return `${environmentURL}/${ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_AUTO_SYNC.getRoute(policyID, backTo)}`;
             case CONST.POLICY.CONNECTIONS.ROUTE.XERO:
-                return `${environmentURL}/${ROUTES.POLICY_ACCOUNTING_XERO_AUTO_SYNC.getRoute(policyID, backTo)}`;
+                return `${environmentURL}/${ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID)}/${DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_AUTO_SYNC.path}`;
             case CONST.POLICY.CONNECTIONS.ROUTE.NETSUITE:
                 return `${environmentURL}/${ROUTES.POLICY_ACCOUNTING_NETSUITE_AUTO_SYNC.getRoute(policyID, backTo)}`;
             case CONST.POLICY.CONNECTIONS.ROUTE.SAGE_INTACCT:

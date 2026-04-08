@@ -893,6 +893,9 @@ type SettingsNavigatorParamList = {
         policyID: string;
         integration: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_AUTO_SYNC]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_BILL_STATUS_SELECTOR]: {
         policyID: string;
     };
