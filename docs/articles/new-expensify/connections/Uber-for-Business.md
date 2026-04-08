@@ -73,6 +73,6 @@ Yes! Go to **Manage invites**, find their name or email, and click **Resend**.
 - **Suspended badge** – The employee’s Uber account is linked, but has been temporarily suspended by Uber (i.e rider disputes, etc). 
 
 ## Does Expensify support expense memos?
-Yes. If an expense memo is added to the trip in Uber, it will be added to the description field on the expense created in Expensify. 
+Yes. If an expense memo is added to the trip in Uber, it will be added to the **Description** field on the expense created in Expensify.
 
 </div>
