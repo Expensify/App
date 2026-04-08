@@ -118,7 +118,7 @@ function useSelectionModeReportActions({
     const activeAdminPolicies = useActiveAdminPolicies();
 
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
-    const {showNonReimbursablePaymentErrorModal, shouldBlockDirectPayment, nonReimbursablePaymentErrorDecisionModal} = useNonReimbursablePaymentModal(report, transactions);
+    const {showNonReimbursablePaymentErrorModal, shouldBlockDirectPayment} = useNonReimbursablePaymentModal(report, transactions);
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Send', 'ThumbsUp', 'Cash', 'ArrowRight', 'Building'] as const);
 
@@ -568,10 +568,6 @@ function useSelectionModeReportActions({
         // Data for external use
         primaryAction,
         kycWallRef,
-
-        // Non-reimbursable payment error modal
-        nonReimbursablePaymentErrorDecisionModal,
-        showNonReimbursablePaymentErrorModal,
     };
 }
 

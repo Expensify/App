@@ -240,8 +240,6 @@ function MoneyRequestReportActionsList({reportID: reportIDProp, onLayout}: Money
         nonHeldAmount,
         fullAmount,
         hasValidNonHeldAmount,
-        nonReimbursablePaymentErrorDecisionModal,
-        showNonReimbursablePaymentErrorModal,
     } = useSelectionModeReportActions({
         report,
         chatReport,
@@ -1045,13 +1043,11 @@ function MoneyRequestReportActionsList({reportID: reportIDProp, onLayout}: Money
                     chatReport={chatReport}
                     moneyRequestReport={report}
                     hasNonHeldExpenses={!hasOnlyHeldExpenses}
-                    startAnimation={handleHoldMenuConfirm}
+                    onConfirm={handleHoldMenuConfirm}
                     transactionCount={transactions.length}
                     transactions={transactionsWithoutPendingDelete}
-                    onNonReimbursablePaymentError={showNonReimbursablePaymentErrorModal}
                 />
             )}
-            {nonReimbursablePaymentErrorDecisionModal}
         </View>
     );
 }
