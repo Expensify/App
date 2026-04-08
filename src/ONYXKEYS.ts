@@ -373,7 +373,7 @@ const ONYXKEYS = {
     SHARE_BANK_ACCOUNT: 'shareBankAccount',
 
     /** Is report data loading? */
-    RAM_ONLY_IS_LOADING_REPORT_DATA: 'isLoadingReportData',
+    IS_LOADING_REPORT_DATA: 'isLoadingReportData',
 
     /** Set when we are loading bank accounts for share page */
     IS_LOADING_SHARE_BANK_ACCOUNTS: 'isLoadingShareBankAccounts',
@@ -1399,7 +1399,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_LOADING_SHARE_BANK_ACCOUNTS]: boolean;
     [ONYXKEYS.IS_LOADING_BULK_CHANGE_APPROVER_PAGE]: boolean;
     [ONYXKEYS.IS_LOADING_POLICY_CODING_RULES_PREVIEW]: boolean;
-    [ONYXKEYS.RAM_ONLY_IS_LOADING_REPORT_DATA]: boolean;
+    [ONYXKEYS.IS_LOADING_REPORT_DATA]: boolean;
     [ONYXKEYS.IS_SEARCH_FILTERS_CARD_DATA_LOADED]: boolean;
     [ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA]: boolean;
     [ONYXKEYS.IS_SEARCH_PAGE_DATA_LOADED]: boolean;

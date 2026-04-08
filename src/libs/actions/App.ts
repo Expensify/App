@@ -297,7 +297,7 @@ function getPolicyParamsForOpenOrReconnect(): Promise<PolicyParamsForOpenOrRecon
 
 type OnyxDataForOpenOrReconnectKeys =
     | typeof ONYXKEYS.COLLECTION.REPORT
-    | typeof ONYXKEYS.RAM_ONLY_IS_LOADING_REPORT_DATA
+    | typeof ONYXKEYS.IS_LOADING_REPORT_DATA
     | typeof ONYXKEYS.HAS_LOADED_APP
     | typeof ONYXKEYS.IS_LOADING_APP
     | typeof ONYXKEYS.LAST_FULL_RECONNECT_TIME;
@@ -322,7 +322,7 @@ function getOnyxDataForOpenOrReconnect(
     Log.info(`[App] isLoadingReportData set to true`, false, {command: commandName});
 
     const result: OnyxData<
-        | typeof ONYXKEYS.RAM_ONLY_IS_LOADING_REPORT_DATA
+        | typeof ONYXKEYS.IS_LOADING_REPORT_DATA
         | typeof ONYXKEYS.HAS_LOADED_APP
         | typeof ONYXKEYS.IS_LOADING_APP
         | typeof ONYXKEYS.COLLECTION.REPORT
@@ -331,7 +331,7 @@ function getOnyxDataForOpenOrReconnect(
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.RAM_ONLY_IS_LOADING_REPORT_DATA,
+                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
                 value: true,
             },
         ],
@@ -339,7 +339,7 @@ function getOnyxDataForOpenOrReconnect(
         finallyData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.RAM_ONLY_IS_LOADING_REPORT_DATA,
+                key: ONYXKEYS.IS_LOADING_REPORT_DATA,
                 value: false,
             },
         ],
