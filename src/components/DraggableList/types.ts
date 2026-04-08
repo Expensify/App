@@ -3,6 +3,8 @@ import type {RenderItemParams} from 'react-native-draggable-flatlist';
 
 type DraggableListRenderItemParams<T> = RenderItemParams<T> & {
     isFocused?: boolean;
+    /** Whether the list is currently in keyboard reorder mode (native only) */
+    isKeyboardMoving?: boolean;
 };
 
 type DraggableListData<T> = {
