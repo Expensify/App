@@ -1,3 +1,4 @@
+import type {RefObject} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
@@ -37,8 +38,12 @@ function navigateToEditChatName() {
     Navigation.navigate(ROUTES.NEW_CHAT_EDIT_NAME);
 }
 
-function AvatarAndGroupNameSection({setAvatarFile}: {setAvatarFile: (avatarFile: File | CustomRNImageManipulatorResult | undefined) => void}) {
-    const optimisticReportID = useRef<string>(generateReportID());
+type AvatarAndGroupNameSectionProps = {
+    setAvatarFile: (avatarFile: File | CustomRNImageManipulatorResult | undefined) => void;
+    optimisticReportID: RefObject<string>;
+};
+
+function AvatarAndGroupNameSection({setAvatarFile, optimisticReportID}: AvatarAndGroupNameSectionProps) {
     const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const [newGroupDraft, newGroupDraftMetaData] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
@@ -189,7 +194,12 @@ function NewChatConfirmPage() {
                 onBackButtonPress={navigateBack}
             />
 
-            {!isInLandscapeMode && <AvatarAndGroupNameSection setAvatarFile={setAvatarFile} />}
+            {!isInLandscapeMode && (
+                <AvatarAndGroupNameSection
+                    setAvatarFile={setAvatarFile}
+                    optimisticReportID={optimisticReportID}
+                />
+            )}
 
             <View style={[styles.flex1, styles.mt3]}>
                 <SelectionList
@@ -205,7 +215,12 @@ function NewChatConfirmPage() {
                     shouldHeaderBeInsideList={isInLandscapeMode}
                     customListHeader={
                         <>
-                            {isInLandscapeMode && <AvatarAndGroupNameSection setAvatarFile={setAvatarFile} />}
+                            {isInLandscapeMode && (
+                                <AvatarAndGroupNameSection
+                                    setAvatarFile={setAvatarFile}
+                                    optimisticReportID={optimisticReportID}
+                                />
+                            )}
                             <View style={[styles.mt8, styles.mb4, styles.justifyContentCenter]}>
                                 <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('common.members')}</Text>
                             </View>
