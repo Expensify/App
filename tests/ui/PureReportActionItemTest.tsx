@@ -104,7 +104,6 @@ describe('PureReportActionItem', () => {
                                 parentReportAction={undefined}
                                 action={action}
                                 displayAsGroup={false}
-                                isMostRecentIOUReportAction={false}
                                 shouldDisplayNewMarker={false}
                                 index={0}
                                 isFirstVisibleReportAction={false}
@@ -400,7 +399,6 @@ describe('PureReportActionItem', () => {
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
-                                    isMostRecentIOUReportAction={false}
                                     shouldDisplayNewMarker={false}
                                     index={0}
                                     isFirstVisibleReportAction={false}
@@ -460,7 +458,6 @@ describe('PureReportActionItem', () => {
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
-                                    isMostRecentIOUReportAction={false}
                                     shouldDisplayNewMarker={false}
                                     index={0}
                                     isFirstVisibleReportAction={false}
@@ -531,7 +528,6 @@ describe('PureReportActionItem', () => {
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
-                                    isMostRecentIOUReportAction={false}
                                     shouldDisplayNewMarker={false}
                                     index={0}
                                     isFirstVisibleReportAction={false}
@@ -597,7 +593,6 @@ describe('PureReportActionItem', () => {
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
-                                    isMostRecentIOUReportAction={false}
                                     shouldDisplayNewMarker={false}
                                     index={0}
                                     isFirstVisibleReportAction={false}
@@ -649,7 +644,6 @@ describe('PureReportActionItem', () => {
                                     parentReportAction={undefined}
                                     action={action}
                                     displayAsGroup={false}
-                                    isMostRecentIOUReportAction={false}
                                     shouldDisplayNewMarker={false}
                                     index={0}
                                     isFirstVisibleReportAction={false}
@@ -676,6 +670,46 @@ describe('PureReportActionItem', () => {
 
             expect(openLink).toHaveBeenCalledTimes(1);
             expect(openLink).toHaveBeenCalledWith(workspaceRulesUrl, expect.any(String));
+        });
+    });
+
+    describe('UNREPORTED_TRANSACTION action', () => {
+        const UNREPORTED_FROM_REPORT_ID = '300';
+
+        beforeEach(async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${UNREPORTED_FROM_REPORT_ID}`, {
+                    reportID: UNREPORTED_FROM_REPORT_ID,
+                    reportName: 'Source Report',
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('renders without Explain link when action has no reasoning', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION, {
+                fromReportID: UNREPORTED_FROM_REPORT_ID,
+            });
+
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            // The "Explain" link should NOT be present
+            expect(screen.queryByText('Explain')).not.toBeOnTheScreen();
+        });
+
+        it('renders Explain link when action has reasoning', async () => {
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION, {
+                fromReportID: UNREPORTED_FROM_REPORT_ID,
+                reasoning: 'This expense was unreported due to RTER rejection.',
+            });
+
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            // The "Explain" link should be present
+            expect(screen.getByText('Explain')).toBeOnTheScreen();
         });
     });
 
