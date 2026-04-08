@@ -21,7 +21,6 @@ function MoneyReportHeaderPrimaryAction({
     startAnimation,
     startApprovedAnimation,
     startSubmittingAnimation,
-    onHoldMenuOpen,
     onExportModalOpen,
 }: MoneyReportHeaderPrimaryActionProps) {
     if (!primaryAction) {
@@ -44,7 +43,6 @@ function MoneyReportHeaderPrimaryAction({
             <ApprovePrimaryAction
                 reportID={reportID}
                 startApprovedAnimation={startApprovedAnimation}
-                onHoldMenuOpen={onHoldMenuOpen}
             />
         );
     }
@@ -59,7 +57,6 @@ function MoneyReportHeaderPrimaryAction({
                 stopAnimation={stopAnimation}
                 startAnimation={startAnimation}
                 startApprovedAnimation={startApprovedAnimation}
-                onHoldMenuOpen={onHoldMenuOpen}
             />
         );
     }

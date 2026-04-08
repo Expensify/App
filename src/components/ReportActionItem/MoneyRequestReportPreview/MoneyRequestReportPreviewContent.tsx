@@ -152,7 +152,7 @@ function MoneyRequestReportPreviewContent({
 
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [requestType, setRequestType] = useState<ActionHandledType>();
-    const {showNonReimbursablePaymentErrorModal, nonReimbursablePaymentErrorDecisionModal} = useNonReimbursablePaymentModal(iouReport, transactions);
+    const {showNonReimbursablePaymentErrorModal} = useNonReimbursablePaymentModal(iouReport, transactions);
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
     const [shouldShowPayButton, setShouldShowPayButton] = useState(false);
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(iouReport?.reportID);
@@ -736,19 +736,17 @@ function MoneyRequestReportPreviewContent({
                                 transactionCount={numberOfRequests}
                                 transactions={transactions}
                                 hasNonHeldExpenses={!hasOnlyHeldExpenses}
-                                startAnimation={() => {
+                                onConfirm={() => {
                                     if (requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
                                         startApprovedAnimation();
                                     } else {
                                         startAnimation();
                                     }
                                 }}
-                                onNonReimbursablePaymentError={showNonReimbursablePaymentErrorModal}
                             />
                         );
                     })()}
             </OfflineWithFeedback>
-            {nonReimbursablePaymentErrorDecisionModal}
         </View>
     );
 }
