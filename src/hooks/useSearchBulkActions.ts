@@ -1301,6 +1301,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         amountOwed,
         allTransactions,
         isBetaEnabled,
+        shouldShowBusinessBankAccountOptions,
     ]);
 
     const handleOfflineModalClose = useCallback(() => {
