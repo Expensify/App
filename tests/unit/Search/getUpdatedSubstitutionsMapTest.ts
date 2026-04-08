@@ -69,4 +69,18 @@ describe('getUpdatedSubstitutionsMap should return updated and cleaned substitut
             'policyID:Test Workspace:1': 'policyB',
         });
     });
+
+    test('when query has duplicate workspace names but map has only base key, keep substitution for all occurrences', () => {
+        const userTypedQuery = 'workspace:"Test Workspace","Test Workspace"';
+        const substitutionsMock = {
+            'policyID:Test Workspace': 'policyA',
+        };
+
+        const result = getUpdatedSubstitutionsMap(userTypedQuery, substitutionsMock);
+
+        expect(result).toStrictEqual({
+            'policyID:Test Workspace': 'policyA',
+            'policyID:Test Workspace:1': 'policyA',
+        });
+    });
 });
