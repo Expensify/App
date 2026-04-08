@@ -131,7 +131,8 @@ function MultifactorAuthenticationScenarioAuthorizeTransactionPage({route}: Mult
 
     if (!transaction) {
         addBreadcrumb('Transaction unavailable', {transactionID, isDenyingTransaction}, 'warning');
-        // isDenyingTransaction is handled here because:
+        // The only way to reach this point is if we're mid-deny and Onyx removed the transaction
+        // before denyTransaction resolved. Show the success screen to avoid a flash
         // When the transaction denial succeeds, the transaction gets removed from the queue slightly sooner than denyTransaction resolves.
         // We handle this case specially here so that the user does not see a momentary flash of the AlreadyReviewedFailureScreen
         return (
