@@ -1,24 +1,21 @@
-import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateManyPolicyConnectionConfigs} from '@libs/actions/connections';
 import {getLatestErrorField} from '@libs/ErrorUtils';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import {clearQBOErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Account, QBONonReimbursableExportAccountType} from '@src/types/onyx/Policy';
 
 type MenuItem = ListItem & {
@@ -34,8 +31,7 @@ function QuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: WithPolicyC
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const {creditCards, bankAccounts, accountPayable, vendors} = policy?.connections?.quickbooksOnline?.data ?? {};
     const isLocationEnabled = !!(qboConfig?.syncLocations && qboConfig?.syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE);
-    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_COMPANY_CARD_SELECT>>();
-    const backTo = route.params?.backTo;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_CARD_SELECT.path);
 
     const data: MenuItem[] = useMemo(() => {
         const options: MenuItem[] = [
@@ -70,8 +66,8 @@ function QuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: WithPolicyC
     }, [translate, qboConfig?.nonReimbursableExpensesExportDestination, isLocationEnabled, accountPayable, bankAccounts, creditCards, vendors]);
 
     const goBack = useCallback(() => {
-        Navigation.goBack(backTo ?? (policyID && ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT.getRoute(policyID)));
-    }, [backTo, policyID]);
+        Navigation.goBack(backPath || (policyID && ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT.getRoute(policyID)));
+    }, [backPath, policyID]);
 
     const selectExportCompanyCard = useCallback(
         (row: MenuItem) => {

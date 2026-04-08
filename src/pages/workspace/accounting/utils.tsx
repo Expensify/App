@@ -10,12 +10,13 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import {isAuthenticationError} from '@libs/actions/connections';
 import getPlatform from '@libs/getPlatform';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {canUseTaxNetSuite} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {ThemeStyles} from '@styles/index';
 import {getTrackingCategories} from '@userActions/connections/Xero';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import type {Account, ConnectionName, Connections, PolicyConnectionName, QBDNonReimbursableExportAccountType, QBDReimbursableExportAccountType} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -95,7 +96,7 @@ function getAccountingIntegrationData(
                     CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS,
                     CONST.QUICKBOOKS_CONFIG.SYNC_TAX,
                 ],
-                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID)),
+                onExportPagePress: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.path)),
                 subscribedExportSettings: [
                     CONST.QUICKBOOKS_CONFIG.EXPORT,
                     CONST.QUICKBOOKS_CONFIG.EXPORT_DATE,
