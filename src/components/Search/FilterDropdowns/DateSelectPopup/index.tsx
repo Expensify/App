@@ -1,6 +1,7 @@
-import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
+import FormHelpMessage from '@components/FormHelpMessage';
 import ScrollView from '@components/ScrollView';
 import DatePresetFilterBase from '@components/Search/FilterComponents/DatePresetFilterBase';
 import type {SearchDatePresetFilterBaseHandle} from '@components/Search/FilterComponents/DatePresetFilterBase';
@@ -73,14 +74,6 @@ function DateSelectPopup({label, value, presets, style, closeOverlay, onChange, 
             setPopoverWidth?.(undefined);
         }
     }, [selectedDateModifier, setPopoverWidth]);
-
-    useLayoutEffect(() => {
-        if (!shouldShowRangeError || selectedDateModifier !== CONST.SEARCH.DATE_MODIFIERS.RANGE) {
-            return;
-        }
-
-        scrollViewRef.current?.scrollToEnd({animated: true});
-    }, [selectedDateModifier, shouldShowRangeError]);
 
     const clearSelection = useCallback(() => {
         setSelectedDateModifier(null);
@@ -159,10 +152,16 @@ function DateSelectPopup({label, value, presets, style, closeOverlay, onChange, 
                         selectedDateModifier={selectedDateModifier}
                         onSelectDateModifier={setSelectedDateModifier}
                         presets={presets}
-                        shouldShowRangeError={shouldShowRangeError}
                         onDateValuesChange={updateRangeText}
                         onRangeValidationErrorChange={setShouldShowRangeError}
                     />
+                    {shouldShowRangeError && (
+                        <FormHelpMessage
+                            isError
+                            message={translate('search.errors.pleaseSelectDatesForBothFromAndTo')}
+                            style={[styles.mh5, styles.mt2]}
+                        />
+                    )}
                 </View>
                 <View style={[styles.flexRow, styles.gap2, useRangeLayout ? styles.mh5 : styles.ph5, useRangeLayout && styles.alignItemsCenter, useRangeLayout && styles.pt1]}>
                     {useRangeLayout && (
@@ -215,11 +214,17 @@ function DateSelectPopup({label, value, presets, style, closeOverlay, onChange, 
                     selectedDateModifier={selectedDateModifier}
                     onSelectDateModifier={setSelectedDateModifier}
                     presets={presets}
-                    shouldShowRangeError={shouldShowRangeError}
                     onDateValuesChange={updateRangeText}
                     onRangeValidationErrorChange={setShouldShowRangeError}
                 />
             </ScrollView>
+            {shouldShowRangeError && (
+                <FormHelpMessage
+                    isError
+                    message={translate('search.errors.pleaseSelectDatesForBothFromAndTo')}
+                    style={[styles.mh5, styles.mt2]}
+                />
+            )}
             {!!displayedRangeText && selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE && (
                 <Text style={[styles.textLabelSupporting, styles.ph5, styles.mt2, styles.textAlignLeft]}>
                     {`${translate('common.range')}: `}

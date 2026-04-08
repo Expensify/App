@@ -5,7 +5,6 @@ import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import {useSearchActionsContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
-import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import usePermissions from '@hooks/usePermissions';
@@ -46,7 +45,6 @@ const getIOUActionsSelector = (actions: OnyxEntry<ReportActions>): ReportAction[
 
 function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const {backTo, action, iouType, transactionID, reportID: reportIDFromRoute, reportActionID} = route.params;
-    const {translate, toLocaleDigit} = useLocalize();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const transactionReport = Object.values(allReports ?? {}).find((report) => report?.reportID === transaction?.reportID);
@@ -185,8 +183,6 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                         reportNextStep: undefined,
                         policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
                         allTransactions,
-                        translate,
-                        toLocaleDigit,
                     });
                     removeTransaction(transaction.transactionID);
                 }
@@ -231,8 +227,6 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                 email: session?.email ?? '',
                 policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`],
                 allTransactions,
-                translate,
-                toLocaleDigit,
             });
             removeTransaction(transaction.transactionID);
         });
@@ -293,7 +287,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             transactionIDs={transaction ? [transaction.transactionID] : []}
             selectedReportID={selectedReportID}
             selectedPolicyID={selectedPolicyID}
-            transactionPolicyID={transactionPolicyID}
+            transactionPolicyID={selectedReport?.policyID ?? transactionPolicyID}
             removeFromReport={removeFromReport}
             isEditing={isEditing}
             isUnreported={isUnreported}

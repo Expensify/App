@@ -129,7 +129,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
             buildFilterQueryWithSortDefaults(
                 updatedFilterFormValues,
                 {view: searchAdvancedFilters.view, groupBy: searchAdvancedFilters.groupBy},
-                {sortBy: queryJSON.sortBy, sortOrder: queryJSON.sortOrder, limit: queryJSON.limit},
+                {sortBy: queryJSON.sortBy, sortOrder: queryJSON.sortOrder},
             ) ?? '';
         if (!queryString) {
             return;
