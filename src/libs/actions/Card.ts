@@ -1709,7 +1709,7 @@ function getSpendRuleFormValuesFromCardRule(cardRule: ExpensifyCardRule): SpendR
     return formValues;
 }
 
-function setExpensifyCardRule(domainAccountID: number, cardRuleID: string, spendRuleValues: SpendRuleForm, previousRule?: ExpensifyCardRule) {
+function setExpensifyCardRule(domainAccountID: number, cardRuleID: string, spendRuleValues: SpendRuleForm, existingRule?: ExpensifyCardRule) {
     const ruleID = cardRuleID;
     const ruleAST = buildSpendRuleAST(spendRuleValues);
     if (!ruleAST) {
@@ -1734,7 +1734,7 @@ function setExpensifyCardRule(domainAccountID: number, cardRuleID: string, spend
             key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`,
             value: {
                 cardRules: {
-                    [ruleID]: previousRule ?? null,
+                    [ruleID]: existingRule ?? null,
                 },
             },
         },
@@ -1749,7 +1749,7 @@ function setExpensifyCardRule(domainAccountID: number, cardRuleID: string, spend
     API.write(WRITE_COMMANDS.SET_EXPENSIFY_CARD_RULE, parameters, {optimisticData, failureData});
 }
 
-function deleteExpensifyCardRule(domainAccountID: number, cardRuleID: string, previousRule?: ExpensifyCardRule) {
+function deleteExpensifyCardRule(domainAccountID: number, cardRuleID: string, existingRule?: ExpensifyCardRule) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1762,14 +1762,14 @@ function deleteExpensifyCardRule(domainAccountID: number, cardRuleID: string, pr
         },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = previousRule
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = existingRule
         ? [
               {
                   onyxMethod: Onyx.METHOD.MERGE,
                   key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`,
                   value: {
                       cardRules: {
-                          [cardRuleID]: previousRule,
+                          [cardRuleID]: existingRule,
                       },
                   },
               },
