@@ -9,7 +9,8 @@
  *  • This component intentionally avoids expensive hooks and Onyx reads.
  *    Do NOT add new subscriptions unless absolutely necessary for correctness.
  */
-import React, {useRef, useState} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useRef, useState} from 'react';
 import {FlatList, View} from 'react-native';
 import type {ListRenderItemInfo, StyleProp, ViewStyle} from 'react-native';
 import Button from '@components/Button';
@@ -72,7 +73,23 @@ function SearchStaticList({searchResults, queryJSON, contentContainerStyle, onLa
     const accountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const email = session?.email;
 
-    const [showPendingExpensePlaceholder] = useState(() => hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH));
+    const [showPendingExpensePlaceholder, setShowPendingExpensePlaceholder] = useState(() => hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH));
+
+    // When pre-inserted behind the RHP, the static list mounts before any submit
+    // action (showPendingExpensePlaceholder = false). On focus (after RHP dismiss),
+    // check for a pending submit-to-search action and show the placeholder row so
+    // the user sees immediate feedback while the Search component mounts.
+    // On subsequent re-focus without a pending action, clear the stale placeholder.
+    useFocusEffect(
+        useCallback(() => {
+            const hasPendingAction = getPendingSubmitFollowUpAction()?.followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH;
+            if (!showPendingExpensePlaceholder && hasPendingAction) {
+                setShowPendingExpensePlaceholder(true);
+            } else if (showPendingExpensePlaceholder && !hasPendingAction) {
+                setShowPendingExpensePlaceholder(false);
+            }
+        }, [showPendingExpensePlaceholder]),
+    );
 
     const {type, status, sortBy, sortOrder, groupBy} = queryJSON;
     const validGroupBy = getValidGroupBy(groupBy);

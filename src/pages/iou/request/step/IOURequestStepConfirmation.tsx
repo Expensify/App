@@ -37,9 +37,11 @@ import {completeTestDriveTask} from '@libs/actions/Task';
 import {isMobileSafari} from '@libs/Browser';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
+import {reserveDeferredWriteChannel} from '@libs/deferredLayoutWrite';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
+import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
 import {
@@ -50,6 +52,7 @@ import {
     shouldUseTransactionDraft,
 } from '@libs/IOUUtils';
 import Log from '@libs/Log';
+import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
@@ -64,9 +67,11 @@ import {
     isReportOutstanding,
     isSelectedManagerMcTest,
 } from '@libs/ReportUtils';
+import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import getSubmitExpenseScenario from '@libs/telemetry/getSubmitExpenseScenario';
 import markSubmitExpenseEnd from '@libs/telemetry/markSubmitExpenseEnd';
+import {setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {
     getDefaultTaxCode,
@@ -359,6 +364,7 @@ function IOURequestStepConfirmation({
     const isPolicyExpenseChat = useMemo(() => participants?.some((participant) => participant.isPolicyExpenseChat), [participants]);
     const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
     const formHasBeenSubmitted = useRef(false);
+    const isFromGlobalCreate = !!(transaction?.isFromGlobalCreate ?? transaction?.isFromFloatingActionButton);
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
@@ -370,6 +376,33 @@ function IOURequestStepConfirmation({
 
     const odometerStartImage = transaction?.comment?.odometerStartImage;
     const odometerEndImage = transaction?.comment?.odometerEndImage;
+
+    useEffect(() => {
+        if (!transaction || !getIsNarrowLayout() || !isFromGlobalCreate || isReportTopmostSplitNavigator()) {
+            return;
+        }
+
+        const type = iouType === CONST.IOU.TYPE.INVOICE ? CONST.SEARCH.DATA_TYPES.INVOICE : CONST.SEARCH.DATA_TYPES.EXPENSE;
+        const queryString = buildCannedSearchQuery({type});
+        const searchRoute = ROUTES.SEARCH_ROOT.getRoute({query: queryString});
+
+        const timer = setTimeout(() => {
+            Navigation.preInsertFullscreenUnderRHP(searchRoute);
+        }, CONST.PRE_INSERT_FULLSCREEN_DELAY);
+
+        return () => {
+            clearTimeout(timer);
+
+            if (!Navigation.getIsFullscreenPreInsertedUnderRHP() || formHasBeenSubmitted.current) {
+                return;
+            }
+
+            Navigation.removePreInsertedFullscreenIfNeeded();
+        };
+        // isFromGlobalCreate and iouType are stable for the lifetime of this screen instance
+        // since they derive from route params / Onyx and don't change while the confirmation screen is open.
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- Pre-insertion is a one-time side effect on mount.
+    }, []);
 
     const navigateBack = useCallback(() => {
         if (backTo) {
@@ -915,7 +948,7 @@ function IOURequestStepConfirmation({
             formHasBeenSubmitted.current = true;
 
             const hasReceiptFiles = Object.values(receiptFiles).some((receipt) => !!receipt);
-            const isFromGlobalCreate = transaction?.isFromGlobalCreate ?? transaction?.isFromFloatingActionButton ?? false;
+            const isFromGlobalCreateForTelemetry = !!(transaction?.isFromGlobalCreate ?? transaction?.isFromFloatingActionButton);
 
             const scenario = getSubmitExpenseScenario({
                 iouType,
@@ -925,14 +958,14 @@ function IOURequestStepConfirmation({
                 isCategorizingTrackExpense,
                 isSharingTrackExpense,
                 isPerDiemRequest,
-                isFromGlobalCreate,
+                isFromGlobalCreate: isFromGlobalCreateForTelemetry,
                 hasReceiptFiles,
             });
 
             const submitSpanAttributes = {
                 [CONST.TELEMETRY.ATTRIBUTE_SCENARIO]: scenario,
                 [CONST.TELEMETRY.ATTRIBUTE_HAS_RECEIPT]: hasReceiptFiles,
-                [CONST.TELEMETRY.ATTRIBUTE_IS_FROM_GLOBAL_CREATE]: isFromGlobalCreate,
+                [CONST.TELEMETRY.ATTRIBUTE_IS_FROM_GLOBAL_CREATE]: isFromGlobalCreateForTelemetry,
                 [CONST.TELEMETRY.ATTRIBUTE_IOU_TYPE]: iouType,
                 [CONST.TELEMETRY.ATTRIBUTE_IOU_REQUEST_TYPE]: requestType ?? 'unknown',
             };
@@ -1294,13 +1327,29 @@ function IOURequestStepConfirmation({
             }
         }
 
-        requestAnimationFrame(() => {
-            createTransaction(listOfParticipants);
-            // Keep the pre-submit loading state visible for one more paint so the spinner appears before navigation work starts.
+        // Fast path: the Search page was pre-inserted under the RHP (see useEffect above).
+        // Dismiss the RHP immediately so the user sees the Search page, then run the
+        // heavy createTransaction work in the next frame - "dismiss first, compute later".
+        // Reserve the deferred write channel synchronously so that the Search component
+        // always sees hasDeferredWrite=true on mount (on iOS, rAF fires after
+        // startTransition resolves, so without the reservation Search would mount first).
+        if (Navigation.getIsFullscreenPreInsertedUnderRHP()) {
+            setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH);
+            Navigation.clearFullscreenPreInsertedFlag();
+            reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+            Navigation.dismissModal();
             requestAnimationFrame(() => {
+                createTransaction(listOfParticipants);
                 setIsConfirming(false);
             });
-        });
+        } else {
+            requestAnimationFrame(() => {
+                createTransaction(listOfParticipants);
+                requestAnimationFrame(() => {
+                    setIsConfirming(false);
+                });
+            });
+        }
     };
 
     /**

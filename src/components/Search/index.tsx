@@ -231,7 +231,7 @@ function Search({
     const skipDeferralOnFocusRef = useRef(isSearchDataLoaded(searchResults, queryJSON) && !hasPendingWriteOnMountRef.current);
 
     const [shouldDeferHeavySearchWork, setShouldDeferHeavySearchWork] = useState(() => !isSearchDataLoaded(searchResults, queryJSON) || hasPendingWriteOnMountRef.current);
-    const [showPendingExpensePlaceholder, setShowPendingExpensePlaceholder] = useState(() => hasPendingWriteOnMountRef.current && optimisticWatchKeyRef.current != null);
+    const [showPendingExpensePlaceholder, setShowPendingExpensePlaceholder] = useState(() => hasPendingWriteOnMountRef.current);
     // Caches the optimistic list item once it first appears in sortedData.
     // Used by stableSortedData to re-inject the row if a stale snapshot temporarily removes it.
     // Cleared once the server-confirmed (non-optimistic) version arrives.
@@ -259,7 +259,7 @@ function Search({
     // stays visible at its sorted position until server-confirmed data arrives;
     // clearOptimisticTracking handles that cleanup when pendingAction !== ADD.
     useEffect(() => {
-        if (!hasPendingWriteOnMountRef.current || !optimisticWatchKeyRef.current) {
+        if (!hasPendingWriteOnMountRef.current) {
             return;
         }
         const id = setTimeout(() => setShowPendingExpensePlaceholder(false), OPTIMISTIC_TRACKING_TIMEOUT_MS);
@@ -650,6 +650,15 @@ function Search({
 
         const comingBackOnlineWithNoResults = prevIsOffline && !isOffline && isEmptyObject(searchResults?.data);
         if (!comingBackOnlineWithNoResults && ((!isFocused && !isMigratedModalDisplayed) || isOffline)) {
+            return;
+        }
+
+        // When mounting after the pre-insert fast path, the deferred write hasn't
+        // been flushed yet. Triggering a search now would race with the CREATE
+        // API call and return stale results that overwrite the optimistic row.
+        // Skip this call; the optimistic data from flushDeferredWrite will populate
+        // the list, and the next user-driven search will refresh from the server.
+        if (hasPendingWriteOnMountRef.current && hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)) {
             return;
         }
 
@@ -1239,9 +1248,26 @@ function Search({
     // Server confirmed (pendingAction !== ADD) -> clear all tracking.
     // Disappeared after caching (rollback) -> schedule cleanup after grace period.
     useEffect(() => {
-        if (!optimisticWatchKeyRef.current) {
+        if (!hasPendingWriteOnMountRef.current || optimisticTrackingCleanedUpRef.current) {
             return;
         }
+
+        // The watch key may not be available at mount when the deferred write channel
+        // was only reserved (fast path: rAF hasn't fired yet). Try to resolve it lazily
+        // on each sortedData change. If data arrives before we ever get a key (e.g. the
+        // channel was flushed between renders), clear tracking since the list is populated.
+        if (!optimisticWatchKeyRef.current) {
+            const latestKey = getOptimisticWatchKey(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+            if (latestKey) {
+                optimisticWatchKeyRef.current = latestKey;
+            } else if (sortedData.length > 0) {
+                clearOptimisticTracking();
+                return;
+            } else {
+                return;
+            }
+        }
+
         const optimisticItem = sortedData.find(
             (item): item is TransactionListItemType => 'transactionID' in item && `${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}` === optimisticWatchKeyRef.current,
         );

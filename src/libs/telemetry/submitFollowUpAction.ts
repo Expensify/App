@@ -29,7 +29,13 @@ function isSameFlowUpdate(pending: NonNullable<PendingSubmitFollowUpAction>, fol
         return true;
     }
     // Refinement: we first set DISMISS_MODAL_ONLY, then dismissModalWithReport's onBeforeNavigate refines it to DISMISS_MODAL_AND_OPEN_REPORT when the report will open. Same flow — update in place instead of cancelling.
-    return pending.followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY && followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT;
+    if (pending.followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY && followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT) {
+        return true;
+    }
+    // The fast path (pre-insert) sets NAVIGATE_TO_SEARCH before createTransaction runs.
+    // handleNavigateAfterExpenseCreate may later call with DISMISS_MODAL_ONLY because it
+    // sees the Search page as already on top. Treat this as same-flow - keep the original.
+    return pending.followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH && followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY;
 }
 
 /**

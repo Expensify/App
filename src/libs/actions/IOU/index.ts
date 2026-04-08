@@ -978,8 +978,18 @@ function handleNavigateAfterExpenseCreate({
     );
     const queryString = buildCannedSearchQuery({type});
     const navigateToSearch = () => {
-        if (getIsNarrowLayout()) {
-            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {forceReplace: true});
+        // On the fast path, onConfirm already cleared the flag and dismissed the modal,
+        // so this branch is only reached on the slow path (user submitted before the
+        // 300ms pre-insert timer fired).
+        if (getIsNarrowLayout() && Navigation.getIsFullscreenPreInsertedUnderRHP()) {
+            Navigation.clearFullscreenPreInsertedFlag();
+            Navigation.dismissModal();
+        } else if (getIsNarrowLayout()) {
+            // Skip navigation if we're already on the correct Search page (e.g. after the
+            // pre-insert fast path dismissed the RHP and revealed the pre-mounted Search).
+            if (!alreadyOnSearchRoot || !isSameSearchType) {
+                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {forceReplace: true});
+            }
         } else {
             Navigation.revealRouteBeforeDismissingModal(ROUTES.SEARCH_ROOT.getRoute({query: queryString}));
         }

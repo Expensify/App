@@ -1,4 +1,4 @@
-import {useRoute} from '@react-navigation/native';
+import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useRef, useState, useTransition} from 'react';
 import {View} from 'react-native';
 import Animated, {clamp, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -152,7 +152,18 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
         return () => removeRouteKey(route.key);
     }, [addRouteKey, removeRouteKey, route.key, searchRouterListVisible]);
 
-    const [useStaticRendering] = useState(() => getPendingSubmitFollowUpAction()?.followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH);
+    const navigation = useNavigation();
+    // When pre-inserted behind the RHP (not focused), always start in static rendering
+    // mode so we stay at the lightweight static list until focus arrives. This avoids
+    // mounting the heavy Search component while hidden and ensures the deferred write
+    // mechanism works correctly: createTransaction registers the write in the next rAF,
+    // and the full Search component flushes it when it mounts after focus-driven phase transition.
+    const [useStaticRendering] = useState(() => {
+        if (!navigation.isFocused()) {
+            return true;
+        }
+        return getPendingSubmitFollowUpAction()?.followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH;
+    });
     const [isInteractive, setIsInteractive] = useState(!useStaticRendering);
     const [isHeaderInteractive, setIsHeaderInteractive] = useState(!useStaticRendering);
     const isHeaderInteractiveRef = useRef(isHeaderInteractive);
@@ -168,14 +179,20 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
             setIsHeaderInteractive(true);
         });
     }, [startTransition]);
-    useEffect(() => {
-        if (!isHeaderInteractive || isInteractive) {
-            return;
-        }
-        startTransition(() => {
-            setIsInteractive(true);
-        });
-    }, [isHeaderInteractive, isInteractive, startTransition]);
+    // Wait for focus before transitioning to the full interactive Search component.
+    // When pre-inserted behind the RHP, this keeps the page at the lightweight static
+    // list phase until it is actually visible, avoiding wasted work and premature span endings.
+    // useFocusEffect avoids the extra re-renders that useIsFocused causes on every focus change.
+    useFocusEffect(
+        useCallback(() => {
+            if (!isHeaderInteractive || isInteractive) {
+                return;
+            }
+            startTransition(() => {
+                setIsInteractive(true);
+            });
+        }, [isHeaderInteractive, isInteractive, startTransition]),
+    );
 
     if (!queryJSON) {
         return (

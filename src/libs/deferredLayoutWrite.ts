@@ -33,6 +33,9 @@ type DeferredChannel = {
      * when the optimistic updates have been applied.
      */
     optimisticWatchKey?: OnyxKey;
+
+    /** True when the channel was created by reserveDeferredWriteChannel. */
+    isReserved?: boolean;
 };
 
 const channels = new Map<string, DeferredChannel>();
@@ -56,8 +59,13 @@ function registerDeferredWrite(key: string, callback: () => void, options: Defer
 
     const existing = channels.get(key);
     if (existing) {
-        Log.warn(`[DeferredLayoutWrite] Overwriting unflushed deferred write for key "${key}" - flushing the pending one first`);
-        flushDeferredWrite(key);
+        if (existing.isReserved) {
+            clearChannelTimeout(existing);
+            channels.delete(key);
+        } else {
+            Log.warn(`[DeferredLayoutWrite] Overwriting unflushed deferred write for key "${key}" - flushing the pending one first`);
+            flushDeferredWrite(key);
+        }
     }
 
     const safetyTimeoutId = setTimeout(() => {
@@ -96,6 +104,25 @@ function cancelDeferredWrite(key: string) {
     channels.delete(key);
 }
 
+/**
+ * Pre-create a channel so that hasDeferredWrite(key) returns true immediately.
+ * The real callback will be registered later via registerDeferredWrite, which
+ * silently replaces the reservation. A safety timeout is still set in case
+ * the real registration never arrives.
+ */
+function reserveDeferredWriteChannel(key: string) {
+    if (channels.has(key)) {
+        return;
+    }
+
+    const safetyTimeoutId = setTimeout(() => {
+        Log.warn(`[DeferredLayoutWrite] Safety timeout fired for reserved channel "${key}" - the real write was never registered`);
+        channels.delete(key);
+    }, DEFAULT_SAFETY_TIMEOUT_MS);
+
+    channels.set(key, {write: () => {}, safetyTimeoutId, isReserved: true});
+}
+
 function hasDeferredWrite(key: string): boolean {
     return channels.has(key);
 }
@@ -122,4 +149,4 @@ AppState.addEventListener('change', (nextState) => {
     }
 });
 
-export {registerDeferredWrite, flushDeferredWrite, cancelDeferredWrite, hasDeferredWrite, getOptimisticWatchKey};
+export {registerDeferredWrite, reserveDeferredWriteChannel, flushDeferredWrite, cancelDeferredWrite, hasDeferredWrite, getOptimisticWatchKey};
