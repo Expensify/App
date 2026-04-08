@@ -3246,31 +3246,11 @@ describe('OptionsListUtils', () => {
                 personalDetails: PERSONAL_DETAILS,
             });
 
-            const multiSpaceQueryResults = filterAndOrderOptions(
-                options,
-                'Invisible   Woman',
-                COUNTRY_CODE,
-                loginList,
-                CURRENT_USER_EMAIL,
-                CURRENT_USER_ACCOUNT_ID,
-                PERSONAL_DETAILS,
-            );
-            const spaceSeparatedQueryResults = filterAndOrderOptions(
-                options,
-                'Invisible Woman',
-                COUNTRY_CODE,
-                loginList,
-                CURRENT_USER_EMAIL,
-                CURRENT_USER_ACCOUNT_ID,
-                PERSONAL_DETAILS,
-            );
+            const multiSpaceQueryResults = filterAndOrderOptions(options, 'Invisible   Woman', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
+            const spaceSeparatedQueryResults = filterAndOrderOptions(options, 'Invisible Woman', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
 
-            expect(multiSpaceQueryResults.recentReports.map((option) => option.reportID)).toEqual(
-                spaceSeparatedQueryResults.recentReports.map((option) => option.reportID),
-            );
-            expect(multiSpaceQueryResults.personalDetails.map((option) => option.accountID)).toEqual(
-                spaceSeparatedQueryResults.personalDetails.map((option) => option.accountID),
-            );
+            expect(multiSpaceQueryResults.recentReports.map((option) => option.reportID)).toEqual(spaceSeparatedQueryResults.recentReports.map((option) => option.reportID));
+            expect(multiSpaceQueryResults.personalDetails.map((option) => option.accountID)).toEqual(spaceSeparatedQueryResults.personalDetails.map((option) => option.accountID));
         });
     });
 
