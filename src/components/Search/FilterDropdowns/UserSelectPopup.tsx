@@ -43,7 +43,7 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails();
     const {windowHeight} = useWindowDimensions();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
@@ -168,7 +168,7 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
     );
 
     return (
-        <View style={[styles.getUserSelectionListPopoverHeight(listData.length || 1, windowHeight, shouldUseNarrowLayout, shouldShowSearchInput)]}>
+        <View style={[styles.getUserSelectionListPopoverHeight(listData.length || 1, windowHeight, shouldUseNarrowLayout, isInLandscapeMode, shouldShowSearchInput)]}>
             <SelectionList
                 data={listData}
                 ref={selectionListRef}

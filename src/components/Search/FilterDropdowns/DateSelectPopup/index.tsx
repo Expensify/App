@@ -39,7 +39,7 @@ type DateSelectPopupProps = {
 
 function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopoverWidth}: DateSelectPopupProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -189,7 +189,7 @@ function DateSelectPopup({label, value, presets, closeOverlay, onChange, setPopo
     const mobileButtonRowStyle = useRangeLayout ? [styles.flexRow, styles.ph5, buttonRowSpacing, styles.alignItemsCenter, styles.gap2] : [styles.flexRow, styles.gap2, styles.ph5];
 
     return (
-        <View style={mobileContainerStyle}>
+        <View style={[mobileContainerStyle, isInLandscapeMode ? styles.h100 : undefined]}>
             {!selectedDateModifier && <Text style={mobileLabelStyle}>{label}</Text>}
             <ScrollView
                 ref={scrollViewRef}

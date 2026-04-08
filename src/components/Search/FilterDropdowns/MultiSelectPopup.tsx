@@ -54,7 +54,7 @@ function MultiSelectPopup<T extends string>({label, loading, value, items, close
     const styles = useThemeStyles();
 
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
     const [selectedItems, setSelectedItems] = useState(value);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -113,7 +113,7 @@ function MultiSelectPopup<T extends string>({label, loading, value, items, close
         <View style={[!isSmallScreenWidth && styles.pv4, styles.gap2]}>
             {isSmallScreenWidth && <Text style={[styles.textLabel, styles.textSupporting, styles.ph5, styles.pv1]}>{label}</Text>}
 
-            <View style={[styles.getSelectionListPopoverHeight(listData.length || 1, windowHeight, isSearchable ?? false)]}>
+            <View style={[styles.getSelectionListPopoverHeight(listData.length || 1, windowHeight, isSearchable ?? false, isInLandscapeMode, isSmallScreenWidth)]}>
                 {!!loading && (
                     <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
                         <ActivityIndicator

@@ -64,7 +64,7 @@ function SingleSelectPopup<T extends string>({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
     const [selectedItem, setSelectedItem] = useState(value);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -134,7 +134,7 @@ function SingleSelectPopup<T extends string>({
         <View style={[!isSmallScreenWidth && styles.pv4, styles.gap2, style]}>
             {shouldShowLabel && <Text style={[styles.textLabel, styles.textSupporting, styles.ph5, styles.pv1]}>{label}</Text>}
 
-            <View style={[styles.getSelectionListPopoverHeight(options.length || 1, windowHeight, isSearchable ?? false)]}>
+            <View style={[styles.getSelectionListPopoverHeight(options.length || 1, windowHeight, isSearchable ?? false, isInLandscapeMode, shouldShowLabel)]}>
                 <SelectionList
                     data={options}
                     shouldSingleExecuteRowSelect

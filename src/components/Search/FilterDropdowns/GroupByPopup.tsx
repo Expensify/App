@@ -42,7 +42,7 @@ function GroupByPopup({label, value, sections, style, closeOverlay, onChange}: G
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
     const [selectedItem, setSelectedItem] = useState(value);
 
@@ -85,11 +85,13 @@ function GroupByPopup({label, value, sections, style, closeOverlay, onChange}: G
         closeOverlay();
     }, [closeOverlay, onChange]);
 
+    const shouldShowLabel = isSmallScreenWidth && !!label;
+
     return (
         <View style={[!isSmallScreenWidth && styles.pv4, styles.gap2, style]}>
-            {isSmallScreenWidth && !!label && <Text style={[styles.textLabel, styles.textSupporting, styles.ph5, styles.pv1]}>{label}</Text>}
+            {shouldShowLabel && <Text style={[styles.textLabel, styles.textSupporting, styles.ph5, styles.pv1]}>{label}</Text>}
 
-            <View style={[styles.getSelectionListPopoverHeight(optionsCount, windowHeight, false)]}>
+            <View style={[styles.getSelectionListPopoverHeight(optionsCount, windowHeight, false, isInLandscapeMode, shouldShowLabel)]}>
                 <SelectionListWithSections
                     sections={listSections}
                     shouldSingleExecuteRowSelect
