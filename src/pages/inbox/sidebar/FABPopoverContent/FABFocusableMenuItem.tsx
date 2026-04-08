@@ -27,7 +27,7 @@ function FABFocusableMenuItem({itemId, isVisible = true, onPress, shouldCallAfte
             {...(props as MenuItemProps)}
             focused={isFocused}
             onFocus={() => setFocusedIndex(itemIndex)}
-            wrapperStyle={[wrapperStyle, !shouldUseNarrowLayout && {height: 56, paddingHorizontal: 20, paddingVertical: 4, alignItems: 'center'}]}
+            wrapperStyle={[wrapperStyle, !shouldUseNarrowLayout && {height: 52, paddingHorizontal: 20, paddingVertical: 4, alignItems: 'center'}]}
             iconStyles={!shouldUseNarrowLayout ? [{width: 20}] : undefined}
             shouldCheckActionAllowedOnPress={false}
             role={CONST.ROLE.BUTTON}

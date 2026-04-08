@@ -13,6 +13,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
 import variables from '@styles/variables';
@@ -312,6 +313,7 @@ function BasePopoverMenu({
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply correct popover styles
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
+    const {windowHeight} = useWindowDimensions();
     const [currentMenuItems, setCurrentMenuItems] = useState(menuItems);
     const currentMenuItemsFocusedIndex = getSelectedItemIndex(currentMenuItems);
     const [enteredSubMenuIndexes, setEnteredSubMenuIndexes] = useState<readonly number[]>(CONST.EMPTY_ARRAY);
@@ -376,7 +378,7 @@ function BasePopoverMenu({
                 style={hasBackButtonText ? styles.pv0 : undefined}
                 additionalIconStyles={[{width: variables.iconSizeSmall, height: variables.iconSizeSmall}, styles.opacitySemiTransparent, styles.mr1]}
                 iconStyles={!isSmallScreenWidth ? [{width: 20}] : undefined}
-                wrapperStyle={!isSmallScreenWidth ? [{height: 56, paddingHorizontal: 20, paddingVertical: 4, alignItems: 'center'}] : undefined}
+                wrapperStyle={!isSmallScreenWidth ? [{height: 52, paddingHorizontal: 20, paddingVertical: 4, alignItems: 'center'}] : undefined}
                 title={backButtonTitle}
                 accessibilityLabel={`${translate('common.goBack')}, ${backButtonTitle}`}
                 titleStyle={hasBackButtonText ? styles.createMenuHeaderText : undefined}
@@ -435,7 +437,7 @@ function BasePopoverMenu({
                     wrapperStyle={[
                         StyleUtils.getItemBackgroundColorStyle(!!item.isSelected, focusedIndex === menuIndex, item.disabled ?? false, theme.activeComponentBG, theme.hoverComponentBG),
                         shouldUseScrollView && !shouldUseModalPaddingStyle && StyleUtils.getOptionMargin(menuIndex, currentMenuItems.length - 1),
-                        !isSmallScreenWidth && {height: 56, paddingHorizontal: 20, paddingVertical: 4, alignItems: 'center'},
+                        !isSmallScreenWidth && {height: 52, paddingHorizontal: 20, paddingVertical: 4, alignItems: 'center'},
                     ]}
                     shouldRemoveHoverBackground={item.isSelected}
                     titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
@@ -554,11 +556,11 @@ function BasePopoverMenu({
         const stylesArray: ViewStyle[] = [StyleSheet.flatten(styles.createMenuContainer), {width: 300, paddingVertical: 8}];
 
         if (shouldUseScrollView && shouldEnableMaxHeight && !isInLandscapeMode) {
-            stylesArray.push({maxHeight: 560});
+            stylesArray.push({maxHeight: windowHeight - 100});
         }
 
         return stylesArray;
-    }, [isSmallScreenWidth, shouldEnableMaxHeight, styles.createMenuContainer, shouldUseScrollView]);
+    }, [isSmallScreenWidth, shouldEnableMaxHeight, styles.createMenuContainer, shouldUseScrollView, windowHeight, isInLandscapeMode]);
 
     const {paddingTop, paddingBottom, paddingVertical, ...restScrollContainerStyle} =
         (StyleSheet.flatten([isSmallScreenWidth ? styles.pv4 : {paddingVertical: 8}, scrollContainerStyle]) as ViewStyle) ?? {};
