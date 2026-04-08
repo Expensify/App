@@ -3617,16 +3617,16 @@ function getPolicyChangeLogMaxExpenseAmountNoItemizedReceiptMessage(translate: L
         getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_ITEMIZED_RECEIPT>) ?? {};
 
     if (typeof oldMaxExpenseAmountNoItemizedReceipt === 'number' && typeof newMaxExpenseAmountNoItemizedReceipt === 'number') {
-        const oldIsDisabled = oldMaxExpenseAmountNoItemizedReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE;
-        const newIsDisabled = newMaxExpenseAmountNoItemizedReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE;
-        const oldValue = oldIsDisabled ? '' : convertToDisplayString(oldMaxExpenseAmountNoItemizedReceipt, currency);
-        const newValue = newIsDisabled ? '' : convertToDisplayString(newMaxExpenseAmountNoItemizedReceipt, currency);
+        const isOldLimitDisabled = oldMaxExpenseAmountNoItemizedReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE;
+        const isNewLimitDisabled = newMaxExpenseAmountNoItemizedReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE;
+        const oldValue = isOldLimitDisabled ? '' : convertToDisplayString(oldMaxExpenseAmountNoItemizedReceipt, currency);
+        const newValue = isNewLimitDisabled ? '' : convertToDisplayString(newMaxExpenseAmountNoItemizedReceipt, currency);
 
-        if (oldIsDisabled && !newIsDisabled) {
+        if (isOldLimitDisabled && !isNewLimitDisabled) {
             return translate('workspaceActions.setItemizedReceiptRequiredAmount', newValue);
         }
 
-        if (!oldIsDisabled && newIsDisabled) {
+        if (!isOldLimitDisabled && isNewLimitDisabled) {
             return translate('workspaceActions.removedItemizedReceiptRequiredAmount', oldValue);
         }
 
