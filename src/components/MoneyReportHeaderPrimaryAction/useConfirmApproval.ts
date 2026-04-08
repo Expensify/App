@@ -1,4 +1,5 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import {useMoneyReportHeaderModals} from '@components/MoneyReportHeaderModalsContext';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -7,13 +8,13 @@ import {hasHeldExpenses as hasHeldExpensesReportUtils, hasViolations as hasViola
 import {approveMoneyRequest} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
-function useConfirmApproval(reportID: string | undefined, startApprovedAnimation: () => void, onHoldMenuOpen: (paymentType?: PaymentMethodType) => void) {
+function useConfirmApproval(reportID: string | undefined, startApprovedAnimation: () => void) {
     const {accountID, email} = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const {openHoldMenu} = useMoneyReportHeaderModals();
 
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
@@ -32,7 +33,9 @@ function useConfirmApproval(reportID: string | undefined, startApprovedAnimation
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
         } else if (isAnyTransactionOnHold) {
-            onHoldMenuOpen(CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
+            openHoldMenu({
+                onConfirm: () => startApprovedAnimation(),
+            });
         } else {
             startApprovedAnimation();
             approveMoneyRequest({

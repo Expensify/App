@@ -150,7 +150,7 @@ function MoneyRequestReportPreviewContent({
         usePaymentAnimations();
 
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
-    const {showNonReimbursablePaymentErrorModal, nonReimbursablePaymentErrorDecisionModal} = useNonReimbursablePaymentModal(iouReport, transactions);
+    const {showNonReimbursablePaymentErrorModal} = useNonReimbursablePaymentModal(iouReport, transactions);
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
     const [shouldShowPayButton, setShouldShowPayButton] = useState(false);
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(iouReport?.reportID);
@@ -715,28 +715,27 @@ function MoneyRequestReportPreviewContent({
                         </View>
                     </PressableWithoutFeedback>
                 </View>
+                {isHoldMenuVisible &&
+                    !!iouReport &&
+                    (() => {
+                        const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(iouReport, shouldShowPayButton);
+                        return (
+                            <ProcessMoneyReportHoldMenu
+                                nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
+                                fullAmount={fullAmount}
+                                onClose={() => setIsHoldMenuVisible(false)}
+                                isVisible={isHoldMenuVisible}
+                                paymentType={paymentType}
+                                chatReport={chatReport}
+                                moneyRequestReport={iouReport}
+                                transactionCount={numberOfRequests}
+                                onConfirm={startAnimation}
+                                hasNonHeldExpenses={!hasOnlyHeldExpenses}
+                                transactions={transactions}
+                            />
+                        );
+                    })()}
             </OfflineWithFeedback>
-            {isHoldMenuVisible &&
-                !!iouReport &&
-                (() => {
-                    const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(iouReport, shouldShowPayButton);
-                    return (
-                        <ProcessMoneyReportHoldMenu
-                            nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
-                            fullAmount={fullAmount}
-                            onClose={() => setIsHoldMenuVisible(false)}
-                            isVisible={isHoldMenuVisible}
-                            paymentType={paymentType}
-                            chatReport={chatReport}
-                            moneyRequestReport={iouReport}
-                            transactionCount={numberOfRequests}
-                            startAnimation={startAnimation}
-                            hasNonHeldExpenses={!hasOnlyHeldExpenses}
-                            transactions={transactions}
-                        />
-                    );
-                })()}
-            {nonReimbursablePaymentErrorDecisionModal}
         </View>
     );
 }

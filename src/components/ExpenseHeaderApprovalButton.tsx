@@ -1,8 +1,11 @@
 import React from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getNonHeldAndFullAmount, hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
+import type {Report} from '@src/types/onyx';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Button from './Button';
@@ -16,18 +19,6 @@ type ExpenseHeaderApprovalButtonProps = {
     /** Whether delegate access is restricted */
     isDelegateAccessRestricted: boolean;
 
-    /** Whether the report has only held expenses */
-    hasOnlyHeldExpenses: boolean;
-
-    /** Whether there is a valid non-held amount */
-    hasValidNonHeldAmount: boolean;
-
-    /** The non-held amount string */
-    nonHeldAmount: string | undefined;
-
-    /** The full amount string */
-    fullAmount: string;
-
     /** Callback when approval is confirmed */
     onApprove: (isFullApproval: boolean) => void;
 
@@ -36,6 +27,12 @@ type ExpenseHeaderApprovalButtonProps = {
 
     /** The anchor alignment of the popover menu */
     anchorAlignment?: AnchorAlignment;
+
+    /** The money request report */
+    moneyRequestReport?: OnyxEntry<Report>;
+
+    /** Whether to show the pay button */
+    shouldShowPayButton: boolean;
 };
 
 type ApprovalOption = {
@@ -47,32 +44,31 @@ type ApprovalOption = {
 };
 
 type ApprovalDropdownOptionProps = {
-    nonHeldAmount: string | undefined;
-    fullAmount: string;
-    hasValidNonHeldAmount: boolean;
-    hasOnlyHeldExpenses: boolean;
+    moneyRequestReport: OnyxEntry<Report>;
     onPartialApprove: () => void;
     onFullApprove: () => void;
     translate: LocaleContextProps['translate'];
     illustrations: Record<'ThumbsUp' | 'DocumentCheck', IconAsset>;
+    shouldShowPayButton: boolean;
+    hasOnlyHeldExpenses: boolean;
 };
 
 /**
  * Generates dropdown options for approve button when there are held expenses
  */
 function getApprovalDropdownOptions({
-    nonHeldAmount,
-    fullAmount,
-    hasValidNonHeldAmount,
-    hasOnlyHeldExpenses,
     onPartialApprove,
     onFullApprove,
     translate,
     illustrations,
+    moneyRequestReport,
+    shouldShowPayButton,
+    hasOnlyHeldExpenses,
 }: ApprovalDropdownOptionProps): ApprovalOption[] {
     const APPROVE_PARTIAL = 'approve_partial';
     const APPROVE_FULL = 'approve_full';
     const options: ApprovalOption[] = [];
+    const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(moneyRequestReport, shouldShowPayButton);
 
     if (hasValidNonHeldAmount && !hasOnlyHeldExpenses) {
         options.push({
@@ -98,13 +94,11 @@ function getApprovalDropdownOptions({
 function ExpenseHeaderApprovalButton({
     isAnyTransactionOnHold,
     isDelegateAccessRestricted,
-    hasOnlyHeldExpenses,
-    hasValidNonHeldAmount,
-    nonHeldAmount,
-    fullAmount,
     onApprove,
     isDisabled = false,
     anchorAlignment,
+    moneyRequestReport,
+    shouldShowPayButton,
 }: ExpenseHeaderApprovalButtonProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -113,15 +107,15 @@ function ExpenseHeaderApprovalButton({
     const shouldShowDropdown = isAnyTransactionOnHold && !isDelegateAccessRestricted;
 
     if (shouldShowDropdown) {
+        const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(moneyRequestReport?.reportID);
         const approvalOptions = getApprovalDropdownOptions({
-            nonHeldAmount: !hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined,
-            fullAmount,
-            hasValidNonHeldAmount,
-            hasOnlyHeldExpenses,
             onPartialApprove: () => onApprove(false),
             onFullApprove: () => onApprove(true),
             translate,
             illustrations,
+            moneyRequestReport,
+            shouldShowPayButton,
+            hasOnlyHeldExpenses,
         });
 
         return (
