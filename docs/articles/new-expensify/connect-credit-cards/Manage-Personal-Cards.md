@@ -5,7 +5,7 @@ keywords: [New Expensify, personal cards, Wallet, reimbursable, credit card impo
 internalScope: Audience is members with personal credit cards already connected to their account. Covers viewing and managing existing personal cards in the Wallet, including reimbursable settings and fixing broken card connections. Does not cover connecting new personal cards or company card programs.
 ---
 
-# Manage personal cards
+# Manage Personal Cards
 
 Expensify lets you view and manage your personal credit cards in one place, making it easier to track spending, submit reimbursable expenses, and stay organized for tax time.
 
