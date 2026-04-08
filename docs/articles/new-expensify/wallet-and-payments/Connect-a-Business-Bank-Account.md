@@ -1,60 +1,55 @@
 ---
-title: Connect a Business Bank Account
-description: How to connect a business bank account to Expensify in supported currencies (USD, CAD, GBP, EUR, AUD) from a workspace or Wallet.
-keywords: [business bank account, connect bank account, verified business bank account, reimbursement, Expensify Card, Plaid, Wallet, workspace payments, link bank account, ACH]
-internalScope: Audience is Workspace Admins. Covers connecting a new business bank account from a workspace or Wallet, and linking an existing one to a workspace for reimbursements. Does not cover validating test transactions, sharing, unsharing, or unlocking a business bank account.
+title: Connect a US Business Bank Account
+description: How to connect a US business bank account. 
+keywords: [New Expensify, business bank account, connect bank account, verified business bank account, reimbursement, Expensify Card, Plaid, Wallet, workspace payments, link bank account, ACH]
+internalScope: Audience is Workspace Admins. Covers connecting a new US business bank account from a workspace or Wallet, and linking an existing one to a workspace for reimbursements. Does not cover validating test transactions, sharing, unsharing, or unlocking a business bank account.
 ---
 
-<div id="new-expensify" markdown="1">
+# Connect a US Business Bank Account
 
-You can connect a business bank account in Expensify using the following supported currencies: **USD**, **CAD**, **GBP**, **EUR**, and **AUD**. Once connected, you can use it for reimbursements, Expensify Card payments, and invoice payouts.
+You can connect a US business bank account from a Workspace or from your Wallet. You can also link an already verified business bank account to another Workspace without repeating the full setup process. Once connected, you can use the bank account for reimbursements, Expensify Card payments, and invoice payouts.
 
-# Connect a Business Bank Account
+This article covers connecting US bank accounts only.
 
-You can connect a business bank account from a workspace or from your Wallet. You can also link an already-verified business bank account to a new workspace without repeating the full setup process.
-
----
-
-## Who can connect a business bank account
-
-Only **Workspace Admins** can connect a business bank account. All individuals associated with the account must have a US address, US photo ID, and a US SSN.
+If your business bank account is based outside the United States, [learn how to connect an international business bank account](/articles/new-expensify/wallet-and-payments/Enable-Global-Reimbursement). 
 
 ---
 
-## How to enable Make or track payments in a workspace
+## Who can connect a US business bank account
 
-Before connecting a bank account from a workspace, enable the payments workflow:
+Workspace Admins can connect a business bank account to a Workspace. All individuals associated with the account must have a US address, US photo ID, and a US SSN.
 
-1. Click **Workspaces** in the navigation tabs (on the left on web, on the bottom on mobile).
-2. Select your workspace, then click **More features**.
-3. Enable **Workflows**.
-4. Click **Workflows** in the left-hand menu, then enable **Make or track payments**.
+To connect a business bank account, the Workspace must have Workflows enabled. [Learn how to enable Workflows](/articles/new-expensify/workspaces/Workspace-Workflows#enable-workflows).
 
-![Enable workflows from the more features page]({{site.url}}/assets/images/Help-ConnectBusinessBankAccount-1.png){:width="100%"}
+---
+
+## How to connect a new US business bank account in a Workspace
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile) click **Workspace > [Workspace name]**.
+2. Select **Workflows**.
+3. Enable **Payments**.
+4. In the **Payments** section, select **Add bank account**.
+5. Select **Log into your bank** (preferred) or **Connect manually**.
+6. Enter your bank details.
+7. Complete the identity verification, company details, and Beneficial Owner steps described below.
+
+If your business bank account already exists in Expensify, an admin with access can share it with you instead. Learn how to [share a business bank account](/articles/new-expensify/wallet-and-payments/Share-a-Business-Bank-Account).
+
+<!-- SCREENSHOT:
+Suggestion: Update current screendhots
+-->
 
 ![Workflows screen with Connect Bank Account button]({{site.url}}/assets/images/Help-ConnectBusinessBankAccount-2.png){:width="100%"}
 
 ---
 
-## How to connect a new business bank account from a workspace
+## How to add a new US business bank account from Wallet
 
-1. Go to **Workspaces > [Workspace Name] > Workflows**.
-2. Click **Connect bank account**.
-3. Select **Connect online with Plaid** (preferred) or **Connect manually**.
-4. Enter your bank details.
-5. Complete the identity verification, company details, and Beneficial Owner steps described below.
-
-If your business bank account already exists in Expensify, an admin with access can share it with you instead. Learn how to [share a business bank account](/articles/new-expensify/wallet-and-payments/Share-a-Business-Bank-Account).
-
----
-
-## How to add a new business bank account from Wallet
-
-1. Go to **Settings > Wallet**.
+1. In the navigation tabs (on the left on web, on the bottom on mobile), click **Account > Wallet**. 
 2. Click **Add bank account**.
 3. Select **Make payments**.
 4. Choose the country where your bank is located.
-5. Follow the steps to connect your bank account via Plaid or manual entry.
+5. Select **Log into your bank** (preferred) or **Connect manually**.
 6. Complete the identity verification, company details, and Beneficial Owner steps described below.
 
 <!-- SCREENSHOT:
@@ -67,19 +62,7 @@ Purpose: Shows the new Wallet entry point for business bank accounts
 
 ## How to link an existing business bank account to a workspace
 
-If you already have a verified business bank account and want to use it for reimbursements on another workspace:
-
-1. Go to **Workspaces > [Workspace Name] > Workflows**.
-2. Click **Connect bank account**.
-3. If any existing business bank accounts match the workspace currency, they appear in a list.
-4. Select the account you want to link.
-5. If the account setup is incomplete, you'll be guided to finish it.
-
-<!-- SCREENSHOT:
-Suggestion: Connect bank account screen showing existing bank accounts available to link
-Location: After step 4
-Purpose: Shows the list of existing accounts a user can select
--->
+If you already have a verified business bank accoun, you can share it to another workspace without needing to add it again. [Learn how to share a business bank account](/articles/new-expensify/wallet-and-payments/Share-a-Business-Bank-Account). 
 
 ---
 
@@ -124,7 +107,7 @@ After you submit your details:
 
 ## How business bank accounts appear in Wallet
 
-Once connected, your business bank account appears in **Settings > Wallet**. If you have both personal and business bank accounts, Wallet separates them into **Personal bank accounts** and **Business bank accounts** sections.
+Once connected, your business bank account appears in **Account > Wallet**. If you have both personal and business bank accounts, Wallet separates them into **Personal bank accounts** and **Business bank accounts** sections.
 
 Partially set-up accounts display an **Action required** badge. Click the account row to resume setup from where you left off.
 
@@ -138,7 +121,7 @@ Purpose: Shows the new Wallet layout with separated sections and status badges
 
 # FAQ
 
-## What are the general requirements for adding a business bank account?
+## What are the general requirements for adding a US business bank account?
 
 To add a business bank account for ACH reimbursements or the Expensify Card, enter a physical address for yourself, any Beneficial Owner (if applicable), and the business. A US photo ID, US address, and US SSN are required for all individuals associated with the account.
 
@@ -192,5 +175,3 @@ Once completed, contact Concierge to re-trigger the test transactions.
 ## How does Expensify protect my data?
 
 Expensify uses bank-level security measures. Learn more about [Expensify's security policies](/articles/new-expensify/settings/Encryption-and-Data-Security).
-
-</div>
