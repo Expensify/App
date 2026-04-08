@@ -1,9 +1,7 @@
 import {useIsFocused} from '@react-navigation/native';
-import type {OnyxEntry} from 'react-native-onyx';
 import {getNewerActions, getOlderActions} from '@userActions/Report';
 import CONST from '@src/CONST';
-import type {Report, ReportAction} from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {ReportAction} from '@src/types/onyx';
 import useNetwork from './useNetwork';
 
 type UseLoadReportActionsArguments = {
@@ -16,8 +14,8 @@ type UseLoadReportActionsArguments = {
     /** The IDs of all reportActions linked to the current report (may contain some extra actions) */
     allReportActionIDs: string[];
 
-    /** The transaction thread report associated with the current transaction, if any */
-    transactionThreadReport: OnyxEntry<Report>;
+    /** The transaction thread report ID associated with the current transaction, if any */
+    transactionThreadReportID: string | undefined;
 
     /** If the report has newer actions to load */
     hasNewerActions: boolean;
@@ -37,7 +35,7 @@ function useLoadReportActions({
     reportID,
     reportActions,
     allReportActionIDs,
-    transactionThreadReport,
+    transactionThreadReportID,
     hasOlderActions,
     hasNewerActions,
     newestFetchedReportActionID,
@@ -47,7 +45,7 @@ function useLoadReportActions({
     const newestReportAction = reportActions?.at(0);
     const oldestReportAction = reportActions?.at(-1);
 
-    const isTransactionThreadReport = !isEmptyObject(transactionThreadReport);
+    const isTransactionThreadReport = !!transactionThreadReportID;
 
     let currentReportNewestAction = null;
     let currentReportOldestAction = null;
@@ -59,7 +57,7 @@ function useLoadReportActions({
     for (const action of reportActions) {
         // Determine which report this action belongs to
         const isCurrentReport = allReportActionIDsSet.has(action.reportActionID);
-        const targetReportID = isCurrentReport ? reportID : transactionThreadReport?.reportID;
+        const targetReportID = isCurrentReport ? reportID : transactionThreadReportID;
 
         // Track newest/oldest per report
         if (targetReportID === reportID) {
@@ -69,7 +67,7 @@ function useLoadReportActions({
             }
             // Oldest = last matching action we encounter
             currentReportOldestAction = action;
-        } else if (isTransactionThreadReport && transactionThreadReport?.reportID === targetReportID) {
+        } else if (isTransactionThreadReport && transactionThreadReportID === targetReportID) {
             // Same logic for transaction thread
             if (!transactionThreadNewestAction) {
                 transactionThreadNewestAction = action;
@@ -95,7 +93,7 @@ function useLoadReportActions({
 
         if (isTransactionThreadReport) {
             getOlderActions(reportID, currentReportOldestAction?.reportActionID);
-            getOlderActions(transactionThreadReport?.reportID, transactionThreadOldestAction?.reportActionID);
+            getOlderActions(transactionThreadReportID, transactionThreadOldestAction?.reportActionID);
         } else {
             getOlderActions(reportID, currentReportOldestAction?.reportActionID);
         }
@@ -124,7 +122,7 @@ function useLoadReportActions({
 
         if (isTransactionThreadReport) {
             getNewerActions(reportID, currentReportNewestAction?.reportActionID);
-            getNewerActions(transactionThreadReport.reportID, transactionThreadNewestAction?.reportActionID);
+            getNewerActions(transactionThreadReportID, transactionThreadNewestAction?.reportActionID);
         } else if (newestReportAction) {
             getNewerActions(reportID, newestReportAction.reportActionID);
         }

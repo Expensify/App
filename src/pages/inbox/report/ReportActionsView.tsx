@@ -296,7 +296,7 @@ function ReportActionsView({reportID, onLayout}: ReportActionsViewProps) {
         reportID,
         reportActions,
         allReportActionIDs,
-        transactionThreadReport,
+        transactionThreadReportID: transactionThreadReport?.reportID,
         hasOlderActions,
         hasNewerActions,
     });
