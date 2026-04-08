@@ -99,7 +99,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
             isUnassigningRef.current = true;
             unassignWorkspaceCompanyCard(domainOrWorkspaceAccountID, bank, card);
         }
-        Navigation.goBack();
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack());
     };
 
     const updateCard = () => {
