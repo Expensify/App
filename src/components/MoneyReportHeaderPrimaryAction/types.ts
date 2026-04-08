@@ -1,6 +1,5 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
-import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
 type MoneyReportHeaderPrimaryActionProps = {
     reportID: string | undefined;
@@ -13,7 +12,6 @@ type MoneyReportHeaderPrimaryActionProps = {
     startAnimation: () => void;
     startApprovedAnimation: () => void;
     startSubmittingAnimation: () => void;
-    onHoldMenuOpen: (requestType: string, paymentType?: PaymentMethodType, methodID?: number) => void;
     onExportModalOpen: () => void;
 };
 
