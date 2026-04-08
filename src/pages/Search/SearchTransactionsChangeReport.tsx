@@ -193,6 +193,7 @@ function SearchTransactionsChangeReport() {
             isEditing
             isUnreported={areAllTransactionsUnreported}
             targetOwnerAccountID={targetOwnerAccountID}
+            transactionPolicyID={selectedReportPolicyID}
             isPerDiemRequest={hasPerDiemTransactions}
         />
     );
