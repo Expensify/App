@@ -28,7 +28,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SpendRuleForm} from '@src/types/form';
-import getTruncatedSpendRuleSummary from './SpendRuleSummaryUtils';
+import {getTruncatedSpendRuleSummary} from './SpendRulesUtils';
 
 type SpendRulesSectionProps = {
     policyID: string;

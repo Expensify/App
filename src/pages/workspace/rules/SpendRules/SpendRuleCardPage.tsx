@@ -37,6 +37,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Card, ExpensifyCardSettings, WorkspaceCardsList} from '@src/types/onyx';
 import type {ExpensifyCardRule} from '@src/types/onyx/ExpensifyCardSettings';
+import {getParentRoute} from './SpendRulesUtils';
 
 type ExpensifyCardListItem = ListItem &
     AdditionalCardProps & {
@@ -95,7 +96,7 @@ function SpendRuleCardPage({route}: SpendRuleCardPageProps) {
         }, [spendRuleForm?.cardIDs]),
     );
 
-    const parentRoute = ruleID === ROUTES.NEW ? ROUTES.RULES_SPEND_NEW.getRoute(policyID) : ROUTES.RULES_SPEND_EDIT.getRoute(policyID, ruleID);
+    const parentRoute = getParentRoute(policyID, ruleID);
 
     const {isOffline} = useNetwork({
         onReconnect: () => {

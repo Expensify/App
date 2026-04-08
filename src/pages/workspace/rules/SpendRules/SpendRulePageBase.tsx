@@ -28,7 +28,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SpendRuleCategory} from '@src/types/form/SpendRuleForm';
 import SpendRuleRestrictionTypeToggle from './SpendRuleRestrictionTypeToggle';
-import getTruncatedSpendRuleSummary from './SpendRuleSummaryUtils';
+import {getTruncatedSpendRuleSummary} from './SpendRulesUtils';
 
 type SpendRulePageBaseProps = {
     policyID: string;

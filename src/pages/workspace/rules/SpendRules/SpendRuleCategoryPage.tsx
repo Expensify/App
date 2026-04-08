@@ -19,10 +19,10 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {SPEND_RULE_CATEGORIES} from '@src/types/form/SpendRuleForm';
 import type {SpendRuleCategory} from '@src/types/form/SpendRuleForm';
+import {getParentRoute} from './SpendRulesUtils';
 
 type CategoryListItem = ListItem & {
     value: SpendRuleCategory;
@@ -35,7 +35,7 @@ function SpendRuleCategoryPage({route}: SpendRuleCategoryPageProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
-    const parentRoute = ruleID === ROUTES.NEW ? ROUTES.RULES_SPEND_NEW.getRoute(policyID) : ROUTES.RULES_SPEND_EDIT.getRoute(policyID, ruleID);
+    const parentRoute = getParentRoute(policyID, ruleID);
 
     const [spendRuleForm] = useOnyx(ONYXKEYS.FORMS.SPEND_RULE_FORM);
 
