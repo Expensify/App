@@ -8886,6 +8886,23 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
                 settings:
                     '<rbr>Diese Änderung konnte nicht gespeichert werden. Bitte versuche es erneut oder <concierge-link>kontaktiere Concierge</concierge-link> für weitere Unterstützung.</rbr>',
             },
+            permissions: 'Gruppenberechtigungen',
+            createNewGroupButton: 'Neue Gruppe',
+            createGroupSubmitButton: 'Gruppe erstellen',
+            ExpensifyCardPreferredWorkspace: 'Expensify Card bevorzugter Arbeitsbereich',
+            ExpensifyCardPreferredWorkspaceDescription:
+                'Alle Expensify Card-Transaktionen werden im bevorzugten Expensify Card-Arbeitsbereich anstelle des bevorzugten Arbeitsbereichs erstellt. Durch Aktivieren dieser Funktion wird die Einstellung des bevorzugten Arbeitsbereichs nur für Expensify Card-Transaktionen überschrieben.',
+            RestrictExpenseWorkspaceCreation: 'Erstellung/Entfernung von Ausgaben-Arbeitsbereichen einschränken',
+            RestrictExpenseWorkspaceCreationDescription:
+                'Verhindert, dass Mitglieder einen Ausgaben-Arbeitsbereich erstellen oder sich selbst aus einem Ausgaben-Arbeitsbereich entfernen können.',
+            RestrictDefaultLoginSelection: 'Standard-Login-Auswahl einschränken',
+            RestrictDefaultLoginSelectionDescription: 'Verhindert, dass Mitglieder ihre Login-E-Mail von ihrer Unternehmensdomäne ändern.',
+            StrictlyEnforceWorkspaceRules: 'Arbeitsbereichsregeln strikt durchsetzen',
+            StrictlyEnforceWorkspaceRulesDescription: 'Alle Arbeitsbereichsregeln müssen vor dem Einreichen eines Berichts erfüllt sein. Keine manuellen Ausnahmen erlaubt.',
+            preferredWorkspace: 'Bevorzugter Arbeitsbereich',
+            preferredWorkspaceDescription: (enabled: boolean) => `Alle neuen Berichte und Ausgaben werden im ${enabled ? 'ausgewählten bevorzugten' : 'diesem'} Arbeitsbereich erstellt.`,
+            preferredWorkspaceSelectDescription: 'Alle neuen Ausgaben und Berichte werden in diesem Arbeitsbereich erstellt.',
+            defaultGroup: 'Standardgruppe',
         },
     },
     proactiveAppReview: {

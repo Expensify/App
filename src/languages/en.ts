@@ -8884,6 +8884,7 @@ const translations = {
             preferredWorkspace: 'Preferred Workspace',
             preferredWorkspaceDescription: (enabled: boolean) => `All new reports and expenses will be created on ${enabled ? 'selected preferred' : 'this'} workspace.`,
             preferredWorkspaceSelectDescription: 'All new expenses and reports will be created on this workspace.',
+            defaultGroup: 'Default group',
         },
     },
 };

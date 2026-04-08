@@ -9153,6 +9153,8 @@ ${amount} para ${merchant} - ${date}`,
                 settings: '<rbr>No se pudo guardar este cambio. Inténtalo de nuevo o <concierge-link>contacta con Concierge</concierge-link> para obtener más ayuda.</rbr>',
             },
             permissions: 'Permisos de grupo',
+            createNewGroupButton: 'Nuevo grupo',
+            createGroupSubmitButton: 'Crear grupo',
             ExpensifyCardPreferredWorkspace: 'Espacio de trabajo preferido para Expensify Card',
             ExpensifyCardPreferredWorkspaceDescription:
                 'Todas las transacciones de Expensify Card se crearán en el espacio de trabajo preferido de Expensify Card en lugar del espacio de trabajo preferido. Al habilitar esta función, la configuración de espacio de trabajo preferido se aplicará solo a las transacciones de Expensify Card.',
@@ -9165,7 +9167,9 @@ ${amount} para ${merchant} - ${date}`,
             StrictlyEnforceWorkspaceRulesDescription: 'Todas las reglas del espacio de trabajo deben cumplirse antes de enviar un informe. No se permiten excepciones manuales.',
             preferredWorkspaceDescription: (enabled: boolean) =>
                 `Todos los informes y gastos nuevos se crearán en ${enabled ? 'el espacio de trabajo preferido seleccionado' : 'este'} espacio de trabajo.`,
+            preferredWorkspace: 'Espacio de trabajo preferido',
             preferredWorkspaceSelectDescription: 'Todos los gastos e informes nuevos se crearán en este espacio de trabajo.',
+            defaultGroup: 'Grupo predeterminado',
         },
     },
     gps: {
