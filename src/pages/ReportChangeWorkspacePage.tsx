@@ -72,7 +72,8 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
-    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [userBillingGracePeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
 
     const selectPolicy = useCallback(
         (policyID?: string) => {
@@ -80,7 +81,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
             if (!policyID || !policy) {
                 return;
             }
-            if (shouldRestrictUserBillableActions(policy.id, undefined, undefined, ownerBillingGraceEndPeriod)) {
+            if (shouldRestrictUserBillableActions(policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriods)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                 return;
             }
@@ -125,7 +126,8 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
         },
         [
             policies,
-            ownerBillingGraceEndPeriod,
+            userBillingGracePeriods,
+            ownerBillingGracePeriodEnd,
             route.params,
             reportID,
             report,
@@ -189,7 +191,10 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
                         }}
                     />
                     {shouldShowLoadingIndicator ? (
-                        <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
+                        <FullScreenLoadingIndicator
+                            style={[styles.flex1, styles.pRelative]}
+                            reasonAttributes={{context: 'ReportChangeWorkspacePage', isLoadingApp: !!isLoadingApp}}
+                        />
                     ) : (
                         <SelectionList<WorkspaceListItemType>
                             ListItem={UserListItem}

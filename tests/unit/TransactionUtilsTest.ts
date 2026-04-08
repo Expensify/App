@@ -1,13 +1,11 @@
-import Onyx from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
 import {shouldShowBrokenConnectionViolation, shouldShowBrokenConnectionViolationForMultipleTransactions} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attendee} from '@src/types/onyx/IOU';
-import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
-import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
 import type {Card, Policy, Report, Transaction} from '../../src/types/onyx';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../utils/collections/policies';
@@ -84,40 +82,7 @@ const reportCollectionDataSet = {
     [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OPEN_REPORT_SECOND_USER_ID}`]: secondUserOpenReport,
     [`${ONYXKEYS.COLLECTION.REPORT}${FAKE_CHAT_REPORT_ID}`]: chatReport,
 } as OnyxCollection<Report>;
-const defaultDistanceRatePolicyID1: Record<string, Rate> = {
-    customUnitRateID1: {
-        currency: 'USD',
-        customUnitRateID: 'customUnitRateID1',
-        enabled: true,
-        name: 'Default Rate',
-        rate: 70,
-        subRates: [],
-    },
-};
-const distanceRateTransactionID1: TransactionCustomUnit = {
-    customUnitID: 'customUnitID1',
-    customUnitRateID: 'customUnitRateID1',
-    distanceUnit: 'mi',
-    name: 'Distance',
-};
-const distanceRateTransactionID2: TransactionCustomUnit = {
-    customUnitID: 'customUnitID2',
-    customUnitRateID: 'customUnitRateID2',
-    distanceUnit: 'mi',
-    name: 'Distance',
-};
-const defaultCustomUnitPolicyID1: Record<string, CustomUnit> = {
-    customUnitID1: {
-        attributes: {
-            unit: 'mi',
-        },
-        customUnitID: 'customUnitID1',
-        defaultCategory: 'Car',
-        enabled: true,
-        name: 'Distance',
-        rates: defaultDistanceRatePolicyID1,
-    },
-};
+
 const currentUserPersonalDetails = {
     accountID: CURRENT_USER_ID,
     login: CURRENT_USER_EMAIL,
@@ -450,6 +415,73 @@ describe('TransactionUtils', () => {
 
             expect(updatedTransaction.modifiedAmount).toBe(newAmount);
         });
+
+        it('should update taxValue when taxValue and taxCode are both in transactionChanges', () => {
+            const transaction = generateTransaction();
+
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: true,
+                transactionChanges: {taxCode: 'id_TAX_RATE_1', taxAmount: 50, taxValue: '5%'},
+            });
+
+            expect(updatedTransaction.taxValue).toBe('5%');
+            expect(updatedTransaction.taxCode).toBe('id_TAX_RATE_1');
+            expect(updatedTransaction.taxAmount).toBe(-50);
+        });
+
+        it('should not update taxValue when taxCode is not in transactionChanges', () => {
+            const transaction = generateTransaction({taxValue: '10%'});
+
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: false,
+                transactionChanges: {taxValue: '5%'},
+            });
+
+            expect(updatedTransaction.taxValue).toBe('10%');
+        });
+    });
+
+    describe('isScanning', () => {
+        it('returns true for a scan-eligible transaction without a manual amount override', () => {
+            const transaction = generateTransaction({
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                amount: 0,
+                modifiedAmount: '',
+                receipt: {
+                    state: CONST.IOU.RECEIPT_STATE.SCANNING,
+                },
+            });
+
+            expect(TransactionUtils.isScanning(transaction)).toBe(true);
+        });
+
+        it('returns false when a scan-eligible transaction has a manual amount override', () => {
+            const transaction = generateTransaction({
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                amount: 0,
+                modifiedAmount: 1234,
+                receipt: {
+                    state: CONST.IOU.RECEIPT_STATE.SCAN_READY,
+                },
+            });
+
+            expect(TransactionUtils.isScanning(transaction)).toBe(false);
+        });
+
+        it('returns false when the receipt is not in a scanning state', () => {
+            const transaction = generateTransaction({
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                amount: 0,
+                modifiedAmount: '',
+                receipt: {
+                    state: CONST.IOU.RECEIPT_STATE.OPEN,
+                },
+            });
+
+            expect(TransactionUtils.isScanning(transaction)).toBe(false);
+        });
     });
 
     describe('getTransactionType', () => {
@@ -780,96 +812,6 @@ describe('TransactionUtils', () => {
                 },
             });
             expect(TransactionUtils.isExpenseSplit(transaction)).toBe(false);
-        });
-    });
-
-    describe('isUnreportedAndHasInvalidDistanceRateTransaction', () => {
-        it('should be false when transaction is null', () => {
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(0),
-                customUnits: defaultCustomUnitPolicyID1,
-            };
-            const result = TransactionUtils.isUnreportedAndHasInvalidDistanceRateTransaction(null, fakePolicy);
-            expect(result).toBe(false);
-        });
-        it('should be false when transaction is not distance type transaction', () => {
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(0),
-                customUnits: defaultCustomUnitPolicyID1,
-            };
-            const transaction: Transaction = {
-                ...generateTransaction(),
-                iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
-            };
-            const result = TransactionUtils.isUnreportedAndHasInvalidDistanceRateTransaction(transaction, fakePolicy);
-            expect(result).toBe(false);
-        });
-        it('should be false when transaction is reported', () => {
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(0),
-                customUnits: defaultCustomUnitPolicyID1,
-            };
-            const transaction: Transaction = {
-                ...generateTransaction(),
-                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
-                reportID: '1',
-            };
-            const result = TransactionUtils.isUnreportedAndHasInvalidDistanceRateTransaction(transaction, fakePolicy);
-            expect(result).toBe(false);
-        });
-        it('should be false when transaction is unreported and has valid rate', () => {
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(0),
-                customUnits: defaultCustomUnitPolicyID1,
-            };
-            const transaction: Transaction = {
-                ...generateTransaction(),
-                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
-                reportID: '0',
-                comment: {
-                    customUnit: distanceRateTransactionID1,
-                    type: 'customUnit',
-                },
-            };
-
-            const result = TransactionUtils.isUnreportedAndHasInvalidDistanceRateTransaction(transaction, fakePolicy);
-            expect(result).toBe(false);
-        });
-        it('should be false when transaction is unreported, has invalid rate but policy has default rate', () => {
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(0),
-                customUnits: defaultCustomUnitPolicyID1,
-            };
-            const transaction: Transaction = {
-                ...generateTransaction(),
-                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
-                reportID: '0',
-                comment: {
-                    customUnit: distanceRateTransactionID2,
-                    type: 'customUnit',
-                },
-            };
-
-            const result = TransactionUtils.isUnreportedAndHasInvalidDistanceRateTransaction(transaction, fakePolicy);
-            expect(result).toBe(false);
-        });
-        it('should be true when transaction is unreported, has invalid rate and policy has no default rate', () => {
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(0),
-                customUnits: {},
-            };
-            const transaction: Transaction = {
-                ...generateTransaction(),
-                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
-                reportID: '0',
-                comment: {
-                    customUnit: distanceRateTransactionID2,
-                    type: 'customUnit',
-                },
-            };
-
-            const result = TransactionUtils.isUnreportedAndHasInvalidDistanceRateTransaction(transaction, fakePolicy);
-            expect(result).toBe(true);
         });
     });
 
@@ -2260,8 +2202,8 @@ describe('TransactionUtils', () => {
 
                 const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, policyCategories);
 
-                // When only one valid category exists and fields differ, neither keep nor change is set
-                expect(result.keep.category).toBeUndefined();
+                // When only one valid category exists and fields differ, keep preserves the first transaction's category
+                expect(result.keep.category).toBe('Travel');
                 expect(result.change.category).toBeUndefined();
             });
 
@@ -2295,8 +2237,8 @@ describe('TransactionUtils', () => {
 
                 const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, policyCategories);
 
-                // When only one valid category exists and fields differ, neither keep nor change is set
-                expect(result.keep.category).toBeUndefined();
+                // When only one valid category exists and fields differ, keep preserves the first transaction's category
+                expect(result.keep.category).toBe('Travel');
                 expect(result.change.category).toBeUndefined();
             });
 
@@ -2318,8 +2260,8 @@ describe('TransactionUtils', () => {
 
                 const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, undefined);
 
-                // When categories are not enabled and fields differ, neither keep nor change is set
-                expect(result.keep.category).toBeUndefined();
+                // When categories are not enabled and fields differ, keep preserves the first transaction's category
+                expect(result.keep.category).toBe('Travel');
                 expect(result.change.category).toBeUndefined();
             });
 
@@ -2591,8 +2533,8 @@ describe('TransactionUtils', () => {
 
                 const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, undefined);
 
-                // When only one valid tax exists and fields differ, neither keep nor change is set
-                expect(result.keep.taxCode).toBeUndefined();
+                // When only one valid tax exists and fields differ, keep preserves the first transaction's taxCode
+                expect(result.keep.taxCode).toBe('id_TAX_EXEMPT');
                 expect(result.change.taxCode).toBeUndefined();
             });
 
@@ -2632,8 +2574,8 @@ describe('TransactionUtils', () => {
 
                 const result = TransactionUtils.compareDuplicateTransactionFields({}, reviewingTransaction, duplicates, mockReport, undefined, policy, undefined);
 
-                // When only one valid tax exists and fields differ, neither keep nor change is set
-                expect(result.keep.taxCode).toBeUndefined();
+                // When only one valid tax exists and fields differ, keep preserves the first transaction's taxCode
+                expect(result.keep.taxCode).toBe('id_TAX_EXEMPT');
                 expect(result.change.taxCode).toBeUndefined();
             });
         });
@@ -2877,6 +2819,88 @@ describe('TransactionUtils', () => {
 
         it('returns empty string array for empty string', () => {
             expect(TransactionUtils.getTagArrayFromName('')).toEqual(['']);
+        });
+    });
+
+    describe('getExchangeRate', () => {
+        it('returns groupExchangeRate string when groupExchangeRate is set and not 1', () => {
+            const transaction = generateTransaction({
+                currency: 'USD',
+                groupExchangeRate: 1.25,
+                groupCurrency: 'EUR',
+            });
+
+            expect(TransactionUtils.getExchangeRate(transaction)).toBe('1.25 USD/EUR');
+        });
+
+        it('returns empty string when groupExchangeRate is 1', () => {
+            const transaction = generateTransaction({
+                currency: 'USD',
+                groupExchangeRate: 1,
+                groupCurrency: 'EUR',
+            });
+
+            expect(TransactionUtils.getExchangeRate(transaction)).toBe('');
+        });
+
+        it('returns empty string when groupExchangeRate is undefined and no reportCurrency', () => {
+            const transaction = generateTransaction({
+                currency: 'USD',
+                groupExchangeRate: undefined,
+            });
+
+            expect(TransactionUtils.getExchangeRate(transaction)).toBe('');
+        });
+
+        it('returns currencyConversionRate string when groupExchangeRate is missing but currencyConversionRate is set', () => {
+            const transaction = generateTransaction({
+                currency: 'USD',
+                currencyConversionRate: '0.85',
+                groupCurrency: 'EUR',
+            });
+
+            expect(TransactionUtils.getExchangeRate(transaction)).toBe('0.85 USD/EUR');
+        });
+
+        it('returns empty string when currencyConversionRate is 1', () => {
+            const transaction = generateTransaction({
+                currency: 'USD',
+                currencyConversionRate: '1',
+                groupCurrency: 'EUR',
+            });
+
+            expect(TransactionUtils.getExchangeRate(transaction)).toBe('');
+        });
+
+        it('returns empty string when currencyConversionRate is undefined and groupExchangeRate is missing', () => {
+            const transaction = generateTransaction({
+                currency: 'USD',
+                currencyConversionRate: undefined,
+            });
+
+            expect(TransactionUtils.getExchangeRate(transaction)).toBe('');
+        });
+
+        it('uses fromCurrency as toCurrency when groupCurrency is not set', () => {
+            const transaction = generateTransaction({
+                currency: 'USD',
+                groupExchangeRate: 2.5,
+                groupCurrency: undefined,
+            });
+
+            // groupCurrency falls back to fromCurrency (USD)
+            expect(TransactionUtils.getExchangeRate(transaction)).toBe('2.5 USD/USD');
+        });
+
+        it('prefers groupExchangeRate over currencyConversionRate when both are set', () => {
+            const transaction = generateTransaction({
+                currency: 'USD',
+                groupExchangeRate: 1.25,
+                currencyConversionRate: '0.85',
+                groupCurrency: 'EUR',
+            });
+
+            expect(TransactionUtils.getExchangeRate(transaction)).toBe('1.25 USD/EUR');
         });
     });
 });

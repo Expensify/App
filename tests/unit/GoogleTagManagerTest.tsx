@@ -2,7 +2,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import type * as NativeNavigation from '@react-navigation/native';
 import {act, render} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
-import {trackExpense} from '@libs/actions/IOU';
+import {trackExpense} from '@libs/actions/IOU/TrackExpense';
 import {addPaymentCard, addSubscriptionPaymentCard} from '@libs/actions/PaymentMethods';
 import {createWorkspace} from '@libs/actions/Policy/Policy';
 import GoogleTagManager from '@libs/GoogleTagManager';
@@ -157,11 +157,35 @@ describe('GoogleTagManagerTest', () => {
 
     test('workspace_created', async () => {
         // When we run the createWorkspace action a few times
-        createWorkspace({introSelected: undefined, currentUserAccountIDParam: 123456, activePolicyID: undefined, currentUserEmailParam: 'test@test.com', isSelfTourViewed: false});
+        createWorkspace({
+            introSelected: undefined,
+            currentUserAccountIDParam: 123456,
+            activePolicyID: undefined,
+            currentUserEmailParam: 'test@test.com',
+            isSelfTourViewed: false,
+            betas: undefined,
+            hasActiveAdminPolicies: false,
+        });
         await waitForBatchedUpdatesWithAct();
-        createWorkspace({currentUserAccountIDParam: 123456, activePolicyID: undefined, currentUserEmailParam: 'test@test.com', introSelected: undefined, isSelfTourViewed: false});
+        createWorkspace({
+            currentUserAccountIDParam: 123456,
+            activePolicyID: undefined,
+            currentUserEmailParam: 'test@test.com',
+            introSelected: undefined,
+            isSelfTourViewed: false,
+            betas: undefined,
+            hasActiveAdminPolicies: true,
+        });
         await waitForBatchedUpdatesWithAct();
-        createWorkspace({currentUserAccountIDParam: 123456, activePolicyID: undefined, currentUserEmailParam: 'test@test.com', introSelected: undefined, isSelfTourViewed: false});
+        createWorkspace({
+            currentUserAccountIDParam: 123456,
+            activePolicyID: undefined,
+            currentUserEmailParam: 'test@test.com',
+            introSelected: undefined,
+            isSelfTourViewed: false,
+            betas: undefined,
+            hasActiveAdminPolicies: true,
+        });
         await waitForBatchedUpdatesWithAct();
 
         // Then we publish a workspace_created event only once
@@ -202,6 +226,7 @@ describe('GoogleTagManagerTest', () => {
             quickAction: undefined,
             recentWaypoints,
             betas: [CONST.BETAS.ALL],
+            draftTransactionIDs: [],
             isSelfTourViewed: false,
         });
 

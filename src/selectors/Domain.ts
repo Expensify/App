@@ -1,4 +1,5 @@
 import {Str} from 'expensify-common';
+import isObject from 'lodash/isObject';
 import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {CardFeeds, Domain, DomainErrors, DomainPendingActions, DomainSecurityGroup, DomainSettings, SamlMetadata} from '@src/types/onyx';
@@ -85,7 +86,10 @@ function memberAccountIDsSelector(domain: OnyxEntry<Domain>): number[] {
 
             const sharedMembers = securityGroup?.shared ?? {};
 
-            for (const id of Object.keys(sharedMembers)) {
+            for (const [id, memberValue] of Object.entries(sharedMembers)) {
+                if (memberValue === null || memberValue === undefined) {
+                    continue;
+                }
                 const accountID = Number(id);
                 if (!Number.isNaN(accountID)) {
                     acc.push(accountID);
@@ -105,7 +109,7 @@ function memberAccountIDsSelector(domain: OnyxEntry<Domain>): number[] {
  */
 function isSecurityGroupEntry(entry: [string, unknown]): entry is [SecurityGroupKey, DomainSecurityGroup] {
     const [key, value] = entry;
-    return key.startsWith(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX) && typeof value === 'object' && value !== null && 'shared' in value;
+    return key.startsWith(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX) && isObject(value) && 'shared' in value && isObject(value.shared);
 }
 
 /**
@@ -169,12 +173,11 @@ function groupsSelector(domain: OnyxEntry<Domain>): DomainSecurityGroupWithID[] 
         return getEmptyArray<DomainSecurityGroupWithID>();
     }
 
-    return Object.entries(domain).reduce<DomainSecurityGroupWithID[]>((acc, [key, value]) => {
-        if (key.startsWith(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX)) {
-            acc.push({id: key.replace(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, ''), details: value as DomainSecurityGroup});
-        }
-        return acc;
-    }, []);
+    const entries: Array<[string, unknown]> = Object.entries(domain);
+    return entries.filter(isSecurityGroupEntry).map(([key, value]) => ({
+        id: key.replace(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, ''),
+        details: value,
+    }));
 }
 
 const accountLockSelector = (accountID: number) => (domain: OnyxEntry<Domain>) => domain?.[`${CONST.DOMAIN.PRIVATE_LOCKED_ACCOUNT_PREFIX}${accountID}`];

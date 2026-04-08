@@ -30,6 +30,7 @@ import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSearchResults from '@hooks/useSearchResults';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {
     clearAddMemberError,
@@ -37,7 +38,6 @@ import {
     clearInviteDraft,
     clearWorkspaceOwnerChangeFlow,
     downloadMembersCSV,
-    isApprover,
     openWorkspaceMembersPage,
     removeMembers,
     updateWorkspaceMembersRole,
@@ -46,6 +46,7 @@ import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWo
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -59,6 +60,7 @@ import {
     isExpensifyTeam,
     isPaidGroupPolicy,
     isPolicyAdmin as isPolicyAdminUtils,
+    isPolicyApprover,
 } from '@libs/PolicyUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -68,7 +70,7 @@ import {close} from '@userActions/Modal';
 import {dismissAddedWithPrimaryLoginMessages} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails, PolicyEmployee, PolicyEmployeeList} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -96,7 +98,8 @@ type MemberOption = Omit<ListItem, 'accountID' | 'login'> & {
 };
 
 function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembersPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Download', 'FallbackAvatar', 'MakeAdmin', 'Plus', 'RemoveMembers', 'Table', 'User', 'UserEye'] as const);
+    useWorkspaceDocumentTitle(policy?.name, 'common.members');
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'FallbackAvatar', 'MakeAdmin', 'Plus', 'RemoveMembers', 'Table', 'User', 'UserEye']);
     const policyMemberEmailsToAccountIDs = useMemo(() => getMemberAccountIDsForWorkspace(policy?.employeeList, true), [policy?.employeeList]);
     const employeeListDetails = useMemo(() => policy?.employeeList ?? ({} as PolicyEmployeeList), [policy?.employeeList]);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -161,7 +164,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const canSelectMultiple = isPolicyAdmin && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
 
     const confirmModalPrompt = useMemo(() => {
-        const approverEmail = selectedEmployees.find((selectedEmployee) => isApprover(policy, selectedEmployee));
+        const approverEmail = selectedEmployees.find((selectedEmployee) => isPolicyApprover(policy, selectedEmployee));
 
         if (approverEmail) {
             const approverAccountID = policyMemberEmailsToAccountIDs[approverEmail];
@@ -218,7 +221,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             return;
         }
         clearInviteDraft(route.params.policyID);
-        Navigation.navigate(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID, Navigation.getActiveRouteWithoutParams()));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_INVITE.path));
     }, [route.params.policyID, isAccountLocked, showLockedAccountModal]);
 
     /**
@@ -227,12 +230,12 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
      */
     const removeUsers = () => {
         // Check if any of the members are approvers
-        const hasApprovers = selectedEmployees.some((email) => isApprover(policy, email));
+        const hasApprovers = selectedEmployees.some((email) => isPolicyApprover(policy, email));
 
         if (hasApprovers) {
             const ownerEmail = ownerDetails.login;
             for (const login of selectedEmployees) {
-                if (!isApprover(policy, login)) {
+                if (!isPolicyApprover(policy, login)) {
                     continue;
                 }
 
@@ -538,7 +541,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const getHeaderContent = () => (
         <View style={shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection}>
             <Text style={[styles.pl5, styles.mb5, styles.mt3, styles.textSupporting, isPendingAddOrDelete && styles.offlineFeedbackPending]}>
-                {translate('workspace.people.workspaceMembersCount', {count: memberCount})}
+                {translate('workspace.people.workspaceMembersCount', memberCount)}
             </Text>
             {!isEmptyObject(invitedPrimaryToSecondaryLogins) && (
                 <MessagesRow

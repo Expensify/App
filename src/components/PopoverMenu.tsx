@@ -66,6 +66,9 @@ type PopoverMenuItem = MenuItemProps & {
 
     key?: string;
 
+    /** Whether to ignore key and use a fallback key for React rendering instead. */
+    shouldIgnoreKeyForRendering?: boolean;
+
     /** Whether to keep the modal open after clicking on the menu item */
     shouldKeepModalOpen?: boolean;
 
@@ -130,6 +133,8 @@ type PopoverMenuProps = Partial<ModalAnimationProps> & {
     /** Whether we want to show the popover on the right side of the screen */
     fromSidebarMediumScreen?: boolean;
 
+    shouldHandleNavigationBack?: boolean;
+
     /**
      * Whether the modal should enable the new focus manager.
      * We are attempting to migrate to a new refocus manager, adding this property for gradual migration.
@@ -157,7 +162,10 @@ type PopoverMenuProps = Partial<ModalAnimationProps> & {
     /** Whether we should wrap the list item in a scroll view */
     shouldUseScrollView?: boolean;
 
-    /** Whether we should set a max height to the popover content */
+    /**
+     * Whether we should set a max height to the popover content.
+     * Ignored in landscape mode to prevent content from being unreachable.
+     * */
     shouldEnableMaxHeight?: boolean;
 
     /** Whether to update the focused index on a row select */
@@ -268,6 +276,7 @@ function BasePopoverMenu({
     onModalHide,
     headerText,
     fromSidebarMediumScreen,
+    shouldHandleNavigationBack,
     anchorAlignment = {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
@@ -302,7 +311,7 @@ function BasePopoverMenu({
     const {translate} = useLocalize();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply correct popover styles
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const [currentMenuItems, setCurrentMenuItems] = useState(menuItems);
     const currentMenuItemsFocusedIndex = getSelectedItemIndex(currentMenuItems);
     const [enteredSubMenuIndexes, setEnteredSubMenuIndexes] = useState<readonly number[]>(CONST.EMPTY_ARRAY);
@@ -382,17 +391,28 @@ function BasePopoverMenu({
     };
 
     const renderedMenuItems = currentMenuItems.map((item, menuIndex) => {
-        const {text, onSelected, subMenuItems, shouldCallAfterModalHide, key, testID: menuItemTestID, shouldShowLoadingSpinnerIcon, badgeText, ...menuItemProps} = item;
+        const {
+            text,
+            onSelected,
+            subMenuItems,
+            shouldCallAfterModalHide,
+            key,
+            shouldIgnoreKeyForRendering,
+            testID: menuItemTestID,
+            shouldShowLoadingSpinnerIcon,
+            badgeText,
+            ...menuItemProps
+        } = item;
         const icon = typeof item.icon === 'string' ? expensifyIcons[item.icon as keyof typeof expensifyIcons] : item.icon;
+        // eslint-disable-next-line react/no-array-index-key
+        const reactKey = shouldIgnoreKeyForRendering ? `${item.text}_${menuIndex}` : (key ?? `${item.text}_${menuIndex}`);
         return (
             <OfflineWithFeedback
-                // eslint-disable-next-line react/no-array-index-key
-                key={key ?? `${item.text}_${menuIndex}`}
+                key={reactKey}
                 pendingAction={item.pendingAction}
             >
                 <FocusableMenuItem
-                    // eslint-disable-next-line react/no-array-index-key
-                    key={key ?? `${item.text}_${menuIndex}`}
+                    key={reactKey}
                     pressableTestID={menuItemTestID ?? `PopoverMenuItem-${item.text}`}
                     title={text}
                     onPress={(event) => selectItem(menuIndex, event)}
@@ -524,12 +544,12 @@ function BasePopoverMenu({
 
     const menuContainerStyle = useMemo(() => {
         if (isSmallScreenWidth) {
-            return shouldEnableMaxHeight ? [{maxHeight: CONST.POPOVER_MENU_MAX_HEIGHT_MOBILE}] : [];
+            return shouldEnableMaxHeight && !isInLandscapeMode ? [{maxHeight: CONST.POPOVER_MENU_MAX_HEIGHT_MOBILE}] : [];
         }
 
         const stylesArray: ViewStyle[] = [StyleSheet.flatten(styles.createMenuContainer)];
 
-        if (shouldUseScrollView && shouldEnableMaxHeight) {
+        if (shouldUseScrollView && shouldEnableMaxHeight && !isInLandscapeMode) {
             stylesArray.push({maxHeight: CONST.POPOVER_MENU_MAX_HEIGHT});
         }
 
@@ -596,7 +616,9 @@ function BasePopoverMenu({
             restoreFocusType={restoreFocusType}
             innerContainerStyle={{...styles.pv0, ...innerContainerStyle}}
             shouldUseModalPaddingStyle={shouldUseModalPaddingStyle}
+            shouldHandleNavigationBack={shouldHandleNavigationBack}
             testID={testID}
+            shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={!shouldUseScrollView}
         >
             <FocusTrapForModal
                 active={isVisible}

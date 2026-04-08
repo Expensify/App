@@ -49,7 +49,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ExpenseRuleForm, MerchantRuleForm} from '@src/types/form';
-import type {AppReview, BlockedFromConcierge, CustomStatusDraft, ExpenseRule, Policy} from '@src/types/onyx';
+import type {AppReview, BlockedFromConcierge, CustomStatusDraft, ExpenseRule, Policy, ReportAttributesDerivedValue} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {AnyOnyxServerUpdate, OnyxServerUpdate, OnyxUpdateEvent} from '@src/types/onyx/OnyxUpdatesFromServer';
@@ -72,13 +72,6 @@ Onyx.connect({
         currentUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
         currentEmail = value?.email ?? '';
     },
-});
-
-let allPolicies: OnyxCollection<Policy>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY,
-    waitForCollectionCallback: true,
-    callback: (value) => (allPolicies = value),
 });
 
 type DomainOnyxUpdate =
@@ -621,7 +614,11 @@ function isBlockedFromConcierge(blockedFromConciergeNVP: OnyxEntry<BlockedFromCo
     return isBefore(new Date(), new Date(blockedFromConciergeNVP.expiresAt));
 }
 
-function triggerNotifications<TKey extends OnyxKey>(onyxUpdates: Array<OnyxServerUpdate<TKey>>, currentUserAccountIDParam: number) {
+function triggerNotifications<TKey extends OnyxKey>(
+    onyxUpdates: Array<OnyxServerUpdate<TKey>>,
+    currentUserAccountIDParam: number,
+    reportAttributes?: ReportAttributesDerivedValue['reports'],
+) {
     for (const update of onyxUpdates) {
         if (!update.shouldNotify && !update.shouldShowPushNotification) {
             continue;
@@ -633,7 +630,7 @@ function triggerNotifications<TKey extends OnyxKey>(onyxUpdates: Array<OnyxServe
         for (const action of reportActions) {
             if (action) {
                 // They aren't connected to a UI anywhere, it's OK to use currentEmail
-                showReportActionNotification(reportID, action, currentUserAccountIDParam, currentEmail);
+                showReportActionNotification(reportID, action, currentUserAccountIDParam, currentEmail, reportAttributes);
             }
         }
     }
@@ -860,7 +857,7 @@ function initializePusherPingPong() {
  * Handles the newest events from Pusher where a single mega multipleEvents contains
  * an array of singular events all in one event
  */
-function subscribeToUserEvents(currentUserAccountIDParam: number) {
+function subscribeToUserEvents(currentUserAccountIDParam: number, getReportAttributes?: () => ReportAttributesDerivedValue['reports'] | undefined) {
     // If we don't have the user's accountID yet (because the app isn't fully setup yet) we can't subscribe so return early
     if (!currentUserAccountIDParam) {
         return;
@@ -915,7 +912,7 @@ function subscribeToUserEvents(currentUserAccountIDParam: number) {
             }
 
             const onyxUpdatePromise = Onyx.update(pushJSON).then(() => {
-                triggerNotifications(pushJSON, currentUserAccountIDParam);
+                triggerNotifications(pushJSON, currentUserAccountIDParam, getReportAttributes?.());
             });
 
             // Return a promise when Onyx is done updating so that the OnyxUpdatesManager can properly apply all
@@ -1053,12 +1050,15 @@ function generateStatementPDF(period: string) {
 
 /**
  * Sets a contact method / secondary login as the user's "Default" contact method.
+ * @param skipNavigation - When true, do not navigate (caller handles navigation, e.g. via useEffect when primaryContactMethod updates).
  */
 function setContactMethodAsDefault(
     currentUserPersonalDetails: OnyxEntry<OnyxPersonalDetails>,
+    policies: OnyxCollection<Policy>,
     newDefaultContactMethod: string,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     backTo?: string,
+    skipNavigation?: boolean,
 ) {
     const oldDefaultContactMethod = currentEmail;
     const optimisticData: Array<
@@ -1156,7 +1156,7 @@ function setContactMethodAsDefault(
         },
     ];
 
-    for (const policy of Object.values(allPolicies ?? {})) {
+    for (const policy of Object.values(policies ?? {})) {
         if (!policy) {
             continue;
         }
@@ -1213,10 +1213,12 @@ function setContactMethodAsDefault(
         successData,
         failureData,
     });
-    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
+    if (!skipNavigation) {
+        Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
+    }
 }
 
-function updateTheme(theme: ValueOf<typeof CONST.THEME>) {
+function updateTheme(theme: ValueOf<typeof CONST.THEME>, shouldGoBack = true) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PREFERRED_THEME>> = [
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -1231,7 +1233,9 @@ function updateTheme(theme: ValueOf<typeof CONST.THEME>) {
 
     API.write(WRITE_COMMANDS.UPDATE_THEME, parameters, {optimisticData});
 
-    Navigation.goBack();
+    if (shouldGoBack) {
+        Navigation.goBack();
+    }
 }
 
 /**
@@ -1527,7 +1531,14 @@ type RespondToProactiveAppReviewParams = {
 /**
  * Respond to the proactive app review prompt and optionally create a Concierge message
  */
-function respondToProactiveAppReview(response: 'positive' | 'negative' | 'skip', currentProactiveAppReview: AppReview | null | undefined, message?: string, conciergeChatReportID?: string) {
+function respondToProactiveAppReview(
+    response: 'positive' | 'negative' | 'skip',
+    currentProactiveAppReview: AppReview | null | undefined,
+    userEmail: string | undefined,
+    userAccountID: number,
+    message?: string,
+    conciergeChatReportID?: string,
+) {
     const params: RespondToProactiveAppReviewParams = {response};
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.NVP_APP_REVIEW>> = [];
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
@@ -1540,7 +1551,13 @@ function respondToProactiveAppReview(response: 'positive' | 'negative' | 'skip',
     // For positive/negative responses, create an optimistic Concierge message
     if (message && conciergeChatReportID && response !== 'skip') {
         const conciergeAccountID = CONST.ACCOUNT_ID.CONCIERGE;
-        const optimisticReportAction = ReportUtils.buildOptimisticAddCommentReportAction(message, undefined, conciergeAccountID, undefined, conciergeChatReportID);
+        const optimisticReportAction = ReportUtils.buildOptimisticAddCommentReportAction({
+            text: message,
+            actorAccountID: conciergeAccountID,
+            reportID: conciergeChatReportID,
+            currentUserEmail: userEmail,
+            currentUserAccountID: userAccountID,
+        });
         const optimisticReportActionID = optimisticReportAction.reportAction.reportActionID;
         const currentTime = DateUtils.getDBTime();
 
