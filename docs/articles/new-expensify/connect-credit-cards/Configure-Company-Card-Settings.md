@@ -15,13 +15,11 @@ To set up a commercial card file feed on a Workspace, see [Commercial Feeds](htt
 
 ---
 
-## Manage company card settings for company card feeds 
-
-To update your Company Card feed settings:
+## How to configure settings for company card feeds 
 
 1. In the navigation tabs (on the left on web, on the bottom on mobile) navigate to **Workspaces > [Workspace Name]**.
-2. Within the Workspace, select **Company Cards** and chose the relevant company card feed. 
-3. Click **Settings** in the top right corner.
+2. Select **Company Cards** and chose the relevant company card feed. 
+3. Click **Settings**. 
 
 You can manage the following options:
 
