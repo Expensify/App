@@ -1,12 +1,10 @@
 import type {ValueOf} from 'type-fest';
-import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import type {SecondaryActionEntry} from '@components/MoneyReportHeaderActions/types';
 import type {RejectModalAction} from '@components/MoneyReportHeaderEducationalModals';
-import type {PopoverMenuItem} from '@components/PopoverMenu';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {changeMoneyRequestHoldStatus, isCurrentUserSubmitter, isDM} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -15,10 +13,7 @@ import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
-import usePaginatedReportActions from './usePaginatedReportActions';
-import useReportTransactionsCollection from './useReportTransactionsCollection';
-
-type SecondaryActionEntry = DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon'>;
+import useTransactionThreadReport from './useTransactionThreadReport';
 
 type UseHoldRejectActionsParams = {
     reportID: string | undefined;
@@ -39,24 +34,10 @@ function useHoldRejectActions({reportID, onHoldEducationalOpen, onRejectModalOpe
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'ThumbsDown'] as const);
 
-    // Report data
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
+    const {transactionThreadReport} = useTransactionThreadReport(reportID);
 
-    // Report actions — needed to derive transactionThreadReportID and requestParentReportAction
-    const {reportActions: unfilteredReportActions} = usePaginatedReportActions(moneyRequestReport?.reportID);
-    const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
-
-    // Transactions — needed for getOneTransactionThreadReportID
-    const allReportTransactions = useReportTransactionsCollection(reportID);
-    const nonDeletedTransactions = getAllNonDeletedTransactions(allReportTransactions, reportActions, isOffline, true);
-    const visibleTransactions = nonDeletedTransactions?.filter((t) => isOffline || t.pendingAction !== 'delete');
-    const reportTransactionIDs = visibleTransactions?.map((t) => t.transactionID);
-
-    const transactionThreadReportID = getOneTransactionThreadReportID(moneyRequestReport, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
-    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionThreadReportID)}`);
-
-    // Look up the parent report actions collection so we can resolve requestParentReportAction by ID directly
     const [reportActionsForParent] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(moneyRequestReport?.reportID)}`, {canEvict: false});
     const requestParentReportAction = transactionThreadReport?.parentReportActionID ? reportActionsForParent?.[transactionThreadReport.parentReportActionID] : undefined;
 
@@ -139,4 +120,4 @@ function useHoldRejectActions({reportID, onHoldEducationalOpen, onRejectModalOpe
 }
 
 export default useHoldRejectActions;
-export type {UseHoldRejectActionsParams, UseHoldRejectActionsReturn, SecondaryActionEntry};
+export type {UseHoldRejectActionsParams, UseHoldRejectActionsReturn};

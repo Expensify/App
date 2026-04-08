@@ -2,7 +2,7 @@ import type {ReactNode} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import useThemeStyles from '@hooks/useThemeStyles';
-import CONST from '@src/CONST';
+import type CONST from '@src/CONST';
 
 type MoneyReportHeaderActionsBarProps = {
     primaryAction: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | ValueOf<typeof CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS> | '';

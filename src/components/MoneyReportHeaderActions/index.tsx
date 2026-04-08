@@ -1,5 +1,5 @@
 import {useRef, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
+import {InteractionManager} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type {ButtonWithDropdownMenuRef} from '@components/ButtonWithDropdownMenu/types';
 import type {RejectModalAction} from '@components/MoneyReportHeaderEducationalModals';
@@ -9,24 +9,22 @@ import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
 import ReportPDFDownloadModal from '@components/ReportPDFDownloadModal';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import useExportAgainModal from '@hooks/useExportAgainModal';
-import useNetwork from '@hooks/useNetwork';
 import useNonReimbursablePaymentModal from '@hooks/useNonReimbursablePaymentModal';
 import useOnyx from '@hooks/useOnyx';
-import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
-import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
+import useTransactionThreadReport from '@hooks/useTransactionThreadReport';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
-import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
-import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getNonHeldAndFullAmount, hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import MoneyReportHeaderActionsBar from './MoneyReportHeaderActionsBar';
 import MoneyReportHeaderHoldMenu from './MoneyReportHeaderHoldMenu';
 import MoneyReportHeaderSecondaryActions from './MoneyReportHeaderSecondaryActions';
 import MoneyReportHeaderSelectionDropdown from './MoneyReportHeaderSelectionDropdown';
@@ -89,17 +87,9 @@ function MoneyReportHeaderActions({
     // ── Onyx data ──
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
-    const {isOffline} = useNetwork();
 
-    // ── Transactions & report actions (for hold menu + educational modal) ──
-    const allReportTransactions = useReportTransactionsCollection(reportID);
-    const {reportActions: unfilteredReportActions} = usePaginatedReportActions(moneyRequestReport?.reportID);
-    const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
-    const nonDeletedTransactions = getAllNonDeletedTransactions(allReportTransactions, reportActions, isOffline, true);
-    const visibleTransactionsForThreadID = nonDeletedTransactions?.filter((t) => isOffline || t.pendingAction !== 'delete');
-    const reportTransactionIDs = visibleTransactionsForThreadID?.map((t) => t.transactionID);
-    const transactionThreadReportID = getOneTransactionThreadReportID(moneyRequestReport, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
-    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
+    // ── Transaction thread & report actions ──
+    const {transactionThreadReportID, transactionThreadReport, reportActions} = useTransactionThreadReport(reportID);
 
     const {transactions} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
     const transactionsList = Object.values(transactions);
@@ -186,35 +176,16 @@ function MoneyReportHeaderActions({
         />
     );
 
-    const actionButtons = (() => {
-        if (shouldShowSelectedTransactionsButton) {
-            return shouldDisplayNarrowMoreButton ? (
-                <View>{selectionDropdownElement}</View>
-            ) : (
-                <View style={[styles.dFlex, styles.w100, styles.ph5, styles.pb3]}>{selectionDropdownElement}</View>
-            );
-        }
-
-        if (shouldDisplayNarrowMoreButton) {
-            return (
-                <View style={[styles.flexRow, styles.gap2]}>
-                    {primaryActionElement}
-                    {secondaryActionsElement}
-                </View>
-            );
-        }
-
-        return (
-            <View style={[styles.flexRow, styles.gap2, styles.pb3, styles.ph5, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                {!!primaryAction && <View style={[styles.flex1]}>{primaryActionElement}</View>}
-                {secondaryActionsElement}
-            </View>
-        );
-    })();
-
     return (
         <>
-            {actionButtons}
+            <MoneyReportHeaderActionsBar
+                primaryAction={primaryAction}
+                shouldDisplayNarrowMoreButton={shouldDisplayNarrowMoreButton}
+                shouldShowSelectedTransactionsButton={shouldShowSelectedTransactionsButton}
+                primaryActionElement={primaryActionElement}
+                secondaryActionsElement={secondaryActionsElement}
+                selectionDropdownElement={selectionDropdownElement}
+            />
 
             <MoneyReportHeaderHoldMenu
                 nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}

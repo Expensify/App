@@ -1,9 +1,7 @@
 import {delegateEmailSelector} from '@selectors/Account';
-import type {ValueOf} from 'type-fest';
-import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
-import type {PopoverMenuItem} from '@components/PopoverMenu';
+import type {SecondaryActionEntry} from '@components/MoneyReportHeaderActions/types';
 import {useSearchStateContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
 import {search} from '@libs/actions/Search';
@@ -44,8 +42,6 @@ type UseLifecycleActionsParams = {
     startSubmittingAnimation: () => void;
     onHoldMenuOpen: (requestType: string) => void;
 };
-
-type SecondaryActionEntry = DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon'>;
 
 type UseLifecycleActionsResult = {
     actions: Record<string, SecondaryActionEntry>;
@@ -376,4 +372,4 @@ function useLifecycleActions({reportID, startApprovedAnimation, startSubmittingA
 }
 
 export default useLifecycleActions;
-export type {UseLifecycleActionsParams, UseLifecycleActionsResult, SecondaryActionEntry};
+export type {UseLifecycleActionsParams, UseLifecycleActionsResult};

@@ -6,7 +6,7 @@ import {InteractionManager} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
-import type {PopoverMenuItem} from '@components/PopoverMenu';
+import type {SecondaryActionEntry} from '@components/MoneyReportHeaderActions/types';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import {duplicateReport as duplicateReportAction, duplicateExpenseTransaction as duplicateTransactionAction} from '@libs/actions/IOU/Duplicate';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
@@ -15,10 +15,9 @@ import initSplitExpense from '@libs/actions/SplitExpenses';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getExistingTransactionID} from '@libs/IOUUtils';
 import Log from '@libs/Log';
-import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyAccessible} from '@libs/PolicyUtils';
-import {getFilteredReportActionsForReportView, getIOUActionForTransactionID, getOneTransactionThreadReportID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getIOUActionForTransactionID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
     canEditFieldOfMoneyRequest,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
@@ -47,16 +46,12 @@ import useDuplicateTransactionsAndViolations from './useDuplicateTransactionsAnd
 import useGetIOUReportFromReportAction from './useGetIOUReportFromReportAction';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
-import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
-import usePaginatedReportActions from './usePaginatedReportActions';
 import usePermissions from './usePermissions';
 import useReportIsArchived from './useReportIsArchived';
-import useReportTransactionsCollection from './useReportTransactionsCollection';
 import useThrottledButtonState from './useThrottledButtonState';
 import useTransactionsAndViolationsForReport from './useTransactionsAndViolationsForReport';
-
-type SecondaryActionEntry = DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon'>;
+import useTransactionThreadReport from './useTransactionThreadReport';
 
 type UseExpenseActionsParams = {
     reportID: string | undefined;
@@ -72,7 +67,6 @@ type UseExpenseActionsReturn = {
 
 function useExpenseActions({reportID}: UseExpenseActionsParams): UseExpenseActionsReturn {
     const {translate, localeCompare} = useLocalize();
-    const {isOffline} = useNetwork();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const {getCurrencyDecimals} = useCurrencyListActions();
@@ -86,17 +80,7 @@ function useExpenseActions({reportID}: UseExpenseActionsParams): UseExpenseActio
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
 
-    // Report actions
-    const {reportActions: unfilteredReportActions} = usePaginatedReportActions(moneyRequestReport?.reportID);
-    const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
-
-    // Transactions
-    const allReportTransactions = useReportTransactionsCollection(reportID);
-    const nonDeletedTransactions = getAllNonDeletedTransactions(allReportTransactions, reportActions, isOffline, true);
-    const visibleTransactionsForThreadID = nonDeletedTransactions?.filter((t) => isOffline || t.pendingAction !== 'delete');
-    const reportTransactionIDs = visibleTransactionsForThreadID?.map((t) => t.transactionID);
-
-    const transactionThreadReportID = getOneTransactionThreadReportID(moneyRequestReport, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
+    const {transactionThreadReportID, transactionThreadReport, reportActions} = useTransactionThreadReport(reportID);
 
     const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
 
@@ -110,9 +94,6 @@ function useExpenseActions({reportID}: UseExpenseActionsParams): UseExpenseActio
     }
 
     const currentTransaction = transactions.at(0);
-
-    // Transaction / original transaction
-    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionThreadReportID)}`);
     const requestParentReportAction = (() => {
         if (!reportActions || !transactionThreadReport?.parentReportActionID) {
             return null;
@@ -560,4 +541,4 @@ function useExpenseActions({reportID}: UseExpenseActionsParams): UseExpenseActio
 }
 
 export default useExpenseActions;
-export type {UseExpenseActionsParams, UseExpenseActionsReturn, SecondaryActionEntry};
+export type {UseExpenseActionsParams, UseExpenseActionsReturn};
