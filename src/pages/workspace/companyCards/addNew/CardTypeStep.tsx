@@ -130,7 +130,7 @@ function CardTypeStep() {
                 step: CONST.COMPANY_CARDS.STEP.SELECT_STATEMENT_CLOSE_DATE,
                 data: {
                     feedType: typeSelected,
-                    feedDetails: {},
+                    feedDetails: null,
                 },
                 isEditing: false,
             });
