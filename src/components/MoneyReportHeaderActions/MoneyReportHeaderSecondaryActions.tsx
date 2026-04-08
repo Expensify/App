@@ -69,10 +69,10 @@ function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInS
     const openHoldMenu = (params: Parameters<typeof openHoldMenuAsync>[0]) => {
         openHoldMenuAsync(params);
     };
+
     const {translate, localeCompare} = useLocalize();
     const kycWallRef = useContext(KYCWallContext);
 
-    // Onyx data
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);

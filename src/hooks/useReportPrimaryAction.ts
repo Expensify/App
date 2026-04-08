@@ -1,4 +1,5 @@
 import type {ValueOf} from 'type-fest';
+import {usePaymentAnimationsContext} from '@components/PaymentAnimationsContext';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getReportPrimaryAction} from '@libs/ReportPrimaryActionUtils';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
@@ -10,13 +11,8 @@ import useReportIsArchived from './useReportIsArchived';
 import useTransactionsAndViolationsForReport from './useTransactionsAndViolationsForReport';
 import useTransactionThreadReport from './useTransactionThreadReport';
 
-type UseReportPrimaryActionParams = {
-    reportID: string | undefined;
-    /** When an action is actively running (animating), skip computation and return that action directly. */
-    runningAction?: 'pay' | 'submit';
-};
-
-function useReportPrimaryAction({reportID, runningAction}: UseReportPrimaryActionParams): ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '' {
+function useReportPrimaryAction(reportID: string | undefined): ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '' {
+    const {isPaidAnimationRunning, isApprovedAnimationRunning, isSubmittingAnimationRunning} = usePaymentAnimationsContext();
     const {login: currentUserLogin, accountID} = useCurrentUserPersonalDetails();
 
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
@@ -34,10 +30,10 @@ function useReportPrimaryAction({reportID, runningAction}: UseReportPrimaryActio
 
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
 
-    if (runningAction === 'pay') {
+    if (isPaidAnimationRunning || isApprovedAnimationRunning) {
         return CONST.REPORT.PRIMARY_ACTIONS.PAY;
     }
-    if (runningAction === 'submit') {
+    if (isSubmittingAnimationRunning) {
         return CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
     }
 
@@ -61,4 +57,3 @@ function useReportPrimaryAction({reportID, runningAction}: UseReportPrimaryActio
 }
 
 export default useReportPrimaryAction;
-export type {UseReportPrimaryActionParams};
