@@ -1,7 +1,9 @@
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {useEffect, useRef} from 'react';
+import {useCallback, useEffect, useRef} from 'react';
+import type {OnyxCollection} from 'react-native-onyx';
 import {useInitialURLActions, useInitialURLState} from '@components/InitialURLContextProvider';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportAttributes from '@hooks/useReportAttributes';
 import {init, isClientTheLeader} from '@libs/ActiveClientManager';
@@ -24,7 +26,8 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {ReportAttributesDerivedValue} from '@src/types/onyx';
+import {lastWorkspaceNumberSelector} from '@src/selectors/Policy';
+import type {Policy, ReportAttributesDerivedValue} from '@src/types/onyx';
 
 function initializePusher(currentUserAccountID?: number, getReportAttributes?: () => ReportAttributesDerivedValue['reports'] | undefined) {
     return Pusher.init({
@@ -48,6 +51,7 @@ function initializePusher(currentUserAccountID?: number, getReportAttributes?: (
 function AuthScreensInitHandler() {
     const currentUrl = getCurrentUrl();
     const delegatorEmail = getSearchParamFromUrl(currentUrl, 'delegatorEmail');
+    const {translate} = useLocalize();
     const {initialURL, isAuthenticatedAtStartup} = useInitialURLState();
     const {setIsAuthenticatedAtStartup} = useInitialURLActions();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
@@ -60,6 +64,14 @@ function AuthScreensInitHandler() {
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [lastUpdateIDAppliedToClient] = useOnyx(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const lastWorkspaceNumberWithEmailSelector = useCallback(
+        (policies: OnyxCollection<Policy>) => {
+            const policyOwnerEmail = getSearchParamFromUrl(currentUrl, 'ownerEmail') ?? session?.email ?? '';
+            return lastWorkspaceNumberSelector(policies, policyOwnerEmail);
+        },
+        [currentUrl, session?.email],
+    );
+    const [lastWorkspaceNumber] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: lastWorkspaceNumberWithEmailSelector});
     const lastUpdateIDAppliedToClientRef = useRef(lastUpdateIDAppliedToClient);
     const isLoadingAppRef = useRef(isLoadingApp);
 
@@ -95,7 +107,9 @@ function AuthScreensInitHandler() {
         const isSupportalTransition = currentUrl.includes('authTokenType=support');
         if (isLoggingInAsNewUser && isTransitioning) {
             Session.signOutAndRedirectToSignIn(false, isSupportalTransition);
-            return;
+            return () => {
+                Session.cleanupSession();
+            };
         }
 
         NetworkConnection.listenForReconnect();
@@ -137,7 +151,7 @@ function AuthScreensInitHandler() {
             App.reconnectApp(initialLastUpdateIDAppliedToClient);
         }
 
-        App.setUpPoliciesAndNavigate(session, introSelected, activePolicyID, isSelfTourViewed, betas, hasActiveAdminPolicies);
+        App.setUpPoliciesAndNavigate(session, introSelected, activePolicyID, isSelfTourViewed, betas, hasActiveAdminPolicies, lastWorkspaceNumber, translate);
 
         Download.clearDownloads();
 
