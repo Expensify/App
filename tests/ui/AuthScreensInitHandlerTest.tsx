@@ -12,6 +12,8 @@ import {didUserLogInDuringSession, isLoggingInAsNewUser} from '@libs/SessionUtil
 import {openApp, reconnectApp} from '@userActions/App';
 import {signOutAndRedirectToSignIn} from '@userActions/Session';
 import {subscribeToUserEvents} from '@userActions/User';
+import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx';
@@ -135,6 +137,7 @@ function renderAuthScreensInitHandler() {
 describe('AuthScreensInitHandler', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
+        return IntlStore.load(CONST.LOCALES.EN);
     });
 
     beforeEach(async () => {
