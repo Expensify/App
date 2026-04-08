@@ -180,6 +180,7 @@ function KYCWall({
                             conciergeReportID,
                             lastWorkspaceNumber,
                             translate,
+                            filteredReportActions,
                         ) ?? {};
                     if (policyID && iouReport?.policyID) {
                         savePreferredPaymentMethod(iouReport.policyID, policyID, CONST.LAST_PAYMENT_METHOD.IOU, lastPaymentMethod?.[iouReport?.policyID]);
