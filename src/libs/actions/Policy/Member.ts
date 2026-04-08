@@ -397,7 +397,7 @@ function removeMembers(policy: OnyxEntry<Policy>, selectedMemberEmails: string[]
             key: policyKey,
             value: {
                 employeeList: optimisticMembersState,
-                approver: selectedMemberEmails.includes(policy?.approver ?? '') ? policy?.owner : policy?.approver,
+                approver: selectedMemberEmails.includes(policy?.approver ?? '') ? (policy?.employeeList?.[policy?.approver ?? '']?.forwardsTo ?? policy?.owner) : policy?.approver,
                 rules: {
                     ...(policy?.rules ?? {}),
                     approvalRules: optimisticApprovalRules,
