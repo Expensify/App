@@ -533,6 +533,14 @@ function ComposerWithSuggestions({
             // Submit the form when Enter is pressed
             if (webEvent.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey && !webEvent.shiftKey) {
                 webEvent.preventDefault();
+                // If a suggestion element wants to handle the Enter (selecting an item), allow it to do so.
+                const handled = suggestionsRef.current?.triggerHotkeyActions?.(webEvent);
+                if (handled) {
+                    return;
+                }
+                // Otherwise close/reset suggestions before submitting to avoid reopening.
+                suggestionsRef.current?.updateShouldShowSuggestionMenuToFalse?.();
+                suggestionsRef.current?.resetSuggestions?.();
                 onEnterKeyPress();
             }
 
