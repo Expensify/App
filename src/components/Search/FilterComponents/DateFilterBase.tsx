@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, use
 import {View} from 'react-native';
 import Button from '@components/Button';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
+import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScrollView from '@components/ScrollView';
 import type {SearchDatePreset} from '@components/Search/types';
@@ -210,12 +211,18 @@ function DateFilterBase({
                     onSelectDateModifier={handleSelectDateModifier}
                     presets={presets}
                     isSearchAdvancedFiltersFormLoading={isSearchAdvancedFiltersFormLoading}
-                    shouldShowRangeError={shouldShowRangeError}
                     onDateValuesChange={handleDateValuesChange}
                     onRangeValidationErrorChange={setShouldShowRangeError}
                     forceVerticalCalendars
                 />
             </ScrollView>
+            {shouldShowRangeError && (
+                <FormHelpMessage
+                    isError
+                    message={translate('search.errors.pleaseSelectDatesForBothFromAndTo')}
+                    style={[styles.mh5, styles.mt2]}
+                />
+            )}
             {shouldShowRangeSummary && (
                 <Text style={[styles.textLabelSupporting, styles.mh5, styles.mt2]}>
                     {`${translate('common.range')}: `}
