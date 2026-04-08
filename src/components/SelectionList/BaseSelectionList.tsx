@@ -538,6 +538,7 @@ function BaseSelectionList<TItem extends ListItem>({
             canSelectMultiple={canSelectMultiple}
             onSelectAll={handleSelectAll}
             headerStyle={style?.listHeaderWrapperStyle}
+            selectAllTextStyle={style?.listHeaderSelectAllTextStyle}
             shouldShowSelectAllButton={!!onSelectAll}
             shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
         />

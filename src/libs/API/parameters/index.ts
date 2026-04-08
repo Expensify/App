@@ -354,6 +354,7 @@ export type {default as DisablePolicyBillableModeParams} from './DisablePolicyBi
 export type {default as SetWorkspaceEReceiptsEnabled} from './SetWorkspaceEReceiptsEnabled';
 export type {default as SetPolicyAttendeeTrackingEnabledParams} from './SetPolicyAttendeeTrackingEnabledParams';
 export type {default as ConfigureExpensifyCardsForPolicyParams} from './ConfigureExpensifyCardsForPolicyParams';
+export type {default as SetExpensifyCardRuleParams} from './SetExpensifyCardRuleParams';
 export type {default as CreateExpensifyCardParams} from './CreateExpensifyCardParams';
 export type {default as UpdateExpensifyCardTitleParams} from './UpdateExpensifyCardTitleParams';
 export type {default as AddDelegateParams} from './AddDelegateParams';

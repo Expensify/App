@@ -132,8 +132,8 @@ describe('useMobileReceiptScan', () => {
         });
 
         it('should clear receiptFiles when disabling multi-scan', async () => {
-            const setIsMultiScanEnabled = jest.fn();
             const setReceiptFiles = jest.fn();
+            const setIsMultiScanEnabled = jest.fn();
             const toggleParams = {...params, setIsMultiScanEnabled, setReceiptFiles, isMultiScanEnabled: true};
             const {result} = renderHook(() => useMobileReceiptScan(toggleParams));
             await waitForBatchedUpdatesWithAct();
@@ -147,8 +147,8 @@ describe('useMobileReceiptScan', () => {
         });
 
         it('should not clear receiptFiles when enabling multi-scan', async () => {
-            const setIsMultiScanEnabled = jest.fn();
             const setReceiptFiles = jest.fn();
+            const setIsMultiScanEnabled = jest.fn();
             const toggleParams = {...params, setIsMultiScanEnabled, setReceiptFiles, isMultiScanEnabled: false};
             const {result} = renderHook(() => useMobileReceiptScan(toggleParams));
             await waitForBatchedUpdatesWithAct();
