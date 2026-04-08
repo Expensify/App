@@ -3,7 +3,7 @@ import React from 'react';
 import ImportSpreadsheet from '@components/ImportSpreadsheet';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import usePolicy from '@hooks/usePolicy';
-import {appendDynamicRouteSuffixToBasePath} from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import appendDynamicRouteSuffixToBasePath from '@libs/Navigation/helpers/dynamicRoutesUtils/appendDynamicRouteSuffixToBasePath';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {goBackFromInvalidPolicy, hasAccountingConnections as hasAccountingConnectionsUtil} from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';

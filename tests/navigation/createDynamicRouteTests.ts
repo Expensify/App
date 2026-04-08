@@ -1,4 +1,5 @@
-import createDynamicRoute, {appendDynamicRouteSuffixToBasePath} from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import appendDynamicRouteSuffixToBasePath from '@libs/Navigation/helpers/dynamicRoutesUtils/appendDynamicRouteSuffixToBasePath';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {DynamicRouteSuffix} from '@src/ROUTES';
 

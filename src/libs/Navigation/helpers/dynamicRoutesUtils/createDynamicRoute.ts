@@ -1,72 +1,8 @@
-import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import type {DynamicRouteSuffix, Route} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
+import combineDynamicRoutePathAndSuffix from './combineDynamicRoutePathAndSuffix';
 import isDynamicRouteSuffix from './isDynamicRouteSuffix';
 import splitPathAndQuery from './splitPathAndQuery';
-
-/**
- * Merges two query strings into one. If both contain the same key,
- * the error is thrown.
- * @param baseQuery - The query string of the base path
- * @param suffixQuery - The query string of the suffix
- * @returns The merged query string or an empty string if both are empty
- *
- * @private - Internal helper. Do not export or use outside this file.
- *
- * @example
- * mergeQueryStrings('foo=bar', 'foo=baz') => '?foo=bar&baz=qux'
- * mergeQueryStrings('foo=bar', 'foo=baz') => throws an error
- */
-const mergeQueryStrings = (baseQuery = '', suffixQuery = ''): string => {
-    if (!baseQuery && !suffixQuery) {
-        return '';
-    }
-    const params = new URLSearchParams(baseQuery);
-    const suffixParams = new URLSearchParams(suffixQuery);
-    const suffixParamsEntries = suffixParams.entries();
-    for (const [key, value] of suffixParamsEntries) {
-        if (params.has(key)) {
-            throw new Error(`[createDynamicRoute] Query param "${key}" exists in both base path and dynamic suffix. This is not allowed.`);
-        }
-        params.set(key, value);
-    }
-    const result = params.toString();
-    return result ? `?${result}` : '';
-};
-
-/**
- * Combines a base path with a dynamic route suffix, merging their query parameters.
- *
- * @private - Internal helper. Do not export or use outside this file.
- */
-const combinePathAndSuffix = (basePath: string, suffixWithQuery: string): Route => {
-    const [normalizedBasePath, baseQuery] = splitPathAndQuery(basePath);
-    const [suffixPath, suffixQuery] = splitPathAndQuery(suffixWithQuery);
-
-    if (!normalizedBasePath) {
-        Log.warn('[createDynamicRoute.ts] Path is undefined or empty, returning suffix only', {basePath, suffixWithQuery});
-        return suffixWithQuery as Route;
-    }
-
-    const combinedPath = normalizedBasePath === '/' ? `/${suffixPath}` : `${normalizedBasePath}/${suffixPath}`;
-    const mergedQuery = mergeQueryStrings(baseQuery, suffixQuery);
-
-    return `${combinedPath}${mergedQuery}` as Route;
-};
-
-/**
- * Appends a registered dynamic suffix onto an explicit base path. Use when the active URL is not
- * the prefix you need (e.g. categories list + `imported` after stripping `import` from the import screen).
- */
-function appendDynamicRouteSuffixToBasePath(basePath: string, suffix: DynamicRouteSuffix): Route {
-    const normalizedBase = basePath.replace(/^\/+/, '');
-    const [pathWithoutQuery] = splitPathAndQuery(normalizedBase);
-    if (!pathWithoutQuery) {
-        return ROUTES.HOME;
-    }
-    return combinePathAndSuffix(normalizedBase, suffix);
-}
 
 /** Adds dynamic route name (with optional query params) to the current URL and returns it */
 const createDynamicRoute = (dynamicRouteSuffixWithParams: string): Route => {
@@ -77,8 +13,6 @@ const createDynamicRoute = (dynamicRouteSuffixWithParams: string): Route => {
     }
 
     const activeRoute = Navigation.getActiveRoute();
-    return combinePathAndSuffix(activeRoute, dynamicRouteSuffixWithParams);
+    return combineDynamicRoutePathAndSuffix(activeRoute, dynamicRouteSuffixWithParams);
 };
-
-export {appendDynamicRouteSuffixToBasePath};
 export default createDynamicRoute;
