@@ -313,28 +313,7 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
         );
     };
 
-    // ─── renderTopReportActions (for shouldScrollToEndAfterLayout) ───
-    const renderTopReportActions = () => {
-        const previewItems = sortedVisibleReportActions.slice(initialNumToRender ? -initialNumToRender : 0).reverse();
-        return (
-            <>
-                {!shouldShowReportRecipientLocalTime && !hideComposer && <View style={[styles.stickToBottom, styles.appBG, styles.zIndex10, styles.height4]} />}
-                <StaticReportActionsPreview>
-                    {previewItems.map((action) => {
-                        const actionIndex = sortedVisibleReportActions.indexOf(action);
-                        return (
-                            <View key={action.reportActionID}>
-                                {renderItem({
-                                    item: action,
-                                    index: actionIndex,
-                                } as ListRenderItemInfo<OnyxTypes.ReportAction>)}
-                            </View>
-                        );
-                    })}
-                </StaticReportActionsPreview>
-            </>
-        );
-    };
+    const previewItems = sortedVisibleReportActions.slice(initialNumToRender ? -initialNumToRender : 0).reverse();
 
     return (
         <>
@@ -347,7 +326,24 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
                 style={[styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}
                 fsClass={reportActionsListFSClass}
             >
-                {shouldScrollToEndAfterLayout && topReportAction ? renderTopReportActions() : undefined}
+                {shouldScrollToEndAfterLayout && !!topReportAction && (
+                    <>
+                        {!shouldShowReportRecipientLocalTime && !hideComposer && <View style={[styles.stickToBottom, styles.appBG, styles.zIndex10, styles.height4]} />}
+                        <StaticReportActionsPreview>
+                            {previewItems.map((action) => {
+                                const actionIndex = sortedVisibleReportActions.indexOf(action);
+                                return (
+                                    <View key={action.reportActionID}>
+                                        {renderItem({
+                                            item: action,
+                                            index: actionIndex,
+                                        } as ListRenderItemInfo<OnyxTypes.ReportAction>)}
+                                    </View>
+                                );
+                            })}
+                        </StaticReportActionsPreview>
+                    </>
+                )}
                 <InvertedFlatList
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
                     ref={scroll.reportScrollManager.ref}
