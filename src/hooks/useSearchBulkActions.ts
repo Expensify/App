@@ -58,6 +58,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {BillingGraceEndPeriod, Policy, Report, SearchResults, Transaction, TransactionViolations} from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import useAllPolicyExpenseChatReportActions from './useAllPolicyExpenseChatReportActions';
 import useAllTransactions from './useAllTransactions';
 import useBulkPayOptions from './useBulkPayOptions';
 import useConfirmModal from './useConfirmModal';
@@ -108,6 +109,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const allTransactions = useAllTransactions();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
+    const {filteredReportActions: policyExpenseChatReportActions} = useAllPolicyExpenseChatReportActions();
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const selfDMReport = useSelfDMReport();
     const [lastPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
@@ -620,7 +622,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         );
                         return;
                     }
-                    const invite = moveIOUReportToPolicyAndInviteSubmitter(itemReport, adminPolicy, formatPhoneNumber, reportTransactions);
+                    const invite = moveIOUReportToPolicyAndInviteSubmitter(itemReport, adminPolicy, formatPhoneNumber, policyExpenseChatReportActions, reportTransactions);
                     if (!invite?.policyExpenseChatReportID) {
                         moveIOUReportToPolicy(itemReport, adminPolicy, false, reportTransactions);
                     }
@@ -669,23 +671,24 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             });
         },
         [
-            clearSelectedTransactions,
             hash,
             isOffline,
-            lastPaymentMethods,
+            isDelegateAccessRestricted,
             selectedReports,
             selectedTransactions,
-            policies,
-            formatPhoneNumber,
-            policyIDsWithVBBA,
-            isDelegateAccessRestricted,
-            showDelegateNoAccessModal,
-            personalPolicyID,
-            allTransactions,
-            allReports,
             userBillingGracePeriodEnds,
-            amountOwed,
             ownerBillingGracePeriodEnd,
+            amountOwed,
+            policies,
+            showDelegateNoAccessModal,
+            allReports,
+            personalPolicyID,
+            lastPaymentMethods,
+            allTransactions,
+            policyIDsWithVBBA,
+            policyExpenseChatReportActions,
+            formatPhoneNumber,
+            clearSelectedTransactions,
         ],
     );
 
