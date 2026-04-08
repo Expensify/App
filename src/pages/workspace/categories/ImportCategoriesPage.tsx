@@ -1,9 +1,9 @@
+import type {RouteProp} from '@react-navigation/native';
 import React from 'react';
 import ImportSpreadsheet from '@components/ImportSpreadsheet';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import usePolicy from '@hooks/usePolicy';
 import {appendDynamicRouteSuffixToBasePath} from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {goBackFromInvalidPolicy, hasAccountingConnections as hasAccountingConnectionsUtil} from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -13,17 +13,16 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type ImportCategoriesPageProps = PlatformStackScreenProps<
-    SettingsNavigatorParamList,
-    typeof SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_IMPORT | typeof SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_IMPORT
->;
+type ImportCategoriesPageProps = {
+    route: RouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_IMPORT | typeof SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_IMPORT>;
+};
 
 function ImportCategoriesPage({route}: ImportCategoriesPageProps) {
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     const hasAccountingConnections = hasAccountingConnectionsUtil(policy);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_IMPORT;
-    const backTo = isQuickSettingsFlow ? route.params.backTo : undefined;
+    const backTo = isQuickSettingsFlow && 'backTo' in route.params ? route.params.backTo : undefined;
 
     const workspaceCategoriesListBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_IMPORT.path);
     const workspaceGoToImportedPath = appendDynamicRouteSuffixToBasePath(workspaceCategoriesListBackPath, DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_IMPORTED.path);
