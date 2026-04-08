@@ -5101,7 +5101,8 @@ function canEditReportAction(reportAction: OnyxInputOrEntry<ReportAction>, linke
         isCommentOrIOU &&
         (!isMoneyRequestAction(reportAction) || canEditMoneyRequest(reportAction, linkedTransaction)) && // Returns true for non-IOU actions
         !isReportMessageAttachment(message) &&
-        ((!reportAction.isAttachmentWithText && !reportAction.isAttachmentOnly) || !reportAction.isOptimisticAction) &&
+        !reportAction.isAttachmentOnly &&
+        (!reportAction.isAttachmentWithText || !reportAction.isOptimisticAction) &&
         !isDeletedAction(reportAction) &&
         !isCreatedTaskReportAction(reportAction) &&
         reportAction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
