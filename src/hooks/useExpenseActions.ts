@@ -55,6 +55,7 @@ import useTransactionThreadReport from './useTransactionThreadReport';
 
 type UseExpenseActionsParams = {
     reportID: string | undefined;
+    isReportInSearch?: boolean;
 };
 
 type UseExpenseActionsReturn = {
@@ -65,7 +66,7 @@ type UseExpenseActionsReturn = {
     wasDuplicateReportTriggered: React.MutableRefObject<boolean>;
 };
 
-function useExpenseActions({reportID}: UseExpenseActionsParams): UseExpenseActionsReturn {
+function useExpenseActions({reportID, isReportInSearch = false}: UseExpenseActionsParams): UseExpenseActionsReturn {
     const {translate, localeCompare} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -281,10 +282,6 @@ function useExpenseActions({reportID}: UseExpenseActionsParams): UseExpenseActio
         'Feed',
         'ArrowRight',
     ]);
-
-    // Route is not available in a hook — isReportInSearch must be inferred by the caller and passed in
-    // if needed. For now we default to false (safe: no search hash applied).
-    const isReportInSearch = false;
 
     const actions: Partial<Record<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>, SecondaryActionEntry>> = {
         [CONST.REPORT.SECONDARY_ACTIONS.SPLIT]: {

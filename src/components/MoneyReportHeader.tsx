@@ -302,6 +302,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                         startAnimation={startAnimation}
                         startApprovedAnimation={startApprovedAnimation}
                         startSubmittingAnimation={startSubmittingAnimation}
+                        isReportInSearch={isReportInSearch}
                     />
                 )}
             </HeaderWithBackButton>
@@ -316,6 +317,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                     startAnimation={startAnimation}
                     startApprovedAnimation={startApprovedAnimation}
                     startSubmittingAnimation={startSubmittingAnimation}
+                    isReportInSearch={isReportInSearch}
                 />
             )}
 

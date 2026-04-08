@@ -29,6 +29,7 @@ type MoneyReportHeaderActionsProps = {
     startAnimation: () => void;
     startApprovedAnimation: () => void;
     startSubmittingAnimation: () => void;
+    isReportInSearch?: boolean;
 };
 
 /**
@@ -52,6 +53,7 @@ function MoneyReportHeaderActions({
     startAnimation,
     startApprovedAnimation,
     startSubmittingAnimation,
+    isReportInSearch,
 }: MoneyReportHeaderActionsProps) {
     const styles = useThemeStyles();
     const dropdownMenuRef = useRef<ButtonWithDropdownMenuRef>(null) as React.RefObject<ButtonWithDropdownMenuRef>;
@@ -129,6 +131,7 @@ function MoneyReportHeaderActions({
                 startAnimation={startAnimation}
                 startApprovedAnimation={startApprovedAnimation}
                 startSubmittingAnimation={startSubmittingAnimation}
+                isReportInSearch={isReportInSearch}
                 dropdownMenuRef={dropdownMenuRef}
             />
         </View>

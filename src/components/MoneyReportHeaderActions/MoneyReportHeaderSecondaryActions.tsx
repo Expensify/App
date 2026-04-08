@@ -65,6 +65,7 @@ type MoneyReportHeaderSecondaryActionsProps = {
     startAnimation: () => void;
     startApprovedAnimation: () => void;
     startSubmittingAnimation: () => void;
+    isReportInSearch?: boolean;
     dropdownMenuRef?: React.RefObject<ButtonWithDropdownMenuRef>;
 };
 
@@ -78,6 +79,7 @@ function MoneyReportHeaderSecondaryActions({
     startAnimation,
     startApprovedAnimation,
     startSubmittingAnimation,
+    isReportInSearch,
     dropdownMenuRef,
 }: MoneyReportHeaderSecondaryActionsProps) {
     const {translate, localeCompare} = useLocalize();
@@ -280,7 +282,7 @@ function MoneyReportHeaderSecondaryActions({
         onHoldMenuOpen: (requestType) => onHoldMenuOpen(requestType, undefined, undefined, () => startApprovedAnimation()),
     });
 
-    const {actions: expenseActions, handleOptionsMenuHide} = useExpenseActions({reportID});
+    const {actions: expenseActions, handleOptionsMenuHide} = useExpenseActions({reportID, isReportInSearch});
 
     const holdRejectActions = useHoldRejectActions({
         reportID,
