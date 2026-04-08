@@ -1,7 +1,8 @@
 import {useEffect} from 'react';
 import {Platform} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {checkIfLocalFileIsAccessible, removeMoneyRequestOdometerImage, setMoneyRequestOdometerReading, setMoneyRequestReceipt} from '@libs/actions/IOU';
+import {removeMoneyRequestOdometerImage, setMoneyRequestOdometerReading} from '@libs/actions/IOU';
+import {checkIfLocalFileIsAccessible, setMoneyRequestReceipt} from '@libs/actions/IOU/Receipt';
 import {removeDraftTransactionsByIDs} from '@libs/actions/TransactionEdit';
 import {navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
 import {getOdometerImageUri} from '@libs/OdometerImageUtils';

@@ -27,7 +27,7 @@ function AuthenticationMethodDescription() {
 
     const authType = translate(AUTH_TYPE_TRANSLATION_KEY[authenticationMethod?.name ?? NATIVE_BIOMETRICS_HSM_VALUES.AUTH_TYPE.UNKNOWN.NAME]);
 
-    return <Text style={[styles.textAlignCenter, styles.textSupporting]}>{translate('multifactorAuthentication.biometricsTest.successfullyAuthenticatedUsing', {authType})}</Text>;
+    return <Text style={[styles.textAlignCenter, styles.textSupporting]}>{translate('multifactorAuthentication.biometricsTest.successfullyAuthenticatedUsing', authType)}</Text>;
 }
 
 AuthenticationMethodDescription.displayName = 'AuthenticationMethodDescription';
