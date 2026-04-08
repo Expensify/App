@@ -1354,7 +1354,7 @@ function changeTransactionsReport({
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticTransactionThread.reportID}`,
-                    value: {...optimisticTransactionThread, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                    value: {...optimisticTransactionThread, parentReportID: targetReportID, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
                 },
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
