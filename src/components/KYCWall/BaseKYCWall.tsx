@@ -236,6 +236,7 @@ function KYCWall({
             isSelfTourViewed,
             betas,
             conciergeReportID,
+            allReports,
         ],
     );
 
