@@ -11,6 +11,7 @@
  */
 import {CONST as COMMON_CONST} from 'expensify-common';
 import startCase from 'lodash/startCase';
+import type {ValueOf} from 'type-fest';
 import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
 import StringUtils from '@libs/StringUtils';
 import dedent from '@libs/StringUtils/dedent';
@@ -40,14 +41,11 @@ import type {
     MarkReimbursedFromIntegrationParams,
     MissingPropertyParams,
     MovedFromPersonalSpaceParams,
-    MultifactorAuthenticationTranslationParams,
-    NextStepParams,
     NotAllowedExtensionParams,
     OptionalParam,
     PaidElsewhereParams,
     ParentNavigationSummaryParams,
     RemovedFromApprovalWorkflowParams,
-    RemovedPolicyCustomUnitSubRateParams,
     ReportArchiveReasonsClosedParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     ReportArchiveReasonsMergedParams,
@@ -60,44 +58,21 @@ import type {
     UnshareParams,
     UpdatedBudgetParams,
     UpdatedPolicyApprovalRuleParams,
-    UpdatedPolicyBudgetNotificationParams,
     UpdatedPolicyCategoryMaxAmountNoReceiptParams,
     UpdatedPolicyCurrencyDefaultTaxParams,
     UpdatedPolicyCustomTaxNameParams,
-    UpdatedPolicyCustomUnitSubRateParams,
-    UpdatedPolicyDefaultTitleParams,
     UpdatedPolicyForeignCurrencyDefaultTaxParams,
     UpdatedPolicyManualApprovalThresholdParams,
-    UpdatedPolicyOwnershipParams,
-    UpdatedPolicyPreventSelfApprovalParams,
-    UpdatedPolicyReimbursementChoiceParams,
-    UpdatedPolicyReimburserParams,
-    UpdatedPolicyReportFieldDefaultValueParams,
-    UpdatedPolicyTagFieldParams,
-    UpdatedPolicyTagListRequiredParams,
-    UpdatedPolicyTagNameParams,
-    UpdatedPolicyTagParams,
-    UpdatedPolicyTaxParams,
-    UpdatedPolicyTimeRateParams,
     UpdatedTheDistanceMerchantParams,
     UpdatedTheRequestParams,
     UpdatePolicyCustomUnitDefaultCategoryParams,
     UpdatePolicyCustomUnitParams,
     UpdateRoleParams,
-    UpgradeSuccessMessageParams,
     UserIsAlreadyMemberParams,
     ViolationsIncreasedDistanceParams,
     ViolationsMissingTagParams,
     ViolationsModifiedAmountParams,
-    ViolationsProhibitedExpenseParams,
-    ViolationsReceiptRequiredParams,
-    ViolationsRterParams,
-    ViolationsTagOutOfPolicyParams,
-    ViolationsTaxOutOfPolicyParams,
-    WeSentYouMagicSignInLinkParams,
     WorkspaceLockedPlanTypeParams,
-    WorkspaceMemberList,
-    WorkspaceYouMayJoin,
     YourPlanPriceParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
@@ -662,8 +637,8 @@ const translations: TranslationDeepObject<typeof en> = {
         biometricsTest: {
             biometricsTest: 'Biometrie-Test',
             authenticationSuccessful: 'Authentifizierung erfolgreich',
-            successfullyAuthenticatedUsing: ({authType}: MultifactorAuthenticationTranslationParams) => `Sie haben sich erfolgreich mit ${authType} authentifiziert.`,
-            troubleshootBiometricsStatus: ({status}: MultifactorAuthenticationTranslationParams) => `Biometrische Daten (${status})`,
+            successfullyAuthenticatedUsing: (authType?: string) => `Sie haben sich erfolgreich mit ${authType} authentifiziert.`,
+            troubleshootBiometricsStatus: ({status}: {status?: string}) => `Biometrische Daten (${status})`,
             yourAttemptWasUnsuccessful: 'Dein Authentifizierungsversuch war nicht erfolgreich.',
             youCouldNotBeAuthenticated: 'Du konntest nicht authentifiziert werden',
             areYouSureToReject: 'Sind Sie sicher? Der Authentifizierungsversuch wird abgelehnt, wenn Sie diesen Bildschirm schließen.',
@@ -714,7 +689,7 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmationPromptAll: 'Sind Sie sicher? Sie benötigen einen Magic Code für die nächste Verifizierung auf jedem Gerät.',
             ctaAll: 'Alle widerrufen',
             thisDevice: 'Dieses Gerät',
-            otherDevices: ({otherDeviceCount}: MultifactorAuthenticationTranslationParams) => {
+            otherDevices: (otherDeviceCount?: number) => {
                 const numberWords = ['Eins', 'Zwei', 'Drei', 'Vier', 'Fünf', 'Sechs', 'Sieben', 'Acht', 'Neun'];
                 const displayCount = otherDeviceCount !== undefined && otherDeviceCount >= 1 && otherDeviceCount <= 9 ? numberWords.at(otherDeviceCount - 1) : `${otherDeviceCount}`;
                 return `${displayCount} weitere ${otherDeviceCount === 1 ? 'Gerät' : 'Geräte'}`;
@@ -1165,6 +1140,7 @@ const translations: TranslationDeepObject<typeof en> = {
         flash: 'Blitz',
         multiScan: 'Mehrfachscan',
         shutter: 'Verschluss',
+        flipCamera: 'Kamera wechseln',
         gallery: 'Galerie',
         deleteReceipt: 'Beleg löschen',
         deleteConfirmation: 'Sind Sie sicher, dass Sie diesen Beleg löschen möchten?',
@@ -1722,8 +1698,17 @@ const translations: TranslationDeepObject<typeof en> = {
         backdropLabel: 'Modal-Hintergrund',
     },
     nextStep: {
+        // All nextStep.message functions share a common positional signature (actor, actorType, eta, etaType) for type compatibility, so unused params are expected
+        /* eslint-disable @typescript-eslint/no-unused-vars */
         message: {
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS]: ({actor, actorType}: NextStepParams) => {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS]: (
+                actor: string,
+                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
+                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `Warte darauf, dass <strong>Sie</strong> Spesen hinzufügen.`;
@@ -1733,7 +1718,14 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Warten auf eine:n Admin, der Ausgaben hinzufügt.`;
                 }
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT]: ({actor, actorType}: NextStepParams) => {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT]: (
+                actor: string,
+                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
+                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `Wartet darauf, dass <strong>Sie</strong> Spesen einreichen.`;
@@ -1743,8 +1735,20 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Warten darauf, dass ein Admin Spesen einreicht.`;
                 }
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_: NextStepParams) => `Kein weiterer Handlungsbedarf!`,
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
+            [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => `Kein weiterer Handlungsbedarf!`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: (
+                actor: string,
+                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
+                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `Warten darauf, dass <strong>Sie</strong> ein Bankkonto hinzufügen.`;
@@ -1754,11 +1758,18 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Warten Sie darauf, dass ein Admin ein Bankkonto hinzufügt.`;
                 }
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: ({actor, actorType, eta, etaType}: NextStepParams) => {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: (
+                actor: string,
+                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                eta?: string,
+                etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
                 let formattedETA = '';
                 if (eta) {
                     formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `am ${eta} eines jeden Monats` : ` ${eta}`;
                 }
+                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
+                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `Warten darauf, dass <strong>Ihre</strong> Ausgaben automatisch eingereicht werden${formattedETA}.`;
@@ -1768,7 +1779,14 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Es wird darauf gewartet, dass die Ausgaben eines Admins automatisch eingereicht werden${formattedETA}.`;
                 }
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES]: ({actor, actorType}: NextStepParams) => {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES]: (
+                actor: string,
+                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
+                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `Warten auf <strong>Sie</strong>, um die Probleme zu beheben.`;
@@ -1778,7 +1796,14 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Warten auf eine*n Admin, um die Probleme zu beheben.`;
                 }
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: ({actor, actorType}: NextStepParams) => {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: (
+                actor: string,
+                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
+                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `Es wird darauf gewartet, dass <strong>Sie</strong> Spesen genehmigen.`;
@@ -1788,7 +1813,14 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Warten auf Genehmigung der Ausgaben durch eine Adminperson.`;
                 }
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: ({actor, actorType}: NextStepParams) => {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: (
+                actor: string,
+                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
+                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `Warte darauf, dass <strong>Sie</strong> diesen Bericht exportieren.`;
@@ -1798,7 +1830,14 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Warten auf eine Administratorin oder einen Administrator, um diesen Bericht zu exportieren.`;
                 }
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType}: NextStepParams) => {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: (
+                actor: string,
+                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
+                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `Wartet darauf, dass <strong>Sie</strong> Spesen bezahlen.`;
@@ -1808,7 +1847,14 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Warten darauf, dass eine Adminperson Spesen bezahlt.`;
                 }
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: (
+                actor: string,
+                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
+                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
+                // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `Warten darauf, dass <strong>Sie</strong> die Einrichtung eines Geschäftskontos abschließen.`;
@@ -1818,16 +1864,31 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Warten auf eine Administration, um das Einrichten eines geschäftlichen Bankkontos abzuschließen.`;
                 }
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: ({eta, etaType}: NextStepParams) => {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                eta?: string,
+                etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
                 let formattedETA = '';
                 if (eta) {
                     formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `bis ${eta}` : ` ${eta}`;
                 }
                 return `Warten, bis die Zahlung abgeschlossen ist${formattedETA}.`;
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (_: NextStepParams) =>
+            [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (
+                _actor: string,
+                _actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) =>
                 `Ups! Sie scheinen diesen Bericht bei <strong>sich selbst</strong> einzureichen. Die Genehmigung eigener Berichte ist in Ihrem Workspace <strong>verboten</strong>. Bitte reichen Sie diesen Bericht bei jemand anderem ein oder kontaktieren Sie Ihre Admin, um die Person zu ändern, an die Sie Berichte einreichen.`,
-            [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: ({actor, actorType}: NextStepParams) => {
+            [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: (
+                actor: string,
+                actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
+                _eta?: string,
+                _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+            ) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `Dieser Bericht wurde abgelehnt. Es wird darauf gewartet, dass <strong>Sie</strong> die Probleme beheben und ihn manuell erneut einreichen.`;
@@ -2807,11 +2868,11 @@ ${amount} für ${merchant} – ${date}`,
         getStarted: 'Loslegen',
         whatsYourName: 'Wie heißt du?',
         peopleYouMayKnow: 'Personen, die du vielleicht kennst, sind bereits hier! Bestätige deine E-Mail-Adresse, um dich ihnen anzuschließen.',
-        workspaceYouMayJoin: ({domain, email}: WorkspaceYouMayJoin) =>
+        workspaceYouMayJoin: (domain: string, email: string) =>
             `Jemand von ${domain} hat bereits einen Workspace erstellt. Bitte gib den magischen Code ein, der an ${email} gesendet wurde.`,
         joinAWorkspace: 'Einem Arbeitsbereich beitreten',
         listOfWorkspaces: 'Hier ist die Liste der Arbeitsbereiche, denen du beitreten kannst. Keine Sorge, du kannst ihnen auch später jederzeit beitreten, wenn du möchtest.',
-        workspaceMemberList: ({employeeCount, policyOwner}: WorkspaceMemberList) => `${employeeCount} Mitglied${employeeCount > 1 ? 's' : ''} • ${policyOwner}`,
+        workspaceMemberList: (employeeCount: number, policyOwner: string) => `${employeeCount} Mitglied${employeeCount > 1 ? 's' : ''} • ${policyOwner}`,
         whereYouWork: 'Wo arbeitest du?',
         errorSelection: 'Wähle eine Option, um fortzufahren',
         purpose: {
@@ -3180,8 +3241,7 @@ ${amount} für ${merchant} – ${date}`,
     },
     resendValidationForm: {
         linkHasBeenResent: 'Link wurde erneut gesendet',
-        weSentYouMagicSignInLink: ({login, loginType}: WeSentYouMagicSignInLinkParams) =>
-            `Ich habe einen magischen Anmeldelink an ${login} gesendet. Bitte überprüfe dein ${loginType}, um dich anzumelden.`,
+        weSentYouMagicSignInLink: (login: string, loginType: string) => `Ich habe einen magischen Anmeldelink an ${login} gesendet. Bitte überprüfe dein ${loginType}, um dich anzumelden.`,
         resendLink: 'Link erneut senden',
     },
     unlinkLoginForm: {
@@ -6516,7 +6576,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
             upgradeToUnlock: 'Diese Funktion freischalten',
             completed: {
                 headline: `Du hast deinen Arbeitsbereich aktualisiert!`,
-                successMessage: ({policyName, subscriptionLink}: UpgradeSuccessMessageParams) =>
+                successMessage: (policyName: string, subscriptionLink: string) =>
                     `<centered-text>Du hast ${policyName} erfolgreich auf den Control-Tarif hochgestuft! <a href="${subscriptionLink}">Abonnement ansehen</a> für mehr Details.</centered-text>`,
                 categorizeMessage: `Du hast erfolgreich auf den Collect‑Tarif upgegradet. Jetzt kannst du deine Ausgaben kategorisieren!`,
                 travelMessage: `Du hast erfolgreich auf den Collect‑Tarif upgegradet. Jetzt kannst du mit dem Buchen und Verwalten von Reisen beginnen!`,
@@ -6697,6 +6757,7 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 duplicateRulePrompt: (merchantName: string) => `Ihre bestehende Regel für „${merchantName}“ hat Vorrang vor dieser. Trotzdem speichern?`,
                 saveAnyway: 'Trotzdem speichern',
                 applyToExistingUnsubmittedExpenses: 'Auf bestehende nicht eingereichte Ausgaben anwenden',
+                findRule: 'Händlerregel finden',
             },
             categoryRules: {
                 title: 'Kategorienregeln',
@@ -6934,13 +6995,13 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 : `hat den Hinweis zur Beschreibung der Kategorie „${categoryName}“ in „${newValue}“ geändert (zuvor „${oldValue}“)`;
         },
         updateTagListName: (oldName: string, newName: string) => `hat den Schlagwortlistennamen in „${newName}“ geändert (zuvor „${oldName}“)`,
-        addTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `den Tag „${tagName}“ zur Liste „${tagListName}“ hinzugefügt`,
-        updateTagName: ({tagListName, newName, oldName}: UpdatedPolicyTagNameParams) =>
+        addTag: (tagListName: string, tagName?: string) => `den Tag „${tagName}“ zur Liste „${tagListName}“ hinzugefügt`,
+        updateTagName: (tagListName: string, newName: string, oldName: string) =>
             `hat die Tag-Liste „${tagListName}“ aktualisiert, indem der Tag „${oldName}“ in „${newName}“ geändert wurde`,
-        updateTagEnabled: ({tagListName, tagName, enabled}: UpdatedPolicyTagParams) => `${enabled ? 'aktiviert' : 'deaktiviert'} das Tag „${tagName}“ in der Liste „${tagListName}“`,
-        deleteTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `hat das Tag „${tagName}“ aus der Liste „${tagListName}“ entfernt`,
-        deleteMultipleTags: ({count, tagListName}: UpdatedPolicyTagParams) => `„${count}“ Tags aus der Liste „${tagListName}“ entfernt`,
-        updateTag: ({tagListName, newValue, tagName, updatedField, oldValue}: UpdatedPolicyTagFieldParams) => {
+        updateTagEnabled: (tagListName: string, tagName?: string, enabled?: boolean) => `${enabled ? 'aktiviert' : 'deaktiviert'} das Tag „${tagName}“ in der Liste „${tagListName}“`,
+        deleteTag: (tagListName: string, tagName?: string) => `hat das Tag „${tagName}“ aus der Liste „${tagListName}“ entfernt`,
+        deleteMultipleTags: (count?: string, tagListName?: string) => `„${count}“ Tags aus der Liste „${tagListName}“ entfernt`,
+        updateTag: (tagListName: string, newValue: string, tagName: string, updatedField: string, oldValue?: string) => {
             if (oldValue) {
                 return `hat das Tag „${tagName}“ in der Liste „${tagListName}“ aktualisiert, indem das Feld ${updatedField} auf „${newValue}“ geändert wurde (zuvor „${oldValue}“)`;
             }
@@ -6968,8 +7029,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             return `${newValue ? 'aktiviert' : 'deaktiviert'} den ${customUnitName}-Satz „${customUnitRateName}“`;
         },
         deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `hat den „${customUnitName}“-Satz „${rateName}“ entfernt`,
-        updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) =>
-            `Standardwert des Berichts­feldes „${fieldName}“ auf „${defaultValue}“ festlegen`,
+        updateReportFieldDefaultValue: (defaultValue?: string, fieldName?: string) => `Standardwert des Berichts­feldes „${fieldName}“ auf „${defaultValue}“ festlegen`,
         addedReportFieldOption: (fieldName: string, optionName: string) => `die Option „${optionName}“ zum Berichtsfeld „${fieldName}“ hinzugefügt`,
         removedReportFieldOption: (fieldName: string, optionName: string) => `hat die Option „${optionName}“ aus dem Berichtsfeld „${fieldName}“ entfernt`,
         updateReportFieldOptionDisabled: (fieldName: string, optionName: string, optionEnabled: boolean) =>
@@ -6981,7 +7041,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             return `${allEnabled ? 'aktiviert' : 'deaktiviert'} die Option „${optionName}“ für das Berichtsfeld „${fieldName}“, wodurch alle Optionen ${allEnabled ? 'aktiviert' : 'deaktiviert'}`;
         },
         deleteReportField: ({fieldType, fieldName}: {fieldType: string; fieldName?: string}) => `${fieldType}-Berichts-Feld „${fieldName}“ entfernt`,
-        preventSelfApproval: ({oldValue, newValue}: UpdatedPolicyPreventSelfApprovalParams) =>
+        preventSelfApproval: (oldValue: string, newValue: string) =>
             `aktualisierte „Selbstgenehmigung verhindern“ auf „${newValue === 'true' ? 'Aktiviert' : 'Deaktiviert'}“ (zuvor „${oldValue === 'true' ? 'Aktiviert' : 'Deaktiviert'}“)`,
         updateMonthlyOffset: (oldValue: string, newValue: string) => {
             if (!oldValue) {
@@ -7122,7 +7182,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             oldValue ? `hat den Firmennamen der Rechnung in „${newValue}“ geändert (zuvor „${oldValue}“)` : `setze den Rechnungsfirmennamen auf „${newValue}“`,
         changedInvoiceCompanyWebsite: ({newValue, oldValue}: {newValue: string; oldValue?: string}) =>
             oldValue ? `hat die Unternehmenswebsite der Rechnung in „${newValue}“ geändert (zuvor „${oldValue}“)` : `Rechnungsunternehmens-Website auf „${newValue}“ festlegen`,
-        changedReimburser: ({newReimburser, previousReimburser}: UpdatedPolicyReimburserParams) =>
+        changedReimburser: (newReimburser: string, previousReimburser?: string) =>
             previousReimburser
                 ? `hat die/den autorisierte:n Zahler:in in „${newReimburser}“ geändert (zuvor „${previousReimburser}“)`
                 : `den/die autorisierte/n Zahler/in in „${newReimburser}“ geändert`,
@@ -7131,9 +7191,9 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         updateCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyCurrencyDefaultTaxParams) => `Standard-Steuerbetrag der Workspace-Währung auf „${newName}" geändert (zuvor „${oldName}")`,
         updateForeignCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyForeignCurrencyDefaultTaxParams) =>
             `den Standardsteuersatz für Fremdwährungen in „${newName}" geändert (zuvor „${oldName}")`,
-        addTax: ({taxName}: UpdatedPolicyTaxParams) => `die Steuer „${taxName}" hinzugefügt`,
-        deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `hat die Steuer „${taxName}“ entfernt`,
-        updateTax: ({oldValue, taxName, updatedField, newValue}: UpdatedPolicyTaxParams) => {
+        addTax: (taxName: string) => `die Steuer „${taxName}" hinzugefügt`,
+        deleteTax: (taxName: string) => `hat die Steuer „${taxName}“ entfernt`,
+        updateTax: (oldValue?: string | boolean | number, taxName?: string, updatedField?: string, newValue?: string | boolean | number) => {
             if (!updatedField) {
                 return '';
             }
@@ -7165,16 +7225,15 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         changedMaxExpenseAge: (oldValue: string, newValue: string) => `maximales Ausgabenalter auf „${newValue}“ Tage geändert (zuvor „${oldValue}“)`,
         updateCategories: (count: number) => `${count} Kategorien aktualisiert`,
         updateTagList: (tagListName: string) => `Tags in der Liste „${tagListName}“ aktualisiert`,
-        updateTagListRequired: ({tagListsName, isRequired}: UpdatedPolicyTagListRequiredParams) =>
-            `Tag-Liste „${tagListsName}“ in ${isRequired ? 'erforderlich' : 'nicht erforderlich'} geändert`,
+        updateTagListRequired: (tagListsName: string, isRequired: boolean) => `Tag-Liste „${tagListsName}“ in ${isRequired ? 'erforderlich' : 'nicht erforderlich'} geändert`,
         importTags: 'Tags aus einer Tabelle importiert',
         deletedAllTags: 'alle Tags gelöscht',
         updateCustomUnitDefaultCategory: ({customUnitName, newValue, oldValue}: UpdatePolicyCustomUnitDefaultCategoryParams) =>
             `hat die Standardkategorie für ${customUnitName} in „${newValue}“ geändert ${oldValue ? `(zuvor „${oldValue}“)` : ''}`,
         importCustomUnitRates: (customUnitName: string) => `importierte Preise für benutzerdefinierte Einheit „${customUnitName}“`,
-        updateCustomUnitSubRate: ({customUnitName, customUnitRateName, customUnitSubRateName, oldValue, newValue, updatedField}: UpdatedPolicyCustomUnitSubRateParams) =>
+        updateCustomUnitSubRate: (customUnitName: string, customUnitRateName: string, customUnitSubRateName: string, oldValue: string, newValue: string, updatedField: string) =>
             `hat Tarif „${customUnitName}“ mit Satz „${customUnitRateName}“ und Untersatz „${customUnitSubRateName}“ ${updatedField} auf „${newValue}“ geändert (zuvor „${oldValue}“)`,
-        removedCustomUnitSubRate: ({customUnitName, customUnitRateName, removedSubRateName}: RemovedPolicyCustomUnitSubRateParams) =>
+        removedCustomUnitSubRate: (customUnitName: string, customUnitRateName: string, removedSubRateName: string) =>
             `entfernte „${customUnitName}“-Rate „${customUnitRateName}“ Unterrate „${removedSubRateName}“`,
         addBudget: ({frequency, entityName, entityType, shared, individual, notificationThreshold}: AddBudgetParams) => {
             const thresholdSuffix = typeof notificationThreshold === 'number' ? `mit Benachrichtigungsschwelle von „${notificationThreshold}%“` : '';
@@ -7248,45 +7307,45 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         updatedTimeEnabled: (enabled?: boolean) => {
             return `${enabled ? 'aktiviert' : 'deaktiviert'} Zeiterfassung`;
         },
-        updatedTimeRate: ({newRate, oldRate}: UpdatedPolicyTimeRateParams) => {
+        updatedTimeRate: (newRate?: string, oldRate?: string) => {
             return `Stundensatz auf „${newRate}“ geändert (zuvor „${oldRate}“)`;
         },
         addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `„${prohibitedExpense}“ zu verbotenen Ausgaben hinzugefügt`,
         removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `„${prohibitedExpense}“ aus verbotenen Ausgaben entfernt`,
-        updatedReimbursementChoice: ({newReimbursementChoice, oldReimbursementChoice}: UpdatedPolicyReimbursementChoiceParams) =>
+        updatedReimbursementChoice: (newReimbursementChoice: string, oldReimbursementChoice: string) =>
             `Erstattungmethode zu „${newReimbursementChoice}“ geändert (vorher „${oldReimbursementChoice}“)`,
         setAutoJoin: ({enabled}: {enabled: boolean}) => `${enabled ? 'aktiviert' : 'deaktiviert'} Vorabgenehmigung von Arbeitsbereich-Beitrittsanfragen`,
-        updatedDefaultTitle: ({newDefaultTitle, oldDefaultTitle}: UpdatedPolicyDefaultTitleParams) =>
-            `benutzerdefinierte Berichtstitelformel in „${newDefaultTitle}“ geändert (zuvor „${oldDefaultTitle}“)`,
-        updatedOwnership: ({oldOwnerEmail, oldOwnerName, policyName}: UpdatedPolicyOwnershipParams) =>
-            `hat die Inhaberschaft von ${policyName} von ${oldOwnerName} (${oldOwnerEmail}) übernommen`,
+        updatedDefaultTitle: (newDefaultTitle: string, oldDefaultTitle: string) => `benutzerdefinierte Berichtstitelformel in „${newDefaultTitle}“ geändert (zuvor „${oldDefaultTitle}“)`,
+        updatedOwnership: (oldOwnerEmail: string, oldOwnerName: string, policyName: string) => `hat die Inhaberschaft von ${policyName} von ${oldOwnerName} (${oldOwnerEmail}) übernommen`,
         updatedAutoHarvesting: (enabled: boolean) => `${enabled ? 'aktiviert' : 'deaktiviert'} geplante Einreichung`,
-        updatedIndividualBudgetNotification: ({
-            budgetAmount,
-            budgetFrequency,
-            budgetName,
-            budgetTypeForNotificationMessage,
-            summaryLink,
-            thresholdPercentage,
-            totalSpend,
-            unsubmittedSpend,
-            userEmail,
-            awaitingApprovalSpend,
-            approvedReimbursedClosedSpend,
-        }: UpdatedPolicyBudgetNotificationParams) =>
+        // This function requires 11 params to match the budget notification data model; reducing further would hurt readability
+        // eslint-disable-next-line @typescript-eslint/max-params
+        updatedIndividualBudgetNotification: (
+            budgetAmount: string,
+            budgetFrequency: string,
+            budgetName: string,
+            budgetTypeForNotificationMessage: string,
+            thresholdPercentage: number,
+            totalSpend: number,
+            unsubmittedSpend: number,
+            awaitingApprovalSpend: number,
+            approvedReimbursedClosedSpend: number,
+            summaryLink?: string,
+            userEmail?: string,
+        ) =>
             `Achtung! Dieser Workspace hat ein ${budgetFrequency}-Budget von „${budgetAmount}“ für den/die/das ${budgetTypeForNotificationMessage} „${budgetName}“. ${userEmail} liegt derzeit bei ${approvedReimbursedClosedSpend}, was über ${thresholdPercentage}% des Budgets liegt. Außerdem warten ${awaitingApprovalSpend} noch auf Genehmigung und ${unsubmittedSpend} wurden noch nicht eingereicht, für insgesamt ${totalSpend}.${summaryLink ? `<a href="${summaryLink}">Hier ist ein Bericht</a> mit all diesen Ausgaben für Ihre Unterlagen!` : ''}`,
-        updatedSharedBudgetNotification: ({
-            budgetAmount,
-            budgetFrequency,
-            budgetName,
-            budgetTypeForNotificationMessage,
-            summaryLink,
-            thresholdPercentage,
-            totalSpend,
-            unsubmittedSpend,
-            awaitingApprovalSpend,
-            approvedReimbursedClosedSpend,
-        }: UpdatedPolicyBudgetNotificationParams) =>
+        updatedSharedBudgetNotification: (
+            budgetAmount: string,
+            budgetFrequency: string,
+            budgetName: string,
+            budgetTypeForNotificationMessage: string,
+            summaryLink: string | undefined,
+            thresholdPercentage: number,
+            totalSpend: number,
+            unsubmittedSpend: number,
+            awaitingApprovalSpend: number,
+            approvedReimbursedClosedSpend: number,
+        ) =>
             `Achtung! Dieser Workspace hat ein ${budgetFrequency}-Budget von „${budgetAmount}“ für den ${budgetTypeForNotificationMessage} „${budgetName}“. Du liegst derzeit bei ${approvedReimbursedClosedSpend}, was über ${thresholdPercentage}% des Budgets liegt. Außerdem warten ${awaitingApprovalSpend} auf Genehmigung und ${unsubmittedSpend} wurden noch nicht eingereicht, für insgesamt ${totalSpend}. ${summaryLink ? `<a href="${summaryLink}">Hier ist ein Bericht</a> mit all diesen Ausgaben für Ihre Unterlagen!` : ''}`,
         removedMaxExpenseAge: (oldValue: string) => `maximales Spesenalter entfernt (zuvor „${oldValue}“ Tage)`,
         addedCardFeed: (feedName: string) => `Kartenfeed „${feedName}“ hinzugefügt`,
@@ -8097,7 +8156,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         overLimitAttendee: (formattedLimit: string) => `Betrag über dem Limit von ${formattedLimit}/Person`,
         perDayLimit: (formattedLimit: string) => `Betrag über dem täglichen Kategorienlimit von ${formattedLimit}/Person`,
         receiptNotSmartScanned: 'Beleg- und Ausgabendetails manuell hinzugefügt.',
-        receiptRequired: ({formattedLimit, category}: ViolationsReceiptRequiredParams) => {
+        receiptRequired: (formattedLimit?: string, category?: string) => {
             if (formattedLimit && category) {
                 return `Beleg erforderlich bei Überschreitung der Kategoriegrenze von ${formattedLimit}`;
             }
@@ -8110,7 +8169,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             return 'Beleg erforderlich';
         },
         itemizedReceiptRequired: (formattedLimit?: string) => `Einzelpostenbeleg erforderlich${formattedLimit ? `über ${formattedLimit}` : ''}`,
-        prohibitedExpense: ({prohibitedExpenseTypes}: ViolationsProhibitedExpenseParams) => {
+        prohibitedExpense: (prohibitedExpenseTypes: string | string[]) => {
             const preMessage = 'Unzulässige Ausgabe:';
             const getProhibitedExpenseTypeText = (prohibitedExpenseType: string) => {
                 switch (prohibitedExpenseType) {
@@ -8141,7 +8200,17 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         },
         customRules: (message: string) => message,
         reviewRequired: 'Überprüfung erforderlich',
-        rter: ({brokenBankConnection, isAdmin, isTransactionOlderThan7Days, member, rterType, companyCardPageURL, connectionLink, isPersonalCard, isMarkAsCash}: ViolationsRterParams) => {
+        rter: (
+            brokenBankConnection: boolean,
+            isAdmin: boolean,
+            isTransactionOlderThan7Days: boolean,
+            member?: string,
+            rterType?: ValueOf<typeof CONST.RTER_VIOLATION_TYPES>,
+            companyCardPageURL?: string,
+            connectionLink?: string,
+            isPersonalCard?: boolean,
+            isMarkAsCash?: boolean,
+        ) => {
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return 'Beleg kann wegen unterbrochener Bankverbindung nicht automatisch zugeordnet werden.';
             }
@@ -8170,10 +8239,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         markAsCashToIgnore: 'Als Barzahlung markieren, um sie zu ignorieren und Zahlung anzufordern.',
         smartscanFailed: ({canEdit = true}) => `Beleg-Scan fehlgeschlagen.${canEdit ? 'Details manuell eingeben.' : ''}`,
         receiptGeneratedWithAI: 'Mögliche KI-generierte Quittung',
-        someTagLevelsRequired: ({tagName}: ViolationsTagOutOfPolicyParams = {}) => `Fehlende ${tagName ?? 'Tag'}`,
-        tagOutOfPolicy: ({tagName}: ViolationsTagOutOfPolicyParams = {}) => `${tagName ?? 'Tag'} nicht mehr gültig`,
+        someTagLevelsRequired: (tagName?: string) => `Fehlende ${tagName ?? 'Tag'}`,
+        tagOutOfPolicy: (tagName?: string) => `${tagName ?? 'Tag'} nicht mehr gültig`,
         taxAmountChanged: 'Steuerbetrag wurde geändert',
-        taxOutOfPolicy: ({taxName}: ViolationsTaxOutOfPolicyParams = {}) => `${taxName ?? 'Steuer'} nicht mehr gültig`,
+        taxOutOfPolicy: (taxName?: string) => `${taxName ?? 'Steuer'} nicht mehr gültig`,
         taxRateChanged: 'Steuersatz wurde geändert',
         taxRequired: 'Fehlender Steuersatz',
         none: 'Keine',

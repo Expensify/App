@@ -111,6 +111,56 @@ const DYNAMIC_ROUTES = {
         path: 'visibility',
         entryScreens: [SCREENS.REPORT_SETTINGS.ROOT],
     },
+    POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_VENDOR_SELECT: {
+        path: 'vendor/select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT_EXPENSES],
+    },
+    POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_PAYABLE_ACCOUNT_SELECT: {
+        path: 'payable-account/select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT_EXPENSES],
+    },
+    POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_JOURNAL_POSTING_PREFERENCE_SELECT: {
+        path: 'journal-posting-preference/select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT_EXPENSES],
+    },
+    POLICY_ACCOUNTING_NETSUITE_RECEIVABLE_ACCOUNT_SELECT: {
+        path: 'receivable-account/select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT],
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_PREFERRED_EXPORTER: {
+        path: 'preferred-exporter',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT],
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES: {
+        path: 'out-of-pocket-expense',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT],
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT: {
+        path: 'account-select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES],
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT: {
+        path: 'entity-select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES],
+    },
+    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_DATE_SELECT: {
+        path: 'date-select',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT],
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_DESTINATION: {
+        path: 'destination',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES],
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_DEFAULT_VENDOR: {
+        path: 'default-vendor',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_REIMBURSABLE_EXPENSES, SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES],
+        getRoute: (reimbursable: string) => getUrlWithParams('default-vendor', {reimbursable}),
+        queryParams: ['reimbursable'],
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_CREDIT_CARD_ACCOUNT: {
+        path: 'credit-card-account',
+        entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES],
+    },
     POLICY_ACCOUNTING_XERO_EXPORT_BANK_ACCOUNT_SELECT: {
         path: 'bank-account-select',
         entryScreens: [SCREENS.WORKSPACE.ACCOUNTING.XERO_EXPORT],
@@ -1759,36 +1809,6 @@ const ROUTES = {
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/export/travel-invoicing/payable-account',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/quickbooks-online/export/travel-invoicing/payable-account` as const,
-    },
-    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_PREFERRED_EXPORTER: {
-        route: 'workspaces/:policyID/accounting/quickbooks-online/export/preferred-exporter',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/accounting/quickbooks-online/export/preferred-exporter` as const, backTo),
-    },
-    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES: {
-        route: 'workspaces/:policyID/accounting/quickbooks-online/export/out-of-pocket-expense',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/accounting/quickbooks-online/export/out-of-pocket-expense` as const, backTo),
-    },
-    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT: {
-        route: 'workspaces/:policyID/accounting/quickbooks-online/export/out-of-pocket-expense/account-select',
-        getRoute: (policyID: string, backTo?: string) =>
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            getUrlWithBackToParam(`workspaces/${policyID}/accounting/quickbooks-online/export/out-of-pocket-expense/account-select` as const, backTo),
-    },
-    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT: {
-        route: 'workspaces/:policyID/accounting/quickbooks-online/export/out-of-pocket-expense/entity-select',
-        getRoute: (policyID: string, backTo?: string) =>
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            getUrlWithBackToParam(`workspaces/${policyID}/accounting/quickbooks-online/export/out-of-pocket-expense/entity-select` as const, backTo),
-    },
-    POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_DATE_SELECT: {
-        route: 'workspaces/:policyID/accounting/quickbooks-online/export/date-select',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/accounting/quickbooks-online/export/date-select` as const, backTo),
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT: {
         route: 'workspaces/:policyID/accounting/quickbooks-desktop/export/company-card-expense-account/account-select',
@@ -3644,30 +3664,6 @@ const ROUTES = {
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             getUrlWithBackToParam(`workspaces/${policyID}/connections/netsuite/export/expenses/${expenseType as string}/destination/select` as const, backTo),
     },
-    POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_VENDOR_SELECT: {
-        route: 'workspaces/:policyID/connections/netsuite/export/expenses/:expenseType/vendor/select',
-        getRoute: (policyID: string, expenseType: ValueOf<typeof CONST.NETSUITE_EXPENSE_TYPE>, backTo?: string) =>
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            getUrlWithBackToParam(`workspaces/${policyID}/connections/netsuite/export/expenses/${expenseType as string}/vendor/select` as const, backTo),
-    },
-    POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_PAYABLE_ACCOUNT_SELECT: {
-        route: 'workspaces/:policyID/connections/netsuite/export/expenses/:expenseType/payable-account/select',
-        getRoute: (policyID: string, expenseType: ValueOf<typeof CONST.NETSUITE_EXPENSE_TYPE>, backTo?: string) =>
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            getUrlWithBackToParam(`workspaces/${policyID}/connections/netsuite/export/expenses/${expenseType as string}/payable-account/select` as const, backTo),
-    },
-    POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_JOURNAL_POSTING_PREFERENCE_SELECT: {
-        route: 'workspaces/:policyID/connections/netsuite/export/expenses/:expenseType/journal-posting-preference/select',
-        getRoute: (policyID: string, expenseType: ValueOf<typeof CONST.NETSUITE_EXPENSE_TYPE>, backTo?: string) =>
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            getUrlWithBackToParam(`workspaces/${policyID}/connections/netsuite/export/expenses/${expenseType as string}/journal-posting-preference/select` as const, backTo),
-    },
-    POLICY_ACCOUNTING_NETSUITE_RECEIVABLE_ACCOUNT_SELECT: {
-        route: 'workspaces/:policyID/connections/netsuite/export/receivable-account/select',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/connections/netsuite/export/receivable-account/select` as const, backTo),
-    },
     POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT: {
         route: 'workspaces/:policyID/connections/netsuite/export/invoice-item-preference/select',
         getRoute: (policyID: string | undefined, backTo?: string) => {
@@ -3846,24 +3842,6 @@ const ROUTES = {
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/accounting/sage-intacct/export/reimbursable/destination` as const, backTo),
-    },
-    POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_DESTINATION: {
-        route: 'workspaces/:policyID/accounting/sage-intacct/export/nonreimbursable/destination',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/accounting/sage-intacct/export/nonreimbursable/destination` as const, backTo),
-    },
-    POLICY_ACCOUNTING_SAGE_INTACCT_DEFAULT_VENDOR: {
-        route: 'workspaces/:policyID/accounting/sage-intacct/export/:reimbursable/default-vendor',
-        getRoute: (policyID: string, reimbursable: string, backTo?: string) =>
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            getUrlWithBackToParam(`workspaces/${policyID}/accounting/sage-intacct/export/${reimbursable}/default-vendor` as const, backTo),
-    },
-    POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_CREDIT_CARD_ACCOUNT: {
-        route: 'workspaces/:policyID/accounting/sage-intacct/export/nonreimbursable/credit-card-account',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/accounting/sage-intacct/export/nonreimbursable/credit-card-account` as const, backTo),
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_ADVANCED: {
         route: 'workspaces/:policyID/accounting/sage-intacct/advanced',

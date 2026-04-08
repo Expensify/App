@@ -61,7 +61,8 @@ import ViolationsUtils, {filterReceiptViolations} from '@libs/Violations/Violati
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
 import {clearAllRelatedReportActionErrors} from '@userActions/ClearReportActionErrors';
-import {cleanUpMoneyRequest, replaceReceipt} from '@userActions/IOU';
+import {cleanUpMoneyRequest} from '@userActions/IOU';
+import {replaceReceipt} from '@userActions/IOU/Receipt';
 import {addAttachmentWithComment, navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 import {clearError, getLastModifiedExpense, revert} from '@userActions/Transaction';
 import CONST from '@src/CONST';
@@ -260,18 +261,17 @@ function MoneyRequestReceiptView({
             if (isReceiptFieldViolation || isReceiptImageViolation || isRTERViolation) {
                 const cardID = violation.data?.cardID;
                 const card = cardID ? cardList?.[cardID] : undefined;
-                const violationMessage = ViolationsUtils.getViolationTranslation(
+                const violationMessage = ViolationsUtils.getViolationTranslation({
                     violation,
                     translate,
                     canEdit,
-                    undefined,
                     companyCardPageURL,
                     connectionLink,
                     card,
                     isMarkAsCash,
                     routeDistanceMeters,
                     distanceUnit,
-                );
+                });
                 allViolations.push(violationMessage);
                 if (isReceiptImageViolation || isRTERViolation) {
                     imageViolations.push(violationMessage);

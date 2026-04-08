@@ -1,4 +1,3 @@
-import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
@@ -6,20 +5,18 @@ import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateManyPolicyConnectionConfigs} from '@libs/actions/connections';
 import {getLatestErrorField} from '@libs/ErrorUtils';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import {clearQBOErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Account, QBOReimbursableExportAccountType} from '@src/types/onyx/Policy';
 
@@ -37,12 +34,14 @@ function Footer({isTaxEnabled}: {isTaxEnabled: boolean}) {
         </View>
     );
 }
+
 type MenuItem = ListItem & {
     value: QBOReimbursableExportAccountType;
     isShown: boolean;
     accounts: Account[];
 };
-function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnectionsProps) {
+
+function DynamicQuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
@@ -51,15 +50,14 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
     const shouldShowTaxError = isTaxesEnabled && qboConfig?.reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY;
     const hasErrors = !!qboConfig?.errorFields?.reimbursableExpensesExportDestination && shouldShowTaxError;
     const policyID = policy?.id;
-    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT>>();
-    const backTo = route.params?.backTo;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT.path);
     const [selectedExportDestinationError, setSelectedExportDestinationError] = useState<Errors | null>(null);
 
     const data: MenuItem[] = useMemo(
         () => [
             {
                 value: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK,
-                text: translate(`workspace.qbo.accounts.check`),
+                text: translate('workspace.qbo.accounts.check'),
                 keyForList: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK,
                 isSelected: qboConfig?.reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK,
                 isShown: qboConfig?.syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
@@ -67,7 +65,7 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
             },
             {
                 value: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY,
-                text: translate(`workspace.qbo.accounts.journal_entry`),
+                text: translate('workspace.qbo.accounts.journal_entry'),
                 keyForList: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY,
                 isSelected: qboConfig?.reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY,
                 isShown: !isTaxesEnabled,
@@ -75,7 +73,7 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
             },
             {
                 value: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
-                text: translate(`workspace.qbo.accounts.bill`),
+                text: translate('workspace.qbo.accounts.bill'),
                 keyForList: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
                 isSelected: qboConfig?.reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
                 isShown: qboConfig?.syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
@@ -86,9 +84,11 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
     );
 
     const filteredData = useMemo(() => data.filter((item) => item.isShown), [data]);
+
     const goBack = useCallback(() => {
-        Navigation.goBack(backTo ?? (policyID && ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES.getRoute(policyID)));
-    }, [policyID, backTo]);
+        Navigation.goBack(backPath);
+    }, [backPath]);
+
     const selectExportEntity = useCallback(
         (row: MenuItem) => {
             if (!row.accounts.at(0)) {
@@ -152,4 +152,4 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
     );
 }
 
-export default withPolicyConnections(QuickbooksOutOfPocketExpenseEntitySelectPage);
+export default withPolicyConnections(DynamicQuickbooksOutOfPocketExpenseEntitySelectPage);
