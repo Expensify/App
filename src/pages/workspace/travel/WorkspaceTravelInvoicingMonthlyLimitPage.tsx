@@ -1,14 +1,15 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import AmountForm from '@components/AmountForm';
-import ConfirmModal from '@components/ConfirmModal';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -37,8 +38,7 @@ function WorkspaceTravelInvoicingMonthlyLimitPage({route}: WorkspaceTravelInvoic
     const currentLimit = travelSettings?.monthlySpendLimitPerUser ?? 0;
     const defaultValue = convertToFrontendAmountAsString(currentLimit, CONST.DEFAULT_CURRENCY_DECIMALS);
     const {inputCallbackRef} = useAutoFocusInput();
-    const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
-    const [pendingLimit, setPendingLimit] = useState(0);
+    const {showConfirmModal} = useConfirmModal();
 
     const submitLimit = (newLimitInCents: number) => {
         updateTravelInvoicingMonthlyLimit(workspaceAccountID, newLimitInCents, currentLimit);
@@ -56,12 +56,19 @@ function WorkspaceTravelInvoicingMonthlyLimitPage({route}: WorkspaceTravelInvoic
         return errors;
     };
 
-    const handleSubmit = ({limit}: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TRAVEL_INVOICING_MONTHLY_LIMIT_FORM>) => {
+    const handleSubmit = async ({limit}: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_TRAVEL_INVOICING_MONTHLY_LIMIT_FORM>) => {
         const newLimitInCents = convertToBackendAmount(parseFloat(limit));
         if (newLimitInCents < currentLimit && currentLimit > 0) {
-            setPendingLimit(newLimitInCents);
-            setIsConfirmModalVisible(true);
-            return;
+            const result = await showConfirmModal({
+                title: translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.reduceLimitTitle'),
+                prompt: translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.reduceLimitWarning'),
+                confirmText: translate('common.confirm'),
+                cancelText: translate('common.cancel'),
+                danger: true,
+            });
+            if (result.action !== ModalActions.CONFIRM) {
+                return;
+            }
         }
         submitLimit(newLimitInCents);
     };
@@ -102,19 +109,6 @@ function WorkspaceTravelInvoicingMonthlyLimitPage({route}: WorkspaceTravelInvoic
                     </Text>
                 </View>
             </FormProvider>
-            <ConfirmModal
-                isVisible={isConfirmModalVisible}
-                title={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.reduceLimitTitle')}
-                prompt={translate('workspace.moreFeatures.travel.travelInvoicing.centralInvoicingSection.subsections.reduceLimitWarning')}
-                confirmText={translate('common.confirm')}
-                cancelText={translate('common.cancel')}
-                onConfirm={() => {
-                    setIsConfirmModalVisible(false);
-                    submitLimit(pendingLimit);
-                }}
-                onCancel={() => setIsConfirmModalVisible(false)}
-                danger
-            />
         </ScreenWrapper>
     );
 }
