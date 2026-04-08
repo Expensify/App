@@ -49,8 +49,8 @@ import {
     getTaxValue,
     hasMissingSmartscanFields,
     hasRoute as hasRouteUtil,
-    hasValidModifiedAmount,
     hasTaxRateWithMatchingValue,
+    hasValidModifiedAmount,
     isDistanceRequest as isDistanceRequestUtil,
     isGPSDistanceRequest as isGPSDistanceRequestUtil,
     isManualDistanceRequest as isManualDistanceRequestUtil,
@@ -290,9 +290,6 @@ function MoneyRequestConfirmationList({
     const isManualDistanceRequest = isManualDistanceRequestUtil(transaction);
     const isGPSDistanceRequest = isGPSDistanceRequestUtil(transaction);
 
-    // Use modifiedAmount when available (e.g. edited split scan expenses store the user-entered
-    // value there, not in amount). Avoid getAmount() here because it applies Math.abs() which
-    // would strip the negative sign needed for certain expense types.
     const iouAmount = hasValidModifiedAmount(transaction) ? Number(transaction?.modifiedAmount) : (transaction?.amount ?? 0);
     const iouComment = getDescription(transaction);
     const iouCurrencyCode = getCurrency(transaction);
