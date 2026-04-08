@@ -1,4 +1,4 @@
-import emojis, {localeEmojis} from '@assets/emojis';
+import emojis, {importEmojiLocale, localeEmojis} from '@assets/emojis';
 import type {Emoji, HeaderEmoji} from '@assets/emojis/types';
 import CONST from '@src/CONST';
 import {FULLY_SUPPORTED_LOCALES} from '@src/CONST/LOCALES';
@@ -124,7 +124,14 @@ const buildEmojisTrie = (locale: FullySupportedLocale) => {
     }
     // Don't build and cache the trie if locale emoji data hasn't been loaded yet,
     // otherwise we'd permanently cache a trie with only English fallback names.
-    if (locale !== CONST.LOCALES.DEFAULT && !localeEmojis[locale]) {
+    if (!localeEmojis[locale]) {
+        startSpan(CONST.TELEMETRY.SPAN_LOCALE.EMOJI_IMPORT, {
+            name: CONST.TELEMETRY.SPAN_LOCALE.EMOJI_IMPORT,
+            op: CONST.TELEMETRY.SPAN_LOCALE.EMOJI_IMPORT,
+        });
+        importEmojiLocale(locale).then(() => {
+            endSpan(CONST.TELEMETRY.SPAN_LOCALE.EMOJI_IMPORT);
+        });
         return;
     }
     startSpan(CONST.TELEMETRY.SPAN_LOCALE.EMOJI_TRIE_BUILD, {
