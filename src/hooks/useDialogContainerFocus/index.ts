@@ -31,7 +31,7 @@ function focusFirstInteractiveElement(container: HTMLElement | null): CleanupFn 
         return undefined;
     }
     const targets = container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
-    const target = Array.from(targets).find((el) => !el.closest('[aria-hidden="true"]'));
+    const target = Array.from(targets).find((el) => !el.closest('[aria-hidden="true"]') && !el.matches(':disabled') && el.getAttribute('aria-disabled') !== 'true');
     if (!target) {
         return undefined;
     }

@@ -266,6 +266,33 @@ describe('focusFirstInteractiveElement', () => {
             expect(skipSpy).not.toHaveBeenCalled();
             expect(buttonSpy).toHaveBeenCalled();
         });
+
+        it('skips disabled elements', () => {
+            const disabledButton = document.createElement('button');
+            disabledButton.disabled = true;
+            const enabledButton = document.createElement('button');
+            enabledButton.setAttribute('aria-label', 'Enabled');
+            const container = createContainer(disabledButton, enabledButton);
+            const disabledSpy = jest.spyOn(disabledButton, 'focus');
+            const enabledSpy = jest.spyOn(enabledButton, 'focus');
+
+            focusFirstInteractiveElement(container);
+            expect(disabledSpy).not.toHaveBeenCalled();
+            expect(enabledSpy).toHaveBeenCalled();
+        });
+
+        it('skips elements with aria-disabled="true"', () => {
+            const ariaDisabledButton = document.createElement('button');
+            ariaDisabledButton.setAttribute('aria-disabled', 'true');
+            const enabledButton = document.createElement('button');
+            const container = createContainer(ariaDisabledButton, enabledButton);
+            const disabledSpy = jest.spyOn(ariaDisabledButton, 'focus');
+            const enabledSpy = jest.spyOn(enabledButton, 'focus');
+
+            focusFirstInteractiveElement(container);
+            expect(disabledSpy).not.toHaveBeenCalled();
+            expect(enabledSpy).toHaveBeenCalled();
+        });
     });
 
     describe('after keyboard interaction (hadKeyboardEvent = true)', () => {
