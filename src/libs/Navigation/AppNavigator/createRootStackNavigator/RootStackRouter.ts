@@ -100,14 +100,6 @@ function handleNavigationGuards(
             return null;
         }
 
-        const redirectTarget = redirectState.routes.at(-1);
-        const focusedRoute = state.routes[state.index];
-
-        // If the redirect target is already the focused route, skip the redirect to avoid duplicating it.
-        if (redirectTarget && focusedRoute && redirectTarget.name === focusedRoute.name) {
-            return state;
-        }
-
         const isModalRedirect = redirectState.routes.some((route) => isModalGuardRedirectTarget(route.name));
 
         let resetRoutes: typeof redirectState.routes = redirectState.routes;
