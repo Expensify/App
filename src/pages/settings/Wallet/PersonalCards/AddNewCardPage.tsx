@@ -73,14 +73,16 @@ function AddPersonalNewCardPage() {
                             confirmText: translate('workspace.companyCards.addNewCard.exitModal.confirmText'),
                             cancelText: translate('workspace.companyCards.addNewCard.exitModal.cancelText'),
                             prompt: translate('workspace.companyCards.addNewCard.exitModal.prompt'),
-                        }).then((result) => {
-                            if (result.action !== ModalActions.CONFIRM) {
+                        })
+                            .then((result) => {
+                                if (result.action !== ModalActions.CONFIRM) {
+                                    return;
+                                }
+                                navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, false, betas);
+                            })
+                            .finally(() => {
                                 setIsModalVisible(false);
-                                return;
-                            }
-                            setIsModalVisible(false);
-                            navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, false, betas);
-                        });
+                            });
                     }}
                 />
             );
