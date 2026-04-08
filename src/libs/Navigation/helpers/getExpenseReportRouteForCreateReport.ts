@@ -1,3 +1,5 @@
+import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 
@@ -45,12 +47,13 @@ function getSearchSourceRoute(createReportSourceRoute?: string) {
     return ROUTES.SEARCH_ROOT.route;
 }
 
-function getExpenseReportRouteForCreateReport({
-    reportID,
-    createReportOrigin = 'default',
-    createReportSourceRoute,
-    shouldUseNarrowLayout = false,
-}: GetExpenseReportRouteForCreateReportParams): Route {
+function getReportsRootRoute() {
+    return ROUTES.SEARCH_ROOT.getRoute({
+        query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}),
+    });
+}
+
+function getExpenseReportRouteForCreateReport({reportID, createReportOrigin = 'default', createReportSourceRoute}: GetExpenseReportRouteForCreateReportParams): Route {
     if (createReportOrigin === 'search') {
         return ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({
             reportID,
@@ -59,7 +62,10 @@ function getExpenseReportRouteForCreateReport({
     }
 
     if (createReportOrigin === 'home') {
-        return shouldUseNarrowLayout ? ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, undefined, ROUTES.HOME) : ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID, backTo: ROUTES.HOME});
+        return ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({
+            reportID,
+            backTo: getReportsRootRoute(),
+        });
     }
 
     return ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, undefined, createReportSourceRoute);

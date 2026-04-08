@@ -172,6 +172,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
         onCancel: () => {
             setPendingPolicySelection(null);
         },
+        shouldHandleNavigationBack: false,
     });
 
     // Open the confirmation modal after pendingPolicySelection is committed so the hook has the correct policyName
