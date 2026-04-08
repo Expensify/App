@@ -48,8 +48,6 @@ Onyx.registerLogger(({level, message, parameters}) => {
     }
 });
 
-const perfStartupStart = performance.now();
-
 function Expensify() {
     const appStateChangeListener = useRef<NativeEventSubscription | null>(null);
     const [isNavigationReady, setIsNavigationReady] = useState(false);
@@ -202,7 +200,6 @@ function Expensify() {
     }, []);
 
     const onSplashHide = useCallback(() => {
-        console.log(`[PERF-STARTUP] splashHidden (STARTUP COMPLETE): ${Math.round(performance.now() - perfStartupStart)}ms total`);
         setSplashScreenState(CONST.BOOT_SPLASH_STATE.HIDDEN);
         endSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION);
         endSpan(CONST.TELEMETRY.SPAN_APP_STARTUP);
