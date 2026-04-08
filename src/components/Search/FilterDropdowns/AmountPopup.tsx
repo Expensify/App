@@ -69,7 +69,7 @@ function AmountPopup({filterKey, label, value, closeOverlay, updateFilterForm}: 
     const modifierConfig = [CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO, CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN, CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN];
 
     const formatAmount = (amount: string | undefined) => {
-        return amount ? convertToFrontendAmountAsString(Number(amount)) : '';
+        return amount ? convertToFrontendAmountAsString(Number(amount), CONST.DEFAULT_CURRENCY_DECIMALS) : '';
     };
 
     if (selectedModifier) {
