@@ -1,21 +1,29 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 // we need "dirty" object key names in these tests
 import type {OnyxCollection} from 'react-native-onyx';
+import type {ASTNode} from '@components/Search/types';
 import {generatePolicyID} from '@libs/actions/Policy/Policy';
 // eslint-disable-next-line no-restricted-syntax
 import type * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
+import DateUtils from '@src/libs/DateUtils';
 import {
+    applyContainsOperatorToTextFields,
     buildFilterFormValuesFromQuery,
     buildFilterQueryWithSortDefaults,
     buildQueryStringFromFilterFormValues,
     buildSearchQueryJSON,
     buildSearchQueryString,
     buildUserReadableQueryString,
+    getDateRangeDisplayValueFromFormValue,
+    getDisplayQueryFiltersForKey,
     getFilterDisplayValue,
     getQueryWithUpdatedValues,
+    getRangeBoundariesFromFormValue,
+    serializeQueryJSONForBackend,
     shouldHighlight,
     shouldResetSort,
+    shouldResetSortForViewChange,
     sortOptionsWithEmptyValue,
 } from '@src/libs/SearchQueryUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -56,6 +64,41 @@ jest.mock('@libs/PersonalDetailsUtils', () => {
 const defaultQuery = `type:expense sortBy:date sortOrder:desc`;
 
 describe('SearchQueryUtils', () => {
+    describe('getDateRangeDisplayValueFromFormValue', () => {
+        test('returns full range display when both boundaries exist', () => {
+            const result = getDateRangeDisplayValueFromFormValue('2025-03-01,2025-03-10');
+
+            expect(result).toBe(DateUtils.getFormattedDateRangeForSearch('2025-03-01', '2025-03-10', true));
+        });
+
+        test('returns single boundary display when only one boundary exists', () => {
+            const result = getDateRangeDisplayValueFromFormValue('2025-03-01');
+
+            expect(result).toBe(DateUtils.formatToReadableString('2025-03-01'));
+        });
+
+        test('falls back to inclusive boundaries when range value is invalid', () => {
+            const result = getDateRangeDisplayValueFromFormValue('invalid', '2025-03-01', '2025-03-10');
+
+            expect(result).toBe(DateUtils.getFormattedDateRangeForSearch('2025-03-02', '2025-03-09', true));
+        });
+
+        test('returns empty string when no valid range boundaries exist', () => {
+            const result = getDateRangeDisplayValueFromFormValue('invalid');
+
+            expect(result).toBe('');
+        });
+    });
+
+    describe('getRangeBoundariesFromFormValue', () => {
+        test('falls back to inclusive boundaries when range value is missing', () => {
+            expect(getRangeBoundariesFromFormValue(undefined, '2025-03-01', '2025-03-10')).toEqual({
+                from: '2025-03-02',
+                to: '2025-03-09',
+            });
+        });
+    });
+
     describe('getQueryWithUpdatedValues', () => {
         test('returns default query for empty value', () => {
             const userQuery = '';
@@ -246,6 +289,83 @@ describe('SearchQueryUtils', () => {
             expect(result).not.toMatch(CONST.VALIDATE_FOR_HTML_TAG_REGEX);
         });
 
+        test('serializes explicit date range with inclusive boundaries', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                dateRange: '2025-03-01,2025-03-10',
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+            expect(result).toContain('date>=2025-03-01');
+            expect(result).toContain('date<=2025-03-10');
+            expect(result).not.toContain('date>2025-03-01');
+            expect(result).not.toContain('date<2025-03-10');
+
+            const queryJSON = buildSearchQueryJSON(result);
+            const dateOperators = queryJSON?.flatFilters
+                .filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE)
+                .flatMap((filter) => filter.filters.map((dateFilter) => dateFilter.operator));
+            expect(dateOperators).toEqual(expect.arrayContaining([CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO]));
+        });
+
+        test('serializes explicit report field range with inclusive boundaries', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                'reportFieldRange-start-date': '2025-03-01,2025-03-10',
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+            expect(result).toContain('reportField-start-date>=2025-03-01');
+            expect(result).toContain('reportField-start-date<=2025-03-10');
+            expect(result).not.toContain('reportField-start-date>2025-03-01');
+            expect(result).not.toContain('reportField-start-date<2025-03-10');
+        });
+
+        test('serializes explicit range with only before boundary using leading comma', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                dateRange: ',2025-03-10',
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+            expect(result).toContain('date<=2025-03-10');
+
+            const queryJSON = buildSearchQueryJSON(result);
+            expect(queryJSON?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE)?.filters).toEqual([
+                {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, value: '2025-03-10'},
+            ]);
+        });
+
+        test('invalid range value keeps after and before filters exclusive', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                dateRange: 'invalid',
+                dateAfter: '2025-03-01',
+                dateBefore: '2025-03-10',
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+            expect(result).toContain('date>2025-03-01');
+            expect(result).toContain('date<2025-03-10');
+            expect(result).not.toContain('date>=2025-03-01');
+            expect(result).not.toContain('date<=2025-03-10');
+        });
+
+        test('invalid report field range value keeps after and before filters exclusive', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                'reportFieldRange-start-date': 'invalid',
+                'reportFieldAfter-start-date': '2025-03-01',
+                'reportFieldBefore-start-date': '2025-03-10',
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+            expect(result).toContain('reportField-start-date>2025-03-01');
+            expect(result).toContain('reportField-start-date<2025-03-10');
+            expect(result).not.toContain('reportField-start-date>=2025-03-01');
+            expect(result).not.toContain('reportField-start-date<=2025-03-10');
+        });
+
         test('total filter values', () => {
             const filterValues: Partial<SearchAdvancedFiltersForm> = {
                 type: 'expense',
@@ -305,12 +425,13 @@ describe('SearchQueryUtils', () => {
         });
 
         describe('limit option', () => {
-            test('includes limit in query string when provided', () => {
+            test('includes limit in query string when provided in form values', () => {
                 const filterValues: Partial<SearchAdvancedFiltersForm> = {
                     type: 'expense',
+                    limit: '10',
                 };
 
-                const result = buildQueryStringFromFilterFormValues(filterValues, {limit: 10});
+                const result = buildQueryStringFromFilterFormValues(filterValues);
 
                 expect(result).toEqual('type:expense limit:10');
             });
@@ -319,9 +440,10 @@ describe('SearchQueryUtils', () => {
                 const filterValues: Partial<SearchAdvancedFiltersForm> = {
                     type: 'expense',
                     merchant: 'Amazon',
+                    limit: '25',
                 };
 
-                const result = buildQueryStringFromFilterFormValues(filterValues, {sortBy: 'amount', sortOrder: 'asc', limit: 25});
+                const result = buildQueryStringFromFilterFormValues(filterValues, {sortBy: 'amount', sortOrder: 'asc'});
 
                 expect(result).toEqual('sortBy:amount sortOrder:asc type:expense merchant:Amazon limit:25');
             });
@@ -342,12 +464,12 @@ describe('SearchQueryUtils', () => {
                     limit: '',
                 };
 
-                const result = buildQueryStringFromFilterFormValues(filterValues, {limit: 10});
+                const result = buildQueryStringFromFilterFormValues(filterValues);
 
                 expect(result).not.toContain('limit:');
             });
 
-            test('quotes limit value containing spaces to prevent keyword contamination', () => {
+            test('non-integer limit value is discarded to prevent keyword contamination', () => {
                 const filterValues: Partial<SearchAdvancedFiltersForm> = {
                     type: 'expense',
                     keyword: 'hi',
@@ -356,27 +478,77 @@ describe('SearchQueryUtils', () => {
 
                 const result = buildQueryStringFromFilterFormValues(filterValues);
 
-                expect(result).toContain('limit:"10 90"');
-                expect(result).toEqual('type:expense hi limit:"10 90"');
+                // "10 90" is not a valid positive integer, so limit is dropped entirely
+                expect(result).not.toContain('limit');
+                expect(result).toEqual('type:expense hi');
             });
 
-            test('limit value with spaces does not leak into keyword when round-tripped through parser', () => {
+            test('non-numeric limit value (JSON-like) is discarded to prevent keyword contamination', () => {
                 const filterValues: Partial<SearchAdvancedFiltersForm> = {
                     type: 'expense',
                     keyword: 'hi',
-                    limit: '10 90',
+                    limit: '{ "keyword": "hi", "limit": 10 }',
                 };
 
-                const queryString = buildQueryStringFromFilterFormValues(filterValues);
-                const queryJSON = buildSearchQueryJSON(queryString);
+                const result = buildQueryStringFromFilterFormValues(filterValues);
 
-                // "10 90" is not a valid integer, so limit is normalized to undefined
+                // JSON-like string is not a valid positive integer, so limit is dropped
+                expect(result).not.toContain('limit');
+                expect(result).toEqual('type:expense hi');
+
+                // Round-trip: keyword must NOT be contaminated
+                const queryJSON = buildSearchQueryJSON(result);
                 expect(queryJSON?.limit).toBeUndefined();
-
-                // The keyword must NOT be contaminated with "90" from the limit value
                 const keywordFilter = queryJSON?.flatFilters.find((filter) => filter.key === 'keyword');
                 expect(keywordFilter?.filters).toHaveLength(1);
                 expect(keywordFilter?.filters.at(0)?.value).toBe('hi');
+            });
+
+            test('valid integer limit is included in query string', () => {
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: 'expense',
+                    limit: '25',
+                };
+
+                const result = buildQueryStringFromFilterFormValues(filterValues);
+                expect(result).toContain('limit:25');
+            });
+
+            test('valid limit round-trips through parser without keyword contamination', () => {
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: 'expense',
+                    keyword: 'hello',
+                    limit: '50',
+                };
+
+                const queryString = buildQueryStringFromFilterFormValues(filterValues);
+                expect(queryString).toEqual('type:expense hello limit:50');
+
+                const queryJSON = buildSearchQueryJSON(queryString);
+                expect(queryJSON?.limit).toBe(50);
+
+                const keywordFilter = queryJSON?.flatFilters.find((filter) => filter.key === 'keyword');
+                expect(keywordFilter?.filters).toHaveLength(1);
+                expect(keywordFilter?.filters.at(0)?.value).toBe('hello');
+            });
+
+            test('limit only comes from form values, not options', () => {
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: 'expense',
+                    limit: '30',
+                };
+
+                const result = buildQueryStringFromFilterFormValues(filterValues);
+                expect(result).toContain('limit:30');
+            });
+
+            test('omits limit when form has no limit key (reset filters scenario)', () => {
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: 'expense',
+                };
+
+                const result = buildQueryStringFromFilterFormValues(filterValues, {sortBy: 'date', sortOrder: 'desc'});
+                expect(result).not.toContain('limit');
             });
         });
 
@@ -773,6 +945,90 @@ describe('SearchQueryUtils', () => {
             });
         });
 
+        test('hydrates explicit date range flag from inclusive range boundaries', () => {
+            const policyCategories = {};
+            const policyTags = {};
+            const currencyList = {};
+            const personalDetails = {};
+            const cardList = {};
+            const reports = {};
+            const taxRates = {};
+            const queryString = 'sortBy:date sortOrder:desc type:expense date>=2025-03-01 date<=2025-03-10';
+            const queryJSON = buildSearchQueryJSON(queryString);
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
+
+            expect(result.dateAfter).toBeUndefined();
+            expect(result.dateBefore).toBeUndefined();
+            expect(result.dateRange).toBe('2025-03-01,2025-03-10');
+        });
+
+        test('does not set explicit date range flag when only date boundaries are provided', () => {
+            const policyCategories = {};
+            const policyTags = {};
+            const currencyList = {};
+            const personalDetails = {};
+            const cardList = {};
+            const reports = {};
+            const taxRates = {};
+            const queryString = 'sortBy:date sortOrder:desc type:expense date>2025-03-01 date<2025-03-10';
+            const queryJSON = buildSearchQueryJSON(queryString);
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
+
+            expect(result.dateRange).toBeUndefined();
+        });
+
+        test('hydrates explicit report field range flag from inclusive range boundaries', () => {
+            const policyCategories = {};
+            const policyTags = {};
+            const currencyList = {};
+            const personalDetails = {};
+            const cardList = {};
+            const reports = {};
+            const taxRates = {};
+            const queryString = 'sortBy:date sortOrder:desc type:expense reportField-start-date>=2025-03-01 reportField-start-date<=2025-03-10';
+            const queryJSON = buildSearchQueryJSON(queryString);
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
+
+            expect(result['reportFieldAfter-start-date']).toBeUndefined();
+            expect(result['reportFieldBefore-start-date']).toBeUndefined();
+            expect(result['reportFieldRange-start-date']).toBe('2025-03-01,2025-03-10');
+        });
+
+        test('does not set explicit report field range flag when only date boundaries are provided', () => {
+            const policyCategories = {};
+            const policyTags = {};
+            const currencyList = {};
+            const personalDetails = {};
+            const cardList = {};
+            const reports = {};
+            const taxRates = {};
+            const queryString = 'sortBy:date sortOrder:desc type:expense reportField-start-date>2025-03-01 reportField-start-date<2025-03-10';
+            const queryJSON = buildSearchQueryJSON(queryString);
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates);
+
+            expect(result['reportFieldRange-start-date']).toBeUndefined();
+        });
+
         describe('view parameter', () => {
             const emptyParams = {
                 policyCategories: {},
@@ -1026,6 +1282,37 @@ describe('SearchQueryUtils', () => {
             expect(queryJSONa?.similarSearchHash).not.toEqual(queryJSONb?.similarSearchHash);
         });
 
+        it('should return different primary hash for queries with different explicit views but the same similarSearchHash', () => {
+            const queryJSONa = buildSearchQueryJSON('type:expense groupBy:category view:pie');
+            const queryJSONb = buildSearchQueryJSON('type:expense groupBy:category view:bar');
+
+            expect(queryJSONa?.similarSearchHash).toEqual(queryJSONb?.similarSearchHash);
+            expect(queryJSONa?.hash).not.toEqual(queryJSONb?.hash);
+        });
+
+        it('should return different primary hash for implicit table view and explicit view:table', () => {
+            const queryJSONa = buildSearchQueryJSON('type:expense groupBy:category');
+            const queryJSONb = buildSearchQueryJSON('type:expense groupBy:category view:table', 'type:expense groupBy:category view:table');
+
+            expect(queryJSONa?.similarSearchHash).toEqual(queryJSONb?.similarSearchHash);
+            expect(queryJSONa?.hash).not.toEqual(queryJSONb?.hash);
+        });
+
+        it('should not include view in query string when groupBy is removed after chart drill-down', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense date:this-month groupBy:category view:bar');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            queryJSON.groupBy = undefined;
+            queryJSON.view = CONST.SEARCH.VIEW.TABLE;
+
+            const result = buildSearchQueryString(queryJSON);
+
+            expect(result).not.toContain('view:');
+        });
+
         describe('limit filter hashing', () => {
             it('should return same similarSearchHash for queries with different limit values', () => {
                 const queryJSONa = buildSearchQueryJSON('type:expense limit:10');
@@ -1179,17 +1466,17 @@ describe('SearchQueryUtils', () => {
                 },
             };
 
-            const result = getFilterDisplayValue(
-                CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-                '99999',
+            const result = getFilterDisplayValue({
+                filterName: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                filterValue: '99999',
                 personalDetails,
-                mockReports,
-                mockCardList,
-                mockCardFeeds,
-                mockPolicies,
+                reports: mockReports,
+                cardList: mockCardList,
+                cardFeeds: mockCardFeeds,
+                policies: mockPolicies,
                 currentUserAccountID,
-                translateLocal,
-            );
+                translate: translateLocal,
+            });
 
             expect(result).toBe('+15551234567');
             expect(result).not.toContain('@expensify.sms');
@@ -1204,17 +1491,17 @@ describe('SearchQueryUtils', () => {
                 },
             };
 
-            const result = getFilterDisplayValue(
-                CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-                '78901',
+            const result = getFilterDisplayValue({
+                filterName: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                filterValue: '78901',
                 personalDetails,
-                mockReports,
-                mockCardList,
-                mockCardFeeds,
-                mockPolicies,
+                reports: mockReports,
+                cardList: mockCardList,
+                cardFeeds: mockCardFeeds,
+                policies: mockPolicies,
                 currentUserAccountID,
-                translateLocal,
-            );
+                translate: translateLocal,
+            });
 
             expect(result).toBe('Jane Doe');
         });
@@ -1228,17 +1515,17 @@ describe('SearchQueryUtils', () => {
                 },
             };
 
-            const result = getFilterDisplayValue(
-                CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-                '12345',
+            const result = getFilterDisplayValue({
+                filterName: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                filterValue: '12345',
                 personalDetails,
-                mockReports,
-                mockCardList,
-                mockCardFeeds,
-                mockPolicies,
+                reports: mockReports,
+                cardList: mockCardList,
+                cardFeeds: mockCardFeeds,
+                policies: mockPolicies,
                 currentUserAccountID,
-                translateLocal,
-            );
+                translate: translateLocal,
+            });
 
             expect(result).toBe(CONST.SEARCH.ME);
         });
@@ -1246,17 +1533,17 @@ describe('SearchQueryUtils', () => {
         it('should return fallback value when personal details not found', () => {
             const personalDetails = {};
 
-            const result = getFilterDisplayValue(
-                CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-                '88888',
+            const result = getFilterDisplayValue({
+                filterName: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                filterValue: '88888',
                 personalDetails,
-                mockReports,
-                mockCardList,
-                mockCardFeeds,
-                mockPolicies,
+                reports: mockReports,
+                cardList: mockCardList,
+                cardFeeds: mockCardFeeds,
+                policies: mockPolicies,
                 currentUserAccountID,
-                translateLocal,
-            );
+                translate: translateLocal,
+            });
 
             expect(result).toBe('88888');
         });
@@ -1270,17 +1557,17 @@ describe('SearchQueryUtils', () => {
                 },
             };
 
-            const result = getFilterDisplayValue(
-                CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
-                '77777',
+            const result = getFilterDisplayValue({
+                filterName: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                filterValue: '77777',
                 personalDetails,
-                mockReports,
-                mockCardList,
-                mockCardFeeds,
-                mockPolicies,
+                reports: mockReports,
+                cardList: mockCardList,
+                cardFeeds: mockCardFeeds,
+                policies: mockPolicies,
                 currentUserAccountID,
-                translateLocal,
-            );
+                translate: translateLocal,
+            });
 
             expect(result).toBe('Custom Name');
             expect(result).not.toContain('@expensify.sms');
@@ -1295,17 +1582,17 @@ describe('SearchQueryUtils', () => {
                 },
             };
 
-            const result = getFilterDisplayValue(
-                CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
-                '66666',
+            const result = getFilterDisplayValue({
+                filterName: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
+                filterValue: '66666',
                 personalDetails,
-                mockReports,
-                mockCardList,
-                mockCardFeeds,
-                mockPolicies,
+                reports: mockReports,
+                cardList: mockCardList,
+                cardFeeds: mockCardFeeds,
+                policies: mockPolicies,
                 currentUserAccountID,
-                translateLocal,
-            );
+                translate: translateLocal,
+            });
 
             expect(result).toBe('+15551112222');
             expect(result).not.toContain('@expensify.sms');
@@ -1328,7 +1615,17 @@ describe('SearchQueryUtils', () => {
             ];
 
             for (const filterKey of filterKeys) {
-                const result = getFilterDisplayValue(filterKey, '55555', personalDetails, mockReports, mockCardList, mockCardFeeds, mockPolicies, currentUserAccountID, translateLocal);
+                const result = getFilterDisplayValue({
+                    filterName: filterKey,
+                    filterValue: '55555',
+                    personalDetails,
+                    reports: mockReports,
+                    cardList: mockCardList,
+                    cardFeeds: mockCardFeeds,
+                    policies: mockPolicies,
+                    currentUserAccountID,
+                    translate: translateLocal,
+                });
 
                 expect(result).toBe('+15553334444');
                 expect(result).not.toContain('@expensify.sms');
@@ -1370,7 +1667,7 @@ describe('SearchQueryUtils', () => {
         });
 
         test('includes view when explicitly set to table in rawFilterList', () => {
-            const queryJSON = buildSearchQueryJSON('type:expense view:table', 'type:expense view:table');
+            const queryJSON = buildSearchQueryJSON('type:expense groupBy:category view:table', 'type:expense groupBy:category view:table');
 
             const result = buildSearchQueryString(queryJSON);
 
@@ -1409,18 +1706,6 @@ describe('SearchQueryUtils', () => {
             expect(queryJSON?.sortOrder).toBe('asc');
         });
 
-        test('view change from table to bar derives correct sortBy and sortOrder', () => {
-            const result = buildFilterQueryWithSortDefaults(
-                {type: 'expense', groupBy: CONST.SEARCH.GROUP_BY.CATEGORY, view: CONST.SEARCH.VIEW.BAR},
-                {view: CONST.SEARCH.VIEW.TABLE},
-                {sortBy: 'date', sortOrder: 'desc'},
-            );
-            const queryJSON = buildSearchQueryJSON(result ?? '');
-
-            expect(queryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY);
-            expect(queryJSON?.sortOrder).toBe('asc');
-        });
-
         test('sortBy is reset to groupBy default on groupBy change even when previously set to a custom value', () => {
             const result = buildFilterQueryWithSortDefaults(
                 {type: 'expense', groupBy: CONST.SEARCH.GROUP_BY.WEEK, view: CONST.SEARCH.VIEW.BAR},
@@ -1432,29 +1717,7 @@ describe('SearchQueryUtils', () => {
             expect(queryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK);
         });
 
-        test('sortOrder is correctly derived when sortBy matches groupBy default (view change)', () => {
-            const result = buildFilterQueryWithSortDefaults(
-                {type: 'expense', groupBy: CONST.SEARCH.GROUP_BY.CATEGORY, view: CONST.SEARCH.VIEW.LINE},
-                {view: CONST.SEARCH.VIEW.BAR, groupBy: CONST.SEARCH.GROUP_BY.CATEGORY},
-                {sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY},
-            );
-            const queryJSON = buildSearchQueryJSON(result ?? '');
-
-            expect(queryJSON?.sortOrder).toBe('asc');
-            expect(queryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY);
-        });
-
-        test('result contains sortOrder in the query string (visible in URL)', () => {
-            const result = buildFilterQueryWithSortDefaults(
-                {type: 'expense', groupBy: CONST.SEARCH.GROUP_BY.CATEGORY, view: CONST.SEARCH.VIEW.LINE},
-                {view: CONST.SEARCH.VIEW.BAR, groupBy: CONST.SEARCH.GROUP_BY.CATEGORY},
-                {sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY},
-            );
-
-            expect(result).toContain('sortOrder:asc');
-        });
-
-        test('non-time groupBy gets desc even when sortBy is re-fed', () => {
+        test('non-time groupBy change gets desc sort order', () => {
             const result = buildFilterQueryWithSortDefaults(
                 {type: 'expense', groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID, view: CONST.SEARCH.VIEW.BAR},
                 {view: CONST.SEARCH.VIEW.BAR, groupBy: CONST.SEARCH.GROUP_BY.CATEGORY},
@@ -1466,40 +1729,170 @@ describe('SearchQueryUtils', () => {
             expect(queryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN);
         });
 
-        test('preserves sortOrder when view and groupBy do not change', () => {
+        test('preserves sort when groupBy does not change', () => {
             const result = buildFilterQueryWithSortDefaults(
                 {type: 'expense', groupBy: CONST.SEARCH.GROUP_BY.CATEGORY, view: CONST.SEARCH.VIEW.BAR},
                 {view: CONST.SEARCH.VIEW.BAR, groupBy: CONST.SEARCH.GROUP_BY.CATEGORY},
                 {sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY, sortOrder: 'desc'},
             );
 
+            expect(result).toContain('sortBy:groupCategory');
             expect(result).toContain('sortOrder:desc');
+        });
+
+        test('view switches between table and bar/pie preserve sort for non-time groupBy', () => {
+            // Bar → Table
+            let result = buildFilterQueryWithSortDefaults(
+                {type: 'expense', groupBy: CONST.SEARCH.GROUP_BY.CATEGORY, view: CONST.SEARCH.VIEW.TABLE},
+                {view: CONST.SEARCH.VIEW.BAR, groupBy: CONST.SEARCH.GROUP_BY.CATEGORY},
+                {sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL, sortOrder: CONST.SEARCH.SORT_ORDER.DESC},
+            );
+            expect(result).toContain('sortBy:groupTotal');
+            expect(result).toContain('sortOrder:desc');
+
+            // Table → Bar
+            result = buildFilterQueryWithSortDefaults(
+                {type: 'expense', groupBy: CONST.SEARCH.GROUP_BY.CATEGORY, view: CONST.SEARCH.VIEW.BAR},
+                {view: CONST.SEARCH.VIEW.TABLE, groupBy: CONST.SEARCH.GROUP_BY.CATEGORY},
+                {sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL, sortOrder: CONST.SEARCH.SORT_ORDER.DESC},
+            );
+            expect(result).toContain('sortBy:groupTotal');
+            expect(result).toContain('sortOrder:desc');
+        });
+
+        test('view switch to line with time-based groupBy resets sort for chronological display', () => {
+            // With default sortBy (groupMonth)
+            let result = buildFilterQueryWithSortDefaults(
+                {type: 'expense', groupBy: CONST.SEARCH.GROUP_BY.MONTH, view: CONST.SEARCH.VIEW.LINE},
+                {view: CONST.SEARCH.VIEW.TABLE, groupBy: CONST.SEARCH.GROUP_BY.MONTH},
+                {sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH, sortOrder: CONST.SEARCH.SORT_ORDER.DESC},
+            );
+            let queryJSON = buildSearchQueryJSON(result ?? '');
+            expect(queryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH);
+            expect(queryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.ASC);
+
+            // With custom sortBy (groupTotal) - should also reset to groupBy default
+            result = buildFilterQueryWithSortDefaults(
+                {type: 'expense', groupBy: CONST.SEARCH.GROUP_BY.MONTH, view: CONST.SEARCH.VIEW.LINE},
+                {view: CONST.SEARCH.VIEW.TABLE, groupBy: CONST.SEARCH.GROUP_BY.MONTH},
+                {sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL, sortOrder: CONST.SEARCH.SORT_ORDER.DESC},
+            );
+            queryJSON = buildSearchQueryJSON(result ?? '');
+            expect(queryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH);
+            expect(queryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.ASC);
+        });
+
+        test('view switch to bar with time-based groupBy preserves sort', () => {
+            // Bar charts can display data in any order (e.g., top spending months first)
+            // With default sortBy
+            let result = buildFilterQueryWithSortDefaults(
+                {type: 'expense', groupBy: CONST.SEARCH.GROUP_BY.WEEK, view: CONST.SEARCH.VIEW.BAR},
+                {view: CONST.SEARCH.VIEW.TABLE, groupBy: CONST.SEARCH.GROUP_BY.WEEK},
+                {sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK, sortOrder: CONST.SEARCH.SORT_ORDER.DESC},
+            );
+            expect(result).toContain('sortBy:groupweek');
+            expect(result).toContain('sortOrder:desc');
+
+            // With custom sortBy (groupTotal)
+            result = buildFilterQueryWithSortDefaults(
+                {type: 'expense', groupBy: CONST.SEARCH.GROUP_BY.WEEK, view: CONST.SEARCH.VIEW.BAR},
+                {view: CONST.SEARCH.VIEW.TABLE, groupBy: CONST.SEARCH.GROUP_BY.WEEK},
+                {sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL, sortOrder: CONST.SEARCH.SORT_ORDER.DESC},
+            );
+            expect(result).toContain('sortBy:groupTotal');
+            expect(result).toContain('sortOrder:desc');
+        });
+
+        test('view switch from bar to line with time-based groupBy resets sort', () => {
+            // Switching from bar (any order) to line (needs chronological)
+            const result = buildFilterQueryWithSortDefaults(
+                {type: 'expense', groupBy: CONST.SEARCH.GROUP_BY.MONTH, view: CONST.SEARCH.VIEW.LINE},
+                {view: CONST.SEARCH.VIEW.BAR, groupBy: CONST.SEARCH.GROUP_BY.MONTH},
+                {sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL, sortOrder: CONST.SEARCH.SORT_ORDER.DESC},
+            );
+            const queryJSON = buildSearchQueryJSON(result ?? '');
+            expect(queryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH);
+            expect(queryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.ASC);
+        });
+
+        test('view switch from bar/pie to table with time-based groupBy resets to table default', () => {
+            // Table → Line → Bar → Table flow: table should get its default desc back
+            // This ensures sort doesn't get "stuck" on asc after visiting line view
+            let result = buildFilterQueryWithSortDefaults(
+                {type: 'expense', groupBy: CONST.SEARCH.GROUP_BY.MONTH, view: CONST.SEARCH.VIEW.TABLE},
+                {view: CONST.SEARCH.VIEW.BAR, groupBy: CONST.SEARCH.GROUP_BY.MONTH},
+                {sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH, sortOrder: CONST.SEARCH.SORT_ORDER.ASC},
+            );
+            let queryJSON = buildSearchQueryJSON(result ?? '');
+            expect(queryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH);
+            expect(queryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.DESC);
+
+            // Also test pie → table
+            result = buildFilterQueryWithSortDefaults(
+                {type: 'expense', groupBy: CONST.SEARCH.GROUP_BY.WEEK, view: CONST.SEARCH.VIEW.TABLE},
+                {view: CONST.SEARCH.VIEW.PIE, groupBy: CONST.SEARCH.GROUP_BY.WEEK},
+                {sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK, sortOrder: CONST.SEARCH.SORT_ORDER.ASC},
+            );
+            queryJSON = buildSearchQueryJSON(result ?? '');
+            expect(queryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK);
+            expect(queryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.DESC);
         });
     });
 
     describe('shouldResetSort', () => {
-        test('returns true when view changes', () => {
-            expect(shouldResetSort({newView: 'line', oldView: 'table', newGroupBy: undefined, oldGroupBy: undefined})).toBe(true);
-        });
-
         test('returns true when groupBy changes', () => {
-            expect(shouldResetSort({newView: 'table', oldView: 'table', newGroupBy: 'week', oldGroupBy: 'month'})).toBe(true);
+            expect(shouldResetSort({newGroupBy: 'week', oldGroupBy: 'month'})).toBe(true);
         });
 
-        test('returns false when view and groupBy stay the same', () => {
-            expect(shouldResetSort({newView: 'table', oldView: 'table', newGroupBy: 'category', oldGroupBy: 'category'})).toBe(false);
+        test('returns false when groupBy stays the same', () => {
+            expect(shouldResetSort({newGroupBy: 'category', oldGroupBy: 'category'})).toBe(false);
         });
 
-        test('returns false when both views are undefined and groupBy does not change', () => {
-            expect(shouldResetSort({newView: undefined, oldView: undefined, newGroupBy: undefined, oldGroupBy: undefined})).toBe(false);
+        test('returns false when both groupBys are undefined', () => {
+            expect(shouldResetSort({newGroupBy: undefined, oldGroupBy: undefined})).toBe(false);
         });
 
-        test('returns true when both views are undefined and groupBy changes', () => {
-            expect(shouldResetSort({newView: undefined, oldView: undefined, newGroupBy: 'week', oldGroupBy: 'month'})).toBe(true);
+        test('returns true when groupBy is added', () => {
+            expect(shouldResetSort({newGroupBy: 'week', oldGroupBy: undefined})).toBe(true);
         });
 
-        test('returns false when form has undefined view and URL has table (parser default) with no groupBy change', () => {
-            expect(shouldResetSort({newView: undefined, oldView: 'table', newGroupBy: undefined, oldGroupBy: undefined})).toBe(false);
+        test('returns true when groupBy is removed', () => {
+            expect(shouldResetSort({newGroupBy: undefined, oldGroupBy: 'month'})).toBe(true);
+        });
+    });
+
+    describe('shouldResetSortForViewChange', () => {
+        test('returns true for line view transitions with time-based groupBy', () => {
+            // Line charts need chronological order - reset when entering or leaving line view
+            expect(shouldResetSortForViewChange({newView: CONST.SEARCH.VIEW.LINE, oldView: CONST.SEARCH.VIEW.TABLE, groupBy: CONST.SEARCH.GROUP_BY.MONTH})).toBe(true);
+            expect(shouldResetSortForViewChange({newView: CONST.SEARCH.VIEW.LINE, oldView: CONST.SEARCH.VIEW.BAR, groupBy: CONST.SEARCH.GROUP_BY.WEEK})).toBe(true);
+            expect(shouldResetSortForViewChange({newView: CONST.SEARCH.VIEW.TABLE, oldView: CONST.SEARCH.VIEW.LINE, groupBy: CONST.SEARCH.GROUP_BY.WEEK})).toBe(true);
+        });
+
+        test('returns false when switching TO bar/pie with time-based groupBy', () => {
+            // Bar and pie charts can display data in any order - preserve sort when entering
+            expect(shouldResetSortForViewChange({newView: CONST.SEARCH.VIEW.BAR, oldView: CONST.SEARCH.VIEW.TABLE, groupBy: CONST.SEARCH.GROUP_BY.WEEK})).toBe(false);
+            expect(shouldResetSortForViewChange({newView: CONST.SEARCH.VIEW.PIE, oldView: CONST.SEARCH.VIEW.TABLE, groupBy: CONST.SEARCH.GROUP_BY.YEAR})).toBe(false);
+        });
+
+        test('returns true when switching FROM bar/pie TO table with time-based groupBy', () => {
+            // Table needs its default desc sort - reset when entering from bar/pie
+            expect(shouldResetSortForViewChange({newView: CONST.SEARCH.VIEW.TABLE, oldView: CONST.SEARCH.VIEW.BAR, groupBy: CONST.SEARCH.GROUP_BY.MONTH})).toBe(true);
+            expect(shouldResetSortForViewChange({newView: CONST.SEARCH.VIEW.TABLE, oldView: CONST.SEARCH.VIEW.PIE, groupBy: CONST.SEARCH.GROUP_BY.YEAR})).toBe(true);
+        });
+
+        test('returns false when view does not change', () => {
+            expect(shouldResetSortForViewChange({newView: CONST.SEARCH.VIEW.BAR, oldView: CONST.SEARCH.VIEW.BAR, groupBy: CONST.SEARCH.GROUP_BY.MONTH})).toBe(false);
+            expect(shouldResetSortForViewChange({newView: CONST.SEARCH.VIEW.LINE, oldView: CONST.SEARCH.VIEW.LINE, groupBy: CONST.SEARCH.GROUP_BY.MONTH})).toBe(false);
+        });
+
+        test('returns false for non-time groupBy even when switching to line view', () => {
+            expect(shouldResetSortForViewChange({newView: CONST.SEARCH.VIEW.LINE, oldView: CONST.SEARCH.VIEW.TABLE, groupBy: CONST.SEARCH.GROUP_BY.MERCHANT})).toBe(false);
+            expect(shouldResetSortForViewChange({newView: CONST.SEARCH.VIEW.TABLE, oldView: CONST.SEARCH.VIEW.LINE, groupBy: CONST.SEARCH.GROUP_BY.CATEGORY})).toBe(false);
+        });
+
+        test('returns false when groupBy is undefined', () => {
+            expect(shouldResetSortForViewChange({newView: CONST.SEARCH.VIEW.LINE, oldView: CONST.SEARCH.VIEW.TABLE, groupBy: undefined})).toBe(false);
         });
     });
 
@@ -1576,6 +1969,544 @@ describe('SearchQueryUtils', () => {
 
             expect(afterEviction).toBeDefined();
             expect(afterEviction?.type).toBe('expense');
+        });
+    });
+
+    describe('getFilterDisplayValue', () => {
+        const mockCardList = {};
+        const mockCardFeeds = {};
+        const mockPolicies = {};
+        const currentUserAccountID = 12345;
+
+        it('should resolve report name for "in" filter with a report', () => {
+            const reportID = '999';
+            const mockReports: OnyxCollection<OnyxTypes.Report> = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: {
+                    reportID,
+                    reportName: 'Concierge Chat',
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
+                } as OnyxTypes.Report,
+            };
+
+            const result = getFilterDisplayValue({
+                filterName: CONST.SEARCH.SYNTAX_FILTER_KEYS.IN,
+                filterValue: reportID,
+                personalDetails: {},
+                reports: mockReports,
+                cardList: mockCardList,
+                cardFeeds: mockCardFeeds,
+                policies: mockPolicies,
+                currentUserAccountID,
+                translate: translateLocal,
+            });
+
+            // The result depends on getReportName internal logic, but
+            // what matters is that reportAttributes is passed through
+            expect(typeof result).toBe('string');
+            expect(result.length).toBeGreaterThan(0);
+        });
+
+        it('should return filterValue when report is not found for "in" filter', () => {
+            const result = getFilterDisplayValue({
+                filterName: CONST.SEARCH.SYNTAX_FILTER_KEYS.IN,
+                filterValue: 'nonexistent-report-id',
+                personalDetails: {},
+                reports: {},
+                cardList: mockCardList,
+                cardFeeds: mockCardFeeds,
+                policies: mockPolicies,
+                currentUserAccountID,
+                translate: translateLocal,
+            });
+
+            expect(result).toBe('nonexistent-report-id');
+        });
+
+        it('should handle amount filter correctly regardless of reportAttributes', () => {
+            const result = getFilterDisplayValue({
+                filterName: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
+                filterValue: '150000',
+                personalDetails: {},
+                reports: {},
+                cardList: mockCardList,
+                cardFeeds: mockCardFeeds,
+                policies: mockPolicies,
+                currentUserAccountID,
+                translate: translateLocal,
+            });
+
+            expect(result).toBe('1500');
+        });
+
+        it('should handle exported_to filter correctly regardless of reportAttributes', () => {
+            const result = getFilterDisplayValue({
+                filterName: CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO,
+                filterValue: CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT,
+                personalDetails: {},
+                reports: {},
+                cardList: mockCardList,
+                cardFeeds: mockCardFeeds,
+                policies: mockPolicies,
+                currentUserAccountID,
+                translate: translateLocal,
+            });
+
+            expect(result).toBe(CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT);
+        });
+
+        it('should handle policyID filter by looking up policy name', () => {
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [`${ONYXKEYS.COLLECTION.POLICY}abc123`]: {
+                    name: 'My Workspace',
+                } as OnyxTypes.Policy,
+            };
+
+            const result = getFilterDisplayValue({
+                filterName: CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+                filterValue: 'abc123',
+                personalDetails: {},
+                reports: {},
+                cardList: mockCardList,
+                cardFeeds: mockCardFeeds,
+                policies,
+                currentUserAccountID,
+                translate: translateLocal,
+            });
+
+            expect(result).toBe('My Workspace');
+        });
+
+        it('should return cleaned tag name for tag filter with escaped colons', () => {
+            const result = getFilterDisplayValue({
+                filterName: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG,
+                filterValue: 'GL\\:travel',
+                personalDetails: {},
+                reports: {},
+                cardList: mockCardList,
+                cardFeeds: mockCardFeeds,
+                policies: mockPolicies,
+                currentUserAccountID,
+                translate: translateLocal,
+            });
+
+            expect(result).toBe('GL:travel');
+        });
+    });
+
+    describe('getDisplayQueryFiltersForKey', () => {
+        const emptyPersonalDetails = {};
+        const emptyReports: OnyxCollection<OnyxTypes.Report> = {};
+        const emptyCardList: OnyxTypes.CardList = {};
+        const emptyCardFeeds: OnyxCollection<OnyxTypes.CardFeeds> = {};
+        const emptyPolicies: OnyxCollection<OnyxTypes.Policy> = {};
+        const emptyTaxRates: Record<string, string[]> = {};
+        const currentUserAccountID = 12345;
+
+        it('should resolve tax rate IDs to human-readable names', () => {
+            const taxRates: Record<string, string[]> = {
+                'GST 10%': ['tax_id_1'],
+                'PST 5%': ['tax_id_2'],
+            };
+
+            const queryFilter = [
+                {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, value: 'tax_id_1'},
+                {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, value: 'tax_id_2'},
+            ];
+
+            const result = getDisplayQueryFiltersForKey(
+                CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
+                queryFilter,
+                emptyPersonalDetails,
+                emptyReports,
+                taxRates,
+                emptyCardList,
+                emptyCardFeeds,
+                emptyPolicies,
+                currentUserAccountID,
+                translateLocal,
+            );
+
+            expect(result).toHaveLength(2);
+            expect(result.at(0)?.value).toBe('GST 10%');
+            expect(result.at(1)?.value).toBe('PST 5%');
+        });
+
+        it('should deduplicate tax rate names', () => {
+            const taxRates: Record<string, string[]> = {
+                'GST 10%': ['tax_id_1', 'tax_id_2'],
+            };
+
+            const queryFilter = [
+                {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, value: 'tax_id_1'},
+                {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, value: 'tax_id_2'},
+            ];
+
+            const result = getDisplayQueryFiltersForKey(
+                CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
+                queryFilter,
+                emptyPersonalDetails,
+                emptyReports,
+                taxRates,
+                emptyCardList,
+                emptyCardFeeds,
+                emptyPolicies,
+                currentUserAccountID,
+                translateLocal,
+            );
+
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.value).toBe('GST 10%');
+        });
+
+        it('should resolve user ID to display name for from filter', () => {
+            const personalDetails = {
+                '78901': {
+                    accountID: 78901,
+                    login: 'janedoe@example.com',
+                    displayName: 'Jane Doe',
+                },
+            };
+
+            const queryFilter = [{operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, value: '78901'}];
+
+            const result = getDisplayQueryFiltersForKey(
+                CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                queryFilter,
+                personalDetails,
+                emptyReports,
+                emptyTaxRates,
+                emptyCardList,
+                emptyCardFeeds,
+                emptyPolicies,
+                currentUserAccountID,
+                translateLocal,
+            );
+
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.value).toBe('Jane Doe');
+        });
+
+        it('should return "Me" for current user ID', () => {
+            const personalDetails = {
+                '12345': {
+                    accountID: 12345,
+                    login: 'currentuser@example.com',
+                    displayName: 'Current User',
+                },
+            };
+
+            const queryFilter = [{operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, value: '12345'}];
+
+            const result = getDisplayQueryFiltersForKey(
+                CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                queryFilter,
+                personalDetails,
+                emptyReports,
+                emptyTaxRates,
+                emptyCardList,
+                emptyCardFeeds,
+                emptyPolicies,
+                currentUserAccountID,
+                translateLocal,
+            );
+
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.value).toBe(CONST.SEARCH.ME);
+        });
+
+        it('should convert amount values from backend to frontend format', () => {
+            const queryFilter = [{operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, value: '150000'}];
+
+            const result = getDisplayQueryFiltersForKey(
+                CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT,
+                queryFilter,
+                emptyPersonalDetails,
+                emptyReports,
+                emptyTaxRates,
+                emptyCardList,
+                emptyCardFeeds,
+                emptyPolicies,
+                currentUserAccountID,
+                translateLocal,
+            );
+
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.value).toBe('1500');
+        });
+
+        it('should resolve report name for in filter', () => {
+            const reportID = '555';
+            const mockReports: OnyxCollection<OnyxTypes.Report> = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: {
+                    reportID,
+                    reportName: 'Test Chat Room',
+                } as OnyxTypes.Report,
+            };
+
+            const queryFilter = [{operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, value: reportID}];
+
+            const result = getDisplayQueryFiltersForKey(
+                CONST.SEARCH.SYNTAX_FILTER_KEYS.IN,
+                queryFilter,
+                emptyPersonalDetails,
+                mockReports,
+                emptyTaxRates,
+                emptyCardList,
+                emptyCardFeeds,
+                emptyPolicies,
+                currentUserAccountID,
+                translateLocal,
+            );
+
+            expect(result).toHaveLength(1);
+            expect(typeof result.at(0)?.value).toBe('string');
+        });
+    });
+
+    describe('buildUserReadableQueryString', () => {
+        const emptyReports: OnyxCollection<OnyxTypes.Report> = {};
+        const emptyCardList: OnyxTypes.CardList = {};
+        const emptyCardFeeds: OnyxCollection<OnyxTypes.CardFeeds> = {};
+        const emptyPolicies: OnyxCollection<OnyxTypes.Policy> = {};
+        const emptyTaxRates: Record<string, string[]> = {};
+        const currentUserAccountID = 12345;
+
+        test('resolves in-filter queries with report names', () => {
+            const reportID = '777';
+            const reports: OnyxCollection<OnyxTypes.Report> = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: {
+                    reportID,
+                    reportName: 'Test Room',
+                } as OnyxTypes.Report,
+            };
+
+            const queryJSON = buildSearchQueryJSON(`type:expense in:${reportID}`);
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildUserReadableQueryString({
+                queryJSON,
+                PersonalDetails: undefined,
+                reports,
+                taxRates: emptyTaxRates,
+                cardList: emptyCardList,
+                cardFeeds: emptyCardFeeds,
+                policies: emptyPolicies,
+                currentUserAccountID,
+                autoCompleteWithSpace: false,
+                translate: translateLocal,
+            });
+
+            expect(result).toContain('in:');
+            expect(typeof result).toBe('string');
+        });
+
+        test('resolves from filter with personal details', () => {
+            const personalDetails = {
+                '78901': {
+                    accountID: 78901,
+                    login: 'janedoe@example.com',
+                    displayName: 'Jane Doe',
+                },
+            } as OnyxTypes.PersonalDetailsList;
+
+            const queryJSON = buildSearchQueryJSON('type:expense from:78901');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildUserReadableQueryString({
+                queryJSON,
+                PersonalDetails: personalDetails,
+                reports: emptyReports,
+                taxRates: emptyTaxRates,
+                cardList: emptyCardList,
+                cardFeeds: emptyCardFeeds,
+                policies: emptyPolicies,
+                currentUserAccountID,
+                autoCompleteWithSpace: false,
+                translate: translateLocal,
+            });
+
+            expect(result).toContain('from:"Jane Doe"');
+        });
+
+        test('shows "Me" for current user in from filter', () => {
+            const personalDetails = {
+                '12345': {
+                    accountID: 12345,
+                    login: 'currentuser@example.com',
+                    displayName: 'Current User',
+                },
+            } as OnyxTypes.PersonalDetailsList;
+
+            const queryJSON = buildSearchQueryJSON('type:expense from:12345');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildUserReadableQueryString({
+                queryJSON,
+                PersonalDetails: personalDetails,
+                reports: emptyReports,
+                taxRates: emptyTaxRates,
+                cardList: emptyCardList,
+                cardFeeds: emptyCardFeeds,
+                policies: emptyPolicies,
+                currentUserAccountID,
+                autoCompleteWithSpace: false,
+                translate: translateLocal,
+            });
+
+            expect(result).toContain(`from:${CONST.SEARCH.ME}`);
+        });
+
+        test('adds trailing space when autoCompleteWithSpace is true', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildUserReadableQueryString({
+                queryJSON,
+                PersonalDetails: undefined,
+                reports: emptyReports,
+                taxRates: emptyTaxRates,
+                cardList: emptyCardList,
+                cardFeeds: emptyCardFeeds,
+                policies: emptyPolicies,
+                currentUserAccountID,
+                autoCompleteWithSpace: true,
+                translate: translateLocal,
+            });
+
+            expect(result.endsWith(' ')).toBe(true);
+        });
+    });
+
+    function findNode(node: ASTNode, field: string): ASTNode | null {
+        if (typeof node.left === 'string' && node.left === field) {
+            return node;
+        }
+        if (typeof node.left === 'object' && node.left) {
+            const found = findNode(node.left, field);
+            if (found) {
+                return found;
+            }
+        }
+        if (typeof node.right === 'object' && !Array.isArray(node.right) && node.right) {
+            const found = findNode(node.right, field);
+            if (found) {
+                return found;
+            }
+        }
+        return null;
+    }
+
+    describe('applyContainsOperatorToTextFields', () => {
+        it('should transform merchant eq to contains', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense merchant:coffee');
+            if (!queryJSON?.filters) {
+                throw new Error('Expected filters to be defined');
+            }
+            const transformed = applyContainsOperatorToTextFields(queryJSON.filters);
+            const merchantNode = findNode(transformed, 'merchant');
+            if (!merchantNode) {
+                throw new Error('Expected merchant node to be found in AST');
+            }
+            expect(merchantNode.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
+            expect(merchantNode.right).toBe('coffee');
+        });
+
+        it('should transform description eq to contains', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense description:lunch');
+            if (!queryJSON?.filters) {
+                throw new Error('Expected filters to be defined');
+            }
+            const transformed = applyContainsOperatorToTextFields(queryJSON.filters);
+            const descriptionNode = findNode(transformed, 'description');
+            if (!descriptionNode) {
+                throw new Error('Expected description node to be found in AST');
+            }
+            expect(descriptionNode.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
+        });
+
+        it('should not transform non-text fields like category', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense category:food');
+            if (!queryJSON?.filters) {
+                throw new Error('Expected filters to be defined');
+            }
+            const transformed = applyContainsOperatorToTextFields(queryJSON.filters);
+            const categoryNode = findNode(transformed, 'category');
+            if (!categoryNode) {
+                throw new Error('Expected category node to be found in AST');
+            }
+            expect(categoryNode.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
+        });
+
+        it('should not transform negated merchant operator', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense -merchant:coffee');
+            if (!queryJSON?.filters) {
+                throw new Error('Expected filters to be defined');
+            }
+            const transformed = applyContainsOperatorToTextFields(queryJSON.filters);
+            const merchantNode = findNode(transformed, 'merchant');
+            if (!merchantNode) {
+                throw new Error('Expected merchant node to be found in AST');
+            }
+            expect(merchantNode.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO);
+        });
+
+        it('should transform merchant but not category in a compound query', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense merchant:coffee category:travel');
+            if (!queryJSON?.filters) {
+                throw new Error('Expected filters to be defined');
+            }
+            const transformed = applyContainsOperatorToTextFields(queryJSON.filters);
+
+            const merchantNode = findNode(transformed, 'merchant');
+            if (!merchantNode) {
+                throw new Error('Expected merchant node to be found in AST');
+            }
+            expect(merchantNode.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
+
+            const categoryNode = findNode(transformed, 'category');
+            if (!categoryNode) {
+                throw new Error('Expected category node to be found in AST');
+            }
+            expect(categoryNode.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
+        });
+    });
+
+    describe('serializeQueryJSONForBackend', () => {
+        it('should apply contains to merchant in AST filters', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense merchant:coffee');
+            if (!queryJSON) {
+                throw new Error('Expected queryJSON to be defined');
+            }
+            const serialized = JSON.parse(serializeQueryJSONForBackend(queryJSON)) as {filters: ASTNode};
+            const merchantNode = findNode(serialized.filters, 'merchant');
+            if (!merchantNode) {
+                throw new Error('Expected merchant node to be found in AST');
+            }
+            expect(merchantNode.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
+        });
+
+        it('should apply contains to merchant in rawFilterList', () => {
+            const rawFilterList = [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'coffee'}];
+            const serialized = JSON.parse(serializeQueryJSONForBackend({filters: undefined, rawFilterList})) as {rawFilterList: typeof rawFilterList};
+            expect(serialized.rawFilterList.at(0)?.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS);
+        });
+
+        it('should not affect non-text fields in rawFilterList', () => {
+            const rawFilterList = [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'food'}];
+            const serialized = JSON.parse(serializeQueryJSONForBackend({filters: undefined, rawFilterList})) as {rawFilterList: typeof rawFilterList};
+            expect(serialized.rawFilterList.at(0)?.operator).toBe(CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
         });
     });
 });

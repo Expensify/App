@@ -74,6 +74,7 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
         const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
         const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${route.params.reportID}`);
         const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+        const [betas] = useOnyx(ONYXKEYS.BETAS);
         const isReportArchived = useReportIsArchived(report?.reportID);
 
         const iouTypeParamIsInvalid = !Object.values(CONST.IOU.TYPE)
@@ -85,7 +86,7 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
             if (!!report?.reportID || !route.params.reportID || !!reportDraft || !isEditing) {
                 return;
             }
-            openReport({reportID: route.params.reportID, introSelected});
+            openReport({reportID: route.params.reportID, introSelected, betas});
             // eslint-disable-next-line react-hooks/exhaustive-deps
         }, []);
 

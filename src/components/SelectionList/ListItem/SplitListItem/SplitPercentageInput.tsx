@@ -4,6 +4,7 @@ import PercentageForm from '@components/PercentageForm';
 import type {SplitListItemType} from '@components/SelectionList/ListItem/types';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import SplitPercentageDisplay from './SplitPercentageDisplay';
 
 type SplitPercentageInputProps = {
@@ -49,6 +50,8 @@ function SplitPercentageInput({splitItem, contentWidth, percentageDraft, onSplit
                 }}
                 allowExceedingHundred
                 allowDecimal
+                allowNegative
+                keyboardType={CONST.KEYBOARD_TYPE.NUMBERS_AND_PUNCTUATION}
             />
         );
     }

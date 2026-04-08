@@ -48,7 +48,7 @@ export default createOnyxDerivedValueConfig({
         const personalCardsWithBrokenConnection: Record<string, Card> = {};
 
         function addErrorsForPersonalCard(card: Card) {
-            const hasCardErrors = !isEmptyObject(card.errors) || !isEmptyObject(card.errorFields) || card.pendingAction;
+            const hasCardErrors = !isEmptyObject(card.errors) || !isEmptyObject(card.errorFields);
             const cardErrors = {
                 ...(hasCardErrors
                     ? {

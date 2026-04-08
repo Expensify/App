@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {BlurEvent, FocusEvent, GestureResponderEvent, LayoutChangeEvent, StyleProp, TextInput, ViewStyle} from 'react-native';
 import {StyleSheet, View} from 'react-native';
 import {Easing, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -19,12 +19,14 @@ import TextInputClearButton from '@components/TextInput/TextInputClearButton';
 import TextInputLabel from '@components/TextInput/TextInputLabel';
 import TextInputMeasurement from '@components/TextInput/TextInputMeasurement';
 import useHtmlPaste from '@hooks/useHtmlPaste';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getLandscapeTextInputRefProxy from '@libs/getLandscapeTextInputRefProxy';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
@@ -81,6 +83,7 @@ function BaseTextInput({
     shouldUseDefaultLineHeightForPrefix = true,
     ref,
     sentryLabel,
+    rightHandSideComponent,
     ...props
 }: BaseTextInputProps) {
     const InputComponent = InputComponentMap.get(type) ?? RNTextInput;
@@ -93,6 +96,7 @@ function BaseTextInput({
     const markdownStyle = useMarkdownStyle(false, excludedMarkdownStyles);
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const isInLandscapeMode = useIsInLandscapeMode();
 
     const {hasError = false} = inputProps;
     // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
@@ -200,7 +204,7 @@ function BaseTextInput({
 
     // The ref is needed when the component is uncontrolled and we don't have a value prop
     const hasValueRef = useRef(initialValue.length > 0);
-    const icons = useMemoizedLazyExpensifyIcons(['Eye', 'EyeDisabled'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Eye', 'EyeDisabled']);
     const inputValue = value ?? '';
     const hasValue = inputValue.length > 0 || hasValueRef.current;
 
@@ -289,6 +293,8 @@ function BaseTextInput({
     // Height fix is needed only for Text single line inputs
     const shouldApplyHeight = !shouldUseFullInputHeight && !isMultiline && !isMarkdownEnabled;
     const accessibilityLabel = [label, hint].filter(Boolean).join(', ');
+    const accessibilityValue = useMemo(() => ({text: value ?? ''}), [value]);
+    const isKeyboardType = props.keyboardType ? undefined : props.inputMode;
     const loadingSpinnerReasonAttributes: SkeletonSpanReasonAttributes = {
         context: 'BaseTextInput.isLoading',
         isLoading: !!inputProps.isLoading,
@@ -367,8 +373,9 @@ function BaseTextInput({
                                 </View>
                             )}
                             <InputComponent
-                                ref={(element: HTMLFormElement | AnimatedTextInputRef | AnimatedMarkdownTextInputRef | null): void => {
-                                    const baseTextInputRef = element as BaseTextInputRef | null;
+                                ref={(element: BaseTextInputRef | null): void => {
+                                    const baseTextInputRef = isInLandscapeMode ? getLandscapeTextInputRefProxy(element) : element;
+
                                     if (typeof ref === 'function') {
                                         ref(baseTextInputRef);
                                     } else if (ref && 'current' in ref) {
@@ -381,7 +388,9 @@ function BaseTextInput({
                                 }}
                                 // eslint-disable-next-line
                                 {...inputProps}
+                                autoFocus={isInLandscapeMode ? false : inputProps.autoFocus}
                                 accessibilityLabel={inputProps.accessibilityLabel ?? accessibilityLabel}
+                                accessibilityValue={accessibilityValue}
                                 accessibilityHint={errorText || inputProps.accessibilityHint}
                                 autoCorrect={inputProps.secureTextEntry ? false : autoCorrect}
                                 placeholder={placeholderValue}
@@ -418,11 +427,12 @@ function BaseTextInput({
                                 onPressOut={inputProps.onPress}
                                 showSoftInputOnFocus={!disableKeyboard}
                                 keyboardType={inputProps.keyboardType}
-                                inputMode={!disableKeyboard ? inputProps.inputMode : CONST.INPUT_MODE.NONE}
+                                inputMode={!disableKeyboard ? isKeyboardType : CONST.INPUT_MODE.NONE}
                                 value={uncontrolled ? undefined : value}
                                 readOnly={isReadOnly}
                                 defaultValue={defaultValue}
                                 markdownStyle={markdownStyle}
+                                disableFullscreenUI={isInLandscapeMode}
                             />
                             {!!suffixCharacter && (
                                 <View style={[styles.textInputSuffixWrapper, suffixContainerStyle]}>
@@ -450,6 +460,11 @@ function BaseTextInput({
                                     style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff), styles.ml1, loadingSpinnerStyle]}
                                     reasonAttributes={loadingSpinnerReasonAttributes}
                                 />
+                            )}
+                            {/* Render rightHandSideComponent only when clear button is not shown 
+                                This prevents UI conflicts between clear button and custom components like flip/currency buttons */}
+                            {!shouldShowClearButton && shouldHideClearButton && !inputProps.isLoading && !!rightHandSideComponent && (
+                                <View style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff)]}>{rightHandSideComponent}</View>
                             )}
                             {!!inputProps.secureTextEntry && (
                                 <Checkbox

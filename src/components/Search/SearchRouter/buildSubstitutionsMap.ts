@@ -4,7 +4,7 @@ import type {SearchAutocompleteQueryRange, SearchFilterKey} from '@components/Se
 import {parse} from '@libs/SearchParser/autocompleteParser';
 import {getFilterDisplayValue} from '@libs/SearchQueryUtils';
 import CONST from '@src/CONST';
-import type {CardFeeds, CardList, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
+import type {CardFeeds, CardList, PersonalDetailsList, Policy, Report, ReportAttributesDerivedValue} from '@src/types/onyx';
 import type {SubstitutionMap} from './getQueryWithSubstitutions';
 
 const getSubstitutionsKey = (filterKey: SearchFilterKey, value: string) => `${filterKey}:${value}`;
@@ -35,6 +35,7 @@ function buildSubstitutionsMap(
     policies: OnyxCollection<Policy>,
     currentUserAccountID: number,
     translate: LocalizedTranslate,
+    reportAttributes?: ReportAttributesDerivedValue['reports'],
 ): SubstitutionMap {
     const parsedQuery = parse(query) as {ranges: SearchAutocompleteQueryRange[]};
 
@@ -73,7 +74,18 @@ function buildSubstitutionsMap(
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE
         ) {
-            const displayValue = getFilterDisplayValue(filterKey, filterValue, personalDetails, reports, cardList, cardFeeds, policies, currentUserAccountID, translate);
+            const displayValue = getFilterDisplayValue({
+                filterName: filterKey,
+                filterValue,
+                personalDetails,
+                reports,
+                cardList,
+                cardFeeds,
+                policies,
+                currentUserAccountID,
+                translate,
+                reportAttributes,
+            });
 
             // If displayValue === filterValue, then it means there is nothing to substitute, so we don't add any key to map
             if (displayValue !== filterValue) {

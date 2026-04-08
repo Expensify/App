@@ -77,6 +77,7 @@ describe('libs/NextStepUtils', () => {
         beforeEach(() => {
             report.ownerAccountID = currentUserAccountID;
             report.managerID = currentUserAccountID;
+            report.transactionCount = 1;
             optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
             optimisticNextStep.message = [];
 
@@ -889,6 +890,35 @@ describe('libs/NextStepUtils', () => {
         });
 
         describe('it generates an optimistic nextStep once a report has been approved', () => {
+            test('disabled reimbursements', () => {
+                optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.CHECKMARK;
+                optimisticNextStep.message = [
+                    {
+                        text: 'No further action required!',
+                    },
+                ];
+
+                return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+                }).then(() => {
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
+                    const result = buildNextStepNew({
+                        report,
+                        policy,
+                        currentUserAccountIDParam: currentUserAccountID,
+                        currentUserEmailParam: currentUserEmail,
+                        hasViolations: false,
+                        isASAPSubmitBetaEnabled: false,
+                        predictedNextStatus: CONST.REPORT.STATUS_NUM.APPROVED,
+                        shouldFixViolations: false,
+                        isUnapprove: false,
+                        isReopen: false,
+                    });
+
+                    expect(result).toMatchObject(optimisticNextStep);
+                });
+            });
+
             test('non-payer', () => {
                 optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.CHECKMARK;
                 optimisticNextStep.message = [

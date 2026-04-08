@@ -18,10 +18,13 @@ import {
     shouldRestrictUserBillableActions,
     shouldShowDiscountBanner,
     shouldShowPreTrialBillingBanner,
+    shouldShowTrialEndedUI,
 } from '@libs/SubscriptionUtils';
+import {getPrivatePromoDiscountInfo} from '@pages/settings/Subscription/utils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BillingGraceEndPeriod, BillingStatus, FundList, IntroSelected, StripeCustomerID} from '@src/types/onyx';
+import type PrivatePromoDiscount from '@src/types/onyx/PrivatePromoDiscount';
 import createRandomPolicy from '../utils/collections/policies';
 import {STRIPE_CUSTOMER_ID} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -62,6 +65,56 @@ const FUND_LIST: FundList = {
 Onyx.init({keys: ONYXKEYS});
 
 describe('SubscriptionUtils', () => {
+    describe('getPrivatePromoDiscountInfo', () => {
+        it('returns number promo discount value for numeric private promo discount', () => {
+            const result = getPrivatePromoDiscountInfo(3, false);
+
+            expect(result).toEqual({
+                isSecretPromoCode: false,
+                promoDiscountValue: 3,
+            });
+        });
+
+        it('returns empty promo discount info when private promo discount is undefined', () => {
+            const result = getPrivatePromoDiscountInfo(undefined, true);
+
+            expect(result).toEqual({
+                isSecretPromoCode: false,
+                promoDiscountValue: undefined,
+            });
+        });
+
+        it('uses yearly subscription discount for annual subscriptions', () => {
+            const privatePromoDiscount: PrivatePromoDiscount = {
+                monthlySubscriptionDiscount: 1,
+                yearlySubscriptionDiscount: 5,
+                isSecretPromoCode: true,
+            };
+
+            const result = getPrivatePromoDiscountInfo(privatePromoDiscount, true);
+
+            expect(result).toEqual({
+                isSecretPromoCode: true,
+                promoDiscountValue: 5,
+            });
+        });
+
+        it('uses monthly subscription discount for non-annual subscriptions', () => {
+            const privatePromoDiscount: PrivatePromoDiscount = {
+                monthlySubscriptionDiscount: 2,
+                yearlySubscriptionDiscount: 7,
+                isSecretPromoCode: false,
+            };
+
+            const result = getPrivatePromoDiscountInfo(privatePromoDiscount, false);
+
+            expect(result).toEqual({
+                isSecretPromoCode: false,
+                promoDiscountValue: 2,
+            });
+        });
+    });
+
     describe('calculateRemainingFreeTrialDays', () => {
         afterEach(async () => {
             await Onyx.clear();
@@ -214,7 +267,7 @@ describe('SubscriptionUtils', () => {
         });
 
         it("should return false if the user isn't a workspace's owner or isn't a member of any past due billing workspace", () => {
-            expect(shouldRestrictUserBillableActions('1', undefined)).toBeFalsy();
+            expect(shouldRestrictUserBillableActions('1', undefined, undefined)).toBeFalsy();
         });
 
         it('should return false if the user is a non-owner of a workspace that is not in the shared NVP collection', async () => {
@@ -229,7 +282,7 @@ describe('SubscriptionUtils', () => {
             });
 
             expect(
-                shouldRestrictUserBillableActions(policyID, {
+                shouldRestrictUserBillableActions(policyID, undefined, {
                     [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${ownerAccountID}`]: {
                         ...billingGraceEndPeriod,
                         value: getUnixTime(subDays(new Date(), 3)), // past due
@@ -250,7 +303,7 @@ describe('SubscriptionUtils', () => {
             });
 
             expect(
-                shouldRestrictUserBillableActions(policyID, {
+                shouldRestrictUserBillableActions(policyID, undefined, {
                     [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${ownerAccountID}` as const]: {
                         ...billingGraceEndPeriod,
                         value: getUnixTime(addDays(new Date(), 3)), // not past due
@@ -271,7 +324,7 @@ describe('SubscriptionUtils', () => {
             });
 
             expect(
-                shouldRestrictUserBillableActions(policyID, {
+                shouldRestrictUserBillableActions(policyID, undefined, {
                     [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${ownerAccountID}` as const]: {
                         ...billingGraceEndPeriod,
                         value: getUnixTime(subDays(new Date(), 3)), // past due
@@ -292,7 +345,7 @@ describe('SubscriptionUtils', () => {
                 },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID, undefined, undefined, getUnixTime(addDays(new Date(), 3)))).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(policyID, getUnixTime(addDays(new Date(), 3)), undefined)).toBeFalsy();
         });
 
         it("should return false if the user is the workspace's owner that is past due billing but isn't owning any amount", async () => {
@@ -308,7 +361,7 @@ describe('SubscriptionUtils', () => {
                 },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID, undefined, undefined, getUnixTime(subDays(new Date(), 3)))).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(policyID, getUnixTime(subDays(new Date(), 3)), undefined)).toBeFalsy();
         });
 
         it("should return true if the user is the workspace's owner that is past due billing and is owning some amount", async () => {
@@ -324,7 +377,7 @@ describe('SubscriptionUtils', () => {
                 },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID, undefined, undefined, getUnixTime(subDays(new Date(), 3)))).toBeTruthy();
+            expect(shouldRestrictUserBillableActions(policyID, getUnixTime(subDays(new Date(), 3)), undefined)).toBeTruthy();
         });
 
         it("should return false if the user is past due billing but is not the workspace's owner", async () => {
@@ -340,10 +393,10 @@ describe('SubscriptionUtils', () => {
                 },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID, undefined, undefined, getUnixTime(subDays(new Date(), 3)))).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(policyID, getUnixTime(subDays(new Date(), 3)), undefined)).toBeFalsy();
         });
 
-        it('should restrict when ownerBillingGraceEndPeriod is passed directly as 3rd param and is past due', async () => {
+        it('should restrict when ownerBillingGracePeriodEnd is passed directly as 3rd param and is past due', async () => {
             const accountID = 1;
             const policyID = '1001';
 
@@ -356,7 +409,7 @@ describe('SubscriptionUtils', () => {
                 },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID, undefined, undefined, getUnixTime(subDays(new Date(), 3)))).toBeTruthy();
+            expect(shouldRestrictUserBillableActions(policyID, getUnixTime(subDays(new Date(), 3)), undefined)).toBeTruthy();
         });
 
         it("should return false if the user is past due billing but is not the workspace's owner", async () => {
@@ -372,10 +425,10 @@ describe('SubscriptionUtils', () => {
                 },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID, undefined, undefined, getUnixTime(subDays(new Date(), 3)))).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(policyID, getUnixTime(subDays(new Date(), 3)), undefined)).toBeFalsy();
         });
 
-        it('should restrict when ownerBillingGraceEndPeriod is passed directly as 4th param and is past due', async () => {
+        it('should restrict when ownerBillingGracePeriodEnd is passed directly as 4th param and is past due', async () => {
             const accountID = 1;
             const policyID = '1001';
 
@@ -388,10 +441,10 @@ describe('SubscriptionUtils', () => {
                 },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID, undefined, undefined, getUnixTime(subDays(new Date(), 3)))).toBeTruthy();
+            expect(shouldRestrictUserBillableActions(policyID, getUnixTime(subDays(new Date(), 3)), undefined)).toBeTruthy();
         });
 
-        it('should not restrict when ownerBillingGraceEndPeriod is passed directly as 4th param but is not past due', async () => {
+        it('should not restrict when ownerBillingGracePeriodEnd is passed directly as 4th param but is not past due', async () => {
             const accountID = 1;
             const policyID = '1001';
 
@@ -404,10 +457,10 @@ describe('SubscriptionUtils', () => {
                 },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID, undefined, undefined, getUnixTime(addDays(new Date(), 3)))).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(policyID, getUnixTime(addDays(new Date(), 3)), undefined)).toBeFalsy();
         });
 
-        it('should not restrict when ownerBillingGraceEndPeriod is passed directly as 4th param but amount owed is 0', async () => {
+        it('should not restrict when ownerBillingGracePeriodEnd is passed directly as 4th param but amount owed is 0', async () => {
             const accountID = 1;
             const policyID = '1001';
 
@@ -420,7 +473,7 @@ describe('SubscriptionUtils', () => {
                 },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID, undefined, undefined, getUnixTime(subDays(new Date(), 3)))).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(policyID, getUnixTime(subDays(new Date(), 3)), undefined)).toBeFalsy();
         });
 
         it('should restrict when amountOwed is passed directly and is greater than 0', async () => {
@@ -435,7 +488,7 @@ describe('SubscriptionUtils', () => {
                 },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID, undefined, 500, getUnixTime(subDays(new Date(), 3)))).toBeTruthy();
+            expect(shouldRestrictUserBillableActions(policyID, getUnixTime(subDays(new Date(), 3)), undefined, 500)).toBeTruthy();
         });
 
         it('should not restrict when amountOwed is passed directly as 0', async () => {
@@ -450,7 +503,7 @@ describe('SubscriptionUtils', () => {
                 },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID, undefined, 0, getUnixTime(subDays(new Date(), 3)))).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(policyID, getUnixTime(subDays(new Date(), 3)), undefined, 0)).toBeFalsy();
         });
 
         it('should not restrict when amountOwed is passed directly as undefined', async () => {
@@ -465,7 +518,123 @@ describe('SubscriptionUtils', () => {
                 },
             });
 
-            expect(shouldRestrictUserBillableActions(policyID, undefined, undefined, getUnixTime(subDays(new Date(), 3)))).toBeFalsy();
+            expect(shouldRestrictUserBillableActions(policyID, getUnixTime(subDays(new Date(), 3)), undefined)).toBeFalsy();
+        });
+    });
+
+    describe('shouldRestrictUserBillableActions - policy parameter', () => {
+        afterEach(async () => {
+            await Onyx.clear();
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: null,
+                [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END]: null,
+                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: null,
+                [ONYXKEYS.COLLECTION.POLICY]: null,
+            });
+        });
+
+        it('should restrict when policy is passed directly and owner is past due', async () => {
+            const accountID = 1;
+            const policyID = '2001';
+            const policy = {
+                ...createRandomPolicy(Number(policyID)),
+                ownerAccountID: accountID,
+            };
+
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {email: '', accountID},
+                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 8010,
+            });
+
+            expect(shouldRestrictUserBillableActions(policyID, getUnixTime(subDays(new Date(), 3)), undefined, undefined, policy)).toBeTruthy();
+        });
+
+        it('should not restrict when policy is passed directly but owner is not past due', async () => {
+            const accountID = 1;
+            const policyID = '2001';
+            const policy = {
+                ...createRandomPolicy(Number(policyID)),
+                ownerAccountID: accountID,
+            };
+
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {email: '', accountID},
+                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 8010,
+            });
+
+            expect(shouldRestrictUserBillableActions(policyID, getUnixTime(addDays(new Date(), 3)), undefined, undefined, policy)).toBeFalsy();
+        });
+
+        it('should not restrict when policy is passed as undefined', () => {
+            expect(shouldRestrictUserBillableActions('nonexistent', getUnixTime(subDays(new Date(), 3)), undefined, 500, undefined)).toBeFalsy();
+        });
+
+        it('should restrict for non-owner when policy is passed directly and billing grace period is overdue', async () => {
+            const policyID = '2001';
+            const ownerAccountID = 2001;
+            const policy = {
+                ...createRandomPolicy(Number(policyID)),
+                ownerAccountID,
+            };
+
+            expect(
+                shouldRestrictUserBillableActions(
+                    policyID,
+                    undefined,
+                    {
+                        [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${ownerAccountID}` as const]: {
+                            ...billingGraceEndPeriod,
+                            value: getUnixTime(subDays(new Date(), 3)),
+                        },
+                    },
+                    undefined,
+                    policy,
+                ),
+            ).toBeTruthy();
+        });
+
+        it('should not restrict for non-owner when policy is passed directly but billing grace period is not overdue', async () => {
+            const policyID = '2001';
+            const ownerAccountID = 2001;
+            const policy = {
+                ...createRandomPolicy(Number(policyID)),
+                ownerAccountID,
+            };
+
+            expect(
+                shouldRestrictUserBillableActions(
+                    policyID,
+                    undefined,
+                    {
+                        [`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${ownerAccountID}` as const]: {
+                            ...billingGraceEndPeriod,
+                            value: getUnixTime(addDays(new Date(), 3)),
+                        },
+                    },
+                    undefined,
+                    policy,
+                ),
+            ).toBeFalsy();
+        });
+
+        it('should use passed policy and ignore Onyx-stored policies', async () => {
+            const accountID = 1;
+            const policyID = '2001';
+            const differentOwnerPolicy = {
+                ...createRandomPolicy(Number(policyID)),
+                ownerAccountID: 9999,
+            };
+
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {email: '', accountID},
+                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: 8010,
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const]: {
+                    ...createRandomPolicy(Number(policyID)),
+                    ownerAccountID: accountID,
+                },
+            });
+
+            expect(shouldRestrictUserBillableActions(policyID, getUnixTime(subDays(new Date(), 3)), undefined, undefined, differentOwnerPolicy)).toBeFalsy();
         });
     });
 
@@ -734,11 +903,11 @@ describe('SubscriptionUtils', () => {
             await Onyx.clear();
         });
 
-        it('should return POLICY_OWNER_WITH_AMOUNT_OWED status when ownerBillingGraceEndPeriod is passed as parameter', async () => {
+        it('should return POLICY_OWNER_WITH_AMOUNT_OWED status when ownerBillingGracePeriodEnd is passed as parameter', async () => {
             // Set only amount owed via Onyx, but pass grace period as parameter
             await Onyx.set(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, AMOUNT_OWED);
 
-            // Pass ownerBillingGraceEndPeriod as parameter instead of Onyx
+            // Pass ownerBillingGracePeriodEnd as parameter instead of Onyx
             expect(getSubscriptionStatus(stripeCustomerId, false, undefined, undefined, undefined, undefined, AMOUNT_OWED, GRACE_PERIOD_DATE)).toEqual({
                 status: PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED,
                 isError: true,
@@ -749,7 +918,7 @@ describe('SubscriptionUtils', () => {
             // Set only amount owed via Onyx, but pass grace period as parameter
             await Onyx.set(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, AMOUNT_OWED);
 
-            // Pass overdue ownerBillingGraceEndPeriod as parameter
+            // Pass overdue ownerBillingGracePeriodEnd as parameter
             expect(getSubscriptionStatus(stripeCustomerId, false, undefined, undefined, undefined, undefined, AMOUNT_OWED, GRACE_PERIOD_DATE_OVERDUE)).toEqual({
                 status: PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED_OVERDUE,
                 isError: true,
@@ -760,7 +929,7 @@ describe('SubscriptionUtils', () => {
             // No amount owed set
             await Onyx.set(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 0);
 
-            // Pass ownerBillingGraceEndPeriod as parameter
+            // Pass ownerBillingGracePeriodEnd as parameter
             expect(getSubscriptionStatus(stripeCustomerId, false, undefined, undefined, undefined, undefined, 0, GRACE_PERIOD_DATE)).toEqual({
                 status: PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING,
                 isError: true,
@@ -781,11 +950,11 @@ describe('SubscriptionUtils', () => {
             await Onyx.clear();
         });
 
-        it('should return true when ownerBillingGraceEndPeriod is passed as parameter with amount owed', async () => {
+        it('should return true when ownerBillingGracePeriodEnd is passed as parameter with amount owed', async () => {
             // Set only amount owed via Onyx, pass grace period as parameter
             await Onyx.set(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, AMOUNT_OWED);
 
-            // Pass ownerBillingGraceEndPeriod as parameter - should return true (isError)
+            // Pass ownerBillingGracePeriodEnd as parameter - should return true (isError)
             expect(hasSubscriptionRedDotError(stripeCustomerId, false, undefined, undefined, undefined, undefined, AMOUNT_OWED, GRACE_PERIOD_DATE)).toBe(true);
         });
 
@@ -793,7 +962,7 @@ describe('SubscriptionUtils', () => {
             // Set only amount owed via Onyx, pass grace period as parameter
             await Onyx.set(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, AMOUNT_OWED);
 
-            // Pass overdue ownerBillingGraceEndPeriod as parameter - should return true (isError)
+            // Pass overdue ownerBillingGracePeriodEnd as parameter - should return true (isError)
             expect(hasSubscriptionRedDotError(stripeCustomerId, false, undefined, undefined, undefined, undefined, AMOUNT_OWED, GRACE_PERIOD_DATE_OVERDUE)).toBe(true);
         });
 
@@ -801,7 +970,7 @@ describe('SubscriptionUtils', () => {
             // No amount owed
             await Onyx.set(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 0);
 
-            // Pass ownerBillingGraceEndPeriod as parameter - should return true (isError for under invoicing)
+            // Pass ownerBillingGracePeriodEnd as parameter - should return true (isError for under invoicing)
             expect(hasSubscriptionRedDotError(stripeCustomerId, false, undefined, undefined, undefined, undefined, 0, GRACE_PERIOD_DATE)).toBe(true);
         });
 
@@ -824,11 +993,11 @@ describe('SubscriptionUtils', () => {
             await Onyx.clear();
         });
 
-        it('should return false when ownerBillingGraceEndPeriod is passed as parameter with amount owed (error state)', async () => {
+        it('should return false when ownerBillingGracePeriodEnd is passed as parameter with amount owed (error state)', async () => {
             // Set amount owed via Onyx, pass grace period as parameter
             await Onyx.set(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, AMOUNT_OWED);
 
-            // Pass ownerBillingGraceEndPeriod as parameter - should return false (isError=true means not green dot)
+            // Pass ownerBillingGracePeriodEnd as parameter - should return false (isError=true means not green dot)
             expect(hasSubscriptionGreenDotInfo(stripeCustomerId, false, undefined, undefined, undefined, undefined, AMOUNT_OWED, GRACE_PERIOD_DATE)).toBe(false);
         });
 
@@ -1164,6 +1333,59 @@ describe('SubscriptionUtils', () => {
 
         it('should return false when empty policies collection is passed', () => {
             expect(shouldCalculateBillNewDot(true, {})).toBeFalsy();
+        });
+    });
+
+    describe('shouldShowTrialEndedUI', () => {
+        const ownerAccountID = 345;
+        const policyID = '200012';
+        const lastDayFreeTrialEnded = formatDate(subDays(new Date(), 2), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+        const lastDayFreeTrialActive = formatDate(addDays(new Date(), 5), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+
+        let policies: Record<string, ReturnType<typeof createRandomPolicy>>;
+
+        beforeEach(async () => {
+            await Onyx.clear();
+            policies = {
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: {
+                    ...createRandomPolicy(Number(policyID)),
+                    ownerAccountID,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                },
+            };
+            await Onyx.set(ONYXKEYS.SESSION, {accountID: ownerAccountID});
+        });
+
+        it('should return true for a regular user whose trial ended, no card, with owned workspace', () => {
+            expect(shouldShowTrialEndedUI(lastDayFreeTrialEnded, undefined, policies, undefined, undefined, undefined)).toBeTruthy();
+        });
+
+        it('should return false if the user has no owned paid policies', () => {
+            expect(shouldShowTrialEndedUI(lastDayFreeTrialEnded, undefined, {}, undefined, undefined, undefined)).toBeFalsy();
+        });
+
+        it('should return false if the user is grandfathered free', () => {
+            expect(shouldShowTrialEndedUI(lastDayFreeTrialEnded, undefined, policies, true, undefined, undefined)).toBeFalsy();
+        });
+
+        it('should return false if the user is from an internal domain', () => {
+            expect(shouldShowTrialEndedUI(lastDayFreeTrialEnded, undefined, policies, undefined, true, undefined)).toBeFalsy();
+        });
+
+        it('should return false if the user is on invoiced billing', () => {
+            expect(shouldShowTrialEndedUI(lastDayFreeTrialEnded, undefined, policies, undefined, undefined, CONST.SUBSCRIPTION.TYPE.INVOICING)).toBeFalsy();
+        });
+
+        it('should return false if the user has a payment card added', () => {
+            expect(shouldShowTrialEndedUI(lastDayFreeTrialEnded, 8010, policies, undefined, undefined, undefined)).toBeFalsy();
+        });
+
+        it('should return false if the trial has not ended yet', () => {
+            expect(shouldShowTrialEndedUI(lastDayFreeTrialActive, undefined, policies, undefined, undefined, undefined)).toBeFalsy();
+        });
+
+        it('should return false if lastDayFreeTrial is undefined', () => {
+            expect(shouldShowTrialEndedUI(undefined, undefined, policies, undefined, undefined, undefined)).toBeFalsy();
         });
     });
 });

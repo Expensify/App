@@ -74,6 +74,9 @@ type MoneyRequestParticipantsSelectorProps = {
     /** Whether this is a per diem expense request */
     isPerDiemRequest?: boolean;
 
+    /** Whether this is a time expense request */
+    isTimeRequest?: boolean;
+
     /** Whether this is a corporate card transaction */
     isCorporateCardTransaction?: boolean;
 
@@ -99,6 +102,7 @@ function MoneyRequestParticipantsSelector({
     iouType,
     action,
     isPerDiemRequest = false,
+    isTimeRequest = false,
     isWorkspacesOnly = false,
     isCorporateCardTransaction = false,
     ref,
@@ -115,12 +119,12 @@ function MoneyRequestParticipantsSelector({
     const {isDismissed} = useDismissedReferralBanners({referralContentType});
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
-    const [userBillingGraceEndPeriodCollection] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`];
-    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserLogin = currentUserPersonalDetails.login;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
@@ -181,7 +185,7 @@ function MoneyRequestParticipantsSelector({
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             includeOwnedWorkspaceChats: iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.TRACK,
             excludeNonAdminWorkspaces: action === CONST.IOU.ACTION.SHARE,
-            includeP2P: !isCategorizeOrShareAction && !isPerDiemRequest && !isCorporateCardTransaction,
+            includeP2P: !isCategorizeOrShareAction && !isPerDiemRequest && !isTimeRequest && !isCorporateCardTransaction,
             includeInvoiceRooms: iouType === CONST.IOU.TYPE.INVOICE,
             action,
             shouldSeparateSelfDMChat: iouType !== CONST.IOU.TYPE.INVOICE,
@@ -189,6 +193,7 @@ function MoneyRequestParticipantsSelector({
             includeSelfDM: !isMovingTransactionFromTrackExpense(action) && iouType !== CONST.IOU.TYPE.INVOICE,
             canShowManagerMcTest,
             isPerDiemRequest,
+            isTimeRequest,
             showRBR: false,
             preferPolicyExpenseChat: isPaidGroupPolicy,
             preferRecentExpenseReports: action === CONST.IOU.ACTION.CREATE,
@@ -201,6 +206,7 @@ function MoneyRequestParticipantsSelector({
             action,
             isCategorizeOrShareAction,
             isPerDiemRequest,
+            isTimeRequest,
             isCorporateCardTransaction,
             canShowManagerMcTest,
             isPaidGroupPolicy,
@@ -223,7 +229,7 @@ function MoneyRequestParticipantsSelector({
     const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, toggleSelection, areOptionsInitialized, onListEndReached, contactState} = useSearchSelector({
         selectionMode: isIOUSplit ? CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI : CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
-        includeUserToInvite: !isCategorizeOrShareAction && !isPerDiemRequest,
+        includeUserToInvite: !isCategorizeOrShareAction && !isPerDiemRequest && !isTimeRequest,
         excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
         includeRecentReports: true,
         maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
@@ -243,7 +249,8 @@ function MoneyRequestParticipantsSelector({
 
     const cleanSearchTerm = useMemo(() => debouncedSearchTerm.trim().toLowerCase(), [debouncedSearchTerm]);
 
-    const {userToInviteExpenseReport, userToInviteChatReport} = useUserToInviteReports(availableOptions?.userToInvite);
+    const {userToInviteExpenseReport} = useUserToInviteReports(availableOptions?.userToInvite);
+    const userToInviteExpenseReportPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${userToInviteExpenseReport?.policyID}`];
 
     useEffect(() => {
         searchUserInServer(debouncedSearchTerm.trim());
@@ -297,6 +304,7 @@ function MoneyRequestParticipantsSelector({
             [],
             privateIsArchivedMap,
             currentUserAccountID,
+            allPolicies,
             personalDetails,
             true,
             undefined,
@@ -323,15 +331,16 @@ function MoneyRequestParticipantsSelector({
         }
 
         if (!isWorkspacesOnly) {
-            if ((isPerDiemRequest ? availableOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : availableOptions.recentReports).length > 0) {
+            const shouldFilterRecentReportsToWorkspaceOnly = isPerDiemRequest || isTimeRequest;
+            if ((shouldFilterRecentReportsToWorkspaceOnly ? availableOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : availableOptions.recentReports).length > 0) {
                 newSections.push({
                     title: translate('common.recents'),
-                    data: isPerDiemRequest ? availableOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : availableOptions.recentReports,
+                    data: shouldFilterRecentReportsToWorkspaceOnly ? availableOptions.recentReports.filter((report) => report.isPolicyExpenseChat) : availableOptions.recentReports,
                     sectionIndex: 3,
                 });
             }
 
-            if (availableOptions.personalDetails.length > 0 && !isPerDiemRequest) {
+            if (availableOptions.personalDetails.length > 0 && !isPerDiemRequest && !isTimeRequest) {
                 newSections.push({
                     title: translate('common.contacts'),
                     data: availableOptions.personalDetails,
@@ -352,7 +361,8 @@ function MoneyRequestParticipantsSelector({
                 loginList,
                 currentUserEmail,
             ) &&
-            !isPerDiemRequest
+            !isPerDiemRequest &&
+            !isTimeRequest
         ) {
             newSections.push({
                 title: undefined,
@@ -360,15 +370,7 @@ function MoneyRequestParticipantsSelector({
                     const isPolicyExpenseChat = participant?.isPolicyExpenseChat ?? false;
                     const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${userToInviteExpenseReport?.reportID}`];
                     return isPolicyExpenseChat
-                        ? getPolicyExpenseReportOption(
-                              participant,
-                              privateIsArchived,
-                              currentUserAccountID,
-                              personalDetails,
-                              userToInviteExpenseReport,
-                              userToInviteChatReport,
-                              reportAttributesDerived,
-                          )
+                        ? getPolicyExpenseReportOption(participant, privateIsArchived, personalDetails, userToInviteExpenseReport, userToInviteExpenseReportPolicy, reportAttributesDerived)
                         : getParticipantsOption(participant, personalDetails);
                 }),
                 sectionIndex: 5,
@@ -395,15 +397,17 @@ function MoneyRequestParticipantsSelector({
         availableOptions.recentReports,
         availableOptions.personalDetails,
         userToInviteExpenseReport,
-        userToInviteChatReport,
+        userToInviteExpenseReportPolicy,
         isWorkspacesOnly,
         loginList,
         isPerDiemRequest,
+        isTimeRequest,
         showImportContacts,
         inputHelperText,
         privateIsArchivedMap,
         currentUserAccountID,
         currentUserEmail,
+        allPolicies,
     ]);
 
     /**
@@ -527,11 +531,7 @@ function MoneyRequestParticipantsSelector({
 
     const onSelectRow = useCallback(
         (option: Participant) => {
-            if (
-                option.isPolicyExpenseChat &&
-                option.policyID &&
-                shouldRestrictUserBillableActions(option.policyID, userBillingGraceEndPeriodCollection, undefined, ownerBillingGraceEndPeriod)
-            ) {
+            if (option.isPolicyExpenseChat && option.policyID && shouldRestrictUserBillableActions(option.policyID, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(option.policyID));
                 return;
             }
@@ -543,7 +543,7 @@ function MoneyRequestParticipantsSelector({
 
             addSingleParticipant(option);
         },
-        [isIOUSplit, addParticipantToSelection, addSingleParticipant, userBillingGraceEndPeriodCollection, ownerBillingGraceEndPeriod],
+        [isIOUSplit, addParticipantToSelection, addSingleParticipant, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd],
     );
 
     const importContactsButtonComponent = useMemo(() => {

@@ -98,8 +98,10 @@ function Avatar({source, size}: AvatarProps) {
 Before flagging, verify that the file actually compiles with React Compiler:
 
 ```bash
-npx react-compiler-healthcheck --src "<filepath>" --verbose
+check-compiler.sh <filepath>
 ```
+
+**IMPORTANT:** Run `check-compiler.sh` exactly as shown above - by name only, without an absolute path or `bash` prefix. The script is already on `$PATH`.
 
 If the output contains **"Failed to compile"** for the file under review, the rule **does not apply** — the author may have no alternative to manual memoization until the compilation issue is resolved.
 
