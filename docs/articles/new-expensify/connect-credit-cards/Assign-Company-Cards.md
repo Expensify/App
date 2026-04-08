@@ -5,44 +5,42 @@ keywords: [New Expensify, assign company cards, Expensify card assignment, works
 internalScope: Audience is Workspace Admins. Covers assigning company cards to members in New Expensify, does not cover initial connection or troubleshooting connection issues. 
 ---
 
-# Assign company cards
+# Assign Company Cards
 
 Assigning company cards links company cards to Workspace members so their transactions are automatically imported into their account for expense tracking.
 
 ---
 
-## Who can assign company cards
+## Who can assign company cards 
 
 Workspace Admins can assign company cards after a company card feed is connected.
 
 If you haven’t set up a feed yet, learn how to set one up:
 
- - [Learn how to set up a Direct Company Card feed](/articles/new-expensify/billing-and-subscriptions/How-to-Set-up-a-Direct-Company-Card-Feed).
- - [Learn how to set up a Direct Company Card feed](/articles/new-expensify/billing-and-subscriptions/How-to-Set-up-a-Commercial-Card-Feed). 
+ - [Learn how to set up a direct company card feed connection](/articles/new-expensify/billing-and-subscriptions/Set-up-a-Direct-Company-Card-Feed-Connection).
+ - [Learn how to set up a commercial card feed connection](/articles/new-expensify/billing-and-subscriptions/Set-up-a-Commercial-Card-Feed-Connection). 
 
-# How to assign company cards 
+## How to assign company cards 
 
-1. Click the navigation tabs (on the left on web, on the bottom on mobile) and select **Workspaces > [Workspace Name]**
-2. Choose **Company cards** to view your Workspace's company card feeds. 
+1. Click the navigation tabs (on the left on web, on the bottom on mobile) and select **Workspaces > [Workspace Name]**.
+2. Select **Company cards**.
 3. Select the card connection name. 
-5. Click **Assign card** next to the card you want to assign. You can filter by card number or name above the card list to make it easier to find a specific card.
-5. Enter the assignee's name, email address, or phone number, 
-6. Review the details and click **Assign card*** to finalize the assignment.
+4. Click **Assign card** on the card you want to assign. 
+5. Enter the assignee's name, email address, or phone number. 
+6. Review the details and click **Assign card** to finalize the assignment.
 
 ---
 
 ## What happens after you assign company cards
 
-The selected card is linked to the member.
-
- - Posted transactions from that card import automatically into the member's account 
- - The member can include these transactions in expense reports
+ - Posted transactions from the assigned card import automatically into the member's account as expenses.
+ - The imported company card expenses are added to reports and submitted submitted according to Workspace rules.
 
 # FAQ
 
 ## Can I assign a company card to someone who is not a member of the Workspace? 
 
-You can enter any name, email address, or phone number when assigning a company card. However, only Workspace members can have company cards assigned to them. If the assigree is not yet a Workspace member, you can invite them while assigning the card. 
+You can enter any name, email address, or phone number when assigning a company card. However, only Workspace members can have company cards assigned to them. If the assignee is not yet a Workspace member, you can invite them while assigning the card. 
 
 ## Can I assign multiple company cards to one member?
 
