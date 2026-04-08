@@ -217,6 +217,7 @@ function ReportActionsList({
     const shouldFocusToTopOnMount = useMemo(() => isTransactionThreadReport || isMoneyRequestOrInvoiceReport, [isMoneyRequestOrInvoiceReport, isTransactionThreadReport]);
     const topReportAction = sortedVisibleReportActions.at(-1);
     const [shouldScrollToEndAfterLayout, setShouldScrollToEndAfterLayout] = useState(shouldFocusToTopOnMount && !linkedReportActionID);
+    const isScrollEndPendingRef = useRef(false);
     const isAnonymousUser = useIsAnonymousUser();
 
     useEffect(() => {
@@ -352,8 +353,14 @@ function ReportActionsList({
         onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
             scrollOffsetRef.current = event.nativeEvent.contentOffset.y;
             onScroll?.(event);
-            if (shouldScrollToEndAfterLayout && (!hasCreatedActionAdded || isOffline)) {
-                setShouldScrollToEndAfterLayout(false);
+            // We use a timeout to wait for the scroll to finish before resetting the flag.
+            // onMomentumScrollEnd would be ideal but it doesn't work on web.
+            if (shouldScrollToEndAfterLayout && (!hasCreatedActionAdded || isOffline) && !isScrollEndPendingRef.current) {
+                isScrollEndPendingRef.current = true;
+                setTimeout(() => {
+                    setShouldScrollToEndAfterLayout(false);
+                    isScrollEndPendingRef.current = false;
+                }, CONST.TIMING.LIST_SCROLLING_DEBOUNCE_TIME);
             }
         },
         hasOnceLoadedReportActions: !!reportMetadata?.hasOnceLoadedReportActions,
