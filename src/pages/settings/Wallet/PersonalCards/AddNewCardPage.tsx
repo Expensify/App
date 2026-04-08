@@ -1,8 +1,7 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
+import ConfirmModal from '@components/ConfirmModal';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
-import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -26,7 +25,7 @@ function AddPersonalNewCardPage() {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {currentStep} = addNewPersonalCardFeed ?? {};
-    const {showConfirmModal} = useConfirmModal();
+    const [isModalVisible, setIsModalVisible] = useState(false);
     const {translate} = useLocalize();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isAddCardFeedLoading = isLoadingOnyxValue(addNewPersonalCardFeedMetadata);
@@ -62,31 +61,31 @@ function AddPersonalNewCardPage() {
             CurrentStep = <BankConnection />;
             break;
         case CONST.PERSONAL_CARDS.STEP.PLAID_CONNECTION:
-            CurrentStep = (
-                <PlaidConnectionStep
-                    onExit={() => {
-                        showConfirmModal({
-                            title: translate('workspace.companyCards.addNewCard.exitModal.title'),
-                            success: true,
-                            confirmText: translate('workspace.companyCards.addNewCard.exitModal.confirmText'),
-                            cancelText: translate('workspace.companyCards.addNewCard.exitModal.cancelText'),
-                            prompt: translate('workspace.companyCards.addNewCard.exitModal.prompt'),
-                        }).then((result) => {
-                            if (result.action !== ModalActions.CONFIRM) {
-                                return;
-                            }
-                            navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, false, betas);
-                        });
-                    }}
-                />
-            );
+            CurrentStep = <PlaidConnectionStep onExit={() => setIsModalVisible(true)} />;
             break;
         default:
             CurrentStep = <SelectCountryStep disableAutoFocus={isModalVisible} />;
             break;
     }
 
-    return <View style={styles.flex1}>{CurrentStep}</View>;
+    return (
+        <>
+            <View style={styles.flex1}>{CurrentStep}</View>
+            <ConfirmModal
+                isVisible={isModalVisible}
+                title={translate('workspace.companyCards.addNewCard.exitModal.title')}
+                success
+                confirmText={translate('workspace.companyCards.addNewCard.exitModal.confirmText')}
+                cancelText={translate('workspace.companyCards.addNewCard.exitModal.cancelText')}
+                prompt={translate('workspace.companyCards.addNewCard.exitModal.prompt')}
+                onCancel={() => setIsModalVisible(false)}
+                onConfirm={() => {
+                    setIsModalVisible(false);
+                    navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, false, betas);
+                }}
+            />
+        </>
+    );
 }
 
 export default AddPersonalNewCardPage;
