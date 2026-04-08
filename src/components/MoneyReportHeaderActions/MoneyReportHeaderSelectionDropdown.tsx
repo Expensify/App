@@ -1,3 +1,4 @@
+import {useRoute} from '@react-navigation/native';
 import {isUserValidatedSelector} from '@selectors/Account';
 import React, {useContext, useRef} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -39,6 +40,7 @@ import {canIOUBePaid as canIOUBePaidAction, payMoneyRequest} from '@userActions/
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
 const PAYMENT_ICONS = ['Send', 'ThumbsUp', 'Cash', 'ArrowRight'] as const;
@@ -46,10 +48,12 @@ const PAYMENT_ICONS = ['Send', 'ThumbsUp', 'Cash', 'ArrowRight'] as const;
 type MoneyReportHeaderSelectionDropdownProps = {
     reportID: string | undefined;
     primaryAction: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '';
+    isReportInSearch?: boolean;
     wrapperStyle?: StyleProp<ViewStyle>;
 };
 
-function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, wrapperStyle}: MoneyReportHeaderSelectionDropdownProps) {
+function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportInSearch, wrapperStyle}: MoneyReportHeaderSelectionDropdownProps) {
+    const route = useRoute();
     const {startApprovedAnimation, startSubmittingAnimation} = usePaymentAnimationsContext();
     const {openHoldMenu: openHoldMenuAsync, openRejectModal} = useMoneyReportHeaderModals();
     const openHoldMenu = (params: Parameters<typeof openHoldMenuAsync>[0]) => {
@@ -133,7 +137,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, wrapperSty
         onExportOffline: showOfflineModal,
         policy,
         beginExportWithTemplate,
-        isOnSearch: false,
+        isOnSearch: !!isReportInSearch,
     });
 
     const computedSecondaryActions = moneyRequestReport
@@ -259,7 +263,10 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, wrapperSty
             }
             const nonPendingCount = transactions.filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
             if (nonPendingCount === selectedTransactionIDs.length) {
-                const backToRoute = chatReport?.reportID ? ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID) : undefined;
+                // eslint-disable-next-line no-restricted-syntax -- backTo is a legacy route param, preserving existing behavior
+                const backToRoute = ((route.params as {backTo?: Route} | undefined)?.backTo ?? (chatReport?.reportID ? ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID) : undefined)) as
+                    | Route
+                    | undefined;
                 handleDeleteTransactionsWithNavigation(backToRoute);
             } else {
                 handleDeleteTransactions();

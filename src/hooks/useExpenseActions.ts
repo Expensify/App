@@ -30,7 +30,14 @@ import {
     navigateOnDeleteExpense,
 } from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {getChildTransactions, getOriginalTransactionWithSplitInfo, isDistanceRequest, isTransactionPendingDelete} from '@libs/TransactionUtils';
+import {
+    getChildTransactions,
+    getOriginalTransactionWithSplitInfo,
+    hasCustomUnitOutOfPolicyViolation as hasCustomUnitOutOfPolicyViolationTransactionUtils,
+    isDistanceRequest,
+    isPerDiemRequest,
+    isTransactionPendingDelete,
+} from '@libs/TransactionUtils';
 import {getNavigationUrlOnMoneyRequestDelete, startMoneyRequest} from '@userActions/IOU';
 import {setDeleteTransactionNavigateBackUrl} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -52,6 +59,7 @@ import useReportIsArchived from './useReportIsArchived';
 import useThrottledButtonState from './useThrottledButtonState';
 import useTransactionsAndViolationsForReport from './useTransactionsAndViolationsForReport';
 import useTransactionThreadReport from './useTransactionThreadReport';
+import useTransactionViolations from './useTransactionViolations';
 
 type UseExpenseActionsParams = {
     reportID: string | undefined;
@@ -204,11 +212,18 @@ function useExpenseActions({reportID, isReportInSearch = false}: UseExpenseActio
     })();
 
     // Duplicate expense: unsupported / shouldClose flags
+    const transactionViolations = useTransactionViolations(transaction?.transactionID);
+    const hasCustomUnitOutOfPolicyViolation = hasCustomUnitOutOfPolicyViolationTransactionUtils(transactionViolations);
+    const isPerDiemRequestOnNonDefaultWorkspace = isPerDiemRequest(transaction) && defaultExpensePolicy?.id !== policy?.id;
     const isDistanceExpenseUnsupportedForDuplicating = !!(
         isDistanceRequest(transaction) &&
         (isArchivedReport || isChatReportArchived || (activePolicyExpenseChat && (isDM(chatReport) || isSelfDM(chatReport))))
     );
-    const shouldDuplicateCloseModalOnSelect = isDistanceExpenseUnsupportedForDuplicating || activePolicyExpenseChat?.iouReportID === moneyRequestReport?.reportID;
+    const shouldDuplicateCloseModalOnSelect =
+        isDistanceExpenseUnsupportedForDuplicating ||
+        isPerDiemRequestOnNonDefaultWorkspace ||
+        hasCustomUnitOutOfPolicyViolation ||
+        activePolicyExpenseChat?.iouReportID === moneyRequestReport?.reportID;
 
     // Dropdown ref is owned by the orchestrator — no reset callback needed here.
     const [isDuplicateActive, temporarilyDisableDuplicateAction] = useThrottledButtonState();
@@ -313,10 +328,30 @@ function useExpenseActions({reportID, isReportInSearch = false}: UseExpenseActio
             icon: isDuplicateActive ? expensifyIcons.ExpenseCopy : expensifyIcons.Checkmark,
             value: CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE_EXPENSE,
             onSelected: () => {
+                if (hasCustomUnitOutOfPolicyViolation) {
+                    showConfirmModal({
+                        title: translate('common.duplicateExpense'),
+                        prompt: translate('iou.correctRateError'),
+                        confirmText: translate('common.buttonConfirm'),
+                        shouldShowCancelButton: false,
+                    });
+                    return;
+                }
+
                 if (isDistanceExpenseUnsupportedForDuplicating) {
                     showConfirmModal({
                         title: translate('common.duplicateExpense'),
                         prompt: translate('iou.cannotDuplicateDistanceExpense'),
+                        confirmText: translate('common.buttonConfirm'),
+                        shouldShowCancelButton: false,
+                    });
+                    return;
+                }
+
+                if (isPerDiemRequestOnNonDefaultWorkspace) {
+                    showConfirmModal({
+                        title: translate('common.duplicateExpense'),
+                        prompt: translate('iou.duplicateNonDefaultWorkspacePerDiemError'),
                         confirmText: translate('common.buttonConfirm'),
                         shouldShowCancelButton: false,
                     });

@@ -63,6 +63,7 @@ function MoneyReportHeaderActions({reportID, primaryAction, isReportInSearch}: M
                 <MoneyReportHeaderSelectionDropdown
                     reportID={reportID}
                     primaryAction={narrowedPrimaryAction}
+                    isReportInSearch={isReportInSearch}
                     wrapperStyle={shouldDisplayNarrowMoreButton ? undefined : styles.w100}
                 />
             </View>
