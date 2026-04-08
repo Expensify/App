@@ -164,7 +164,21 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
     const activePolicy = useActivePolicy();
     const styles = useThemeStyles();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Users', 'Gear', 'Send', 'Folder', 'UserPlus', 'Pencil', 'Checkmark', 'Building', 'Exit', 'Bug', 'Camera', 'Trashcan']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons([
+        'Users',
+        'Gear',
+        'Send',
+        'Folder',
+        'UserPlus',
+        'Pencil',
+        'Checkmark',
+        'Building',
+        'Exit',
+        'Bug',
+        'Camera',
+        'Trashcan',
+        'ArrowSplit',
+    ]);
     const backTo = route.params.backTo;
 
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
@@ -318,6 +332,13 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     });
     const isCardTransactionCanBeDeleted = canDeleteCardTransactionByLiabilityType(iouTransaction);
     const shouldShowDeleteButton = shouldShowTaskDeleteButton || (canDeleteRequest && isCardTransactionCanBeDeleted) || isDemoTransaction(iouTransaction);
+    const shouldShowEditSplitOnDeleteAction = iouTransactionID ? shouldOpenSplitExpenseEditFlowOnDelete([iouTransactionID]) : false;
+    let deleteMenuItemTitle = translate('reportActionContextMenu.deleteAction', {action: requestParentReportAction});
+    if (shouldShowEditSplitOnDeleteAction) {
+        deleteMenuItemTitle = translate('iou.editSplits');
+    } else if (caseID === CASES.DEFAULT) {
+        deleteMenuItemTitle = translate('common.delete');
+    }
     const reportAttributes = useReportAttributes();
     const isWorkspaceChat = useMemo(() => isWorkspaceChatUtil(report?.chatType ?? ''), [report?.chatType]);
 
@@ -1123,9 +1144,9 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                     {shouldShowDeleteButton && (
                         <MenuItem
                             key={CONST.REPORT_DETAILS_MENU_ITEM.DELETE}
-                            icon={expensifyIcons.Trashcan}
-                            title={caseID === CASES.DEFAULT ? translate('common.delete') : translate('reportActionContextMenu.deleteAction', {action: requestParentReportAction})}
-                            onPress={showDeleteModal}
+                            icon={shouldShowEditSplitOnDeleteAction ? expensifyIcons.ArrowSplit : expensifyIcons.Trashcan}
+                            title={deleteMenuItemTitle}
+                            onPress={shouldShowEditSplitOnDeleteAction ? deleteTransaction : showDeleteModal}
                         />
                     )}
                 </ScrollView>

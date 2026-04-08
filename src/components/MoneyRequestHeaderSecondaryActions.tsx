@@ -188,6 +188,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const hasMultipleSplits = useHasMultipleSplitChildren(transaction?.comment?.originalTransactionID);
     const isReportOpen = isOpenReport(parentReport);
     const shouldShowSplitIndicator = isExpenseSplit && (hasMultipleSplits || isReportOpen);
+    const shouldShowEditSplitOnDeleteAction = !!transaction?.transactionID && shouldOpenSplitExpenseEditFlowOnDelete([transaction.transactionID]);
     const isReportSubmitter = isCurrentUserSubmitter(chatIOUReport);
     const draftTransactionIDs = Object.keys(transactionDrafts ?? {});
     const targetPolicyTags = defaultPolicyTags ?? {};
@@ -398,10 +399,15 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
             },
         },
         [CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DELETE]: {
-            text: translate('common.delete'),
-            icon: expensifyIcons.Trashcan,
+            text: shouldShowEditSplitOnDeleteAction ? translate('iou.editSplits') : translate('common.delete'),
+            icon: shouldShowEditSplitOnDeleteAction ? expensifyIcons.ArrowSplit : expensifyIcons.Trashcan,
             value: CONST.REPORT.SECONDARY_ACTIONS.DELETE,
             onSelected: () => {
+                if (shouldShowEditSplitOnDeleteAction && transaction?.transactionID) {
+                    deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash, true);
+                    return;
+                }
+
                 showConfirmModal({
                     title: translate('iou.deleteExpense', {count: 1}),
                     prompt: translate('iou.deleteConfirmation', {count: 1}),
@@ -435,9 +441,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                             currentUserAccountID: accountID,
                         });
                     } else {
-                        const shouldOpenSplitExpenseEditFlow = shouldOpenSplitExpenseEditFlowOnDelete([transaction.transactionID]);
-
-                        if (shouldOpenSplitExpenseEditFlow) {
+                        if (shouldOpenSplitExpenseEditFlowOnDelete([transaction.transactionID])) {
                             deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash, true);
                             return;
                         }

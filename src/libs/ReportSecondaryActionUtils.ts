@@ -632,6 +632,21 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[], repor
     return canDeleteMoneyRequestReport(report, reportTransactions, reportActions);
 }
 
+function shouldShowEditSplitInDeleteAction(reportTransactions: Transaction[], originalTransaction: OnyxEntry<Transaction>): boolean {
+    if (reportTransactions.length !== 1) {
+        return false;
+    }
+
+    const reportTransaction = reportTransactions.at(0);
+    if (!reportTransaction) {
+        return false;
+    }
+
+    const {isExpenseSplit, originalTransaction: sourceTransaction} = getOriginalTransactionWithSplitInfo(reportTransaction, originalTransaction);
+
+    return isExpenseSplit && isPerDiemRequestTransactionUtils(sourceTransaction);
+}
+
 function isRetractAction(report: Report, policy?: Policy): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
 
@@ -966,7 +981,10 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.REJECT);
     }
 
-    if (isSplitAction(report, reportTransactions, originalTransaction, currentUserLogin, currentUserAccountID, policy)) {
+    if (
+        isSplitAction(report, reportTransactions, originalTransaction, currentUserLogin, currentUserAccountID, policy) &&
+        !shouldShowEditSplitInDeleteAction(reportTransactions, originalTransaction)
+    ) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SPLIT);
     }
 
@@ -1078,7 +1096,10 @@ function getSecondaryTransactionThreadActions(
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT);
     }
 
-    if (isSplitAction(parentReport, [reportTransaction], originalTransaction, currentUserLogin, currentUserAccountID, policy)) {
+    if (
+        isSplitAction(parentReport, [reportTransaction], originalTransaction, currentUserLogin, currentUserAccountID, policy) &&
+        !shouldShowEditSplitInDeleteAction([reportTransaction], originalTransaction)
+    ) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SPLIT);
     }
 
