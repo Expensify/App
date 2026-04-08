@@ -5994,7 +5994,7 @@ describe('actions/Policy', () => {
             const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
 
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            const mockTranslate = ((key: string) => key) as unknown as Parameters<typeof Policy.createWorkspaceFromIOUPayment>[7];
+            const mockTranslate = ((key: string) => key) as unknown as Parameters<typeof Policy.createWorkspaceFromIOUPayment>[8];
             const result = Policy.createWorkspaceFromIOUPayment(
                 iouReport,
                 undefined,
