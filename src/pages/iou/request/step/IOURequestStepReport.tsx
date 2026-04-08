@@ -287,7 +287,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             transactionIDs={transaction ? [transaction.transactionID] : []}
             selectedReportID={selectedReportID}
             selectedPolicyID={selectedPolicyID}
-            transactionPolicyID={transactionPolicyID}
+            transactionPolicyID={selectedReport?.policyID ?? transactionPolicyID}
             removeFromReport={removeFromReport}
             isEditing={isEditing}
             isUnreported={isUnreported}

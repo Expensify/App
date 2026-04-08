@@ -269,8 +269,8 @@ const ReportChangeApproverModalStackNavigator = createModalStackNavigator<Report
 
 const ReportSettingsModalStackNavigator = createModalStackNavigator<ReportSettingsNavigatorParamList>({
     [SCREENS.REPORT_SETTINGS.ROOT]: () => require<ReactComponentModule>('../../../../pages/settings/Report/ReportSettingsPage').default,
+    [SCREENS.REPORT_SETTINGS.DYNAMIC_NOTIFICATION_PREFERENCES]: () => require<ReactComponentModule>('../../../../pages/settings/Report/DynamicNotificationPreferencePage').default,
     [SCREENS.REPORT_SETTINGS.DYNAMIC_SETTINGS_NAME]: () => require<ReactComponentModule>('../../../../pages/settings/Report/DynamicNamePage').default,
-    [SCREENS.REPORT_SETTINGS.NOTIFICATION_PREFERENCES]: () => require<ReactComponentModule>('../../../../pages/settings/Report/NotificationPreferencePage').default,
     [SCREENS.REPORT_SETTINGS.DYNAMIC_SETTINGS_WRITE_CAPABILITY]: () => require<ReactComponentModule>('../../../../pages/settings/Report/DynamicWriteCapabilityPage').default,
     [SCREENS.REPORT_SETTINGS.DYNAMIC_SETTINGS_VISIBILITY]: () => require<ReactComponentModule>('../../../../pages/settings/Report/DynamicVisibilityPage').default,
     [SCREENS.REPORT_SETTINGS.REPORT_LAYOUT]: () => require<ReactComponentModule>('../../../../pages/settings/Report/ReportLayoutPage').default,
@@ -562,16 +562,16 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.TAXES_SETTINGS_WORKSPACE_CURRENCY_DEFAULT]: () => require<ReactComponentModule>('../../../../pages/workspace/taxes/WorkspaceTaxesSettingsWorkspaceCurrency').default,
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/qbo/export/QuickbooksExportConfigurationPage').default,
-    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT_DATE_SELECT]: () =>
-        require<ReactComponentModule>('../../../../pages/workspace/accounting/qbo/export/QuickbooksExportDateSelectPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_ONLINE_EXPORT_DATE_SELECT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/qbo/export/DynamicQuickbooksExportDateSelectPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT_INVOICE_ACCOUNT_SELECT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/qbo/export/QuickbooksExportInvoiceAccountSelectPage').default,
-    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT]: () =>
-        require<ReactComponentModule>('../../../../pages/workspace/accounting/qbo/export/QuickbooksOutOfPocketExpenseAccountSelectPage').default,
-    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES]: () =>
-        require<ReactComponentModule>('../../../../pages/workspace/accounting/qbo/export/QuickbooksOutOfPocketExpenseConfigurationPage').default,
-    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT]: () =>
-        require<ReactComponentModule>('../../../../pages/workspace/accounting/qbo/export/QuickbooksOutOfPocketExpenseEntitySelectPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/qbo/export/DynamicQuickbooksOutOfPocketExpenseAccountSelectPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/qbo/export/DynamicQuickbooksOutOfPocketExpenseConfigurationPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/qbo/export/DynamicQuickbooksOutOfPocketExpenseEntitySelectPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_NON_REIMBURSABLE_DEFAULT_VENDOR_SELECT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/qbo/export/QuickbooksNonReimbursableDefaultVendorSelectPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT]: () =>
@@ -583,8 +583,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/workspace/accounting/qbo/advanced/QuickbooksAccountingMethodPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_COMPANY_CARD_EXPENSE_ACCOUNT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/qbo/export/QuickbooksCompanyCardExpenseAccountPage').default,
-    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT_PREFERRED_EXPORTER]: () =>
-        require<ReactComponentModule>('../../../../pages/workspace/accounting/qbo/export/QuickbooksPreferredExporterConfigurationPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_ONLINE_EXPORT_PREFERRED_EXPORTER]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/qbo/export/DynamicQuickbooksPreferredExporterConfigurationPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_TRAVEL_INVOICING_CONFIGURATION]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/qbo/export/QuickbooksTravelInvoicingConfigurationPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_TRAVEL_INVOICING_VENDOR_SELECT]: () =>
@@ -716,14 +716,14 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT_EXPENSES]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/netsuite/export/NetSuiteExportExpensesPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT_EXPENSES_DESTINATION_SELECT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/netsuite/export/NetSuiteExportExpensesDestinationSelectPage').default,
-    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT_EXPENSES_VENDOR_SELECT]: () =>
-        require<ReactComponentModule>('../../../../pages/workspace/accounting/netsuite/export/NetSuiteExportExpensesVendorSelectPage').default,
-    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT_EXPENSES_PAYABLE_ACCOUNT_SELECT]: () =>
-        require<ReactComponentModule>('../../../../pages/workspace/accounting/netsuite/export/NetSuiteExportExpensesPayableAccountSelectPage').default,
-    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT_EXPENSES_JOURNAL_POSTING_PREFERENCE_SELECT]: () =>
-        require<ReactComponentModule>('../../../../pages/workspace/accounting/netsuite/export/NetSuiteExportExpensesJournalPostingPreferenceSelectPage').default,
-    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_RECEIVABLE_ACCOUNT_SELECT]: () =>
-        require<ReactComponentModule>('../../../../pages/workspace/accounting/netsuite/export/NetSuiteReceivableAccountSelectPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_EXPORT_EXPENSES_VENDOR_SELECT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/netsuite/export/DynamicNetSuiteExportExpensesVendorSelectPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_EXPORT_EXPENSES_PAYABLE_ACCOUNT_SELECT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/netsuite/export/DynamicNetSuiteExportExpensesPayableAccountSelectPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_EXPORT_EXPENSES_JOURNAL_POSTING_PREFERENCE_SELECT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/netsuite/export/DynamicNetSuiteExportExpensesJournalPostingPreferenceSelectPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_RECEIVABLE_ACCOUNT_SELECT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/netsuite/export/DynamicNetSuiteReceivableAccountSelectPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/netsuite/export/NetSuiteInvoiceItemPreferenceSelectPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_INVOICE_ITEM_SELECT]: () =>
@@ -764,12 +764,12 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/workspace/accounting/intacct/export/SageIntacctNonReimbursableExpensesPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_REIMBURSABLE_DESTINATION]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/intacct/export/SageIntacctReimbursableExpensesDestinationPage').default,
-    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_NON_REIMBURSABLE_DESTINATION]: () =>
-        require<ReactComponentModule>('../../../../pages/workspace/accounting/intacct/export/SageIntacctNonReimbursableExpensesDestinationPage').default,
-    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_DEFAULT_VENDOR]: () =>
-        require<ReactComponentModule>('../../../../pages/workspace/accounting/intacct/export/SageIntacctDefaultVendorPage').default,
-    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_NON_REIMBURSABLE_CREDIT_CARD_ACCOUNT]: () =>
-        require<ReactComponentModule>('../../../../pages/workspace/accounting/intacct/export/SageIntacctNonReimbursableCreditCardAccountPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_NON_REIMBURSABLE_DESTINATION]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/intacct/export/DynamicSageIntacctNonReimbursableExpensesDestinationPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_DEFAULT_VENDOR]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/intacct/export/DynamicSageIntacctDefaultVendorPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_NON_REIMBURSABLE_CREDIT_CARD_ACCOUNT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/intacct/export/DynamicSageIntacctNonReimbursableCreditCardAccountPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_ADVANCED]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/intacct/advanced/SageIntacctAdvancedPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_AUTO_SYNC]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/intacct/advanced/SageIntacctAutoSyncPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_ACCOUNTING_METHOD]: () =>
