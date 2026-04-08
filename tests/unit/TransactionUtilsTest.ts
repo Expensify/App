@@ -1799,6 +1799,73 @@ describe('TransactionUtils', () => {
         });
     });
 
+    describe('hasTaxValueMismatch', () => {
+        const policy: Policy = {
+            ...createRandomPolicy(0),
+            taxRates: CONST.DEFAULT_TAX,
+        };
+
+        it('should return true when policy tax rate percentage differs from transaction taxValue', () => {
+            // id_TAX_RATE_1 maps to 5% in the policy, but the transaction stores 3% from a different workspace
+            const transaction = generateTransaction({
+                taxCode: 'id_TAX_RATE_1',
+                taxValue: '3%',
+            });
+
+            expect(TransactionUtils.hasTaxValueMismatch(policy, transaction)).toBe(true);
+        });
+
+        it('should return false when policy tax rate percentage matches transaction taxValue', () => {
+            const transaction = generateTransaction({
+                taxCode: 'id_TAX_RATE_1',
+                taxValue: '5%',
+            });
+
+            expect(TransactionUtils.hasTaxValueMismatch(policy, transaction)).toBe(false);
+        });
+
+        it('should return false when transaction taxValue is undefined', () => {
+            const transaction = generateTransaction({
+                taxCode: 'id_TAX_RATE_1',
+                taxValue: undefined,
+            });
+
+            expect(TransactionUtils.hasTaxValueMismatch(policy, transaction)).toBe(false);
+        });
+
+        it('should return false when taxCode does not exist in policy (policy rate is undefined)', () => {
+            const transaction = generateTransaction({
+                taxCode: 'id_NONEXISTENT',
+                taxValue: '3%',
+            });
+
+            expect(TransactionUtils.hasTaxValueMismatch(policy, transaction)).toBe(false);
+        });
+
+        it('should return false when transaction is undefined', () => {
+            expect(TransactionUtils.hasTaxValueMismatch(policy, undefined)).toBe(false);
+        });
+
+        it('should return false when policy is undefined', () => {
+            const transaction = generateTransaction({
+                taxCode: 'id_TAX_RATE_1',
+                taxValue: '3%',
+            });
+
+            expect(TransactionUtils.hasTaxValueMismatch(undefined, transaction)).toBe(false);
+        });
+
+        it('should use default tax code when transaction has no taxCode', () => {
+            // Policy default is id_TAX_EXEMPT (0%), transaction stores 5% — mismatch
+            const transaction = generateTransaction({
+                taxCode: undefined,
+                taxValue: '5%',
+            });
+
+            expect(TransactionUtils.hasTaxValueMismatch(policy, transaction)).toBe(true);
+        });
+    });
+
     describe('getTaxRateTitle', () => {
         const policy: Policy = {
             ...createRandomPolicy(0),
