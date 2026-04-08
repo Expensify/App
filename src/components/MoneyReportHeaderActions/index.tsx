@@ -4,7 +4,6 @@ import type {ValueOf} from 'type-fest';
 import type {ButtonWithDropdownMenuRef} from '@components/ButtonWithDropdownMenu/types';
 import type {RejectModalAction} from '@components/MoneyReportHeaderEducationalModals';
 import MoneyReportHeaderEducationalModals from '@components/MoneyReportHeaderEducationalModals';
-import MoneyReportHeaderPrimaryAction from '@components/MoneyReportHeaderPrimaryAction';
 import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
 import ReportPDFDownloadModal from '@components/ReportPDFDownloadModal';
 import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
@@ -13,7 +12,6 @@ import useNonReimbursablePaymentModal from '@hooks/useNonReimbursablePaymentModa
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
-import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import useTransactionThreadReport from '@hooks/useTransactionThreadReport';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -26,8 +24,6 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import MoneyReportHeaderActionsBar from './MoneyReportHeaderActionsBar';
 import MoneyReportHeaderHoldMenu from './MoneyReportHeaderHoldMenu';
-import MoneyReportHeaderSecondaryActions from './MoneyReportHeaderSecondaryActions';
-import MoneyReportHeaderSelectionDropdown from './MoneyReportHeaderSelectionDropdown';
 
 type MoneyReportHeaderActionsProps = {
     reportID: string | undefined;
@@ -41,17 +37,6 @@ type MoneyReportHeaderActionsProps = {
     startSubmittingAnimation: () => void;
 };
 
-/**
- * Narrow the wide primaryAction union to what report-level secondary actions accept.
- * TRANSACTION_PRIMARY_ACTIONS values (e.g. "keepThisOne") are irrelevant here.
- */
-function narrowPrimaryAction(primaryAction: MoneyReportHeaderActionsProps['primaryAction']): ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '' {
-    if ((Object.values(CONST.REPORT.PRIMARY_ACTIONS) as string[]).includes(primaryAction)) {
-        return primaryAction as ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS>;
-    }
-    return '';
-}
-
 function MoneyReportHeaderActions({
     reportID,
     primaryAction,
@@ -63,8 +48,6 @@ function MoneyReportHeaderActions({
     startApprovedAnimation,
     startSubmittingAnimation,
 }: MoneyReportHeaderActionsProps) {
-    const styles = useThemeStyles();
-
     // ── Modal state ──
     const [isHoldMenuVisible, setIsHoldMenuVisible] = useState(false);
     const [paymentType, setPaymentType] = useState<PaymentMethodType>();
@@ -115,8 +98,6 @@ function MoneyReportHeaderActions({
     const {clearSelectedTransactions} = useSearchActionsContext();
     const shouldShowSelectedTransactionsButton = !!selectedTransactionIDs.length && !transactionThreadReportID;
 
-    const primaryActionForSecondary = narrowPrimaryAction(primaryAction);
-
     // ── Callbacks ──
     const onHoldMenuOpen = (actionType: string, payType?: PaymentMethodType, methodID?: number) => {
         setRequestType(actionType as ActionHandledType);
@@ -131,60 +112,27 @@ function MoneyReportHeaderActions({
         }
     };
 
-    // ── Sub-elements ──
-    const primaryActionElement = (
-        <MoneyReportHeaderPrimaryAction
-            reportID={reportID}
-            chatReportID={chatReport?.reportID}
-            primaryAction={primaryAction}
-            isPaidAnimationRunning={isPaidAnimationRunning}
-            isApprovedAnimationRunning={isApprovedAnimationRunning}
-            isSubmittingAnimationRunning={isSubmittingAnimationRunning}
-            stopAnimation={stopAnimation}
-            startAnimation={startAnimation}
-            startApprovedAnimation={startApprovedAnimation}
-            startSubmittingAnimation={startSubmittingAnimation}
-            onHoldMenuOpen={onHoldMenuOpen}
-            onExportModalOpen={() => triggerExportOrConfirm(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION)}
-        />
-    );
-
-    const secondaryActionsElement = (
-        <MoneyReportHeaderSecondaryActions
-            reportID={reportID}
-            primaryAction={primaryActionForSecondary}
-            onHoldMenuOpen={onHoldMenuOpen}
-            onPDFModalOpen={() => setIsPDFModalVisible(true)}
-            onHoldEducationalOpen={() => setIsHoldEducationalModalVisible(true)}
-            onRejectModalOpen={(action) => setRejectModalAction(action)}
-            startAnimation={startAnimation}
-            startApprovedAnimation={startApprovedAnimation}
-            startSubmittingAnimation={startSubmittingAnimation}
-            dropdownMenuRef={dropdownMenuRef}
-        />
-    );
-
-    const selectionDropdownElement = (
-        <MoneyReportHeaderSelectionDropdown
-            reportID={reportID}
-            primaryAction={primaryActionForSecondary}
-            onHoldMenuOpen={onHoldMenuOpen}
-            onRejectModalOpen={(action) => setRejectModalAction(action)}
-            startApprovedAnimation={startApprovedAnimation}
-            startSubmittingAnimation={startSubmittingAnimation}
-            wrapperStyle={shouldDisplayNarrowMoreButton ? undefined : styles.w100}
-        />
-    );
-
     return (
         <>
             <MoneyReportHeaderActionsBar
+                reportID={reportID}
+                chatReportID={chatReport?.reportID}
                 primaryAction={primaryAction}
                 shouldDisplayNarrowMoreButton={shouldDisplayNarrowMoreButton}
                 shouldShowSelectedTransactionsButton={shouldShowSelectedTransactionsButton}
-                primaryActionElement={primaryActionElement}
-                secondaryActionsElement={secondaryActionsElement}
-                selectionDropdownElement={selectionDropdownElement}
+                isPaidAnimationRunning={isPaidAnimationRunning}
+                isApprovedAnimationRunning={isApprovedAnimationRunning}
+                isSubmittingAnimationRunning={isSubmittingAnimationRunning}
+                stopAnimation={stopAnimation}
+                startAnimation={startAnimation}
+                startApprovedAnimation={startApprovedAnimation}
+                startSubmittingAnimation={startSubmittingAnimation}
+                onHoldMenuOpen={onHoldMenuOpen}
+                onExportModalOpen={() => triggerExportOrConfirm(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION)}
+                onPDFModalOpen={() => setIsPDFModalVisible(true)}
+                onHoldEducationalOpen={() => setIsHoldEducationalModalVisible(true)}
+                onRejectModalOpen={(action) => setRejectModalAction(action)}
+                dropdownMenuRef={dropdownMenuRef}
             />
 
             <MoneyReportHeaderHoldMenu
