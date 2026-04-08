@@ -43,7 +43,6 @@ function getSpendRuleSummaryParts(
     formValues: SpendRuleForm,
     selectedCurrency: string | undefined,
     actionLabel: string,
-    locale: ReturnType<typeof useLocalize>['preferredLocale'],
     translate: ReturnType<typeof useLocalize>['translate'],
 ): SpendRuleSummaryPart[] {
     const summaryParts: SpendRuleSummaryPart[] = [];
@@ -71,7 +70,7 @@ function getSpendRuleSummaryParts(
 }
 
 function SpendRulesSection({policyID}: SpendRulesSectionProps) {
-    const {preferredLocale, translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
@@ -139,11 +138,13 @@ function SpendRulesSection({policyID}: SpendRulesSectionProps) {
                 ruleID,
                 actionLabel,
                 cardSummary,
-                summaryParts: getSpendRuleSummaryParts(formValues, selectedCurrency, actionLabel, preferredLocale, translate),
+                summaryParts: getSpendRuleSummaryParts(formValues, selectedCurrency, actionLabel, translate),
                 isBlock: formValues.restrictionAction === CONST.SPEND_RULES.ACTION.BLOCK,
+                created: cardRule.created,
             };
         })
-        .filter((rule) => rule !== undefined);
+        .filter((rule) => rule !== undefined)
+        .sort((a, b) => localeCompare(a.created, b.created));
 
     const renderSectionTitle = () => (
         <View style={[styles.flexRow, styles.alignItemsCenter]}>
