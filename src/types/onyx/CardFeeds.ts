@@ -245,7 +245,7 @@ type CardFeeds = {
 /** Data required to be sent to add a new card */
 type AddNewCardFeedData = {
     /** Card feed provider */
-    feedType: CardFeedProvider;
+    feedType: CardFeedProvider | typeof CONST.COMPANY_CARD.FEED_BANK_NAME.MOCK_COMMERCIAL_FEED;
 
     /** Card feed details */
     feedDetails?: CardFeedDetails;

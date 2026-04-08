@@ -3861,6 +3861,7 @@ const CONST = {
             AMEX_FILE_DOWNLOAD: 'americanexpressfd.us',
             CSV: 'ccupload',
             MOCK_BANK: 'oauth.mockbank.com',
+            MOCK_COMMERCIAL_FEED: 'vcfmock',
             UPLOAD: 'upload',
         },
         LINK_FEED_TYPE: {
