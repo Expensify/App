@@ -259,28 +259,30 @@ function CalendarPicker({
                             direction={CONST.DIRECTION.LEFT}
                         />
                     </PressableWithFeedback>
-                    <PressableWithFeedback
-                        onPress={() => {
-                            monthPressableRef?.current?.blur();
-                            setIsMonthPickerVisible(true);
-                        }}
-                        ref={monthPressableRef}
-                        style={[themeStyles.alignItemsCenter, {flex: 1}]}
-                        wrapperStyle={[themeStyles.alignItemsCenter, {flex: 1}]}
-                        hoverDimmingValue={1}
-                        testID="currentMonthButton"
-                        accessibilityLabel={`${monthNames.at(currentMonthView)}, ${translate('common.currentMonth')}`}
-                        role={CONST.ROLE.BUTTON}
-                        sentryLabel={CONST.SENTRY_LABEL.CALENDAR_PICKER.MONTH_PICKER}
-                    >
-                        <Text
-                            style={themeStyles.sidebarLinkTextBold}
-                            testID="currentMonthText"
-                            numberOfLines={1}
+                    <View style={[themeStyles.flex1, themeStyles.alignItemsCenter]}>
+                        <PressableWithFeedback
+                            onPress={() => {
+                                monthPressableRef?.current?.blur();
+                                setIsMonthPickerVisible(true);
+                            }}
+                            ref={monthPressableRef}
+                            style={[themeStyles.alignItemsCenter]}
+                            wrapperStyle={[themeStyles.alignItemsCenter]}
+                            hoverDimmingValue={1}
+                            testID="currentMonthButton"
+                            accessibilityLabel={`${monthNames.at(currentMonthView)}, ${translate('common.currentMonth')}`}
+                            role={CONST.ROLE.BUTTON}
+                            sentryLabel={CONST.SENTRY_LABEL.CALENDAR_PICKER.MONTH_PICKER}
                         >
-                            {monthNames.at(currentMonthView)}
-                        </Text>
-                    </PressableWithFeedback>
+                            <Text
+                                style={themeStyles.sidebarLinkTextBold}
+                                testID="currentMonthText"
+                                numberOfLines={1}
+                            >
+                                {monthNames.at(currentMonthView)}
+                            </Text>
+                        </PressableWithFeedback>
+                    </View>
                     <PressableWithFeedback
                         shouldUseAutoHitSlop={false}
                         testID="next-month-arrow"
@@ -310,28 +312,30 @@ function CalendarPicker({
                             direction={CONST.DIRECTION.LEFT}
                         />
                     </PressableWithFeedback>
-                    <PressableWithFeedback
-                        onPress={() => {
-                            pressableRef?.current?.blur();
-                            setIsYearPickerVisible(true);
-                        }}
-                        ref={pressableRef}
-                        style={[themeStyles.alignItemsCenter, {flex: 1}]}
-                        wrapperStyle={[themeStyles.alignItemsCenter, {flex: 1}]}
-                        hoverDimmingValue={1}
-                        disabled={years.length <= 1}
-                        testID="currentYearButton"
-                        accessibilityLabel={`${currentYearView}, ${translate('common.currentYear')}`}
-                        role={CONST.ROLE.BUTTON}
-                        sentryLabel={CONST.SENTRY_LABEL.CALENDAR_PICKER.YEAR_PICKER}
-                    >
-                        <Text
-                            style={themeStyles.sidebarLinkTextBold}
-                            testID="currentYearText"
+                    <View style={[themeStyles.flex1, themeStyles.alignItemsCenter]}>
+                        <PressableWithFeedback
+                            onPress={() => {
+                                pressableRef?.current?.blur();
+                                setIsYearPickerVisible(true);
+                            }}
+                            ref={pressableRef}
+                            style={[themeStyles.alignItemsCenter]}
+                            wrapperStyle={[themeStyles.alignItemsCenter]}
+                            hoverDimmingValue={1}
+                            disabled={years.length <= 1}
+                            testID="currentYearButton"
+                            accessibilityLabel={`${currentYearView}, ${translate('common.currentYear')}`}
+                            role={CONST.ROLE.BUTTON}
+                            sentryLabel={CONST.SENTRY_LABEL.CALENDAR_PICKER.YEAR_PICKER}
                         >
-                            {currentYearView}
-                        </Text>
-                    </PressableWithFeedback>
+                            <Text
+                                style={themeStyles.sidebarLinkTextBold}
+                                testID="currentYearText"
+                            >
+                                {currentYearView}
+                            </Text>
+                        </PressableWithFeedback>
+                    </View>
                     <PressableWithFeedback
                         shouldUseAutoHitSlop={false}
                         testID="next-year-arrow"
