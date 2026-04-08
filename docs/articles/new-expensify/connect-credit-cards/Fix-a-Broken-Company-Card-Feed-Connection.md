@@ -5,32 +5,33 @@ keywords: [fix company card connection, troubleshoot card feed, Expensify card e
 internalScope: Audience is Workspace Admins. Covers fixing broken company card connections and resolving connection errors. Does not cover CSV imports, missing transactions, or feed monitoring.
 ---
 
-# Fix a broken company card feed
+# Fix a Broken Company Card Feed Connection
 
-When a company card connection breaks, transactions may stop flowing into Expensify. Workspace Admins are notified on the Home page and in the #admins room by a message from Concierge.
-
-This guide explains how to reconnect the card and resolve common connection errors so transactions resume importing.
+When a company card connection breaks, transactions stop importing. Workspace Admins can reconnect the card feed so expenses resume importing. 
 
 ---
+## How to know if your company card connection is broken
 
-## Who can fix company card connections in Expensify
+Workspace Admins see indicators in Expensify when a company card feed is broken: 
 
-Workspace Admins can fix broken company card connections
+- A notification appears in the **Time Sensitive** section on **Home**.
+- Concierge sends a message to the #admins room
+- A red dot appears on the card feed with the message “Card feed connection is broken”
 
 ---
 
 ## How to fix a broken company card connection
 
-If your company card feed stops working, you can reconnect it from the Workspace. 
+If your company card feed stops working, a Workspace Admin can reconnect it from the Workspace. 
 
-1. In the navigation tabs (on the left on web, on the bottom on mobile), go to Workspaces > [Workspace name] 
+1. In the navigation tabs (on the left on web, on the bottom on mobile), go to **Workspaces > [Workspace name]**. 
 2. Select **Company cards**.
-3. Find the card feed with a red dot and the message “Card feed connection is broken”
-4. Click the error message under the card feed name and follow the prompts to restore the connection. 
+3. Locate the card feed with a red dot indicator and the message “Card feed connection is broken”
+4. Select the error message under the card feed name and follow the prompts to restore the connection. 
 
 ---
 
-## What connection errors mean when fixing company card feeds
+## How to troubleshoot company card connection errors
 
 If you see an error while reconnecting, use the guidance below:
 
@@ -47,7 +48,7 @@ If you see an error while reconnecting, use the guidance below:
  - **What to do:** Complete any required actions in your bank’s portal, then try again
 
 **Error: Direct Connect not enabled**
- - **What it means: **Your bank requires Direct Connect to be activated.
+ - **What it means:** Your bank requires Direct Connect to be activated.
  - **What to do:** Enable Direct Connect in your bank portal (typically under security or download settings)
 
 **Error: Account not found / Card number changed**
@@ -60,22 +61,22 @@ If you see an error while reconnecting, use the guidance below:
 
 ---
 
-## What bank requirements affect company card connections
-
-Some banks have specific requirements for successful connections:
-
- - **Chase:** Password must be 8–32 characters
- - **Wells Fargo:** Password must be under 14 characters
- - **SVB:** Enable Direct Connect and use a Direct Connect PIN instead of your online banking password
-
----
-
 ## What happens after you fix a company card connection
 
 When a company card connection is fixed, the card feed reconnects to your bank and the red dot error message disappears. 
 
  - New transactions begin importing again. 
  - Any missing transactions during downtime will import automatically.
+
+---
+
+## How to connect a company card using an alternative method
+
+If the company card feed connection continues to fail, you can connect your card using an alternative method.
+
+Expensify supports connecting company cards through Plaid as a fallback option. Learn how to set up a direct connection using Plaid in [Set up a Direct Company Card Feed Connection](/articles/new-expensify/connect-credit-cards/Set-up-a-Direct-Company-Card-Feed-Connection).
+
+---
 
 # FAQ
 
@@ -92,7 +93,4 @@ After fixing the feed, you can update an assigned company card manually from the
 ## What should I do if the connection still fails after retrying?
 
 Double-check your bank credentials by logging into your bank, and complete any required steps in your bank portal. If the issue continues, contact Concierge with the cardholder email and last four digits of the card.
-
-
-
 
