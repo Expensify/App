@@ -1110,7 +1110,7 @@ function updateSplitTransactions({
     const participants = getMoneyRequestParticipantsFromReport(expenseReport, currentUserPersonalDetails.accountID);
     const splitExpenses = transactionData?.splitExpenses ?? [];
 
-    // Get all children once (including orphaned), then filter for non-orphaned
+    // Get all children once (including orphaned)
     const originalChildTransactions = getChildTransactions(allTransactionsList, originalTransactionID);
     const processedChildTransactionIDs: string[] = [];
 
@@ -1118,7 +1118,6 @@ function updateSplitTransactions({
 
     const isCreationOfSplits = originalChildTransactions.length === 0;
     const hasEditableSplitExpensesLeft = splitExpenses.some((expense) => (expense.statusNum ?? 0) < CONST.REPORT.STATUS_NUM.SUBMITTED);
-    // Don't revert split if there are orphaned children (reportID '0') - they're still part of the split
     const isReverseSplitOperation = splitExpenses.length === 1 && originalChildTransactions.length > 0 && hasEditableSplitExpensesLeft;
 
     let splitThreadComments: OnyxTypes.ReportAction[] = [];
@@ -1348,7 +1347,7 @@ function updateSplitTransactions({
         // For selfDM, report actions are stored in the selfDM report, not in "0"
         let reportActionsReportID: string | undefined;
         if (isReverseSplitOperation) {
-            reportActionsReportID = expenseReport?.reportID;
+            reportActionsReportID = isOriginalTransactionInSelfDM ? originalSelfDMReportID : expenseReport?.reportID;
         } else if (isSelfDMSplit) {
             reportActionsReportID = selfDMReportID ?? originalSelfDMReportID;
         } else {
@@ -2151,11 +2150,6 @@ function updateSplitTransactions({
             };
             // For selfDM, use the selfDM report ID for report actions
             const reportActionsReportID = isOriginalTransactionInSelfDM ? originalSelfDMReportID : iouReport?.reportID;
-            onyxData.optimisticData?.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT}${firstIOU?.childReportID}`,
-                value: null,
-            });
 
             const {optimisticData, successData, failureData} = getCleanUpTransactionThreadReportOnyxData({
                 transactionThreadID: firstIOU.childReportID,
@@ -2173,13 +2167,15 @@ function updateSplitTransactions({
             });
 
             onyxData.successData?.push(...successData);
-            onyxData.successData?.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalSelfDMReportID}`,
-                value: {
-                    [firstIOU.reportActionID]: {pendingAction: null},
-                },
-            });
+            if (isOriginalTransactionInSelfDM) {
+                onyxData.successData?.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalSelfDMReportID}`,
+                    value: {
+                        [firstIOU.reportActionID]: {pendingAction: null},
+                    },
+                });
+            }
 
             onyxData.failureData?.push({
                 onyxMethod: Onyx.METHOD.MERGE,

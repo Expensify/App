@@ -144,7 +144,11 @@ function isSplitAction(
         return false;
     }
 
-    if (!isExpenseReportUtils(report) && !(isSelfDMReportUtils(report) || isSelfDMReportUtils(parentReport))) {
+    if (isSelfDMReportUtils(report) || isSelfDMReportUtils(parentReport)) {
+        return true;
+    }
+
+    if (!isExpenseReportUtils(report)) {
         return false;
     }
 
@@ -154,10 +158,6 @@ function isSplitAction(
 
     if (hasOnlyNonReimbursableTransactions(report.reportID) && isSubmitAndClose(policy) && isInstantSubmitEnabled(policy)) {
         return false;
-    }
-
-    if (isSelfDMReportUtils(report) || isSelfDMReportUtils(parentReport)) {
-        return true;
     }
 
     const arePaymentsDisabled = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;

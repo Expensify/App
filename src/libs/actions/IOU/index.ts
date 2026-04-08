@@ -1853,7 +1853,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             {
                 onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-                value: transaction,
+                value: getTransactionWithPreservedLocalReceiptSource(transaction, isScanRequest),
             },
             isNewChatReport
                 ? {
