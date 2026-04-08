@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {RESULTS} from 'react-native-permissions';
 import LocationPermissionModal from '@components/LocationPermissionModal';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
@@ -12,7 +12,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
-import {checkIfScanFileCanBeRead, replaceReceipt, updateLastLocationPermissionPrompt} from '@userActions/IOU';
+import {updateLastLocationPermissionPrompt} from '@userActions/IOU';
+import {checkIfScanFileCanBeRead, replaceReceipt} from '@userActions/IOU/Receipt';
 import {removeDraftTransactionsByIDs, removeTransactionReceipt} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -95,10 +96,17 @@ function IOURequestStepScan({
         onLayout?.(setTestReceiptAndNavigate);
     }, [onLayout, setTestReceiptAndNavigate]);
 
-    // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, make the user star scanning flow from scratch.
+    const hasValidatedInitialScanFiles = useRef(false);
+
+    // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, make the user start scanning flow from scratch.
     // This is because until the request is saved, the receipt file is only stored in the browsers memory as a blob:// and if the browser is refreshed, then
     // the image ceases to exist. The best way for the user to recover from this is to start over from the start of the request process.
     useEffect(() => {
+        if (hasValidatedInitialScanFiles.current) {
+            return;
+        }
+        hasValidatedInitialScanFiles.current = true;
+
         let isAllScanFilesCanBeRead = true;
 
         Promise.all(
@@ -124,9 +132,7 @@ function IOURequestStepScan({
             removeTransactionReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
             removeDraftTransactionsByIDs(draftTransactionIDs, true);
         });
-        // We want this hook to run on mounting only
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [setIsMultiScanEnabled, transactions, draftTransactionIDs]);
 
     // this effect will pre-fetch location in web if the location permission is already granted to optimize the flow
     useEffect(() => {

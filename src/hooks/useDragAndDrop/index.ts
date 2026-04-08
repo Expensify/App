@@ -94,8 +94,6 @@ const useDragAndDrop: UseDragAndDrop = ({
 
             switch (event.type) {
                 case DRAG_OVER_EVENT:
-                    handleDragEvent(event);
-                    break;
                 case DRAG_ENTER_EVENT:
                     handleDragEvent(event);
                     if (!isDraggingOver) {

@@ -1,6 +1,7 @@
 export type {default as GetTransactionsForMergingParams} from './GetTransactionsForMergingParams';
 export type {default as ImportCSVTransactionsParams} from './ImportCSVTransactionsParams';
 export type {default as ImportMultiLevelTagsParams} from './ImportMultiLevelTagsParams';
+export type {default as ImportCSVCompanyCardsParams} from './ImportCSVCompanyCardsParams';
 export type {default as CleanPolicyTagsParams} from './CleanPolicyTagsParams';
 export type {default as ActivatePhysicalExpensifyCardParams} from './ActivatePhysicalExpensifyCardParams';
 export type {default as AddNewContactMethodParams} from './AddNewContactMethodParams';
@@ -107,6 +108,7 @@ export type {default as UpdatePreferredLocaleParams} from './UpdatePreferredLoca
 export type {default as UpdatePronounsParams} from './UpdatePronounsParams';
 export type {default as UpdateSelectedTimezoneParams} from './UpdateSelectedTimezoneParams';
 export type {default as UpdateStatusParams} from './UpdateStatusParams';
+export type {default as LinkCardToPolicyParams} from './LinkCardToPolicyParams';
 export type {default as UpdateThemeParams} from './UpdateThemeParams';
 export type {default as UpdateUserAvatarParams} from './UpdateUserAvatarParams';
 export type {default as UpdateGroupChatAvatarParams} from './UpdateGroupChatAvatarParams';
@@ -377,7 +379,7 @@ export type {default as RemovePolicyCategoryItemizedReceiptsRequiredParams} from
 export type {default as UpdateQuickbooksOnlineAutoCreateVendorParams} from './UpdateQuickbooksOnlineAutoCreateVendorParams';
 export type {default as ImportCategoriesSpreadsheetParams} from './ImportCategoriesSpreadsheet';
 export type {default as ImportMembersSpreadsheetParams} from './ImportMembersSpreadsheet';
-export type {default as ExportMembersSpreadsheetParams} from './ExportCategoriesSpreadsheet';
+export type {default as ExportMembersSpreadsheetParams} from './ExportMembersSpreadsheetParams';
 export type {default as ImportTagsSpreadsheetParams} from './ImportTagsSpreadsheet';
 export type {default as ExportCategoriesSpreadsheetParams} from './ExportCategoriesSpreadsheet';
 export type {default as ExportTagsSpreadsheetParams} from './ExportTagsSpreadsheet';
@@ -477,6 +479,7 @@ export type {default as AddAdminToDomainParams} from './AddAdminToDomainParams';
 export type {default as UpdateSamlRequiredParams} from './UpdateSamlRequiredParams';
 export type {default as AddMemberToDomainParams} from './AddMemberToDomainParams';
 export type {default as OpenSearchPageParams} from './OpenSearchPageParams';
+export type {default as OpenBulkChangeApproverPageParams} from './OpenBulkChangeApproverPageParams';
 export type {default as SetPolicyRequireCompanyCardsEnabledParams} from './SetPolicyRequireCompanyCardsEnabled';
 export type {default as SetTechnicalContactEmailParams} from './SetTechnicalContactEmailParams';
 export type {default as ToggleConsolidatedDomainBillingParams} from './ToggleConsolidatedDomainBillingParams';

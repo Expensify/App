@@ -338,12 +338,14 @@ function getCustomUnitRateID({
     reportID,
     isPolicyExpenseChat,
     policy,
+    isTrackDistanceExpense = false,
     lastSelectedDistanceRates,
 }: {
     reportID: string | undefined;
     isPolicyExpenseChat: boolean;
     policy: OnyxEntry<Policy> | undefined;
     lastSelectedDistanceRates?: OnyxEntry<LastSelectedDistanceRates>;
+    isTrackDistanceExpense?: boolean;
 }): string {
     let customUnitRateID: string = CONST.CUSTOM_UNITS.FAKE_P2P_ID;
 
@@ -351,19 +353,16 @@ function getCustomUnitRateID({
         return customUnitRateID;
     }
 
-    if (reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-        return customUnitRateID;
-    }
-
     if (isEmptyObject(policy)) {
         return customUnitRateID;
     }
 
-    if (isPolicyExpenseChat) {
+    // For TrackDistanceExpense we will return the default rate of the policyForMovingExpenses.
+    if (isPolicyExpenseChat || isTrackDistanceExpense) {
         const distanceUnit = Object.values(policy.customUnits ?? {}).find((unit) => unit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
         const lastSelectedDistanceRateID = lastSelectedDistanceRates?.[policy.id];
         const lastSelectedDistanceRate = lastSelectedDistanceRateID ? distanceUnit?.rates[lastSelectedDistanceRateID] : undefined;
-        if (lastSelectedDistanceRate?.enabled && lastSelectedDistanceRateID) {
+        if (!isTrackDistanceExpense && lastSelectedDistanceRate?.enabled && lastSelectedDistanceRateID) {
             customUnitRateID = lastSelectedDistanceRateID;
         } else {
             const defaultMileageRate = getDefaultMileageRate(policy);
@@ -408,34 +407,35 @@ function getRate({
     policy,
     policyDraft,
     useTransactionDistanceUnit = true,
+    policyForMovingExpenses,
+    isFakeP2PRate,
 }: {
     transaction: OnyxEntry<Transaction>;
     policy: OnyxEntry<Policy>;
     policyDraft?: OnyxEntry<Policy>;
+    policyForMovingExpenses?: OnyxEntry<Policy>;
     useTransactionDistanceUnit?: boolean;
+    isFakeP2PRate?: boolean;
 }): MileageRate {
     let mileageRates = getMileageRates(policy, true, transaction?.comment?.customUnit?.customUnitRateID);
     if (isEmptyObject(mileageRates) && policyDraft) {
         mileageRates = getMileageRates(policyDraft, true, transaction?.comment?.customUnit?.customUnitRateID);
     }
+    const mileageRatesForMovingExpenses = getMileageRates(policyForMovingExpenses, true, transaction?.comment?.customUnit?.customUnitRateID);
     // This will be fixed as part of https://github.com/Expensify/App/issues/66397
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policyCurrency = policy?.outputCurrency ?? getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
-    const transactionCurrency = getCurrency(transaction);
-
-    // getRateForP2P returns the stored rate only if passed currency is same as the transaction's currency
-    // For unreported transactions (and possibly for all existing transactions?), we always want to use the stored rate.
-    const currency = isExpenseUnreported(transaction) ? transactionCurrency : policyCurrency;
+    const isUnreportedExpense = isExpenseUnreported(transaction);
     const defaultMileageRate = getDefaultMileageRate(policy);
     const customUnitRateID = getRateID(transaction);
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const customMileageRate = (customUnitRateID && mileageRates?.[customUnitRateID]) || defaultMileageRate;
-    const mileageRate = isCustomUnitRateIDForP2P(transaction) ? getRateForP2P(currency, transaction) : customMileageRate;
+    const customMileageRate =
+        (customUnitRateID && (mileageRates?.[customUnitRateID] ?? mileageRatesForMovingExpenses?.[customUnitRateID])) || (isUnreportedExpense ? undefined : defaultMileageRate);
+    const mileageRate = isCustomUnitRateIDForP2P(transaction) || isFakeP2PRate ? getRateForP2P(policyCurrency, transaction) : customMileageRate;
     const unit = getDistanceUnit(useTransactionDistanceUnit ? transaction : undefined, mileageRate);
     return {
         ...mileageRate,
         unit,
-        currency: mileageRate?.currency ?? currency,
+        currency: mileageRate?.currency ?? policyCurrency,
     };
 }
 
