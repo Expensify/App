@@ -100,10 +100,10 @@ If you are creating expenses on a Workspace:
 
 ### Distance expenses created outside of a Workspace
 
-If you're creating a distance expense outside of a Workspace (e.g., in a 1v1 DM or your self-DM):
+If you're creating a distance expense outside of a Workspace (e.g., in a DM chat or Your space):
 
-- **1v1 DMs:** Expensify sets a default rate based on your payment currency (e.g., the current IRS rate for USD). It is not possible to set a custom distance rate for these expenses.
-- **Self-DM (tracking for personal use):**
+- **DM chats:** Expensify sets a default rate based on your payment currency (e.g., the current IRS rate for USD). It is not possible to set a custom distance rate for these expenses.
+- **Your space (tracking for personal use):**
    - **If you have a default Workspace:** The distance rates from your default Workspace are automatically applied. You can tap the **Rate** field to choose a different rate from that Workspace.
    - **If you have multiple Workspaces but no default:** You'll be prompted to select a Workspace first, and then you can choose from that Workspace's available rates.
    - **If you don't have a group Workspace:** Expensify sets a default rate based on your payment currency (e.g., the current IRS rate for USD). When you tap the **Rate** field, you'll be guided through creating a Workspace with a custom distance rate.
