@@ -20,7 +20,7 @@ import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearPendingCategorySelection, getIOURequestPolicyID, setMoneyRequestCategory} from '@libs/actions/IOU';
+import {clearPendingCategorySelection, getIOURequestPolicyID, setMoneyRequestCategory, setPendingCategorySelection} from '@libs/actions/IOU';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestCategory} from '@libs/actions/IOU/UpdateMoneyRequest';
 import {enablePolicyCategories, getPolicyCategories} from '@libs/actions/Policy/Category';
