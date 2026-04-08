@@ -58,7 +58,7 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 type MoneyReportHeaderSecondaryActionsProps = {
     reportID: string | undefined;
     primaryAction: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '';
-    onHoldMenuOpen: (requestType: string, paymentType?: PaymentMethodType, methodID?: number) => void;
+    onHoldMenuOpen: (requestType: string, paymentType?: PaymentMethodType, methodID?: number, onConfirm?: (full: boolean) => void) => void;
     onPDFModalOpen: () => void;
     onHoldEducationalOpen: () => void;
     onRejectModalOpen: (action: RejectModalAction) => void;
@@ -149,9 +149,11 @@ function MoneyReportHeaderSecondaryActions({
             if (getPlatform() === CONST.PLATFORM.IOS) {
                 // InteractionManager delays modal until current interaction completes, preventing visual glitches on iOS
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
-                InteractionManager.runAfterInteractions(() => onHoldMenuOpen(CONST.IOU.REPORT_ACTION_TYPE.PAY, type, type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined));
+                InteractionManager.runAfterInteractions(() =>
+                    onHoldMenuOpen(CONST.IOU.REPORT_ACTION_TYPE.PAY, type, type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined, () => startAnimation()),
+                );
             } else {
-                onHoldMenuOpen(CONST.IOU.REPORT_ACTION_TYPE.PAY, type, type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined);
+                onHoldMenuOpen(CONST.IOU.REPORT_ACTION_TYPE.PAY, type, type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined, () => startAnimation());
             }
         } else if (isInvoiceReport) {
             startAnimation();
@@ -275,7 +277,7 @@ function MoneyReportHeaderSecondaryActions({
         reportID,
         startApprovedAnimation,
         startSubmittingAnimation,
-        onHoldMenuOpen: (requestType) => onHoldMenuOpen(requestType),
+        onHoldMenuOpen: (requestType) => onHoldMenuOpen(requestType, undefined, undefined, () => startApprovedAnimation()),
     });
 
     const {actions: expenseActions, handleOptionsMenuHide} = useExpenseActions({reportID});

@@ -73,8 +73,8 @@ function MoneyReportHeaderActions({
 
     const {openHoldMenu, openPDFDownload, openHoldEducational, openRejectModal} = useMoneyReportHeaderModals();
 
-    const onHoldMenuOpen = (requestType: string, paymentType?: PaymentMethodType, methodID?: number) => {
-        openHoldMenu({requestType: requestType as ActionHandledType, paymentType, methodID});
+    const onHoldMenuOpen = (requestType: string, paymentType?: PaymentMethodType, methodID?: number, onConfirm?: (full: boolean) => void) => {
+        openHoldMenu({requestType: requestType as ActionHandledType, paymentType, methodID, onConfirm});
     };
 
     const {triggerExportOrConfirm} = useExportAgainModal(moneyRequestReport?.reportID, moneyRequestReport?.policyID);

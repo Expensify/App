@@ -45,7 +45,7 @@ const PAYMENT_ICONS = ['Send', 'ThumbsUp', 'Cash', 'ArrowRight'] as const;
 type MoneyReportHeaderSelectionDropdownProps = {
     reportID: string | undefined;
     primaryAction: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '';
-    onHoldMenuOpen: (requestType: string, paymentType?: PaymentMethodType, methodID?: number) => void;
+    onHoldMenuOpen: (requestType: string, paymentType?: PaymentMethodType, methodID?: number, onConfirm?: (full: boolean) => void) => void;
     onRejectModalOpen: (action: RejectModalAction) => void;
     startApprovedAnimation: () => void;
     startSubmittingAnimation: () => void;
@@ -123,7 +123,7 @@ function MoneyReportHeaderSelectionDropdown({
         reportID,
         startApprovedAnimation,
         startSubmittingAnimation,
-        onHoldMenuOpen,
+        onHoldMenuOpen: (requestType) => onHoldMenuOpen(requestType, undefined, undefined, () => clearSelectedTransactions(true)),
     });
 
     const {
@@ -233,7 +233,7 @@ function MoneyReportHeaderSelectionDropdown({
             if (isDelegateAccessRestricted) {
                 showDelegateNoAccessModal();
             } else {
-                onHoldMenuOpen(CONST.IOU.REPORT_ACTION_TYPE.PAY, type, type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined);
+                onHoldMenuOpen(CONST.IOU.REPORT_ACTION_TYPE.PAY, type, type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined, () => clearSelectedTransactions(true));
             }
         },
         shouldHidePaymentOptions: !shouldShowPayButton,

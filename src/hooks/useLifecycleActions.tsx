@@ -2,7 +2,7 @@ import {delegateEmailSelector} from '@selectors/Account';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import type {SecondaryActionEntry} from '@components/MoneyReportHeaderActions/types';
-import {useSearchStateContext} from '@components/Search/SearchContext';
+import {useSearchActionsContext, useSearchStateContext} from '@components/Search/SearchContext';
 import Text from '@components/Text';
 import {search} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -85,6 +85,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startSubmittingA
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
     const {currentSearchQueryJSON, currentSearchKey, currentSearchResults} = useSearchStateContext();
+    const {clearSelectedTransactions} = useSearchActionsContext();
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Send', 'ThumbsUp', 'CircularArrowBackwards', 'Clear']);
@@ -160,6 +161,9 @@ function useLifecycleActions({reportID, startApprovedAnimation, startSubmittingA
                 startApprovedAnimation();
             },
         });
+        if (skipAnimation) {
+            clearSelectedTransactions(true);
+        }
     };
 
     const handleSubmitReport = (skipAnimation = false) => {
@@ -196,6 +200,9 @@ function useLifecycleActions({reportID, startApprovedAnimation, startSubmittingA
                     isOffline,
                     isLoading: !!currentSearchResults?.search?.isLoading,
                 });
+            }
+            if (skipAnimation) {
+                clearSelectedTransactions(true);
             }
         };
 
