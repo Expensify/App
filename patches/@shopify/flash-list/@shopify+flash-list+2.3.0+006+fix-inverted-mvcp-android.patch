@@ -1,0 +1,47 @@
+diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js b/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
+index 70f856a..ed4ecfa 100644
+--- a/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
++++ b/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
+@@ -1,5 +1,5 @@
+ import { useCallback, useImperativeHandle, useMemo, useRef, useState, } from "react";
+-import { I18nManager } from "react-native";
++import { I18nManager, Platform } from "react-native";
+ import { adjustOffsetForRTL } from "../utils/adjustOffsetForRTL";
+ import { PlatformConfig } from "../../native/config/PlatformHelper";
+ import { WarningMessages } from "../../errors/WarningMessages";
+@@ -79,7 +79,7 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
+      */
+     const applyOffsetCorrection = useCallback(() => {
+         var _a, _b, _c;
+-        const { horizontal, data } = recyclerViewManager.props;
++        const { horizontal, data, inverted } = recyclerViewManager.props;
+         // Execute all pending callbacks from previous scroll offset updates
+         // This ensures any scroll operations that were waiting for render are completed
+         const callbacks = pendingScrollCallbacks.current;
+@@ -115,10 +115,24 @@ export function useRecyclerViewController(recyclerViewManager, ref, scrollViewRe
+                         !pauseOffsetCorrection.current &&
+                         !recyclerViewManager.animationOptimizationsEnabled) {
+                         // console.log("diff", diff, firstVisibleItemKey.current);
+-                        if (PlatformConfig.supportsOffsetCorrection) {
+-                            // console.log("scrollBy", diff);
++                        var useAndroidInvertedFallback = hasDataChanged && inverted && Platform.OS === 'android';
++                        if (PlatformConfig.supportsOffsetCorrection && !useAndroidInvertedFallback) {
+                             (_b = scrollAnchorRef.current) === null || _b === void 0 ? void 0 : _b.scrollBy(diff);
+                         }
++                        else if (useAndroidInvertedFallback) {
++                            const scrollToParams = horizontal
++                                ? {
++                                    x: recyclerViewManager.getAbsoluteLastScrollOffset() + diff,
++                                    animated: false,
++                                }
++                                : {
++                                    y: recyclerViewManager.getAbsoluteLastScrollOffset() + diff,
++                                    animated: false,
++                                };
++                            requestAnimationFrame(() => {
++                                (_c = scrollViewRef.current) === null || _c === void 0 ? void 0 : _c.scrollTo(scrollToParams);
++                            });
++                        }
+                         else {
+                             const scrollToParams = horizontal
+                                 ? {
