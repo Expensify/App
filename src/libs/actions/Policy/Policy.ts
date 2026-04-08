@@ -3938,7 +3938,7 @@ function createWorkspaceFromIOUPayment(
     conciergeReportID: string | undefined,
     lastWorkspaceNumber: number | undefined,
     localeTranslate: LocalizedTranslate,
-    reportActionsList?: OnyxCollection<ReportActions>,
+    reportActionsList: OnyxCollection<ReportActions>,
 ): WorkspaceFromIOUCreationData | undefined {
     // This flow only works for IOU reports
     if (!iouReport || !ReportUtils.isIOUReportUsingReport(iouReport)) {
