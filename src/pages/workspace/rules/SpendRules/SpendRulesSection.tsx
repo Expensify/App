@@ -47,8 +47,11 @@ function getSpendRuleSummaryParts(
     translate: ReturnType<typeof useLocalize>['translate'],
 ): SpendRuleSummaryPart[] {
     const summaryParts: SpendRuleSummaryPart[] = [];
-    const merchantNames = formValues.merchantNames.filter(Boolean).join(', ');
-    const categories = formValues.categories.map((category) => translate(`workspace.rules.spendRules.categoryOptions.${category}`)).join(', ');
+    const merchantNames = getTruncatedSpendRuleSummary(formValues.merchantNames, (summary, count) => translate('workspace.rules.spendRules.summaryMoreCount', {summary, count}));
+    const categories = getTruncatedSpendRuleSummary(
+        formValues.categories.map((category) => translate(`workspace.rules.spendRules.categoryOptions.${category}`)),
+        (summary, count) => translate('workspace.rules.spendRules.summaryMoreCount', {summary, count}),
+    );
     const maxAmount = formValues.maxAmount.trim();
 
     if (merchantNames) {

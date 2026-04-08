@@ -20,11 +20,11 @@ import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import type {SpendRuleCategory} from '@src/types/form/SpendRuleForm';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {SpendRuleCategory} from '@src/types/form/SpendRuleForm';
 import SpendRuleRestrictionTypeToggle from './SpendRuleRestrictionTypeToggle';
 import getTruncatedSpendRuleSummary from './SpendRuleSummaryUtils';
 
@@ -69,20 +69,6 @@ function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps)
         setIsErrorVisible(false);
     };
 
-    const cardsMenuTitle = !cardIDs?.length
-        ? ''
-        : cardIDs
-              .map((id) => {
-                  const card = cardsList?.[id];
-                  if (card === undefined) {
-                      return id;
-                  }
-                  const accountID = card.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                  const displayName = getDisplayNameOrDefault(personalDetails?.[accountID], '', false);
-                  return getCardDescriptionForSearchTable(card, displayName || undefined) || id;
-              })
-              .join(', ');
-
     const selectedCurrency = getSelectedCardsSharedCurrency(cardIDs, cardsList);
     const parsedMaxAmount = Number.parseFloat(maxAmount);
     const maxAmountMenuTitle = Number.isFinite(parsedMaxAmount) ? convertToDisplayString(convertToBackendAmount(parsedMaxAmount), selectedCurrency ?? CONST.CURRENCY.USD) : '';
@@ -100,6 +86,21 @@ function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps)
         Navigation.navigate(ROUTES.RULES_SPEND_CARD.getRoute(policyID));
     };
 
+    function getCardsMenuTitle(cardIDsToSummarize: string[] | undefined): string {
+        return getTruncatedSpendRuleSummary(
+            cardIDsToSummarize?.map((id) => {
+                const card = cardsList?.[id];
+                if (card === undefined) {
+                    return id;
+                }
+                const accountID = card.accountID ?? CONST.DEFAULT_NUMBER_ID;
+                const displayName = getDisplayNameOrDefault(personalDetails?.[accountID], '', false);
+                return getCardDescriptionForSearchTable(card, displayName || undefined) || id;
+            }),
+            (summary, count) => translate('workspace.rules.spendRules.summaryMoreCount', {summary, count}),
+        );
+    }
+
     function getMerchantMenuTitle(merchantNamesToSummarize: string[] | undefined): string {
         return getTruncatedSpendRuleSummary(merchantNamesToSummarize, (summary, count) => translate('workspace.rules.spendRules.summaryMoreCount', {summary, count}));
     }
@@ -111,6 +112,7 @@ function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps)
         );
     }
 
+    const cardsMenuTitle = getCardsMenuTitle(cardIDs);
     const categoriesMenuTitle = getCategoryMenuTitle(categories);
 
     const hasSelectedCards = !!cardIDs?.length;
@@ -158,6 +160,7 @@ function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps)
                         }}
                         shouldShowRightIcon
                         title={cardsMenuTitle}
+                        numberOfLinesTitle={2}
                         titleStyle={styles.flex1}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
                     />
