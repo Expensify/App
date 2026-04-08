@@ -27,7 +27,7 @@ describe('actions/Subscription', () => {
     });
 
     describe('openSubscriptionPage', () => {
-        it('should call API.read with loading optimistic/success/failure data when no ownerAccountID is provided', () => {
+        it('should call API.read with loading optimistic/success/failure data when no grace periods are provided', () => {
             openSubscriptionPage();
 
             expect(mockRead).toHaveBeenCalledWith(
@@ -59,12 +59,16 @@ describe('actions/Subscription', () => {
             );
         });
 
-        it('should include grace period optimistic clear and failure rollback when ownerAccountID is provided', () => {
-            const ownerAccountID = 12345;
-            const currentGracePeriod: BillingGraceEndPeriod = {value: 1700000000};
-            const gracePeriodKey = `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${ownerAccountID}`;
+        it('should clear all grace period keys optimistically and restore on failure', () => {
+            const gracePeriod1: BillingGraceEndPeriod = {value: 1700000000};
+            const gracePeriod2: BillingGraceEndPeriod = {value: 1700099999};
+            const key1 = `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}11111`;
+            const key2 = `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}22222`;
 
-            openSubscriptionPage(ownerAccountID, currentGracePeriod);
+            openSubscriptionPage({
+                [key1]: gracePeriod1,
+                [key2]: gracePeriod2,
+            });
 
             expect(mockRead).toHaveBeenCalledWith(
                 READ_COMMANDS.OPEN_SUBSCRIPTION_PAGE,
@@ -78,7 +82,12 @@ describe('actions/Subscription', () => {
                         },
                         {
                             onyxMethod: Onyx.METHOD.SET,
-                            key: gracePeriodKey,
+                            key: key1,
+                            value: null,
+                        },
+                        {
+                            onyxMethod: Onyx.METHOD.SET,
+                            key: key2,
                             value: null,
                         },
                     ]),
@@ -90,19 +99,25 @@ describe('actions/Subscription', () => {
                         },
                         {
                             onyxMethod: Onyx.METHOD.SET,
-                            key: gracePeriodKey,
-                            value: currentGracePeriod,
+                            key: key1,
+                            value: gracePeriod1,
+                        },
+                        {
+                            onyxMethod: Onyx.METHOD.SET,
+                            key: key2,
+                            value: gracePeriod2,
                         },
                     ]),
                 }),
             );
         });
 
-        it('should set failure rollback value to null when currentGracePeriod is undefined', () => {
-            const ownerAccountID = 99999;
-            const gracePeriodKey = `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${ownerAccountID}`;
+        it('should handle undefined values in the grace period collection by rolling back to null', () => {
+            const key1 = `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}33333`;
 
-            openSubscriptionPage(ownerAccountID, undefined);
+            openSubscriptionPage({
+                [key1]: undefined,
+            });
 
             expect(mockRead).toHaveBeenCalledWith(
                 READ_COMMANDS.OPEN_SUBSCRIPTION_PAGE,
@@ -111,7 +126,7 @@ describe('actions/Subscription', () => {
                     failureData: expect.arrayContaining([
                         {
                             onyxMethod: Onyx.METHOD.SET,
-                            key: gracePeriodKey,
+                            key: key1,
                             value: null,
                         },
                     ]),
@@ -119,8 +134,23 @@ describe('actions/Subscription', () => {
             );
         });
 
-        it('should not include grace period data when ownerAccountID is 0 (falsy)', () => {
-            openSubscriptionPage(0);
+        it('should not include grace period data when collection is undefined', () => {
+            openSubscriptionPage(undefined);
+
+            const call = mockRead.mock.calls.at(0);
+            const onyxData = call?.at(2) as Parameters<typeof mockRead>[2];
+
+            // optimisticData should only have the loading key
+            expect(onyxData?.optimisticData).toHaveLength(1);
+            expect(onyxData?.optimisticData?.[0]?.key).toBe(ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA);
+
+            // failureData should only have the loading key
+            expect(onyxData?.failureData).toHaveLength(1);
+            expect(onyxData?.failureData?.[0]?.key).toBe(ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA);
+        });
+
+        it('should not include grace period data when collection is empty', () => {
+            openSubscriptionPage({});
 
             const call = mockRead.mock.calls.at(0);
             const onyxData = call?.at(2) as Parameters<typeof mockRead>[2];

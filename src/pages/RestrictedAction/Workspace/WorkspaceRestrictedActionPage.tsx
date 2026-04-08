@@ -35,19 +35,16 @@ function WorkspaceRestrictedActionPage({
     const [userBillingGracePeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
 
-    // Track the owner's grace period in a ref so openSubscriptionPage can roll back on failure
-    // without adding the grace period to effect dependencies (which would re-trigger the fetch
+    // Track grace periods in a ref so openSubscriptionPage can roll back on failure
+    // without adding the collection to effect dependencies (which would re-trigger the fetch
     // on every optimistic update).
-    const ownerGracePeriod = policy?.ownerAccountID
-        ? userBillingGracePeriods?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${policy.ownerAccountID}`]
-        : undefined;
-    const ownerGracePeriodRef = useRef(ownerGracePeriod);
+    const gracePeriodsRef = useRef(userBillingGracePeriods);
     useEffect(() => {
-        ownerGracePeriodRef.current = ownerGracePeriod;
-    }, [ownerGracePeriod]);
+        gracePeriodsRef.current = userBillingGracePeriods;
+    }, [userBillingGracePeriods]);
 
     const {isOffline} = useNetwork({
-        onReconnect: () => openSubscriptionPage(policy?.ownerAccountID, ownerGracePeriodRef.current),
+        onReconnect: () => openSubscriptionPage(gracePeriodsRef.current),
     });
 
     // Fetch fresh billing NVPs from the server on mount.
@@ -59,8 +56,9 @@ function WorkspaceRestrictedActionPage({
         if (isOffline) {
             return;
         }
-        openSubscriptionPage(policy?.ownerAccountID, ownerGracePeriodRef.current);
-    }, [policy?.ownerAccountID, isOffline]);
+        openSubscriptionPage(gracePeriodsRef.current);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isOffline]);
 
     // Navigate back if the fresh server data shows the restriction no longer applies.
     useEffect(() => {
