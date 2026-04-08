@@ -5,39 +5,39 @@ keywords: [New Expensify, commercial feed, Mastercard feed, Visa feed, Amex feed
 internalScope: Audience is Workspace Admins. Covers setting up a commercial card feed for Visa, Mastercard, or American Express. Does not cover assigning cards, managing cards, or troubleshooting feeds.
 ---
 
-# How to set up a commercial card feed 
+# Set up a Commercial Card Feed Connection
 
-Commercial card feeds are file-based connections managed by your bank. They are a reliable way to import company card transactions because they are not affected by password changes or bank login updates.
+Commercial card feeds are file-based connections managed by your bank that import company card transactions into Expensify.
 
 Before you begin, contact your bank to confirm that your card program is eligible for a commercial card feed.
 
-If you're not elgible for a commercial card feed, you can set up a [set up a direct company card feed instead](/articles/new-expensify/connect-credit-cards/How-to-Set-up-a-Direct-Company-Card-Feed). 
+If you're not eligible for a commercial card feed, you can [set up a direct company card feed connection instead](/articles/new-expensify/connect-credit-cards/Set-up-a-Direct-Company-Card-Feed-Connection). 
 
 ---
 
-## Who can set up a commercial card Feed
+## Who can set up a commercial card feed connection
 
-Any Workspace Admin can set up a direct company card feed. 
+Any Workspace Admin can set up a commercial card feed connection. 
 
- - On the Collect plan, you can add one company card feed. 
- - On the Control plan, you can add unlimited company card feeds. 
+ - On the **Collect** plan, you can add one company card feed. 
+ - On the **Control** plan, you can add unlimited company card feeds. 
 
 [Learn about the different plan types available in Expensify.](/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing)
 
 ---
 
-## How to set up a new commercial card Feed
+## How to set up a new commercial card feed connection 
 
-1. Click the navigation tabs (on the left on web, on the bottom on mobile) and select **Workspaces > [Workspace Name]**
+1. Click the navigation tabs (on the left on web, on the bottom on mobile) and select **Workspaces > [Workspace name]**
 2. Choose **Company cards** to view your company’s card setup page.
- - If you don't see **Company cards**, enable the feature under **More Features > Company Cards**
+ - If you don't see **Company cards**, enable the feature under **More features > Company cards**
 3. Click **Add cards** to set up your first connection.
-    -  If you don't see **Add cards**, click on the existing connection then **Add cards**
+    -  If you don't see **Add cards**, click on your existing company card feed connection then **Add cards**
 4. Select the country your bank is located in and select **Next**.
 5. Choose your **Commercial feed** and select **Next**.
-6. Choose your bank from the list and follow the instructions. 
+6. Choose your bank from the list and follow the instructions.
 
-## How enable a Mastercard commercial card feed (CDF)
+## How to enable a Mastercard commercial card feed (CDF)
 
 To use a Mastercard commercial feed, your bank must send your transaction data from **Mastercard’s SmartData portal**.
 
@@ -53,7 +53,7 @@ Expensify will notify you when the feed is connected.
 
 ---
 
-## How enable a Visa commercial card feed 
+## How to enable a Visa commercial card feed (VCF)
 
 Visa commercial feeds are configured through your bank using Visa’s **Subscription Management portal**.
 
@@ -71,7 +71,7 @@ Expensify will notify you when the feed is connected.
 
 ---
 
-##  How enable a American Express Corporate Card Feed
+## How to enable a American Express commercial card feed (GL1025)
 
 To set up an Amex Corporate Feed, you’ll need to complete and email their required forms.
 
@@ -85,7 +85,7 @@ To set up an Amex Corporate Feed, you’ll need to complete and email their requ
 3. Email the completed forms to: **electronictransmissionsteam@aexp.com**
 4. Wait for the **Production Letter** containing your feed’s file name.
 5. 3. In Expensify, go to **Workspaces > [Workspace Name] > Company Cards > Add Cards**.
-4. Choose **Commercial Feed**, then select **American Express Corporate Cards**.
+6. Choose **Commercial Feed**, then select **American Express Corporate Cards**.
 
 Expensify will notify you when the feed is connected.
 
@@ -93,26 +93,20 @@ Expensify will notify you when the feed is connected.
 
 ## What happens after a commercial card feed is connected 
 
- - Cards with posted expenses will appear as a list.
- - Cards can be assigned to Workspace Members.
- - After a card is assigned, posted transactions import into the assigned member's account automatically. 
+ - Cards with recent expenses will appear as a list and can be assigned to Workspace members.
+ - After a card is assigned, posted transactions import into the assigned member's account automatically as expenses.
 
-[Learn how to assign company cards](/articles/new-expensify/connect-credit-cards/How-to-assign-company-cards).
+[Learn how to assign company cards](/articles/new-expensify/connect-credit-cards/Assign-Company-Cards).
 
 ---
 
 # FAQ
 
-## What’s the difference between a commercial feed and a direct feed?
-
-- **Direct feeds** connect using your bank login credentials. They’re quick to set up but may require periodic re-authentication.
-- **Commercial feeds** are bank-managed file connections. They require setup through your bank but offer a **more stable and uninterrupted** connection.
-
 ## What can I do if my bank doesn't offer a commercial card feed? 
 
-You can connect company cards using a direct feed or through Plaid, using your online banking credentials. [Learn how to set up a direct company card feed](articles/new-expensify/connect-credit-cards/How-to-Set-up-a-Direct-Company-Card-Feed). 
+If you're not eligible for a commercial card feed,  connect company cards using a direct feed or through Plaid using your online banking credentials. [Learn how to set up a direct company card feed connection](articles/new-expensify/connect-credit-cards/Set-up-a-Direct-Company-Card-Feed-connection). 
 
-## Can I connect the same commercial card feed across different workspaces? 
+## Can I connect the same commercial card feed connection across different workspaces? 
 
-Yes, commercial card feeds can be shared across workspaces. Learn how to add an existing company card feed to a workspace. 
+Yes, commercial card feeds can be shared across workspaces. [Learn how to add an existing company card feed to a workspace](/articles/new-expensify/connect-credit-cards/Share-a-Company-Card-Connection-Across-Workspaces). 
 
