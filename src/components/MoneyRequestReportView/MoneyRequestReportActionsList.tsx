@@ -49,7 +49,6 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {
     getFirstVisibleReportActionID,
-    getMostRecentIOURequestActionID,
     getOneTransactionThreadReportID,
     hasNextActionMadeBySameActor,
     isCurrentActionUnread,
@@ -180,7 +179,6 @@ function MoneyRequestReportActionsList({
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
     const transactionsWithoutPendingDelete = useMemo(() => transactions.filter((t) => !isTransactionPendingDelete(t)), [transactions]);
-    const mostRecentIOUReportActionID = useMemo(() => getMostRecentIOURequestActionID(reportActions), [reportActions]);
     // reportActions is passed as an array because it's sorted chronologically for FlatList rendering and pagination.
     // However, getOriginalReportID expects the Onyx object format (keyed by reportActionID) for efficient lookups.
     const reportActionsObject = useMemo(() => {
@@ -751,7 +749,6 @@ function MoneyRequestReportActionsList({
                     report={report}
                     transactionThreadReport={transactionThreadReport}
                     displayAsGroup={displayAsGroup}
-                    mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                     shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
                     shouldDisplayReplyDivider={visibleReportActions.length > 1}
                     isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
@@ -776,7 +773,6 @@ function MoneyRequestReportActionsList({
             report,
             isOffline,
             transactionThreadReport,
-            mostRecentIOUReportActionID,
             unreadMarkerReportActionID,
             firstVisibleReportActionID,
             linkedReportActionID,
