@@ -1074,10 +1074,6 @@ const staticStyles = (theme: ThemeColors) =>
             color: theme.badgeDangerText,
         },
 
-        badgeStrongText: {
-            color: colors.white,
-        },
-
         badgeText: {
             color: theme.text,
             fontSize: variables.fontSizeSmall,
@@ -1158,8 +1154,15 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         permissionView: {
-            paddingVertical: 108,
-            paddingHorizontal: 61,
+            paddingVertical: variables.permissionViewPaddingVertical,
+            paddingHorizontal: variables.permissionViewPaddingHorizontal,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+
+        permissionViewLandscape: {
+            paddingVertical: variables.permissionViewPaddingVerticalLandscape,
+            paddingHorizontal: variables.permissionViewPaddingHorizontal,
             alignItems: 'center',
             justifyContent: 'center',
         },
@@ -6228,6 +6231,14 @@ const dynamicStyles = (theme: ThemeColors) =>
         getForYouSectionContainerStyle: (shouldUseNarrowLayout: boolean): ViewStyle => ({
             flexDirection: 'column',
             marginBottom: shouldUseNarrowLayout ? 8 : 20,
+        }),
+
+        getSafeAreaPressablePosition: (safeAreaPosition: 'right' | 'left', width: number): ViewStyle => ({
+            position: 'absolute',
+            [safeAreaPosition]: 0,
+            top: 0,
+            bottom: 0,
+            width,
         }),
 
         getSelectionListPopoverHeight: (itemCount: number, windowHeight: number, isSearchable: boolean) => {

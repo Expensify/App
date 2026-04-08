@@ -3,6 +3,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated, DeviceEventEmitter, InteractionManager} from 'react-native';
+import {DialogLabelProvider} from '@components/DialogLabelContext';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import {MultifactorAuthenticationContextProviders} from '@components/MultifactorAuthentication/Context';
 import {
@@ -103,6 +104,7 @@ const loadSearchMoneyRequestReportPage = () => require<ReactComponentModule>('..
 function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const containerRef = useRef(null);
     const isExecutingRef = useRef<boolean>(false);
     const screenOptions = useRHPScreenOptions();
     const {superWideRHPRouteKeys, shouldRenderTertiaryOverlay} = useWideRHPState();
@@ -155,10 +157,19 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
             return;
         }
         isExecutingRef.current = true;
-        navigation.goBack();
-        setTimeout(() => {
+        const currentState = navigationRef.getRootState();
+
+        // There is a brief moment when the RHP is not in the state anymore but the overlay is still visible (closing RHP animation)
+        // We need to block overlay press function in such case because it would go back from the currently active full screen.
+        // Without this, the bug described in https://github.com/Expensify/App/issues/78440 would occur.
+        if (currentState.routes.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+            navigation.goBack();
+            setTimeout(() => {
+                isExecutingRef.current = false;
+            }, CONST.ANIMATED_TRANSITION);
+        } else {
             isExecutingRef.current = false;
-        }, CONST.ANIMATED_TRANSITION);
+        }
     }, [navigation]);
 
     const clearWideRHPKeysAfterTabChanged = useCallback(() => {
@@ -195,9 +206,15 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                     )}
                     {/* This one is to limit the outer Animated.View and allow the background to be pressable */}
                     {/* Without it, the transparent half of the narrow format RHP card would cover the pressable part of the overlay */}
-                    <Animated.View style={[styles.pAbsolute, styles.r0, styles.h100, styles.overflowHidden, animatedWidthStyle]}>
-                        <Stack.Navigator
-                            parentRoute={route}
+                    <Animated.View
+                        ref={containerRef}
+                        role={isSmallScreenWidth ? undefined : CONST.ROLE.DIALOG}
+                        aria-modal={isSmallScreenWidth ? undefined : true}
+                        style={[styles.pAbsolute, styles.r0, styles.h100, styles.overflowHidden, animatedWidthStyle]}
+                    >
+                        <DialogLabelProvider containerRef={containerRef}>
+                            <Stack.Navigator
+                                parentRoute={route}
                             screenOptions={screenOptions}
                             screenListeners={screenListeners}
                             id={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
@@ -421,7 +438,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                                 name={SCREENS.RIGHT_MODAL.MULTIFACTOR_AUTHENTICATION}
                                 component={ModalStackNavigators.MultifactorAuthenticationStackNavigator}
                             />
-                        </Stack.Navigator>
+                        </Stack.Navigator></DialogLabelProvider>
                     </Animated.View>
                     {/* The third and second overlays are displayed here to cover RHP screens wider than the currently focused screen. */}
                     {/* Clicking on these overlays redirects you to the RHP screen below them. */}

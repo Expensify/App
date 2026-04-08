@@ -12,6 +12,7 @@ import type {
     PlatformStackNavigatorProps,
     PlatformStackRouterOptions,
 } from '@libs/Navigation/PlatformStackNavigation/types';
+import wrapDescriptorsWithFreeze from './wrapDescriptorsWithFreeze';
 
 function createPlatformStackNavigatorComponent<RouterOptions extends PlatformStackRouterOptions = PlatformStackRouterOptions>(
     displayName: string,
@@ -23,6 +24,7 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
     const ExtraContent = options?.ExtraContent;
     const NavigationContentWrapper = options?.NavigationContentWrapper;
     const useCustomEffects = options?.useCustomEffects ?? (() => undefined);
+    const freezeNonTopScreens = options?.freezeNonTopScreens;
 
     function PlatformNavigator({
         id,
@@ -99,6 +101,8 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
             };
         }, [persistentScreens, state]);
 
+        const wrappedDescriptors = freezeNonTopScreens ? wrapDescriptorsWithFreeze(descriptors, state, persistentScreens) : descriptors;
+
         const Content = useMemo(
             () => (
                 <NavigationContent>
@@ -107,7 +111,7 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
                         {...props}
                         direction="ltr"
                         state={mappedState}
-                        descriptors={descriptors}
+                        descriptors={wrappedDescriptors}
                         navigation={navigation}
                         describe={describe}
                     />
@@ -118,7 +122,7 @@ function createPlatformStackNavigatorComponent<RouterOptions extends PlatformSta
                     )}
                 </NavigationContent>
             ),
-            [NavigationContent, customCodePropsWithCustomState, describe, descriptors, mappedState, navigation, props],
+            [NavigationContent, customCodePropsWithCustomState, describe, wrappedDescriptors, mappedState, navigation, props],
         );
 
         // eslint-disable-next-line react/jsx-props-no-spreading

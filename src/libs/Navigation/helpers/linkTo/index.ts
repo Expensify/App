@@ -178,7 +178,6 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
     // If not, it will be replaced. This way, navigating between one attachment screen and another won't be added to the browser history.
     // Report screen - Also a special case. If we are navigating to the report with same reportID we want to replace it (navigate will do that).
     // This covers the case when we open a specific message in report (reportActionID).
-    // Dynamic routes - Keep NAVIGATE so that StackRouter preserves `path` on the route (PUSH explicitly sets path to undefined).
     else if (
         action.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE &&
         !isNavigatingToAttachmentScreen(focusedRouteFromPath?.name) &&

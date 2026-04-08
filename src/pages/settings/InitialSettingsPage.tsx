@@ -566,7 +566,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     shouldDisplayHelpButton
                 />
             )}
-            {headerContent}
             <ScrollView
                 ref={scrollViewRef}
                 onScroll={onScroll}
@@ -574,6 +573,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 contentContainerStyle={[styles.w100]}
                 showsVerticalScrollIndicator={false}
             >
+                {headerContent}
                 {accountMenuItems}
                 {generalMenuItems}
             </ScrollView>
