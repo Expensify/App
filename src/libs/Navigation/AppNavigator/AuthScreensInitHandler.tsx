@@ -51,10 +51,11 @@ function initializePusher(currentUserAccountID?: number, getReportAttributes?: (
 function AuthScreensInitHandler() {
     const currentUrl = getCurrentUrl();
     const delegatorEmail = getSearchParamFromUrl(currentUrl, 'delegatorEmail');
-    const {translate} = useLocalize();
+    const {preferredLocale, translate} = useLocalize();
     const {initialURL, isAuthenticatedAtStartup} = useInitialURLState();
     const {setIsAuthenticatedAtStartup} = useInitialURLActions();
     const hasActiveAdminPolicies = useHasActiveAdminPolicies();
+    const hasLocaleLoaded = !!preferredLocale;
 
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -66,10 +67,13 @@ function AuthScreensInitHandler() {
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const lastWorkspaceNumberWithEmailSelector = useCallback(
         (policies: OnyxCollection<Policy>) => {
+            if (!hasLocaleLoaded) {
+                return undefined;
+            }
             const policyOwnerEmail = getSearchParamFromUrl(currentUrl, 'ownerEmail') ?? session?.email ?? '';
             return lastWorkspaceNumberSelector(policies, policyOwnerEmail);
         },
-        [currentUrl, session?.email],
+        [hasLocaleLoaded, currentUrl, session?.email],
     );
     const [lastWorkspaceNumber] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: lastWorkspaceNumberWithEmailSelector});
     const lastUpdateIDAppliedToClientRef = useRef(lastUpdateIDAppliedToClient);
@@ -101,6 +105,9 @@ function AuthScreensInitHandler() {
     }, [session?.accountID]);
 
     useEffect(() => {
+        if (!hasLocaleLoaded) {
+            return;
+        }
         const isLoggingInAsNewUser = !!session?.email && SessionUtils.isLoggingInAsNewUser(currentUrl, session.email);
         // Sign out the current user if we're transitioning with a different user
         const isTransitioning = currentUrl.includes(ROUTES.TRANSITION_BETWEEN_APPS);
@@ -161,7 +168,7 @@ function AuthScreensInitHandler() {
 
         // Rule disabled because this effect is only for component did mount & will component unmount lifecycle event
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [hasLocaleLoaded]);
 
     return null;
 }
