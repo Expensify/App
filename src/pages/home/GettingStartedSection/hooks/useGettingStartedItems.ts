@@ -1,6 +1,7 @@
 import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {hasCompanyCardFeeds} from '@libs/CardUtils';
 import {hasAccountingConnections, hasCustomCategories, hasNonDefaultRules, isPaidGroupPolicy, isPendingDeletePolicy} from '@libs/PolicyUtils';
 import isWithinGettingStartedPeriod from '@pages/home/GettingStartedSection/utils/isWithinGettingStartedPeriod';
@@ -31,6 +32,7 @@ const DIRECT_CONNECT_INTEGRATIONS = new Set<string>([
 
 function useGettingStartedItems(): UseGettingStartedItemsResult {
     const {translate} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [onboardingPurpose] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
@@ -61,7 +63,7 @@ function useGettingStartedItems(): UseGettingStartedItemsResult {
         key: 'createWorkspace',
         label: translate('homePage.gettingStartedSection.createWorkspace'),
         isComplete: true,
-        route: ROUTES.WORKSPACE_OVERVIEW.getRoute(activePolicyID),
+        route: shouldUseNarrowLayout ? ROUTES.WORKSPACE_INITIAL.getRoute(activePolicyID) : ROUTES.WORKSPACE_OVERVIEW.getRoute(activePolicyID),
     });
 
     const isDirectConnect = !!reportedIntegration && DIRECT_CONNECT_INTEGRATIONS.has(reportedIntegration);
