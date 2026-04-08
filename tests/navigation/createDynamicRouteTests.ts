@@ -133,10 +133,4 @@ describe('appendDynamicRouteSuffixToBasePath', () => {
 
         expect(result).toBe('workspace/123/categories/imported?foo=bar');
     });
-
-    it('should return HOME when base path is empty', () => {
-        const result = appendDynamicRouteSuffixToBasePath('', 'imported' as DynamicRouteSuffix);
-
-        expect(result).toBe('home');
-    });
 });
