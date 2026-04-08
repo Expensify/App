@@ -19,7 +19,8 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {GpsPoint} from '@libs/actions/IOU';
-import {getIOURequestPolicyID, getMoneyRequestParticipantsFromReport, initMoneyRequest, requestMoney, trackExpense, updateLastLocationPermissionPrompt} from '@libs/actions/IOU';
+import {getIOURequestPolicyID, getMoneyRequestParticipantsFromReport, initMoneyRequest, updateLastLocationPermissionPrompt} from '@libs/actions/IOU';
+import {requestMoney, trackExpense} from '@libs/actions/IOU/TrackExpense';
 import DateUtils from '@libs/DateUtils';
 import {getFileName, readFileAsync} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
@@ -296,9 +297,6 @@ function SubmitDetailsPage({
                     <MoneyRequestConfirmationList
                         transaction={transaction}
                         selectedParticipants={participants}
-                        iouAmount={0}
-                        iouComment={trimmedComment}
-                        iouCategory={transaction?.category}
                         onConfirm={() => onConfirm(true)}
                         receiptPath={fileUri}
                         receiptFilename={getFileName(fileName)}
