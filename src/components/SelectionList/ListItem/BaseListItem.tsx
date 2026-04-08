@@ -35,6 +35,8 @@ function getAccessibilityProps<TItem extends ListItem>({
     isFocused,
     canSelectMultiple,
 }: AccessibilityProps & Pick<BaseListItemProps<TItem>, 'item' | 'isFocused' | 'canSelectMultiple'>) {
+    // For single-select lists, use role="option" with aria-selected so screen readers announce "selected"/"not selected".
+    // For multi-select (checkbox/radio), keep existing role and state.
     const isSelectableOption = !canSelectMultiple && role !== CONST.ROLE.CHECKBOX && role !== CONST.ROLE.RADIO;
     const effectiveRole = getItemRole(role, isSelectableOption);
 
