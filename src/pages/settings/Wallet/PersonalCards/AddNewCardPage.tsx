@@ -82,7 +82,7 @@ function AddPersonalNewCardPage() {
             );
             break;
         default:
-            CurrentStep = <SelectCountryStep disableAutoFocus={isModalVisible} />;
+            CurrentStep = <SelectCountryStep />;
             break;
     }
 
