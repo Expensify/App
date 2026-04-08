@@ -39,7 +39,7 @@ type UseReceiptScanParams = {
     backToReport: string | undefined;
 
     /** The route name to determine if scan is starting */
-    routeName: string;
+    routeName: IOURequestStepScanProps['route']['name'];
 
     /** Callback to replace receipt and navigate back when editing */
     updateScanAndNavigate: (file: FileObject, source: string) => void;
@@ -56,7 +56,7 @@ type UseMobileReceiptScanParams = {
     iouType: IOUType;
 
     /** Whether multi-scan is enabled */
-    isMultiScanEnabled?: boolean;
+    isMultiScanEnabled: boolean;
 
     /** Whether the user is starting a scan request */
     isStartingScan: boolean;
