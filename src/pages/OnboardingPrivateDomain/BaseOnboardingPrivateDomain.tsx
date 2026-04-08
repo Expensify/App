@@ -120,7 +120,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
                     >
                         {translate('onboarding.peopleYouMayKnow')}
                     </Text>
-                    <Text style={[styles.textAlignLeft, styles.mv5]}>{translate('onboarding.workspaceYouMayJoin', {domain, email})}</Text>
+                    <Text style={[styles.textAlignLeft, styles.mv5]}>{translate('onboarding.workspaceYouMayJoin', domain, email)}</Text>
                     <ValidateCodeForm
                         validateCodeActionErrorField="getAccessiblePolicies"
                         handleSubmitForm={(code) => {
