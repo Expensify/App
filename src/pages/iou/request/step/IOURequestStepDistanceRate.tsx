@@ -64,14 +64,22 @@ function IOURequestStepDistanceRate({
     /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
-    const {policy} = usePolicyForTransaction({transaction, reportPolicyID: report?.policyID, action, iouType, policyDraft});
+    const {policy: policyForTransaction} = usePolicyForTransaction({transaction, reportPolicyID: report?.policyID, action, iouType, policyDraft});
 
     const styles = useThemeStyles();
     const {translate, toLocaleDigit, localeCompare} = useLocalize();
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && isEditing;
     const currentTransaction = isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction;
+
+    // When editing a distance split from self-DM, policyForTransaction may be undefined because the self-DM
+    // report has no policyID. In that case, find the correct policy by searching for the one that contains
+    // the transaction's customUnitID.
+    const distanceCustomUnitID = currentTransaction?.comment?.customUnit?.customUnitID;
+    const policy =
+        policyForTransaction ?? (isEditingSplit && distanceCustomUnitID ? (Object.values(allPolicies ?? {}).find((p) => p?.customUnits?.[distanceCustomUnitID]) ?? undefined) : undefined);
     const isDistanceRequest = isDistanceRequestTransactionUtils(currentTransaction);
     const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const isPolicyExpenseChat = isReportInGroupPolicy(report);

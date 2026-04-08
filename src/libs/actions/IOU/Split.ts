@@ -1922,6 +1922,8 @@ function updateSplitTransactions({
             newSelfDMSplitTransactions.push({
                 ...optimisticTransactionFromGetMoneyRequest,
                 transactionID: snapshotTransactionID,
+                // For edits, show a pending indicator in the snapshot while the request is in-flight.
+                ...(!isCreationOfSplits && {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
             });
         }
 
@@ -2192,35 +2194,54 @@ function updateSplitTransactions({
             pushUpdatedReportPreviewActionToOnyxData();
         }
 
-        // Remove the original transaction from all snapshots that contain it and add the new split transactions.
+        // Update all snapshots containing the relevant transactions.
         // We scan allSnapshots instead of relying solely on currentSearchHash because the user may navigate
         // from a non-search route (e.g., Inbox), making currentSearchHash undefined even when valid snapshots exist.
-        const originalTransactionSnapshotKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}` as const;
-        for (const [snapshotKey, snapshot] of Object.entries(allSnapshots ?? {})) {
-            if (!snapshot?.data || !Object.hasOwn(snapshot.data, originalTransactionSnapshotKey)) {
-                continue;
+        if (newSelfDMSplitTransactions.length > 0) {
+            const originalTransactionSnapshotKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}` as const;
+            const splitTransactionKeys = newSelfDMSplitTransactions.map((tx) => `${ONYXKEYS.COLLECTION.TRANSACTION}${tx.transactionID}` as const);
+
+            for (const [snapshotKey, snapshot] of Object.entries(allSnapshots ?? {})) {
+                if (!snapshot?.data) {
+                    continue;
+                }
+
+                const optimisticSnapshotData: Partial<Record<`${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`, OnyxTypes.Transaction | null>> = {};
+                const failureSnapshotData: Partial<Record<`${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`, OnyxTypes.Transaction | null>> = {};
+
+                // When creating splits: replace the original transaction with the new split transactions.
+                if (isCreationOfSplits && Object.hasOwn(snapshot.data, originalTransactionSnapshotKey)) {
+                    optimisticSnapshotData[originalTransactionSnapshotKey] = null;
+                    failureSnapshotData[originalTransactionSnapshotKey] = snapshot.data[originalTransactionSnapshotKey] ?? originalTransaction ?? null;
+                    for (const tx of newSelfDMSplitTransactions) {
+                        optimisticSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${tx.transactionID}`] = tx;
+                        failureSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${tx.transactionID}`] = null;
+                    }
+                } else if (!isCreationOfSplits && splitTransactionKeys.some((k) => Object.hasOwn(snapshot.data, k))) {
+                    // When editing splits: update the existing split transactions in place.
+                    for (const tx of newSelfDMSplitTransactions) {
+                        const txKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${tx.transactionID}` as const;
+                        optimisticSnapshotData[txKey] = tx;
+                        failureSnapshotData[txKey] = snapshot.data[txKey] ?? null;
+                    }
+                }
+
+                if (Object.keys(optimisticSnapshotData).length === 0) {
+                    continue;
+                }
+
+                const key = snapshotKey as `${typeof ONYXKEYS.COLLECTION.SNAPSHOT}${string}`;
+                onyxData.optimisticData?.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key,
+                    value: {data: optimisticSnapshotData},
+                });
+                onyxData.failureData?.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key,
+                    value: {data: failureSnapshotData},
+                });
             }
-            const key = snapshotKey as `${typeof ONYXKEYS.COLLECTION.SNAPSHOT}${string}`;
-            const optimisticSnapshotData: Partial<Record<`${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`, OnyxTypes.Transaction | null>> = {
-                [originalTransactionSnapshotKey]: null,
-            };
-            const failureSnapshotData: Partial<Record<`${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`, OnyxTypes.Transaction | null>> = {
-                [originalTransactionSnapshotKey]: snapshot.data[originalTransactionSnapshotKey] ?? originalTransaction ?? null,
-            };
-            for (const tx of newSelfDMSplitTransactions) {
-                optimisticSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${tx.transactionID}`] = tx;
-                failureSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${tx.transactionID}`] = null;
-            }
-            onyxData.optimisticData?.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key,
-                value: {data: optimisticSnapshotData},
-            });
-            onyxData.failureData?.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key,
-                value: {data: failureSnapshotData},
-            });
         }
     } else {
         onyxData.optimisticData?.push({

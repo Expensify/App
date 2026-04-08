@@ -115,6 +115,12 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const currentPolicy = Object.keys(policy?.employeeList ?? {}).length
         ? policy
         : currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(currentReport?.policyID)}`];
+
+    // When currentPolicy is undefined (e.g. viewing from self-DM), find the correct policy
+    // by searching all policies for one that contains the transaction's customUnitID.
+    const distanceCustomUnitID = transaction?.comment?.customUnit?.customUnitID;
+    const effectivePolicy = currentPolicy ?? (distanceCustomUnitID ? (Object.values(allPolicies ?? {}).find((p) => p?.customUnits?.[distanceCustomUnitID]) ?? undefined) : undefined);
+
     const normalizedBackTo = backTo?.replace(/^\//, '');
     const isSearchBackToRoute = normalizedBackTo?.startsWith(ROUTES.SEARCH_ROOT.route) ?? false;
     const activeGroupSearchHashes = isSearchBackToRoute ? getActiveGroupSearchHashes(currentSearchResults?.data, currentSearchQueryJSON) : [];
@@ -200,13 +206,16 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     for (const splitExpense of splitExpenses) {
         const splitTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(splitExpense.transactionID)}`] ?? transaction;
         const isEditable = isSplitExpenseEditable(splitExpense);
-        if (splitTransaction && currentPolicy && isEditable) {
+        if (splitTransaction && effectivePolicy && isEditable) {
             const isSplitDistance = isDistanceRequest(splitTransaction);
             if (isSplitDistance && !isCustomUnitRateIDForP2P(splitTransaction)) {
                 const currentRateID = splitExpense?.customUnit?.customUnitRateID ?? String(CONST.DEFAULT_NUMBER_ID);
-                const rates = DistanceRequestUtils.getMileageRates(currentPolicy, false, currentRateID);
-                const {rate} = DistanceRequestUtils.getRate({transaction: splitTransaction, policy: currentPolicy});
-                if (!rates[currentRateID] || !rate) {
+                const rates = DistanceRequestUtils.getMileageRates(effectivePolicy, false, currentRateID);
+                // Check the rate value directly from the split expense's rate ID rather than calling
+                // getRate({transaction: splitTransaction}), which would use the original transaction's
+                // (possibly deleted) rate ID and return undefined for unreported expenses.
+                const splitRate = rates[currentRateID]?.rate;
+                if (!rates[currentRateID] || !splitRate) {
                     isUnitRateIDOutOfPolicy = true;
                 }
             }
@@ -229,14 +238,14 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         if (draftTransaction?.errors) {
             clearSplitTransactionDraftErrors(transactionID);
         }
-        addSplitExpenseField(transaction, draftTransaction, transactionReport, currentPolicy);
+        addSplitExpenseField(transaction, draftTransaction, transactionReport, effectivePolicy);
     };
 
     const onMakeSplitsEven = () => {
         if (!draftTransaction) {
             return;
         }
-        evenlyDistributeSplitExpenseAmounts(draftTransaction, transaction, currentPolicy);
+        evenlyDistributeSplitExpenseAmounts(draftTransaction, transaction, effectivePolicy);
     };
 
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(expenseReport?.policyID)}`);
@@ -351,10 +360,10 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const onSplitExpenseValueChange = (id: string, value: number, mode: ValueOf<typeof CONST.TAB.SPLIT>) => {
         if (mode === CONST.TAB.SPLIT.AMOUNT || mode === CONST.TAB.SPLIT.DATE) {
             const amountInCents = convertToBackendAmount(value);
-            updateSplitExpenseAmountField(draftTransaction, id, amountInCents, currentPolicy);
+            updateSplitExpenseAmountField(draftTransaction, id, amountInCents, effectivePolicy);
         } else {
             const amountInCents = calculateSplitAmountFromPercentage(transactionDetailsAmount, value);
-            updateSplitExpenseAmountField(draftTransaction, id, amountInCents, currentPolicy);
+            updateSplitExpenseAmountField(draftTransaction, id, amountInCents, effectivePolicy);
         }
     };
 

@@ -36,6 +36,16 @@ Onyx.connectWithoutView({
 });
 
 // We use connectWithoutView because `initSplitExpense` doesn't affect the UI rendering and
+// this avoids unnecessary re-rendering for components when any policy changes. This data should ONLY
+// be used for `initSplitExpense`
+let allPolicies: OnyxCollection<Policy>;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.COLLECTION.POLICY,
+    waitForCollectionCallback: true,
+    callback: (value) => (allPolicies = value),
+});
+
+// We use connectWithoutView because `initSplitExpense` doesn't affect the UI rendering and
 // this avoids unnecessary re-rendering for components when the selfDM report ID changes. This data should ONLY
 // be used for `initSplitExpense`
 let selfDMReportID: string | undefined;
@@ -135,7 +145,11 @@ function initSplitExpense(transaction: OnyxEntry<Transaction>, policy?: OnyxEntr
     const splitMerchants: Array<string | undefined> = [undefined, undefined];
 
     if (isDistanceRequest(transaction)) {
-        const mileageRate = DistanceRequestUtils.getRate({transaction, policy: policy ?? undefined});
+        // When policy is undefined (e.g. viewing from self-DM), find the correct policy
+        // by searching all policies for one that contains the transaction's customUnitID.
+        const customUnitID = transaction?.comment?.customUnit?.customUnitID;
+        const effectivePolicy = policy ?? (customUnitID ? (Object.values(allPolicies ?? {}).find((p) => p?.customUnits?.[customUnitID]) ?? undefined) : undefined);
+        const mileageRate = DistanceRequestUtils.getRate({transaction, policy: effectivePolicy ?? undefined});
         const {unit, rate} = mileageRate;
 
         if (rate && rate > 0 && transaction?.comment?.customUnit) {

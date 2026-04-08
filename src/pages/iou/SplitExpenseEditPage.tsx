@@ -76,6 +76,13 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
         ? policy
         : currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(currentReport?.policyID)}`];
 
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+
+    // When currentPolicy is undefined (e.g. viewing from self-DM), find the correct policy
+    // by searching all policies for one that contains the transaction's customUnitID.
+    const distanceCustomUnitID = splitExpenseDraftTransaction?.comment?.customUnit?.customUnitID;
+    const effectivePolicy = currentPolicy ?? (distanceCustomUnitID ? (Object.values(allPolicies ?? {}).find((p) => p?.customUnits?.[distanceCustomUnitID]) ?? undefined) : undefined);
+
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${currentReport?.policyID}`);
 
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${currentReport?.policyID}`);
@@ -134,7 +141,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const isDistance = isDistanceRequest(splitExpenseDraftTransaction);
     const isManualDistance = isManualDistanceRequest(splitExpenseDraftTransaction);
     const isOdometerDistance = isOdometerDistanceRequest(splitExpenseDraftTransaction);
-    const {unit, rate, name: rateName} = DistanceRequestUtils.getRate({transaction: splitExpenseDraftTransaction, policy: currentPolicy});
+    const {unit, rate, name: rateName} = DistanceRequestUtils.getRate({transaction: splitExpenseDraftTransaction, policy: effectivePolicy});
     const distance = getDistanceInMeters(splitExpenseDraftTransaction, unit);
     const currentAmount = useMemo(() => {
         if (isDistance && distance && rate) {
@@ -144,13 +151,13 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     }, [isDistance, distance, rate, unit, originalSign, splitExpenseDraftTransaction?.amount]);
     const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(true, distance, unit, rate, translate, false, isManualDistance);
     const currentRateID = getRateID(splitExpenseDraftTransaction);
-    const rates = DistanceRequestUtils.getMileageRates(policy, false, currentRateID);
+    const rates = DistanceRequestUtils.getMileageRates(effectivePolicy, false, currentRateID);
 
     const currency = splitExpenseDraftTransactionDetails.currency ?? CONST.CURRENCY.USD;
 
     // For selfDM splits (no workspace policy), don't mark the rate as out-of-policy.
     // getRate already resolves the P2P rate via defaultP2PRate for selfDM transactions.
-    const isSelfDMSplit = !currentPolicy;
+    const isSelfDMSplit = !effectivePolicy;
     const isCustomUnitOutOfPolicy = !isSelfDMSplit && (!rates[currentRateID] || (isDistance && !rate));
     const rateToDisplay = DistanceRequestUtils.getRateForExpenseDisplay(rateName, isCustomUnitOutOfPolicy, unit, rate, currency, translate, toLocaleDigit, getCurrencySymbol, isOffline);
 
@@ -378,7 +385,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                             style={[styles.w100]}
                             text={translate('common.save')}
                             onPress={() => {
-                                updateSplitExpenseField(splitExpenseDraftTransaction, originalTransactionDraft, splitExpenseTransactionID, transaction, currentPolicy);
+                                updateSplitExpenseField(splitExpenseDraftTransaction, originalTransactionDraft, splitExpenseTransactionID, transaction, effectivePolicy);
                                 Navigation.goBack(backTo);
                             }}
                             pressOnEnter
