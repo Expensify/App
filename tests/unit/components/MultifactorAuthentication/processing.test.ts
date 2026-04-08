@@ -17,7 +17,7 @@ describe('MultifactorAuthentication processing', () => {
             });
         });
 
-        // Given a keyInfo object with biometric type (NativeBiometrics)
+        // Given a keyInfo object with biometric type (HSM)
         // When processRegistration is called
         // Then it should forward keyInfo to registerAuthenticationKey
         it('should call registerAuthenticationKey with the provided keyInfo', async () => {

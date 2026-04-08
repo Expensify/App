@@ -1,6 +1,6 @@
 /**
  * Shared type definitions for multifactor authentication operations.
- * Technology-agnostic types used across NativeBiometrics and Passkeys.
+ * Technology-agnostic types used across NativeBiometricsHSM and Passkeys.
  */
 import type {ValueOf} from 'type-fest';
 import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioAdditionalParams} from '@components/MultifactorAuthentication/config/types';
