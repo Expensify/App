@@ -397,7 +397,7 @@ function IOURequestStepScan({
                 {PDFValidationComponent}
                 <View style={[styles.flex1]}>
                     {cameraPermissionStatus !== RESULTS.GRANTED && (
-                        <ScrollView>
+                        <ScrollView contentContainerStyle={styles.flexGrow1}>
                             <View style={[styles.cameraView, isInLandscapeMode ? styles.permissionViewLandscape : styles.permissionView, styles.userSelectNone]}>
                                 <ImageSVG
                                     contentFit="contain"
