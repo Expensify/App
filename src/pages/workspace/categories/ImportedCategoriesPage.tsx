@@ -1,3 +1,4 @@
+import type {RouteProp} from '@react-navigation/native';
 import React, {useCallback, useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {ColumnRole} from '@components/ImportColumn';
@@ -12,7 +13,6 @@ import usePolicy from '@hooks/usePolicy';
 import {importPolicyCategories} from '@libs/actions/Policy/Category';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {hasAccountingConnections as hasAccountingConnectionsPolicyUtils, isControlPolicy} from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -23,10 +23,9 @@ import SCREENS from '@src/SCREENS';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-type ImportedCategoriesPageProps = PlatformStackScreenProps<
-    SettingsNavigatorParamList,
-    typeof SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_IMPORTED | typeof SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_IMPORTED
->;
+type ImportedCategoriesPageProps = {
+    route: RouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_IMPORTED | typeof SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_IMPORTED>;
+};
 function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
     const {translate} = useLocalize();
     const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
@@ -41,7 +40,7 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
     const policy = usePolicy(policyID);
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_IMPORTED;
-    const backTo = isQuickSettingsFlow ? route.params.backTo : undefined;
+    const backTo = isQuickSettingsFlow && 'backTo' in route.params ? route.params.backTo : undefined;
 
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_IMPORTED.path);
 
