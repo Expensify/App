@@ -419,7 +419,7 @@ function NumberWithSymbolForm({
     const textInputRightHandSideComponent = useMemo(() => {
         return (
             <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
-                {shouldShowFlipButton && canUseTouchScreen && (
+                {shouldShowFlipButton && allowNegativeInput && canUseTouchScreen && (
                     <Button
                         small
                         icon={icons.PlusMinus}
@@ -444,7 +444,7 @@ function NumberWithSymbolForm({
                 )}
             </View>
         );
-    }, [shouldShowFlipButton, shouldShowCurrencyButton, styles, icons, handleFlipPress, onCurrencyButtonPress, currency, translate, disabled]);
+    }, [shouldShowFlipButton, allowNegativeInput, disabled, shouldShowCurrencyButton, styles, icons, handleFlipPress, onCurrencyButtonPress, currency, translate]);
 
     if (displayAsTextInput) {
         return (
