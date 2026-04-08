@@ -179,6 +179,7 @@ function KYCWall({
                             currentUserEmail,
                             employeeEmail,
                             conciergeReportID,
+                            localCurrency,
                             lastWorkspaceNumber,
                             translate,
                         ) ?? {};

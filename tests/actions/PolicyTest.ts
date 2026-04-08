@@ -5903,8 +5903,8 @@ describe('actions/Policy', () => {
             const isIOUReportUsingReportSpy = jest.spyOn(ReportUtils, 'isIOUReportUsingReport').mockReturnValue(true);
 
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            const mockTranslate = ((key: string) => key) as unknown as Parameters<typeof Policy.createWorkspaceFromIOUPayment>[7];
-            Policy.createWorkspaceFromIOUPayment(iouReport, undefined, customAccountID, customEmail, iouReportOwnerEmail, undefined, undefined, mockTranslate);
+            const mockTranslate = ((key: string) => key) as unknown as Parameters<typeof Policy.createWorkspaceFromIOUPayment>[8];
+            Policy.createWorkspaceFromIOUPayment(iouReport, undefined, customAccountID, customEmail, iouReportOwnerEmail, undefined, CONST.CURRENCY.USD, undefined, mockTranslate);
             await waitForBatchedUpdates();
 
             const writeOptions = apiWriteSpy.mock.calls.at(0)?.at(2) as {
@@ -5935,8 +5935,18 @@ describe('actions/Policy', () => {
             };
 
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            const mockTranslate = ((key: string) => key) as unknown as Parameters<typeof Policy.createWorkspaceFromIOUPayment>[7];
-            const result = Policy.createWorkspaceFromIOUPayment(nonIOUReport, undefined, ESH_ACCOUNT_ID, ESH_EMAIL, 'owner@example.com', undefined, undefined, mockTranslate);
+            const mockTranslate = ((key: string) => key) as unknown as Parameters<typeof Policy.createWorkspaceFromIOUPayment>[8];
+            const result = Policy.createWorkspaceFromIOUPayment(
+                nonIOUReport,
+                undefined,
+                ESH_ACCOUNT_ID,
+                ESH_EMAIL,
+                'owner@example.com',
+                undefined,
+                CONST.CURRENCY.USD,
+                undefined,
+                mockTranslate,
+            );
             expect(result).toBeUndefined();
         });
     });
