@@ -200,11 +200,19 @@ function SearchChangeApproverPage() {
             return;
         }
 
+        // Ensure all selected reports are loaded in Onyx before auto-applying,
+        // otherwise approverTypes may incorrectly have length 1 (missing "Bypass approvers")
+        // because the permission check needs report data to determine hasPermission.
+        const allReportsLoaded = selectedReports.every((selectedReport) => selectedReport.reportID && onyxReports?.[selectedReport.reportID]);
+        if (!allReportsLoaded) {
+            return;
+        }
+
         if (approverTypes.length === 1 && selectedApproverType === approverTypes.at(0)?.keyForList) {
             hasAutoAppliedRef.current = true;
             changeApprover();
         }
-    }, [approverTypes, selectedApproverType, changeApprover, isLoadingBulkChangeApproverPage]);
+    }, [approverTypes, selectedApproverType, changeApprover, isLoadingBulkChangeApproverPage, selectedReports, onyxReports]);
 
     const confirmButtonOptions = {
         showButton: true,
