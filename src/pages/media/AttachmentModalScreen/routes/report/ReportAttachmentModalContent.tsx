@@ -52,7 +52,7 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
 
     useNavigateToReportOnRefresh({source: sourceParam, reportID});
 
-    const [isLoadingApp] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_APP);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const {isOffline} = useNetwork();
 
     const submitRef = useRef<View | HTMLElement>(null);
