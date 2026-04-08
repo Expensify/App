@@ -76,7 +76,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass']);
 
     // The actual input text that the user sees
-    const [textInputValue, , setTextInputValue] = useDebouncedState('', 500);
+    const [textInputValue, setTextInputValue] = useState('');
     // Debounced value gates expensive filtering in the autocomplete list
     const [, debouncedAutocompleteQueryValue, setAutocompleteQueryValue] = useDebouncedState('', CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
     const [selection, setSelection] = useState({start: textInputValue.length, end: textInputValue.length});
@@ -326,6 +326,13 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     isFullWidth={shouldUseNarrowLayout}
                     onSearchQueryChange={onSearchQueryChange}
                     onSubmit={() => {
+                        // If user submits before debounce catches up, submit the typed query directly
+                        // instead of selecting a stale focused list item from the previous query.
+                        if (textInputValue && textInputValue !== debouncedAutocompleteQueryValue) {
+                            submitSearch(textInputValue);
+                            return;
+                        }
+
                         const focusedOption = listRef.current?.getFocusedOption?.();
 
                         if (!focusedOption) {
