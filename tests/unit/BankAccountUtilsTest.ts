@@ -12,6 +12,7 @@ import CONST from '@src/CONST';
 import type {Account, BankAccountList, Session} from '@src/types/onyx';
 import type AccountData from '@src/types/onyx/AccountData';
 import type PrivatePersonalDetails from '@src/types/onyx/PrivatePersonalDetails';
+import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
 describe('BankAccountUtils', () => {
     describe('isPersonalBankAccountMissingInfo', () => {
@@ -252,7 +253,7 @@ describe('BankAccountUtils', () => {
                     legalFirstName: 'Jane',
                     legalLastName: 'Smith',
                     phoneNumber: '+15559876543',
-                    addresses: [{addressLine1: '456 Oak Ave', city: 'Boston', state: 'MA', zipPostCode: '02101', country: 'US', current: true}],
+                    addresses: [{addressLine1: '456 Oak Ave', city: 'Boston', state: 'MA', zipPostCode: '02101', country: 'US', current: true} as unknown as Address],
                 };
                 expect(isPersonalBankAccountMissingInfo(accountMissingAll, profileAddressLine1Only)).toBe(false);
             });
@@ -272,9 +273,7 @@ describe('BankAccountUtils', () => {
                     legalFirstName: 'Jane',
                     legalLastName: 'Smith',
                     phoneNumber: '+15559876543',
-                    addresses: [
-                        {city: 'Boston', state: 'MA', zipPostCode: '02101', country: 'US', current: true} as PrivatePersonalDetails['addresses'] extends (infer U)[] | undefined ? U : never,
-                    ],
+                    addresses: [{city: 'Boston', state: 'MA', zipPostCode: '02101', country: 'US', current: true} as unknown as Address],
                 };
                 expect(isPersonalBankAccountMissingInfo(accountMissingAll, profileNoStreet)).toBe(true);
             });
