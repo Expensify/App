@@ -26,7 +26,7 @@ function SpendRuleMerchantsPage({route}: SpendRuleMerchantsPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [spendRuleForm] = useOnyx(ONYXKEYS.FORMS.SPEND_RULE_FORM);
-    const illustrations = useMemoizedLazyIllustrations(['EmptyStateExpenses']);
+    const illustrations = useMemoizedLazyIllustrations(['FoodTruck']);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus']);
 
     const restrictionAction = spendRuleForm?.restrictionAction ?? CONST.SPEND_RULES.ACTION.ALLOW;
@@ -90,7 +90,9 @@ function SpendRuleMerchantsPage({route}: SpendRuleMerchantsPageProps) {
                         ))
                     ) : (
                         <BlockingView
-                            icon={illustrations.EmptyStateExpenses}
+                            icon={illustrations.FoodTruck}
+                            iconHeight={68}
+                            iconWidth={68}
                             title={emptyStateTitle}
                             subtitle={emptyStateSubtitle}
                             titleStyles={[styles.mb2]}
