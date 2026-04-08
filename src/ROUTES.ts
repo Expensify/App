@@ -197,6 +197,8 @@ const DYNAMIC_ROUTES = {
     NOTIFICATION_PREFERENCES: {
         path: 'notification-preferences',
         entryScreens: [SCREENS.REPORT_SETTINGS.ROOT, SCREENS.PROFILE_ROOT],
+        getRoute: (reportID: string) => getUrlWithParams('notification-preferences', {reportID}),
+        queryParams: ['reportID'],
     },
     WORKSPACE_OVERVIEW_PLAN: {
         path: 'plan',
