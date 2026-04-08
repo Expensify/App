@@ -447,4 +447,9 @@ export default {
     rightPositionOdometerPhotoInformationContainer: 20,
     bottomPositionOdometerPhotoInformationContainer: 20,
     paddingOdometerPhotoInformationContainer: 13.5,
+
+    // Camera permission view padding
+    permissionViewPaddingVertical: 108,
+    permissionViewPaddingHorizontal: 61,
+    permissionViewPaddingVerticalLandscape: 16,
 } as const;
