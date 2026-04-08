@@ -145,6 +145,9 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     getReportRouteByID: jest.fn(),
     getActiveRouteWithoutParams: jest.fn(),
     getActiveRoute: jest.fn(),
+    getIsFullscreenPreInsertedUnderRHP: jest.fn(() => false),
+    clearFullscreenPreInsertedFlag: jest.fn(),
+    revealRouteBeforeDismissingModal: jest.fn(),
     navigationRef: {
         getRootState: jest.fn(),
         isReady: jest.fn(() => true),

@@ -985,10 +985,11 @@ function handleNavigateAfterExpenseCreate({
             Navigation.clearFullscreenPreInsertedFlag();
             Navigation.dismissModal();
         } else if (getIsNarrowLayout()) {
-            // Skip navigation if we're already on the correct Search page (e.g. after the
-            // pre-insert fast path dismissed the RHP and revealed the pre-mounted Search).
-            if (!alreadyOnSearchRoot || !isSameSearchType) {
+            const isRHPStillOnTop = navigationRef.getRootState()?.routes?.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
+            if (!alreadyOnSearchRoot || !isSameSearchType || isRHPStillOnTop) {
                 Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {forceReplace: true});
+            } else {
+                Log.info('[IOU] navigateToSearch: already on matching Search root with RHP dismissed — no-op');
             }
         } else {
             Navigation.revealRouteBeforeDismissingModal(ROUTES.SEARCH_ROOT.getRoute({query: queryString}));

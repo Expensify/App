@@ -53,6 +53,7 @@ import {
 } from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
@@ -377,10 +378,29 @@ function IOURequestStepConfirmation({
     const odometerStartImage = transaction?.comment?.odometerStartImage;
     const odometerEndImage = transaction?.comment?.odometerEndImage;
 
+    // Pre-insert is only useful for flows whose submit ends in handleNavigateAfterExpenseCreate
+    // (which navigates to Search). Flows that use dismissModalAndOpenReportInInboxTab (PAY,
+    // SPLIT-from-global-create, per-diem self-DM track) navigate to a specific report instead,
+    // so pre-inserting Search would leave a stale route in the stack.
+    const canPreInsertSearch = iouType !== CONST.IOU.TYPE.PAY && iouType !== CONST.IOU.TYPE.SPLIT && !(isPerDiemRequest && iouType === CONST.IOU.TYPE.TRACK);
+
+    const hasPreInsertFired = useRef(false);
+    const isTransactionReady = !!transaction;
+
     useEffect(() => {
-        if (!transaction || !getIsNarrowLayout() || !isFromGlobalCreate || isReportTopmostSplitNavigator()) {
+        if (
+            hasPreInsertFired.current ||
+            !isTransactionReady ||
+            !getIsNarrowLayout() ||
+            !isFromGlobalCreate ||
+            !canPreInsertSearch ||
+            isReportTopmostSplitNavigator() ||
+            isSearchTopmostFullScreenRoute()
+        ) {
             return;
         }
+
+        hasPreInsertFired.current = true;
 
         const type = iouType === CONST.IOU.TYPE.INVOICE ? CONST.SEARCH.DATA_TYPES.INVOICE : CONST.SEARCH.DATA_TYPES.EXPENSE;
         const queryString = buildCannedSearchQuery({type});
@@ -399,10 +419,11 @@ function IOURequestStepConfirmation({
 
             Navigation.removePreInsertedFullscreenIfNeeded();
         };
-        // isFromGlobalCreate and iouType are stable for the lifetime of this screen instance
-        // since they derive from route params / Onyx and don't change while the confirmation screen is open.
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- Pre-insertion is a one-time side effect on mount.
-    }, []);
+        // isFromGlobalCreate, iouType, and canPreInsertSearch are stable for the lifetime of
+        // this screen instance. isTransactionReady may flip from false to true once, which
+        // re-triggers the effect so the pre-insert fires even when the transaction loads late.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isTransactionReady]);
 
     const navigateBack = useCallback(() => {
         if (backTo) {
@@ -947,45 +968,6 @@ function IOURequestStepConfirmation({
 
             formHasBeenSubmitted.current = true;
 
-            const hasReceiptFiles = Object.values(receiptFiles).some((receipt) => !!receipt);
-            const isFromGlobalCreateForTelemetry = !!(transaction?.isFromGlobalCreate ?? transaction?.isFromFloatingActionButton);
-
-            const scenario = getSubmitExpenseScenario({
-                iouType,
-                isDistanceRequest,
-                isMovingTransactionFromTrackExpense,
-                isUnreported,
-                isCategorizingTrackExpense,
-                isSharingTrackExpense,
-                isPerDiemRequest,
-                isFromGlobalCreate: isFromGlobalCreateForTelemetry,
-                hasReceiptFiles,
-            });
-
-            const submitSpanAttributes = {
-                [CONST.TELEMETRY.ATTRIBUTE_SCENARIO]: scenario,
-                [CONST.TELEMETRY.ATTRIBUTE_HAS_RECEIPT]: hasReceiptFiles,
-                [CONST.TELEMETRY.ATTRIBUTE_IS_FROM_GLOBAL_CREATE]: isFromGlobalCreateForTelemetry,
-                [CONST.TELEMETRY.ATTRIBUTE_IOU_TYPE]: iouType,
-                [CONST.TELEMETRY.ATTRIBUTE_IOU_REQUEST_TYPE]: requestType ?? 'unknown',
-            };
-
-            startSpan(CONST.TELEMETRY.SPAN_SUBMIT_EXPENSE, {
-                name: 'submit-expense',
-                op: CONST.TELEMETRY.SPAN_SUBMIT_EXPENSE,
-                attributes: submitSpanAttributes,
-            });
-
-            startSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE, {
-                name: 'submit-to-destination-visible',
-                op: CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE,
-                attributes: submitSpanAttributes,
-            });
-
-            // IMPORTANT: Every branch below must call markSubmitExpenseEnd() after dispatching the expense action.
-            // The submit follow-up action span above is ended by the target screen (ReportScreen, Search, etc.) or by runAfterInteractions for dismiss_modal_only.
-            // This ensures the telemetry span started above is always closed, including inside async getCurrentPosition callbacks.
-            // If missed, the impact is benign (an orphaned Sentry span), but it pollutes telemetry data.
             if (iouType !== CONST.IOU.TYPE.TRACK && isDistanceRequest && !isMovingTransactionFromTrackExpense && !isUnreported) {
                 createDistanceRequest(iouType === CONST.IOU.TYPE.SPLIT ? splitParticipants : selectedParticipants, trimmedComment);
                 markSubmitExpenseEnd();
@@ -1225,7 +1207,6 @@ function IOURequestStepConfirmation({
             submitPerDiemExpense,
             policyRecentlyUsedCurrencies,
             reportID,
-            requestType,
             betas,
             participantsPolicyTags,
             personalDetails,
@@ -1311,6 +1292,40 @@ function IOURequestStepConfirmation({
     // To prevent the component from rendering with the wrong currency, we show a loading indicator until the correct currency is set.
     const isLoading = !!transaction?.originalCurrency;
 
+    const startSubmitSpans = () => {
+        const hasReceiptFiles = Object.values(receiptFiles).some((receipt) => !!receipt);
+        // Re-derive from transaction inside the callback so telemetry captures the value
+        // at submission time, not at render time (transaction is mutable Onyx state).
+        const isFromGlobalCreateForTelemetry = !!(transaction?.isFromGlobalCreate ?? transaction?.isFromFloatingActionButton);
+        const scenario = getSubmitExpenseScenario({
+            iouType,
+            isDistanceRequest,
+            isMovingTransactionFromTrackExpense,
+            isUnreported,
+            isCategorizingTrackExpense,
+            isSharingTrackExpense,
+            isPerDiemRequest,
+            isFromGlobalCreate: isFromGlobalCreateForTelemetry,
+            hasReceiptFiles,
+        });
+        const submitSpanAttributes = {
+            [CONST.TELEMETRY.ATTRIBUTE_SCENARIO]: scenario,
+            [CONST.TELEMETRY.ATTRIBUTE_HAS_RECEIPT]: hasReceiptFiles,
+            [CONST.TELEMETRY.ATTRIBUTE_IS_FROM_GLOBAL_CREATE]: isFromGlobalCreateForTelemetry,
+            [CONST.TELEMETRY.ATTRIBUTE_IOU_TYPE]: iouType,
+            [CONST.TELEMETRY.ATTRIBUTE_IOU_REQUEST_TYPE]: requestType ?? 'unknown',
+        };
+
+        startSpan(CONST.TELEMETRY.SPAN_SUBMIT_EXPENSE, {
+            name: 'submit-expense',
+            op: CONST.TELEMETRY.SPAN_SUBMIT_EXPENSE,
+        })?.setAttributes(submitSpanAttributes);
+        startSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE, {
+            name: 'submit-to-destination-visible',
+            op: CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE,
+        })?.setAttributes(submitSpanAttributes);
+    };
+
     const onConfirm = (listOfParticipants: Participant[]) => {
         setIsConfirming(true);
         setSelectedParticipantList(listOfParticipants);
@@ -1326,6 +1341,8 @@ function IOURequestStepConfirmation({
                 return;
             }
         }
+
+        startSubmitSpans();
 
         // Fast path: the Search page was pre-inserted under the RHP (see useEffect above).
         // Dismiss the RHP immediately so the user sees the Search page, then run the
@@ -1526,11 +1543,13 @@ function IOURequestStepConfirmation({
                             startPermissionFlow={startLocationPermissionFlow}
                             resetPermissionFlow={() => setStartLocationPermissionFlow(false)}
                             onGrant={() => {
+                                startSubmitSpans();
                                 navigateAfterInteraction(() => {
                                     createTransaction(selectedParticipantList, true);
                                 });
                             }}
                             onDeny={() => {
+                                startSubmitSpans();
                                 updateLastLocationPermissionPrompt();
                                 navigateAfterInteraction(() => {
                                     createTransaction(selectedParticipantList, false);

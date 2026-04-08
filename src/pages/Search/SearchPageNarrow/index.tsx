@@ -33,7 +33,7 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {isSearchDataLoaded} from '@libs/SearchUIUtils';
-import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
+import {endSubmitFollowUpActionSpan, getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import variables from '@styles/variables';
 import {searchInServer} from '@userActions/Report';
 import {search} from '@userActions/Search';
@@ -179,6 +179,37 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
             setIsHeaderInteractive(true);
         });
     }, [startTransition]);
+
+    const hadFocusRef = useRef(false);
+    const hadLayoutRef = useRef(false);
+
+    // Single callback for ending submit-expense navigation spans. Passed down
+    // to SearchStaticList and Search so the logic lives in one place.
+    // Requires both focus and layout signals before ending — prevents 0ms spans
+    // on subsequent flows where useFocusEffect fires before the content re-renders.
+    const endSubmitNavigationSpans = useCallback((wasListEmpty: boolean, source: 'focus' | 'layout') => {
+        if (source === 'focus') {
+            hadFocusRef.current = true;
+        } else {
+            hadLayoutRef.current = true;
+        }
+
+        if (!hadFocusRef.current || !hadLayoutRef.current) {
+            return;
+        }
+
+        hadFocusRef.current = false;
+        hadLayoutRef.current = false;
+
+        const pending = getPendingSubmitFollowUpAction();
+        if (pending && pending.followUpAction !== CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT) {
+            endSubmitFollowUpActionSpan(pending.followUpAction, undefined, {
+                [CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true,
+                [CONST.TELEMETRY.ATTRIBUTE_WAS_LIST_EMPTY]: wasListEmpty,
+            });
+        }
+    }, []);
+
     // Wait for focus before transitioning to the full interactive Search component.
     // When pre-inserted behind the RHP, this keeps the page at the lightweight static
     // list phase until it is actually visible, avoiding wasted work and premature span endings.
@@ -225,6 +256,7 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
             queryJSON={queryJSON}
             contentContainerStyle={contentContainerStyle}
             onLayout={onSearchLayout}
+            onDestinationVisible={endSubmitNavigationSpans}
         />
     );
 
@@ -244,6 +276,7 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
                 onSearchListScroll={scrollHandler}
                 searchRequestResponseStatusCode={searchRequestResponseStatusCode}
                 initialContent={staticListContent}
+                onDestinationVisible={endSubmitNavigationSpans}
             />
         );
     };
@@ -277,6 +310,7 @@ function SearchPageNarrow({queryJSON, searchResults, isMobileSelectionModeEnable
                 handleSearch={handleSearchAction}
                 isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                 searchRequestResponseStatusCode={searchRequestResponseStatusCode}
+                onDestinationVisible={endSubmitNavigationSpans}
             />
         );
     };

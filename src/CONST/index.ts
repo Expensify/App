@@ -8746,6 +8746,7 @@ const CONST = {
     MODAL_EVENTS: {
         CLOSED: 'modalClosed',
         DISABLE_RHP_ANIMATION: 'disableRHPAnimation',
+        RESTORE_RHP_ANIMATION: 'restoreRHPAnimation',
     },
 
     LIST_BEHAVIOR: {

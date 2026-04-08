@@ -552,6 +552,8 @@ function popToSidebar() {
  * Reset the navigation state to Home page.
  */
 function resetToHome() {
+    clearFullscreenPreInsertedFlag();
+
     const isNarrowLayout = getIsNarrowLayout();
     const rootState = navigationRef.getRootState();
     navigationRef.dispatch({...StackActions.popToTop(), target: rootState.key});
@@ -997,10 +999,21 @@ function preInsertFullscreenUnderRHP(route: Route) {
     const stateFromPath = getStateFromPath(route);
     const targetRouteName = stateFromPath?.routes.findLast((r) => isFullScreenName(r.name))?.name;
 
+    const stateBefore = navigationRef.current.getRootState();
+    const routeCountBefore = stateBefore.routes.length;
+    const lastKeyBefore = stateBefore.routes.at(-1)?.key;
+
     navigationRef.current.dispatch({
         type: CONST.NAVIGATION.ACTION_TYPE.REPLACE_FULLSCREEN_UNDER_RHP,
         payload: {route},
     });
+
+    const stateAfter = navigationRef.current.getRootState();
+    if (stateAfter.routes.length === routeCountBefore && stateAfter.routes.at(-1)?.key === lastKeyBefore) {
+        Log.hmmm(`[Navigation] preInsertFullscreenUnderRHP dispatch was ignored`, {route});
+        return;
+    }
+
     isFullscreenPreInsertedUnderRHP = true;
     preInsertedFullscreenRouteName = targetRouteName;
 
@@ -1032,6 +1045,8 @@ function removePreInsertedFullscreenIfNeeded() {
     isFullscreenPreInsertedUnderRHP = false;
     preInsertedFullscreenRouteName = undefined;
 
+    DeviceEventEmitter.emit(CONST.MODAL_EVENTS.RESTORE_RHP_ANIMATION);
+
     const rootState = navigationRef.getRootState();
     if (!rootState) {
         return;
@@ -1050,10 +1065,12 @@ function removePreInsertedFullscreenIfNeeded() {
 
     // RHP already dismissed - the pre-inserted fullscreen is now the topmost route; pop it.
     // Deferred to the next frame to avoid dispatching during a React commit.
+    // Capture the route key now so the rAF callback can match on identity, not just name.
+    const targetRouteKey = rootState.routes.at(-1)?.key;
     requestAnimationFrame(() => {
         const currentState = navigationRef.getRootState();
         const topmostRoute = currentState?.routes.at(-1);
-        if (!topmostRoute || !isFullScreenName(topmostRoute.name) || topmostRoute.name !== routeNameToRemove) {
+        if (!topmostRoute || topmostRoute.key !== targetRouteKey || topmostRoute.name !== routeNameToRemove) {
             return;
         }
         if (!navigationRef.current?.canGoBack()) {

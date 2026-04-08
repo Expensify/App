@@ -115,13 +115,19 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const {sidePanelOffset} = useSidePanelState();
 
     // When a fullscreen route is pre-inserted under the RHP, disable the slide-out animation
-    // so the dismiss reveals the destination instantly. No restore is needed because the
-    // entire RightModalNavigator unmounts on dismiss; the next RHP open creates a fresh instance.
+    // so the dismiss reveals the destination instantly. If the pre-insert is later cleaned up
+    // (user backs out without submitting), restore the default animation for that session.
     useEffect(() => {
-        const subscription = DeviceEventEmitter.addListener(CONST.MODAL_EVENTS.DISABLE_RHP_ANIMATION, () => {
+        const disableSub = DeviceEventEmitter.addListener(CONST.MODAL_EVENTS.DISABLE_RHP_ANIMATION, () => {
             navigation.setOptions({animation: Animations.NONE});
         });
-        return () => subscription.remove();
+        const restoreSub = DeviceEventEmitter.addListener(CONST.MODAL_EVENTS.RESTORE_RHP_ANIMATION, () => {
+            navigation.setOptions({animation: Animations.SLIDE_FROM_RIGHT});
+        });
+        return () => {
+            disableSub.remove();
+            restoreSub.remove();
+        };
     }, [navigation]);
 
     // Animation should be disabled when we open the wide rhp from the narrow one.

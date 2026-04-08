@@ -49,11 +49,21 @@ function setPendingSubmitFollowUpAction(followUpAction: SubmitFollowUpAction, re
     const pending = pendingSubmitFollowUpAction;
 
     if (pending !== null && span && isSameFlowUpdate(pending, followUpAction, reportID)) {
-        // Same flow: update in place instead of cancelling (e.g. dismissModalAndOpenReportInInboxTab sets pending, then onBeforeNavigate refines it).
-        pendingSubmitFollowUpAction = {followUpAction, reportID};
-        span.setAttribute(CONST.TELEMETRY.ATTRIBUTE_SUBMIT_FOLLOW_UP_ACTION, followUpAction);
-        if (reportID !== undefined) {
-            span.setAttribute(CONST.TELEMETRY.ATTRIBUTE_REPORT_ID, reportID);
+        // Same flow: only update when the new action is a genuine refinement (e.g.
+        // DISMISS_MODAL_ONLY -> DISMISS_MODAL_AND_OPEN_REPORT). When the fast path set
+        // NAVIGATE_TO_SEARCH and handleNavigateAfterExpenseCreate later calls with
+        // DISMISS_MODAL_ONLY (because Search is already on top), preserve the original
+        // action so telemetry correctly reflects the pre-insert path.
+        const isRefinement =
+            pending.followUpAction !== followUpAction &&
+            !(pending.followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH && followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY);
+
+        if (isRefinement) {
+            pendingSubmitFollowUpAction = {followUpAction, reportID};
+            span.setAttribute(CONST.TELEMETRY.ATTRIBUTE_SUBMIT_FOLLOW_UP_ACTION, followUpAction);
+            if (reportID !== undefined) {
+                span.setAttribute(CONST.TELEMETRY.ATTRIBUTE_REPORT_ID, reportID);
+            }
         }
         return;
     }
@@ -62,15 +72,20 @@ function setPendingSubmitFollowUpAction(followUpAction: SubmitFollowUpAction, re
         cancelSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE);
         pendingSubmitFollowUpAction = null;
     }
-    pendingSubmitFollowUpAction = {followUpAction, reportID};
-    // Set the attribute on the span immediately so it is present when the transaction is serialized.
-    // When navigating away (e.g. to Search), the confirmation transaction can end and the SDK may cancel our span before the destination screen mounts to call endSubmitFollowUpActionSpan.
+
+    // Only set pending when the span is still active. On the fast path the span
+    // may have already been ended by SearchStaticList before createTransaction's
+    // rAF fires. Setting pending without a span leaves stale state that would
+    // cancel the next flow's span in the conflict check above.
     const spanAfter = getSpan(CONST.TELEMETRY.SPAN_SUBMIT_TO_DESTINATION_VISIBLE);
-    if (spanAfter) {
-        spanAfter.setAttribute(CONST.TELEMETRY.ATTRIBUTE_SUBMIT_FOLLOW_UP_ACTION, followUpAction);
-        if (reportID !== undefined) {
-            spanAfter.setAttribute(CONST.TELEMETRY.ATTRIBUTE_REPORT_ID, reportID);
-        }
+    if (!spanAfter) {
+        return;
+    }
+
+    pendingSubmitFollowUpAction = {followUpAction, reportID};
+    spanAfter.setAttribute(CONST.TELEMETRY.ATTRIBUTE_SUBMIT_FOLLOW_UP_ACTION, followUpAction);
+    if (reportID !== undefined) {
+        spanAfter.setAttribute(CONST.TELEMETRY.ATTRIBUTE_REPORT_ID, reportID);
     }
 }
 
