@@ -106,8 +106,14 @@ function runAfterTransitions({callback, runImmediately = false, waitForUpcomingT
         let cancelled = false;
         let innerHandle: CancelHandle | null = null;
 
+        // Guard against transitionStart never arriving.
+        // If no transition starts within the timeout, we proceed as if there is none.
+        const transitionStartTimeout = new Promise<void>((resolve) => {
+            setTimeout(resolve, CONST.MAX_TRANSITION_START_WAIT_MS);
+        });
+
         (async () => {
-            await promiseForNextTransitionStart;
+            await Promise.race([promiseForNextTransitionStart, transitionStartTimeout]);
             if (!cancelled) {
                 innerHandle = runAfterTransitions({callback});
             }
