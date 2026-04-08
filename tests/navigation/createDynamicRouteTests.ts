@@ -1,6 +1,6 @@
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {type DynamicRouteSuffix} from '@src/ROUTES';
+import type {DynamicRouteSuffix} from '@src/ROUTES';
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     getActiveRoute: jest.fn(),

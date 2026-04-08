@@ -59,7 +59,7 @@ const combinePathAndSuffix = (basePath: string, suffixWithQuery: string): Route 
  * Appends a registered dynamic suffix onto an explicit base path. Use when the active URL is not
  * the prefix you need (e.g. categories list + `imported` after stripping `import` from the import screen).
  */
-function appendDynamicRouteSuffixToBasePath(basePath: Route | string, suffix: DynamicRouteSuffix): Route {
+function appendDynamicRouteSuffixToBasePath(basePath: string, suffix: DynamicRouteSuffix): Route {
     const normalizedBase = basePath.replace(/^\/+/, '');
     const [pathWithoutQuery] = splitPathAndQuery(normalizedBase);
     if (!pathWithoutQuery) {
