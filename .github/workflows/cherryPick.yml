@@ -37,14 +37,13 @@ jobs:
   validate:
     runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
-      - name: Validate PR URL
+      - name: Validate pull request URL
         if: ${{ inputs.PULL_REQUEST_URL != '' }}
         run: |
-          if [[ "${{ inputs.PULL_REQUEST_URL }}" != *"github.com"* ]]; then
-            echo "::error::❌ Invalid PR URL: ${{ inputs.PULL_REQUEST_URL }}"
+          REPO_FULL_NAME=$(echo '${{ inputs.PULL_REQUEST_URL }}' | sed -E 's|https?://github.com/([^/]+/[^/]+)/pull/.*|\1|')
+          if [[ "$REPO_FULL_NAME" != ${{ github.repository }} ]] && [[ ! "$REPO_FULL_NAME" =~ Expensify/Mobile-Expensify* ]]; then
+            echo "::error::❌ Cherry picks are only supported for the Expensify/App and Expensify/Mobile-Expensify repositories. Found: $REPO_FULL_NAME"
             exit 1
-          else
-            echo "PR URL is valid: ${{ inputs.PULL_REQUEST_URL }}"
           fi
 
       - name: Verify PR is merged
