@@ -297,9 +297,6 @@ function SubmitDetailsPage({
                     <MoneyRequestConfirmationList
                         transaction={transaction}
                         selectedParticipants={participants}
-                        iouAmount={0}
-                        iouComment={trimmedComment}
-                        iouCategory={transaction?.category}
                         onConfirm={() => onConfirm(true)}
                         receiptPath={fileUri}
                         receiptFilename={getFileName(fileName)}
