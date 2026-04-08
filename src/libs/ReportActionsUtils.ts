@@ -2392,7 +2392,7 @@ function getReportActionMessageFragments(translate: LocalizedTranslate, action: 
  * @param currentAccountID
  * @returns
  */
-function hasRequestFromCurrentAccount(reportID: string | undefined, currentAccountID: number, allReports?: OnyxCollection<Report>): boolean {
+function hasRequestFromCurrentAccount(reportID: string | undefined, currentAccountID: number, allReportsParam: OnyxCollection<Report>): boolean {
     if (!reportID) {
         return false;
     }
@@ -2400,7 +2400,7 @@ function hasRequestFromCurrentAccount(reportID: string | undefined, currentAccou
     const reportActions = Object.values(getAllReportActions(reportID));
     if (reportActions.length === 0) {
         // In case the reportActions of the report have not been loaded, we will check based on the transactions.
-        const report = getReportOrDraftReport(reportID, undefined, undefined, undefined, allReports);
+        const report = getReportOrDraftReport(reportID, undefined, undefined, undefined, allReportsParam);
         return doesReportContainRequestsFromMultipleUsers(report, true);
     }
 
