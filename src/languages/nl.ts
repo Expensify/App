@@ -1141,6 +1141,7 @@ const translations: TranslationDeepObject<typeof en> = {
         flash: 'flits',
         multiScan: 'meerscannen',
         shutter: 'sluiter',
+        flipCamera: 'camera omdraaien',
         gallery: 'galerij',
         deleteReceipt: 'Bon verwijderen',
         deleteConfirmation: 'Weet je zeker dat je deze bon wilt verwijderen?',
