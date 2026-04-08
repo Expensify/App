@@ -11,8 +11,11 @@ jest.mock('@libs/Log', () => ({
 }));
 
 jest.mock('@src/ROUTES', () => {
-    const routesMock = {
-        HOME: 'home',
+    // eslint-disable-next-line @typescript-eslint/consistent-type-imports
+    const actualRoutes = jest.requireActual<typeof import('@src/ROUTES')>('@src/ROUTES');
+
+    return {
+        ...actualRoutes,
         DYNAMIC_ROUTES: {
             VERIFY_ACCOUNT: {path: 'verify-account'},
             CUSTOM_FLOW: {path: 'custom-flow'},
@@ -22,10 +25,6 @@ jest.mock('@src/ROUTES', () => {
             ADDRESS_COUNTRY: {path: 'country', getRoute: (country: string) => `country?country=${country}`},
         },
     };
-
-    Object.defineProperty(routesMock, '__esModule', {value: true});
-
-    return routesMock;
 });
 
 describe('createDynamicRoute', () => {
