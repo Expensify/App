@@ -25,6 +25,7 @@ import useScrollToEndOnNewMessageReceived from '@hooks/useScrollToEndOnNewMessag
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
+import {isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import DateUtils from '@libs/DateUtils';
 import FS from '@libs/Fullstory';
 import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlightItem';
@@ -35,7 +36,6 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import {
     getFirstVisibleReportActionID,
     isConsecutiveActionMadeByPreviousActor,
-    isConsecutiveChronosAutomaticTimerAction,
     isCurrentActionUnread,
     isDeletedParentAction,
     isReportPreviewAction,
@@ -97,9 +97,6 @@ type ReportActionsListProps = {
 
     /** Sorted actions that should be visible to the user */
     sortedVisibleReportActions: OnyxTypes.ReportAction[];
-
-    /** The ID of the most recent IOU report action connected with the shown report */
-    mostRecentIOUReportActionID?: string | null;
 
     /** Callback executed on list layout */
     onLayout: (event: LayoutChangeEvent) => void;
@@ -166,7 +163,6 @@ function ReportActionsList({
     sortedReportActions,
     sortedVisibleReportActions,
     onScroll,
-    mostRecentIOUReportActionID = '',
     loadNewerChats,
     loadOlderChats,
     onLayout,
@@ -398,7 +394,7 @@ function ReportActionsList({
             return;
         }
 
-        if (isUnread(report, transactionThreadReport, isReportArchived, reportActionsFromOnyx) || (lastAction && isCurrentActionUnread(report, lastAction, sortedVisibleReportActions))) {
+        if (isUnread(report, transactionThreadReport, isReportArchived) || (lastAction && isCurrentActionUnread(report, lastAction, sortedVisibleReportActions))) {
             // On desktop, when the notification center is displayed, isVisible will return false.
             // Currently, there's no programmatic way to dismiss the notification center panel.
             // To handle this, we use the 'referrer' parameter to check if the current navigation is triggered from a notification.
@@ -716,7 +712,6 @@ function ReportActionsList({
                             !isConsecutiveChronosAutomaticTimerAction(sortedVisibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
                             isConsecutiveActionMadeByPreviousActor(sortedVisibleReportActions, index, isOffline)
                         }
-                        mostRecentIOUReportActionID={mostRecentIOUReportActionID}
                         shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                         shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
                         shouldDisplayReplyDivider={sortedVisibleReportActions.length > 1}
@@ -743,7 +738,6 @@ function ReportActionsList({
             transactionThreadReport,
             linkedReportActionID,
             sortedVisibleReportActions,
-            mostRecentIOUReportActionID,
             shouldHideThreadDividerLine,
             unreadMarkerReportActionID,
             firstVisibleReportActionID,
