@@ -543,47 +543,6 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
 
     const shouldDisableApproveButton = shouldShowApproveButton && !isAllowedToApproveExpenseReport(moneyRequestReport);
 
-    const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(moneyRequestReport, shouldShowPayButton);
-
-    const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
-
-    const {shouldShowStatusBar, statusBarType} = useMoneyReportHeaderStatusBar(reportIDProp, moneyRequestReport?.chatReportID);
-
-    let optimisticNextStep = getReportNextStep(nextStep, moneyRequestReport, transactions, policy, allTransactionViolations, email ?? '', accountID);
-
-    // Check for DEW submit/approve failed or pending - show appropriate next step
-    if (isDEWPolicy && (moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.OPEN || moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED)) {
-        if (moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
-            const reportActionsObject = reportActions.reduce<OnyxTypes.ReportActions>((acc, action) => {
-                if (action.reportActionID) {
-                    acc[action.reportActionID] = action;
-                }
-                return acc;
-            }, {});
-            const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(moneyRequestReport, reportActionsObject);
-
-            if (errors?.dewSubmitFailed) {
-                optimisticNextStep = buildOptimisticNextStepForDynamicExternalWorkflowSubmitError(theme.danger);
-            } else if (isOffline && hasPendingDEWSubmit(reportMetadata, isDEWPolicy)) {
-                optimisticNextStep = buildOptimisticNextStepForDEWOffline();
-            }
-        } else if (moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED) {
-            const gbrResult = getReasonAndReportActionThatRequiresAttention(moneyRequestReport, undefined, isArchivedReport);
-            const hasDEWApproveFailed = gbrResult?.reason === CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED;
-            const isCurrentUserTheApprover = moneyRequestReport?.managerID === accountID;
-            if (hasDEWApproveFailed && isCurrentUserTheApprover) {
-                optimisticNextStep = buildOptimisticNextStepForDynamicExternalWorkflowApproveError(theme.danger);
-            } else if (isOffline && hasPendingDEWApprove(reportMetadata, isDEWPolicy)) {
-                optimisticNextStep = buildOptimisticNextStepForDEWOffline();
-            }
-        }
-    }
-
-    if (isBlockSubmitDueToStrictPolicyRules && isReportOwner(moneyRequestReport) && isOpenExpenseReport(moneyRequestReport)) {
-        optimisticNextStep = buildOptimisticNextStepForStrictPolicyRuleViolations();
-    }
-
-    const shouldShowNextStep = isFromPaidPolicy && !isInvoiceReport && !shouldShowStatusBar;
     const isAnyTransactionOnHold = hasHeldExpensesReportUtils(moneyRequestReport?.reportID);
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
