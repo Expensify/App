@@ -5,7 +5,7 @@ import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import {getOdometerImageName, getOdometerImageType, getOdometerImageUri} from '@libs/OdometerImageUtils';
 import stitchOdometerImages from '@libs/stitchOdometerImages';
-import {setMoneyRequestReceipt} from '@userActions/IOU';
+import {setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
 import type {IOUAction, IOUType} from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
 
