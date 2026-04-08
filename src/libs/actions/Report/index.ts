@@ -6050,6 +6050,7 @@ function moveIOUReportToPolicy(
     policy: Policy,
     isFromSettlementButton?: boolean,
     reportTransactions: Transaction[] = [],
+    allReports?: OnyxCollection<Report>,
 ): {policyExpenseChatReportID?: string; useTemporaryOptimisticExpenseChatReportID: boolean} | undefined {
     // This flow only works for IOU reports
     if (!policy || !iouReport || !isIOUReportUsingReport(iouReport)) {
@@ -6059,7 +6060,7 @@ function moveIOUReportToPolicy(
     const isReimbursed = isReportManuallyReimbursed(iouReport);
 
     // We do not want to create negative amount expenses
-    if (!isReimbursed && ReportActionsUtils.hasRequestFromCurrentAccount(reportID, iouReport.managerID ?? CONST.DEFAULT_NUMBER_ID) && !isFromSettlementButton) {
+    if (!isReimbursed && ReportActionsUtils.hasRequestFromCurrentAccount(reportID, iouReport.managerID ?? CONST.DEFAULT_NUMBER_ID, allReports) && !isFromSettlementButton) {
         return;
     }
 
@@ -6099,6 +6100,7 @@ function moveIOUReportToPolicyAndInviteSubmitter(
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     reportActions: OnyxCollection<ReportActions>,
     reportTransactions: Transaction[] = [],
+    allReports?: OnyxCollection<Report>,
 ): {policyExpenseChatReportID?: string} | undefined {
     if (!policy || !iouReport) {
         return;
@@ -6119,7 +6121,7 @@ function moveIOUReportToPolicyAndInviteSubmitter(
     const isReimbursed = isReportManuallyReimbursed(iouReport);
 
     // We only allow moving IOU report to a policy if it doesn't have requests from multiple users, as we do not want to create negative amount expenses
-    if (!isReimbursed && ReportActionsUtils.hasRequestFromCurrentAccount(reportID, iouReport.managerID ?? CONST.DEFAULT_NUMBER_ID)) {
+    if (!isReimbursed && ReportActionsUtils.hasRequestFromCurrentAccount(reportID, iouReport.managerID ?? CONST.DEFAULT_NUMBER_ID, allReports)) {
         return;
     }
 

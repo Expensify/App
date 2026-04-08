@@ -1196,6 +1196,35 @@ describe('ReportActionsUtils', () => {
             result = ReportActionsUtils.hasRequestFromCurrentAccount(unloadedActionsReportID, currentUserAccountID);
             expect(result).toBe(false);
         });
+
+        it('should use explicit allReports parameter when provided and reportActions are unloaded', async () => {
+            const unloadedActionsReportID = '6';
+            const iouReport = {
+                type: CONST.REPORT.TYPE.IOU,
+                reportID: unloadedActionsReportID,
+            };
+            const transactionFromCurrentUser = {
+                ...createRandomTransaction(1),
+                reportID: unloadedActionsReportID,
+                amount: -100,
+            };
+            const transactionFromOtherUser = {
+                ...createRandomTransaction(2),
+                reportID: unloadedActionsReportID,
+                amount: 500,
+            };
+
+            // Set up transactions
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionFromCurrentUser.transactionID}`, transactionFromCurrentUser);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionFromOtherUser.transactionID}`, transactionFromOtherUser);
+
+            // Pass allReports explicitly instead of relying on Onyx state
+            const explicitAllReports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${unloadedActionsReportID}`]: iouReport,
+            };
+            const result = ReportActionsUtils.hasRequestFromCurrentAccount(unloadedActionsReportID, currentUserAccountID, explicitAllReports);
+            expect(result).toBe(true);
+        });
     });
 
     describe('getLastVisibleAction', () => {
