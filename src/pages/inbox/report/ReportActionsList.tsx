@@ -1,864 +1,347 @@
 import type {ListRenderItemInfo} from '@react-native/virtualized-lists';
-import {useIsFocused, useRoute} from '@react-navigation/native';
+import {useRoute} from '@react-navigation/native';
 import {isUserValidatedSelector} from '@selectors/Account';
 import {tierNameSelector} from '@selectors/UserWallet';
-import React, {memo, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
-import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
-import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
+import React, {useContext, useEffect, useRef, useState} from 'react';
+import type {LayoutChangeEvent} from 'react-native';
+import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
-import Button from '@components/Button';
 import InvertedFlatList from '@components/FlatList/InvertedFlatList';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
+import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLoadReportActions from '@hooks/useLoadReportActions';
 import useLocalize from '@hooks/useLocalize';
-import useNetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
+import useMarkAsRead from '@hooks/useMarkAsRead';
 import useOnyx from '@hooks/useOnyx';
-import usePrevious from '@hooks/usePrevious';
+import useParentReportAction from '@hooks/useParentReportAction';
+import usePendingConciergeResponse from '@hooks/usePendingConciergeResponse';
+import useReportActionsPagination from '@hooks/useReportActionsPagination';
+import useReportActionsScroll from '@hooks/useReportActionsScroll';
+import useReportActionsVisibility from '@hooks/useReportActionsVisibility';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useScrollToEndOnNewMessageReceived from '@hooks/useScrollToEndOnNewMessageReceived';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useUnreadMarker from '@hooks/useUnreadMarker';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {isSafari} from '@libs/Browser';
+import {updateLoadingInitialReportAction} from '@libs/actions/Report';
 import {isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
-import DateUtils from '@libs/DateUtils';
 import FS from '@libs/Fullstory';
-import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlightItem';
-import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
-import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
-import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import {generateNewRandomInt} from '@libs/NumberUtils';
 import {
     getFirstVisibleReportActionID,
     isConsecutiveActionMadeByPreviousActor,
-    isCurrentActionUnread,
     isDeletedParentAction,
-    isReportPreviewAction,
     isReversedTransaction,
     isSentMoneyReportAction,
     isTransactionThread,
-    wasMessageReceivedWhileOffline,
 } from '@libs/ReportActionsUtils';
 import {
     canShowReportRecipientLocalTime,
     canUserPerformWriteAction,
     chatIncludesChronosWithID,
     getOriginalReportID,
-    getReportLastVisibleActionCreated,
-    isArchivedNonExpenseReport,
     isCanceledTaskReport,
     isExpenseReport,
     isInvoiceReport,
     isIOUReport,
     isMoneyRequestReport,
     isTaskReport,
-    isUnread,
 } from '@libs/ReportUtils';
-import Visibility from '@libs/Visibility';
+import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
-import ConciergeThinkingMessage from '@pages/home/report/ConciergeThinkingMessage';
 import {ActionListContext} from '@pages/inbox/ReportScreenContext';
 import variables from '@styles/variables';
-import {openReport, readNewestAction, subscribeToNewActionEvent} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import FloatingMessageCounter from './FloatingMessageCounter';
 import getInitialNumToRender from './getInitialNumReportActionsToRender';
-import getReportActionsListInitialNumToRender from './getReportActionsListInitialNumToRender';
-import ListBoundaryLoader from './ListBoundaryLoader';
+import ReportActionsListHeader from './ReportActionsListHeader';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
-import {getUnreadMarkerReportAction} from './shouldDisplayNewMarkerOnReportAction';
+import ShowPreviousMessagesButton from './ShowPreviousMessagesButton';
 import StaticReportActionsPreview from './StaticReportActionsPreview';
-import useReportUnreadMessageScrollTracking from './useReportUnreadMessageScrollTracking';
 
 type ReportActionsListProps = {
-    /** The report currently being looked at */
-    report: OnyxTypes.Report;
+    /** The ID of the report to display actions for */
+    reportID: string;
 
-    /** The transaction thread report associated with the current report, if any */
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
-
-    /** The report's parentReportAction */
-    parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
-
-    /** The transaction thread report's parentReportAction */
-    parentReportActionForTransactionThread: OnyxEntry<OnyxTypes.ReportAction>;
-
-    /** Sorted actions prepared for display */
-    sortedReportActions: OnyxTypes.ReportAction[];
-
-    /** Sorted actions that should be visible to the user */
-    sortedVisibleReportActions: OnyxTypes.ReportAction[];
-
-    /** Callback executed on list layout */
-    onLayout: (event: LayoutChangeEvent) => void;
-
-    /** Callback executed on scroll */
-    onScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
-
-    /** Function to load more chats */
-    loadOlderChats: (force?: boolean) => void;
-
-    /** Function to load newer chats */
-    loadNewerChats: (force?: boolean) => void;
-
-    /** Whether the composer is in full size */
-    isComposerFullSize?: boolean;
-
-    /** ID of the list */
-    listID: number;
-
-    /** Should enable auto scroll to top threshold */
-    shouldEnableAutoScrollToTopThreshold?: boolean;
-
-    /** Whether the optimistic CREATED report action was added */
-    hasCreatedActionAdded?: boolean;
-
-    /** Whether this is a Concierge chat in the side panel */
-    isConciergeSidePanel?: boolean;
-
-    /** Whether the chat history is hidden (concierge side panel fresh state) */
-    showHiddenHistory?: boolean;
-
-    /** Whether there are previous messages that can be revealed */
-    hasPreviousMessages?: boolean;
-
-    /** Callback to show previous messages */
-    onShowPreviousMessages?: () => void;
+    /** Callback executed on layout */
+    onLayout?: (event: LayoutChangeEvent) => void;
 };
 
-// In the component we are subscribing to the arrival of new actions.
-// As there is the possibility that there are multiple instances of a ReportScreen
-// for the same report, we only ever want one subscription to be active, as
-// the subscriptions could otherwise be conflicting.
-const newActionUnsubscribeMap: Record<string, () => void> = {};
+let listOldID = Math.round(Math.random() * 100);
 
-// Seems that there is an architecture issue that prevents us from using the reportID with useRef
-// the useRef value gets reset when the reportID changes, so we use a global variable to keep track
-let prevReportID: string | null = null;
-
-/**
- * Create a unique key for each action in the FlatList.
- * We use the reportActionID that is a string representation of a random 64-bit int, which should be
- * random enough to avoid collisions
- */
 function keyExtractor(item: OnyxTypes.ReportAction): string {
     return item.reportActionID;
 }
 
 const onScrollToIndexFailed = () => {};
 
-function ReportActionsList({
-    report,
-    transactionThreadReport,
-    parentReportAction,
-    sortedReportActions,
-    sortedVisibleReportActions,
-    onScroll,
-    loadNewerChats,
-    loadOlderChats,
-    onLayout,
-    isComposerFullSize,
-    listID,
-    shouldEnableAutoScrollToTopThreshold,
-    parentReportActionForTransactionThread,
-    hasCreatedActionAdded,
-    isConciergeSidePanel,
-    showHiddenHistory,
-    hasPreviousMessages,
-    onShowPreviousMessages,
-}: ReportActionsListProps) {
-    const prevHasCreatedActionAdded = usePrevious(hasCreatedActionAdded);
+const selectNetworkOffline = (network: OnyxEntry<OnyxTypes.Network>) => ({isOffline: !!network?.isOffline});
+
+function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
+    // ─── Side effects ───
+    useCopySelectionHelper();
+    usePendingConciergeResponse(reportID);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+
+    // ─── Core data ───
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`);
+    const parentReportAction = useParentReportAction(report);
+    const isReportArchived = useReportIsArchived(reportID);
+    const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived);
+
+    const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
+    const [networkState] = useOnyx(ONYXKEYS.NETWORK, {selector: selectNetworkOffline});
+    const isOffline = !!networkState?.isOffline;
+
+    // ─── Pipeline: pagination → load → visibility ───
+    const pagination = useReportActionsPagination(reportID);
+
+    const {loadOlderChats, loadNewerChats} = useLoadReportActions({
+        reportID,
+        reportActions: pagination.reportActions,
+        allReportActionIDs: pagination.allReportActionIDs,
+        transactionThreadReportID: pagination.transactionThreadReport?.reportID,
+        hasOlderActions: pagination.hasOlderActions,
+        hasNewerActions: pagination.hasNewerActions,
+    });
+
+    const visibility = useReportActionsVisibility(reportID, pagination.reportActions, !!canPerformWriteAction, pagination.hasOlderActions, loadOlderChats);
+
+    const sortedVisibleReportActions = visibility.visibleReportActions;
+
+    // ─── Unread marker + mark-as-read ───
+    const {scrollOffsetRef} = useContext(ActionListContext);
+
+    const {unreadMarkerReportActionID, unreadMarkerReportActionIndex} = useUnreadMarker({
+        reportID,
+        sortedVisibleReportActions,
+        sortedReportActions: pagination.reportActions,
+        scrollingVerticalOffset: scrollOffsetRef,
+    });
+
+    const {readActionSkippedRef} = useMarkAsRead({
+        reportID,
+        sortedVisibleReportActions,
+        transactionThreadReport: pagination.transactionThreadReport,
+        scrollingVerticalOffset: scrollOffsetRef,
+    });
+
+    // ─── Scroll state ───
+    const isTransactionThreadReport = isTransactionThread(parentReportAction) && !isSentMoneyReportAction(parentReportAction);
+    const isMoneyRequestOrInvoiceReport = isMoneyRequestReport(report) || isInvoiceReport(report);
+    const shouldFocusToTopOnMount = isTransactionThreadReport || isMoneyRequestOrInvoiceReport;
+
+    const linkedReportActionID = pagination.reportActionID;
+    const [shouldScrollToEndAfterLayout, setShouldScrollToEndAfterLayout] = useState(shouldFocusToTopOnMount && !linkedReportActionID);
+
+    const scroll = useReportActionsScroll({
+        reportID,
+        report,
+        sortedVisibleReportActions,
+        readActionSkippedRef,
+        unreadMarkerReportActionIndex,
+        loadOlderChats,
+        loadNewerChats,
+        shouldAddCreatedAction: pagination.shouldAddCreatedAction,
+        linkedReportActionID,
+        shouldScrollToEndAfterLayout,
+        setShouldScrollToEndAfterLayout,
+        shouldFocusToTopOnMount,
+        isOffline: visibility.isOffline,
+        hasOnceLoadedReportActions: !!reportMetadata?.hasOnceLoadedReportActions,
+        onLayout,
+    });
+
+    // ─── listID — changes only for comment linking ───
+    const prevReportActionID = useRef(linkedReportActionID);
+    const [listID, setListID] = useState(listOldID);
+
+    useEffect(() => {
+        if (!linkedReportActionID && !prevReportActionID.current) {
+            prevReportActionID.current = linkedReportActionID;
+            return;
+        }
+        const newID = generateNewRandomInt(listOldID, 1, Number.MAX_SAFE_INTEGER);
+        listOldID = newID;
+        setListID(newID);
+        prevReportActionID.current = linkedReportActionID;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [route, linkedReportActionID]);
+
+    // ─── Linked message offline effect ───
+    useEffect(() => {
+        if (!linkedReportActionID || !isOffline) {
+            return;
+        }
+        updateLoadingInitialReportAction(report?.reportID ?? reportID);
+    }, [isOffline, report?.reportID, reportID, linkedReportActionID]);
+
+    // ═══════════════════════════════════════════════════════
+    // ═══ renderItem passthrough hooks (tech debt) ═══
+    // ═══════════════════════════════════════════════════════
     const personalDetailsList = usePersonalDetails();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['UpArrow']);
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-
-    const {getLocalDateFromDatetime} = useLocalize();
-    const {isOffline, lastOfflineAt, lastOnlineAt} = useNetworkWithOfflineStatus();
-    const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
-    const reportScrollManager = useReportScrollManager();
-    const {scrollOffsetRef} = useContext(ActionListContext);
-    const userActiveSince = useRef<string>(DateUtils.getDBTime());
-    const lastMessageTime = useRef<string | null>(null);
-    const [isVisible, setIsVisible] = useState(Visibility.isVisible);
-    const isFocused = useIsFocused();
-
-    const isReportArchived = useReportIsArchived(report?.reportID);
-    const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {
-        selector: tierNameSelector,
-    });
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {
-        selector: isUserValidatedSelector,
-    });
-    const [reportActionsFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`);
+    const [userWalletTierName] = useOnyx(ONYXKEYS.USER_WALLET, {selector: tierNameSelector});
+    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
+    const [reportActionsFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
-    const [actionIdToHighlight, setActionIdToHighlight] = useState('');
-    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`);
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
+    // ═══════════════════════════════════════════════════════
+    // ═══ end renderItem passthrough ═══
+    // ═══════════════════════════════════════════════════════
+
+    // ─── Derived values for renderItem ───
+    const shouldHideThreadDividerLine = getFirstVisibleReportActionID(pagination.reportActions, visibility.isOffline) === unreadMarkerReportActionID;
+    const firstVisibleReportActionID = getFirstVisibleReportActionID(pagination.reportActions, visibility.isOffline);
+
+    let shouldUseThreadDividerLine = false;
+    const topReport = sortedVisibleReportActions.length > 0 ? sortedVisibleReportActions.at(sortedVisibleReportActions.length - 1) : null;
+
+    if (topReport && topReport.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
+        shouldUseThreadDividerLine = false;
+    } else if (isTransactionThread(parentReportAction)) {
+        shouldUseThreadDividerLine = !isDeletedParentAction(parentReportAction) && !isReversedTransaction(parentReportAction);
+    } else if (isTaskReport(report)) {
+        shouldUseThreadDividerLine = !isCanceledTaskReport(report, parentReportAction);
+    } else {
+        shouldUseThreadDividerLine = isExpenseReport(report) || isIOUReport(report) || isInvoiceReport(report);
+    }
 
-    const backTo = route?.params?.backTo as string;
-    // Display the new message indicator when comment linking and not close to the newest message.
-    const reportActionID = route?.params?.reportActionID;
-
-    const isTransactionThreadReport = useMemo(() => isTransactionThread(parentReportAction) && !isSentMoneyReportAction(parentReportAction), [parentReportAction]);
-    const isMoneyRequestOrInvoiceReport = useMemo(() => isMoneyRequestReport(report) || isInvoiceReport(report), [report]);
-    const shouldFocusToTopOnMount = useMemo(() => isTransactionThreadReport || isMoneyRequestOrInvoiceReport, [isMoneyRequestOrInvoiceReport, isTransactionThreadReport]);
-    const topReportAction = sortedVisibleReportActions.at(-1);
-    const [shouldScrollToEndAfterLayout, setShouldScrollToEndAfterLayout] = useState(shouldFocusToTopOnMount && !reportActionID);
-    const isAnonymousUser = useIsAnonymousUser();
-
-    useEffect(() => {
-        const unsubscribe = Visibility.onVisibilityChange(() => {
-            setIsVisible(Visibility.isVisible());
-        });
-
-        return unsubscribe;
-    }, []);
-
-    const readActionSkipped = useRef(false);
-    const hasHeaderRendered = useRef(false);
-    const linkedReportActionID = route?.params?.reportActionID;
-
-    const lastAction = sortedVisibleReportActions.at(0);
-    const sortedVisibleReportActionsObjects: OnyxTypes.ReportActions = useMemo(
-        () =>
-            sortedVisibleReportActions.reduce((actions, action) => {
-                Object.assign(actions, {[action.reportActionID]: action});
-                return actions;
-            }, {}),
-        [sortedVisibleReportActions],
-    );
-    const prevSortedVisibleReportActionsObjects = usePrevious(sortedVisibleReportActionsObjects);
-
-    const reportLastReadTime = report.lastReadTime ?? '';
-
-    /**
-     * The timestamp for the unread marker.
-     *
-     * This should ONLY be updated when the user
-     * - switches reports
-     * - marks a message as read/unread
-     * - reads a new message as it is received
-     */
-    const [unreadMarkerTime, setUnreadMarkerTime] = useState(reportLastReadTime);
-    useEffect(() => {
-        setUnreadMarkerTime(reportLastReadTime);
-
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [report.reportID]);
-
-    const prevUnreadMarkerReportActionID = useRef<string | null>(null);
-
-    /**
-     * The index of the earliest message that was received while offline
-     */
-    const earliestReceivedOfflineMessageIndex = useMemo(() => {
-        // Create a list of (sorted) indices of message that were received while offline
-        const receivedOfflineMessages = sortedReportActions.reduce<number[]>((acc, message, index) => {
-            if (wasMessageReceivedWhileOffline(message, isOffline, lastOfflineAt.current, lastOnlineAt.current, getLocalDateFromDatetime)) {
-                acc[index] = index;
-            }
-
-            return acc;
-        }, []);
-
-        // The last index in the list is the earliest message that was received while offline
-        return receivedOfflineMessages.at(-1);
-    }, [getLocalDateFromDatetime, isOffline, lastOfflineAt, lastOnlineAt, sortedReportActions]);
-
-    /**
-     * The reportActionID the unread marker should display above
-     */
-    const [unreadMarkerReportActionID, unreadMarkerReportActionIndex] = getUnreadMarkerReportAction({
-        visibleReportActions: sortedVisibleReportActions,
-        earliestReceivedOfflineMessageIndex,
-        currentUserAccountID,
-        prevSortedVisibleReportActionsObjects,
-        unreadMarkerTime,
-        scrollingVerticalOffset: scrollOffsetRef.current,
-        prevUnreadMarkerReportActionID: prevUnreadMarkerReportActionID.current,
-        isOffline,
-        isReversed: false,
-        isAnonymousUser,
-    });
-    prevUnreadMarkerReportActionID.current = unreadMarkerReportActionID;
-
-    /**
-     * Subscribe to read/unread events and update our unreadMarkerTime
-     */
-    useEffect(() => {
-        if (isAnonymousUser) {
-            return;
-        }
-
-        const unreadActionSubscription = DeviceEventEmitter.addListener(`unreadAction_${report.reportID}`, (newLastReadTime: string) => {
-            setUnreadMarkerTime(newLastReadTime);
-            userActiveSince.current = DateUtils.getDBTime();
-        });
-        const readNewestActionSubscription = DeviceEventEmitter.addListener(`readNewestAction_${report.reportID}`, (newLastReadTime: string) => {
-            setUnreadMarkerTime(newLastReadTime);
-        });
-
-        return () => {
-            unreadActionSubscription.remove();
-            readNewestActionSubscription.remove();
-        };
-    }, [report.reportID, isAnonymousUser]);
-
-    /**
-     * When the user reads a new message as it is received, we'll push the unreadMarkerTime down to the timestamp of
-     * the latest report action. When new report actions are received and the user is not viewing them (they're above
-     * the MSG_VISIBLE_THRESHOLD), the unread marker will display over those new messages rather than the initial
-     * lastReadTime.
-     */
-    useLayoutEffect(() => {
-        if (isAnonymousUser || unreadMarkerReportActionID) {
-            return;
-        }
-
-        const mostRecentReportActionCreated = lastAction?.created ?? '';
-        if (mostRecentReportActionCreated <= unreadMarkerTime) {
-            return;
-        }
-
-        setUnreadMarkerTime(mostRecentReportActionCreated);
-
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [lastAction?.created]);
-
-    const lastVisibleActionCreated = getReportLastVisibleActionCreated(report, transactionThreadReport);
-    const hasNewestReportAction = lastAction?.created === lastVisibleActionCreated || isReportPreviewAction(lastAction);
-    const hasNewestReportActionRef = useRef(hasNewestReportAction);
-    hasNewestReportActionRef.current = hasNewestReportAction;
-    const sortedVisibleReportActionsRef = useRef(sortedVisibleReportActions);
-
-    const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, trackVerticalScrolling, onViewableItemsChanged} = useReportUnreadMessageScrollTracking({
-        reportID: report.reportID,
-        currentVerticalScrollingOffsetRef: scrollOffsetRef,
-        readActionSkippedRef: readActionSkipped,
-        unreadMarkerReportActionIndex,
-        isInverted: true,
-        onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-            scrollOffsetRef.current = event.nativeEvent.contentOffset.y;
-            onScroll?.(event);
-            if (shouldScrollToEndAfterLayout && (!hasCreatedActionAdded || isOffline)) {
-                setShouldScrollToEndAfterLayout(false);
-            }
-        },
-        hasOnceLoadedReportActions: !!reportMetadata?.hasOnceLoadedReportActions,
-    });
-
-    useScrollToEndOnNewMessageReceived({
-        sizeChangeType: 'changed',
-        scrollOffsetRef,
-        lastActionID: lastAction?.reportActionID,
-        visibleActionsLength: sortedVisibleReportActions.length,
-        hasNewestReportAction,
-        setIsFloatingMessageCounterVisible,
-        scrollToEnd: reportScrollManager.scrollToBottom,
-        resetKey: linkedReportActionID,
-    });
-
-    useEffect(() => {
-        const shouldTriggerScroll = shouldFocusToTopOnMount && prevHasCreatedActionAdded && !hasCreatedActionAdded;
-        if (!shouldTriggerScroll) {
-            return;
-        }
-        requestAnimationFrame(() => reportScrollManager.scrollToEnd());
-    }, [hasCreatedActionAdded, prevHasCreatedActionAdded, shouldFocusToTopOnMount, shouldScrollToEndAfterLayout, reportScrollManager]);
-
-    useEffect(() => {
-        userActiveSince.current = DateUtils.getDBTime();
-        prevReportID = report.reportID;
-    }, [report.reportID]);
-
-    const handleReportChangeMarkAsRead = useCallback(() => {
-        if (report.reportID !== prevReportID) {
-            return;
-        }
-
-        if (isUnread(report, transactionThreadReport, isReportArchived) || (lastAction && isCurrentActionUnread(report, lastAction, sortedVisibleReportActions))) {
-            // On desktop, when the notification center is displayed, isVisible will return false.
-            // Currently, there's no programmatic way to dismiss the notification center panel.
-            // To handle this, we use the 'referrer' parameter to check if the current navigation is triggered from a notification.
-            const isFromNotification = route?.params?.referrer === CONST.REFERRER.NOTIFICATION;
-            if ((isVisible || isFromNotification) && scrollOffsetRef.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD) {
-                readNewestAction(report.reportID, !!reportMetadata?.hasOnceLoadedReportActions);
-                if (isFromNotification) {
-                    Navigation.setParams({referrer: undefined});
-                }
-                return true;
-            }
-
-            readActionSkipped.current = true;
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [report.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, report.reportID, isVisible, reportMetadata?.hasOnceLoadedReportActions]);
-
-    const handleAppVisibilityMarkAsRead = useCallback(() => {
-        if (report.reportID !== prevReportID) {
-            return;
-        }
-
-        if (!isVisible || !isFocused) {
-            if (!lastMessageTime.current) {
-                lastMessageTime.current = lastAction?.created ?? '';
-            }
-            return;
-        }
-
-        // In case the user read new messages (after being inactive) with other device we should
-        // show marker based on report.lastReadTime
-        const newMessageTimeReference = lastMessageTime.current && report.lastReadTime && lastMessageTime.current > report.lastReadTime ? userActiveSince.current : report.lastReadTime;
-        lastMessageTime.current = null;
-
-        const isArchivedReport = isArchivedNonExpenseReport(report, isReportArchived);
-        const hasNewMessagesInView = scrollOffsetRef.current < CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD;
-        const hasUnreadReportAction = sortedVisibleReportActions.some(
-            (reportAction) =>
-                newMessageTimeReference &&
-                newMessageTimeReference < reportAction.created &&
-                (isReportPreviewAction(reportAction) ? reportAction.childLastActorAccountID : reportAction.actorAccountID) !== currentUserAccountID,
-        );
-
-        if (!isArchivedReport && (!hasNewMessagesInView || !hasUnreadReportAction)) {
-            return;
-        }
-
-        readNewestAction(report.reportID, !!reportMetadata?.hasOnceLoadedReportActions);
-        userActiveSince.current = DateUtils.getDBTime();
-        return true;
-
-        // This effect logic to `mark as read` will only run when the report focused has new messages and the App visibility
-        //  is changed to visible(meaning user switched to app/web, while user was previously using different tab or application).
-        // We will mark the report as read in the above case which marks the LHN report item as read while showing the new message
-        // marker for the chat messages received while the user wasn't focused on the report or on another browser tab for web.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isFocused, isVisible, reportMetadata?.hasOnceLoadedReportActions]);
-
-    const prevHandleReportChangeMarkAsRead = useRef<() => void>(null);
-    const prevHandleAppVisibilityMarkAsRead = useRef<() => void>(null);
-
-    useEffect(() => {
-        let isMarkedAsRead = false;
-        if (handleReportChangeMarkAsRead !== prevHandleReportChangeMarkAsRead.current) {
-            isMarkedAsRead = !!handleReportChangeMarkAsRead();
-        }
-
-        if (!isMarkedAsRead && handleAppVisibilityMarkAsRead !== prevHandleAppVisibilityMarkAsRead.current) {
-            handleAppVisibilityMarkAsRead();
-        }
-
-        prevHandleReportChangeMarkAsRead.current = handleReportChangeMarkAsRead;
-        prevHandleAppVisibilityMarkAsRead.current = handleAppVisibilityMarkAsRead;
-    }, [handleReportChangeMarkAsRead, handleAppVisibilityMarkAsRead]);
-
-    useEffect(() => {
-        if (linkedReportActionID) {
-            return;
-        }
-
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
-            if (shouldScrollToEndAfterLayout) {
-                return;
-            }
-            setIsFloatingMessageCounterVisible(false);
-            reportScrollManager.scrollToBottom();
-        });
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    // Fixes Safari-specific issue where the whisper option is not highlighted correctly on hover after adding new transaction.
-    // https://github.com/Expensify/App/issues/54520
-    useEffect(() => {
-        if (!isSafari()) {
-            return;
-        }
-        const prevSorted = lastAction?.reportActionID ? prevSortedVisibleReportActionsObjects[lastAction?.reportActionID] : null;
-        if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER && !prevSorted) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            InteractionManager.runAfterInteractions(() => {
-                reportScrollManager.scrollToBottom();
-            });
-        }
-    }, [lastAction?.reportActionID, lastAction?.actionName, prevSortedVisibleReportActionsObjects, reportScrollManager]);
-
-    useEffect(() => {
-        sortedVisibleReportActionsRef.current = sortedVisibleReportActions;
-    }, [sortedVisibleReportActions]);
-
-    const scrollToBottomForCurrentUserAction = useCallback(
-        (isFromCurrentUser: boolean, action?: OnyxTypes.ReportAction) => {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            InteractionManager.runAfterInteractions(() => {
-                // If a new comment is added and it's from the current user scroll to the bottom otherwise leave the user positioned where
-                // they are now in the list.
-                if (!isFromCurrentUser || (!isReportTopmostSplitNavigator() && !Navigation.getReportRHPActiveRoute())) {
-                    return;
-                }
-                if (!hasNewestReportActionRef.current && !isFromCurrentUser) {
-                    if (Navigation.getReportRHPActiveRoute()) {
-                        return;
-                    }
-                    Navigation.setNavigationActionToMicrotaskQueue(() => {
-                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
-                    });
-                    return;
-                }
-                const index = sortedVisibleReportActionsRef.current.findIndex((item) => keyExtractor(item) === action?.reportActionID);
-                if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
-                    if (index > 0) {
-                        setTimeout(() => {
-                            reportScrollManager.scrollToIndex(index);
-                        }, 100);
-                    } else {
-                        setIsFloatingMessageCounterVisible(false);
-                        reportScrollManager.scrollToBottom();
-                    }
-                    if (action?.reportActionID) {
-                        setActionIdToHighlight(action.reportActionID);
-                    }
-                } else {
-                    setIsFloatingMessageCounterVisible(false);
-                    reportScrollManager.scrollToBottom();
-                }
-
-                setIsScrollToBottomEnabled(true);
-            });
-        },
-        [report.reportID, reportScrollManager, setIsFloatingMessageCounterVisible],
-    );
-
-    // Clear the highlighted report action after scrolling and highlighting
-    useEffect(() => {
-        if (actionIdToHighlight === '') {
-            return;
-        }
-        // Time highlight is the same as SearchPage
-        const timer = setTimeout(() => {
-            setActionIdToHighlight('');
-        }, durationHighlightItem);
-        return () => clearTimeout(timer);
-    }, [actionIdToHighlight]);
-
-    useEffect(() => {
-        // Why are we doing this, when in the cleanup of the useEffect we are already calling the unsubscribe function?
-        // Answer: On web, when navigating to another report screen, the previous report screen doesn't get unmounted,
-        //         meaning that the cleanup might not get called. When we then open a report we had open already previously, a new
-        //         ReportScreen will get created. Thus, we have to cancel the earlier subscription of the previous screen,
-        //         because the two subscriptions could conflict!
-        //         In case we return to the previous screen (e.g. by web back navigation) the useEffect for that screen would
-        //         fire again, as the focus has changed and will set up the subscription correctly again.
-        const previousSubUnsubscribe = newActionUnsubscribeMap[report.reportID];
-        if (previousSubUnsubscribe) {
-            previousSubUnsubscribe();
-        }
-
-        // This callback is triggered when a new action arrives via Pusher and the event is emitted from Report.js. This allows us to maintain
-        // a single source of truth for the "new action" event instead of trying to derive that a new action has appeared from looking at props.
-        const unsubscribe = subscribeToNewActionEvent(report.reportID, scrollToBottomForCurrentUserAction);
-
-        const cleanup = () => {
-            if (!unsubscribe) {
-                return;
-            }
-            unsubscribe();
-        };
-
-        newActionUnsubscribeMap[report.reportID] = cleanup;
-
-        return cleanup;
-
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [report.reportID]);
-
-    const reportActionsListFSClass = FS.getChatFSClass(report);
-    const lastIOUActionWithError = sortedVisibleReportActions.find((action) => action.errors);
-    const prevLastIOUActionWithError = usePrevious(lastIOUActionWithError);
-
-    useEffect(() => {
-        if (lastIOUActionWithError?.reportActionID === prevLastIOUActionWithError?.reportActionID) {
-            return;
-        }
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
-            reportScrollManager.scrollToBottom();
-        });
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [lastAction]);
-
-    const scrollToBottomAndMarkReportAsRead = useCallback(() => {
-        setIsFloatingMessageCounterVisible(false);
-
-        if (!hasNewestReportAction) {
-            if (!Navigation.getReportRHPActiveRoute()) {
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID, undefined, undefined, backTo));
-            }
-            openReport({reportID: report.reportID, introSelected, betas});
-            reportScrollManager.scrollToBottom();
-            return;
-        }
-        reportScrollManager.scrollToBottom();
-        readActionSkipped.current = false;
-        readNewestAction(report.reportID, !!reportMetadata?.hasOnceLoadedReportActions);
-    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, reportScrollManager, report.reportID, backTo, introSelected, reportMetadata?.hasOnceLoadedReportActions, betas]);
-
-    /**
-     * Calculates the ideal number of report actions to render in the first render, based on the screen height and on
-     * the height of the smallest report action possible.
-     */
-    const initialNumToRender = useMemo((): number | undefined => {
-        const minimumReportActionHeight = styles.chatItem.paddingTop + styles.chatItem.paddingBottom + variables.fontSizeNormalHeight;
-        const availableHeight = windowHeight - (CONST.CHAT_FOOTER_MIN_HEIGHT + variables.contentHeaderHeight);
-        const numToRender = Math.ceil(availableHeight / minimumReportActionHeight);
-        return getReportActionsListInitialNumToRender({
-            numToRender,
-            linkedReportActionID,
-            shouldScrollToEndAfterLayout,
-            hasCreatedActionAdded,
-            sortedVisibleReportActionsLength: sortedVisibleReportActions.length,
-            isOffline,
-            getInitialNumToRender,
-        });
-    }, [
-        styles.chatItem.paddingBottom,
-        styles.chatItem.paddingTop,
-        windowHeight,
-        linkedReportActionID,
-        shouldScrollToEndAfterLayout,
-        hasCreatedActionAdded,
-        sortedVisibleReportActions.length,
-        isOffline,
-    ]);
-
-    /**
-     * Thread's divider line should hide when the first chat in the thread is marked as unread.
-     * This is so that it will not be conflicting with header's separator line.
-     */
-    const shouldHideThreadDividerLine = useMemo(
-        (): boolean => getFirstVisibleReportActionID(sortedReportActions, isOffline) === unreadMarkerReportActionID,
-        [sortedReportActions, isOffline, unreadMarkerReportActionID],
-    );
-
-    const firstVisibleReportActionID = useMemo(() => getFirstVisibleReportActionID(sortedReportActions, isOffline), [sortedReportActions, isOffline]);
-
-    const shouldUseThreadDividerLine = useMemo(() => {
-        const topReport = sortedVisibleReportActions.length > 0 ? sortedVisibleReportActions.at(sortedVisibleReportActions.length - 1) : null;
-
-        if (topReport && topReport.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED) {
-            return false;
-        }
-
-        if (isTransactionThread(parentReportAction)) {
-            return !isDeletedParentAction(parentReportAction) && !isReversedTransaction(parentReportAction);
-        }
-
-        if (isTaskReport(report)) {
-            return !isCanceledTaskReport(report, parentReportAction);
-        }
-
-        return isExpenseReport(report) || isIOUReport(report) || isInvoiceReport(report);
-    }, [parentReportAction, report, sortedVisibleReportActions]);
-
-    const renderItem = useCallback(
-        ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
-            const originalReportID = getOriginalReportID(report.reportID, reportAction, reportActionsFromOnyx);
-            const showPreviousMessagesButton = reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && !!isConciergeSidePanel && !!showHiddenHistory && !!hasPreviousMessages;
-
-            return (
-                <>
-                    {showPreviousMessagesButton && (
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.pv3, styles.mh5]}>
-                            <View style={[styles.threadDividerLine, styles.ml0, styles.mr0, styles.flexGrow1]} />
-                            <View>
-                                <Button
-                                    small
-                                    shouldShowRightIcon
-                                    iconRight={expensifyIcons.UpArrow}
-                                    text={translate('common.concierge.showHistory')}
-                                    onPress={onShowPreviousMessages}
-                                />
-                            </View>
-                            <View style={[styles.threadDividerLine, styles.ml0, styles.mr0, styles.flexGrow1]} />
-                        </View>
-                    )}
-                    <ReportActionsListItemRenderer
-                        reportAction={reportAction}
-                        parentReportAction={parentReportAction}
-                        parentReportActionForTransactionThread={parentReportActionForTransactionThread}
-                        index={index}
-                        report={report}
-                        transactionThreadReport={transactionThreadReport}
-                        linkedReportActionID={linkedReportActionID}
-                        displayAsGroup={
-                            !isConsecutiveChronosAutomaticTimerAction(sortedVisibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
-                            isConsecutiveActionMadeByPreviousActor(sortedVisibleReportActions, index, isOffline)
-                        }
-                        shouldHideThreadDividerLine={shouldHideThreadDividerLine}
-                        shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
-                        shouldDisplayReplyDivider={sortedVisibleReportActions.length > 1}
-                        isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
-                        shouldUseThreadDividerLine={shouldUseThreadDividerLine}
-                        userWalletTierName={userWalletTierName}
-                        isUserValidated={isUserValidated}
-                        personalDetails={personalDetailsList}
-                        originalReportID={originalReportID}
-                        isReportArchived={isReportArchived}
-                        userBillingFundID={userBillingFundID}
-                        isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
-                        reportNameValuePairsOrigin={reportNameValuePairs?.origin}
-                        reportNameValuePairsOriginalID={reportNameValuePairs?.originalID}
-                    />
-                </>
-            );
-        },
-        [
-            parentReportAction,
-            parentReportActionForTransactionThread,
-            report,
-            isOffline,
-            transactionThreadReport,
-            linkedReportActionID,
-            sortedVisibleReportActions,
-            shouldHideThreadDividerLine,
-            unreadMarkerReportActionID,
-            firstVisibleReportActionID,
-            shouldUseThreadDividerLine,
-            userWalletTierName,
-            isUserValidated,
-            personalDetailsList,
-            userBillingFundID,
-            isTryNewDotNVPDismissed,
-            isReportArchived,
-            reportNameValuePairs?.origin,
-            reportNameValuePairs?.originalID,
-            reportActionsFromOnyx,
-            isConciergeSidePanel,
-            showHiddenHistory,
-            hasPreviousMessages,
-            onShowPreviousMessages,
-            styles,
-            translate,
-            expensifyIcons.UpArrow,
-        ],
-    );
-
-    // Native mobile does not render updates flatlist the changes even though component did update called.
-    // To notify there something changes we can use extraData prop to flatlist
-    const extraData = useMemo(
-        () => [shouldUseNarrowLayout ? unreadMarkerReportActionID : undefined, isArchivedNonExpenseReport(report, isReportArchived)],
-        [unreadMarkerReportActionID, shouldUseNarrowLayout, report, isReportArchived],
-    );
     const hideComposer = !canUserPerformWriteAction(report, isReportArchived);
-    const shouldShowReportRecipientLocalTime = canShowReportRecipientLocalTime(personalDetailsList, report, currentUserAccountID) && !isComposerFullSize;
-    const canShowHeader = isOffline || hasHeaderRendered.current;
+    const shouldShowReportRecipientLocalTime = canShowReportRecipientLocalTime(personalDetailsList, report, currentUserAccountID);
 
-    const onLayoutInner = useCallback(
-        (event: LayoutChangeEvent) => {
-            onLayout(event);
-            if (isScrollToBottomEnabled) {
-                reportScrollManager.scrollToBottom();
-                setIsScrollToBottomEnabled(false);
-            }
-            if (shouldScrollToEndAfterLayout && (!hasCreatedActionAdded || isOffline)) {
-                requestAnimationFrame(() => {
-                    reportScrollManager.scrollToEnd();
-                });
-            }
-        },
-        [isOffline, isScrollToBottomEnabled, onLayout, reportScrollManager, hasCreatedActionAdded, shouldScrollToEndAfterLayout],
-    );
+    // ─── initialNumToRender ───
+    const minimumReportActionHeight = styles.chatItem.paddingTop + styles.chatItem.paddingBottom + variables.fontSizeNormalHeight;
+    const availableHeight = windowHeight - (CONST.CHAT_FOOTER_MIN_HEIGHT + variables.contentHeaderHeight);
+    const numToRender = Math.ceil(availableHeight / minimumReportActionHeight);
 
-    const retryLoadNewerChatsError = useCallback(() => {
-        loadNewerChats(true);
-    }, [loadNewerChats]);
+    let initialNumToRender: number | undefined;
+    if (shouldScrollToEndAfterLayout && (!pagination.shouldAddCreatedAction || visibility.isOffline)) {
+        initialNumToRender = sortedVisibleReportActions.length;
+    } else if (linkedReportActionID) {
+        initialNumToRender = getInitialNumToRender(numToRender);
+    } else {
+        initialNumToRender = numToRender || undefined;
+    }
 
-    const listHeaderComponent = useMemo(() => {
-        // In case of an error we want to display the header no matter what.
-        if (!canShowHeader) {
-            hasHeaderRendered.current = true;
-            return null;
+    // ─── Skeletons ───
+    const isLoadingInitialReportActions = reportMetadata?.isLoadingInitialReportActions;
+    const isMissingReportActions = sortedVisibleReportActions.length === 0;
+
+    const shouldShowSkeleton = isLoadingInitialReportActions && isMissingReportActions && !visibility.isOffline;
+
+    useEffect(() => {
+        if (!shouldShowSkeleton || !report) {
+            return;
         }
+        markOpenReportEnd(report, {warm: false});
+    }, [report, shouldShowSkeleton]);
+
+    if (shouldShowSkeleton) {
+        return <ReportActionsSkeletonView />;
+    }
+
+    const hasDerivedValueTimingIssue = pagination.reportActions.length > 0 && isMissingReportActions;
+    if (hasDerivedValueTimingIssue && !visibility.showConciergeSidePanelWelcome) {
+        return <ReportActionsSkeletonView shouldAnimate={false} />;
+    }
+
+    // ─── Fullstory ───
+    const reportActionsListFSClass = FS.getChatFSClass(report);
+    const topReportAction = sortedVisibleReportActions.at(-1);
+
+    // ─── Offline footer skeleton ───
+    const shouldShowOfflineSkeleton = visibility.isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
+
+    // ─── extraData for native re-render ───
+    const extraData = [shouldUseNarrowLayout ? unreadMarkerReportActionID : undefined];
+
+    // ─── renderItem ───
+    const renderItem = ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
+        const originalReportID = getOriginalReportID(reportID, reportAction, reportActionsFromOnyx);
 
         return (
             <>
-                <ConciergeThinkingMessage report={report} />
-                <ListBoundaryLoader
-                    type={CONST.LIST_COMPONENTS.HEADER}
-                    onRetry={retryLoadNewerChatsError}
+                <ShowPreviousMessagesButton
+                    reportAction={reportAction}
+                    hasPreviousMessages={visibility.hasPreviousMessages}
+                    showFullHistory={visibility.showFullHistory}
+                    onPress={visibility.handleShowPreviousMessages}
+                />
+                <ReportActionsListItemRenderer
+                    reportAction={reportAction}
+                    parentReportAction={parentReportAction}
+                    parentReportActionForTransactionThread={pagination.parentReportActionForTransactionThread}
+                    index={index}
+                    report={report}
+                    transactionThreadReport={pagination.transactionThreadReport}
+                    linkedReportActionID={linkedReportActionID}
+                    displayAsGroup={
+                        !isConsecutiveChronosAutomaticTimerAction(sortedVisibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID), visibility.isOffline) &&
+                        isConsecutiveActionMadeByPreviousActor(sortedVisibleReportActions, index, visibility.isOffline)
+                    }
+                    shouldHideThreadDividerLine={shouldHideThreadDividerLine}
+                    shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
+                    shouldDisplayReplyDivider={sortedVisibleReportActions.length > 1}
+                    isFirstVisibleReportAction={firstVisibleReportActionID === reportAction.reportActionID}
+                    shouldUseThreadDividerLine={shouldUseThreadDividerLine}
+                    shouldHighlight={reportAction.reportActionID === scroll.actionIdToHighlight}
+                    userWalletTierName={userWalletTierName}
+                    isUserValidated={isUserValidated}
+                    personalDetails={personalDetailsList}
+                    originalReportID={originalReportID}
+                    isReportArchived={isReportArchived}
+                    userBillingFundID={userBillingFundID}
+                    isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
+                    reportNameValuePairsOrigin={reportNameValuePairs?.origin}
+                    reportNameValuePairsOriginalID={reportNameValuePairs?.originalID}
                 />
             </>
         );
-    }, [canShowHeader, report, retryLoadNewerChatsError]);
+    };
 
-    const shouldShowSkeleton = isOffline && !sortedVisibleReportActions.some((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
-
-    const listFooterComponent = useMemo(() => {
-        if (!shouldShowSkeleton) {
-            return;
-        }
-
-        return <ReportActionsSkeletonView shouldAnimate={false} />;
-    }, [shouldShowSkeleton]);
-
-    const renderTopReportActions = useCallback(() => {
+    // ─── renderTopReportActions (for shouldScrollToEndAfterLayout) ───
+    const renderTopReportActions = () => {
         const previewItems = sortedVisibleReportActions.slice(initialNumToRender ? -initialNumToRender : 0).reverse();
-
         return (
             <>
                 {!shouldShowReportRecipientLocalTime && !hideComposer && <View style={[styles.stickToBottom, styles.appBG, styles.zIndex10, styles.height4]} />}
                 <StaticReportActionsPreview>
-                    {previewItems.map((action) => (
-                        <View key={action.reportActionID}>
-                            {renderItem({
-                                item: action,
-                                index: sortedVisibleReportActions.indexOf(action),
-                            } as ListRenderItemInfo<OnyxTypes.ReportAction>)}
-                        </View>
-                    ))}
+                    {previewItems.map((action) => {
+                        const actionIndex = sortedVisibleReportActions.indexOf(action);
+                        return (
+                            <View key={action.reportActionID}>
+                                {renderItem({
+                                    item: action,
+                                    index: actionIndex,
+                                } as ListRenderItemInfo<OnyxTypes.ReportAction>)}
+                            </View>
+                        );
+                    })}
                 </StaticReportActionsPreview>
             </>
         );
-    }, [hideComposer, initialNumToRender, renderItem, shouldShowReportRecipientLocalTime, sortedVisibleReportActions, styles]);
-
-    const onStartReached = useCallback(() => {
-        if (!isSearchTopmostFullScreenRoute()) {
-            loadNewerChats(false);
-            return;
-        }
-
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => requestAnimationFrame(() => loadNewerChats(false)));
-    }, [loadNewerChats]);
-
-    const onEndReached = useCallback(() => {
-        loadOlderChats(false);
-    }, [loadOlderChats]);
+    };
 
     return (
         <>
             <FloatingMessageCounter
                 hasNewMessages={!!unreadMarkerReportActionID}
-                isActive={isFloatingMessageCounterVisible}
-                onClick={scrollToBottomAndMarkReportAsRead}
+                isActive={scroll.isFloatingMessageCounterVisible}
+                onClick={scroll.scrollToBottomAndMarkReportAsRead}
             />
             <View
                 style={[styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}
@@ -867,7 +350,7 @@ function ReportActionsList({
                 {shouldScrollToEndAfterLayout && topReportAction ? renderTopReportActions() : undefined}
                 <InvertedFlatList
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
-                    ref={reportScrollManager.ref}
+                    ref={scroll.reportScrollManager.ref}
                     testID="report-actions-list"
                     style={[styles.overscrollBehaviorContain, shouldScrollToEndAfterLayout && styles.flex0]}
                     data={sortedVisibleReportActions}
@@ -879,23 +362,28 @@ function ReportActionsList({
                     showsVerticalScrollIndicator={!shouldScrollToEndAfterLayout}
                     keyExtractor={keyExtractor}
                     initialNumToRender={initialNumToRender}
-                    onEndReached={onEndReached}
+                    onEndReached={scroll.onEndReached}
                     onEndReachedThreshold={0.75}
-                    onStartReached={onStartReached}
+                    onStartReached={scroll.onStartReached}
                     onStartReachedThreshold={0.75}
-                    ListHeaderComponent={listHeaderComponent}
-                    ListFooterComponent={listFooterComponent}
+                    ListHeaderComponent={
+                        <ReportActionsListHeader
+                            reportID={reportID}
+                            onRetry={scroll.retryLoadNewerChatsError}
+                        />
+                    }
+                    ListFooterComponent={shouldShowOfflineSkeleton ? <ReportActionsSkeletonView shouldAnimate={false} /> : null}
                     keyboardShouldPersistTaps="handled"
-                    onLayout={onLayoutInner}
-                    onScroll={trackVerticalScrolling}
-                    onViewableItemsChanged={onViewableItemsChanged}
+                    onLayout={scroll.onLayoutInner}
+                    onScroll={scroll.trackVerticalScrolling}
+                    onViewableItemsChanged={scroll.onViewableItemsChanged}
                     onScrollToIndexFailed={onScrollToIndexFailed}
                     extraData={extraData}
                     key={listID}
-                    shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScrollToTopThreshold}
-                    initialScrollKey={reportActionID}
+                    shouldEnableAutoScrollToTopThreshold
+                    initialScrollKey={linkedReportActionID}
                     onContentSizeChange={() => {
-                        trackVerticalScrolling(undefined);
+                        scroll.trackVerticalScrolling(undefined);
                     }}
                 />
             </View>
@@ -903,6 +391,4 @@ function ReportActionsList({
     );
 }
 
-export default memo(ReportActionsList);
-
-export type {ReportActionsListProps};
+export default ReportActionsList;

@@ -1,6 +1,7 @@
 import {useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ViewToken} from 'react-native';
 import {InteractionManager} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {isSafari} from '@libs/Browser';
 import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlightItem';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
@@ -27,7 +28,7 @@ const newActionUnsubscribeMap: Record<string, () => void> = {};
 
 type UseReportActionsScrollParams = {
     reportID: string;
-    report: OnyxTypes.Report;
+    report: OnyxEntry<OnyxTypes.Report>;
     sortedVisibleReportActions: OnyxTypes.ReportAction[];
     readActionSkippedRef: React.RefObject<boolean>;
     unreadMarkerReportActionIndex: number;

@@ -10,7 +10,8 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions, shouldDisplayReportTableView, shouldWaitForTransactions as shouldWaitForTransactionsUtil} from '@libs/MoneyRequestReportUtils';
 import {isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ReportActionsView from './report/ReportActionsView';
+import ReportActionsList from './report/ReportActionsList';
+import UserTypingEventListener from './report/UserTypingEventListener';
 
 const defaultReportMetadata = {
     hasOnceLoadedReportActions: false,
@@ -23,11 +24,11 @@ const defaultReportMetadata = {
 };
 
 /**
- * Lightweight orchestrator that decides between skeleton, ReportActionsView,
+ * Lightweight orchestrator that decides between skeleton, ReportActionsList,
  * or MoneyRequestReportActionsList. Only subscribes to what the branching
  * conditions need — heavy data derivation is pushed into each child.
  */
-function ReportActionsList() {
+function ReportActions() {
     const route = useRoute();
     const routeParams = route.params as {reportID?: string} | undefined;
     const reportIDFromRoute = getNonEmptyStringOnyxID(routeParams?.reportID);
@@ -45,7 +46,13 @@ function ReportActionsList() {
     const shouldWaitForTransactions = shouldWaitForTransactionsUtil(report, reportTransactions, reportMetadata, isOffline);
     const shouldDisplayMoneyRequestActionsList = isMoneyRequestOrInvoiceReport && shouldDisplayReportTableView(report, reportTransactions);
 
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+
     if (!report || shouldWaitForTransactions) {
+        return <ReportActionsSkeletonView />;
+    }
+
+    if (isLoadingApp && !isOffline) {
         return <ReportActionsSkeletonView />;
     }
 
@@ -53,7 +60,15 @@ function ReportActionsList() {
         return <MoneyRequestReportActionsList reportID={report.reportID} />;
     }
 
-    return <ReportActionsView reportID={report.reportID} />;
+    return (
+        <>
+            <ReportActionsList
+                key={report.reportID}
+                reportID={report.reportID}
+            />
+            <UserTypingEventListener report={report} />
+        </>
+    );
 }
 
-export default ReportActionsList;
+export default ReportActions;

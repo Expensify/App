@@ -592,7 +592,7 @@ function unsubscribeFromLeavingRoomReportChannel(reportID: string | undefined) {
 let newActionSubscribers: ActionSubscriber[] = [];
 
 /**
- * Enables the Report actions file to let the ReportActionsView know that a new comment has arrived in realtime for the current report
+ * Enables the Report actions file to let ReportActionsList know that a new comment has arrived in realtime for the current report
  * Add subscriber for report id
  * @returns Remove subscriber for report id
  */
@@ -603,7 +603,7 @@ function subscribeToNewActionEvent(reportID: string, callback: SubscriberCallbac
     };
 }
 
-/** Notify the ReportActionsView that a new comment has arrived */
+/** Notify ReportActionsList that a new comment has arrived */
 function notifyNewAction(reportID: string | string[] | undefined, reportAction: ReportAction | undefined, isFromCurrentUser: boolean) {
     if (!reportID) {
         return;
