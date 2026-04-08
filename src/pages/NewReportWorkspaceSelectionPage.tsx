@@ -21,6 +21,7 @@ import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {createNewReport} from '@libs/actions/Report';
+import getCreateReportRoute from '@libs/Navigation/helpers/getCreateReportRoute';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import Navigation from '@libs/Navigation/Navigation';
 import type {NewReportWorkspaceSelectionNavigatorParamList} from '@libs/Navigation/types';
@@ -40,7 +41,6 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import getCreateReportRoute from '@libs/Navigation/helpers/getCreateReportRoute';
 
 type WorkspaceListItem = {
     text: string;
@@ -164,6 +164,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
         onCancel: () => {
             setPendingPolicySelection(null);
         },
+        shouldHandleNavigationBack: false,
     });
 
     // Open the confirmation modal after pendingPolicySelection is committed so the hook has the correct policyName
