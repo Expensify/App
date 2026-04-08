@@ -457,8 +457,6 @@ function SettlementButton({
                 let invoiceDefaultValue = lastPaymentMethod ?? CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
                 if (showPayViaExpensifyOptions && (hasIntentToPay || lastPaymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY)) {
                     invoiceDefaultValue = CONST.IOU.PAYMENT_TYPE.EXPENSIFY;
-                } else if (lastPaymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-                    invoiceDefaultValue = CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
                 }
                 buttonOptions.push({
                     text: translate('iou.settlePersonal', formattedAmount),
