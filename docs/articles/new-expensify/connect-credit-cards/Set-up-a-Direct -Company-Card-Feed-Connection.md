@@ -1,5 +1,5 @@
 ---
-title: How to Set up a Direct Company Card Feed
+title: Set up a Direct Company Card Feed Connection
 description: Learn how to connect company credit cards using a direct bank connection or Plaid to import transactions and assign company card.
 keywords: [New Expensify, set up direct company card feed, connect company cards Expensify, direct feed Expensify, Plaid company cards]
 internalScope: Audience is Workspace Admins. Covers connecting a company card feed using direct feed or Plaid. Does not cover assigning cards, managing cards, or troubleshooting feeds.
