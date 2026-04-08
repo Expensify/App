@@ -2192,81 +2192,34 @@ function updateSplitTransactions({
             pushUpdatedReportPreviewActionToOnyxData();
         }
 
-        onyxData.optimisticData?.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchContext?.currentSearchHash}`,
-            value: {
-                data: {
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`]: null,
-                },
-            },
-        });
-
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-        onyxData.failureData?.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchContext?.currentSearchHash}`,
-            value: {
-                data: {
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`]: originalTransaction,
-                },
-            },
-        });
-
-        if (newSelfDMSplitTransactions.length > 0) {
-            const optimisticSnapshotData: Record<string, OnyxTypes.Transaction> = {};
-            const failureSnapshotData: Record<string, null> = {};
+        // Remove the original transaction from all snapshots that contain it and add the new split transactions.
+        // We scan allSnapshots instead of relying solely on currentSearchHash because the user may navigate
+        // from a non-search route (e.g., Inbox), making currentSearchHash undefined even when valid snapshots exist.
+        const originalTransactionSnapshotKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}` as const;
+        for (const [snapshotKey, snapshot] of Object.entries(allSnapshots ?? {})) {
+            if (!snapshot?.data || !Object.hasOwn(snapshot.data, originalTransactionSnapshotKey)) {
+                continue;
+            }
+            const key = snapshotKey as `${typeof ONYXKEYS.COLLECTION.SNAPSHOT}${string}`;
+            const optimisticSnapshotData: Partial<Record<`${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`, OnyxTypes.Transaction | null>> = {
+                [originalTransactionSnapshotKey]: null,
+            };
+            const failureSnapshotData: Partial<Record<`${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`, OnyxTypes.Transaction | null>> = {
+                [originalTransactionSnapshotKey]: snapshot.data[originalTransactionSnapshotKey] ?? originalTransaction ?? null,
+            };
             for (const tx of newSelfDMSplitTransactions) {
                 optimisticSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${tx.transactionID}`] = tx;
                 failureSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${tx.transactionID}`] = null;
             }
-
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             onyxData.optimisticData?.push({
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchContext?.currentSearchHash}`,
+                key,
                 value: {data: optimisticSnapshotData},
             });
-
             onyxData.failureData?.push({
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchContext?.currentSearchHash}`,
+                key,
                 value: {data: failureSnapshotData},
-            });
-        }
-
-        // Also remove the original transaction from active group search snapshots so it doesn't
-        // linger when the user is viewing the expense from a group search tab.
-        const originalTransactionSnapshotKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}` as const;
-        for (const groupHash of searchContext?.activeGroupSearchHashes ?? []) {
-            if (groupHash < 0) {
-                continue;
-            }
-            const groupSnapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${groupHash}` as const;
-            const previousGroupSnapshotData = allSnapshots?.[groupSnapshotKey]?.data;
-            if (!previousGroupSnapshotData?.[originalTransactionSnapshotKey]) {
-                continue;
-            }
-            const optimisticGroupData: Partial<Record<`${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`, OnyxTypes.Transaction | null>> = {
-                [originalTransactionSnapshotKey]: null,
-            };
-            const failureGroupData: Partial<Record<`${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`, OnyxTypes.Transaction | null>> = {
-                [originalTransactionSnapshotKey]: previousGroupSnapshotData[originalTransactionSnapshotKey] ?? null,
-            };
-            for (const tx of newSelfDMSplitTransactions) {
-                const splitKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${tx.transactionID}` as const;
-                optimisticGroupData[splitKey] = tx;
-                failureGroupData[splitKey] = null;
-            }
-            onyxData.optimisticData?.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: groupSnapshotKey,
-                value: {data: optimisticGroupData},
-            });
-            onyxData.failureData?.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: groupSnapshotKey,
-                value: {data: failureGroupData},
             });
         }
     } else {

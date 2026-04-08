@@ -430,7 +430,10 @@ function getRate({
     const customUnitRateID = getRateID(transaction);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const customMileageRate = (customUnitRateID && mileageRates?.[customUnitRateID]) || defaultMileageRate;
-    const mileageRate = isCustomUnitRateIDForP2P(transaction) ? getRateForP2P(currency, transaction) : customMileageRate;
+    // Fall back to P2P rate when no policy is available and the rate couldn't be resolved from a workspace.
+    // This handles the case where a workspace distance expense is unreported (moved to selfDM) and then split.
+    const shouldUsePtPRate = isCustomUnitRateIDForP2P(transaction) || (!customMileageRate && isEmptyObject(policy) && isEmptyObject(policyDraft));
+    const mileageRate = shouldUsePtPRate ? getRateForP2P(currency, transaction) : customMileageRate;
     const unit = getDistanceUnit(useTransactionDistanceUnit ? transaction : undefined, mileageRate);
     return {
         ...mileageRate,
