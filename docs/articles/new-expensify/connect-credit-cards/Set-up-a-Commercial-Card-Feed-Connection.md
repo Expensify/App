@@ -1,6 +1,6 @@
 ---
 title: Set up a Commercial Card Feed Connection
-description: Learn how to set up a Visa, Mastercar or Amex commercial card feed in Expensify
+description: Learn how to set up a Visa, Mastercard or Amex commercial card feed in Expensify
 keywords: [New Expensify, commercial feed, Mastercard feed, Visa feed, Amex feed, company cards, corporate cards, CDF, VCF, GL1025, control account]
 internalScope: Audience is Workspace Admins. Covers setting up a commercial card feed for Visa, Mastercard, or American Express. Does not cover assigning cards, managing cards, or troubleshooting feeds.
 ---
@@ -71,7 +71,7 @@ Expensify will notify you when the feed is connected.
 
 ---
 
-## How to enable a American Express commercial card feed (GL1025)
+## How to enable an American Express commercial card feed (GL1025)
 
 To set up an Amex Corporate Feed, you’ll need to complete and email their required forms.
 
