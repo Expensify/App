@@ -20,7 +20,7 @@ function ReceiptAudit({notes, shouldShowAuditResult}: ReceiptAuditProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'DotIndicator'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'DotIndicator']);
 
     let auditText = '';
     if (notes.length > 0 && shouldShowAuditResult) {

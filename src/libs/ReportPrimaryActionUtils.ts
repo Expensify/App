@@ -3,7 +3,6 @@ import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BankAccountList, Policy, Report, ReportAction, ReportMetadata, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
-import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
     getSubmitToAccountID,
@@ -12,6 +11,7 @@ import {
     hasIntegrationAutoSync,
     isPaidGroupPolicy,
     isPolicyAdmin as isPolicyAdminPolicyUtils,
+    isPolicyApprover,
     isPreferredExporter,
 } from './PolicyUtils';
 import {
@@ -30,6 +30,7 @@ import {
     getParentReport,
     hasExportError as hasExportErrorUtil,
     hasOnlyHeldExpenses,
+    hasOnlyNonReimbursableTransactions,
     isArchivedReport,
     isClosedReport as isClosedReportUtils,
     isCurrentUserSubmitter,
@@ -78,6 +79,20 @@ type GetReportPrimaryActionParams = {
     isSubmittingAnimationRunning?: boolean;
 };
 
+type IsPrimaryPayActionParams = {
+    report: Report;
+    reportTransactions: Transaction[];
+    currentUserAccountID: number;
+    currentUserLogin: string;
+    bankAccountList: OnyxEntry<BankAccountList>;
+    policy?: Policy;
+    reportNameValuePairs?: ReportNameValuePairs;
+    isChatReportArchived?: boolean;
+    invoiceReceiverPolicy?: Policy;
+    reportActions?: ReportAction[];
+    isSecondaryAction?: boolean;
+};
+
 function isAddExpenseAction(report: Report, reportTransactions: Transaction[], isChatReportArchived: boolean) {
     if (isChatReportArchived) {
         return false;
@@ -108,6 +123,10 @@ function isSubmitAction(
     const isOpenReport = isOpenReportUtils(report);
 
     if (hasPendingDEWSubmit(reportMetadata, hasDynamicExternalWorkflow(policy))) {
+        return false;
+    }
+
+    if (!isPaidGroupPolicy(policy)) {
         return false;
     }
 
@@ -171,18 +190,19 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], curr
     return isProcessingReportUtils(report);
 }
 
-function isPrimaryPayAction(
-    report: Report,
-    currentUserAccountID: number,
-    currentUserLogin: string,
-    bankAccountList: OnyxEntry<BankAccountList>,
-    policy?: Policy,
-    reportNameValuePairs?: ReportNameValuePairs,
-    isChatReportArchived?: boolean,
-    invoiceReceiverPolicy?: Policy,
-    reportActions?: ReportAction[],
-    isSecondaryAction?: boolean,
-) {
+function isPrimaryPayAction({
+    report,
+    reportTransactions,
+    currentUserAccountID,
+    currentUserLogin,
+    bankAccountList,
+    policy,
+    reportNameValuePairs,
+    isChatReportArchived,
+    invoiceReceiverPolicy,
+    reportActions,
+    isSecondaryAction,
+}: IsPrimaryPayActionParams) {
     if (isArchivedReport(reportNameValuePairs) || isChatReportArchived) {
         return false;
     }
@@ -200,9 +220,15 @@ function isPrimaryPayAction(
     const isSubmittedWithoutApprovalsEnabled = !isApprovalEnabled && isProcessingReport;
 
     const isReportFinished = (isReportApproved && !report.isWaitingOnBankAccount) || isSubmittedWithoutApprovalsEnabled || isReportClosed;
-    const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
+    const {reimbursableSpend, nonReimbursableSpend} = getMoneyRequestSpendBreakdown(report);
 
-    if (isReportPayer && isExpenseReport && arePaymentsEnabled && isReportFinished && reimbursableSpend !== 0) {
+    if (
+        isReportPayer &&
+        isExpenseReport &&
+        arePaymentsEnabled &&
+        isReportFinished &&
+        (reimbursableSpend !== 0 || (nonReimbursableSpend !== 0 && hasOnlyNonReimbursableTransactions(report?.reportID, reportTransactions)))
+    ) {
         return isSecondaryAction ?? !didExportFail;
     }
 
@@ -352,7 +378,7 @@ function isMarkAsCashAction(
     }
 
     const isReportSubmitter = isCurrentUserSubmitter(report);
-    const isReportApprover = isApproverUtils(policy, currentUserEmail);
+    const isReportApprover = isPolicyApprover(policy, currentUserEmail);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(
@@ -452,8 +478,18 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
     }
 
     const isPayActionWithAllExpensesHeld =
-        isPrimaryPayAction(report, currentUserAccountID, currentUserLogin, bankAccountList, policy, reportNameValuePairs, isChatReportArchived, invoiceReceiverPolicy, reportActions) &&
-        hasOnlyHeldExpenses(report?.reportID);
+        isPrimaryPayAction({
+            report,
+            reportTransactions,
+            currentUserAccountID,
+            currentUserLogin,
+            bankAccountList,
+            policy,
+            reportNameValuePairs,
+            isChatReportArchived,
+            invoiceReceiverPolicy,
+            reportActions,
+        }) && hasOnlyHeldExpenses(report?.reportID);
     const expensesToHold = getAllExpensesToHoldIfApplicable(report, reportActions, reportTransactions, policy);
 
     if (isMarkAsCashAction(currentUserLogin, currentUserAccountID, report, reportTransactions, violations, policy)) {
@@ -480,7 +516,20 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         return CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
     }
 
-    if (isPrimaryPayAction(report, currentUserAccountID, currentUserLogin, bankAccountList, policy, reportNameValuePairs, isChatReportArchived, invoiceReceiverPolicy, reportActions)) {
+    if (
+        isPrimaryPayAction({
+            report,
+            reportTransactions,
+            currentUserAccountID,
+            currentUserLogin,
+            bankAccountList,
+            policy,
+            reportNameValuePairs,
+            isChatReportArchived,
+            invoiceReceiverPolicy,
+            reportActions,
+        })
+    ) {
         return CONST.REPORT.PRIMARY_ACTIONS.PAY;
     }
 
@@ -509,7 +558,7 @@ function isMarkAsCashActionForTransaction(currentUserLogin: string, parentReport
     }
 
     const isReportSubmitter = isCurrentUserSubmitter(parentReport);
-    const isReportApprover = isApproverUtils(policy, currentUserLogin);
+    const isReportApprover = isPolicyApprover(policy, currentUserLogin);
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
     return isReportSubmitter || isReportApprover || isAdmin;

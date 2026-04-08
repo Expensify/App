@@ -10,13 +10,13 @@ import {getLastActorDisplayName} from '@libs/OptionsListUtils';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionMessageText} from '@libs/ReportActionsUtils';
 import {formatReportLastMessageText, generateReportID, getAllReportErrors, getReasonAndReportActionThatRequiresAttention, getReportPreviewMessage} from '@libs/ReportUtils';
-import SidebarUtils from '@libs/SidebarUtils';
+import SidebarUtils, {_categorizeReportsForLHN, _combineReportCategories, _sortCategorizedReports} from '@libs/SidebarUtils';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OriginalMessageIOU, PersonalDetails, Policy, Report, ReportAction, ReportActions, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
-import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
+import type {ReportAttributes, ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {TransactionViolationsCollectionDataSet} from '@src/types/onyx/TransactionViolation';
 import {actionR14932 as mockIOUAction} from '../../__mocks__/reportData/actions';
@@ -1038,6 +1038,9 @@ describe('SidebarUtils', () => {
                     .then(() => {
                         // Simulate how components call getWelcomeMessage() by using the hook useReportIsArchived() to see if the report is archived
                         const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
+                        const reportAttributes = {
+                            [MOCK_REPORT.reportID]: {reportName: 'Report (archived)'},
+                        } as ReportAttributesDerivedValue['reports'];
                         return SidebarUtils.getWelcomeMessage({
                             report: MOCK_REPORT,
                             policy: undefined,
@@ -1046,6 +1049,7 @@ describe('SidebarUtils', () => {
                             translate: translateLocal,
                             localeCompare,
                             conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                            reportAttributes,
                             isReportArchived: isReportArchived.current,
                         });
                     })
@@ -1232,6 +1236,10 @@ describe('SidebarUtils', () => {
                 },
             };
 
+            const reportAttributes = {
+                [archivedInvoiceRoom.reportID]: {reportName: `${senderPolicy.name} owes ${invoiceReceiverPolicy.name}`},
+            } as ReportAttributesDerivedValue['reports'];
+
             const result = SidebarUtils.getWelcomeMessage({
                 report: archivedInvoiceRoom,
                 policy: senderPolicy,
@@ -1240,6 +1248,7 @@ describe('SidebarUtils', () => {
                 translate: translateLocal,
                 localeCompare,
                 conciergeReportID: MOCK_CONCIERGE_REPORT_ID,
+                reportAttributes,
                 isReportArchived: true,
                 reportDetailsLink: 'https://example.com/report',
             });
@@ -1641,6 +1650,286 @@ describe('SidebarUtils', () => {
             });
 
             expect(result?.alternateText).toBe('changed the foreign currency default tax rate to "Foreign Tax (10%)" (previously "Foreign Tax (15%)")');
+        });
+
+        it('returns the correct alternate text for ADD_CARD_FEED action', async () => {
+            const report: Report = {
+                ...createRandomReport(4, 'policyAdmins'),
+                participants: {'18921695': {notificationPreference: 'always'}},
+            };
+            const lastAction: ReportAction = {
+                ...createRandomReportAction(2),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CARD_FEED,
+                originalMessage: {feedName: 'Visa Commercial'},
+            };
+            const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+            });
+
+            const result = SidebarUtils.getOptionData({
+                report,
+                reportAttributes: undefined,
+                reportNameValuePairs: {},
+                personalDetails: {},
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                parentReportAction: undefined,
+                conciergeReportID: '',
+                oneTransactionThreadReport: undefined,
+                card: undefined,
+                translate: translateLocal,
+                localeCompare,
+                lastAction,
+                lastActionReport: undefined,
+                isReportArchived: undefined,
+                currentUserAccountID: 0,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                reportAttributesDerived: undefined,
+            });
+
+            expect(result?.alternateText).toBe('added card feed "Visa Commercial"');
+        });
+
+        it('returns the correct alternate text for DELETE_CARD_FEED action', async () => {
+            const report: Report = {
+                ...createRandomReport(4, 'policyAdmins'),
+                participants: {'18921695': {notificationPreference: 'always'}},
+            };
+            const lastAction: ReportAction = {
+                ...createRandomReportAction(2),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CARD_FEED,
+                originalMessage: {feedName: 'Amex Corporate'},
+            };
+            const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+            });
+
+            const result = SidebarUtils.getOptionData({
+                report,
+                reportAttributes: undefined,
+                reportNameValuePairs: {},
+                personalDetails: {},
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                parentReportAction: undefined,
+                conciergeReportID: '',
+                oneTransactionThreadReport: undefined,
+                card: undefined,
+                translate: translateLocal,
+                localeCompare,
+                lastAction,
+                lastActionReport: undefined,
+                isReportArchived: undefined,
+                currentUserAccountID: 0,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                reportAttributesDerived: undefined,
+            });
+
+            expect(result?.alternateText).toBe('removed card feed "Amex Corporate"');
+        });
+
+        it('returns the correct alternate text for RENAME_CARD_FEED action', async () => {
+            const report: Report = {
+                ...createRandomReport(4, 'policyAdmins'),
+                participants: {'18921695': {notificationPreference: 'always'}},
+            };
+            const lastAction: ReportAction = {
+                ...createRandomReportAction(2),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.RENAME_CARD_FEED,
+                originalMessage: {oldName: 'Old Feed', newName: 'New Feed'},
+            };
+            const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+            });
+
+            const result = SidebarUtils.getOptionData({
+                report,
+                reportAttributes: undefined,
+                reportNameValuePairs: {},
+                personalDetails: {},
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                parentReportAction: undefined,
+                conciergeReportID: '',
+                oneTransactionThreadReport: undefined,
+                card: undefined,
+                translate: translateLocal,
+                localeCompare,
+                lastAction,
+                lastActionReport: undefined,
+                isReportArchived: undefined,
+                currentUserAccountID: 0,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                reportAttributesDerived: undefined,
+            });
+
+            expect(result?.alternateText).toBe('renamed card feed to "New Feed" (previously "Old Feed")');
+        });
+
+        it('returns the correct alternate text for ASSIGN_COMPANY_CARD action', async () => {
+            const report: Report = {
+                ...createRandomReport(4, 'policyAdmins'),
+                participants: {'18921695': {notificationPreference: 'always'}},
+            };
+            const lastAction: ReportAction = {
+                ...createRandomReportAction(2),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ASSIGN_COMPANY_CARD,
+                originalMessage: {email: 'user@example.com', feedName: 'US Bank', cardLastFour: '1234'},
+            };
+            const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+            });
+
+            const result = SidebarUtils.getOptionData({
+                report,
+                reportAttributes: undefined,
+                reportNameValuePairs: {},
+                personalDetails: {},
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                parentReportAction: undefined,
+                conciergeReportID: '',
+                oneTransactionThreadReport: undefined,
+                card: undefined,
+                translate: translateLocal,
+                localeCompare,
+                lastAction,
+                lastActionReport: undefined,
+                isReportArchived: undefined,
+                currentUserAccountID: 0,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                reportAttributesDerived: undefined,
+            });
+
+            expect(result?.alternateText).toBe('assigned user@example.com "US Bank" company card ending in 1234');
+        });
+
+        it('returns the correct alternate text for UNASSIGN_COMPANY_CARD action', async () => {
+            const report: Report = {
+                ...createRandomReport(4, 'policyAdmins'),
+                participants: {'18921695': {notificationPreference: 'always'}},
+            };
+            const lastAction: ReportAction = {
+                ...createRandomReportAction(2),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UNASSIGN_COMPANY_CARD,
+                originalMessage: {email: 'user@example.com', feedName: 'US Bank', cardLastFour: '5678'},
+            };
+            const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+            });
+
+            const result = SidebarUtils.getOptionData({
+                report,
+                reportAttributes: undefined,
+                reportNameValuePairs: {},
+                personalDetails: {},
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                parentReportAction: undefined,
+                conciergeReportID: '',
+                oneTransactionThreadReport: undefined,
+                card: undefined,
+                translate: translateLocal,
+                localeCompare,
+                lastAction,
+                lastActionReport: undefined,
+                isReportArchived: undefined,
+                currentUserAccountID: 0,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                reportAttributesDerived: undefined,
+            });
+
+            expect(result?.alternateText).toBe('unassigned user@example.com "US Bank" company card ending in 5678');
+        });
+
+        it('returns the correct alternate text for UPDATE_CARD_FEED_LIABILITY action', async () => {
+            const report: Report = {
+                ...createRandomReport(4, 'policyAdmins'),
+                participants: {'18921695': {notificationPreference: 'always'}},
+            };
+            const lastAction: ReportAction = {
+                ...createRandomReportAction(2),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_LIABILITY,
+                originalMessage: {feedName: 'Visa Commercial', liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.ALLOW},
+            };
+            const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+            });
+
+            const result = SidebarUtils.getOptionData({
+                report,
+                reportAttributes: undefined,
+                reportNameValuePairs: {},
+                personalDetails: {},
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                parentReportAction: undefined,
+                conciergeReportID: '',
+                oneTransactionThreadReport: undefined,
+                card: undefined,
+                translate: translateLocal,
+                localeCompare,
+                lastAction,
+                lastActionReport: undefined,
+                isReportArchived: undefined,
+                currentUserAccountID: 0,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                reportAttributesDerived: undefined,
+            });
+
+            expect(result?.alternateText).toBe('enabled cardholders to delete card transactions for card feed "Visa Commercial"');
+        });
+
+        it('returns the correct alternate text for UPDATE_CARD_FEED_STATEMENT_PERIOD action', async () => {
+            const report: Report = {
+                ...createRandomReport(4, 'policyAdmins'),
+                participants: {'18921695': {notificationPreference: 'always'}},
+            };
+            const lastAction: ReportAction = {
+                ...createRandomReportAction(2),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_STATEMENT_PERIOD,
+                originalMessage: {feedName: 'Visa Commercial', statementPeriodEndDay: '15', previousStatementPeriodEndDay: '20'},
+            };
+            const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
+            });
+
+            const result = SidebarUtils.getOptionData({
+                report,
+                reportAttributes: undefined,
+                reportNameValuePairs: {},
+                personalDetails: {},
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                parentReportAction: undefined,
+                conciergeReportID: '',
+                oneTransactionThreadReport: undefined,
+                card: undefined,
+                translate: translateLocal,
+                localeCompare,
+                lastAction,
+                lastActionReport: undefined,
+                isReportArchived: undefined,
+                currentUserAccountID: 0,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                reportAttributesDerived: undefined,
+            });
+
+            expect(result?.alternateText).toBe('changed card feed "Visa Commercial" statement period end day to "15" (previously "20")');
         });
 
         it('returns @Hidden as an alternate text if the last action mentioned account has no name', async () => {
@@ -2641,7 +2930,7 @@ describe('SidebarUtils', () => {
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
-                const reportPreviewMessage = getReportPreviewMessage(iouReport, iouAction, true, true, null, true, lastReportPreviewAction);
+                const reportPreviewMessage = getReportPreviewMessage(iouReport, undefined, iouAction, true, true, null, true, lastReportPreviewAction);
                 expect(result?.alternateText).toBe(`${getLastActorDisplayName({accountID: managerID}, managerID)}: ${reportPreviewMessage}`);
             });
 
@@ -2743,7 +3032,7 @@ describe('SidebarUtils', () => {
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
-                const reportPreviewMessage = getReportPreviewMessage(iouReport, iouAction, true, true, null, true, lastReportPreviewAction);
+                const reportPreviewMessage = getReportPreviewMessage(iouReport, undefined, iouAction, true, true, null, true, lastReportPreviewAction);
                 expect(result?.alternateText).toBe(reportPreviewMessage);
             });
         });
@@ -2856,7 +3145,7 @@ describe('SidebarUtils', () => {
                 };
 
                 // When the reports are categorized
-                const result = SidebarUtils.categorizeReportsForLHN(reports, reportsDrafts, '', reportNameValuePairs);
+                const result = _categorizeReportsForLHN(reports, reportsDrafts, undefined, reportNameValuePairs);
 
                 // Then the reports are categorized into the correct groups
                 expect(result.pinnedAndGBRReports).toHaveLength(1);
@@ -2883,7 +3172,7 @@ describe('SidebarUtils', () => {
                 ]);
 
                 // When the reports are categorized
-                const result = SidebarUtils.categorizeReportsForLHN(reports, undefined, '', undefined);
+                const result = _categorizeReportsForLHN(reports, undefined, undefined, undefined);
 
                 // Then the reports are categorized into the correct groups
                 expect(result.pinnedAndGBRReports).toHaveLength(1);
@@ -2910,7 +3199,7 @@ describe('SidebarUtils', () => {
                 };
 
                 // When the reports are categorized
-                const result = SidebarUtils.categorizeReportsForLHN(reports, {}, '');
+                const result = _categorizeReportsForLHN(reports, {}, undefined);
 
                 // Then the reports are categorized into the correct groups
                 expect(result.pinnedAndGBRReports).toHaveLength(0);
@@ -2924,7 +3213,7 @@ describe('SidebarUtils', () => {
 
             it('should handle empty reports object', () => {
                 // Given the reports are empty
-                const result = SidebarUtils.categorizeReportsForLHN({}, {}, '');
+                const result = _categorizeReportsForLHN({}, {}, undefined);
 
                 // Then the reports are categorized into the correct groups
                 expect(result.pinnedAndGBRReports).toHaveLength(0);
@@ -2964,7 +3253,7 @@ describe('SidebarUtils', () => {
                 };
 
                 // When the reports are sorted
-                const result = SidebarUtils.sortCategorizedReports(categories, true, mockLocaleCompare);
+                const result = _sortCategorizedReports(categories, true, mockLocaleCompare);
 
                 // Then the pinned reports are sorted by display name
                 expect(result.pinnedAndGBRReports.at(0)?.displayName).toBe('Alpha');
@@ -3013,7 +3302,7 @@ describe('SidebarUtils', () => {
                 };
 
                 // When the reports are sorted
-                const result = SidebarUtils.sortCategorizedReports(categories, false, mockLocaleCompare);
+                const result = _sortCategorizedReports(categories, false, mockLocaleCompare);
 
                 // Then the pinned reports are sorted by display name in focus mode
                 expect(result.pinnedAndGBRReports.at(0)?.displayName).toBe('Alpha');
@@ -3050,7 +3339,7 @@ describe('SidebarUtils', () => {
                 };
 
                 // When the reports are sorted
-                const result = SidebarUtils.sortCategorizedReports(categories, true, mockLocaleCompare);
+                const result = _sortCategorizedReports(categories, true, mockLocaleCompare);
 
                 // Then the pinned reports are sorted by display name
                 expect(result.pinnedAndGBRReports).toHaveLength(2);
@@ -3070,7 +3359,7 @@ describe('SidebarUtils', () => {
                 };
 
                 // When the reports are sorted
-                const result = SidebarUtils.sortCategorizedReports(categories, true, mockLocaleCompare);
+                const result = _sortCategorizedReports(categories, true, mockLocaleCompare);
 
                 // Then the non-archived reports are sorted by display name
                 expect(result.nonArchivedReports.at(0)?.displayName).toBe('Alpha');
@@ -3103,7 +3392,7 @@ describe('SidebarUtils', () => {
                 ];
 
                 // When the reports are combined
-                const result = SidebarUtils.combineReportCategories(pinnedAndGBRReports, errorReports, draftReports, nonArchivedReports, archivedReports);
+                const result = _combineReportCategories(pinnedAndGBRReports, errorReports, draftReports, nonArchivedReports, archivedReports);
 
                 // Then the reports are combined in the correct order
                 expect(result).toEqual(['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']);
@@ -3121,7 +3410,7 @@ describe('SidebarUtils', () => {
                 const archivedReports: Array<{reportID?: string; displayName: string; lastVisibleActionCreated?: string}> = [];
 
                 // When the reports are combined
-                const result = SidebarUtils.combineReportCategories(pinnedAndGBRReports, errorReports, draftReports, nonArchivedReports, archivedReports);
+                const result = _combineReportCategories(pinnedAndGBRReports, errorReports, draftReports, nonArchivedReports, archivedReports);
 
                 // Then the reports are combined in the correct order
                 expect(result).toEqual(['1', '2']);
@@ -3129,7 +3418,7 @@ describe('SidebarUtils', () => {
 
             it('should handle empty categories', () => {
                 // Given the reports are empty
-                const result = SidebarUtils.combineReportCategories([], [], [], [], []);
+                const result = _combineReportCategories([], [], [], [], []);
 
                 // Then the reports are combined in the correct order
                 expect(result).toEqual([]);
@@ -3161,7 +3450,7 @@ describe('SidebarUtils', () => {
                 const priorityMode = CONST.PRIORITY_MODE.DEFAULT;
 
                 // When the reports are sorted
-                const result = SidebarUtils.sortReportsToDisplayInLHN(reports, priorityMode, mockLocaleCompare, undefined, undefined, '');
+                const result = SidebarUtils.sortReportsToDisplayInLHN(reports, priorityMode, mockLocaleCompare, undefined, undefined, undefined);
 
                 // Then the reports are sorted in the correct order
                 expect(result).toEqual(['0', '1', '2']); // Pinned first, Error second, Normal third
@@ -3187,10 +3476,10 @@ describe('SidebarUtils', () => {
                 const mockLocaleCompare = (a: string, b: string) => a.localeCompare(b);
 
                 // When the reports are sorted in default mode
-                const defaultResult = SidebarUtils.sortReportsToDisplayInLHN(reports, CONST.PRIORITY_MODE.DEFAULT, mockLocaleCompare, undefined, undefined, '');
+                const defaultResult = SidebarUtils.sortReportsToDisplayInLHN(reports, CONST.PRIORITY_MODE.DEFAULT, mockLocaleCompare, undefined, undefined, undefined);
 
                 // When the reports are sorted in GSD mode
-                const gsdResult = SidebarUtils.sortReportsToDisplayInLHN(reports, CONST.PRIORITY_MODE.GSD, mockLocaleCompare, undefined, undefined, '');
+                const gsdResult = SidebarUtils.sortReportsToDisplayInLHN(reports, CONST.PRIORITY_MODE.GSD, mockLocaleCompare, undefined, undefined, undefined);
 
                 // Then the reports are sorted in the correct order
                 expect(defaultResult).toEqual(['1', '0']); // Most recent first (index 1 has later date)

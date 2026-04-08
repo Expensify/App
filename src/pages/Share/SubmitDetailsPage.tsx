@@ -19,7 +19,8 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {GpsPoint} from '@libs/actions/IOU';
-import {getIOURequestPolicyID, getMoneyRequestParticipantsFromReport, initMoneyRequest, requestMoney, trackExpense, updateLastLocationPermissionPrompt} from '@libs/actions/IOU';
+import {getIOURequestPolicyID, getMoneyRequestParticipantsFromReport, initMoneyRequest, updateLastLocationPermissionPrompt} from '@libs/actions/IOU';
+import {requestMoney, trackExpense} from '@libs/actions/IOU/TrackExpense';
 import DateUtils from '@libs/DateUtils';
 import {getFileName, readFileAsync} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
@@ -58,6 +59,7 @@ function SubmitDetailsPage({
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getIOURequestPolicyID(transaction, report)}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getIOURequestPolicyID(transaction, report)}`);
     const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const reportAttributesDerived = useReportAttributes();
     const privateIsArchivedMap = usePrivateIsArchivedMap();
@@ -123,7 +125,7 @@ function SubmitDetailsPage({
         const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
         return participant?.accountID
             ? getParticipantsOption(participant, personalDetails)
-            : getReportOption(participant, privateIsArchived, policy, currentUserPersonalDetails.accountID, personalDetails, reportAttributesDerived);
+            : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived);
     });
     const trimmedComment = transaction?.comment?.comment?.trim() ?? '';
     const transactionAmount = transaction?.amount ?? 0;
@@ -295,9 +297,6 @@ function SubmitDetailsPage({
                     <MoneyRequestConfirmationList
                         transaction={transaction}
                         selectedParticipants={participants}
-                        iouAmount={0}
-                        iouComment={trimmedComment}
-                        iouCategory={transaction?.category}
                         onConfirm={() => onConfirm(true)}
                         receiptPath={fileUri}
                         receiptFilename={getFileName(fileName)}

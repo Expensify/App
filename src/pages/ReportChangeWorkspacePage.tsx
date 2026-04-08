@@ -7,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import type {WorkspaceListItemType} from '@components/SelectionList/ListItem/types';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
+import useAllPolicyExpenseChatReportActions from '@hooks/useAllPolicyExpenseChatReportActions';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -72,8 +73,9 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
-    const [ownerBillingGraceEndPeriod] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [userBillingGracePeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const {filteredReportActions} = useAllPolicyExpenseChatReportActions();
 
     const selectPolicy = useCallback(
         (policyID?: string) => {
@@ -81,14 +83,14 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
             if (!policyID || !policy) {
                 return;
             }
-            if (shouldRestrictUserBillableActions(policy.id, userBillingGracePeriods, undefined, ownerBillingGraceEndPeriod)) {
+            if (shouldRestrictUserBillableActions(policy.id, ownerBillingGracePeriodEnd, userBillingGracePeriods)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                 return;
             }
             const {backTo} = route.params;
             Navigation.goBack(backTo);
             if (isIOUReport(reportID)) {
-                const invite = moveIOUReportToPolicyAndInviteSubmitter(report, policy, formatPhoneNumber, reportTransactions);
+                const invite = moveIOUReportToPolicyAndInviteSubmitter(report, policy, formatPhoneNumber, filteredReportActions, reportTransactions);
                 if (!invite?.policyExpenseChatReportID) {
                     moveIOUReportToPolicy(report, policy, false, reportTransactions);
                 }
@@ -127,13 +129,14 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
         [
             policies,
             userBillingGracePeriods,
-            ownerBillingGraceEndPeriod,
+            ownerBillingGracePeriodEnd,
             route.params,
             reportID,
             report,
             parentReport,
             formatPhoneNumber,
             reportTransactions,
+            filteredReportActions,
             isReportLastVisibleArchived,
             session?.accountID,
             session?.email,

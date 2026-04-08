@@ -3,13 +3,13 @@ import AddressStep from '@components/SubStepForms/AddressStep';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-type AddressProps = SubStepProps;
+type AddressProps = SubPageProps;
 
 const {COMPANY_STREET, COMPANY_POSTAL_CODE, COMPANY_STATE, COMPANY_CITY, COMPANY_COUNTRY_CODE} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
 

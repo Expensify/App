@@ -93,11 +93,11 @@ describe('ClearReportActionErrors UI', () => {
                         <PortalProvider>
                             <PureReportActionItem
                                 personalPolicyID={undefined}
+                                currentUserEmail={undefined}
                                 report={report}
                                 parentReportAction={undefined}
                                 action={action}
                                 displayAsGroup={false}
-                                isMostRecentIOUReportAction={false}
                                 shouldDisplayNewMarker={false}
                                 index={0}
                                 isFirstVisibleReportAction={false}
@@ -105,8 +105,9 @@ describe('ClearReportActionErrors UI', () => {
                                 linkedReport={undefined}
                                 iouReportOfLinkedReport={undefined}
                                 currentUserAccountID={ACTOR_ACCOUNT_ID}
+                                betas={undefined}
                                 draftTransactionIDs={[]}
-                                userBillingGraceEndPeriods={undefined}
+                                userBillingGracePeriodEnds={undefined}
                                 clearAllRelatedReportActionErrors={clearErrorFn}
                                 originalReportID={originalReportID}
                             />

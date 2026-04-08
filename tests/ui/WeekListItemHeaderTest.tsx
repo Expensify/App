@@ -25,6 +25,7 @@ const mockSearchStateContext = {
     currentSearchKey: undefined,
     currentSearchQueryJSON: undefined,
     currentSearchResults: undefined,
+    currentSelectedTransactionReportID: undefined,
     selectedReports: [],
     selectedTransactionIDs: [],
     selectedTransactions: {},
@@ -34,7 +35,7 @@ const mockSearchStateContext = {
     lastSearchType: undefined,
     areAllMatchingItemsSelected: false,
     shouldShowSelectAllMatchingItems: false,
-    shouldShowFiltersBarLoading: false,
+    shouldShowActionsBarLoading: false,
     shouldUseLiveData: false,
     currentSimilarSearchHash: -1,
     suggestedSearches: {} as SearchStateContextValue['suggestedSearches'],
@@ -42,10 +43,11 @@ const mockSearchStateContext = {
 
 const mockSearchActionsContext = {
     setLastSearchType: jest.fn(),
+    setCurrentSelectedTransactionReportID: jest.fn(),
     setSelectedTransactions: jest.fn(),
     removeTransaction: jest.fn(),
     clearSelectedTransactions: jest.fn(),
-    setShouldShowFiltersBarLoading: jest.fn(),
+    setShouldShowActionsBarLoading: jest.fn(),
     setShouldShowSelectAllMatchingItems: jest.fn(),
     selectAllMatchingItems: jest.fn(),
     setShouldResetSearchQuery: jest.fn(),
@@ -120,6 +122,7 @@ describe('WeekListItemHeader', () => {
             isSmallScreen: true,
             isInNarrowPaneModal: false,
             onboardingIsMediumOrLargerScreenWidth: false,
+            isInLandscapeMode: false,
         });
     });
 
@@ -252,6 +255,7 @@ describe('WeekListItemHeader', () => {
                 isSmallScreen: false,
                 isInNarrowPaneModal: false,
                 onboardingIsMediumOrLargerScreenWidth: true,
+                isInLandscapeMode: false,
             });
         });
 

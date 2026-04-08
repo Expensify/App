@@ -22,6 +22,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDisplayNameOrDefault, getPhoneNumber} from '@libs/PersonalDetailsUtils';
@@ -44,7 +45,7 @@ import {callFunctionIfActionIsAllowed, isAnonymousUser as isAnonymousUserSession
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalDetails, Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -81,8 +82,6 @@ function ProfilePage({route}: ProfilePageProps) {
     const guideCalendarLink = account?.guideDetails?.calendarLink ?? '';
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bug', 'Pencil', 'Phone']);
     const accountID = Number(route.params?.accountID ?? CONST.DEFAULT_NUMBER_ID);
-    const loginParams = route.params?.login;
-
     const isCurrentUser = currentUserAccountID === accountID;
     const reportID = isCurrentUser ? findSelfDMReportID() : getChatByParticipants(currentUserAccountID ? [accountID, currentUserAccountID] : [], reports)?.reportID;
     const reportKey = isAnonymousUserSession() || !reportID ? (`${ONYXKEYS.COLLECTION.REPORT}0` as const) : (`${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const);
@@ -93,6 +92,7 @@ function ProfilePage({route}: ProfilePageProps) {
     const {translate, formatPhoneNumber} = useLocalize();
 
     const isValidAccountID = isValidAccountRoute(accountID);
+    const loginParams = route.params?.login;
 
     let details: OnyxEntry<PersonalDetails>;
     // Check if we have the personal details already in Onyx
@@ -167,9 +167,7 @@ function ProfilePage({route}: ProfilePageProps) {
 
     // If it's a self DM, we only want to show the Message button if the self DM report exists because we don't want to optimistically create a report for self DM
     if ((!isCurrentUser || report) && !isAnonymousUserSession()) {
-        promotedActions.push(
-            PromotedActions.message({reportID: report?.reportID, personalDetails, accountID, login: loginParams, currentUserAccountID, introSelected, isSelfTourViewed, betas}),
-        );
+        promotedActions.push(PromotedActions.message({reportID: report?.reportID, accountID, login: loginParams, currentUserAccountID, introSelected, isSelfTourViewed, betas}));
     }
 
     return (
@@ -263,7 +261,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                 shouldShowRightIcon
                                 title={notificationPreference}
                                 description={translate('notificationPreferencesPage.label')}
-                                onPress={() => Navigation.navigate(ROUTES.REPORT_SETTINGS_NOTIFICATION_PREFERENCES.getRoute(report.reportID, navigateBackTo))}
+                                onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NOTIFICATION_PREFERENCES.path))}
                             />
                         )}
                         {!isEmptyObject(report) && !!report.reportID && !isCurrentUser && (
