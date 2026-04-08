@@ -12,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearInviteDraft, setWorkspaceInviteMembersDraft} from '@libs/actions/Policy/Member';
 import {searchInServer} from '@libs/actions/Report';
 import {setApprovalWorkflowMembers} from '@libs/actions/Workflow';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -24,7 +25,7 @@ import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPol
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Member} from '@src/types/onyx/ApprovalWorkflow';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -51,7 +52,6 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     }, [policy?.employeeList]);
 
     const {
-        searchTerm: searchSelectorTerm,
         setSearchTerm: setSearchSelectorTerm,
         debouncedSearchTerm,
         availableOptions,
@@ -66,12 +66,12 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     });
 
     useEffect(() => {
-        searchInServer(searchSelectorTerm);
-    }, [searchSelectorTerm]);
+        searchInServer(debouncedSearchTerm);
+    }, [debouncedSearchTerm]);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !isPolicyAdmin(policy) || isPendingDeletePolicy(policy);
-    const isInitialCreationFlow = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && !route.params.backTo;
+    const isInitialCreationFlow = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && approvalWorkflow?.isInitialFlow;
     const shouldShowListEmptyContent = !isLoadingApprovalWorkflow && approvalWorkflow && approvalWorkflow.availableMembers.length === 0;
     const firstApprover = approvalWorkflow?.originalApprovers?.[0]?.email ?? '';
 
@@ -287,10 +287,10 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
 
             setWorkspaceInviteMembersDraft(route.params.policyID, invitedEmailsToAccountIDs);
 
-            const backToRoute = isInitialCreationFlow
-                ? ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(route.params.policyID)
-                : ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(route.params.policyID, route.params.backTo);
-            Navigation.navigate(ROUTES.WORKSPACE_INVITE_MESSAGE.getRoute(route.params.policyID, backToRoute));
+            // The dynamic invite-message route is appended to the current expenses-from URL,
+            // so the back navigation parent (with any nested backTo query param) is preserved
+            // automatically without needing to construct a backToRoute manually.
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_INVITE_MESSAGE.path));
             return;
         }
 
@@ -322,6 +322,33 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
 
     const toggleMember = useCallback(
         (members: SelectionListApprover[]) => {
+            // Persist non-policy members to the invite draft AND to approvalWorkflow.members
+            // so they survive re-renders triggered by Onyx updates (e.g. personalDetails
+            // changes from search results). The effect that syncs selectedMembers from
+            // approvalWorkflow.members filters non-policy members unless they're in the
+            // invite draft, so both stores must stay in sync to avoid dropping the locally
+            // selected new member.
+            const nextDraft: Record<string, number> = {};
+            const workflowMembers: Member[] = [];
+            for (const member of members) {
+                if (!member.login) {
+                    continue;
+                }
+                const iconSource = member.icons?.at(0)?.source;
+                workflowMembers.push({
+                    displayName: member.text ?? member.login,
+                    email: member.login,
+                    avatar: typeof iconSource === 'string' ? iconSource : undefined,
+                });
+                if (policy?.employeeList?.[member.login]) {
+                    continue;
+                }
+                const iconId = member.icons?.at(0)?.id;
+                nextDraft[member.login] = typeof iconId === 'number' ? iconId : (invitedEmailsToAccountIDsDraft?.[member.login] ?? CONST.DEFAULT_NUMBER_ID);
+            }
+            setWorkspaceInviteMembersDraft(route.params.policyID, nextDraft);
+            setApprovalWorkflowMembers(workflowMembers);
+
             setSelectedMembers((prevSelected) => {
                 // When editing an existing workflow, recently invited members must remain in the list
                 // even if the policy employee list hasn't synced yet (Test 6).
@@ -335,7 +362,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                 return [...members, ...membersToKeep];
             });
         },
-        [approvalWorkflow?.action, policy?.employeeList, invitedEmailsToAccountIDsDraft],
+        [approvalWorkflow?.action, policy?.employeeList, invitedEmailsToAccountIDsDraft, route.params.policyID],
     );
 
     // Clean up invite draft when leaving the expenses-from page to prevent

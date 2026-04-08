@@ -29,6 +29,7 @@ import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getDefaultApprover, getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy, isControlPolicy} from '@libs/PolicyUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
+import {getSearchParamFromPath} from '@libs/Url';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -193,9 +194,7 @@ function WorkspaceInviteMessageComponent({
         }
 
         if (isWorkflowApprovalExpensesFromRoute) {
-            const backToStr = backTo?.toString() ?? '';
-            const nestedBackToMatch = backToStr.match(/[?&]backTo=([^&]+)/);
-            const nestedBackTo = nestedBackToMatch ? decodeURIComponent(nestedBackToMatch[1]) : undefined;
+            const nestedBackTo = getSearchParamFromPath(backTo?.toString() ?? '', 'backTo');
             if (nestedBackTo) {
                 Navigation.goBack(nestedBackTo as Routes);
             } else {
