@@ -24,7 +24,7 @@ import useMobileReceiptScan from '@pages/iou/request/step/IOURequestStepScan/hoo
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import variables from '@styles/variables';
-import {setMoneyRequestReceipt} from '@userActions/IOU';
+import {setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
 import {buildOptimisticTransactionAndCreateDraft} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';

@@ -6,6 +6,7 @@ import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
@@ -19,31 +20,28 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
 import {updateSageIntacctDefaultVendor} from '@userActions/connections/SageIntacct';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Connections} from '@src/types/onyx/Policy';
 
-function SageIntacctDefaultVendorPage() {
+function DynamicSageIntacctDefaultVendorPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_DEFAULT_VENDOR>>();
+    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_DEFAULT_VENDOR>>();
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     const {config} = policy?.connections?.intacct ?? {};
     const {export: exportConfig} = policy?.connections?.intacct?.config ?? {};
-    const backTo = route.params.backTo;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_DEFAULT_VENDOR.path);
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
-    const isReimbursable = route.params.reimbursable === CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE;
+    const reimbursableMode =
+        route.params.reimbursable ?? (backPath.includes('/reimbursable') ? CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE : CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE.toLowerCase());
+    const isReimbursable = reimbursableMode === CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE;
     const goBack = useCallback(() => {
-        Navigation.goBack(
-            backTo ??
-                (isReimbursable
-                    ? ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_REIMBURSABLE_EXPENSES.getRoute(policyID)
-                    : ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES.getRoute(policyID)),
-        );
-    }, [backTo, policyID, isReimbursable]);
+        Navigation.goBack(backPath);
+    }, [backPath]);
 
     let defaultVendor;
     let settingName: keyof Connections['intacct']['config']['export'];
@@ -118,4 +116,4 @@ function SageIntacctDefaultVendorPage() {
     );
 }
 
-export default SageIntacctDefaultVendorPage;
+export default DynamicSageIntacctDefaultVendorPage;
