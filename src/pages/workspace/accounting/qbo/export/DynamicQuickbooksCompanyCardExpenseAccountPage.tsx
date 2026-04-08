@@ -20,7 +20,7 @@ import {clearQBOErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnectionsProps) {
+function DynamicQuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
@@ -49,7 +49,7 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
     return (
         <ConnectionLayout
             policyID={policyID}
-            displayName="QuickbooksCompanyCardExpenseAccountPage"
+            displayName="DynamicQuickbooksCompanyCardExpenseAccountPage"
             headerTitle="workspace.accounting.exportCompanyCard"
             title="workspace.qbo.exportCompanyCardsDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
@@ -127,4 +127,4 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
     );
 }
 
-export default withPolicyConnections(QuickbooksCompanyCardExpenseAccountPage);
+export default withPolicyConnections(DynamicQuickbooksCompanyCardExpenseAccountPage);

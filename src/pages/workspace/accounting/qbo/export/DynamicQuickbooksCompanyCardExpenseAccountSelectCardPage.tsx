@@ -24,7 +24,7 @@ type MenuItem = ListItem & {
     defaultVendor: string;
 };
 
-function QuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: WithPolicyConnectionsProps) {
+function DynamicQuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
@@ -96,7 +96,7 @@ function QuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: WithPolicyC
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName="QuickbooksCompanyCardExpenseAccountSelectCardPage"
+            displayName="DynamicQuickbooksCompanyCardExpenseAccountSelectCardPage"
             title="workspace.accounting.exportAs"
             data={data}
             listItem={RadioListItem}
@@ -116,4 +116,4 @@ function QuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: WithPolicyC
     );
 }
 
-export default withPolicyConnections(QuickbooksCompanyCardExpenseAccountSelectCardPage);
+export default withPolicyConnections(DynamicQuickbooksCompanyCardExpenseAccountSelectCardPage);

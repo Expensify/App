@@ -24,7 +24,7 @@ type CardListItem = ListItem & {
     value: Account;
 };
 
-function QuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyConnectionsProps) {
+function DynamicQuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
@@ -77,7 +77,7 @@ function QuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyConnection
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName="QuickbooksExportInvoiceAccountSelectPage"
+            displayName="DynamicQuickbooksExportInvoiceAccountSelectPage"
             data={data}
             listItem={RadioListItem}
             headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportInvoicesDescription')}</Text>}
@@ -96,4 +96,4 @@ function QuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyConnection
     );
 }
 
-export default withPolicyConnections(QuickbooksExportInvoiceAccountSelectPage);
+export default withPolicyConnections(DynamicQuickbooksExportInvoiceAccountSelectPage);
