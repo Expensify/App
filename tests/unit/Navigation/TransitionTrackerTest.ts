@@ -78,9 +78,22 @@ describe('TransitionTracker', () => {
             TransitionTracker.runAfterTransitions({callback, waitForUpcomingTransition: true});
             expect(callback).not.toHaveBeenCalled();
             TransitionTracker.startTransition();
+            // Two ticks: one for promiseForNextTransitionStart, one for Promise.race wrapper
+            await Promise.resolve();
             await Promise.resolve();
             expect(callback).not.toHaveBeenCalled();
             TransitionTracker.endTransition();
+            expect(callback).toHaveBeenCalledTimes(1);
+            drainTransitions();
+        });
+
+        it('waitForUpcomingTransition fires callback after timeout if transitionStart never arrives', async () => {
+            const callback = jest.fn();
+            TransitionTracker.runAfterTransitions({callback, waitForUpcomingTransition: true});
+            expect(callback).not.toHaveBeenCalled();
+            jest.advanceTimersByTime(CONST.MAX_TRANSITION_START_WAIT_MS);
+            await Promise.resolve();
+            await Promise.resolve();
             expect(callback).toHaveBeenCalledTimes(1);
             drainTransitions();
         });
