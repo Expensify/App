@@ -64,7 +64,7 @@ function AddPersonalNewCardPage() {
             CurrentStep = <PlaidConnectionStep onExit={() => setIsModalVisible(true)} />;
             break;
         default:
-            CurrentStep = <SelectCountryStep />;
+            CurrentStep = <SelectCountryStep disableAutoFocus={isModalVisible} />;
             break;
     }
 
