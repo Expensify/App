@@ -25,7 +25,6 @@ import {endSpan} from '@libs/telemetry/activeSpans';
 import {getRequestType, hasRoute, isCorporateCardTransaction, isDistanceRequest, isPerDiemRequest, isTimeRequest as isTimeRequestUtil} from '@libs/TransactionUtils';
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
 import {
-    navigateToStartStepIfScanFileCannotBeRead,
     resetDraftTransactionsCustomUnit,
     setCustomUnitRateID,
     setMoneyRequestCategory,
@@ -33,6 +32,7 @@ import {
     setMoneyRequestParticipantsFromReport,
     setMoneyRequestTag,
 } from '@userActions/IOU';
+import {navigateToStartStepIfScanFileCannotBeRead} from '@userActions/IOU/Receipt';
 import {setSplitShares} from '@userActions/IOU/Split';
 import {createDraftWorkspace, newGenerateDefaultWorkspaceName} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
