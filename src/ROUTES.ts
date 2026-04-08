@@ -2323,6 +2323,23 @@ const ROUTES = {
             return `workspaces/${policyID}/more-features` as const;
         },
     },
+    WORKSPACE_HR: {
+        route: 'workspaces/:policyID/hr',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_HR route');
+            }
+            return `workspaces/${policyID}/hr` as const;
+        },
+    },
+    WORKSPACE_HR_GUSTO_APPROVAL_MODE: {
+        route: 'workspaces/:policyID/hr/gusto/approval-mode',
+        getRoute: (policyID: string | undefined) => `workspaces/${policyID}/hr/gusto/approval-mode` as const,
+    },
+    WORKSPACE_HR_GUSTO_FINAL_APPROVER: {
+        route: 'workspaces/:policyID/hr/gusto/final-approver',
+        getRoute: (policyID: string | undefined) => `workspaces/${policyID}/hr/gusto/final-approver` as const,
+    },
     WORKSPACE_TAGS: {
         route: 'workspaces/:policyID/tags',
         getRoute: (policyID: string | undefined) => {

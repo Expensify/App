@@ -35,7 +35,9 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import {
     canPolicyAccessFeature,
     shouldShowPolicy as checkIfShouldShowPolicy,
+    isGustoConnected,
     goBackFromInvalidPolicy,
+    hasAccountingConnections,
     hasPolicyCategoriesError,
     isPaidGroupPolicy,
     isPendingDeletePolicy,
@@ -135,7 +137,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const shouldShowProtectedItems = isPolicyAdmin(policy, login);
     const shouldDisplayLHB = !shouldUseNarrowLayout;
 
-    const hasSyncError = shouldShowSyncError(policy, isConnectionInProgress(connectionSyncProgress, policy));
+    const accountingConnectionNames = [...CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES];
+    const hasSyncError = shouldShowSyncError(policy, isConnectionInProgress(connectionSyncProgress, policy), accountingConnectionNames);
     const hasMembersError = shouldShowEmployeeListError(policy);
     const hasPolicyCategoryError = hasPolicyCategoriesError(policyCategories);
     const hasGeneralSettingsError =
@@ -161,7 +164,9 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         [CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED]: policy?.areTagsEnabled,
         [CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED]: policy?.tax?.trackingEnabled,
         [CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED]: policy?.areCompanyCardsEnabled,
-        [CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED]: !!policy?.areConnectionsEnabled || !isEmptyObject(policy?.connections),
+        [CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED]: !!policy?.areConnectionsEnabled || hasAccountingConnections(policy),
+        [CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED]:
+            ((policy?.isHREnabled && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED)) ?? false) || isGustoConnected(policy),
         [CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED]: policy?.areExpensifyCardsEnabled,
         [CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED]: policy?.areReportFieldsEnabled,
         [CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED]: policy?.areRulesEnabled,
@@ -244,6 +249,17 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                 screenName: SCREENS.WORKSPACE.ACCOUNTING.ROOT,
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.ACCOUNTING,
                 highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED,
+            });
+        }
+
+        if (policyFeatureStates?.[CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED]) {
+            workspaceMenuItems.push({
+                translationKey: 'workspace.common.hr',
+                icon: expensifyIcons.Users,
+                action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(policyID)))),
+                screenName: SCREENS.WORKSPACE.HR,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.INITIAL.HR,
+                highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED,
             });
         }
 

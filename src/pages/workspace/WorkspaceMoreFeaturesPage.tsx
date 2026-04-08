@@ -12,7 +12,7 @@ import useCardFeeds from '@hooks/useCardFeeds';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useIsPolicyConnectedToUberReceiptPartner from '@hooks/useIsPolicyConnectedToUberReceiptPartner';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -28,7 +28,7 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {canPolicyAccessFeature, getDistanceRateCustomUnit, getPerDiemCustomUnit, hasAccountingConnections, isControlPolicy, isTimeTrackingEnabled} from '@libs/PolicyUtils';
+import {canPolicyAccessFeature, getDistanceRateCustomUnit, getPerDiemCustomUnit, hasAccountingConnections, isControlPolicy, isGustoConnected, isTimeTrackingEnabled} from '@libs/PolicyUtils';
 import {enablePolicyCategories} from '@userActions/Policy/Category';
 import {enablePolicyDistanceRates} from '@userActions/Policy/DistanceRate';
 import {enablePerDiem} from '@userActions/Policy/PerDiem';
@@ -37,6 +37,7 @@ import {
     enableCompanyCards,
     enableExpensifyCard,
     enablePolicyConnections,
+    enablePolicyHR,
     enablePolicyInvoicing,
     enablePolicyReceiptPartners,
     enablePolicyRules,
@@ -90,7 +91,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const hasAccountingConnection = hasAccountingConnections(policy);
-    const isAccountingEnabled = !!policy?.areConnectionsEnabled || !isEmptyObject(policy?.connections);
+    const hasGustoConnection = isGustoConnected(policy);
+    const isAccountingEnabled = !!policy?.areConnectionsEnabled || hasAccountingConnection;
     const isSyncTaxEnabled =
         !!policy?.connections?.quickbooksOnline?.config?.syncTax ||
         !!policy?.connections?.xero?.config?.importTaxRates ||
@@ -113,6 +115,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const [isDisableExpensifyCardWarningModalOpen, setIsDisableExpensifyCardWarningModalOpen] = useState(false);
     const [isDisableCompanyCardsWarningModalOpen, setIsDisableCompanyCardsWarningModalOpen] = useState(false);
     const [isDisableWorkflowWarningModalOpen, setIsDisableWorkflowWarningModalOpen] = useState(false);
+    const [isHRWarningModalOpen, setIsHRWarningModalOpen] = useState(false);
 
     const perDiemCustomUnit = getPerDiemCustomUnit(policy);
     const distanceRateCustomUnit = getDistanceRateCustomUnit(policy);
@@ -145,6 +148,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         'ReceiptPartners',
         'Clock',
     ]);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Users']);
 
     const onDisabledOrganizeSwitchPress = useCallback(() => {
         if (!hasAccountingConnection) {
@@ -463,6 +467,38 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                 Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
             },
         },
+        {
+            icon: expensifyIcons.Users,
+            titleTranslationKey: 'workspace.moreFeatures.hr.title',
+            subtitleTranslationKey: 'workspace.moreFeatures.hr.subtitle',
+            isActive: ((policy?.isHREnabled && canPolicyAccessFeature(policy, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED)) ?? false) || hasGustoConnection,
+            pendingAction: policy?.pendingFields?.isHREnabled,
+            disabled: hasGustoConnection,
+            disabledAction: () => setIsHRWarningModalOpen(true),
+            action: (isEnabled: boolean) => {
+                if (!policyID) {
+                    return;
+                }
+                if (isEnabled && !isControlPolicy(policy)) {
+                    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.hr.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
+                    return;
+                }
+                enablePolicyHR(policyID, isEnabled);
+            },
+            errors: getLatestErrorField(policy ?? {}, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED),
+            onCloseError: () => {
+                if (!policyID) {
+                    return;
+                }
+                clearPolicyErrorField(policyID, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED);
+            },
+            onPress: () => {
+                if (!policyID) {
+                    return;
+                }
+                Navigation.navigate(ROUTES.WORKSPACE_HR.getRoute(policyID));
+            },
+        },
     ];
 
     if (isBetaEnabled(CONST.BETAS.UBER_FOR_BUSINESS)) {
@@ -738,6 +774,14 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                     prompt={translate('workspace.moreFeatures.workflowWarningModal.featureEnabledText')}
                     confirmText={translate('workspace.moreFeatures.workflowWarningModal.confirmText')}
                     cancelText={translate('common.cancel')}
+                />
+                <ConfirmModal
+                    title={translate('workspace.moreFeatures.hr.warningModal.title')}
+                    isVisible={isHRWarningModalOpen}
+                    onConfirm={() => setIsHRWarningModalOpen(false)}
+                    prompt={translate('workspace.moreFeatures.hr.warningModal.prompt')}
+                    confirmText={translate('workspace.moreFeatures.hr.warningModal.confirmText')}
+                    shouldShowCancelButton={false}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

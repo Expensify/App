@@ -2715,6 +2715,14 @@ const CONST = {
         },
     },
 
+    GUSTO: {
+        APPROVAL_MODE: {
+            BASIC: 'basic',
+            MANAGER: 'manager',
+            CUSTOM: 'custom',
+        },
+    },
+
     QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE: {
         VENDOR_BILL: 'bill',
         CHECK: 'check',
@@ -3553,6 +3561,7 @@ const CONST = {
             IS_TRAVEL_ENABLED: 'isTravelEnabled',
             REQUIRE_COMPANY_CARDS_ENABLED: 'requireCompanyCardsEnabled',
             IS_TIME_TRACKING_ENABLED: 'isTimeTrackingEnabled',
+            IS_HR_ENABLED: 'isHREnabled',
         },
         DEFAULT_CATEGORIES: {
             ADVERTISING: 'Advertising',
@@ -3629,6 +3638,7 @@ const CONST = {
                 NETSUITE: 'netsuite',
                 SAGE_INTACCT: 'intacct',
                 CERTINIA: 'certinia',
+                GUSTO: 'gusto',
             },
             SUPPORTED_ONLY_ON_OLDDOT: {
                 FINANCIALFORCE: 'financialForce',
@@ -3643,6 +3653,7 @@ const CONST = {
                 SAGE_INTACCT: 'sage-intacct',
                 QBD: 'quickbooks-desktop',
                 CERTINIA: 'certinia',
+                GUSTO: 'gusto',
             },
             NAME_USER_FRIENDLY: {
                 netsuite: 'NetSuite',
@@ -3650,6 +3661,7 @@ const CONST = {
                 quickbooksDesktop: 'QuickBooks Desktop',
                 xero: 'Xero',
                 intacct: 'Sage Intacct',
+                gusto: 'Gusto',
                 financialForce: 'FinancialForce',
                 certinia: 'Certinia',
                 billCom: 'Bill.com',
@@ -3659,8 +3671,14 @@ const CONST = {
                 microsoftDynamics: 'Microsoft Dynamics',
                 other: 'Other',
             },
+            get ACCOUNTING_CONNECTION_NAMES() {
+                return [this.NAME.QBO, this.NAME.QBD, this.NAME.XERO, this.NAME.NETSUITE, this.NAME.SAGE_INTACCT, this.NAME.CERTINIA] as const;
+            },
+            get HR_CONNECTION_NAMES() {
+                return [this.NAME.GUSTO] as const;
+            },
             get EXPORTED_TO_INTEGRATION_DISPLAY_NAMES(): string[] {
-                return Object.values(this.NAME).map((name) => this.NAME_USER_FRIENDLY[name as keyof typeof this.NAME_USER_FRIENDLY]);
+                return this.ACCOUNTING_CONNECTION_NAMES.map((name) => this.NAME_USER_FRIENDLY[name as keyof typeof this.NAME_USER_FRIENDLY]);
             },
             CORPORATE: ['quickbooksDesktop', 'netsuite', 'intacct', 'oracle', 'sap', 'microsoftDynamics', 'other'],
             AUTH_HELP_LINKS: {
@@ -3673,6 +3691,7 @@ const CONST = {
                 STARTING_IMPORT_QBO: 'startingImportQBO',
                 STARTING_IMPORT_XERO: 'startingImportXero',
                 STARTING_IMPORT_QBD: 'startingImportQBD',
+                STARTING_IMPORT_GUSTO: 'startingImportGusto',
                 QBO_IMPORT_MAIN: 'quickbooksOnlineImportMain',
                 QBO_IMPORT_CUSTOMERS: 'quickbooksOnlineImportCustomers',
                 QBO_IMPORT_EMPLOYEES: 'quickbooksOnlineImportEmployees',
@@ -3738,6 +3757,10 @@ const CONST = {
                 SAGE_INTACCT_SYNC_IMPORT_EMPLOYEES: 'intacctImportEmployees',
                 SAGE_INTACCT_SYNC_IMPORT_DIMENSIONS: 'intacctImportDimensions',
                 SAGE_INTACCT_SYNC_IMPORT_SYNC_REIMBURSED_REPORTS: 'intacctImportSyncBillPayments',
+                GUSTO_SYNC_LOAD_COMPANY: 'gustoSyncLoadCompany',
+                GUSTO_SYNC_IMPORT_EMPLOYEES: 'gustoSyncImportEmployees',
+                GUSTO_SYNC_BUILD_APPROVAL_CHAINS: 'gustoSyncBuildApprovalChains',
+                GUSTO_SYNC_FINALIZE: 'gustoSyncFinalize',
             },
             SYNC_STAGE_TIMEOUT_MINUTES: 20,
         },
@@ -8275,6 +8298,14 @@ const CONST = {
                 description: 'workspace.upgrade.companyCards.description' as const,
                 icon: 'CompanyCard',
             },
+            hr: {
+                id: 'hr' as const,
+                alias: 'hr',
+                name: 'HR' as const,
+                title: 'workspace.upgrade.hr.title' as const,
+                description: 'workspace.upgrade.hr.description' as const,
+                icon: 'Users',
+            },
             rules: {
                 id: 'rules' as const,
                 alias: 'rules',
@@ -9178,6 +9209,7 @@ const CONST = {
                 MEMBERS: 'WorkspaceInitial-Members',
                 REPORTS: 'WorkspaceInitial-Reports',
                 ACCOUNTING: 'WorkspaceInitial-Accounting',
+                HR: 'WorkspaceInitial-HR',
                 RECEIPT_PARTNERS: 'WorkspaceInitial-ReceiptPartners',
                 CATEGORIES: 'WorkspaceInitial-Categories',
                 TAGS: 'WorkspaceInitial-Tags',

@@ -77,7 +77,8 @@ function WorkspaceTaxesPage({
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
     const hasSyncError = shouldShowSyncError(policy, isSyncInProgress);
 
-    const connectedIntegration = getConnectedIntegration(policy) ?? connectionSyncProgress?.connectionName;
+    const syncingAccountingIntegration = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.find((connectionName) => connectionName === connectionSyncProgress?.connectionName);
+    const connectedIntegration = getConnectedIntegration(policy) ?? syncingAccountingIntegration;
     const isConnectionVerified = connectedIntegration && !isConnectionUnverified(policy, connectedIntegration);
     const currentConnectionName = getCurrentConnectionName(policy);
     const canSelectMultiple = shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true;

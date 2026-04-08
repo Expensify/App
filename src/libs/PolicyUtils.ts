@@ -164,8 +164,9 @@ function hasPolicyCategoriesError(policyCategories: OnyxEntry<PolicyCategories>)
 /**
  * Checks if the policy had a sync error.
  */
-function shouldShowSyncError(policy: OnyxEntry<Policy>, isSyncInProgress: boolean): boolean {
-    return isPolicyAdmin(policy) && (Object.keys(policy?.connections ?? {}) as ConnectionName[]).some((connection) => !!hasSynchronizationErrorMessage(policy, connection, isSyncInProgress));
+function shouldShowSyncError(policy: OnyxEntry<Policy>, isSyncInProgress: boolean, connectionNames?: ConnectionName[]): boolean {
+    const connectionsToCheck = connectionNames ?? (Object.keys(policy?.connections ?? {}) as ConnectionName[]);
+    return isPolicyAdmin(policy) && connectionsToCheck.some((connection) => !!hasSynchronizationErrorMessage(policy, connection, isSyncInProgress));
 }
 
 /**
@@ -821,7 +822,11 @@ function canPolicyAccessFeature(policy: OnyxEntry<Policy>, featureName: PolicyFe
     if (!isPaidGroupPolicy(policy)) {
         return false;
     }
-    const corporateOnlyFeatures = new Set<PolicyFeatureName>([CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED, CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED]);
+    const corporateOnlyFeatures = new Set<PolicyFeatureName>([
+        CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED,
+        CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED,
+        CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED,
+    ]);
     if (corporateOnlyFeatures.has(featureName)) {
         return isControlPolicy(policy);
     }
@@ -1006,7 +1011,10 @@ function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFe
         return !!policy?.tax?.trackingEnabled;
     }
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED) {
-        return policy?.[featureName] ? !!policy?.[featureName] : !isEmptyObject(policy?.connections);
+        return policy?.[featureName] ? !!policy?.[featureName] : hasAccountingConnections(policy);
+    }
+    if (featureName === CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED) {
+        return !!((policy?.[featureName] && canPolicyAccessFeature(policy, featureName)) || isGustoConnected(policy));
     }
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED) {
         return policy?.receiptPartners?.enabled ?? false;
@@ -1651,12 +1659,24 @@ function navigateToExpensifyCardPage(policyID: string) {
     });
 }
 
-function getConnectedIntegration(policy: Policy | undefined, accountingIntegrations?: ConnectionName[]) {
-    return (accountingIntegrations ?? Object.values(CONST.POLICY.CONNECTIONS.NAME)).find((integration) => !!policy?.connections?.[integration]);
+function getAccountingConnectionNames(): ConnectionName[] {
+    return [...CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES];
 }
 
-function getValidConnectedIntegration(policy: Policy | undefined, accountingIntegrations?: ConnectionName[]) {
-    return (accountingIntegrations ?? Object.values(CONST.POLICY.CONNECTIONS.NAME)).find(
+function getHRConnectionNames(): ConnectionName[] {
+    return [...CONST.POLICY.CONNECTIONS.HR_CONNECTION_NAMES];
+}
+
+function isGustoConnected(policy?: OnyxEntry<Policy>) {
+    return !!policy?.connections?.gusto;
+}
+
+function getConnectedIntegration(policy: Policy | undefined, connectionNames: ConnectionName[] = getAccountingConnectionNames()) {
+    return connectionNames.find((integration) => !!policy?.connections?.[integration]);
+}
+
+function getValidConnectedIntegration(policy: Policy | undefined, connectionNames: ConnectionName[] = getAccountingConnectionNames()) {
+    return connectionNames.find(
         (integration) => !!policy?.connections?.[integration] && !isConnectionUnverified(policy, integration),
     );
 }
@@ -1676,7 +1696,7 @@ function getConnectedIntegrationNamesForPolicies(policies: OnyxCollection<Policy
     const policiesToCheck = hasWorkspaceFilter ? policyIDs.map((id) => policies[`${ONYXKEYS.COLLECTION.POLICY}${id}`]) : Object.values(policies);
 
     for (const policy of policiesToCheck) {
-        const connectedIntegration = getValidConnectedIntegration(policy);
+        const connectedIntegration = getValidConnectedIntegration(policy, getAccountingConnectionNames());
         if (connectedIntegration) {
             connectedIntegrationNames.add(connectedIntegration);
         }
@@ -1698,7 +1718,7 @@ function hasSupportedOnlyOnOldDotIntegration(policy: Policy | undefined) {
 }
 
 function getCurrentConnectionName(policy: Policy | undefined): string | undefined {
-    const accountingIntegrations = Object.values(CONST.POLICY.CONNECTIONS.NAME);
+    const accountingIntegrations = getAccountingConnectionNames();
     const connectionKey = accountingIntegrations.find((integration) => !!policy?.connections?.[integration]);
     return connectionKey ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionKey] : undefined;
 }
@@ -2050,9 +2070,11 @@ export {
     getAdminEmployees,
     getCleanedTagName,
     getCommaSeparatedTagNameWithSanitizedColons,
+    getAccountingConnectionNames,
     getConnectedIntegration,
     getConnectedIntegrationNamesForPolicies,
     getConnectionExporters,
+    getHRConnectionNames,
     getValidConnectedIntegration,
     getCountOfEnabledTagsOfList,
     getIneligibleInvitees,
@@ -2098,6 +2120,7 @@ export {
     isPolicyAdmin,
     isPolicyUser,
     isPolicyAuditor,
+    isGustoConnected,
     hasEligibleActiveAdminFromWorkspaces,
     isPolicyEmployee,
     isPolicyFeatureEnabled,

@@ -2,7 +2,7 @@ import {differenceInMinutes, isValid, parseISO} from 'date-fns';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {RemovePolicyConnectionParams, SyncPolicyToQuickbooksDesktopParams, UpdateManyPolicyConnectionConfigurationsParams} from '@libs/API/parameters';
+import type {RemovePolicyConnectionParams, SyncGustoParams, SyncPolicyToQuickbooksDesktopParams, UpdateManyPolicyConnectionConfigurationsParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -120,6 +120,9 @@ function getSyncConnectionParameters(connectionName: PolicyConnectionName) {
         case CONST.POLICY.CONNECTIONS.NAME.QBD: {
             return {readCommand: READ_COMMANDS.SYNC_POLICY_TO_QUICKBOOKS_DESKTOP, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.STARTING_IMPORT_QBD};
         }
+        case CONST.POLICY.CONNECTIONS.NAME.GUSTO: {
+            return {readCommand: READ_COMMANDS.SYNC_GUSTO, stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.STARTING_IMPORT_GUSTO};
+        }
         default:
             return undefined;
     }
@@ -162,14 +165,17 @@ function syncConnection(policy: Policy | undefined, connectionName: PolicyConnec
         },
     ];
 
-    const parameters: SyncPolicyToQuickbooksDesktopParams = {
-        policyID,
-        idempotencyKey: policyID,
-    };
-
-    if (connectionName === CONST.POLICY.CONNECTIONS.NAME.QBD) {
-        parameters.forceDataRefresh = forceDataRefresh;
-    }
+    const parameters: SyncPolicyToQuickbooksDesktopParams | SyncGustoParams =
+        connectionName === CONST.POLICY.CONNECTIONS.NAME.QBD
+            ? {
+                  policyID,
+                  idempotencyKey: policyID,
+                  forceDataRefresh,
+              }
+            : {
+                  policyID,
+                  idempotencyKey: policyID,
+              };
 
     API.read(syncConnectionData.readCommand, parameters, {
         optimisticData,
@@ -311,6 +317,9 @@ function copyExistingPolicyConnection(connectedPolicyID: string, targetPolicyID:
             break;
         case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
             stageInProgress = CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.SAGE_INTACCT_SYNC_CHECK_CONNECTION;
+            break;
+        case CONST.POLICY.CONNECTIONS.NAME.GUSTO:
+            stageInProgress = CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.STARTING_IMPORT_GUSTO;
             break;
         default:
             stageInProgress = null;
