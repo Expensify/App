@@ -32,6 +32,7 @@ function BaseOverlay({onPress, progress, positionLeftValue = -2 * variables.side
     return (
         <Animated.View
             id="BaseOverlay"
+            aria-hidden
             style={[styles.pFixed, styles.t0, styles.b0, styles.overlayBackground, styles.overlayStyles({progress: progress ?? current.progress, positionLeftValue, positionRightValue})]}
         >
             <View style={[styles.flex1, styles.flexColumn]}>

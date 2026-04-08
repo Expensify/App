@@ -11,15 +11,8 @@ import useLocalize from '@hooks/useLocalize';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
-import {
-    initMoneyRequest,
-    setMoneyRequestAmount,
-    setMoneyRequestCreated,
-    setMoneyRequestDescription,
-    setMoneyRequestMerchant,
-    setMoneyRequestParticipants,
-    setMoneyRequestReceipt,
-} from '@libs/actions/IOU';
+import {initMoneyRequest, setMoneyRequestAmount, setMoneyRequestCreated, setMoneyRequestDescription, setMoneyRequestMerchant, setMoneyRequestParticipants} from '@libs/actions/IOU';
+import {setMoneyRequestReceipt} from '@libs/actions/IOU/Receipt';
 import {verifyTestDriveRecipient} from '@libs/actions/Onboarding';
 import setTestReceipt from '@libs/actions/setTestReceipt';
 import type AccountExistsError from '@libs/Errors/AccountExistsError';
