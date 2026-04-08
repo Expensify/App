@@ -31,6 +31,7 @@ You can add one **direct** or [**commercial feed**](https://help.expensify.com/a
 5. **Pick your bank:**
    - If you’re in the U.S., select your bank from the list or choose **Other** to see additional banks supported by Plaid.
    - For international members in supported countries, choosing **Direct feed** will automatically launch the Plaid connection process.
+   - To upload transactions from a file instead, select **Import transactions from file**. Learn how to [import company card transactions from a CSV file](/articles/new-expensify/connect-credit-cards/Import-Company-Cards-From-CSV).
 
 ![Click add cards to add a card feed]({{site.url}}/assets/images/Direct Feed HelpDot Images/directfeeds_01.png){:width="100%"}
 
