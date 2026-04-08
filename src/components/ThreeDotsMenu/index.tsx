@@ -101,9 +101,15 @@ function ThreeDotsMenu({
             }
         };
 
-        // Wait for the keyboard to fully close before opening the menu.
-        // KeyboardUtils.dismiss() resolves immediately if the keyboard is not open.
-        KeyboardUtils.dismiss().then(openMenu);
+        // On mobile web, wait for the keyboard to fully close before opening the menu.
+        // KeyboardUtils.dismiss() uses visualViewport to detect keyboard state and resolves
+        // immediately if the keyboard is not open. On desktop, call openMenu() synchronously
+        // to preserve the original behavior (avoids async microtask deferral on desktop Chrome).
+        if (isMobile()) {
+            KeyboardUtils.dismiss().then(openMenu);
+        } else {
+            openMenu();
+        }
     };
 
     useImperativeHandle(threeDotsMenuRef as React.RefObject<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean; onThreeDotsPress: () => void}> | undefined, () => ({
