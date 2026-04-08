@@ -2839,7 +2839,9 @@ function isPolicyChangeLogDeleteMemberMessage(
 function getWorkspaceDescriptionUpdatedMessage(translate: LocalizedTranslate, action: ReportAction) {
     const {oldDescription, newDescription} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DESCRIPTION>) ?? {};
     const message =
-        typeof oldDescription === 'string' && newDescription ? translate('workspaceActions.updateWorkspaceDescription', newDescription, oldDescription) : getReportActionText(action);
+        typeof oldDescription === 'string' && newDescription
+            ? translate('workspaceActions.updateWorkspaceDescription', Parser.htmlToText(newDescription), Parser.htmlToText(oldDescription))
+            : getReportActionText(action);
     return message;
 }
 
