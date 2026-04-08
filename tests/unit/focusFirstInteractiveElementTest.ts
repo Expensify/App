@@ -7,7 +7,7 @@
 // Import the web implementation directly (Jest resolves index.native.ts by default).
 /* eslint-disable @typescript-eslint/no-require-imports, import/extensions */
 const {focusFirstInteractiveElement} = require<{
-    focusFirstInteractiveElement: (container: HTMLElement | null) => boolean;
+    focusFirstInteractiveElement: (container: HTMLElement | null) => (() => void) | undefined;
 }>('../../src/hooks/useDialogContainerFocus/index.ts');
 /* eslint-enable @typescript-eslint/no-require-imports, import/extensions */
 
@@ -27,7 +27,7 @@ afterEach(() => {
 describe('focusFirstInteractiveElement', () => {
     describe('guard conditions', () => {
         it('returns false when container is null', () => {
-            expect(focusFirstInteractiveElement(null)).toBe(false);
+            expect(focusFirstInteractiveElement(null)).toBeUndefined();
         });
 
         it('returns false when another element already has focus', () => {
@@ -38,14 +38,14 @@ describe('focusFirstInteractiveElement', () => {
             const container = createContainer(button);
             const spy = jest.spyOn(button, 'focus');
 
-            expect(focusFirstInteractiveElement(container)).toBe(false);
+            expect(focusFirstInteractiveElement(container)).toBeUndefined();
             expect(spy).not.toHaveBeenCalled();
         });
 
         it('returns false when container has no focusable elements', () => {
             const container = createContainer(document.createElement('div'));
 
-            expect(focusFirstInteractiveElement(container)).toBe(false);
+            expect(focusFirstInteractiveElement(container)).toBeUndefined();
         });
     });
 
@@ -60,7 +60,7 @@ describe('focusFirstInteractiveElement', () => {
             const container = createContainer(button);
             const spy = jest.spyOn(button, 'focus');
 
-            expect(focusFirstInteractiveElement(container)).toBe(true);
+            expect(focusFirstInteractiveElement(container)).toBeDefined();
             expect(spy).toHaveBeenCalledWith({preventScroll: true});
             expect(button.getAttribute('data-programmatic-focus')).toBe('true');
             expect(button.style.outline).toBe('none');
@@ -72,7 +72,7 @@ describe('focusFirstInteractiveElement', () => {
             const container = createContainer(link);
             const spy = jest.spyOn(link, 'focus');
 
-            expect(focusFirstInteractiveElement(container)).toBe(true);
+            expect(focusFirstInteractiveElement(container)).toBeDefined();
             expect(spy).toHaveBeenCalledWith({preventScroll: true});
         });
 
@@ -81,7 +81,7 @@ describe('focusFirstInteractiveElement', () => {
             const container = createContainer(input);
             const spy = jest.spyOn(input, 'focus');
 
-            expect(focusFirstInteractiveElement(container)).toBe(true);
+            expect(focusFirstInteractiveElement(container)).toBeDefined();
             expect(spy).toHaveBeenCalledWith({preventScroll: true});
         });
 
@@ -97,6 +97,27 @@ describe('focusFirstInteractiveElement', () => {
 
             expect(button.getAttribute('data-programmatic-focus')).toBe('true');
             expect(button.style.outline).toBe('none');
+        });
+
+        it('returned cleanup removes listener and attributes', () => {
+            const button = document.createElement('button');
+            const container = createContainer(button);
+            const focusSpy = jest.spyOn(button, 'focus');
+
+            const cleanup = focusFirstInteractiveElement(container);
+            expect(cleanup).toBeDefined();
+            expect(button.getAttribute('data-programmatic-focus')).toBe('true');
+
+            cleanup?.();
+
+            expect(button.getAttribute('data-programmatic-focus')).toBeNull();
+            expect(button.style.outline).toBe('');
+
+            // onFirstTab listener should be removed — Tab should not be intercepted
+            const tabEvent = new KeyboardEvent('keydown', {key: 'Tab', bubbles: true, cancelable: true});
+            document.dispatchEvent(tabEvent);
+            expect(tabEvent.defaultPrevented).toBe(false);
+            expect(focusSpy).toHaveBeenCalledTimes(1);
         });
 
         it('on first Tab, prevents default and re-focuses without suppression', () => {
@@ -157,6 +178,10 @@ describe('focusFirstInteractiveElement', () => {
     });
 
     describe('aria-hidden filtering', () => {
+        beforeEach(() => {
+            document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', bubbles: true}));
+        });
+
         it('skips elements inside aria-hidden containers', () => {
             const hiddenDiv = document.createElement('div');
             hiddenDiv.setAttribute('aria-hidden', 'true');
@@ -168,7 +193,7 @@ describe('focusFirstInteractiveElement', () => {
             const hiddenSpy = jest.spyOn(hiddenButton, 'focus');
             const visibleSpy = jest.spyOn(visibleButton, 'focus');
 
-            expect(focusFirstInteractiveElement(container)).toBe(true);
+            focusFirstInteractiveElement(container);
             expect(hiddenSpy).not.toHaveBeenCalled();
             expect(visibleSpy).toHaveBeenCalledWith({preventScroll: true});
         });
@@ -180,11 +205,15 @@ describe('focusFirstInteractiveElement', () => {
             hiddenDiv.appendChild(hiddenButton);
             const container = createContainer(hiddenDiv);
 
-            expect(focusFirstInteractiveElement(container)).toBe(false);
+            expect(focusFirstInteractiveElement(container)).toBeUndefined();
         });
     });
 
     describe('focusable element selection', () => {
+        beforeEach(() => {
+            document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', bubbles: true}));
+        });
+
         it('finds elements with role="button"', () => {
             const div = document.createElement('div');
             div.setAttribute('role', 'button');
@@ -248,7 +277,7 @@ describe('focusFirstInteractiveElement', () => {
             const container = createContainer(button);
             const spy = jest.spyOn(button, 'focus');
 
-            expect(focusFirstInteractiveElement(container)).toBe(true);
+            expect(focusFirstInteractiveElement(container)).toBeUndefined();
             expect(spy).toHaveBeenCalledWith({preventScroll: true});
             expect(button.getAttribute('data-programmatic-focus')).toBeNull();
             expect(button.style.outline).toBe('');
@@ -283,7 +312,7 @@ describe('focusFirstInteractiveElement', () => {
             const container = createContainer(button);
             const focusSpy = jest.spyOn(button, 'focus');
 
-            expect(focusFirstInteractiveElement(container)).toBe(true);
+            expect(focusFirstInteractiveElement(container)).toBeDefined();
             expect(focusSpy).toHaveBeenCalledTimes(1);
             expect(button.getAttribute('data-programmatic-focus')).toBe('true');
             expect(button.style.outline).toBe('none');

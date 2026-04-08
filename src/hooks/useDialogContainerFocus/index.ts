@@ -23,16 +23,19 @@ if (typeof document !== 'undefined') {
     );
 }
 
-/** @returns true if an element was focused, false otherwise. */
-function focusFirstInteractiveElement(container: HTMLElement | null): boolean {
+type CleanupFn = () => void;
+
+/** @returns a cleanup function if an element was focused, or undefined otherwise. */
+function focusFirstInteractiveElement(container: HTMLElement | null): CleanupFn | undefined {
     if (!container || (document.activeElement && document.activeElement !== document.body)) {
-        return false;
+        return undefined;
     }
     const targets = container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
     const target = Array.from(targets).find((el) => !el.closest('[aria-hidden="true"]'));
     if (!target) {
-        return false;
+        return undefined;
     }
+    let cleanupListener: CleanupFn | undefined;
     if (!hadKeyboardEvent) {
         // On first Tab, prevent default and re-focus the same element with a visible ring
         // so the user sees focus land here instead of advancing past the silent focus.
@@ -50,9 +53,14 @@ function focusFirstInteractiveElement(container: HTMLElement | null): boolean {
         target.style.setProperty('outline', 'none');
         // No blur cleanup — attributes must survive browser tab-switch blur/re-focus cycles.
         document.addEventListener('keydown', onFirstTab, true);
+        cleanupListener = () => {
+            document.removeEventListener('keydown', onFirstTab, true);
+            target.removeAttribute(PROGRAMMATIC_FOCUS_DATA_ATTRIBUTE);
+            target.style.removeProperty('outline');
+        };
     }
     target.focus({preventScroll: true});
-    return true;
+    return cleanupListener;
 }
 
 /** Focuses the first interactive element inside the dialog after the RHP transition for screen reader announcement. */
@@ -63,6 +71,7 @@ const useDialogContainerFocus: UseDialogContainerFocus = (ref, isReady, claimIni
         }
         let cancelled = false;
         let frameId: number;
+        let focusCleanup: CleanupFn | undefined;
         // Deferred past useAutoFocusInput's InteractionManager + Promise chain.
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         const interactionHandle = InteractionManager.runAfterInteractions(() => {
@@ -74,13 +83,14 @@ const useDialogContainerFocus: UseDialogContainerFocus = (ref, isReady, claimIni
                     return;
                 }
                 const container = ref.current as unknown as HTMLElement | null;
-                focusFirstInteractiveElement(container);
+                focusCleanup = focusFirstInteractiveElement(container);
             });
         });
         return () => {
             cancelled = true;
             interactionHandle.cancel();
             cancelAnimationFrame(frameId);
+            focusCleanup?.();
         };
     }, [isReady, ref, claimInitialFocus]);
 };
