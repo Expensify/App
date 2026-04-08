@@ -3426,6 +3426,79 @@ describe('actions/Report', () => {
             expect(Object.values(reportActions ?? {}).at(0)?.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.MOVED);
         });
 
+        it('should return undefined when iouReport is not an IOU report', () => {
+            const expenseReport: OnyxTypes.Report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            const policy: OnyxTypes.Policy = {...createRandomPolicy(1), role: CONST.POLICY.ROLE.ADMIN};
+            const result = Report.moveIOUReportToPolicy(expenseReport, policy, {});
+            expect(result).toBeUndefined();
+        });
+
+        it('should return undefined when hasRequestFromCurrentAccount is true and isFromSettlementButton is false', async () => {
+            const currentUserAccountID = 12;
+            const iouReport: OnyxTypes.Report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.IOU,
+                managerID: currentUserAccountID,
+            };
+            const policy: OnyxTypes.Policy = {...createRandomPolicy(1), role: CONST.POLICY.ROLE.ADMIN};
+
+            // Create a non-deleted IOU report action from the current account so hasRequestFromCurrentAccount returns true
+            const iouReportAction: OnyxTypes.ReportAction = {
+                reportActionID: '100',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: currentUserAccountID,
+                created: '2024-01-01 00:00:00',
+                message: [{html: '$100.00 expense', text: '$100.00 expense', type: 'COMMENT'}],
+            } as OnyxTypes.ReportAction;
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`, {[iouReportAction.reportActionID]: iouReportAction});
+            await waitForBatchedUpdates();
+
+            const result = Report.moveIOUReportToPolicy(iouReport, policy, {[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]: iouReport}, false);
+            expect(result).toBeUndefined();
+        });
+
+        it('should proceed when hasRequestFromCurrentAccount is true but isFromSettlementButton is true', async () => {
+            const currentUserAccountID = 12;
+            const ownerAccountID = 1;
+            const ownerEmail = 'owner@gmail.com';
+            const adminEmail = 'admin@gmail.com';
+            const iouReport: OnyxTypes.Report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID,
+                managerID: currentUserAccountID,
+            };
+            const policy: OnyxTypes.Policy = {
+                ...createRandomPolicy(1),
+                role: CONST.POLICY.ROLE.ADMIN,
+                employeeList: {[adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.ADMIN}, [ownerEmail]: {email: ownerEmail, role: CONST.POLICY.ROLE.USER}},
+            };
+
+            // Create a non-deleted IOU report action from the current account so hasRequestFromCurrentAccount returns true
+            const iouReportAction: OnyxTypes.ReportAction = {
+                reportActionID: '100',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: currentUserAccountID,
+                created: '2024-01-01 00:00:00',
+                message: [{html: '$100.00 expense', text: '$100.00 expense', type: 'COMMENT'}],
+            } as OnyxTypes.ReportAction;
+
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ownerAccountID]: {login: ownerEmail}});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`, {[iouReportAction.reportActionID]: iouReportAction});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await waitForBatchedUpdates();
+
+            // When isFromSettlementButton is true, it should proceed despite hasRequestFromCurrentAccount being true
+            const result = Report.moveIOUReportToPolicy(iouReport, policy, {[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]: iouReport}, true);
+            expect(result).toBeDefined();
+            expect(result?.policyExpenseChatReportID).toBeDefined();
+        });
+
         describe('convertIOUReportToExpenseReport', () => {
             it('should set reportName to default formula when policy field list is empty', () => {
                 // Given a policy with an empty field list
@@ -3706,6 +3779,21 @@ describe('actions/Report', () => {
             expect(updatedReport?.type).toBe(CONST.REPORT.TYPE.EXPENSE);
             expect(updatedReport?.policyID).toBe(policy.id);
             expect(updatedReport?.total).toBe(-3000);
+        });
+
+        it('should return undefined when policy is missing', () => {
+            const iouReport: OnyxTypes.Report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.IOU,
+            };
+            const result = Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, undefined as unknown as OnyxTypes.Policy, (phone: string) => phone, {}, {});
+            expect(result).toBeUndefined();
+        });
+
+        it('should return undefined when iouReport is missing', () => {
+            const policy: OnyxTypes.Policy = {...createRandomPolicy(1), role: CONST.POLICY.ROLE.ADMIN};
+            const result = Report.moveIOUReportToPolicyAndInviteSubmitter(undefined, policy, (phone: string) => phone, {}, {});
+            expect(result).toBeUndefined();
         });
     });
 
