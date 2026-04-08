@@ -131,7 +131,7 @@ Yes! You can edit the expense before it is approved. To learn how to edit an exp
 
 ## Can I update the Distance expense unit or rate?
 
-For expenses on a Workspace, rates are managed by the Workspace Admin. For tracked distance expenses in your self-DM, you can tap the **Rate** field to select a rate from one of your Workspaces or create a new Workspace with a custom rate.
+The distance unit and rate can only be updated by a Workspace Admin on the Workspace. It is not possible to adjust the distance rate or unit at the expense level.
 
 ## What happens if a Distance expense is moved to a different Workspace?
 
