@@ -254,7 +254,6 @@ const config = defineConfig([
                     },
                 },
             ],
-            '@typescript-eslint/no-unsafe-type-assertion': 'warn',
             '@typescript-eslint/consistent-type-imports': [
                 'error',
                 {
