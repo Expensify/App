@@ -73,9 +73,9 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
         newestReportActionRef.current = newestReportAction;
     }, [newestReportAction]);
 
-    // Track pending optimistic requests with a counter instead of a single timestamp.
-    // Each kickoffWaitingIndicator() call increments the counter; each Concierge reply
-    // decrements it. The indicator stays active until all pending requests are resolved.
+    // Track pending optimistic requests with a counter.
+    // Each kickoffWaitingIndicator() call increments the counter; when a Concierge reply
+    // is detected (via polling, Pusher, or reconnect), the counter resets to 0.
     const [pendingOptimisticRequests, setPendingOptimisticRequests] = useState(0);
     const [displayedLabel, setDisplayedLabel] = useState<string>('');
     const {translate} = useLocalize();
@@ -163,14 +163,22 @@ function useAgentZeroStatusIndicator(reportID: string, isAgentZeroChat: boolean)
         }, MAX_POLL_DURATION_MS);
     };
 
-    // On reconnect, fetch missed actions if the indicator is still active.
-    // Do not clear locally just because the socket recovered, and do not restart polling here:
-    // the existing poll cycle keeps the original action baseline needed to detect a missed Concierge reply.
+    // On reconnect, clear stale optimistic state and fetch missed actions.
+    // Optimistic state from before going offline is unreliable — the server state
+    // (serverLabel) is the source of truth after reconnection.
     const {isOffline} = useNetwork({
         onReconnect: () => {
-            if (!serverLabel && pendingOptimisticRequests === 0) {
+            const wasOptimistic = pendingOptimisticRequests > 0;
+
+            // Clear stale optimistic state — server state takes over as source of truth
+            if (wasOptimistic) {
+                setPendingOptimisticRequests(0);
+            }
+
+            if (!serverLabel && !wasOptimistic) {
                 return;
             }
+
             // Fetch missed actions AND start polling to detect when the Concierge response arrives.
             // getNewerActions is a one-shot fetch; polling ensures we keep checking until
             // the response is detected (via actorAccountID === CONCIERGE check in the poll).
