@@ -189,9 +189,9 @@ function computePerDiemExpenseMerchant(customUnit: TransactionCustomUnit, policy
     return `${locationName}, ${formattedTime}`;
 }
 
-function isValidPerDiemExpenseAmount(customUnit: TransactionCustomUnit, iouCurrencyCode: string | undefined, decimals: number) {
+function isValidPerDiemExpenseAmount(customUnit: TransactionCustomUnit, decimals: number) {
     const perDiemAmountInCents = computePerDiemExpenseAmount(customUnit);
-    const perDiemAmountString = convertToFrontendAmountAsString(perDiemAmountInCents, iouCurrencyCode);
+    const perDiemAmountString = convertToFrontendAmountAsString(perDiemAmountInCents, decimals);
     return validateAmount(perDiemAmountString, decimals, undefined, true);
 }
 
@@ -340,6 +340,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         isNewChatReport = true;
         chatReport = buildOptimisticChatReport({
             participantList: [payerAccountID, payeeAccountID],
+            currentUserAccountID: currentUserAccountIDParam,
         });
     }
 
