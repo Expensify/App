@@ -24,7 +24,7 @@ import type {
 } from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import type {CardProgramKey} from '@libs/CardUtils';
-import {getTranslationKeyForLimitType, isCardPendingActivate, isCardPendingIssue} from '@libs/CardUtils';
+import {getTranslationKeyForLimitType} from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -1622,35 +1622,11 @@ function resolveFraudAlert(cardID: number | undefined, isFraud: boolean, reportI
     API.write(WRITE_COMMANDS.RESOLVE_FRAUD_ALERT, parameters, {optimisticData, successData, failureData});
 }
 
-const STANDARD_PAN_DIGITS = 16;
-
 function escapeCsvField(value: string): string {
     if (value.includes('"') || value.includes(',') || value.includes('\n') || value.includes('\r')) {
         return `"${value.replaceAll('"', '""')}"`;
     }
     return value;
-}
-
-function getExpensifyCardPANColumnForCSV(card: Card, translate: LocalizedTranslate): string {
-    if (isCardPendingIssue(card)) {
-        return translate('workspace.expensifyCard.csvCardNumberWaitingForActivation');
-    }
-    if (isCardPendingActivate(card)) {
-        return translate('workspace.expensifyCard.csvCardNumberWaitingForActivation');
-    }
-    if (
-        card.state === CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED ||
-        card.state === CONST.EXPENSIFY_CARD.STATE.CLOSED ||
-        card.state === CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED
-    ) {
-        return translate('workspace.expensifyCard.csvCardNumberInactive');
-    }
-    const lastFour = card.lastFourPAN ?? '';
-    if (lastFour.length > 0) {
-        const maskedLength = Math.max(0, STANDARD_PAN_DIGITS - lastFour.length);
-        return `${'X'.repeat(maskedLength)}${lastFour}`;
-    }
-    return translate('workspace.expensifyCard.csvCardNumberWaitingForActivation');
 }
 
 function getOwnerEmailForCard(card: Card, personalDetailsList: PersonalDetailsList | undefined): string {
@@ -1681,7 +1657,7 @@ function exportExpensifyCardListToCSV({policyID, cards, personalDetailsList, set
 
     const header = [
         translate('workspace.expensifyCard.csvColumnOwner'),
-        translate('workspace.expensifyCard.csvColumnCardNumber'),
+        translate('workspace.expensifyCard.lastFour'),
         translate('workspace.expensifyCard.csvColumnType'),
         translate('workspace.expensifyCard.csvColumnLimitType'),
         translate('workspace.expensifyCard.csvColumnLimit'),
@@ -1691,13 +1667,13 @@ function exportExpensifyCardListToCSV({policyID, cards, personalDetailsList, set
 
     const rows = cards.map((card) => {
         const owner = getOwnerEmailForCard(card, personalDetailsList);
-        const cardNumberColumn = getExpensifyCardPANColumnForCSV(card, translate);
+        const lastFourColumn = card.lastFourPAN ?? '';
         const typeColumn = card.nameValuePairs?.isVirtual ? translate('workspace.expensifyCard.virtual') : translate('workspace.expensifyCard.physical');
         const limitTypeColumn = translate(getTranslationKeyForLimitType(card.nameValuePairs?.limitType));
         const limitAmount = card.nameValuePairs?.unapprovedExpenseLimit ?? 0;
         const limitColumn = convertToShortDisplayString(limitAmount, settlementCurrency);
 
-        return [owner, cardNumberColumn, typeColumn, limitTypeColumn, limitColumn].map(escapeCsvField).join(',');
+        return [owner, lastFourColumn, typeColumn, limitTypeColumn, limitColumn].map(escapeCsvField).join(',');
     });
 
     const csvContent = [header, ...rows].join('\r\n');
