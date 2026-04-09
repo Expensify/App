@@ -24,7 +24,7 @@ function checkFileExists(path: string | undefined): Promise<boolean> {
     // RNFS.stat uses NSFileManager.attributesOfItemAtPath: which expects
     // a POSIX path, not a file:// URI
     if (decodedPath.startsWith('file://')) {
-        decodedPath = decodedPath.replace(/^file:\/\//, '');
+        decodedPath = decodedPath.slice(7);
     }
 
     // RNFS.stat() returns file info without loading the file content
