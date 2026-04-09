@@ -37,79 +37,67 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const ancestors = useAncestors(report);
 
-    const timePeriodItems = useMemo(
-        () => [
-            {value: 'AM', label: 'AM'},
-            {value: 'PM', label: 'PM'},
-        ],
-        [],
-    );
+    const timePeriodItems = [
+        {value: 'AM', label: 'AM'},
+        {value: 'PM', label: 'PM'},
+    ];
 
-    const durationUnitItems = useMemo(
-        () => [
-            {value: CONST.CHRONOS.OOO_DURATION_UNITS.HOUR, label: translate('chronos.hour')},
-            {value: CONST.CHRONOS.OOO_DURATION_UNITS.DAY, label: translate('chronos.day')},
-            {value: CONST.CHRONOS.OOO_DURATION_UNITS.WEEK, label: translate('chronos.week')},
-            {value: CONST.CHRONOS.OOO_DURATION_UNITS.MONTH, label: translate('chronos.month')},
-        ],
-        [translate],
-    );
+    const durationUnitItems = [
+        {value: CONST.CHRONOS.OOO_DURATION_UNITS.HOUR, label: translate('chronos.hour')},
+        {value: CONST.CHRONOS.OOO_DURATION_UNITS.DAY, label: translate('chronos.day')},
+        {value: CONST.CHRONOS.OOO_DURATION_UNITS.WEEK, label: translate('chronos.week')},
+        {value: CONST.CHRONOS.OOO_DURATION_UNITS.MONTH, label: translate('chronos.month')},
+    ];
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CHRONOS_SCHEDULE_OOO_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.CHRONOS_SCHEDULE_OOO_FORM> => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.CHRONOS_SCHEDULE_OOO_FORM> = {};
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CHRONOS_SCHEDULE_OOO_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.CHRONOS_SCHEDULE_OOO_FORM> => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.CHRONOS_SCHEDULE_OOO_FORM> = {};
 
-            if (!values[INPUT_IDS.DATE]?.trim()) {
-                addErrorMessage(errors, INPUT_IDS.DATE, translate('chronos.dateRequired'));
-            }
+        if (!values[INPUT_IDS.DATE]?.trim()) {
+            addErrorMessage(errors, INPUT_IDS.DATE, translate('chronos.dateRequired'));
+        }
 
-            const timeValue = values[INPUT_IDS.TIME]?.trim();
-            if (timeValue && !/^(1[0-2]|0?[1-9])(:[0-5]\d)?$/.test(timeValue)) {
-                addErrorMessage(errors, INPUT_IDS.TIME, translate('chronos.invalidTimeFormat'));
-            }
+        const timeValue = values[INPUT_IDS.TIME]?.trim();
+        if (timeValue && !/^(1[0-2]|0?[1-9])(:[0-5]\d)?$/.test(timeValue)) {
+            addErrorMessage(errors, INPUT_IDS.TIME, translate('chronos.invalidTimeFormat'));
+        }
 
-            const durationAmount = values[INPUT_IDS.DURATION_AMOUNT]?.trim();
-            if (durationAmount && !/^\d+$/.test(durationAmount)) {
-                addErrorMessage(errors, INPUT_IDS.DURATION_AMOUNT, translate('chronos.enterANumber'));
-            }
+        const durationAmount = values[INPUT_IDS.DURATION_AMOUNT]?.trim();
+        if (durationAmount && !/^\d+$/.test(durationAmount)) {
+            addErrorMessage(errors, INPUT_IDS.DURATION_AMOUNT, translate('chronos.enterANumber'));
+        }
 
-            const percentage = values[INPUT_IDS.WORKING_PERCENTAGE]?.replaceAll('%', '').trim();
-            if (percentage && !/^\d+$/.test(percentage)) {
-                addErrorMessage(errors, INPUT_IDS.WORKING_PERCENTAGE, translate('chronos.enterANumber'));
-            }
+        const percentage = values[INPUT_IDS.WORKING_PERCENTAGE]?.replaceAll('%', '').trim();
+        if (percentage && !/^\d+$/.test(percentage)) {
+            addErrorMessage(errors, INPUT_IDS.WORKING_PERCENTAGE, translate('chronos.enterANumber'));
+        }
 
-            return errors;
-        },
-        [translate],
-    );
+        return errors;
+    };
 
-    const onSubmit = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CHRONOS_SCHEDULE_OOO_FORM>) => {
-            const commandText = buildOOOCommand({
-                date: values[INPUT_IDS.DATE],
-                time: values[INPUT_IDS.TIME],
-                timePeriod: values[INPUT_IDS.TIME_PERIOD],
-                durationAmount: values[INPUT_IDS.DURATION_AMOUNT],
-                durationUnit: values[INPUT_IDS.DURATION_UNIT],
-                reason: values[INPUT_IDS.REASON],
-                workingPercentage: values[INPUT_IDS.WORKING_PERCENTAGE],
-            });
+    const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CHRONOS_SCHEDULE_OOO_FORM>) => {
+        const commandText = buildOOOCommand({
+            date: values[INPUT_IDS.DATE],
+            time: values[INPUT_IDS.TIME],
+            timePeriod: values[INPUT_IDS.TIME_PERIOD],
+            durationAmount: values[INPUT_IDS.DURATION_AMOUNT],
+            durationUnit: values[INPUT_IDS.DURATION_UNIT],
+            reason: values[INPUT_IDS.REASON],
+            workingPercentage: values[INPUT_IDS.WORKING_PERCENTAGE],
+        });
 
-            addComment({
-                report,
-                notifyReportID: reportID,
-                ancestors,
-                text: commandText,
-                timezoneParam: timezoneParam ?? CONST.DEFAULT_TIME_ZONE,
-                currentUserAccountID,
-                shouldPlaySound: false,
-                isInSidePanel,
-            });
+        addComment({
+            report,
+            notifyReportID: reportID,
+            ancestors,
+            text: commandText,
+            timezoneParam: timezoneParam ?? CONST.DEFAULT_TIME_ZONE,
+            currentUserAccountID,
+            shouldPlaySound: false,
+            isInSidePanel,
+        });
 
-            Navigation.goBack();
-        },
-        [report, reportID, ancestors, timezoneParam, currentUserAccountID, isInSidePanel],
-    );
+        Navigation.goBack();
+    };
 
     return (
         <ScreenWrapper
