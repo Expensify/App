@@ -41,8 +41,8 @@ function useBottomDockedDismissAccessibility({
     const isWeb = platform === CONST.PLATFORM.WEB;
     const isAndroid = platform === CONST.PLATFORM.ANDROID;
     const isIOS = platform === CONST.PLATFORM.IOS;
-    // Native iOS can announce dismiss before the first item unless it stays hidden until focus lands.
-    const shouldDeferDismissButtonAccessibility = isIOS;
+    // Active iOS bottom-docked popovers can announce dismiss before the first item unless it stays hidden until focus lands.
+    const shouldDeferDismissButtonAccessibility = isIOS && shouldActivate;
     const firstItemRef = useRef<RNView>(null);
     const isVisibleRef = useRef(isVisible);
     const hasFocusedFirstItemOnCurrentOpenRef = useRef(false);
