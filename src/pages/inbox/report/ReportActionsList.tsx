@@ -157,9 +157,7 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
         updateLoadingInitialReportAction(report?.reportID ?? reportID);
     }, [isOffline, report?.reportID, reportID, linkedReportActionID]);
 
-    // ═══════════════════════════════════════════════════════
-    // ═══ renderItem passthrough hooks (tech debt) ═══
-    // ═══════════════════════════════════════════════════════
+    // ─── START renderItem deps (can't be inside renderItem yet before list-item-level useOnyx is allowed — hooks must be at top level) ───
     const personalDetailsList = usePersonalDetails();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -172,11 +170,7 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
-    // ═══════════════════════════════════════════════════════
-    // ═══ end renderItem passthrough ═══
-    // ═══════════════════════════════════════════════════════
 
-    // ─── Derived values for renderItem ───
     const shouldHideThreadDividerLine = getFirstVisibleReportActionID(pagination.reportActions, isOffline) === unreadMarkerReportActionID;
     const firstVisibleReportActionID = getFirstVisibleReportActionID(pagination.reportActions, isOffline);
 
@@ -195,6 +189,7 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
 
     const hideComposer = !canUserPerformWriteAction(report, isReportArchived);
     const shouldShowReportRecipientLocalTime = canShowReportRecipientLocalTime(personalDetailsList, report, currentUserAccountID);
+    // ─── END renderItem deps ───
 
     // ─── initialNumToRender ───
     const minimumReportActionHeight = styles.chatItem.paddingTop + styles.chatItem.paddingBottom + variables.fontSizeNormalHeight;
@@ -210,7 +205,6 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
         initialNumToRender = numToRender || undefined;
     }
 
-    // ─── Skeletons ───
     const isLoadingInitialReportActions = reportMetadata?.isLoadingInitialReportActions;
     const isMissingReportActions = sortedVisibleReportActions.length === 0;
 
@@ -232,7 +226,6 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
         return <ReportActionsSkeletonView shouldAnimate={false} />;
     }
 
-    // ─── Fullstory ───
     const reportActionsListFSClass = FS.getChatFSClass(report);
     const topReportAction = sortedVisibleReportActions.at(-1);
 
