@@ -230,6 +230,7 @@ describe('reusablePoliciesConnectedToQBDSelector', () => {
 
     it('keeps workspaces with a past error when their QBD sync is currently in progress', () => {
         const currentPolicyID = '1';
+        const retryingPolicyID = '2';
         const policies: OnyxCollection<Policy> = {
             policy1: buildSelectorPolicy(1, {name: 'Current Workspace', role: CONST.POLICY.ROLE.ADMIN}),
             policy2: buildSelectorPolicy(2, {
@@ -247,7 +248,7 @@ describe('reusablePoliciesConnectedToQBDSelector', () => {
             }),
         };
         const connectionSyncProgressCollection = buildConnectionSyncProgressCollection({
-            '2': {
+            [retryingPolicyID]: {
                 connectionName: CONST.POLICY.CONNECTIONS.NAME.QBD,
                 stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.STARTING_IMPORT_QBD,
                 timestamp: new Date().toISOString(),
