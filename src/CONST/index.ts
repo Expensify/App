@@ -3671,6 +3671,7 @@ const CONST = {
             GAMBLING: 'gambling',
             TOBACCO: 'tobacco',
             ADULT_ENTERTAINMENT: 'adultEntertainment',
+            GIFT_CARD: 'giftCard',
         },
         RECEIPT_PARTNERS: {
             NAME: {UBER: 'uber'},
