@@ -53,6 +53,18 @@ import type {
     TextColorStyle,
 } from './types';
 
+type GetReportTableColumnStylesParams = {
+    isDateColumnWide?: boolean;
+    isAmountColumnWide?: boolean;
+    isTaxAmountColumnWide?: boolean;
+    isSubmittedColumnWide?: boolean;
+    isApprovedColumnWide?: boolean;
+    isPostedColumnWide?: boolean;
+    isExportedColumnWide?: boolean;
+    shouldRemoveTotalColumnFlex?: boolean;
+    isWithdrawnColumnWide?: boolean;
+};
+
 const workspaceColorOptions: SVGAvatarColorStyle[] = LETTER_AVATAR_COLOR_OPTIONS.map(({backgroundColor, fillColor}) => ({backgroundColor, fill: fillColor}));
 
 const DEFAULT_WORKSPACE_COLOR = {backgroundColor: colors.blue400, fill: colors.blue700};
@@ -1819,18 +1831,19 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
 
     getSearchTableHighlightBorderRadius: (isLargeScreenWidth: boolean): number => (isLargeScreenWidth ? 0 : variables.componentBorderRadius),
 
-    getReportTableColumnStyles: (
-        columnName: string,
-        isDateColumnWide = false,
-        isAmountColumnWide = false,
-        isTaxAmountColumnWide = false,
-        isSubmittedColumnWide = false,
-        isApprovedColumnWide = false,
-        isPostedColumnWide = false,
-        isExportedColumnWide = false,
-        shouldRemoveTotalColumnFlex = false,
-        isWithdrawnColumnWide = false,
-    ): ViewStyle => {
+    getReportTableColumnStyles: (columnName: string, options: GetReportTableColumnStylesParams = {}): ViewStyle => {
+        const {
+            isSubmittedColumnWide,
+            isApprovedColumnWide,
+            isPostedColumnWide,
+            isExportedColumnWide,
+            isDateColumnWide,
+            isTaxAmountColumnWide,
+            isAmountColumnWide,
+            shouldRemoveTotalColumnFlex,
+            isWithdrawnColumnWide,
+        } = options;
+
         let columnWidth;
         switch (columnName) {
             case CONST.SEARCH.TABLE_COLUMNS.COMMENTS:

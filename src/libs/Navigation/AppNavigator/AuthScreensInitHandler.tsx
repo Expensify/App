@@ -2,6 +2,7 @@ import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {useCallback, useEffect, useRef} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import {useInitialURLActions, useInitialURLState} from '@components/InitialURLContextProvider';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -72,9 +73,9 @@ function AuthScreensInitHandler() {
         [currentUrl, session?.email],
     );
     const [lastWorkspaceNumber] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: lastWorkspaceNumberWithEmailSelector});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const lastUpdateIDAppliedToClientRef = useRef(lastUpdateIDAppliedToClient);
     const isLoadingAppRef = useRef(isLoadingApp);
-
     lastUpdateIDAppliedToClientRef.current = lastUpdateIDAppliedToClient;
     isLoadingAppRef.current = isLoadingApp;
 
@@ -151,7 +152,17 @@ function AuthScreensInitHandler() {
             App.reconnectApp(initialLastUpdateIDAppliedToClient);
         }
 
-        App.setUpPoliciesAndNavigate(session, introSelected, activePolicyID, isSelfTourViewed, betas, hasActiveAdminPolicies, lastWorkspaceNumber, translate);
+        App.setUpPoliciesAndNavigate(
+            session,
+            introSelected,
+            currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
+            activePolicyID,
+            isSelfTourViewed,
+            betas,
+            hasActiveAdminPolicies,
+            lastWorkspaceNumber,
+            translate,
+        );
 
         Download.clearDownloads();
 
