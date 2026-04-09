@@ -154,9 +154,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
                     isReportInSearch={isReportInSearch}
                 />
             )}
-
             <MoneyReportHeaderMoreContent reportID={reportIDProp} />
-
             <HeaderLoadingBar />
         </View>
     );
