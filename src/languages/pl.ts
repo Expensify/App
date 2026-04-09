@@ -7976,6 +7976,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         personalCard: 'Karta osobista',
         companyCard: 'Karta firmowa',
         expensifyCard: 'Karta Expensify',
+        centralInvoicing: 'Centralne fakturowanie',
     },
     distance: {
         addStop: 'Dodaj przystanek',

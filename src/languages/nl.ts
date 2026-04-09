@@ -7987,6 +7987,7 @@ Voeg meer bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         personalCard: 'Persoonlijke kaart',
         companyCard: 'Bedrijfskaart',
         expensifyCard: 'Expensify Kaart',
+        centralInvoicing: 'Gecentraliseerde facturatie',
     },
     distance: {
         addStop: 'Stop toevoegen',

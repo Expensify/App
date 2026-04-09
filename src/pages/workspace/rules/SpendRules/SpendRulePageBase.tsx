@@ -95,7 +95,7 @@ function SpendRulePageBase({policyID, titleKey, testID}: SpendRulePageBaseProps)
                 }
                 const accountID = card.accountID ?? CONST.DEFAULT_NUMBER_ID;
                 const displayName = getDisplayNameOrDefault(personalDetails?.[accountID], '', false);
-                return getCardDescriptionForSearchTable(card, displayName || undefined) || id;
+                return getCardDescriptionForSearchTable(card, displayName || undefined, translate) || id;
             }),
             (summary, count) => translate('workspace.rules.spendRules.summaryMoreCount', {summary, count}),
         );
