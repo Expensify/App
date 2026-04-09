@@ -1,4 +1,4 @@
-import type {OnyxUpdate} from 'react-native-onyx';
+import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {CancelBillingSubscriptionParams, UpdateSubscriptionAddNewUsersAutomaticallyParams, UpdateSubscriptionAutoRenewParams, UpdateSubscriptionTypeParams} from '@libs/API/parameters';
@@ -7,33 +7,61 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import type {FeedbackSurveyOptionID, SubscriptionType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {BillingGraceEndPeriod} from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 /**
  * Fetches data when the user opens the SubscriptionSettingsPage
+ * @param currentGracePeriods - The current billing grace period collection. If provided and non-empty,
+ *                              all entries will be optimistically cleared to handle stale cache when
+ *                              billing was resolved (e.g. owner changed). On failure, previous values are restored.
  */
-function openSubscriptionPage() {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA>> = [
+function openSubscriptionPage(currentGracePeriods?: OnyxCollection<BillingGraceEndPeriod>) {
+    type SubscriptionOnyxKeys = typeof ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA | typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END;
+
+    const optimisticData: Array<OnyxUpdate<SubscriptionOnyxKeys>> = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA,
             value: true,
         },
     ];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA>> = [
+
+    const successData: Array<OnyxUpdate<SubscriptionOnyxKeys>> = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA,
             value: false,
         },
     ];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA>> = [
+
+    const failureData: Array<OnyxUpdate<SubscriptionOnyxKeys>> = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.IS_LOADING_SUBSCRIPTION_DATA,
             value: false,
         },
     ];
+
+    // Clear ALL billing grace period keys optimistically. If the server still has active
+    // grace periods, they will be restored from the response. This clears the entire
+    // collection rather than a single owner's key, so stale entries from previous owners
+    // are also evicted. On failure, previous values are restored.
+    if (currentGracePeriods) {
+        const keys = Object.keys(currentGracePeriods) as Array<`${typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${string}`>;
+        for (const key of keys) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key,
+                value: null,
+            });
+            failureData.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key,
+                value: currentGracePeriods[key] ?? null,
+            });
+        }
+    }
 
     API.read(READ_COMMANDS.OPEN_SUBSCRIPTION_PAGE, null, {optimisticData, successData, failureData});
 }
@@ -317,7 +345,7 @@ function requestTaxExempt() {
     API.write(WRITE_COMMANDS.REQUEST_TAX_EXEMPTION, null);
 }
 
-function applyExpensifyCode(expensifyCode: string) {
+function applyExpensifyCode(promoCode: string) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -332,20 +360,13 @@ function applyExpensifyCode(expensifyCode: string) {
         },
     ];
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM | typeof ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.SUBSCRIPTION_EXPENSIFY_CODE_FORM,
             value: {
                 isLoading: false,
                 expensifyCode: '',
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION,
-            value: {
-                expensifyCode,
             },
         },
     ];
@@ -364,7 +385,7 @@ function applyExpensifyCode(expensifyCode: string) {
     ];
 
     const parameters = {
-        expensifyCode,
+        promoCode,
     };
 
     API.write(WRITE_COMMANDS.SET_PROMO_CODE, parameters, {
