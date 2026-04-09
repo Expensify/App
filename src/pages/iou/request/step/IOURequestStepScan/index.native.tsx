@@ -57,14 +57,12 @@ import type IOURequestStepScanProps from './types';
 function IOURequestStepScan({
     report,
     route: {
+        name: routeName,
         params: {action, iouType, reportID, transactionID: initialTransactionID, backTo, backToReport},
     },
     transaction: initialTransaction,
     currentUserPersonalDetails,
     onLayout,
-    isMultiScanEnabled = false,
-    isStartingScan = false,
-    setIsMultiScanEnabled,
 }: IOURequestStepScanProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -224,6 +222,9 @@ function IOURequestStepScan({
 
     const {
         isEditing,
+        isMultiScanEnabled,
+        setIsMultiScanEnabled,
+        isStartingScan,
         shouldAcceptMultipleFiles,
         shouldSkipConfirmation,
         startLocationPermissionFlow,
@@ -245,8 +246,7 @@ function IOURequestStepScan({
         currentUserPersonalDetails,
         backTo,
         backToReport,
-        isMultiScanEnabled,
-        isStartingScan,
+        routeName,
         updateScanAndNavigate,
         getSource,
     });
@@ -262,6 +262,7 @@ function IOURequestStepScan({
             shouldSkipConfirmation,
             setStartLocationPermissionFlow,
             setIsMultiScanEnabled,
+            setReceiptFiles,
         });
 
     const maybeCancelShutterSpan = useCallback(() => {
