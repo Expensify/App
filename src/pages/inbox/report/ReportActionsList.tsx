@@ -191,8 +191,8 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
     const isTryNewDotNVPDismissed = !!tryNewDot?.classicRedirect?.dismissed;
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`);
 
-    const shouldHideThreadDividerLine = getFirstVisibleReportActionID(pagination.reportActions, isOffline) === unreadMarkerReportActionID;
     const firstVisibleReportActionID = getFirstVisibleReportActionID(pagination.reportActions, isOffline);
+    const shouldHideThreadDividerLine = firstVisibleReportActionID === unreadMarkerReportActionID;
 
     let shouldUseThreadDividerLine = false;
     const topReport = sortedVisibleReportActions.length > 0 ? sortedVisibleReportActions.at(sortedVisibleReportActions.length - 1) : null;
