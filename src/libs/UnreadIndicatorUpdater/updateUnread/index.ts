@@ -6,6 +6,7 @@ import type UpdateUnread from './types';
 
 let unreadTotalCount = 0;
 let currentPageTitle = '';
+let shouldShowBranchNameInTitle = false;
 
 /**
  * Set the current page-specific title (called by useDocumentTitle hook)
@@ -31,7 +32,8 @@ function updateDocumentTitle() {
 
         // Use page-specific title if available, otherwise use the default SITE_TITLE
         const baseTitle = currentPageTitle || CONFIG.SITE_TITLE;
-        document.title = hasUnread ? `(${unreadTotalCount}) ${baseTitle}` : baseTitle;
+        const titleWithUnread = hasUnread ? `(${unreadTotalCount}) ${baseTitle}` : baseTitle;
+        document.title = shouldShowBranchNameInTitle && __GIT_BRANCH__ ? `[${__GIT_BRANCH__}] ${titleWithUnread}` : titleWithUnread;
 
         const favicon = document.getElementById('favicon');
         if (favicon instanceof HTMLLinkElement) {
@@ -52,5 +54,10 @@ window.addEventListener('popstate', () => {
     updateUnread(unreadTotalCount);
 });
 
+function setShouldShowBranchNameInTitle(value: boolean) {
+    shouldShowBranchNameInTitle = value;
+    updateDocumentTitle();
+}
+
 export default updateUnread;
-export {setPageTitle};
+export {setPageTitle, setShouldShowBranchNameInTitle};

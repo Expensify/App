@@ -1372,6 +1372,10 @@ function setIsDebugModeEnabled(isDebugModeEnabled: boolean) {
     Onyx.set(ONYXKEYS.IS_DEBUG_MODE_ENABLED, isDebugModeEnabled);
 }
 
+function setShouldShowBranchNameInTitle(value: boolean) {
+    Onyx.set(ONYXKEYS.SHOULD_SHOW_BRANCH_NAME_IN_TITLE, value);
+}
+
 function lockAccount(accountID?: number, domainAccountID?: number, domainName?: string) {
     let domainOptimisticData: DomainOnyxUpdate[] = [];
     let domainFailureData: DomainOnyxUpdate[] = [];
@@ -1914,6 +1918,7 @@ export {
     requestValidateCodeAction,
     clearValidateCodeActionError,
     setIsDebugModeEnabled,
+    setShouldShowBranchNameInTitle,
     resetValidateActionCodeSent,
     lockAccount,
     requestUnlockAccount,

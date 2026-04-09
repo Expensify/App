@@ -1,4 +1,5 @@
 import {sentryWebpackPlugin} from '@sentry/webpack-plugin';
+import {execSync} from 'child_process';
 import {CleanWebpackPlugin} from 'clean-webpack-plugin';
 import CopyPlugin from 'copy-webpack-plugin';
 import dotenv from 'dotenv';
@@ -28,6 +29,14 @@ const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
 
 dotenv.config();
+
+const localBranchName = (() => {
+    try {
+        return execSync('git rev-parse --abbrev-ref HEAD', {encoding: 'utf-8'}).trim();
+    } catch {
+        return '';
+    }
+})();
 
 type Options = {
     rel: string;
@@ -202,6 +211,9 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 // react-native-render-html uses variable to log exclusively during development.
                 // See https://reactnative.dev/docs/javascript-environment
                 __DEV__: /staging|prod|adhoc/.test(file) === false,
+                // Expose the current git branch so the debug menu can display it in the browser tab title.
+                // Empty string in non-development builds.
+                __GIT_BRANCH__: JSON.stringify(isDevelopment ? localBranchName : ''),
             }),
             ...(isDevelopment ? [] : [new MiniCssExtractPlugin()]),
 
