@@ -132,9 +132,14 @@ const adminPoliciesConnectedToSageIntacctSelector = (policies: OnyxCollection<Po
 const adminPoliciesConnectedToNetSuiteSelector = (policies: OnyxCollection<Policy>) =>
     Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && policy.role === CONST.POLICY.ROLE.ADMIN && !!policy?.connections?.netsuite);
 
+const adminPoliciesConnectedToQBDSelector = (policies: OnyxCollection<Policy>) =>
+    Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => !!policy && policy.role === CONST.POLICY.ROLE.ADMIN && !!policy?.connections?.quickbooksDesktop);
+
 const hasPoliciesConnectedToSageIntacctSelector = (policies: OnyxCollection<Policy>) => !!adminPoliciesConnectedToSageIntacctSelector(policies).length;
 
 const hasPoliciesConnectedToNetSuiteSelector = (policies: OnyxCollection<Policy>) => !!adminPoliciesConnectedToNetSuiteSelector(policies).length;
+
+const hasPoliciesConnectedToQBDSelector = (policies: OnyxCollection<Policy>) => !!adminPoliciesConnectedToQBDSelector(policies).length;
 
 // Locales are loaded on demand. Instead of getting each workspace translation using `translate`, we hardcoded it here.
 // en|es|fr|it|ja|nl|pl|pt-BR|zh-hans
@@ -178,7 +183,9 @@ export {
     shouldRedirectToExpensifyClassicSelector,
     adminPoliciesConnectedToSageIntacctSelector,
     adminPoliciesConnectedToNetSuiteSelector,
+    adminPoliciesConnectedToQBDSelector,
     hasPoliciesConnectedToSageIntacctSelector,
     hasPoliciesConnectedToNetSuiteSelector,
+    hasPoliciesConnectedToQBDSelector,
     lastWorkspaceNumberSelector,
 };
