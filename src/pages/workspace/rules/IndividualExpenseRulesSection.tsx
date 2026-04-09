@@ -12,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getCashExpenseReimbursableMode, setPolicyAttendeeTrackingEnabled, setPolicyRequireCompanyCardsEnabled, setWorkspaceEReceiptsEnabled} from '@libs/actions/Policy/Policy';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import type {ThemeStyles} from '@styles/index';
 import CONST from '@src/CONST';
@@ -75,9 +76,9 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
 
     const handleAttendeeTrackingToggle = useCallback(
         (newValue: boolean) => {
-            setPolicyAttendeeTrackingEnabled(policyID, newValue);
+            setPolicyAttendeeTrackingEnabled(policyID, newValue, policy?.isAttendeeTrackingEnabled);
         },
-        [policyID],
+        [policyID, policy?.isAttendeeTrackingEnabled],
     );
 
     const maxExpenseAmountNoReceiptText = useMemo(() => {
@@ -197,9 +198,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
     const requireCompanyCardsEnabled = policy?.requireCompanyCardsEnabled ?? false;
     const disableRequireCompanyCardToggle = !policy?.areCompanyCardsEnabled && !policy?.areExpensifyCardsEnabled;
 
-    // For backwards compatibility with Expensify Classic, we assume that Attendee Tracking is enabled by default on
-    // Control policies if the policy does not contain the attribute
-    const isAttendeeTrackingEnabled = policy?.isAttendeeTrackingEnabled ?? false;
+    const isAttendeeTrackingEnabledForPolicy = isAttendeeTrackingEnabled(policy);
 
     return (
         <Section
@@ -258,7 +257,7 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
                     subtitleStyle={styles.pt1}
                     isActive={areEReceiptsEnabled}
                     disabled={policyCurrency !== CONST.CURRENCY.USD}
-                    onToggle={() => setWorkspaceEReceiptsEnabled(policyID, !areEReceiptsEnabled)}
+                    onToggle={() => setWorkspaceEReceiptsEnabled(policyID, !areEReceiptsEnabled, policy?.eReceipts)}
                     pendingAction={policy?.pendingFields?.eReceipts}
                 />
                 <ToggleSettingOptionRow
@@ -269,8 +268,8 @@ function IndividualExpenseRulesSection({policyID}: IndividualExpenseRulesSection
                     shouldPlaceSubtitleBelowSwitch
                     titleStyle={styles.pv2}
                     subtitleStyle={styles.pt1}
-                    isActive={isAttendeeTrackingEnabled}
-                    onToggle={() => handleAttendeeTrackingToggle(!isAttendeeTrackingEnabled)}
+                    isActive={isAttendeeTrackingEnabledForPolicy}
+                    onToggle={() => handleAttendeeTrackingToggle(!isAttendeeTrackingEnabledForPolicy)}
                     pendingAction={policy?.pendingFields?.isAttendeeTrackingEnabled}
                 />
             </View>

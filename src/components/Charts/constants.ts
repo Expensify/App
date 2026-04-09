@@ -1,3 +1,6 @@
+/** Font families used by all chart label components (Paragraph API multi-font fallback). */
+const CHART_FONT_FAMILIES = ['ExpensifyNeue', 'NotoSansSymbols'];
+
 /** Number of Y-axis ticks (including zero) */
 const Y_AXIS_TICK_COUNT = 5;
 
@@ -41,7 +44,18 @@ const DIAGONAL_ANGLE_RADIAN_THRESHOLD = 1;
 
 const PIE_CHART_TOOLTIP_RADIUS_DISTANCE = 2 / 3;
 
+// Maximum width for Y-axis labels in pixels
+const MAX_Y_AXIS_LABEL_WIDTH = 200;
+
+// Maximum width for X-axis labels in pixels
+const MAX_X_AXIS_LABEL_WIDTH = 500;
+
+// Small extra padding so complex glyphs (e.g. Arabic) are not clipped.
+// getLongestLine() can slightly under-report the visual extent of the last glyph.
+const GLYPH_PADDING = 4;
+
 export {
+    CHART_FONT_FAMILIES,
     Y_AXIS_TICK_COUNT,
     AXIS_LABEL_GAP,
     CHART_PADDING,
@@ -56,4 +70,7 @@ export {
     MIN_TRUNCATED_CHARS,
     DIAGONAL_ANGLE_RADIAN_THRESHOLD,
     PIE_CHART_TOOLTIP_RADIUS_DISTANCE,
+    MAX_X_AXIS_LABEL_WIDTH,
+    MAX_Y_AXIS_LABEL_WIDTH,
+    GLYPH_PADDING,
 };

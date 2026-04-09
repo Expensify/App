@@ -25,6 +25,7 @@ import {
     parse,
     set,
     startOfDay,
+    startOfMonth,
     startOfWeek,
     subDays,
     subMilliseconds,
@@ -302,6 +303,32 @@ function getMonthNames(): string[] {
     });
 
     return monthsArray.map((monthDate) => format(monthDate, CONST.DATE.MONTH_FORMAT));
+}
+
+/**
+ * Filters month names by min/max date boundaries and returns list items for SelectionList.
+ */
+function getFilteredMonthItems(monthNames: string[], currentYear: number, currentMonth: number, minDate?: Date, maxDate?: Date) {
+    const minMonthStart = minDate ? startOfMonth(new Date(minDate)) : undefined;
+    const maxMonthEnd = maxDate ? endOfMonth(new Date(maxDate)) : undefined;
+
+    return monthNames
+        .map((month, index) => {
+            const monthStart = startOfMonth(new Date(currentYear, index));
+            const monthEnd = endOfMonth(new Date(currentYear, index));
+            const isBeforeMin = minMonthStart ? monthEnd < minMonthStart : false;
+            const isAfterMax = maxMonthEnd ? monthStart > maxMonthEnd : false;
+            if (isBeforeMin || isAfterMax) {
+                return null;
+            }
+            return {
+                text: month.charAt(0).toUpperCase() + month.slice(1),
+                value: index,
+                keyForList: index.toString(),
+                isSelected: index === currentMonth,
+            };
+        })
+        .filter((item): item is NonNullable<typeof item> => item !== null);
 }
 
 /**
@@ -1017,13 +1044,16 @@ function isDateStringInMonth(dateString: string, year: number, month: number): b
 /**
  * Returns a formatted date range.
  */
-function getFormattedDateRangeForSearch(startDate: string, endDate: string): string {
+function getFormattedDateRangeForSearch(startDate: string, endDate: string, shouldShowFullYear = false, shouldOmitCurrentYear = false): string {
     const start = parse(startDate, 'yyyy-MM-dd', new Date());
     const end = parse(endDate, 'yyyy-MM-dd', new Date());
-    if (isSameYear(new Date(start), new Date(end))) {
-        return `${format(start, 'MMM d')} - ${format(end, 'MMM d, yyyy')}`;
+    if (shouldShowFullYear || !isSameYear(new Date(start), new Date(end))) {
+        return `${format(start, 'MMM d, yyyy')} - ${format(end, 'MMM d, yyyy')}`;
     }
-    return `${format(start, 'MMM d, yyyy')} - ${format(end, 'MMM d, yyyy')}`;
+    if (shouldOmitCurrentYear && isThisYear(start) && isThisYear(end)) {
+        return `${format(start, 'MMM d')} - ${format(end, 'MMM d')}`;
+    }
+    return `${format(start, 'MMM d')} - ${format(end, 'MMM d, yyyy')}`;
 }
 
 function getYearDateRange(year: number): {start: string; end: string} {
@@ -1090,6 +1120,7 @@ const DateUtils = {
     isTomorrow,
     isYesterday,
     getMonthNames,
+    getFilteredMonthItems,
     getDaysOfWeek,
     formatWithUTCTimeZone,
     getWeekEndsOn,
