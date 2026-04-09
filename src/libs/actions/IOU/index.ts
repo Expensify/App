@@ -18,14 +18,12 @@ import type {
     AssignReportToMeParams,
     CreateDistanceRequestParams,
     DeleteMoneyRequestParams,
-    DetachReceiptParams,
     MarkTransactionViolationAsResolvedParams,
     PayInvoiceParams,
     PayMoneyRequestParams,
     RejectExpenseReportParams,
     RejectMoneyRequestParams,
     ReopenReportParams,
-    ReplaceReceiptParams,
     RetractReportParams,
     SetNameValuePairParams,
     SubmitReportParams,
@@ -38,11 +36,11 @@ import DateUtils from '@libs/DateUtils';
 import {registerDeferredWrite} from '@libs/deferredLayoutWrite';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
-import {isLocalFile, readFileAsync} from '@libs/fileDownload/FileUtils';
+import {isLocalFile} from '@libs/fileDownload/FileUtils';
 import type {MinimalTransaction} from '@libs/Formula';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {getGPSRoutes, getGPSWaypoints} from '@libs/GPSDraftDetailsUtils';
-import {calculateAmount as calculateIOUAmount, formatCurrentUserToAttendee, navigateToStartMoneyRequestStep, updateIOUOwnerAndTotal} from '@libs/IOUUtils';
+import {calculateAmount as calculateIOUAmount, formatCurrentUserToAttendee, updateIOUOwnerAndTotal} from '@libs/IOUUtils';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
@@ -97,7 +95,6 @@ import {
     buildOptimisticChatReport,
     buildOptimisticCreatedReportAction,
     buildOptimisticCreatedReportForUnapprovedAction,
-    buildOptimisticDetachReceipt,
     buildOptimisticExpenseReport,
     buildOptimisticIOUReport,
     buildOptimisticIOUReportAction,
@@ -165,7 +162,6 @@ import {
     isSelfDM,
     isSettled,
     isTestTransactionReport,
-    isTrackExpenseReport,
     populateOptimisticReportFormula,
     shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,
     shouldEnableNegative,
@@ -187,7 +183,6 @@ import {
     getClearedPendingFields,
     getCurrency,
     getDistanceInMeters,
-    getMerchant,
     getTaxValue,
     getUpdatedTransaction,
     hasAnyTransactionWithoutRTERViolation,
@@ -216,12 +211,11 @@ import {buildPolicyData, generatePolicyID} from '@userActions/Policy/Policy';
 import type {BuildPolicyDataKeys} from '@userActions/Policy/Policy';
 import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
 import {completeOnboarding, createTransactionThreadReport, notifyNewAction, optimisticReportLastData} from '@userActions/Report';
-import {resolveDetachReceiptConflicts} from '@userActions/RequestConflictUtils';
 import {mergeTransactionIdsHighlightOnSearchRoute, sanitizeWaypointsForAPI, stringifyWaypointsForAPI} from '@userActions/Transaction';
 import {getRemoveDraftTransactionsByIDsData, removeDraftTransaction, removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
 import type {OnboardingCompanySize} from '@userActions/Welcome/OnboardingFlow';
-import type {IOUAction, IOUActionParams, IOUType, OdometerImageType} from '@src/CONST';
+import type {IOUAction, IOUActionParams, OdometerImageType} from '@src/CONST';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -239,7 +233,7 @@ import type {ReportNextStep} from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
-import type {Comment, Receipt, ReceiptSource, Routes, SplitShares, TransactionChanges, TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
+import type {Comment, Receipt, ReceiptSource, SplitShares, TransactionChanges, TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type BasePolicyParams from './types/BasePolicyParams';
@@ -666,6 +660,7 @@ type ApproveMoneyRequestFunctionParams = {
     full?: boolean;
     onApproved?: () => void;
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
+    delegateEmail: string | undefined;
 };
 
 type SubmitReportFunctionParams = {
@@ -1359,13 +1354,6 @@ function setMoneyRequestParticipants(transactionID: string, participants: Partic
 
 function setMoneyRequestReportID(transactionID: string, reportID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {reportID});
-}
-
-function setMoneyRequestReceipt(transactionID: string, source: string, filename: string, isDraft: boolean, type?: string, isTestReceipt = false, isTestDriveReceipt = false) {
-    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
-        // isTestReceipt = false and isTestDriveReceipt = false are being converted to null because we don't really need to store it in Onyx in those cases
-        receipt: {source, filename, type: type ?? '', isTestReceipt: isTestReceipt ? true : null, isTestDriveReceipt: isTestDriveReceipt ? true : null},
-    });
 }
 
 /**
@@ -3689,713 +3677,6 @@ function getUpdateTrackExpenseParams(
     };
 }
 
-type UpdateMoneyRequestDateParams = {
-    transactionID: string;
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
-    parentReport: OnyxEntry<OnyxTypes.Report>;
-    transactions: OnyxCollection<OnyxTypes.Transaction>;
-    transactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
-    value: string;
-    policy: OnyxEntry<OnyxTypes.Policy>;
-    policyTags: OnyxEntry<OnyxTypes.PolicyTagLists>;
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
-    currentUserAccountIDParam: number;
-    currentUserEmailParam: string;
-    isASAPSubmitBetaEnabled: boolean;
-    parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
-};
-
-/** Updates the created date of an expense */
-function updateMoneyRequestDate({
-    transactionID,
-    transactionThreadReport,
-    parentReport,
-    transactions,
-    transactionViolations,
-    value,
-    policy,
-    policyTags,
-    policyCategories,
-    currentUserAccountIDParam,
-    currentUserEmailParam,
-    isASAPSubmitBetaEnabled,
-    parentReportNextStep,
-}: UpdateMoneyRequestDateParams) {
-    const transactionChanges: TransactionChanges = {
-        created: value,
-    };
-    let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
-        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy);
-    } else {
-        data = getUpdateMoneyRequestParams({
-            transactionID,
-            transactionThreadReport,
-            iouReport: parentReport,
-            transactionChanges,
-            policy,
-            policyTagList: policyTags,
-            policyCategories,
-            currentUserAccountIDParam,
-            currentUserEmailParam,
-            isASAPSubmitBetaEnabled,
-            iouReportNextStep: parentReportNextStep,
-        });
-        removeTransactionFromDuplicateTransactionViolation(data.onyxData, transactionID, transactions, transactionViolations);
-    }
-    const {params, onyxData} = data;
-    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DATE, params, onyxData);
-}
-
-/** Updates the billable field of an expense */
-function updateMoneyRequestBillable({
-    transactionID,
-    transactionThreadReport,
-    parentReport,
-    value,
-    policy,
-    policyTagList,
-    policyCategories,
-    currentUserAccountIDParam,
-    currentUserEmailParam,
-    isASAPSubmitBetaEnabled,
-    parentReportNextStep,
-}: {
-    transactionID: string | undefined;
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
-    parentReport: OnyxEntry<OnyxTypes.Report>;
-    value: boolean;
-    policy: OnyxEntry<OnyxTypes.Policy>;
-    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
-    currentUserAccountIDParam: number;
-    currentUserEmailParam: string;
-    isASAPSubmitBetaEnabled: boolean;
-    parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
-}) {
-    if (!transactionID || !transactionThreadReport?.reportID) {
-        return;
-    }
-    const transactionChanges: TransactionChanges = {
-        billable: value,
-    };
-    const {params, onyxData} = getUpdateMoneyRequestParams({
-        transactionID,
-        transactionThreadReport,
-        iouReport: parentReport,
-        transactionChanges,
-        policy,
-        policyTagList,
-        policyCategories,
-        currentUserAccountIDParam,
-        currentUserEmailParam,
-        isASAPSubmitBetaEnabled,
-        iouReportNextStep: parentReportNextStep,
-    });
-    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_BILLABLE, params, onyxData);
-}
-
-function updateMoneyRequestReimbursable({
-    transactionID,
-    transactionThreadReport,
-    parentReport,
-    value,
-    policy,
-    policyTagList,
-    policyCategories,
-    currentUserAccountIDParam,
-    currentUserEmailParam,
-    isASAPSubmitBetaEnabled,
-    parentReportNextStep,
-}: {
-    transactionID: string | undefined;
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
-    parentReport: OnyxEntry<OnyxTypes.Report>;
-    value: boolean;
-    policy: OnyxEntry<OnyxTypes.Policy>;
-    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
-    currentUserAccountIDParam: number;
-    currentUserEmailParam: string;
-    isASAPSubmitBetaEnabled: boolean;
-    parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
-}) {
-    if (!transactionID || !transactionThreadReport?.reportID) {
-        return;
-    }
-    const transactionChanges: TransactionChanges = {
-        reimbursable: value,
-    };
-    const {params, onyxData} = getUpdateMoneyRequestParams({
-        transactionID,
-        transactionThreadReport,
-        iouReport: parentReport,
-        transactionChanges,
-        policy,
-        policyTagList,
-        policyCategories,
-        currentUserAccountIDParam,
-        currentUserEmailParam,
-        isASAPSubmitBetaEnabled,
-        iouReportNextStep: parentReportNextStep,
-    });
-    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_REIMBURSABLE, params, onyxData);
-}
-
-/** Updates the merchant field of an expense */
-function updateMoneyRequestMerchant({
-    transactionID,
-    transactionThreadReport,
-    parentReport,
-    value,
-    policy,
-    policyTagList,
-    policyCategories,
-    currentUserAccountIDParam,
-    currentUserEmailParam,
-    isASAPSubmitBetaEnabled,
-    parentReportNextStep,
-}: {
-    transactionID: string;
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
-    parentReport: OnyxEntry<OnyxTypes.Report>;
-    value: string;
-    policy: OnyxEntry<OnyxTypes.Policy>;
-    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
-    currentUserAccountIDParam: number;
-    currentUserEmailParam: string;
-    isASAPSubmitBetaEnabled: boolean;
-    parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
-}) {
-    const transactionChanges: TransactionChanges = {
-        merchant: value,
-    };
-    let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
-        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy);
-    } else {
-        data = getUpdateMoneyRequestParams({
-            transactionID,
-            transactionThreadReport,
-            iouReport: parentReport,
-            transactionChanges,
-            policy,
-            policyTagList,
-            policyCategories,
-            currentUserAccountIDParam,
-            currentUserEmailParam,
-            isASAPSubmitBetaEnabled,
-            iouReportNextStep: parentReportNextStep,
-        });
-    }
-    const {params, onyxData} = data;
-    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_MERCHANT, params, onyxData);
-}
-
-/** Updates the attendees list of an expense */
-function updateMoneyRequestAttendees({
-    transactionID,
-    transactionThreadReport,
-    parentReport,
-    attendees,
-    policy,
-    policyTagList,
-    policyCategories,
-    violations,
-    currentUserAccountIDParam,
-    currentUserEmailParam,
-    isASAPSubmitBetaEnabled,
-    parentReportNextStep,
-}: {
-    transactionID: string;
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
-    parentReport: OnyxEntry<OnyxTypes.Report>;
-    attendees: Attendee[];
-    policy: OnyxEntry<OnyxTypes.Policy>;
-    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
-    violations: OnyxEntry<OnyxTypes.TransactionViolations> | undefined;
-    currentUserAccountIDParam: number;
-    currentUserEmailParam: string;
-    isASAPSubmitBetaEnabled: boolean;
-    parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
-}) {
-    const transactionChanges: TransactionChanges = {
-        attendees,
-    };
-    const data = getUpdateMoneyRequestParams({
-        transactionID,
-        transactionThreadReport,
-        iouReport: parentReport,
-        transactionChanges,
-        policy,
-        policyTagList,
-        policyCategories,
-        violations,
-        currentUserAccountIDParam,
-        currentUserEmailParam,
-        isASAPSubmitBetaEnabled,
-        iouReportNextStep: parentReportNextStep,
-    });
-    const {params, onyxData} = data;
-    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_ATTENDEES, params, onyxData);
-}
-
-type UpdateMoneyRequestTagParams = {
-    transactionID: string;
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
-    parentReport: OnyxEntry<OnyxTypes.Report>;
-    tag: string;
-    policy: OnyxEntry<OnyxTypes.Policy>;
-    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
-    policyRecentlyUsedTags: OnyxEntry<RecentlyUsedTags>;
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
-    currentUserAccountIDParam: number;
-    currentUserEmailParam: string;
-    isASAPSubmitBetaEnabled: boolean;
-    hash?: number;
-    parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
-};
-
-/** Updates the tag of an expense */
-function updateMoneyRequestTag({
-    transactionID,
-    transactionThreadReport,
-    parentReport,
-    tag,
-    policy,
-    policyTagList,
-    policyRecentlyUsedTags,
-    policyCategories,
-    currentUserAccountIDParam,
-    currentUserEmailParam,
-    isASAPSubmitBetaEnabled,
-    hash,
-    parentReportNextStep,
-}: UpdateMoneyRequestTagParams) {
-    const transactionChanges: TransactionChanges = {
-        tag,
-    };
-    const {params, onyxData} = getUpdateMoneyRequestParams({
-        transactionID,
-        transactionThreadReport,
-        iouReport: parentReport,
-        transactionChanges,
-        policy,
-        policyTagList,
-        policyRecentlyUsedTags,
-        policyCategories,
-        hash,
-        currentUserAccountIDParam,
-        currentUserEmailParam,
-        isASAPSubmitBetaEnabled,
-        iouReportNextStep: parentReportNextStep,
-    });
-    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAG, params, onyxData);
-}
-
-/** Updates the created tax amount of an expense */
-function updateMoneyRequestTaxAmount({
-    transactionID,
-    transactionThreadReport,
-    parentReport,
-    taxAmount,
-    policy,
-    policyTagList,
-    policyCategories,
-    currentUserAccountIDParam,
-    currentUserEmailParam,
-    isASAPSubmitBetaEnabled,
-    parentReportNextStep,
-}: {
-    transactionID: string;
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
-    parentReport: OnyxEntry<OnyxTypes.Report>;
-    taxAmount: number;
-    policy: OnyxEntry<OnyxTypes.Policy>;
-    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
-    currentUserAccountIDParam: number;
-    currentUserEmailParam: string;
-    isASAPSubmitBetaEnabled: boolean;
-    parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
-}) {
-    const transactionChanges = {
-        taxAmount,
-    };
-    const {params, onyxData} = getUpdateMoneyRequestParams({
-        transactionID,
-        transactionThreadReport,
-        iouReport: parentReport,
-        transactionChanges,
-        policy,
-        policyTagList,
-        policyCategories,
-        currentUserAccountIDParam,
-        currentUserEmailParam,
-        isASAPSubmitBetaEnabled,
-        iouReportNextStep: parentReportNextStep,
-    });
-    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAX_AMOUNT, params, onyxData);
-}
-
-type UpdateMoneyRequestTaxRateParams = {
-    transactionID: string | undefined;
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
-    parentReport: OnyxEntry<OnyxTypes.Report>;
-    taxCode: string;
-    taxAmount: number;
-    taxValue: string;
-    policy: OnyxEntry<OnyxTypes.Policy>;
-    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
-    currentUserAccountIDParam: number;
-    currentUserEmailParam: string;
-    isASAPSubmitBetaEnabled: boolean;
-    parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
-};
-
-/** Updates the created tax rate of an expense */
-function updateMoneyRequestTaxRate({
-    transactionID,
-    transactionThreadReport,
-    parentReport,
-    taxCode,
-    taxAmount,
-    taxValue,
-    policy,
-    policyTagList,
-    policyCategories,
-    currentUserAccountIDParam,
-    currentUserEmailParam,
-    isASAPSubmitBetaEnabled,
-    parentReportNextStep,
-}: UpdateMoneyRequestTaxRateParams) {
-    const transactionChanges = {
-        taxCode,
-        taxAmount,
-        taxValue,
-    };
-    const {params, onyxData} = getUpdateMoneyRequestParams({
-        transactionID,
-        transactionThreadReport,
-        iouReport: parentReport,
-        transactionChanges,
-        policy,
-        policyTagList,
-        policyCategories,
-        currentUserAccountIDParam,
-        currentUserEmailParam,
-        isASAPSubmitBetaEnabled,
-        iouReportNextStep: parentReportNextStep,
-    });
-
-    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAX_RATE, params, onyxData);
-}
-
-type UpdateMoneyRequestDistanceParams = {
-    transaction: OnyxEntry<OnyxTypes.Transaction>;
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
-    parentReport: OnyxEntry<OnyxTypes.Report>;
-    waypoints?: WaypointCollection;
-    recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
-    distance?: number;
-    routes?: Routes;
-    policy: OnyxEntry<OnyxTypes.Policy>;
-    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
-    transactionBackup: OnyxEntry<OnyxTypes.Transaction>;
-    currentUserAccountIDParam: number;
-    currentUserEmailParam: string;
-    isASAPSubmitBetaEnabled: boolean;
-    odometerStart?: number;
-    odometerEnd?: number;
-    parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
-};
-
-/** Updates the waypoints of a distance expense */
-function updateMoneyRequestDistance({
-    transaction,
-    transactionThreadReport,
-    parentReport,
-    waypoints,
-    recentWaypoints = [],
-    distance,
-    routes = undefined,
-    policy,
-    policyTagList,
-    policyCategories,
-    transactionBackup,
-    currentUserAccountIDParam,
-    currentUserEmailParam,
-    isASAPSubmitBetaEnabled,
-    odometerStart,
-    odometerEnd,
-    parentReportNextStep,
-}: UpdateMoneyRequestDistanceParams) {
-    const transactionChanges: TransactionChanges = {
-        // Don't sanitize waypoints here - keep all fields for Onyx optimistic data (e.g., keyForList)
-        // Sanitization happens when building API params
-        ...(waypoints && {waypoints}),
-        routes,
-        ...(distance && {distance}),
-        ...(odometerStart !== undefined && {odometerStart}),
-        ...(odometerEnd !== undefined && {odometerEnd}),
-    };
-    let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys | typeof ONYXKEYS.NVP_RECENT_WAYPOINTS>;
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
-        data = getUpdateTrackExpenseParams(transaction?.transactionID, transactionThreadReport?.reportID, transactionChanges, policy);
-    } else {
-        data = getUpdateMoneyRequestParams({
-            transactionID: transaction?.transactionID,
-            transactionThreadReport,
-            iouReport: parentReport,
-            transactionChanges,
-            policy,
-            policyTagList,
-            policyCategories,
-            currentUserAccountIDParam,
-            currentUserEmailParam,
-            isASAPSubmitBetaEnabled,
-            iouReportNextStep: parentReportNextStep,
-        });
-    }
-    const {params, onyxData} = data;
-
-    if (odometerStart !== undefined) {
-        params.odometerStart = odometerStart;
-    }
-    if (odometerEnd !== undefined) {
-        params.odometerEnd = odometerEnd;
-    }
-
-    if (!distance) {
-        const recentServerValidatedWaypoints = recentWaypoints.filter((item) => !item.pendingAction);
-        onyxData?.failureData?.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.NVP_RECENT_WAYPOINTS}`,
-            value: recentServerValidatedWaypoints,
-        });
-    }
-
-    if (transactionBackup) {
-        // We need to include all keys of the optimisticData's waypoints in the failureData for onyx merge to properly reset
-        // waypoint keys that do not exist in the failureData's waypoints. For instance, if the optimisticData waypoints had
-        // three keys and the failureData waypoint had only 2 keys then the third key that doesn't exist in the failureData
-        // waypoints should be explicitly reset otherwise onyx merge will leave it intact.
-        const allWaypointKeys = [...new Set([...Object.keys(transactionBackup.comment?.waypoints ?? {}), ...Object.keys(transaction?.comment?.waypoints ?? {})])];
-        const onyxWaypoints = allWaypointKeys.reduce((acc: NullishDeep<WaypointCollection>, key) => {
-            acc[key] = transactionBackup.comment?.waypoints?.[key] ? {...transactionBackup.comment?.waypoints?.[key]} : null;
-            return acc;
-        }, {});
-        const allModifiedWaypointsKeys = [...new Set([...Object.keys(waypoints ?? {}), ...Object.keys(transaction?.modifiedWaypoints ?? {})])];
-        const onyxModifiedWaypoints = allModifiedWaypointsKeys.reduce((acc: NullishDeep<WaypointCollection>, key) => {
-            acc[key] = transactionBackup.modifiedWaypoints?.[key] ? {...transactionBackup.modifiedWaypoints?.[key]} : null;
-            return acc;
-        }, {});
-        onyxData?.failureData?.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`,
-            value: {
-                comment: {
-                    waypoints: onyxWaypoints,
-                    customUnit: {
-                        quantity: transactionBackup?.comment?.customUnit?.quantity,
-                    },
-                },
-                modifiedWaypoints: onyxModifiedWaypoints,
-                routes: null,
-            },
-        });
-    }
-
-    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE, params, onyxData);
-}
-
-/** Updates the category of an expense */
-function updateMoneyRequestCategory({
-    transactionID,
-    transactionThreadReport,
-    parentReport,
-    category,
-    policy,
-    policyTagList,
-    policyCategories,
-    policyRecentlyUsedCategories,
-    currentUserAccountIDParam,
-    currentUserEmailParam,
-    isASAPSubmitBetaEnabled,
-    hash,
-    parentReportNextStep,
-}: {
-    transactionID: string;
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
-    parentReport: OnyxEntry<OnyxTypes.Report>;
-    category: string;
-    policy: OnyxEntry<OnyxTypes.Policy>;
-    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
-    policyRecentlyUsedCategories: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
-    currentUserAccountIDParam: number;
-    currentUserEmailParam: string;
-    isASAPSubmitBetaEnabled: boolean;
-    hash?: number;
-    parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
-}) {
-    const transactionChanges: TransactionChanges = {
-        category,
-    };
-
-    const {params, onyxData} = getUpdateMoneyRequestParams({
-        transactionID,
-        transactionThreadReport,
-        iouReport: parentReport,
-        transactionChanges,
-        policy,
-        policyTagList,
-        policyCategories,
-        policyRecentlyUsedCategories,
-        currentUserAccountIDParam,
-        currentUserEmailParam,
-        isASAPSubmitBetaEnabled,
-        hash,
-        iouReportNextStep: parentReportNextStep,
-    });
-    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_CATEGORY, params, onyxData);
-}
-
-/** Updates the description of an expense */
-function updateMoneyRequestDescription({
-    transactionID,
-    transactionThreadReport,
-    parentReport,
-    comment,
-    policy,
-    policyTagList,
-    policyCategories,
-    currentUserAccountIDParam,
-    currentUserEmailParam,
-    isASAPSubmitBetaEnabled,
-    parentReportNextStep,
-}: {
-    transactionID: string;
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
-    parentReport: OnyxEntry<OnyxTypes.Report>;
-    comment: string;
-    policy: OnyxEntry<OnyxTypes.Policy>;
-    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
-    currentUserAccountIDParam: number;
-    currentUserEmailParam: string;
-    isASAPSubmitBetaEnabled: boolean;
-    parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
-}) {
-    const parsedComment = getParsedComment(comment);
-    const transactionChanges: TransactionChanges = {
-        comment: parsedComment,
-    };
-    let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
-        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy);
-    } else {
-        data = getUpdateMoneyRequestParams({
-            transactionID,
-            transactionThreadReport,
-            iouReport: parentReport,
-            transactionChanges,
-            policy,
-            policyTagList,
-            policyCategories,
-            currentUserAccountIDParam,
-            currentUserEmailParam,
-            isASAPSubmitBetaEnabled,
-            iouReportNextStep: parentReportNextStep,
-        });
-    }
-    const {params, onyxData} = data;
-    params.description = parsedComment;
-    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DESCRIPTION, params, onyxData);
-}
-
-/** Updates the distance rate of an expense */
-function updateMoneyRequestDistanceRate({
-    transaction,
-    transactionThreadReport,
-    parentReport,
-    rateID,
-    policy,
-    policyTagList,
-    policyCategories,
-    currentUserAccountIDParam,
-    currentUserEmailParam,
-    isASAPSubmitBetaEnabled,
-    updatedTaxAmount,
-    updatedTaxCode,
-    updatedTaxValue,
-    parentReportNextStep,
-}: {
-    transaction: OnyxEntry<OnyxTypes.Transaction>;
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
-    parentReport: OnyxEntry<OnyxTypes.Report>;
-    rateID: string;
-    policy: OnyxEntry<OnyxTypes.Policy>;
-    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
-    currentUserAccountIDParam: number;
-    currentUserEmailParam: string;
-    isASAPSubmitBetaEnabled: boolean;
-    updatedTaxAmount?: number;
-    updatedTaxCode?: string;
-    updatedTaxValue?: string;
-    parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
-}) {
-    const transactionChanges: TransactionChanges = {
-        customUnitRateID: rateID,
-        ...(typeof updatedTaxAmount === 'number' ? {taxAmount: updatedTaxAmount} : {}),
-        ...(updatedTaxCode ? {taxCode: updatedTaxCode} : {}),
-        ...(updatedTaxValue ? {taxValue: updatedTaxValue} : {}),
-    };
-
-    if (transaction?.transactionID) {
-        const existingDistanceUnit = transaction?.comment?.customUnit?.distanceUnit;
-        const newDistanceUnit = DistanceRequestUtils.getRateByCustomUnitRateID({customUnitRateID: rateID, policy})?.unit;
-
-        // If the distanceUnit is set and the rate is changed to one that has a different unit, mark the merchant as modified to make the distance field pending
-        if (existingDistanceUnit && newDistanceUnit && newDistanceUnit !== existingDistanceUnit) {
-            transactionChanges.merchant = getMerchant(transaction);
-        }
-    }
-
-    let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
-        data = getUpdateTrackExpenseParams(transaction?.transactionID, transactionThreadReport?.reportID, transactionChanges, policy);
-    } else {
-        data = getUpdateMoneyRequestParams({
-            transactionID: transaction?.transactionID,
-            transactionThreadReport,
-            iouReport: parentReport,
-            transactionChanges,
-            policy,
-            policyTagList,
-            policyCategories,
-            currentUserAccountIDParam,
-            currentUserEmailParam,
-            isASAPSubmitBetaEnabled,
-            iouReportNextStep: parentReportNextStep,
-        });
-    }
-    const {params, onyxData} = data;
-    // `taxAmount` & `taxCode` only needs to be updated in the optimistic data, so we need to remove them from the params
-    const {taxAmount, taxCode, ...paramsWithoutTaxUpdated} = params;
-    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE_RATE, paramsWithoutTaxUpdated, onyxData);
-}
-
 function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string | undefined, participants: Participant[], participantAccountIDs: number[], currentUserAccountID: number) {
     // The existing chat report could be passed as reportID or exist on the sole "participant" (in this case a report option)
     const existingChatReportID = existingSplitChatReportID ?? participants.at(0)?.reportID;
@@ -5271,84 +4552,6 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
     }
 
     return {iouReport: distanceIouReport};
-}
-
-type UpdateMoneyRequestAmountAndCurrencyParams = {
-    transactionID: string;
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
-    parentReport: OnyxEntry<OnyxTypes.Report>;
-    currency: string;
-    amount: number;
-    taxAmount: number;
-    policy?: OnyxEntry<OnyxTypes.Policy>;
-    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>;
-    policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
-    taxCode: string;
-    taxValue: string;
-    allowNegative?: boolean;
-    transactions: OnyxCollection<OnyxTypes.Transaction>;
-    transactionViolations: OnyxCollection<OnyxTypes.TransactionViolations>;
-    currentUserAccountIDParam: number;
-    currentUserEmailParam: string;
-    isASAPSubmitBetaEnabled: boolean;
-    policyRecentlyUsedCurrencies: string[];
-    parentReportNextStep: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
-};
-
-/** Updates the amount and currency fields of an expense */
-function updateMoneyRequestAmountAndCurrency({
-    transactionID,
-    transactionThreadReport,
-    parentReport,
-    currency,
-    amount,
-    taxAmount,
-    policy,
-    policyTagList,
-    policyCategories,
-    taxCode,
-    taxValue,
-    allowNegative = false,
-    transactions,
-    transactionViolations,
-    currentUserAccountIDParam,
-    currentUserEmailParam,
-    isASAPSubmitBetaEnabled,
-    policyRecentlyUsedCurrencies,
-    parentReportNextStep,
-}: UpdateMoneyRequestAmountAndCurrencyParams) {
-    const transactionChanges = {
-        amount,
-        currency,
-        taxCode,
-        taxAmount,
-        taxValue,
-    };
-
-    let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
-        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy);
-    } else {
-        data = getUpdateMoneyRequestParams({
-            transactionID,
-            transactionThreadReport,
-            iouReport: parentReport,
-            transactionChanges,
-            policy,
-            policyTagList: policyTagList ?? null,
-            policyCategories: policyCategories ?? null,
-            allowNegative,
-            currentUserAccountIDParam,
-            currentUserEmailParam,
-            isASAPSubmitBetaEnabled,
-            policyRecentlyUsedCurrencies,
-            iouReportNextStep: parentReportNextStep,
-        });
-        removeTransactionFromDuplicateTransactionViolation(data.onyxData, transactionID, transactions, transactionViolations);
-    }
-    const {params, onyxData} = data;
-    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_AMOUNT_AND_CURRENCY, params, onyxData);
 }
 
 /**
@@ -7171,8 +6374,11 @@ function getIOUReportActionWithBadge(
             return false;
         }
         const iouReport = getReportOrDraftReport(action.childReportID);
-        // Only show to the actual payer, exclude admins with bank account access
-        if (canIOUBePaid(iouReport, chatReport, policy, undefined, undefined, undefined, undefined, invoiceReceiverPolicy)) {
+        // Show to the actual payer, or to policy admins via the pay-elsewhere path for negative expenses
+        if (
+            canIOUBePaid(iouReport, chatReport, policy, undefined, undefined, undefined, undefined, invoiceReceiverPolicy) ||
+            canIOUBePaid(iouReport, chatReport, policy, undefined, undefined, true, undefined, invoiceReceiverPolicy)
+        ) {
             actionBadge = CONST.REPORT.ACTION_BADGE.PAY;
             return true;
         }
@@ -7229,6 +6435,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         full,
         onApproved,
         ownerBillingGracePeriodEnd,
+        delegateEmail,
     } = params;
     if (!expenseReport) {
         return;
@@ -7245,7 +6452,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
     if (hasHeldExpenses && !full && !!expenseReport.unheldTotal) {
         total = expenseReport.unheldTotal;
     }
-    const optimisticApprovedReportAction = buildOptimisticApprovedReportAction(total, expenseReport.currency ?? '', expenseReport.reportID, currentUserAccountIDParam);
+    const optimisticApprovedReportAction = buildOptimisticApprovedReportAction(total, expenseReport.currency ?? '', expenseReport.reportID, currentUserAccountIDParam, delegateEmail);
 
     const isDEWPolicy = hasDynamicExternalWorkflow(policy);
     const shouldAddOptimisticApproveAction = !isDEWPolicy || isOffline();
@@ -8790,257 +7997,6 @@ function payInvoice({
     API.write(WRITE_COMMANDS.PAY_INVOICE, params, onyxData);
 }
 
-function detachReceipt(
-    transactionID: string | undefined,
-    transactionPolicy: OnyxEntry<OnyxTypes.Policy>,
-    transactionPolicyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
-    transactionPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
-) {
-    if (!transactionID) {
-        return;
-    }
-    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-    const expenseReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`] ?? null;
-    const newTransaction = transaction
-        ? {
-              ...transaction,
-              receipt: {},
-          }
-        : null;
-
-    const optimisticData: Array<
-        OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>
-    > = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: {
-                receipt: null,
-                pendingFields: {
-                    receipt: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                },
-            },
-        },
-    ];
-
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: {
-                pendingFields: {
-                    receipt: null,
-                },
-            },
-        },
-    ];
-    const failureData: Array<
-        OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>
-    > = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: {
-                ...(transaction ?? null),
-                errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.receiptDeleteFailureError'),
-                pendingFields: {
-                    receipt: null,
-                },
-            },
-        },
-    ];
-
-    if (transactionPolicy && isPaidGroupPolicy(transactionPolicy) && newTransaction) {
-        const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
-        const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
-            newTransaction,
-            currentTransactionViolations,
-            transactionPolicy,
-            transactionPolicyTagList ?? {},
-            transactionPolicyCategories ?? {},
-            hasDependentTags(transactionPolicy, transactionPolicyTagList ?? {}),
-            isInvoiceReportReportUtils(expenseReport),
-        );
-        optimisticData.push(violationsOnyxData);
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-            value: currentTransactionViolations,
-        });
-    }
-
-    const updatedReportAction = buildOptimisticDetachReceipt(expenseReport?.reportID, transactionID, transaction?.merchant);
-
-    optimisticData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${updatedReportAction?.reportID}`,
-        value: {
-            [updatedReportAction.reportActionID]: updatedReportAction as OnyxTypes.ReportAction,
-        },
-    });
-    optimisticData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${updatedReportAction?.reportID}`,
-        value: {
-            lastVisibleActionCreated: updatedReportAction.created,
-            lastReadTime: updatedReportAction.created,
-        },
-    });
-    failureData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${updatedReportAction?.reportID}`,
-        value: {
-            lastVisibleActionCreated: expenseReport?.lastVisibleActionCreated,
-            lastReadTime: expenseReport?.lastReadTime,
-        },
-    });
-    successData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
-        value: {
-            [updatedReportAction.reportActionID]: {pendingAction: null},
-        },
-    });
-    failureData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
-        value: {
-            [updatedReportAction.reportActionID]: {
-                ...(updatedReportAction as OnyxTypes.ReportAction),
-                errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericEditFailureMessage'),
-            },
-        },
-    });
-
-    const parameters: DetachReceiptParams = {transactionID, reportActionID: updatedReportAction.reportActionID};
-
-    API.write(
-        WRITE_COMMANDS.DETACH_RECEIPT,
-        parameters,
-        {optimisticData, successData, failureData},
-        {
-            checkAndFixConflictingRequest: (persistedRequests) => resolveDetachReceiptConflicts(persistedRequests, parameters),
-        },
-    );
-}
-
-function replaceReceipt({transactionID, file, source, state, transactionPolicy, transactionPolicyCategories, isSameReceipt}: ReplaceReceipt) {
-    if (!file) {
-        return;
-    }
-
-    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-    const expenseReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`] ?? null;
-    const oldReceipt = transaction?.receipt ?? {};
-    const receiptOptimistic = {
-        source,
-        localSource: null,
-        state: state ?? CONST.IOU.RECEIPT_STATE.OPEN,
-        filename: file.name,
-    };
-    const newTransaction = transaction && {...transaction, receipt: receiptOptimistic};
-    const retryParams: ReplaceReceipt = {transactionID, file: undefined, source, transactionPolicy, transactionPolicyCategories};
-    const currentSearchQueryJSON = getCurrentSearchQueryJSON();
-
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: {
-                receipt: receiptOptimistic,
-                pendingFields: {
-                    receipt: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                },
-                errors: null,
-            },
-        },
-    ];
-
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: {
-                pendingFields: {
-                    receipt: null,
-                },
-            },
-        },
-    ];
-
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: {
-                receipt: !isEmptyObject(oldReceipt) ? oldReceipt : null,
-                errors: getReceiptError(receiptOptimistic, file.name, undefined, undefined, CONST.IOU.ACTION_PARAMS.REPLACE_RECEIPT, retryParams),
-                pendingFields: {
-                    receipt: null,
-                },
-            },
-        },
-    ];
-
-    if (transactionPolicy && isPaidGroupPolicy(transactionPolicy) && newTransaction) {
-        // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) and getPolicyRecentlyUsedTagsData (https://github.com/Expensify/App/issues/71491) with useOnyx hook
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const policyTagList = getPolicyTagsData(transactionPolicy.id);
-        const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
-        const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
-            newTransaction,
-            currentTransactionViolations,
-            transactionPolicy,
-            policyTagList ?? {},
-            transactionPolicyCategories ?? {},
-            hasDependentTags(transactionPolicy, policyTagList ?? {}),
-            isInvoiceReportReportUtils(expenseReport),
-        );
-        optimisticData.push(violationsOnyxData);
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-            value: currentTransactionViolations,
-        });
-    }
-    if (currentSearchQueryJSON?.hash) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}`,
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-            value: {
-                data: {
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
-                        receipt: receiptOptimistic,
-                    },
-                },
-            },
-        });
-
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}`,
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-            value: {
-                data: {
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
-                        receipt: !isEmptyObject(oldReceipt) ? oldReceipt : null,
-                    },
-                },
-            },
-        });
-    }
-
-    const parameters: ReplaceReceiptParams = {
-        transactionID,
-        receipt: file,
-        receiptState: state,
-        isSameReceipt,
-    };
-
-    API.write(WRITE_COMMANDS.REPLACE_RECEIPT, parameters, {optimisticData, successData, failureData});
-}
-
 /**
  * Finds the participants for an IOU based on the attached report
  * @param transactionID of the transaction to set the participants of
@@ -9108,52 +8064,6 @@ type TaxRateValues = {
 
 function setMoneyRequestTaxRateValues(transactionID: string, taxRateValues: TaxRateValues, isDraft = true) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {...taxRateValues});
-}
-
-// eslint-disable-next-line rulesdir/no-negated-variables
-function navigateToStartStepIfScanFileCannotBeRead(
-    receiptFilename: string | undefined,
-    receiptPath: ReceiptSource | undefined,
-    onSuccess: (file: File) => void,
-    requestType: IOURequestType,
-    iouType: IOUType,
-    transactionID: string,
-    reportID: string,
-    receiptType: string | undefined,
-    onFailureCallback?: () => void,
-) {
-    if (!receiptFilename || !receiptPath) {
-        return;
-    }
-
-    const onFailure = () => {
-        setMoneyRequestReceipt(transactionID, '', '', true, '');
-        if (requestType === CONST.IOU.REQUEST_TYPE.MANUAL) {
-            if (onFailureCallback) {
-                onFailureCallback();
-                return;
-            }
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
-            return;
-        }
-        navigateToStartMoneyRequestStep(requestType, iouType, transactionID, reportID);
-    };
-    readFileAsync(receiptPath.toString(), receiptFilename, onSuccess, onFailure, receiptType);
-}
-
-function checkIfScanFileCanBeRead(
-    receiptFilename: string | undefined,
-    receiptPath: ReceiptSource | undefined,
-    receiptType: string | undefined,
-    onSuccess: (file: File) => void,
-    onFailure: () => void,
-) {
-    if (!receiptFilename || !receiptPath) {
-        onFailure();
-        return Promise.resolve();
-    }
-
-    return readFileAsync(receiptPath.toString(), receiptFilename, onSuccess, onFailure, receiptType);
 }
 
 /** Save the preferred payment method for a policy or personal DM */
@@ -11235,17 +10145,13 @@ export {
     createDistanceRequest,
     createDraftTransaction,
     deleteMoneyRequest,
-    detachReceipt,
     getIOURequestPolicyID,
     getReportOriginalCreationTimestamp,
     initMoneyRequest,
-    checkIfScanFileCanBeRead,
     dismissModalAndOpenReportInInboxTab,
-    navigateToStartStepIfScanFileCannotBeRead,
     completePaymentOnboarding,
     payInvoice,
     payMoneyRequest,
-    replaceReceipt,
     resetDraftTransactionsCustomUnit,
     savePreferredPaymentMethod,
     setCustomUnitRateID,
@@ -11272,7 +10178,6 @@ export {
     setMoneyRequestReportID,
     setMoneyRequestPendingFields,
     setMultipleMoneyRequestParticipantsFromReport,
-    setMoneyRequestReceipt,
     setMoneyRequestTag,
     setMoneyRequestTaxAmount,
     setMoneyRequestTaxRate,
@@ -11281,19 +10186,6 @@ export {
     startMoneyRequest,
     submitReport,
     unapproveExpenseReport,
-    updateMoneyRequestAttendees,
-    updateMoneyRequestAmountAndCurrency,
-    updateMoneyRequestReimbursable,
-    updateMoneyRequestBillable,
-    updateMoneyRequestCategory,
-    updateMoneyRequestDate,
-    updateMoneyRequestDescription,
-    updateMoneyRequestDistance,
-    updateMoneyRequestDistanceRate,
-    updateMoneyRequestMerchant,
-    updateMoneyRequestTag,
-    updateMoneyRequestTaxAmount,
-    updateMoneyRequestTaxRate,
     updateLastLocationPermissionPrompt,
     shouldOptimisticallyUpdateSearch,
     getIOUReportActionWithBadge,
