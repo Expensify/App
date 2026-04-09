@@ -1,6 +1,5 @@
 import {isUserValidatedSelector} from '@selectors/Account';
-import React, {useMemo} from 'react';
-// eslint-disable-next-line no-restricted-imports
+import React, {useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
