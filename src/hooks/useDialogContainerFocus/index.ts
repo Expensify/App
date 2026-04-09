@@ -38,7 +38,7 @@ function focusFirstInteractiveElement(container: HTMLElement | null): boolean {
     if (!target) {
         return false;
     }
-    target.focus({preventScroll: true, focusVisible: hadTabNavigation});
+    target.focus({preventScroll: true, focusVisible: hadTabNavigation} as FocusOptions);
     return true;
 }
 
