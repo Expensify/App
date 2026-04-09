@@ -117,7 +117,7 @@ function clearSelectedValue(
 
 function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shouldValidate = true, shouldValidateFutureTime = true, showFullFormat = false}: TimePickerProps) {
     const {numberFormat, translate} = useLocalize();
-    const {isExtraSmallScreenHeight} = useResponsiveLayout();
+    const {isExtraSmallScreenHeight, isInLandscapeMode} = useResponsiveLayout();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const value = DateUtils.extractTime12Hour(defaultValue, showFullFormat);
@@ -768,7 +768,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
             <View style={[styles.flex1, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
                 <View
                     nativeID={AMOUNT_VIEW_ID}
-                    style={[styles.flexRow, styles.w100, styles.justifyContentCenter, styles.timePickerInputsContainer, styles.mb2]}
+                    style={[styles.flexRow, !isInLandscapeMode && styles.w100, styles.justifyContentCenter, styles.timePickerInputsContainer, styles.mb2]}
                 >
                     <AmountTextInput
                         placeholder={numberFormat(0)}
