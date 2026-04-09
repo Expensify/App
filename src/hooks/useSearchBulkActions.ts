@@ -153,7 +153,8 @@ function shouldShowBulkDuplicateOption({
         }
 
         const reportID = selectedTransactions[id]?.reportID;
-        if (reportID && !isCurrentUserSubmitter(getReportOrDraftReport(reportID, searchReports))) {
+        const submitterReport = reportID ? getReportOrDraftReport(reportID, searchReports) : undefined;
+        if (submitterReport && !isCurrentUserSubmitter(submitterReport)) {
             return false;
         }
 
