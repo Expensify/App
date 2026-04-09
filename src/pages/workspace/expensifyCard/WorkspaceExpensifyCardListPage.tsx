@@ -30,7 +30,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {clearIssueNewCardFormData, setIssueNewCardStepAndData} from '@libs/actions/Card';
+import {clearIssueNewCardFormData, exportExpensifyCardListToCSV, setIssueNewCardStepAndData} from '@libs/actions/Card';
 import {clearDeletePaymentMethodError} from '@libs/actions/PaymentMethods';
 import {filterCardsByPersonalDetails, getCardsByCardholderName, getCardSettings, sortCardsByCardholderName} from '@libs/CardUtils';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -139,11 +139,18 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                 text: translate('workspace.expensifyCard.exportAsCSV'),
                 value: 'EXPORT_CSV',
                 onSelected: () => {
-                    // CSV export will be implemented in a follow-up
+                    const selectedCards = filteredSortedCards.filter((card) => selectedCardIDs.includes(card.cardID));
+                    exportExpensifyCardListToCSV({
+                        policyID,
+                        cards: selectedCards,
+                        personalDetailsList: personalDetails,
+                        settlementCurrency,
+                        translate,
+                    });
                 },
             },
         ],
-        [icons.Export, translate],
+        [icons.Export, translate, filteredSortedCards, selectedCardIDs, policyID, personalDetails, settlementCurrency],
     );
 
     const handleIssueCardPress = () => {

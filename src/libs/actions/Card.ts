@@ -1,6 +1,7 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 import type {PartialDeep, ValueOf} from 'type-fest';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import * as API from '@libs/API';
 import type {
     ActivatePhysicalExpensifyCardParams,
@@ -23,13 +24,16 @@ import type {
 } from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import type {CardProgramKey} from '@libs/CardUtils';
+import {isCardPendingActivate, isCardPendingIssue} from '@libs/CardUtils';
+import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import localFileDownload from '@libs/localFileDownload';
 import Log from '@libs/Log';
 import {isReportOpenOrUnsubmitted} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, CompanyCardFeedWithDomainID, Report, Transaction} from '@src/types/onyx';
+import type {Card, CompanyCardFeedWithDomainID, PersonalDetailsList, Report, Transaction} from '@src/types/onyx';
 import type {CardLimitType, ExpensifyCardDetails, IssueNewCardData, IssueNewCardStep} from '@src/types/onyx/Card';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import type {ConnectionName} from '@src/types/onyx/Policy';
@@ -1618,6 +1622,89 @@ function resolveFraudAlert(cardID: number | undefined, isFraud: boolean, reportI
     API.write(WRITE_COMMANDS.RESOLVE_FRAUD_ALERT, parameters, {optimisticData, successData, failureData});
 }
 
+const STANDARD_PAN_DIGITS = 16;
+
+function escapeCsvField(value: string): string {
+    if (value.includes('"') || value.includes(',') || value.includes('\n') || value.includes('\r')) {
+        return `"${value.replaceAll('"', '""')}"`;
+    }
+    return value;
+}
+
+function getExpensifyCardPANColumnForCSV(card: Card, translate: LocalizedTranslate): string {
+    if (isCardPendingIssue(card)) {
+        return translate('workspace.expensifyCard.csvCardNumberWaitingForActivation');
+    }
+    if (isCardPendingActivate(card)) {
+        return translate('workspace.expensifyCard.csvCardNumberWaitingForActivation');
+    }
+    if (
+        card.state === CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED ||
+        card.state === CONST.EXPENSIFY_CARD.STATE.CLOSED ||
+        card.state === CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED
+    ) {
+        return translate('workspace.expensifyCard.csvCardNumberInactive');
+    }
+    const lastFour = card.lastFourPAN ?? '';
+    if (lastFour.length > 0) {
+        const maskedLength = Math.max(0, STANDARD_PAN_DIGITS - lastFour.length);
+        return `${'X'.repeat(maskedLength)}${lastFour}`;
+    }
+    return translate('workspace.expensifyCard.csvCardNumberWaitingForActivation');
+}
+
+function getOwnerEmailForCard(card: Card, personalDetailsList: PersonalDetailsList | undefined): string {
+    const accountID = card.accountID ?? CONST.DEFAULT_NUMBER_ID;
+    return personalDetailsList?.[String(accountID)]?.login ?? '';
+}
+
+export type ExportExpensifyCardListToCSVParams = {
+    /** Workspace policy ID (used in the download filename) */
+    policyID: string;
+
+    /** Cards to include in the export (typically the current selection) */
+    cards: Card[];
+
+    /** Personal details used to resolve cardholder email */
+    personalDetailsList: PersonalDetailsList | undefined;
+
+    /** Settlement / card program currency for limit amounts */
+    settlementCurrency: string;
+
+    translate: LocalizedTranslate;
+};
+
+function exportExpensifyCardListToCSV({policyID, cards, personalDetailsList, settlementCurrency, translate}: ExportExpensifyCardListToCSVParams) {
+    if (cards.length === 0) {
+        return;
+    }
+
+    const header = [
+        translate('workspace.expensifyCard.csvColumnOwner'),
+        translate('workspace.expensifyCard.csvColumnCardNumber'),
+        translate('workspace.expensifyCard.csvColumnType'),
+        translate('workspace.expensifyCard.csvColumnLimit'),
+    ]
+        .map(escapeCsvField)
+        .join(',');
+
+    const rows = cards.map((card) => {
+        const owner = getOwnerEmailForCard(card, personalDetailsList);
+        const cardNumberColumn = getExpensifyCardPANColumnForCSV(card, translate);
+        const typeColumn = card.nameValuePairs?.isVirtual ? translate('workspace.expensifyCard.virtual') : translate('workspace.expensifyCard.physical');
+        const limitAmount = card.nameValuePairs?.unapprovedExpenseLimit ?? 0;
+        const limitColumn = convertToShortDisplayString(limitAmount, settlementCurrency);
+
+        return [owner, cardNumberColumn, typeColumn, limitColumn].map(escapeCsvField).join(',');
+    });
+
+    const csvContent = [header, ...rows].join('\r\n');
+    const safePolicySegment = policyID.replaceAll(/[^\dA-Za-z-_]/g, '') || 'workspace';
+    const fileName = `ExpensifyCards_${safePolicySegment}.csv`;
+
+    localFileDownload(fileName, csvContent, translate);
+}
+
 export {
     requestReplacementExpensifyCard,
     activatePhysicalExpensifyCard,
@@ -1656,5 +1743,6 @@ export {
     clearIssueNewCardFormData,
     setDraftInviteAccountID,
     resolveFraudAlert,
+    exportExpensifyCardListToCSV,
 };
 export type {ReplacementReason};
