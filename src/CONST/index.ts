@@ -6591,6 +6591,7 @@ const CONST = {
         RHP_HOME_PAGE: 'rhpHomePage',
         CONTROL: 'control',
     },
+    ONBOARDING_JOINABLE_WORKSPACES_LIMIT: 5,
     ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE: 'What would you like to do with this expense?',
     ONBOARDING_ACCOUNTING_MAPPING,
 
