@@ -148,21 +148,28 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     let badgeText;
     if (isInLockedState) {
         badgeText = translate('common.locked');
-    } else if (isNeedingAction && shouldShowDefaultBadge) {
-        badgeText = `${translate('paymentMethodList.defaultPaymentMethod')} · ${translate('common.actionRequired')}`;
     } else if (isNeedingAction) {
-        badgeText = translate('common.actionRequired');
+        badgeText = translate('common.review');
     } else if (shouldShowDefaultBadge) {
         badgeText = translate('paymentMethodList.defaultPaymentMethod');
     }
 
     let badgeIcon;
-    if (isNeedingAction || isInLockedState) {
+    if (isInLockedState) {
         badgeIcon = icons.DotIndicator;
     }
 
-    // Card state pills (below title, next to description)
+    // Subline pills (below title, next to description)
     const descriptionAddon = useMemo(() => {
+        if (isNeedingAction && shouldShowDefaultBadge) {
+            return (
+                <Badge
+                    text={translate('paymentMethodList.defaultPaymentMethod')}
+                    isCondensed
+                    badgeStyles={[styles.ml0]}
+                />
+            );
+        }
         if (item.isCardFrozen) {
             return (
                 <Badge
@@ -184,7 +191,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
             );
         }
         return undefined;
-    }, [item.isCardFrozen, item.isInactive, icons.FreezeCard, styles.ml0, styles.mr1, translate]);
+    }, [isNeedingAction, shouldShowDefaultBadge, item.isCardFrozen, item.isInactive, icons.FreezeCard, styles.ml0, styles.mr1, translate]);
 
     return (
         <OfflineWithFeedback
