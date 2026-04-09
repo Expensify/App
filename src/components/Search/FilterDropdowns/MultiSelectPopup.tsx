@@ -72,17 +72,17 @@ function MultiSelectPopup<T extends string>({label, loading, value, items, close
     const updateSelectedItems = useCallback(
         (item: ListItem) => {
             if (item.isSelected) {
-                setSelectedItems(selectedItems.filter((i) => i.value !== item.keyForList));
+                setSelectedItems((prev) => prev.filter((i) => i.value !== item.keyForList));
                 return;
             }
 
             const newItem = items.find((i) => i.value === item.keyForList);
 
             if (newItem) {
-                setSelectedItems([...selectedItems, newItem]);
+                setSelectedItems((prev) => [...prev, newItem]);
             }
         },
-        [items, selectedItems],
+        [items],
     );
 
     const applyChanges = useCallback(() => {

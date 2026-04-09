@@ -146,16 +146,15 @@ function InSelectPopup({closeOverlay, updateFilterForm}: InSelectPopupProps) {
         if (!optionReportID) {
             return;
         }
-        const foundOptionIndex = selectedReportIDs.findIndex((reportID: string) => {
-            return reportID && reportID !== '' && selectedOption.reportID === reportID;
+        setSelectedReportIDs((prev) => {
+            const foundOptionIndex = prev.findIndex((reportID: string) => {
+                return reportID && reportID !== '' && selectedOption.reportID === reportID;
+            });
+            if (foundOptionIndex < 0) {
+                return [...prev, optionReportID];
+            }
+            return [...prev.slice(0, foundOptionIndex), ...prev.slice(foundOptionIndex + 1)];
         });
-
-        if (foundOptionIndex < 0) {
-            setSelectedReportIDs([...selectedReportIDs, optionReportID]);
-        } else {
-            const newSelectedReports = [...selectedReportIDs.slice(0, foundOptionIndex), ...selectedReportIDs.slice(foundOptionIndex + 1)];
-            setSelectedReportIDs(newSelectedReports);
-        }
     };
 
     const applyChanges = () => {
