@@ -253,7 +253,9 @@ describe('AgentZeroStatusContext', () => {
 
             // When the server label arrives before the timeout
             const serverLabel = 'Concierge is looking up categories...';
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
+            // Don't await — Onyx.merge hangs under fake timers because its internal batching setTimeout never fires.
+            // waitForBatchedUpdates() handles this by calling jest.runOnlyPendingTimers().
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
                 agentZeroProcessingRequestIndicator: serverLabel,
             });
             await waitForBatchedUpdates();
