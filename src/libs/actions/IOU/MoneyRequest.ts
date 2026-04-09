@@ -663,7 +663,7 @@ function handleMoneyRequestStepDistanceNavigation({
                 const mileageRate = DistanceRequestUtils.getRate({
                     transaction,
                     policy,
-                    ...(policyForMovingExpenses && {policyForMovingExpenses}),
+                    policyForMovingExpenses,
                     defaultP2PMileageRate,
                 });
                 amount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, mileageRate?.rate ?? 0);
