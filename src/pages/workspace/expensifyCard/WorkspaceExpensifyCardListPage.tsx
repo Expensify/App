@@ -1,9 +1,10 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {ListRenderItemInfo} from 'react-native';
 import {FlatList, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
+import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import CardFeedIcon from '@components/CardFeedIcon';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import FeedSelector from '@components/FeedSelector';
@@ -60,7 +61,7 @@ type WorkspaceExpensifyCardListPageProps = {
 };
 
 function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExpensifyCardListPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Plus']);
+    const icons = useMemoizedLazyExpensifyIcons(['Export', 'Gear', 'Plus']);
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
@@ -103,6 +104,48 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const sortCards = useCallback((cards: Card[]) => sortCardsByCardholderName(cards, personalDetails, localeCompare), [personalDetails, localeCompare]);
     const [inputValue, setInputValue, filteredSortedCards] = useSearchResults(allCards, filterCard, sortCards);
 
+    const [selectedCardIDs, setSelectedCardIDs] = useState<number[]>([]);
+
+    const selectableCardIDs = useMemo(() => filteredSortedCards.map((card) => card.cardID), [filteredSortedCards]);
+
+    useEffect(() => {
+        setSelectedCardIDs((prev) => prev.filter((id) => selectableCardIDs.includes(id)));
+    }, [selectableCardIDs]);
+
+    const toggleCardSelection = useCallback((cardID: number) => {
+        setSelectedCardIDs((prev) => (prev.includes(cardID) ? prev.filter((id) => id !== cardID) : [...prev, cardID]));
+    }, []);
+
+    const toggleSelectAll = useCallback(() => {
+        if (selectableCardIDs.length === 0) {
+            return;
+        }
+        setSelectedCardIDs((prev) => {
+            const allSelected = prev.length === selectableCardIDs.length && selectableCardIDs.every((id) => prev.includes(id));
+            if (allSelected) {
+                return [];
+            }
+            return [...selectableCardIDs];
+        });
+    }, [selectableCardIDs]);
+
+    const isSelectAllChecked = selectedCardIDs.length > 0 && selectedCardIDs.length === selectableCardIDs.length;
+    const isSelectAllIndeterminate = selectedCardIDs.length > 0 && selectedCardIDs.length < selectableCardIDs.length;
+
+    const bulkExportOptions = useMemo<Array<DropdownOption<'EXPORT_CSV'>>>(
+        () => [
+            {
+                icon: icons.Export,
+                text: translate('workspace.expensifyCard.exportAsCSV'),
+                value: 'EXPORT_CSV',
+                onSelected: () => {
+                    // CSV export will be implemented in a follow-up
+                },
+            },
+        ],
+        [icons.Export, translate],
+    );
+
     const handleIssueCardPress = () => {
         clearIssueNewCardFormData();
         if (isAccountLocked) {
@@ -130,36 +173,68 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
         [icons.Gear, policyID, translate],
     );
 
-    const getHeaderButtons = () => (
-        <View style={[styles.flexRow, styles.gap2, !shouldShowSelector && shouldUseNarrowLayout && styles.mb3, shouldShowSelector && shouldChangeLayout && styles.mt3]}>
-            {!isEmptyObject(cardsList) && (
-                <Button
-                    success
-                    onPress={handleIssueCardPress}
-                    icon={icons.Plus}
-                    text={translate('workspace.expensifyCard.issueCard')}
-                    style={shouldChangeLayout && styles.flex1}
-                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CARD_BUTTON}
+    const getHeaderButtons = () => {
+        const headerButtonsRowStyle = [
+            styles.flexRow,
+            styles.gap2,
+            !shouldShowSelector && shouldUseNarrowLayout && styles.mb3,
+            shouldShowSelector && shouldChangeLayout && styles.mt3,
+        ];
+
+        if (selectedCardIDs.length > 0) {
+            return (
+                <View style={headerButtonsRowStyle}>
+                    <ButtonWithDropdownMenu<'EXPORT_CSV'>
+                        success
+                        onPress={() => {}}
+                        customText={translate('workspace.common.selected', {count: selectedCardIDs.length})}
+                        options={bulkExportOptions}
+                        isSplitButton={false}
+                        shouldAlwaysShowDropdownMenu
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE_EXPENSIFY_CARD.BULK_ACTIONS_DROPDOWN}
+                        style={shouldChangeLayout && styles.flex1}
+                        wrapperStyle={styles.flexGrow1}
+                    />
+                </View>
+            );
+        }
+
+        return (
+            <View style={headerButtonsRowStyle}>
+                {!isEmptyObject(cardsList) && (
+                    <Button
+                        success
+                        onPress={handleIssueCardPress}
+                        icon={icons.Plus}
+                        text={translate('workspace.expensifyCard.issueCard')}
+                        style={shouldChangeLayout && styles.flex1}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CARD_BUTTON}
+                    />
+                )}
+                <ButtonWithDropdownMenu
+                    success={false}
+                    onPress={() => {}}
+                    customText={translate('common.more')}
+                    options={secondaryActions}
+                    isSplitButton={false}
+                    shouldUseOptionIcon
+                    wrapperStyle={isEmptyObject(cardsList) ? styles.flexGrow1 : styles.flexGrow0}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.MORE_DROPDOWN}
                 />
-            )}
-            <ButtonWithDropdownMenu
-                success={false}
-                onPress={() => {}}
-                customText={translate('common.more')}
-                options={secondaryActions}
-                isSplitButton={false}
-                shouldUseOptionIcon
-                wrapperStyle={isEmptyObject(cardsList) ? styles.flexGrow1 : styles.flexGrow0}
-                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.MORE_DROPDOWN}
-            />
-        </View>
-    );
+            </View>
+        );
+    };
+
+    const isSearchEmpty = filteredSortedCards.length === 0 && inputValue.length > 0;
+    const shouldShowBulkSelection = filteredSortedCards.length > 0;
 
     const renderItem = useCallback(
         ({item, index}: ListRenderItemInfo<Card>) => {
             const frozenByDisplayName = item.nameValuePairs?.frozen?.byAccountID
                 ? getDisplayNameOrDefault(personalDetails?.[item.nameValuePairs.frozen.byAccountID], '', false) || undefined
                 : undefined;
+
+            const isCardSelected = selectedCardIDs.includes(item.cardID);
 
             return (
                 <OfflineWithFeedback
@@ -171,7 +246,13 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                 >
                     <PressableWithFeedback
                         role={CONST.ROLE.BUTTON}
-                        style={[styles.mh5, styles.br3, styles.mb2, styles.highlightBG]}
+                        style={[
+                            styles.mh5,
+                            styles.br3,
+                            styles.mb2,
+                            styles.highlightBG,
+                            shouldShowBulkSelection && isCardSelected && styles.activeComponentBG,
+                        ]}
                         accessibilityLabel="row"
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE_EXPENSIFY_CARD.CARD_LIST_ROW}
                         hoverStyle={[styles.hoveredComponentBG]}
@@ -190,16 +271,22 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                                 isVirtual={!!item.nameValuePairs?.isVirtual}
                                 isHovered={hovered}
                                 limitType={item.nameValuePairs?.limitType}
+                                bulkSelection={
+                                    shouldShowBulkSelection
+                                        ? {
+                                              isSelected: isCardSelected,
+                                              onToggle: () => toggleCardSelection(item.cardID),
+                                          }
+                                        : undefined
+                                }
                             />
                         )}
                     </PressableWithFeedback>
                 </OfflineWithFeedback>
             );
         },
-        [personalDetails, settlementCurrency, policyID, defaultFundID, styles],
+        [personalDetails, settlementCurrency, policyID, defaultFundID, styles, selectedCardIDs, shouldShowBulkSelection, toggleCardSelection],
     );
-
-    const isSearchEmpty = filteredSortedCards.length === 0 && inputValue.length > 0;
 
     const renderListHeader = (
         <>
@@ -218,7 +305,20 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                     />
                 )}
             </View>
-            {!isSearchEmpty && <WorkspaceCardListHeader cardSettings={cardSettings} />}
+            {!isSearchEmpty && (
+                <WorkspaceCardListHeader
+                    cardSettings={cardSettings}
+                    bulkSelection={
+                        shouldShowBulkSelection
+                            ? {
+                                  onSelectAll: toggleSelectAll,
+                                  isSelectAllChecked,
+                                  isSelectAllIndeterminate,
+                              }
+                            : undefined
+                    }
+                />
+            )}
         </>
     );
 
