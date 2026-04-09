@@ -42,6 +42,7 @@ function ValueSelectorModal({
                 <ValueSelectionList
                     items={items}
                     selectedItem={selectedItem}
+                    isVisible={isVisible}
                     onItemSelected={onItemSelected}
                     shouldShowTooltips={shouldShowTooltips}
                     disableKeyboardShortcuts={disableKeyboardShortcuts}
