@@ -217,7 +217,7 @@ function ReportActionsList({
     const shouldFocusToTopOnMount = useMemo(() => isTransactionThreadReport || isMoneyRequestOrInvoiceReport, [isMoneyRequestOrInvoiceReport, isTransactionThreadReport]);
     const topReportAction = sortedVisibleReportActions.at(-1);
     const [shouldScrollToEndAfterLayout, setShouldScrollToEndAfterLayout] = useState(shouldFocusToTopOnMount && !linkedReportActionID);
-    const isScrollEndPendingRef = useRef(false);
+    const scrollEndTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
     const isAnonymousUser = useIsAnonymousUser();
 
     useEffect(() => {
@@ -355,16 +355,17 @@ function ReportActionsList({
             onScroll?.(event);
             // We use a timeout to wait for the scroll to finish before resetting the flag.
             // onMomentumScrollEnd would be ideal but it doesn't work on web.
-            if (shouldScrollToEndAfterLayout && (!hasCreatedActionAdded || isOffline) && !isScrollEndPendingRef.current) {
-                isScrollEndPendingRef.current = true;
-                setTimeout(() => {
+            if (shouldScrollToEndAfterLayout && (!hasCreatedActionAdded || isOffline) && !scrollEndTimerRef.current) {
+                scrollEndTimerRef.current = setTimeout(() => {
                     setShouldScrollToEndAfterLayout(false);
-                    isScrollEndPendingRef.current = false;
+                    scrollEndTimerRef.current = undefined;
                 }, CONST.TIMING.LIST_SCROLLING_DEBOUNCE_TIME);
             }
         },
         hasOnceLoadedReportActions: !!reportMetadata?.hasOnceLoadedReportActions,
     });
+
+    useEffect(() => () => clearTimeout(scrollEndTimerRef.current), []);
 
     useScrollToEndOnNewMessageReceived({
         sizeChangeType: 'changed',
