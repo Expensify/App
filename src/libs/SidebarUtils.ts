@@ -210,7 +210,6 @@ type WelcomeMessageParams = {
     reportDetailsLink?: string;
     shouldShowUsePlusButtonText?: boolean;
     additionalText?: string;
-    isTrackIntentUser?: boolean;
 };
 
 function compareStringDates(a: string, b: string): 0 | 1 | -1 {
@@ -636,6 +635,7 @@ function getReasonAndReportActionThatHasRedBrickRoad(
     transactions: OnyxCollection<Transaction>,
     transactionViolations?: OnyxCollection<TransactionViolation[]>,
     isReportArchived = false,
+    reports?: OnyxCollection<Report>,
 ): ReasonAndReportActionThatHasRedBrickRoad | null {
     if (isReportArchived) {
         return null;
@@ -650,7 +650,7 @@ function getReasonAndReportActionThatHasRedBrickRoad(
         };
     }
 
-    const {reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, isReportArchived);
+    const {reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, isReportArchived, reports);
     const errors = reportErrors;
     const hasErrors = Object.keys(errors).length !== 0;
 
@@ -1129,7 +1129,7 @@ function getOptionData({
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OWNERSHIP) {
             result.alternateText = Parser.htmlToText(getUpdatedOwnershipMessage(translate, lastAction, policy));
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION)) {
-            result.alternateText = Parser.htmlToText(getMovedTransactionMessage(translate, lastAction));
+            result.alternateText = Parser.htmlToText(getMovedTransactionMessage(translate, lastAction, conciergeReportID));
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED)) {
             result.alternateText = Parser.htmlToText(getSettlementAccountLockedMessage(translate, lastAction));
         } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
@@ -1269,7 +1269,6 @@ function getWelcomeMessage(params: WelcomeMessageParams): WelcomeMessage {
         reportDetailsLink = '',
         shouldShowUsePlusButtonText = false,
         additionalText = '',
-        isTrackIntentUser = false,
     } = params;
 
     const welcomeMessage: WelcomeMessage = {};
@@ -1284,9 +1283,6 @@ function getWelcomeMessage(params: WelcomeMessageParams): WelcomeMessage {
     if (isPolicyExpenseChat(report)) {
         if (policy?.description) {
             welcomeMessage.messageHtml = policy.description;
-            welcomeMessage.messageText = Parser.htmlToText(welcomeMessage.messageHtml);
-        } else if (isTrackIntentUser) {
-            welcomeMessage.messageHtml = translate('reportActionsView.beginningOfChatHistoryPolicyExpenseChatTrack');
             welcomeMessage.messageText = Parser.htmlToText(welcomeMessage.messageHtml);
         } else {
             welcomeMessage.messageHtml = translate(
