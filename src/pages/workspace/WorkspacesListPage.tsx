@@ -255,6 +255,7 @@ function WorkspacesListPage() {
     }, [
         activePolicyID,
         closeModal,
+        accountIDToLogin,
         defaultCardFeeds,
         hasCardFeedOrExpensifyCard,
         hasDeleteWorkspaceExpensifyCardsError,
