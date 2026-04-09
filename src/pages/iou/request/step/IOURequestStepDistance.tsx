@@ -15,6 +15,7 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useFetchRoute from '@hooks/useFetchRoute';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -78,6 +79,7 @@ function IOURequestStepDistance({
     currentUserPersonalDetails,
 }: IOURequestStepDistanceProps) {
     const styles = useThemeStyles();
+    const isInLandscapeMode = useIsInLandscapeMode();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
@@ -545,8 +547,20 @@ function IOURequestStepDistance({
             shouldShowNotFoundPage={(isEditing && !currentTransaction?.comment?.waypoints) || shouldShowNotFoundPage}
             shouldShowWrapper={!isCreatingNewRequest}
         >
-            <>
-                <View style={styles.flex1}>
+            <View style={[styles.flex1, isInLandscapeMode && styles.flexRow]}>
+                {isInLandscapeMode && (
+                    <View style={styles.flex1}>
+                        <DistanceRequestFooter
+                            waypoints={waypoints}
+                            navigateToWaypointEditPage={navigateToWaypointEditPage}
+                            transaction={transaction}
+                            policy={policy}
+                            mapContainerStyle={{minHeight: undefined}}
+                        />
+                    </View>
+                )}
+
+                <View style={[styles.flex1, isInLandscapeMode && styles.pl2]}>
                     <DraggableList
                         data={waypointItems}
                         keyExtractor={extractKey}
@@ -554,12 +568,14 @@ function IOURequestStepDistance({
                         ref={scrollViewRef}
                         renderItem={renderItem}
                         ListFooterComponent={
-                            <DistanceRequestFooter
-                                waypoints={waypoints}
-                                navigateToWaypointEditPage={navigateToWaypointEditPage}
-                                transaction={transaction}
-                                policy={policy}
-                            />
+                            !isInLandscapeMode ? (
+                                <DistanceRequestFooter
+                                    waypoints={waypoints}
+                                    navigateToWaypointEditPage={navigateToWaypointEditPage}
+                                    transaction={transaction}
+                                    policy={policy}
+                                />
+                            ) : undefined
                         }
                     />
                 </View>
@@ -584,7 +600,7 @@ function IOURequestStepDistance({
                         sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.DISTANCE_NEXT_BUTTON}
                     />
                 </View>
-            </>
+            </View>
         </StepScreenWrapper>
     );
 }
