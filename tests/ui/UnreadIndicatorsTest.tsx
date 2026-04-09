@@ -10,7 +10,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import {setSidebarLoaded} from '@libs/actions/App';
-import {trackExpense} from '@libs/actions/IOU';
+import {trackExpense} from '@libs/actions/IOU/TrackExpense';
 import {addComment, deleteReportComment, markCommentAsUnread, readNewestAction} from '@libs/actions/Report';
 import {subscribeToUserEvents} from '@libs/actions/User';
 import {lastItem} from '@libs/CollectionUtils';

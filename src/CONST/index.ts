@@ -226,6 +226,12 @@ const CONST = {
     ANIMATED_PROGRESS_BAR_DELAY: 300,
     ANIMATED_PROGRESS_BAR_OPACITY_DURATION: 300,
     ANIMATED_PROGRESS_BAR_DURATION: 750,
+    PULSE_ANIMATION: {
+        FADE_OUT_DURATION: 400,
+        FADE_IN_DURATION: 350,
+        PAUSE_DURATION: 250,
+        RECOVERY_DURATION: 150,
+    },
     ANIMATION_IN_TIMING: 100,
     COMPOSER_FOCUS_DELAY: 150,
     ANIMATION_DIRECTION: {
@@ -246,6 +252,7 @@ const CONST = {
     POPOVER_DROPDOWN_MAX_HEIGHT: 416,
     POPOVER_MENU_MAX_HEIGHT: 496,
     POPOVER_MENU_MAX_HEIGHT_MOBILE: 432,
+    MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD: 8,
     POPOVER_DATE_WIDTH: 338,
     POPOVER_DATE_RANGE_WIDTH: 672,
     POPOVER_DATE_MAX_HEIGHT: 366,
@@ -272,6 +279,13 @@ const CONST = {
     // Maximum pixel count (width × height) for processing images. Prevents memory crashes with extremely large images.
     MAX_IMAGE_PIXEL_COUNT: 50000000,
     CHUNK_LOAD_ERROR: 'ChunkLoadError',
+
+    CHRONOS: {
+        TIMER_COMMAND: {
+            START: 'start',
+            STOP: 'stop',
+        },
+    },
 
     RECEIPT_CAMERA: {
         PHOTO_WIDTH: 4032,
@@ -854,6 +868,7 @@ const CONST = {
         PERSONAL_CARD_IMPORT: 'personalCardImport',
         SUGGESTED_FOLLOWUPS: 'suggestedFollowups',
         FREEZE_CARD: 'freezeCard',
+        GUSTO: 'gustoNewDot',
         BULK_EDIT: 'bulkEdit',
         NEW_MANUAL_EXPENSE_FLOW: 'newManualExpenseFlow',
     },
@@ -1082,6 +1097,7 @@ const CONST = {
         NZD: 'NZD',
         EUR: 'EUR',
     },
+    DEFAULT_CURRENCY_DECIMALS: 2,
     SCA_CURRENCIES: new Set(['GBP', 'EUR']),
     get DIRECT_REIMBURSEMENT_CURRENCIES() {
         return [this.CURRENCY.USD, this.CURRENCY.AUD, this.CURRENCY.CAD, this.CURRENCY.GBP, this.CURRENCY.EUR];
@@ -1389,6 +1405,8 @@ const CONST = {
                 CARD_REPLACED_VIRTUAL: 'CARDREPLACEDVIRTUAL',
                 CARD_REPLACED: 'CARDREPLACED',
                 CARD_ASSIGNED: 'CARDASSIGNED',
+                CARD_FROZEN: 'CARDFROZEN',
+                CARD_UNFROZEN: 'CARDUNFROZEN',
                 PERSONAL_CARD_CONNECTION_BROKEN: 'PERSONALCARDCONNECTIONBROKEN',
                 CHANGE_FIELD: 'CHANGEFIELD', // OldDot Action
                 CHANGE_POLICY: 'CHANGEPOLICY',
@@ -4228,6 +4246,45 @@ const CONST = {
             TAX: 'tax',
         },
     },
+    SPEND_RULES: {
+        CATEGORIES: {
+            AIRLINES: 'airlines',
+            ALCOHOL_AND_BARS: 'alcoholAndBars',
+            AMAZON_AND_BOOKSTORES: 'amazonAndBookstores',
+            AUTOMOTIVE: 'automotive',
+            CAR_RENTALS: 'carRentals',
+            DINING: 'dining',
+            FUEL_AND_GAS: 'fuelAndGas',
+            GOVERNMENT_AND_NON_PROFITS: 'governmentAndNonProfits',
+            GROCERIES: 'groceries',
+            GYMS_AND_FITNESS: 'gymsAndFitness',
+            HEALTHCARE: 'healthcare',
+            HOTELS: 'hotels',
+            INTERNET_AND_PHONE: 'internetAndPhone',
+            OFFICE_SUPPLIES: 'officeSupplies',
+            PARKING_AND_TOLLS: 'parkingAndTolls',
+            PROFESSIONAL_SERVICES: 'professionalServices',
+            RETAIL: 'retail',
+            SHIPPING_AND_DELIVERY: 'shippingAndDelivery',
+            SOFTWARE: 'software',
+            TRANSIT_AND_RIDESHARE: 'transitAndRideshare',
+            TRAVEL_AGENCIES: 'travelAgencies',
+        },
+        FORM: {
+            FIELDS: {
+                CARD_IDS: 'cardIDs',
+                RESTRICTION_ACTION: 'restrictionAction',
+                MERCHANT_NAMES: 'merchantNames',
+                MERCHANT_MATCH_TYPES: 'merchantMatchTypes',
+                CATEGORIES: 'categories',
+                MAX_AMOUNT: 'maxAmount',
+            },
+        },
+        ACTION: {
+            ALLOW: 'allow',
+            BLOCK: 'block',
+        },
+    },
 
     get SUBSCRIPTION_PRICES() {
         return {
@@ -4498,7 +4555,7 @@ const CONST = {
     FORM_CHARACTER_LIMIT: 50,
     STANDARD_LENGTH_LIMIT: 100,
     STANDARD_LIST_ITEM_LIMIT: 12,
-    APPROVAL_WORKFLOW_SEARCH_LIMIT: 3,
+    SEARCH_BAR_THRESHOLD: 3,
     LEGAL_NAMES_CHARACTER_LIMIT: 150,
     LOGIN_CHARACTER_LIMIT: 254,
     CATEGORY_NAME_LIMIT: 256,
@@ -5974,11 +6031,13 @@ const CONST = {
         FLAG_SEVERITY_ASSAULT: 'assault',
     },
     EMOJI_PICKER_TEXT_INPUT_SIZES: 152,
+    EMOJI_PICKER_SKIN_TONE_LIST_HEIGHT: 56,
     TEXT_INPUT_SYMBOL_POSITION: {
         PREFIX: 'prefix',
         SUFFIX: 'suffix',
     },
     QR: {
+        DEFAULT_LOGO_SIZE: 120,
         DEFAULT_LOGO_SIZE_RATIO: 0.25,
         DEFAULT_LOGO_MARGIN_RATIO: 0.02,
         EXPENSIFY_LOGO_SIZE_RATIO: 0.22,
@@ -6064,6 +6123,8 @@ const CONST = {
         NAVIGATION: 'navigation',
         /** Use for Tooltips */
         TOOLTIP: 'tooltip',
+        /** Use for dialog/modal elements */
+        DIALOG: 'dialog',
         /** Use for data table containers. */
         TABLE: 'table',
         /** Use for table rows. */
@@ -6528,6 +6589,7 @@ const CONST = {
     ONBOARDING_RHP_VARIANT: {
         RHP_CONCIERGE_DM: 'rhpConciergeDm',
         RHP_ADMINS_ROOM: 'rhpAdminsRoom',
+        RHP_HOME_PAGE: 'rhpHomePage',
         CONTROL: 'control',
     },
     ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE: 'What would you like to do with this expense?',
@@ -7375,6 +7437,7 @@ const CONST = {
             VIEW: 'view',
             SUBMIT: 'submit',
             APPROVE: 'approve',
+            CHANGE_APPROVER: 'changeApprover',
             PAY: 'pay',
             DONE: 'done',
             EXPORT_TO_ACCOUNTING: 'exportToAccounting',
@@ -7392,6 +7455,7 @@ const CONST = {
             EDIT: 'edit',
             EXPORT: 'export',
             APPROVE: 'approve',
+            CHANGE_APPROVER: 'changeApprover',
             PAY: 'pay',
             SUBMIT: 'submit',
             HOLD: 'hold',
@@ -8418,6 +8482,9 @@ const CONST = {
             SIGN_UP: 'sign_up',
             WORKSPACE_CREATED: 'workspace_created',
             PAID_ADOPTION: 'paid_adoption',
+            PRODUCT_TRAINING_SCAN_TEST_TOOLTIP_SHOWN: 'training_scan_test_tooltip_shown',
+            PRODUCT_TRAINING_SCAN_TEST_TOOLTIP_DISMISSED: 'training_scan_test_tooltip_dismissed',
+            PRODUCT_TRAINING_SCAN_TEST_TOOLTIP_CONFIRMED: 'training_scan_test_tooltip_confirmed',
         },
     },
 
@@ -8501,6 +8568,7 @@ const CONST = {
             isExtraSmallScreenWidth: false,
             isSmallScreen: false,
             onboardingIsMediumOrLargerScreenWidth: false,
+            isInLandscapeMode: false,
         } as ResponsiveLayoutResult,
     },
 
@@ -8705,6 +8773,7 @@ const CONST = {
         },
         HEADER_VIEW: {
             BACK_BUTTON: 'HeaderView-BackButton',
+            CHRONOS_TIMER_BUTTON: 'HeaderView-ChronosTimerButton',
             DETAILS_BUTTON: 'HeaderView-DetailsButton',
         },
         SEARCH: {
@@ -8981,8 +9050,11 @@ const CONST = {
         },
         CALENDAR_PICKER: {
             YEAR_PICKER: 'CalendarPicker-YearPicker',
+            MONTH_PICKER: 'CalendarPicker-MonthPicker',
             PREV_MONTH: 'CalendarPicker-PrevMonth',
             NEXT_MONTH: 'CalendarPicker-NextMonth',
+            PREV_YEAR: 'CalendarPicker-PrevYear',
+            NEXT_YEAR: 'CalendarPicker-NextYear',
             DAY: 'CalendarPicker-Day',
         },
         PREV_NEXT_BUTTONS: {
@@ -9182,7 +9254,9 @@ const CONST = {
                 THREE_DOT_MENU: 'WorkspaceAccounting-ThreeDotMenu',
             },
             RULES: {
+                ADD_SPEND_RULE: 'WorkspaceRules-AddSpendRule',
                 INDIVIDUAL_EXPENSES_MENU_ITEM: 'WorkspaceRules-IndividualExpensesMenuItem',
+                SPEND_RULE_ITEM: 'WorkspaceRules-SpendRuleItem',
                 MERCHANT_RULE_ITEM: 'WorkspaceRules-MerchantRuleItem',
                 ADD_MERCHANT_RULE: 'WorkspaceRules-AddMerchantRule',
                 MERCHANT_RULE_SECTION_ITEM: 'WorkspaceRules-MerchantRuleSectionItem',
@@ -9190,6 +9264,9 @@ const CONST = {
                 MERCHANT_RULE_PREVIEW_MATCHES: 'WorkspaceRules-MerchantRulePreviewMatches',
                 MERCHANT_RULE_DELETE: 'WorkspaceRules-MerchantRuleDelete',
                 CATEGORY_SELECTOR: 'WorkspaceRules-CategorySelector',
+                SPEND_RULE_SECTION_ITEM: 'WorkspaceRules-SpendRuleSectionItem',
+                SPEND_RULE_SAVE: 'WorkspaceRules-SpendRuleSave',
+                SPEND_RULE_RESTRICTION_TYPE: 'WorkspaceRules-SpendRuleRestrictionType',
             },
             EXPENSIFY_CARD: {
                 ISSUE_CARD_BUTTON: 'WorkspaceExpensifyCard-IssueCardButton',
@@ -9404,6 +9481,9 @@ const CONST = {
         PROFILE_PAGE: {
             AVATAR: 'ProfilePage-Avatar',
         },
+        SAFE_AREA: {
+            DISMISS_KEYBOARD_LANDSCAPE_MODE: 'SafeArea-DismissKeyboardLandscapeMode',
+        },
     },
 
     DOMAIN: {
@@ -9436,22 +9516,22 @@ const CONST = {
     HOME: {
         ANNOUNCEMENTS: [
             {
-                title: 'Expensify and Xero partner to support SMBs',
-                subtitle: 'Press Release',
-                url: 'https://www.businesswire.com/news/home/20260212641796/en/Expensify-and-Xero-Enhance-Partnership-to-Support-Small-Businesses',
-                publishedDate: '2026-02-12',
-            },
-            {
-                title: 'New Home page & upgraded Insights analytics',
-                subtitle: 'Product update',
-                url: 'https://use.expensify.com/blog/expensify-home-and-insights-update',
-                publishedDate: '2026-02-18',
-            },
-            {
                 title: 'Smarter spend controls & Concierge anywhere',
                 subtitle: 'Product update',
                 url: 'https://use.expensify.com/blog/expensify-february-2026-product-update',
                 publishedDate: '2026-02-19',
+            },
+            {
+                title: 'More power, right where you need it',
+                subtitle: 'Product update',
+                url: 'https://use.expensify.com/blog/expensify-march-2026-product-update',
+                publishedDate: '2026-03-23',
+            },
+            {
+                title: 'New global partnerships: banking, travel, accounting, & more',
+                subtitle: 'Newsletter',
+                url: 'https://use.expensify.com/blog/expensify-new-integrations-march-2026',
+                publishedDate: '2026-03-25',
             },
         ],
     },
@@ -9464,6 +9544,8 @@ const CONST = {
     CACHE_NAME: {
         AUTH_IMAGES: 'auth-images',
     },
+
+    MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE: 0.75,
 } as const;
 
 const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS = [

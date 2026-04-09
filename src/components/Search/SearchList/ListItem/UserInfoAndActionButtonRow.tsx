@@ -1,3 +1,7 @@
+// NOTE: This component has a static twin in SearchStaticList
+// (src/components/Search/SearchStaticList.tsx) used for fast perceived
+// performance. If you change the UI here, verify the static version still
+// looks visually identical.
 import React from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';

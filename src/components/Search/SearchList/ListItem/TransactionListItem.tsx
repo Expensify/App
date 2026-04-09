@@ -1,3 +1,7 @@
+// NOTE: The narrow-layout rendering of this component has a static twin in
+// SearchStaticList (src/components/Search/SearchStaticList.tsx) used for fast
+// perceived performance. If you change the narrow-layout UI here, verify the
+// static version still looks visually identical.
 import React, {useRef} from 'react';
 import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -23,6 +27,7 @@ import type {TransactionPreviewData} from '@libs/actions/Search';
 import {handleActionButtonPress as handleActionButtonPressUtil} from '@libs/actions/Search';
 import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {isInvoiceReport} from '@libs/ReportUtils';
 import {isDeletedTransaction as isDeletedTransactionUtil, isViolationDismissed, mergeProhibitedViolations, shouldShowViolation} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
@@ -143,7 +148,7 @@ function TransactionListItem<TItem extends ListItem>({
         transaction?.category ?? transactionItem.category ?? '',
         transaction?.comment?.attendees ?? transactionItem.attendees,
         currentUserDetails,
-        policyForViolations?.isAttendeeTrackingEnabled ?? false,
+        isAttendeeTrackingEnabled(policyForViolations),
         policyForViolations?.type === CONST.POLICY.TYPE.CORPORATE,
         isInvoice,
     );

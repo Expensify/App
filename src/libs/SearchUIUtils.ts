@@ -77,10 +77,14 @@ import type {
     SearchDataTypes,
     SearchMemberGroup,
     SearchMerchantGroup,
+    SearchMonthGroup,
+    SearchQuarterGroup,
     SearchTagGroup,
     SearchTask,
     SearchTransactionAction,
+    SearchWeekGroup,
     SearchWithdrawalIDGroup,
+    SearchYearGroup,
 } from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 import arraysEqual from '@src/utils/arraysEqual';
@@ -101,7 +105,16 @@ import isSearchTopmostFullScreenRoute from './Navigation/helpers/isSearchTopmost
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
-import {arePaymentsEnabled, canSendInvoice, getCommaSeparatedTagNameWithSanitizedColons, getSubmitToAccountID, isPaidGroupPolicy, isPolicyApprover, isPolicyPayer} from './PolicyUtils';
+import {
+    arePaymentsEnabled,
+    canSendInvoice,
+    getCommaSeparatedTagNameWithSanitizedColons,
+    getSubmitToAccountID,
+    isPaidGroupPolicy,
+    isPolicyAdmin,
+    isPolicyApprover,
+    isPolicyPayer,
+} from './PolicyUtils';
 import {
     getIOUActionForReportID,
     getOriginalMessage,
@@ -134,12 +147,15 @@ import {
     isAllowedToApproveExpenseReport as isAllowedToApproveExpenseReportUtils,
     isArchivedReport,
     isClosedReport,
+    isExpenseReport as isExpenseReportUtil,
     isInvoiceReport,
     isIOUReport as isIOUReportReportUtil,
     isMoneyRequestReport,
+    isMoneyRequestReportPendingDeletion,
     isOneTransactionReport,
     isOpenExpenseReport,
     isOpenReport,
+    isProcessingReport,
     isSettled,
     shouldReportShowSubscript,
 } from './ReportUtils';
@@ -1788,7 +1804,7 @@ function getTransactionsSections({
             const transactionSection: TransactionListItemType = {
                 ...transactionItem,
                 keyForList: transactionItem.transactionID,
-                action: allActions.at(0) ?? CONST.SEARCH.ACTION_TYPES.VIEW,
+                action: getAction(allActions),
                 allActions,
                 report,
                 policy,
@@ -2051,11 +2067,25 @@ function getActions(
         allActions.push(CONST.SEARCH.ACTION_TYPES.SUBMIT);
     }
 
+    const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+    if (report && policy && isPolicyAdmin(policy) && isExpenseReportUtil(report) && isProcessingReport(report) && !isMoneyRequestReportPendingDeletion(report) && isApprovalEnabled) {
+        allActions.push(CONST.SEARCH.ACTION_TYPES.CHANGE_APPROVER);
+    }
+
     if (reportNVP?.exportFailedTime) {
         return allActions.length > 0 ? allActions : [CONST.SEARCH.ACTION_TYPES.VIEW];
     }
 
     return allActions.length > 0 ? allActions : [CONST.SEARCH.ACTION_TYPES.VIEW];
+}
+
+/**
+ * @private
+ * Returns the primary action to show in the Action column for a given transaction or report
+ */
+function getAction(allActions: SearchTransactionAction[]) {
+    // Do not set CHANGE_APPROVER as the primary action as it is less frequently used than VIEW
+    return allActions.find((action) => action !== CONST.SEARCH.ACTION_TYPES.CHANGE_APPROVER) ?? CONST.SEARCH.ACTION_TYPES.VIEW;
 }
 
 /**
@@ -2424,7 +2454,7 @@ function getReportSections({
 
                 reportIDToTransactions[reportKey] = {
                     ...reportItem,
-                    action: allActions.at(0) ?? CONST.SEARCH.ACTION_TYPES.VIEW,
+                    action: getAction(allActions),
                     allActions,
                     keyForList: String(reportItem.reportID),
                     groupedBy: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
@@ -2480,7 +2510,7 @@ function getReportSections({
             const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, transactionReportMetadata, actions);
             const transaction = {
                 ...transactionItem,
-                action: allActions.at(0) ?? CONST.SEARCH.ACTION_TYPES.VIEW,
+                action: getAction(allActions),
                 allActions,
                 report,
                 reportAction,
@@ -2526,6 +2556,115 @@ function buildSpecificGroupQuery(queryJSON: SearchQueryJSON, filterKey: SearchFi
     newFlatFilters.push({key: filterKey, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: filterValue}]});
     const newQueryJSON: SearchQueryJSON = {...queryJSON, groupBy: undefined, flatFilters: newFlatFilters};
     return buildSearchQueryJSON(buildSearchQueryString(newQueryJSON));
+}
+
+function getActiveGroupSearchHashes(data: OnyxTypes.SearchResults['data'] | undefined, queryJSON: SearchQueryJSON | undefined): number[] {
+    if (!data || !queryJSON?.groupBy) {
+        return [];
+    }
+
+    const searchHashes = new Set<number>();
+
+    for (const [key, group] of Object.entries(data)) {
+        if (!group || !isGroupEntry(key)) {
+            continue;
+        }
+
+        let transactionsQueryJSON: SearchQueryJSON | undefined;
+
+        switch (queryJSON.groupBy) {
+            case CONST.SEARCH.GROUP_BY.FROM: {
+                const memberGroup = group as SearchMemberGroup;
+                if (memberGroup.accountID) {
+                    transactionsQueryJSON = buildSpecificGroupQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, memberGroup.accountID);
+                }
+                break;
+            }
+            case CONST.SEARCH.GROUP_BY.CARD: {
+                const cardGroup = group as SearchCardGroup;
+                if (cardGroup.cardID) {
+                    transactionsQueryJSON = buildSpecificGroupQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, cardGroup.cardID);
+                }
+                break;
+            }
+            case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID: {
+                const withdrawalIDGroup = group as SearchWithdrawalIDGroup;
+                if (withdrawalIDGroup.entryID) {
+                    transactionsQueryJSON = buildSpecificGroupQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID, withdrawalIDGroup.entryID);
+                }
+                break;
+            }
+            case CONST.SEARCH.GROUP_BY.CATEGORY: {
+                const categoryGroup = group as SearchCategoryGroup;
+                if (categoryGroup.category !== undefined) {
+                    transactionsQueryJSON = buildSpecificGroupQuery(
+                        queryJSON,
+                        CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY,
+                        !categoryGroup.category ? CONST.SEARCH.CATEGORY_EMPTY_VALUE : categoryGroup.category,
+                    );
+                }
+                break;
+            }
+            case CONST.SEARCH.GROUP_BY.MERCHANT: {
+                const merchantGroup = group as SearchMerchantGroup;
+                if (merchantGroup.merchant !== undefined) {
+                    transactionsQueryJSON = buildSpecificGroupQuery(
+                        queryJSON,
+                        CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
+                        merchantGroup.merchant === '' ? CONST.SEARCH.MERCHANT_EMPTY_VALUE : merchantGroup.merchant,
+                    );
+                }
+                break;
+            }
+            case CONST.SEARCH.GROUP_BY.TAG: {
+                const tagGroup = group as SearchTagGroup;
+                if (tagGroup.tag !== undefined) {
+                    transactionsQueryJSON = buildSpecificGroupQuery(
+                        queryJSON,
+                        CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG,
+                        tagGroup.tag === '' || tagGroup.tag === '(untagged)' ? CONST.SEARCH.TAG_EMPTY_VALUE : tagGroup.tag,
+                    );
+                }
+                break;
+            }
+            case CONST.SEARCH.GROUP_BY.MONTH: {
+                const monthGroup = group as SearchMonthGroup;
+                if (monthGroup.year && monthGroup.month) {
+                    transactionsQueryJSON = buildDateRangeGroupQuery(queryJSON, DateUtils.getMonthDateRange(monthGroup.year, monthGroup.month))?.transactionsQueryJSON;
+                }
+                break;
+            }
+            case CONST.SEARCH.GROUP_BY.WEEK: {
+                const weekGroup = group as SearchWeekGroup;
+                if (weekGroup.week) {
+                    transactionsQueryJSON = buildDateRangeGroupQuery(queryJSON, DateUtils.getWeekDateRange(weekGroup.week))?.transactionsQueryJSON;
+                }
+                break;
+            }
+            case CONST.SEARCH.GROUP_BY.YEAR: {
+                const yearGroup = group as SearchYearGroup;
+                if (typeof yearGroup.year === 'number') {
+                    transactionsQueryJSON = buildDateRangeGroupQuery(queryJSON, DateUtils.getYearDateRange(yearGroup.year))?.transactionsQueryJSON;
+                }
+                break;
+            }
+            case CONST.SEARCH.GROUP_BY.QUARTER: {
+                const quarterGroup = group as SearchQuarterGroup;
+                if (typeof quarterGroup.year === 'number' && typeof quarterGroup.quarter === 'number') {
+                    transactionsQueryJSON = buildDateRangeGroupQuery(queryJSON, DateUtils.getQuarterDateRange(quarterGroup.year, quarterGroup.quarter))?.transactionsQueryJSON;
+                }
+                break;
+            }
+            default:
+                break;
+        }
+
+        if (transactionsQueryJSON?.hash !== undefined && transactionsQueryJSON.hash >= 0) {
+            searchHashes.add(transactionsQueryJSON.hash);
+        }
+    }
+
+    return Array.from(searchHashes);
 }
 
 function buildDateRangeGroupQuery(queryJSON: SearchQueryJSON, dateRange: {start: string; end: string}): {transactionsQueryJSON: SearchQueryJSON | undefined; start: string; end: string} {
@@ -5229,6 +5368,7 @@ export {
     getToFieldValueForTransaction,
     getSearchReportAvatarProps,
     isTodoSearch,
+    getActiveGroupSearchHashes,
     adjustTimeRangeToDateFilters,
     mapFiltersFormToLabelValueList,
     isEligibleForApproveSuggestion,
