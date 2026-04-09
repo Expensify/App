@@ -84,6 +84,7 @@ function WalletPage() {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const isUserValidated = userAccount?.validated ?? false;
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
@@ -143,7 +144,7 @@ function WalletPage() {
 
         if (accountData?.state === CONST.BANK_ACCOUNT.STATE.LOCKED && accountData?.bankAccountID) {
             pressLockedBankAccount(accountData?.bankAccountID, translate, conciergeReportID ?? undefined);
-            navigateToConciergeChat(conciergeReportID ?? undefined, introSelected, currentUserAccountID, isSelfTourViewed);
+            navigateToConciergeChat(conciergeReportID ?? undefined, introSelected, currentUserAccountID, isSelfTourViewed, betas);
             return;
         }
 
@@ -506,7 +507,14 @@ function WalletPage() {
                                   closeModal(() => showLockedAccountModal());
                                   return;
                               }
-                              closeModal(() => Navigation.navigate(ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS.getRoute(paymentMethod.selectedPaymentMethod.bankAccountID)));
+                              closeModal(() =>
+                                  Navigation.navigate(
+                                      ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS.getRoute(
+                                          paymentMethod.selectedPaymentMethod.bankAccountID,
+                                          CONST.ENABLE_GLOBAL_REIMBURSEMENTS.PAGE_NAME.BUSINESS_INFO.REGISTRATION_NUMBER,
+                                      ),
+                                  ),
+                              );
                           },
                       },
                   ]
@@ -542,9 +550,9 @@ function WalletPage() {
         const hasDirectFeed = Object.values(cardFeedsByPolicy).some((feeds) => feeds.some((feed) => isDirectFeed(feed.feed)));
         if (hasDirectFeed) {
             Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_WARNING);
-            // return;
+            return;
         }
-        // TODO navigate to add new personal card
+        Navigation.navigate(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_ADD_NEW);
     };
 
     const openCompanyCardFlow = () => {

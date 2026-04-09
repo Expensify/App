@@ -72,7 +72,6 @@ function DuplicateTransactionItem({transaction, index, onPreviewPressed}: Duplic
                         index={index}
                         displayAsGroup={false}
                         shouldDisplayNewMarker={false}
-                        isMostRecentIOUReportAction={false}
                         isFirstVisibleReportAction={false}
                         shouldDisplayContextMenu={false}
                         userWalletTierName={userWalletTierName}

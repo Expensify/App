@@ -32,9 +32,6 @@ type ReportActionsListItemRendererProps = {
     /** Should the comment have the appearance of being grouped with the previous comment? */
     displayAsGroup: boolean;
 
-    /** The ID of the most recent IOU report action connected with the shown report */
-    mostRecentIOUReportActionID?: string | null;
-
     /** If the thread divider line should be hidden */
     shouldHideThreadDividerLine: boolean;
 
@@ -87,7 +84,6 @@ function ReportActionsListItemRenderer({
     report,
     transactionThreadReport,
     displayAsGroup,
-    mostRecentIOUReportActionID = '',
     shouldHideThreadDividerLine,
     shouldDisplayNewMarker,
     linkedReportActionID = '',
@@ -219,7 +215,6 @@ function ReportActionsListItemRenderer({
             linkedReportActionID={linkedReportActionID}
             displayAsGroup={displayAsGroup}
             shouldDisplayNewMarker={shouldDisplayNewMarker}
-            isMostRecentIOUReportAction={reportAction.reportActionID === mostRecentIOUReportActionID}
             index={index}
             isFirstVisibleReportAction={isFirstVisibleReportAction}
             shouldUseThreadDividerLine={shouldUseThreadDividerLine}

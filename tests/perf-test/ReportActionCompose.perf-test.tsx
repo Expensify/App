@@ -5,7 +5,9 @@ import type Animated from 'react-native-reanimated';
 import {measureRenders} from 'reassure';
 import type {EmojiPickerRef} from '@libs/actions/EmojiPickerAction';
 import type Navigation from '@libs/Navigation/Navigation';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Report} from '@src/types/onyx';
 import {ReportActionComposeWrapper} from '../utils/ReportActionComposeUtils';
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -69,9 +71,14 @@ beforeAll(() =>
     }),
 );
 
-// Initialize the network key for OfflineWithFeedback
+// Initialize the network key for OfflineWithFeedback and seed report data
 beforeEach(() => {
     Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {
+        reportID: '1',
+        reportName: 'Test Report',
+        type: CONST.REPORT.TYPE.CHAT,
+    } as Report);
 });
 
 const mockEvent = {preventDefault: jest.fn()};

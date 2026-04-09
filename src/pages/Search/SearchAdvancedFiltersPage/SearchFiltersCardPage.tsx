@@ -35,6 +35,7 @@ function SearchFiltersCardPage() {
 
     const [areCardsLoaded] = useOnyx(ONYXKEYS.IS_SEARCH_FILTERS_CARD_DATA_LOADED);
     const [userCardList, userCardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [workspaceCardFeeds, workspaceCardFeedsMetadata] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const [policies, policiesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -55,9 +56,27 @@ function SearchFiltersCardPage() {
         setSelectedCards(generatedCards);
     }, [searchAdvancedFiltersForm?.feed, searchAdvancedFiltersForm?.cardID, workspaceCardFeeds, userCardList]);
 
-    const individualCardsSectionData = buildCardsData(workspaceCardFeeds ?? {}, userCardList ?? {}, personalDetails ?? {}, selectedCards, illustrations, companyCardFeedIcons, false);
+    const individualCardsSectionData = buildCardsData(
+        workspaceCardFeeds ?? {},
+        userCardList ?? {},
+        personalDetails ?? {},
+        selectedCards,
+        illustrations,
+        companyCardFeedIcons,
+        false,
+        customCardNames,
+    );
 
-    const closedCardsSectionData = buildCardsData(workspaceCardFeeds ?? {}, userCardList ?? {}, personalDetails ?? {}, selectedCards, illustrations, companyCardFeedIcons, true);
+    const closedCardsSectionData = buildCardsData(
+        workspaceCardFeeds ?? {},
+        userCardList ?? {},
+        personalDetails ?? {},
+        selectedCards,
+        illustrations,
+        companyCardFeedIcons,
+        true,
+        customCardNames,
+    );
 
     const domainFeedsData = getDomainFeedData(workspaceCardFeeds);
 
