@@ -7,19 +7,36 @@ internalScope: Audience is Workspace Admins. Covers connecting a new US business
 
 # Connect a US Business Bank Account
 
-You can connect a US business bank account from a Workspace or from your Wallet. You can also link an already verified business bank account to another Workspace without repeating the full setup process. Once connected, you can use the bank account for reimbursements, Expensify Card payments, and invoice payouts.
+You can connect a US business bank account from **Wallet**, or from a Workspace if you are a Workdpace Admin. Once connected, you can use the bank account for reimbursements, Expensify Card payments, and invoice payouts.
 
-This article covers connecting US bank accounts only.
-
-If your business bank account is based outside the United States, [learn how to connect an international business bank account](/articles/new-expensify/wallet-and-payments/Enable-Global-Reimbursement). 
+This article covers connecting US bank accounts only. If your business bank account is based outside the United States, [learn how to connect an international business bank account](/articles/new-expensify/wallet-and-payments/Enable-Global-Reimbursement). 
 
 ---
 
 ## Who can connect a US business bank account
 
-Workspace Admins can connect a business bank account to a Workspace. All individuals associated with the account must have a US address, US photo ID, and a US SSN.
+- Any member can connect a US business bank account in **Wallet**. 
+- Workspace Admins can connect a business bank account to a Workspace.
+- The member who sets up the account and all beneficial owners must have a phyical US address, a US photo ID, and a US SSN.
 
 To connect a business bank account, the Workspace must have Workflows enabled. [Learn how to enable Workflows](/articles/new-expensify/workspaces/Workspace-Workflows#enable-workflows).
+
+---
+
+## How to add a new US business bank account in Wallet
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), click **Account > Wallet**. 
+2. Click **Add bank account**.
+3. Select **Make payments**.
+4. Choose the country where your bank is located.
+5. Select **Log into your bank** (preferred) or **Connect manually**.
+6. Complete the identity verification, company details, and Beneficial Owner steps described below.
+
+<!-- SCREENSHOT:
+Suggestion: Wallet page showing Add bank account button and the Make payments option
+Location: After step 3
+Purpose: Shows the new Wallet entry point for business bank accounts
+-->
 
 ---
 
@@ -40,23 +57,6 @@ Suggestion: Update current screenshots
 -->
 
 ![Workflows screen with Connect Bank Account button]({{site.url}}/assets/images/Help-ConnectBusinessBankAccount-2.png){:width="100%"}
-
----
-
-## How to add a new US business bank account from Wallet
-
-1. In the navigation tabs (on the left on web, on the bottom on mobile), click **Account > Wallet**. 
-2. Click **Add bank account**.
-3. Select **Make payments**.
-4. Choose the country where your bank is located.
-5. Select **Log into your bank** (preferred) or **Connect manually**.
-6. Complete the identity verification, company details, and Beneficial Owner steps described below.
-
-<!-- SCREENSHOT:
-Suggestion: Wallet page showing Add bank account button and the Make payments option
-Location: After step 3
-Purpose: Shows the new Wallet entry point for business bank accounts
--->
 
 ---
 
