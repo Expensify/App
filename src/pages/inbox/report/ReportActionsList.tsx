@@ -73,8 +73,6 @@ function keyExtractor(item: OnyxTypes.ReportAction): string {
     return item.reportActionID;
 }
 
-const onScrollToIndexFailed = () => {};
-
 function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
     // ─── Side effects ───
     useCopySelectionHelper();
@@ -336,7 +334,6 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
                     onLayout={scroll.onLayoutInner}
                     onScroll={scroll.trackVerticalScrolling}
                     onViewableItemsChanged={scroll.onViewableItemsChanged}
-                    onScrollToIndexFailed={onScrollToIndexFailed}
                     extraData={extraData}
                     // changes only for comment linking
                     key={linkedReportActionID ? `${reportID}-${linkedReportActionID}` : reportID}
