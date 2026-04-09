@@ -171,11 +171,6 @@ function WorkspaceInviteMessageComponent({
             return;
         }
 
-        if (getIsNarrowLayout()) {
-            Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID), {forceReplace: true});
-            return;
-        }
-
         Navigation.setNavigationActionToMicrotaskQueue(() => {
             Navigation.dismissModal({callback: () => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID))});
         });

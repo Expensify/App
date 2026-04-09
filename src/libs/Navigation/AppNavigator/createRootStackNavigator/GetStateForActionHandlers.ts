@@ -114,6 +114,60 @@ function getRehydratedTabNavigatorStateAfterPush(rehydratedState: StackNavigatio
 }
 
 /**
+ * Returns the focused child route from a navigator `state` (respects `index`).
+ * Using `routes.at(-1)` is wrong for TabNavigator: tab order follows TAB_SCREENS, not selection.
+ */
+function getFocusedRouteFromNavigatorState(navState: NavigationState | PartialState<NavigationState> | undefined): NavigationPartialRoute | undefined {
+    if (!navState?.routes?.length) {
+        return undefined;
+    }
+    const idx =
+        typeof navState.index === 'number' && navState.routes[navState.index] !== undefined
+            ? navState.index
+            : // Partial states from linking should include `index`; fall back to first route.
+              0;
+    return navState.routes[idx] as NavigationPartialRoute;
+}
+
+/**
+ * After a TAB_NAVIGATOR push, merges `params.state` from the path-derived tab subtree so the new root tab
+ * matches deep-link shape (avoids a follow-up NAVIGATE and duplicate tab history). Same idea as
+ * getRehydratedTabNavigatorStateAfterPush, but uses the focused tab from `targetTabRouteFromPath`.
+ */
+function mergePushedTabNavigatorWithPathState(
+    rehydratedState: StackNavigationState<ParamListBase>,
+    targetTabRouteFromPath: {state?: NavigationState | PartialState<NavigationState>},
+): StackNavigationState<ParamListBase> {
+    const rehydratedLastRoute = rehydratedState.routes.at(-1);
+    if (rehydratedLastRoute?.name !== NAVIGATORS.TAB_NAVIGATOR) {
+        return rehydratedState;
+    }
+
+    const focusedTabRoute = getFocusedRouteFromNavigatorState(targetTabRouteFromPath.state);
+    if (!focusedTabRoute) {
+        return rehydratedState;
+    }
+
+    const tabNavigatorNestedState = buildTabNavigatorNestedState(focusedTabRoute);
+    const paramsWithoutNestedTarget = Object.fromEntries(
+        Object.entries((rehydratedLastRoute.params ?? {}) as Record<string, unknown>).filter(([key]) => key !== 'screen' && key !== 'params'),
+    ) as Record<string, unknown>;
+
+    const updatedLastRoute = {
+        ...rehydratedLastRoute,
+        params: {
+            ...paramsWithoutNestedTarget,
+            state: tabNavigatorNestedState as unknown as PartialState<NavigationState>,
+        },
+    };
+
+    return {
+        ...rehydratedState,
+        routes: [...rehydratedState.routes.slice(0, -1), updatedLastRoute],
+    } as StackNavigationState<ParamListBase>;
+}
+
+/**
  * Util function with common logic for handling OPEN_WORKSPACE_SPLIT and OPEN_DOMAIN_SPLIT actions.
  *
  * Pushes WorkspaceNavigator onto the root stack and explicitly sets its nested state to
@@ -273,13 +327,13 @@ function handleReplaceReportsSplitNavigatorAction(
  * Inserts a new fullscreen route (e.g. SearchFullscreenNavigator) underneath the
  * currently open modal (RHP) without destroying the original fullscreen route.
  *
- * State transition: [Home, RHP] -> [Home, Search, RHP]
+ * State transition (conceptual): [Tab, RHP] -> [Tab, Tab', RHP] where Tab' carries the
+ * destination tab subtree from `getStateFromPath` (e.g. Search). The stack may keep two
+ * TabNavigator instances; see ensureTabNavigatorRoutes.
  *
- * This is intentionally different from a REPLACE (which would yield [Search, RHP]
- * and destroy the Home route). Preserving Home is critical for correct browser
- * history: when the RHP is dismissed in the next animation frame, useLinking sees
- * that the Home+RHP browser-history entry is stale and correctly replaces it with
- * a new Search entry, producing browser history [Home, Search].
+ * This is intentionally different from a REPLACE (which would drop the previous Tab
+ * slice). Preserving the prior Tab route is important for history and for preserving
+ * the previous tab's state when dismissing the RHP on the next frame.
  *
  * The companion history-preservation logic lives in addRootHistoryRouterExtension
  * which keeps `state.history` unchanged for this action so that no browser history
@@ -313,10 +367,10 @@ function handleReplaceFullscreenUnderRHP(
     }
 
     // 2. Push the target fullscreen route on top of the existing one(s).
-    //    getStateFromPath returns nested state (e.g. { name: 'SearchFullscreenNavigator', state: { routes: [{ name: 'Search_Central', params: { q: '...' } }] } })
-    //    but StackActions.push expects { screen, params } format, so we convert the nested state.
+    //    getStateFromPath returns nested state (e.g. TabNavigator with tab `state` + `index`, or nested stacks).
+    //    StackActions.push expects { screen, params } for navigators; use the focused child (via `index`), not `routes.at(-1)`.
     let pushParams = targetRoute.params as Record<string, unknown> | undefined;
-    const nestedRoute = targetRoute.state?.routes?.at(-1);
+    const nestedRoute = getFocusedRouteFromNavigatorState(targetRoute.state);
     if (nestedRoute) {
         pushParams = {
             ...pushParams,
@@ -333,7 +387,10 @@ function handleReplaceFullscreenUnderRHP(
 
     // 3. Re-add the modal on top so visually nothing changes yet - the user still sees
     //    the RHP, but the new fullscreen route is now rendered behind it.
-    const rehydratedStateAfterPush = stackRouter.getRehydratedState(stateAfterPush, configOptions);
+    let rehydratedStateAfterPush = stackRouter.getRehydratedState(stateAfterPush, configOptions);
+    if (targetRoute.name === NAVIGATORS.TAB_NAVIGATOR) {
+        rehydratedStateAfterPush = mergePushedTabNavigatorWithPathState(rehydratedStateAfterPush, targetRoute);
+    }
     return {
         ...rehydratedStateAfterPush,
         routes: [...rehydratedStateAfterPush.routes, rhpRoute],
