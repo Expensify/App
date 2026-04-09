@@ -1,8 +1,10 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
+import ScrollView from '@components/ScrollView';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -21,7 +23,6 @@ import {getGPSConvertedDistance, getGPSCoordinates, getGPSWaypoints} from '@libs
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
-import {getRateID} from '@libs/TransactionUtils';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
@@ -47,6 +48,7 @@ function IOURequestStepDistanceGPS({
 
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
+    const isInLandscapeMode = useIsInLandscapeMode();
 
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const isArchived = useReportIsArchived(report?.reportID);
@@ -62,6 +64,7 @@ function IOURequestStepDistanceGPS({
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreatingNewRequest = !isEditing;
     // eslint-disable-next-line rulesdir/no-negated-variables
@@ -81,7 +84,6 @@ function IOURequestStepDistanceGPS({
 
     const shouldUseDefaultExpensePolicy = shouldUseDefaultExpensePolicyUtil(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd);
 
-    const customUnitRateID = getRateID(transaction);
     const unit = DistanceRequestUtils.getRate({transaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy}).unit;
 
     const shouldSkipConfirmation = !skipConfirmation || !report?.reportID ? false : !(isArchived || isPolicyExpenseChatUtils(report));
@@ -105,7 +107,6 @@ function IOURequestStepDistanceGPS({
             reportAttributesDerived,
             personalDetails,
             waypoints,
-            customUnitRateID,
             currentUserLogin: currentUserEmailParam,
             currentUserAccountID: currentUserAccountIDParam,
             backToReport,
@@ -135,6 +136,7 @@ function IOURequestStepDistanceGPS({
             amountOwed,
             userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,
+            conciergeReportID,
         });
     };
 
@@ -158,22 +160,30 @@ function IOURequestStepDistanceGPS({
             shouldShowNotFoundPage={shouldShowNotFoundPage}
             shouldShowWrapper={!isCreatingNewRequest}
         >
-            <DistanceCounter unit={unit} />
-            <View style={[styles.w100, styles.pAbsolute, styles.b0, styles.r0, styles.l0]}>
-                <Waypoints />
-                <DotIndicatorMessage
-                    style={[styles.ph5, styles.pb3]}
-                    messages={getError()}
-                    type="error"
-                />
-                <GPSButtons
-                    navigateToNextStep={navigateToNextStep}
-                    setShouldShowStartError={setShouldShowStartError}
-                    setShouldShowPermissionsError={setShouldShowPermissionsError}
-                    reportID={reportID}
+            <ScrollView
+                style={[styles.flex1]}
+                contentContainerStyle={styles.flexGrow1}
+            >
+                <DistanceCounter
                     unit={unit}
+                    isInLandscapeMode={isInLandscapeMode}
                 />
-            </View>
+                <View style={[styles.w100, isInLandscapeMode ? styles.flex1 : [styles.pAbsolute, styles.b0, styles.r0, styles.l0]]}>
+                    <Waypoints />
+                    <DotIndicatorMessage
+                        style={[styles.ph5, styles.pb3]}
+                        messages={getError()}
+                        type="error"
+                    />
+                    <GPSButtons
+                        navigateToNextStep={navigateToNextStep}
+                        setShouldShowStartError={setShouldShowStartError}
+                        setShouldShowPermissionsError={setShouldShowPermissionsError}
+                        reportID={reportID}
+                        unit={unit}
+                    />
+                </View>
+            </ScrollView>
         </StepScreenWrapper>
     );
 }

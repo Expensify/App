@@ -968,12 +968,18 @@ function getCardAssignmentStartDate(isEditing: boolean | undefined, existingStar
     return isEditing ? (existingStartDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING)) : format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
 }
 
-function checkIfNewFeedConnected(prevFeedsData: CompanyFeeds, currentFeedsData: CompanyFeeds, plaidBank?: string) {
+function checkIfNewFeedConnected(prevFeedsData: CombinedCardFeeds, currentFeedsData: CombinedCardFeeds, plaidBank?: string) {
     const prevFeeds = Object.keys(prevFeedsData);
     const currentFeeds = Object.keys(currentFeedsData);
 
+    const plaidBankFound =
+        plaidBank &&
+        currentFeeds.find((feed) => {
+            return splitCardFeedWithDomainID(feed as CompanyCardFeedWithDomainID)?.feedName === `${CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID}.${plaidBank}`;
+        });
+
     return {
-        isNewFeedConnected: currentFeeds.length > prevFeeds.length || (plaidBank && currentFeeds.includes(`${CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID}.${plaidBank}`)),
+        isNewFeedConnected: currentFeeds.length > prevFeeds.length || plaidBankFound,
         newFeed: currentFeeds.find((feed) => !prevFeeds.includes(feed)) as CompanyCardFeedWithDomainID | undefined,
     };
 }
@@ -1519,6 +1525,36 @@ function getCardCurrency(card?: OnyxEntry<Card>, cardSettings?: OnyxEntry<Expens
     return CONST.CURRENCY.USD;
 }
 
+/**
+ * Returns the shared currency for the selected cards when they all match. Returns undefined otherwise.
+ */
+function getSelectedCardsSharedCurrency(cardIDs: string[] | undefined, cardsList: OnyxEntry<WorkspaceCardsList>): string | undefined {
+    if (!cardIDs?.length) {
+        return undefined;
+    }
+
+    const cardsRecord = cardsList ?? {};
+    const currencies = new Set<string>();
+
+    for (const cardID of cardIDs) {
+        const card = cardsRecord[cardID];
+        if (!card) {
+            continue;
+        }
+
+        const currency = card.nameValuePairs?.currency;
+        if (currency) {
+            currencies.add(currency);
+        }
+    }
+
+    if (currencies.size !== 1) {
+        return undefined;
+    }
+
+    return Array.from(currencies).at(0);
+}
+
 function getCardHintText(validFrom: string | undefined, validThru: string | undefined, assigneeTimeZone: SelectedTimezone | undefined, translate: LocalizedTranslate) {
     if (!validFrom || !validThru) {
         return;
@@ -1670,6 +1706,7 @@ export {
     getDisplayableExpensifyCards,
     isExpiredCard,
     getCardCurrency,
+    getSelectedCardsSharedCurrency,
     getCardHintText,
     resolveTransactionCardFields,
 };
