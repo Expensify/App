@@ -238,6 +238,14 @@ function IOURequestStepAmount({
                     participant,
                     transactionReportID: report?.reportID,
                 });
+
+                // Calculate the correct tax for the selected currency. Foreign currency expenses may have a
+                // different default tax rate than the workspace default, so we resolve it here rather than
+                // relying on downstream defaults (which fall back to an empty taxCode and zero taxAmount).
+                const skipTaxCode = getDefaultTaxCode(policy, transaction, selectedCurrency) ?? '';
+                const skipTaxPercentage = getTaxValue(policy, transaction, skipTaxCode) ?? '';
+                const skipTaxAmount = convertToBackendAmount(calculateTaxAmount(skipTaxPercentage, backendAmount, decimals));
+
                 if (iouType === CONST.IOU.TYPE.PAY || iouType === CONST.IOU.TYPE.SEND) {
                     if (paymentMethod && paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
                         sendMoneyWithWallet(report, quickAction, backendAmount, selectedCurrency, '', currentUserAccountIDParam, participants.at(0) ?? {});
@@ -265,6 +273,8 @@ function IOURequestStepAmount({
                             merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                             attendees: transaction?.comment?.attendees,
                             reimbursable: defaultReimbursable,
+                            taxCode: skipTaxCode,
+                            taxAmount: skipTaxAmount,
                         },
                         backToReport,
                         shouldGenerateTransactionThreadReport,
@@ -296,6 +306,8 @@ function IOURequestStepAmount({
                             created: transaction?.created,
                             merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
                             reimbursable: defaultReimbursable,
+                            taxCode: skipTaxCode,
+                            taxAmount: skipTaxAmount,
                         },
                         isASAPSubmitBetaEnabled,
                         currentUserAccountIDParam,
