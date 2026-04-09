@@ -562,14 +562,14 @@ describe('useSelectionModeReportActions', () => {
         });
     });
 
-    describe('checkForNecessaryAction guards', () => {
+    describe('shouldBlockAction guards', () => {
         it('returns true and shows delegate modal when delegate access is restricted', () => {
             const mockShowDelegateModal = jest.fn();
             DelegateProvider.useDelegateNoAccessState.mockReturnValue({isDelegateAccessRestricted: true});
             DelegateProvider.useDelegateNoAccessActions.mockReturnValue({showDelegateNoAccessModal: mockShowDelegateModal});
 
             const {result} = renderSelectionModeHook();
-            const blocked = result.current.checkForNecessaryAction();
+            const blocked = result.current.shouldBlockAction();
 
             expect(blocked).toBe(true);
             expect(mockShowDelegateModal).toHaveBeenCalled();
@@ -581,7 +581,7 @@ describe('useSelectionModeReportActions', () => {
             LockedProvider.useLockedAccountActions.mockReturnValue({showLockedAccountModal: mockShowLockedModal});
 
             const {result} = renderSelectionModeHook();
-            const blocked = result.current.checkForNecessaryAction();
+            const blocked = result.current.shouldBlockAction();
 
             expect(blocked).toBe(true);
             expect(mockShowLockedModal).toHaveBeenCalled();
@@ -589,7 +589,7 @@ describe('useSelectionModeReportActions', () => {
 
         it('returns false when no restrictions apply', () => {
             const {result} = renderSelectionModeHook();
-            const blocked = result.current.checkForNecessaryAction();
+            const blocked = result.current.shouldBlockAction();
 
             expect(blocked).toBe(false);
         });
