@@ -1,4 +1,4 @@
-import type {MutableRefObject} from 'react';
+import type {RefObject} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import useOnyx from '@hooks/useOnyx';
@@ -77,7 +77,7 @@ type UseExpenseSubmissionParams = {
     transaction: OnyxEntry<Transaction>;
     transactions: Transaction[];
     receiptFiles: Record<string, Receipt>;
-    transactionViolationsRef: MutableRefObject<OnyxCollection<TransactionViolation[]>>;
+    transactionViolationsRef: RefObject<OnyxCollection<TransactionViolation[]>>;
 
     // Report data
     report: OnyxEntry<Report>;
@@ -156,7 +156,7 @@ type UseExpenseSubmissionParams = {
 
     // UI state setters
     setIsConfirmed: (value: boolean) => void;
-    formHasBeenSubmitted: MutableRefObject<boolean>;
+    formHasBeenSubmitted: RefObject<boolean>;
 };
 
 function useExpenseSubmission(params: UseExpenseSubmissionParams) {
