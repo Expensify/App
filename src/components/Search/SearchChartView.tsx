@@ -1,5 +1,6 @@
 import React from 'react';
 import useLocalize from '@hooks/useLocalize';
+import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatToParts} from '@libs/NumberFormatUtils';
@@ -58,6 +59,8 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading}: SearchChar
         }
         newQueryJSON.groupBy = undefined;
         newQueryJSON.view = CONST.SEARCH.VIEW.TABLE;
+        newQueryJSON.sortBy = CONST.SEARCH.TABLE_COLUMNS.DATE;
+        newQueryJSON.sortOrder = CONST.SEARCH.SORT_ORDER.DESC;
 
         const newQueryString = buildSearchQueryString(newQueryJSON);
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: newQueryString}));
@@ -66,10 +69,10 @@ function SearchChartView({queryJSON, view, groupBy, data, isLoading}: SearchChar
     const firstItem = data.at(0);
     const currency = firstItem?.currency ?? 'USD';
     const parts = formatToParts(preferredLocale, 0, {style: 'currency', currency});
-    const currencyPart = parts.find((p) => p.type === 'currency');
     const currencyIndex = parts.findIndex((p) => p.type === 'currency');
     const integerIndex = parts.findIndex((p) => p.type === 'integer');
-    const unit = {value: currencyPart?.value ?? currency, fallback: currency};
+    const intlSymbol = parts.find((p) => p.type === 'currency')?.value;
+    const unit = {value: getCurrencySymbol(currency) ?? intlSymbol ?? currency, fallback: intlSymbol ?? currency};
     const unitPosition = currencyIndex < integerIndex ? 'left' : 'right';
 
     return (

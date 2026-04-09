@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {Alert, Modal, View} from 'react-native';
+import {Alert, AppState, Modal, View} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
 import type {Camera, PhotoFile} from 'react-native-vision-camera';
 import {useCameraDevice, useCameraFormat, Camera as VisionCamera} from 'react-native-vision-camera';
@@ -59,16 +59,23 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
     const device = useCameraDevice(cameraPosition, {
         physicalDevices: ['wide-angle-camera', 'ultra-wide-angle-camera'],
     });
-    const format = useCameraFormat(device, [{photoAspectRatio: CONST.RECEIPT.PHOTO_ASPECT_RATIO}, {photoResolution: 'max'}]);
+    const format = useCameraFormat(device, [{photoAspectRatio: CONST.RECEIPT_CAMERA.PHOTO_ASPECT_RATIO}, {photoResolution: 'max'}]);
     const cameraAspectRatio = format ? format.photoHeight / format.photoWidth : undefined;
     const hasFlash = !!device?.hasFlash;
 
-    // Request camera permissions when modal opens
+    // Check camera permissions when modal opens and refresh when app returns to foreground
     useEffect(() => {
         if (!isVisible) {
             return;
         }
 
+        const refreshCameraPermissionStatus = () => {
+            CameraPermission.getCameraPermissionStatus?.()
+                .then(setCameraPermissionStatus)
+                .catch(() => setCameraPermissionStatus(RESULTS.UNAVAILABLE));
+        };
+
+        // Initial permission check — request if not yet asked
         CameraPermission.getCameraPermissionStatus?.()
             .then((status) => {
                 if (status === RESULTS.DENIED) {
@@ -77,11 +84,25 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
                 setCameraPermissionStatus(status);
             })
             .catch(() => setCameraPermissionStatus(RESULTS.UNAVAILABLE));
+
+        // Refresh permission when the app returns to foreground (e.g. after granting in OS Settings)
+        const subscription = AppState.addEventListener('change', (appState) => {
+            if (appState !== 'active') {
+                return;
+            }
+            refreshCameraPermissionStatus();
+        });
+
+        return () => {
+            subscription.remove();
+        };
     }, [isVisible]);
 
     const [flash, setFlash] = useState(false);
 
     const askForPermissions = useCallback(() => {
+        // There's no way we can check for the BLOCKED status without requesting the permission first
+        // https://github.com/zoontek/react-native-permissions/blob/a836e114ce3a180b2b23916292c79841a267d828/README.md?plain=1#L670
         CameraPermission.requestCameraPermission?.()
             .then((status: string) => {
                 setCameraPermissionStatus(status);
@@ -93,12 +114,14 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
     }, [translate]);
 
     const capturePhoto = useCallback(() => {
-        if (!camera.current || isCapturing.current) {
+        // Check permissions first — camera ref will be null when permission is not granted
+        // because the VisionCamera component is not rendered
+        if (!camera.current && (cameraPermissionStatus === RESULTS.DENIED || cameraPermissionStatus === RESULTS.BLOCKED)) {
+            askForPermissions();
             return;
         }
 
-        if (cameraPermissionStatus === RESULTS.DENIED || cameraPermissionStatus === RESULTS.BLOCKED) {
-            askForPermissions();
+        if (!camera.current || isCapturing.current) {
             return;
         }
 

@@ -2,7 +2,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import type * as NativeNavigation from '@react-navigation/native';
 import {act, render} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
-import {trackExpense} from '@libs/actions/IOU';
+import {trackExpense} from '@libs/actions/IOU/TrackExpense';
 import {addPaymentCard, addSubscriptionPaymentCard} from '@libs/actions/PaymentMethods';
 import {createWorkspace} from '@libs/actions/Policy/Policy';
 import GoogleTagManager from '@libs/GoogleTagManager';
@@ -163,6 +163,7 @@ describe('GoogleTagManagerTest', () => {
             activePolicyID: undefined,
             currentUserEmailParam: 'test@test.com',
             isSelfTourViewed: false,
+            betas: undefined,
             hasActiveAdminPolicies: false,
         });
         await waitForBatchedUpdatesWithAct();
@@ -172,6 +173,7 @@ describe('GoogleTagManagerTest', () => {
             currentUserEmailParam: 'test@test.com',
             introSelected: undefined,
             isSelfTourViewed: false,
+            betas: undefined,
             hasActiveAdminPolicies: true,
         });
         await waitForBatchedUpdatesWithAct();
@@ -181,6 +183,7 @@ describe('GoogleTagManagerTest', () => {
             currentUserEmailParam: 'test@test.com',
             introSelected: undefined,
             isSelfTourViewed: false,
+            betas: undefined,
             hasActiveAdminPolicies: true,
         });
         await waitForBatchedUpdatesWithAct();
