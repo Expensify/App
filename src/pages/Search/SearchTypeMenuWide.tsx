@@ -144,7 +144,7 @@ function SearchTypeMenuWide({queryJSON}: SearchTypeMenuProps) {
                 {!!exploreSection && renderSection(exploreSection, 0)}
 
                 {areSuggestedSearchesLoading ? (
-                    <SuggestedSearchSkeleton sectionCount={nonExploreSections.length} />
+                    <SuggestedSearchSkeleton sectionCount={nonExploreSections.length || 2} />
                 ) : (
                     nonExploreSections.map((section, index) => renderSection(section, index + (exploreSection ? 1 : 0)))
                 )}

@@ -49,7 +49,7 @@ type SuggestedSearchSkeletonProps = {
     sectionCount?: number;
 };
 
-function SuggestedSearchSkeleton({sectionCount = 3}: SuggestedSearchSkeletonProps) {
+function SuggestedSearchSkeleton({sectionCount}: SuggestedSearchSkeletonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
