@@ -62,8 +62,13 @@ function ModalProvider({children}: {children: React.ReactNode}) {
         } else {
             // If it is an existing modal, update props in place instead of stacking a new modal
             setModalStack((prevState) => {
-                const modalsExcludingCurrentModal = prevState.modals.filter((modal) => modal.id !== id);
-                return {...prevState, modals: [...modalsExcludingCurrentModal, {component: component as React.FunctionComponent<ModalProps>, props, isCloseable, id: modalID}]};
+                const modals = prevState.modals.map((modal) => {
+                    if (modal.id === id) {
+                        return {component: component as React.FunctionComponent<ModalProps>, props, isCloseable, id: modalID};
+                    }
+                    return modal;
+                });
+                return {...prevState, modals};
             });
         }
 
