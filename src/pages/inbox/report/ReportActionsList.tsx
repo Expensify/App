@@ -100,15 +100,18 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
         hasNewerActions: pagination.hasNewerActions,
     });
 
-    const visibility = useReportActionsVisibility({
+    const {
+        visibleReportActions: sortedVisibleReportActions,
+        hasPreviousMessages,
+        showFullHistory,
+        handleShowPreviousMessages,
+    } = useReportActionsVisibility({
         reportID,
         reportActions: pagination.reportActions,
         canPerformWriteAction: !!canPerformWriteAction,
         hasOlderActions: pagination.hasOlderActions,
         loadOlderChats,
     });
-
-    const sortedVisibleReportActions = visibility.visibleReportActions;
 
     // ─── Unread marker + mark-as-read ───
     const {scrollOffsetRef} = useContext(ActionListContext);
@@ -204,7 +207,7 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
         shouldUseThreadDividerLine = isExpenseReport(report) || isIOUReport(report) || isInvoiceReport(report);
     }
 
-    const hideComposer = !canUserPerformWriteAction(report, isReportArchived);
+    const isWriteActionDisabled = !canUserPerformWriteAction(report, isReportArchived);
     const shouldShowReportRecipientLocalTime = canShowReportRecipientLocalTime(personalDetailsList, report, currentUserAccountID);
     // ─── END renderItem deps ───
 
@@ -254,9 +257,9 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
             <>
                 <ShowPreviousMessagesButton
                     reportAction={reportAction}
-                    hasPreviousMessages={visibility.hasPreviousMessages}
-                    showFullHistory={visibility.showFullHistory}
-                    onPress={visibility.handleShowPreviousMessages}
+                    hasPreviousMessages={hasPreviousMessages}
+                    showFullHistory={showFullHistory}
+                    onPress={handleShowPreviousMessages}
                 />
                 <ReportActionsListItemRenderer
                     reportAction={reportAction}
@@ -300,12 +303,12 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
                 onClick={scroll.scrollToBottomAndMarkReportAsRead}
             />
             <View
-                style={[styles.flex1, !shouldShowReportRecipientLocalTime && !hideComposer ? styles.pb4 : {}]}
+                style={[styles.flex1, !shouldShowReportRecipientLocalTime && !isWriteActionDisabled ? styles.pb4 : {}]}
                 fsClass={reportActionsListFSClass}
             >
                 {shouldScrollToEndAfterLayout && !!topReportAction && (
                     <>
-                        {!shouldShowReportRecipientLocalTime && !hideComposer && <View style={[styles.stickToBottom, styles.appBG, styles.zIndex10, styles.height4]} />}
+                        {!shouldShowReportRecipientLocalTime && !isWriteActionDisabled && <View style={[styles.stickToBottom, styles.appBG, styles.zIndex10, styles.height4]} />}
                         <StaticReportActionsPreview>
                             {previewItems.map((action) => {
                                 const actionIndex = sortedVisibleReportActions.indexOf(action);
