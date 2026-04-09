@@ -36,7 +36,7 @@ function DiscoverSection() {
     const parentReportAction = useParentReportAction(viewTourTaskReport);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
 
-    if (onboarding?.selfTourViewed !== false || !onboarding) {
+    if (onboarding?.selfTourViewed || !onboarding) {
         return null;
     }
 
