@@ -1578,10 +1578,12 @@ function resolveTransactionCardFields<
         // Override modifiedAmount/modifiedCurrency too since display functions read those first.
         const currentDisplayCurrency = (transaction.modifiedCurrency ? String(transaction.modifiedCurrency) : transaction.currency) ?? '';
         if (reportCurrency && transaction.convertedAmount && currentDisplayCurrency !== reportCurrency) {
+            // Use the current display amount (modifiedAmount takes priority over amount)
+            const currentAmount = Number(transaction.modifiedAmount) ? Number(transaction.modifiedAmount) : transaction.amount;
             updates = {
                 ...updates,
-                originalAmount: transaction.amount,
-                originalCurrency: transaction.currency,
+                originalAmount: currentAmount,
+                originalCurrency: currentDisplayCurrency,
                 amount: transaction.convertedAmount,
                 currency: reportCurrency,
                 modifiedAmount: transaction.convertedAmount,

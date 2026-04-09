@@ -1789,10 +1789,12 @@ function getTransactionsSections({
             const currentDisplayCurrency = (transactionItem.modifiedCurrency ? transactionItem.modifiedCurrency : transactionItem.currency) ?? '';
             const groupAmount = transactionItem.groupAmount ?? 0;
             const shouldSwapAmounts = groupAmount !== 0 && currentDisplayCurrency !== reportCurrencyValue;
+            // Use the current display amount/currency (modifiedAmount/modifiedCurrency take priority)
+            const currentAmount = Number(transactionItem.modifiedAmount) ? Number(transactionItem.modifiedAmount) : transactionItem.amount;
             const resolvedAmountFields = shouldSwapAmounts
                 ? {
-                      originalAmount: transactionItem.amount,
-                      originalCurrency: transactionItem.currency,
+                      originalAmount: currentAmount,
+                      originalCurrency: currentDisplayCurrency,
                       amount: groupAmount,
                       currency: reportCurrencyValue,
                       modifiedAmount: groupAmount,
