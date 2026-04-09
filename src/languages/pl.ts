@@ -1620,6 +1620,11 @@ const translations: TranslationDeepObject<typeof en> = {
             `nie udało się zatwierdzić przez <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">zasady w przestrzeni roboczej</a>. ${reason}`,
         failedToApproveViaDEW: (reason: string) => `nie udało się zaakceptować. ${reason}`,
         cannotDuplicateDistanceExpense: 'Nie możesz duplikować wydatków za przejazdy między przestrzeniami roboczymi, ponieważ stawki mogą się różnić między poszczególnymi przestrzeniami.',
+        taxDisabledAlert: {
+            title: 'Podatek wyłączony',
+            prompt: 'Włącz śledzenie podatku w przestrzeni roboczej, aby edytować szczegóły wydatku lub usunąć podatek z tego wydatku.',
+            confirmText: 'Usuń podatek',
+        },
     },
     transactionMerge: {
         listPage: {

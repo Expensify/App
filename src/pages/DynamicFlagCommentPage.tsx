@@ -8,27 +8,25 @@ import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import {useWideRHPState} from '@components/WideRHPContextProvider';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {FlagCommentNavigatorParamList} from '@libs/Navigation/types';
 import {canFlagReportAction, getOriginalReportID, isChatThread, shouldShowFlagComment} from '@libs/ReportUtils';
 import {flagComment as flagCommentUtil} from '@userActions/Report';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
 import withReportAndReportActionOrNotFound from './inbox/report/withReportAndReportActionOrNotFound';
 import type {WithReportAndReportActionOrNotFoundProps} from './inbox/report/withReportAndReportActionOrNotFound';
 
-type FlagCommentPageNavigationProps = PlatformStackScreenProps<FlagCommentNavigatorParamList, typeof SCREENS.FLAG_COMMENT_ROOT>;
-
-type FlagCommentPageProps = WithReportAndReportActionOrNotFoundProps & FlagCommentPageNavigationProps;
+type DynamicFlagCommentPageProps = WithReportAndReportActionOrNotFoundProps;
 
 type Severity = ValueOf<typeof CONST.MODERATION>;
 
@@ -43,20 +41,14 @@ type SeverityItem = {
 
 type SeverityItemList = SeverityItem[];
 
-/**
- * Get the reportID for the associated chatReport
- */
-function getReportID(route: FlagCommentPageNavigationProps['route']) {
-    return route.params.reportID.toString();
-}
-
-function FlagCommentPage({parentReportAction, route, report, parentReport, reportAction}: FlagCommentPageProps) {
+function DynamicFlagCommentPage({parentReportAction, report, parentReport, reportAction}: DynamicFlagCommentPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.FLAG_COMMENT.path);
     const isReportArchived = useReportIsArchived(report?.reportID);
-    let reportID: string | undefined = getReportID(route);
+    let reportID: string | undefined = report?.reportID;
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['FlagLevelOne', 'FlagLevelTwo', 'FlagLevelThree']);
-    // Handle threads if needed
+
     if (isChatThread(report) && reportAction?.reportActionID === parentReportAction?.reportActionID) {
         reportID = parentReport?.reportID;
     }
@@ -65,6 +57,7 @@ function FlagCommentPage({parentReportAction, route, report, parentReport, repor
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`);
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const {superWideRHPRouteKeys, wideRHPRouteKeys} = useWideRHPState();
 
     const severities: SeverityItemList = [
         {
@@ -122,7 +115,11 @@ function FlagCommentPage({parentReportAction, route, report, parentReport, repor
             flagCommentUtil(reportAction, severity, originalReport, isOriginalReportArchived);
         }
 
-        Navigation.dismissModal();
+        if (superWideRHPRouteKeys.length > 0 || wideRHPRouteKeys.length > 0) {
+            Navigation.dismissToPreviousRHP();
+        } else {
+            Navigation.dismissModal();
+        }
     };
 
     const severityMenuItems = severities.map((item) => (
@@ -141,13 +138,13 @@ function FlagCommentPage({parentReportAction, route, report, parentReport, repor
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID="FlagCommentPage"
+            testID="DynamicFlagCommentPage"
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <FullPageNotFoundView shouldShow={!shouldShowFlagComment(reportAction, report, conciergeReportID, isReportArchived)}>
                     <HeaderWithBackButton
                         title={translate('reportActionContextMenu.flagAsOffensive')}
-                        onBackButtonPress={() => Navigation.goBack(route.params.backTo)}
+                        onBackButtonPress={() => Navigation.goBack(backPath)}
                     />
                     <ScrollView
                         contentContainerStyle={safeAreaPaddingBottomStyle}
@@ -167,4 +164,4 @@ function FlagCommentPage({parentReportAction, route, report, parentReport, repor
     );
 }
 
-export default withReportAndReportActionOrNotFound(FlagCommentPage);
+export default withReportAndReportActionOrNotFound(DynamicFlagCommentPage);

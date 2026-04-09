@@ -1617,6 +1617,11 @@ const translations: TranslationDeepObject<typeof en> = {
         failedToAutoApproveViaDEW: (reason: string) => `falha ao aprovar pelas <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regras do workspace</a>. ${reason}`,
         failedToApproveViaDEW: (reason: string) => `falha ao aprovar. ${reason}`,
         cannotDuplicateDistanceExpense: 'Você não pode duplicar despesas de distância entre espaços de trabalho porque as tarifas podem ser diferentes entre eles.',
+        taxDisabledAlert: {
+            title: 'Imposto desativado',
+            prompt: 'Ative o acompanhamento de impostos no espaço de trabalho para editar os detalhes da despesa ou excluir o imposto desta despesa.',
+            confirmText: 'Excluir imposto',
+        },
     },
     transactionMerge: {
         listPage: {
