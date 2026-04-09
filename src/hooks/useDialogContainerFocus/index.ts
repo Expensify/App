@@ -4,19 +4,25 @@ import type UseDialogContainerFocus from './types';
 
 const FOCUSABLE_SELECTOR = 'button, [href], input, textarea, select, [role="button"], [role="link"], [tabindex]:not([tabindex="-1"])';
 
-let hadKeyboardEvent = false;
+// Tracks whether the user is Tab-navigating (vs typing in a form or using mouse).
+// Tab sets it, typing keys clear it, Enter/Space preserve it, mousedown clears it.
+let hadTabNavigation = false;
 if (typeof document !== 'undefined') {
     document.addEventListener(
         'keydown',
-        () => {
-            hadKeyboardEvent = true;
+        (e: KeyboardEvent) => {
+            if (e.key === 'Tab') {
+                hadTabNavigation = true;
+            } else if (e.key !== 'Enter' && e.key !== ' ') {
+                hadTabNavigation = false;
+            }
         },
         true,
     );
     document.addEventListener(
         'mousedown',
         () => {
-            hadKeyboardEvent = false;
+            hadTabNavigation = false;
         },
         true,
     );
@@ -32,7 +38,7 @@ function focusFirstInteractiveElement(container: HTMLElement | null): boolean {
     if (!target) {
         return false;
     }
-    target.focus({preventScroll: true, focusVisible: hadKeyboardEvent});
+    target.focus({preventScroll: true, focusVisible: hadTabNavigation});
     return true;
 }
 
