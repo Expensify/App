@@ -177,21 +177,20 @@ function UserSelectPopup({value, label, closeOverlay, onChange, isSearchable}: U
             onApply={applyChanges}
             resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_USER}
             applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_USER}
+            style={[styles.getUserSelectionListPopoverHeight(listData.length || 1, windowHeight, shouldUseNarrowLayout, shouldShowSearchInput)]}
         >
-            <View style={[styles.getUserSelectionListPopoverHeight(listData.length || 1, windowHeight, shouldUseNarrowLayout, shouldShowSearchInput)]}>
-                <SelectionList
-                    data={listData}
-                    ref={selectionListRef}
-                    textInputOptions={textInputOptions}
-                    canSelectMultiple
-                    ListItem={UserSelectionListItem}
-                    style={{containerStyle: [!shouldUseNarrowLayout && styles.pt4], listStyle: styles.pb2}}
-                    onSelectRow={selectUser}
-                    isLoadingNewOptions={isLoadingNewOptions}
-                    shouldShowLoadingPlaceholder={!areOptionsInitialized}
-                    onEndReached={onListEndReached}
-                />
-            </View>
+            <SelectionList
+                data={listData}
+                ref={selectionListRef}
+                textInputOptions={textInputOptions}
+                canSelectMultiple
+                ListItem={UserSelectionListItem}
+                style={{containerStyle: [!shouldUseNarrowLayout && styles.pt4], listStyle: styles.pb2}}
+                onSelectRow={selectUser}
+                isLoadingNewOptions={isLoadingNewOptions}
+                shouldShowLoadingPlaceholder={!areOptionsInitialized}
+                onEndReached={onListEndReached}
+            />
         </BasePopup>
     );
 }

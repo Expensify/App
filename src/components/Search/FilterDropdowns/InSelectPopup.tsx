@@ -184,21 +184,20 @@ function InSelectPopup({closeOverlay, updateFilterForm}: InSelectPopupProps) {
             onApply={applyChanges}
             resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_REPORT}
             applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_REPORT}
+            style={[styles.getUserSelectionListPopoverHeight(sections.flatMap((section) => section.data).length || 1, windowHeight, shouldUseNarrowLayout, true)]}
         >
-            <View style={[styles.getUserSelectionListPopoverHeight(sections.flatMap((section) => section.data).length || 1, windowHeight, shouldUseNarrowLayout, true)]}>
-                <SelectionListWithSections
-                    sections={sections}
-                    onSelectRow={handleParticipantSelection}
-                    ListItem={InviteMemberListItem}
-                    canSelectMultiple
-                    style={{listStyle: styles.pb2}}
-                    shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                    textInputOptions={textInputOptions}
-                    isLoadingNewOptions={isLoadingNewOptions}
-                    shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
-                    shouldShowTextInput
-                />
-            </View>
+            <SelectionListWithSections
+                sections={sections}
+                onSelectRow={handleParticipantSelection}
+                ListItem={InviteMemberListItem}
+                canSelectMultiple
+                style={{listStyle: styles.pb2}}
+                shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                textInputOptions={textInputOptions}
+                isLoadingNewOptions={isLoadingNewOptions}
+                shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
+                shouldShowTextInput
+            />
         </BasePopup>
     );
 }
