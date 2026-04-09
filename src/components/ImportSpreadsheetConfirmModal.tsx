@@ -34,6 +34,7 @@ function ImportSpreadsheetConfirmModal({isVisible, closeImportPageAndModal, onMo
             return;
         }
         showConfirmModal({
+            id: 'import-spreadsheet-confirm-modal',
             title: titleText,
             prompt: promptText,
             confirmText: translate('common.buttonConfirm'),
@@ -43,7 +44,10 @@ function ImportSpreadsheetConfirmModal({isVisible, closeImportPageAndModal, onMo
         }).then(() => {
             closeImportPageAndModal();
         });
-    }, [isVisible, titleText, promptText, closeImportPageAndModal, onModalHide, shouldHandleNavigationBack, showConfirmModal, translate, spreadsheet?.importFinalModal]);
+
+        // We don't need the callbacks as dependencies.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isVisible, titleText, promptText, spreadsheet?.importFinalModal, shouldHandleNavigationBack]);
 
     return null;
 }
