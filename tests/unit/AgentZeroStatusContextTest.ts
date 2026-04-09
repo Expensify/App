@@ -65,6 +65,7 @@ describe('AgentZeroStatusContext', () => {
 
     afterEach(() => {
         jest.clearAllTimers();
+        jest.useRealTimers();
     });
 
     describe('basic functionality', () => {
@@ -229,7 +230,6 @@ describe('AgentZeroStatusContext', () => {
             act(() => {
                 jest.advanceTimersByTime(60000);
             });
-            await waitForBatchedUpdates();
 
             // Then the optimistic state should still be active
             expect(result.current.isProcessing).toBe(true);
