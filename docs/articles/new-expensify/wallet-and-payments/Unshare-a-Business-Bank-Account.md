@@ -30,6 +30,8 @@ Any member who has a validated business bank account in their **Wallet** that is
 
 You'll see a confirmation once the account has been unshared. 
 
+---
+
 ## What happens after you unshare a business bank account
 
  - The account is removed from the unshared member's **Wallet** immediately.
