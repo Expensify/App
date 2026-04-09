@@ -127,6 +127,19 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
     const shouldFocusToTopOnMount = isTransactionThreadReport || isMoneyRequestOrInvoiceReport;
 
     const linkedReportActionID = pagination.reportActionID;
+
+    // "Mount scrolled to end" workaround for transaction threads and money request reports.
+    // RN's FlatList has no native way to mount an inverted list at the end with variable-height items:
+    //
+    // - initialScrollIndex: broken on inverted lists, open as of RN 0.84
+    //   https://github.com/facebook/react-native/issues/56237
+    //   https://github.com/facebook/react-native/issues/54409
+    //   https://github.com/facebook/react-native/issues/41163
+    // - contentOffset: requires knowing content height before layout
+    // - getItemLayout with approximation: disables native cell measurement permanently, corrupts virtualization
+    //
+    // The workaround: render all items in a hidden list (flex0 + shouldHideContent), call scrollToEnd after
+    // layout, then reveal. StaticReportActionsPreview shows a placeholder during this process.
     const [shouldScrollToEndAfterLayout, setShouldScrollToEndAfterLayout] = useState(shouldFocusToTopOnMount && !linkedReportActionID);
 
     const scroll = useReportActionsScroll({
@@ -196,8 +209,10 @@ function ReportActionsList({reportID, onLayout}: ReportActionsListProps) {
 
     let initialNumToRender: number | undefined;
     if (shouldScrollToEndAfterLayout && (!pagination.shouldAddCreatedAction || isOffline)) {
+        // Render ALL items so scrollToEnd() lands at the correct position (see shouldScrollToEndAfterLayout comment above).
         initialNumToRender = sortedVisibleReportActions.length;
     } else if (linkedReportActionID) {
+        // Web needs at least 50 to prevent excessive onStartReached triggers (see getInitialNumToRender).
         initialNumToRender = getInitialNumToRender(numToRender);
     } else {
         initialNumToRender = numToRender || undefined;
