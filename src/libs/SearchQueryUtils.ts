@@ -739,6 +739,7 @@ function getSanitizedRawFilters(queryJSON: SearchQueryJSON): RawQueryFilter[] | 
 type BuildQueryStringOptions = {
     sortBy?: string;
     sortOrder?: string;
+    limit?: number;
 };
 
 /**
@@ -959,8 +960,9 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
         filtersString.push(amountFilter);
     }
 
-    if (limit) {
-        const num = Number(limit);
+    const limitValue = limit ?? options?.limit;
+    if (limitValue) {
+        const num = Number(limitValue);
         if (Number.isInteger(num) && num > 0) {
             filtersString.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT}:${num}`);
         }
