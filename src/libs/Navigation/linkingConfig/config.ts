@@ -1456,6 +1456,11 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                     },
                 },
+                [SCREENS.RIGHT_MODAL.CHRONOS_SCHEDULE_OOO]: {
+                    screens: {
+                        [SCREENS.CHRONOS_SCHEDULE_OOO_ROOT]: ROUTES.CHRONOS_SCHEDULE_OOO.route,
+                    },
+                },
                 [SCREENS.RIGHT_MODAL.SETTINGS_CATEGORIES]: {
                     screens: {
                         [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS]: {

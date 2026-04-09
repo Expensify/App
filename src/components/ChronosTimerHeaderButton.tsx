@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry, OnyxKey} from 'react-native-onyx';
 import useAncestors from '@hooks/useAncestors';
@@ -9,19 +9,24 @@ import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isChronosTimerRunningFromVisibleActions} from '@libs/ChronosUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import {getSortedReportActionsForDisplay} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction, canWriteInReport} from '@libs/ReportUtils';
 import {addComment} from '@userActions/Report';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
-import Button from './Button';
+import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
+import type {DropdownOption} from './ButtonWithDropdownMenu/types';
 
 type ChronosTimerHeaderButtonProps = {
     report: OnyxTypes.Report;
 };
+
+type ChronosAction = 'timer' | 'scheduleOOO';
 
 function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
     const {translate} = useLocalize();
@@ -59,16 +64,36 @@ function ChronosTimerHeaderButton({report}: ChronosTimerHeaderButtonProps) {
         });
     }
 
+    const options: Array<DropdownOption<ChronosAction>> = useMemo(
+        () => [
+            {
+                value: 'timer' as const,
+                text: translate(isTimerRunning ? 'chronos.stopTimer' : 'chronos.startTimer'),
+            },
+            {
+                value: 'scheduleOOO' as const,
+                text: translate('chronos.scheduleOOO'),
+            },
+        ],
+        [isTimerRunning, translate],
+    );
+
     if (!canWriteInReport(report)) {
         return null;
     }
 
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd]}>
-            <Button
+            <ButtonWithDropdownMenu<ChronosAction>
                 success={!isTimerRunning}
-                text={translate(isTimerRunning ? 'chronos.stopTimer' : 'chronos.startTimer')}
-                onPress={callFunctionIfActionIsAllowed(sendCommentToChronos)}
+                onPress={(_event, value) => {
+                    if (value === 'timer') {
+                        callFunctionIfActionIsAllowed(sendCommentToChronos)();
+                    } else if (value === 'scheduleOOO') {
+                        Navigation.navigate(ROUTES.CHRONOS_SCHEDULE_OOO.getRoute(report.reportID));
+                    }
+                }}
+                options={options}
                 style={styles.flex1}
                 sentryLabel={CONST.SENTRY_LABEL.HEADER_VIEW.CHRONOS_TIMER_BUTTON}
             />

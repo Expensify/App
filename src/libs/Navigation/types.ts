@@ -1735,6 +1735,12 @@ type ReportDescriptionNavigatorParamList = {
     };
 };
 
+type ChronosScheduleOOONavigatorParamList = {
+    [SCREENS.CHRONOS_SCHEDULE_OOO_ROOT]: {
+        reportID: string;
+    };
+};
+
 type ParticipantsNavigatorParamList = {
     [SCREENS.REPORT_PARTICIPANTS.ROOT]: {
         reportID: string;
@@ -2469,6 +2475,7 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.EXPENSIFY_CARD]: NavigatorScreenParams<SettingsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.DOMAIN_CARD]: NavigatorScreenParams<SettingsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.REPORT_DESCRIPTION]: NavigatorScreenParams<ReportDescriptionNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.CHRONOS_SCHEDULE_OOO]: NavigatorScreenParams<ChronosScheduleOOONavigatorParamList>;
     [SCREENS.RIGHT_MODAL.PARTICIPANTS]: NavigatorScreenParams<ParticipantsNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.ROOM_MEMBERS]: NavigatorScreenParams<RoomMembersNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.MONEY_REQUEST]: NavigatorScreenParams<MoneyRequestNavigatorParamList>;
@@ -3289,6 +3296,7 @@ export type {
     ConnectExistingBankAccountNavigatorParamList,
     NewReportWorkspaceSelectionNavigatorParamList,
     ReportDescriptionNavigatorParamList,
+    ChronosScheduleOOONavigatorParamList,
     ReportDetailsNavigatorParamList,
     ReportChangeWorkspaceNavigatorParamList,
     ReportSettingsNavigatorParamList,

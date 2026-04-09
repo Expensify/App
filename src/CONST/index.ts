@@ -284,6 +284,12 @@ const CONST = {
             START: 'start',
             STOP: 'stop',
         },
+        OOO_DURATION_UNITS: {
+            HOUR: 'hour',
+            DAY: 'day',
+            WEEK: 'week',
+            MONTH: 'month',
+        },
     },
 
     RECEIPT_CAMERA: {
