@@ -506,6 +506,10 @@ const translations: TranslationDeepObject<typeof en> = {
         approver: '承認者',
         enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `${totalDigits}桁中${digitIndex}桁目を入力`,
         copyOfReportName: (reportName: string) => `${reportName} のコピー`,
+        previousMonth: '前月',
+        nextMonth: '来月',
+        previousYear: '前年',
+        nextYear: '来年',
     },
     socials: {
         podcast: 'ポッドキャストでフォロー',
@@ -1054,15 +1058,12 @@ const translations: TranslationDeepObject<typeof en> = {
             if (!added && !updated) {
                 return 'カテゴリーは追加も更新もされていません。';
             }
-
             if (added && updated) {
                 return `${added}件のカテゴリーを追加し、${updated}件のカテゴリーを更新しました。`;
             }
-
             if (added) {
                 return added === 1 ? 'カテゴリーを1件追加しました。' : `${added}件のカテゴリーを追加しました。`;
             }
-
             return updated === 1 ? 'カテゴリーを1件更新しました。' : `${updated}件のカテゴリーを更新しました。`;
         },
         importCompanyCardTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) =>
@@ -1125,7 +1126,6 @@ const translations: TranslationDeepObject<typeof en> = {
         flash: 'フラッシュ',
         multiScan: 'マルチスキャン',
         shutter: 'シャッター',
-        flipCamera: 'カメラを反転',
         gallery: 'ギャラリー',
         deleteReceipt: '領収書を削除',
         deleteConfirmation: 'この領収書を削除してもよろしいですか？',
@@ -1603,6 +1603,11 @@ const translations: TranslationDeepObject<typeof en> = {
         failedToAutoApproveViaDEW: (reason: string) => `<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">ワークスペースルール</a>で承認に失敗しました。${reason}`,
         failedToApproveViaDEW: (reason: string) => `承認に失敗しました。${reason}`,
         cannotDuplicateDistanceExpense: '距離精算はワークスペースごとにレートが異なる可能性があるため、ワークスペース間で複製することはできません。',
+        taxDisabledAlert: {
+            title: '税が無効です',
+            prompt: '経費の詳細を編集したり、この経費から税金を削除したりするには、ワークスペースで税金の追跡を有効にしてください。',
+            confirmText: '税を削除',
+        },
     },
     transactionMerge: {
         listPage: {
@@ -2838,6 +2843,7 @@ ${date} の ${merchant} への ${amount}`,
         workspaceYouMayJoin: (domain: string, email: string) => `${domain} のユーザーがすでにワークスペースを作成しています。${email} に送信されたマジックコードを入力してください。`,
         joinAWorkspace: 'ワークスペースに参加',
         listOfWorkspaces: '参加できるワークスペースの一覧です。今参加しなくても、後からいつでも参加できます。',
+        skipForNow: '今はスキップ',
         workspaceMemberList: (employeeCount: number, policyOwner: string) => `${employeeCount}人のメンバー${employeeCount > 1 ? 's' : ''}・${policyOwner}`,
         whereYouWork: '勤務先はどこですか？',
         errorSelection: '次に進むオプションを選択してください',
@@ -3895,7 +3901,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         regulationRequiresUs: '法律により、事業の持分を25％超所有するすべての個人の本人確認を行うことが求められています。',
         iAmAuthorized: '私は、ビジネス支出のためにそのビジネス用銀行口座を使用する権限があります。',
         iCertify: '提供された情報が真実かつ正確であることを証明します。',
-        iAcceptTheTermsAndConditions: `私は<a href="https://cross-border.corpay.com/tc/">利用規約と条件</a>に同意します。`,
+        iAcceptTheTermsAndConditions: `私は<a href="https://www.corpay.com/cross-border/terms">利用規約と条件</a>に同意します。`,
         iAcceptTheTermsAndConditionsAccessibility: '利用規約に同意します。',
         accept: '承認して銀行口座を追加',
         iConsentToThePrivacyNotice: '私は<a href="https://payments.corpay.com/compliance">プライバシー通知</a>に同意します。',
@@ -6728,6 +6734,62 @@ ${reportName}
 
 会社のキャッシュフローを守るために、支出ルールをさらに追加しましょう。`,
                 },
+                addSpendRule: '支出ルールを追加',
+                cardPageTitle: 'カード',
+                cardsSectionTitle: 'カード',
+                chooseCards: 'カードを選択',
+                saveRule: 'ルールを保存',
+                allow: '許可',
+                spendRuleSectionTitle: '支出ルール',
+                restrictionType: '制限タイプ',
+                restrictionTypeHelpAllow: 'いずれかの加盟店またはカテゴリに一致し、上限金額を超えない場合、請求は承認されます。',
+                restrictionTypeHelpBlock: '加盟店またはカテゴリに一致するか、上限金額を超えた請求は拒否されます。',
+                addMerchant: '取引先を追加',
+                merchantContains: '加盟店に次を含む',
+                merchantExactlyMatches: '完全一致する加盟店',
+                noBlockedMerchants: 'ブロックされている加盟店はありません',
+                addMerchantToBlockSpend: '支出をブロックする加盟店を追加',
+                noAllowedMerchants: '許可された加盟店はありません',
+                addMerchantToAllowSpend: '支出を許可する加盟店を追加',
+                matchType: 'マッチタイプ',
+                matchTypeContains: '含む',
+                matchTypeExact: '完全一致',
+                spendCategory: '支出カテゴリ',
+                maxAmount: '最大金額',
+                maxAmountHelp: '加盟店や支出カテゴリの制限にかかわらず、この金額を超えるすべての支払いは拒否されます。',
+                currencyMismatchTitle: '通貨の不一致',
+                currencyMismatchPrompt: '上限金額を設定するには、同じ通貨で清算されるカードを選択してください。',
+                reviewSelectedCards: '選択したカードを確認',
+                summaryMoreCount: ({summary, count}: {summary: string; count: number}) => `${summary}、ほか +${count} 件`,
+                confirmErrorApplyAtLeastOneSpendRuleToOneCard: '少なくとも1つの支出ルールを1枚のカードに適用してください',
+                confirmErrorCardRequired: 'カードは必須項目です',
+                confirmErrorApplyAtLeastOneSpendRule: '少なくとも 1 つの支出ルールを適用してください',
+                categories: 'カテゴリ',
+                merchants: '加盟店',
+                max: '最大',
+                categoryOptions: {
+                    [CONST.SPEND_RULES.CATEGORIES.AIRLINES]: '航空会社',
+                    [CONST.SPEND_RULES.CATEGORIES.ALCOHOL_AND_BARS]: '酒類とバー',
+                    [CONST.SPEND_RULES.CATEGORIES.AMAZON_AND_BOOKSTORES]: 'Amazon と書店',
+                    [CONST.SPEND_RULES.CATEGORIES.AUTOMOTIVE]: '自動車',
+                    [CONST.SPEND_RULES.CATEGORIES.CAR_RENTALS]: 'レンタカー',
+                    [CONST.SPEND_RULES.CATEGORIES.DINING]: '外食',
+                    [CONST.SPEND_RULES.CATEGORIES.FUEL_AND_GAS]: '燃料・ガス',
+                    [CONST.SPEND_RULES.CATEGORIES.GOVERNMENT_AND_NON_PROFITS]: '政府機関・非営利団体',
+                    [CONST.SPEND_RULES.CATEGORIES.GROCERIES]: '食料品',
+                    [CONST.SPEND_RULES.CATEGORIES.GYMS_AND_FITNESS]: 'ジム・フィットネス',
+                    [CONST.SPEND_RULES.CATEGORIES.HEALTHCARE]: '医療',
+                    [CONST.SPEND_RULES.CATEGORIES.HOTELS]: 'ホテル',
+                    [CONST.SPEND_RULES.CATEGORIES.INTERNET_AND_PHONE]: 'インターネットと電話',
+                    [CONST.SPEND_RULES.CATEGORIES.OFFICE_SUPPLIES]: '事務用品',
+                    [CONST.SPEND_RULES.CATEGORIES.PARKING_AND_TOLLS]: '駐車料金と通行料金',
+                    [CONST.SPEND_RULES.CATEGORIES.PROFESSIONAL_SERVICES]: 'プロフェッショナルサービス',
+                    [CONST.SPEND_RULES.CATEGORIES.RETAIL]: '小売業',
+                    [CONST.SPEND_RULES.CATEGORIES.SHIPPING_AND_DELIVERY]: '配送と配達',
+                    [CONST.SPEND_RULES.CATEGORIES.SOFTWARE]: 'ソフトウェア',
+                    [CONST.SPEND_RULES.CATEGORIES.TRANSIT_AND_RIDESHARE]: '交通機関とライドシェア',
+                    [CONST.SPEND_RULES.CATEGORIES.TRAVEL_AGENCIES]: '旅行代理店',
+                },
             },
         },
         planTypePage: {
@@ -7820,6 +7882,11 @@ ${reportName}
             'Expensify.org に参加して、世界中の不公正の解消に取り組みましょう。現在実施中の「Teachers Unite」キャンペーンでは、必需の学用品の費用を分担することで、すべての教育者を支援しています。',
         iKnowATeacher: '私は先生を知っています',
         iAmATeacher: '私は教師です',
+        personalKarma: {
+            title: 'パーソナルカルマを有効にする',
+            description: '毎月の支出500ドルごとに1ドルを Expensify.org に寄付します',
+            stopDonationsPrompt: 'Expensify.org への寄付をやめてもよろしいですか？',
+        },
         getInTouch: '素晴らしいです！その方の情報を共有していただければ、こちらからご連絡いたします。',
         introSchoolPrincipal: '学校校長への紹介',
         schoolPrincipalVerifyExpense: 'Expensify.org は、低所得世帯の生徒がより良い学習体験を得られるよう、必要な学用品の費用を分担します。あなたの経費は、校長により確認されます。',
@@ -8836,5 +8903,6 @@ ${reportName}
         positiveButton: 'やった！',
         negativeButton: 'そうでもありません',
     },
+    monthPickerPage: {month: '月', selectMonth: '月を選択してください'},
 };
 export default translations;
