@@ -1,6 +1,6 @@
 import {useRoute} from '@react-navigation/native';
 import {delegateEmailSelector, isUserValidatedSelector} from '@selectors/Account';
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {hasSeenTourSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
 import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import truncate from 'lodash/truncate';
@@ -59,7 +59,7 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
 import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
 import {handleUnvalidatedAccount, selectPaymentType} from '@libs/PaymentUtils';
-import {getConnectedIntegration, getValidConnectedIntegration, isPolicyAccessible, sortPoliciesByName} from '@libs/PolicyUtils';
+import {getConnectedIntegration, getValidConnectedIntegration, isPolicyAccessible, isSubmitAndClose, sortPoliciesByName} from '@libs/PolicyUtils';
 import {
     getFilteredReportActionsForReportView,
     getIOUActionForTransactionID,
@@ -336,6 +336,10 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
 
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const shouldUseMarkAsDoneCopy = isTrackIntentUser && isSubmitAndClose(policy);
+    const submitButtonText = shouldUseMarkAsDoneCopy ? translate('common.markAsDone') : translate('common.submit');
+    const approveButtonText = shouldUseMarkAsDoneCopy ? translate('common.markAsDone') : translate('iou.approve');
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
     const currentTransaction = transactions.at(0);
     const [originalIOUTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(currentTransaction?.comment?.originalTransactionID)}`);
@@ -1197,7 +1201,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
         const actions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon'>> = [];
         if (hasSubmitAction && !shouldBlockSubmit) {
             actions.push({
-                text: translate('common.submit'),
+                text: submitButtonText,
                 icon: expensifyIcons.Send,
                 value: CONST.REPORT.PRIMARY_ACTIONS.SUBMIT,
                 onSelected: () => handleSubmitReport(true),
@@ -1205,7 +1209,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
         }
         if (hasApproveAction && !isBlockSubmitDueToPreventSelfApproval) {
             actions.push({
-                text: translate('iou.approve'),
+                text: approveButtonText,
                 icon: expensifyIcons.ThumbsUp,
                 value: CONST.REPORT.PRIMARY_ACTIONS.APPROVE,
                 onSelected: () => {
@@ -1254,6 +1258,8 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
         expensifyIcons.Send,
         expensifyIcons.ThumbsUp,
         kycWallRef,
+        approveButtonText,
+        submitButtonText,
     ]);
 
     const connectedIntegrationName = connectedIntegration
@@ -1330,7 +1336,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
         },
         [CONST.REPORT.SECONDARY_ACTIONS.SUBMIT]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.SUBMIT,
-            text: translate('common.submit'),
+            text: submitButtonText,
             icon: expensifyIcons.Send,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.SUBMIT,
             onSelected: () => {
@@ -1356,7 +1362,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.APPROVE]: {
-            text: translate('iou.approve'),
+            text: approveButtonText,
             icon: expensifyIcons.ThumbsUp,
             value: CONST.REPORT.SECONDARY_ACTIONS.APPROVE,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.APPROVE,
