@@ -42,6 +42,7 @@ function BaseSelectionList<TItem extends ListItem>({
     ref,
     ListItem,
     textInputOptions,
+    searchValueForFocusSync,
     initiallyFocusedItemKey,
     onSelectRow,
     onSelectAll,
@@ -205,6 +206,7 @@ function BaseSelectionList<TItem extends ListItem>({
     // Including data.length ensures FlashList resets its layout cache when the list size changes
     // This prevents "index out of bounds" errors when filtering reduces the list size
     const extraData = useMemo(() => [data.length], [data.length]);
+    const syncedSearchValue = searchValueForFocusSync ?? textInputOptions?.value;
 
     const selectRow = useCallback(
         (item: TItem, indexToFocus?: number) => {
@@ -257,7 +259,7 @@ function BaseSelectionList<TItem extends ListItem>({
     }, [data, focusedIndex, isItemSelected]);
 
     const selectFocusedOption = () => {
-        if (!focusedOption) {
+        if (!focusedOption || focusedOption.isInteractive === false) {
             return;
         }
         selectRow(focusedOption);
@@ -363,6 +365,7 @@ function BaseSelectionList<TItem extends ListItem>({
                 shouldSyncFocus={!isTextInputFocusedRef.current && hasKeyBeenPressed.current}
                 shouldDisableHoverStyle={shouldDisableHoverStyle}
                 shouldShowRightCaret={shouldShowRightCaret}
+                shouldPreventEnterKeySubmit={!disableKeyboardShortcuts}
             />
         );
     };
@@ -493,12 +496,12 @@ function BaseSelectionList<TItem extends ListItem>({
         initiallyFocusedItemKey,
         isItemSelected,
         focusedIndex,
-        searchValue: textInputOptions?.value,
+        searchValue: syncedSearchValue,
         setFocusedIndex,
     });
 
     useSearchFocusSync({
-        searchValue: textInputOptions?.value,
+        searchValue: syncedSearchValue,
         data,
         selectedOptionsCount: dataDetails.selectedOptions.length,
         isItemSelected,
@@ -537,6 +540,7 @@ function BaseSelectionList<TItem extends ListItem>({
             canSelectMultiple={canSelectMultiple}
             onSelectAll={handleSelectAll}
             headerStyle={style?.listHeaderWrapperStyle}
+            selectAllTextStyle={style?.listHeaderSelectAllTextStyle}
             shouldShowSelectAllButton={!!onSelectAll}
             shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
         />
