@@ -1,5 +1,5 @@
 diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js b/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
-index 70f856a..ed4ecfa 100644
+index 70f856a..239d95e 100644
 --- a/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
 +++ b/node_modules/@shopify/flash-list/dist/recyclerview/hooks/useRecyclerViewController.js
 @@ -1,5 +1,5 @@
@@ -24,7 +24,7 @@ index 70f856a..ed4ecfa 100644
                          // console.log("diff", diff, firstVisibleItemKey.current);
 -                        if (PlatformConfig.supportsOffsetCorrection) {
 -                            // console.log("scrollBy", diff);
-+                        var useAndroidInvertedFallback = hasDataChanged && inverted && Platform.OS === 'android';
++                        const useAndroidInvertedFallback = hasDataChanged && inverted && Platform.OS === 'android';
 +                        if (PlatformConfig.supportsOffsetCorrection && !useAndroidInvertedFallback) {
                              (_b = scrollAnchorRef.current) === null || _b === void 0 ? void 0 : _b.scrollBy(diff);
                          }
