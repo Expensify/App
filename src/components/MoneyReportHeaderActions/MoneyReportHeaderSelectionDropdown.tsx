@@ -38,7 +38,7 @@ import {handleUnvalidatedAccount, selectPaymentType} from '@libs/PaymentUtils';
 import {sortPoliciesByName} from '@libs/PolicyUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {getSecondaryReportActions} from '@libs/ReportSecondaryActionUtils';
-import {isIOUReport as isIOUReportUtil} from '@libs/ReportUtils';
+import {hasUpdatedTotal, isIOUReport as isIOUReportUtil} from '@libs/ReportUtils';
 import shouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 import {canIOUBePaid as canIOUBePaidAction, payMoneyRequest} from '@userActions/IOU';
@@ -187,7 +187,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
         return false;
     };
 
-    const canAllowSettlement = !!moneyRequestReport;
+    const canAllowSettlement = hasUpdatedTotal(moneyRequestReport, policy);
     const totalAmount = getTotalAmountForIOUReportPreviewButton(moneyRequestReport, policy, CONST.REPORT.PRIMARY_ACTIONS.PAY, nonPendingDeleteTransactions);
     const canIOUBePaid = canIOUBePaidAction(moneyRequestReport, chatReport, policy, bankAccountList, undefined, false, undefined, invoiceReceiverPolicy);
     const isPayable = hasPayAction && canIOUBePaid;

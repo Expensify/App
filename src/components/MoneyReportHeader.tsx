@@ -25,6 +25,7 @@ import MoneyReportHeaderActions from './MoneyReportHeaderActions';
 import MoneyReportHeaderModals from './MoneyReportHeaderModals';
 import MoneyReportHeaderMoreContent from './MoneyReportHeaderMoreContent';
 import {PaymentAnimationsProvider} from './PaymentAnimationsContext';
+import {useSearchActionsContext} from './Search/SearchContext';
 
 type MoneyReportHeaderProps = {
     /** The reportID of the report currently being looked at */
@@ -52,6 +53,7 @@ function MoneyReportHeader({reportID, shouldDisplayBackButton = false, onBackBut
 }
 
 function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButton = false, onBackButtonPress}: MoneyReportHeaderProps) {
+    const {clearSelectedTransactions} = useSearchActionsContext();
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDProp}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
 
@@ -117,6 +119,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
             <HeaderWithBackButton
                 title={translate('common.selectMultiple')}
                 onBackButtonPress={() => {
+                    clearSelectedTransactions(true);
                     turnOffMobileSelectionMode();
                 }}
             />
