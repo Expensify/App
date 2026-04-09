@@ -1,0 +1,435 @@
+diff --git a/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/AuthenticationHelper.kt b/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/AuthenticationHelper.kt
+index a281b88..4a1a009 100644
+--- a/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/AuthenticationHelper.kt
++++ b/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/AuthenticationHelper.kt
+@@ -2,6 +2,7 @@ package expo.modules.securestore
+
+ import android.annotation.SuppressLint
+ import android.app.Activity
++import android.app.KeyguardManager
+ import android.content.Context
+ import android.os.Build
+ import androidx.biometric.BiometricManager
+@@ -19,9 +20,9 @@ class AuthenticationHelper(
+ ) {
+   private var isAuthenticating = false
+
+-  suspend fun authenticateCipher(cipher: Cipher, requiresAuthentication: Boolean, title: String): Cipher {
++  suspend fun authenticateCipher(cipher: Cipher, requiresAuthentication: Boolean, title: String, enableDeviceFallback: Boolean): Cipher {
+     if (requiresAuthentication) {
+-      return openAuthenticationPrompt(cipher, title).cryptoObject?.cipher
++      return openAuthenticationPrompt(cipher, title, enableDeviceFallback).cryptoObject?.cipher
+         ?: throw AuthenticationException("Couldn't get cipher from authentication result")
+     }
+     return cipher
+@@ -29,7 +30,8 @@ class AuthenticationHelper(
+
+   private suspend fun openAuthenticationPrompt(
+     cipher: Cipher,
+-    title: String
++    title: String,
++    enableDeviceFallback: Boolean
+   ): BiometricPrompt.AuthenticationResult {
+     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+       throw AuthenticationException("Biometric authentication requires Android API 23")
+@@ -41,11 +43,16 @@ class AuthenticationHelper(
+     isAuthenticating = true
+
+     try {
+-      assertBiometricsSupport()
++      if (enableDeviceFallback) {
++        assertDeviceSecurity()
++      } else {
++        assertBiometricsSupport()
++      }
++
+       val fragmentActivity = getCurrentActivity() as? FragmentActivity
+         ?: throw AuthenticationException("Cannot display biometric prompt when the app is not in the foreground")
+
+-      val authenticationPrompt = AuthenticationPrompt(fragmentActivity, context, title)
++      val authenticationPrompt = AuthenticationPrompt(fragmentActivity, context, title, enableDeviceFallback)
+
+       return withContext(Dispatchers.Main.immediate) {
+         return@withContext authenticationPrompt.authenticate(cipher)
+@@ -56,6 +63,14 @@ class AuthenticationHelper(
+     }
+   }
+
++  fun assertDeviceSecurity() {
++    val manager = context.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
++    val isSecure = manager.isDeviceSecure
++    if (!isSecure) {
++      throw AuthenticationException("No authentication method available")
++    }
++  }
++
+   fun assertBiometricsSupport() {
+     val biometricManager = BiometricManager.from(context)
+     @SuppressLint("SwitchIntDef") // BiometricManager.BIOMETRIC_SUCCESS shouldn't do anything
+diff --git a/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/AuthenticationPrompt.kt b/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/AuthenticationPrompt.kt
+index e5729cc..ce448d6 100644
+--- a/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/AuthenticationPrompt.kt
++++ b/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/AuthenticationPrompt.kt
+@@ -1,5 +1,7 @@
+ package expo.modules.securestore
+
++import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
++import androidx.biometric.BiometricManager.Authenticators.DEVICE_CREDENTIAL
+ import android.content.Context
+ import androidx.biometric.BiometricPrompt
+ import androidx.biometric.BiometricPrompt.PromptInfo
+@@ -11,12 +13,23 @@ import kotlin.coroutines.resume
+ import kotlin.coroutines.resumeWithException
+ import kotlin.coroutines.suspendCoroutine
+
+-class AuthenticationPrompt(private val currentActivity: FragmentActivity, context: Context, title: String) {
++class AuthenticationPrompt(private val currentActivity: FragmentActivity, context: Context, title: String, enableDeviceFallback: Boolean) {
++  private var authType: Int = if (enableDeviceFallback) BIOMETRIC_STRONG or DEVICE_CREDENTIAL else BIOMETRIC_STRONG
+   private var executor: Executor = ContextCompat.getMainExecutor(context)
+-  private var promptInfo = PromptInfo.Builder()
+-    .setTitle(title)
+-    .setNegativeButtonText(context.getString(android.R.string.cancel))
+-    .build()
++  private var promptInfo = buildPromptInfo(context, title, enableDeviceFallback)
++
++  private fun buildPromptInfo(context: Context, title: String, enableDeviceFallback: Boolean): PromptInfo {
++    var prompt = PromptInfo.Builder()
++      .setTitle(title)
++      .setAllowedAuthenticators(authType)
++
++    if (!enableDeviceFallback) {
++      prompt = prompt.
++        setNegativeButtonText(context.getString(android.R.string.cancel))
++    }
++
++    return prompt.build()
++  }
+
+   suspend fun authenticate(cipher: Cipher): BiometricPrompt.AuthenticationResult? =
+     suspendCoroutine { continuation ->
+diff --git a/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/SecureStoreModule.kt b/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/SecureStoreModule.kt
+index 0fef884..bf9689b 100644
+--- a/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/SecureStoreModule.kt
++++ b/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/SecureStoreModule.kt
+@@ -75,6 +75,15 @@ open class SecureStoreModule : Module() {
+       }
+     }
+
++    Function("canUseDeviceCredentialsAuthentication") {
++      return@Function try {
++        authenticationHelper.assertDeviceSecurity()
++        true
++      } catch (e: AuthenticationException) {
++        false
++      }
++    }
++
+     OnCreate {
+       authenticationHelper = AuthenticationHelper(reactContext, appContext.legacyModuleRegistry)
+       hybridAESEncryptor = HybridAESEncryptor(reactContext, mAESEncryptor)
+@@ -201,7 +210,7 @@ open class SecureStoreModule : Module() {
+        back a value.
+        */
+       val secretKeyEntry: SecretKeyEntry = getOrCreateKeyEntry(SecretKeyEntry::class.java, mAESEncryptor, options, options.requireAuthentication)
+-      val encryptedItem = mAESEncryptor.createEncryptedItem(value, secretKeyEntry, options.requireAuthentication, options.authenticationPrompt, authenticationHelper)
++      val encryptedItem = mAESEncryptor.createEncryptedItem(value, secretKeyEntry, options.requireAuthentication, options.authenticationPrompt, authenticationHelper, options.enableDeviceFallback)
+       encryptedItem.put(SCHEME_PROPERTY, AESEncryptor.NAME)
+       saveEncryptedItem(encryptedItem, prefs, keychainAwareKey, options.requireAuthentication, options.keychainService)
+
+@@ -343,7 +352,11 @@ open class SecureStoreModule : Module() {
+     return getKeyEntry(keyStoreEntryClass, encryptor, options, requireAuthentication) ?: run {
+       // Android won't allow us to generate the keys if the device doesn't support biometrics or no biometrics are enrolled
+       if (requireAuthentication) {
+-        authenticationHelper.assertBiometricsSupport()
++        if (options.enableDeviceFallback) {
++          authenticationHelper.assertDeviceSecurity()
++        } else {
++          authenticationHelper.assertBiometricsSupport()
++        }
+       }
+       encryptor.initializeKeyStoreEntry(keyStore, options)
+     }
+@@ -383,6 +396,7 @@ open class SecureStoreModule : Module() {
+     private const val KEYSTORE_ALIAS_PROPERTY = "keystoreAlias"
+     const val USES_KEYSTORE_SUFFIX_PROPERTY = "usesKeystoreSuffix"
+     const val DEFAULT_KEYSTORE_ALIAS = "key_v1"
++    const val DEFAULT_FALLBACK_KEYSTORE_ALIAS = "fallback_key_v1"
+     const val AUTHENTICATED_KEYSTORE_SUFFIX = "keystoreAuthenticated"
+     const val UNAUTHENTICATED_KEYSTORE_SUFFIX = "keystoreUnauthenticated"
+   }
+diff --git a/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/SecureStoreOptions.kt b/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/SecureStoreOptions.kt
+index 79a600f..0455fd6 100644
+--- a/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/SecureStoreOptions.kt
++++ b/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/SecureStoreOptions.kt
+@@ -8,5 +8,6 @@ class SecureStoreOptions(
+   // Prompt can't be an empty string
+   @Field var authenticationPrompt: String = " ",
+   @Field var keychainService: String = SecureStoreModule.DEFAULT_KEYSTORE_ALIAS,
+-  @Field var requireAuthentication: Boolean = false
++  @Field var requireAuthentication: Boolean = false,
++  @Field var enableDeviceFallback: Boolean = false
+ ) : Record, Serializable
+diff --git a/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/encryptors/AESEncryptor.kt b/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/encryptors/AESEncryptor.kt
+index 3a12dc9..1cec6c0 100644
+--- a/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/encryptors/AESEncryptor.kt
++++ b/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/encryptors/AESEncryptor.kt
+@@ -1,9 +1,10 @@
+ package expo.modules.securestore.encryptors
+
+-import android.annotation.TargetApi
++import android.os.Build
+ import android.security.keystore.KeyGenParameterSpec
+ import android.security.keystore.KeyProperties
+ import android.util.Base64
++import androidx.annotation.RequiresApi
+ import expo.modules.securestore.AuthenticationHelper
+ import expo.modules.securestore.DecryptException
+ import expo.modules.securestore.SecureStoreModule
+@@ -33,6 +34,11 @@ import javax.crypto.spec.GCMParameterSpec
+ class AESEncryptor : KeyBasedEncryptor<KeyStore.SecretKeyEntry> {
+   override fun getKeyStoreAlias(options: SecureStoreOptions): String {
+     val baseAlias = options.keychainService
++
++    if (baseAlias == SecureStoreModule.DEFAULT_KEYSTORE_ALIAS && options.enableDeviceFallback) {
++      return "$AES_CIPHER:${SecureStoreModule.DEFAULT_FALLBACK_KEYSTORE_ALIAS}"
++    }
++
+     return "$AES_CIPHER:$baseAlias"
+   }
+
+@@ -50,17 +56,22 @@ class AESEncryptor : KeyBasedEncryptor<KeyStore.SecretKeyEntry> {
+     return "${getKeyStoreAlias(options)}:$suffix"
+   }
+
+-  @TargetApi(23)
++  @RequiresApi(Build.VERSION_CODES.R)
+   @Throws(GeneralSecurityException::class)
+   override fun initializeKeyStoreEntry(keyStore: KeyStore, options: SecureStoreOptions): KeyStore.SecretKeyEntry {
+     val extendedKeystoreAlias = getExtendedKeyStoreAlias(options, options.requireAuthentication)
+     val keyPurposes = KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
+
++    val authType =
++      if (options.enableDeviceFallback) KeyProperties.AUTH_BIOMETRIC_STRONG or KeyProperties.AUTH_DEVICE_CREDENTIAL
++      else KeyProperties.AUTH_BIOMETRIC_STRONG
++
+     val algorithmSpec: AlgorithmParameterSpec = KeyGenParameterSpec.Builder(extendedKeystoreAlias, keyPurposes)
+       .setKeySize(AES_KEY_SIZE_BITS)
+       .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+       .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+       .setUserAuthenticationRequired(options.requireAuthentication)
++      .setUserAuthenticationParameters(0, authType)
+       .build()
+
+     val keyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, keyStore.provider)
+@@ -78,14 +89,15 @@ class AESEncryptor : KeyBasedEncryptor<KeyStore.SecretKeyEntry> {
+     keyStoreEntry: KeyStore.SecretKeyEntry,
+     requireAuthentication: Boolean,
+     authenticationPrompt: String,
+-    authenticationHelper: AuthenticationHelper
++    authenticationHelper: AuthenticationHelper,
++    enableDeviceFallback: Boolean,
+   ): JSONObject {
+     val secretKey = keyStoreEntry.secretKey
+     val cipher = Cipher.getInstance(AES_CIPHER)
+     cipher.init(Cipher.ENCRYPT_MODE, secretKey)
+
+     val gcmSpec = cipher.parameters.getParameterSpec(GCMParameterSpec::class.java)
+-    val authenticatedCipher = authenticationHelper.authenticateCipher(cipher, requireAuthentication, authenticationPrompt)
++    val authenticatedCipher = authenticationHelper.authenticateCipher(cipher, requireAuthentication, authenticationPrompt, enableDeviceFallback)
+
+     return createEncryptedItemWithCipher(plaintextValue, authenticatedCipher, gcmSpec)
+   }
+@@ -128,7 +140,7 @@ class AESEncryptor : KeyBasedEncryptor<KeyStore.SecretKeyEntry> {
+       throw DecryptException("Authentication tag length must be at least $MIN_GCM_AUTHENTICATION_TAG_LENGTH bits long", key, options.keychainService)
+     }
+     cipher.init(Cipher.DECRYPT_MODE, keyStoreEntry.secretKey, gcmSpec)
+-    val unlockedCipher = authenticationHelper.authenticateCipher(cipher, requiresAuthentication, options.authenticationPrompt)
++    val unlockedCipher = authenticationHelper.authenticateCipher(cipher, requiresAuthentication, options.authenticationPrompt, options.enableDeviceFallback)
+     return String(unlockedCipher.doFinal(ciphertextBytes), StandardCharsets.UTF_8)
+   }
+
+diff --git a/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/encryptors/HybridAESEncryptor.kt b/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/encryptors/HybridAESEncryptor.kt
+index fb42599..e996b39 100644
+--- a/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/encryptors/HybridAESEncryptor.kt
++++ b/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/encryptors/HybridAESEncryptor.kt
+@@ -51,6 +51,11 @@ class HybridAESEncryptor(private var mContext: Context, private val mAESEncrypto
+
+   override fun getKeyStoreAlias(options: SecureStoreOptions): String {
+     val baseAlias = options.keychainService
++
++    if (baseAlias == SecureStoreModule.DEFAULT_KEYSTORE_ALIAS && options.enableDeviceFallback) {
++      return "$RSA_CIPHER:${SecureStoreModule.DEFAULT_FALLBACK_KEYSTORE_ALIAS}"
++    }
++
+     return "$RSA_CIPHER:$baseAlias"
+   }
+
+@@ -69,7 +74,8 @@ class HybridAESEncryptor(private var mContext: Context, private val mAESEncrypto
+     keyStoreEntry: KeyStore.PrivateKeyEntry,
+     requireAuthentication: Boolean,
+     authenticationPrompt: String,
+-    authenticationHelper: AuthenticationHelper
++    authenticationHelper: AuthenticationHelper,
++    enableDeviceFallback: Boolean,
+   ): JSONObject {
+     // This should never be called after we dropped Android SDK 22 support.
+     throw EncryptException(
+diff --git a/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/encryptors/KeyBasedEncryptor.kt b/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/encryptors/KeyBasedEncryptor.kt
+index e493467..39459ff 100644
+--- a/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/encryptors/KeyBasedEncryptor.kt
++++ b/node_modules/expo-secure-store/android/src/main/java/expo/modules/securestore/encryptors/KeyBasedEncryptor.kt
+@@ -25,7 +25,8 @@ interface KeyBasedEncryptor<E : KeyStore.Entry> {
+     keyStoreEntry: E,
+     requireAuthentication: Boolean,
+     authenticationPrompt: String,
+-    authenticationHelper: AuthenticationHelper
++    authenticationHelper: AuthenticationHelper,
++    enableDeviceFallback: Boolean,
+   ): JSONObject
+
+   @Throws(GeneralSecurityException::class, JSONException::class)
+diff --git a/node_modules/expo-secure-store/build/SecureStore.d.ts b/node_modules/expo-secure-store/build/SecureStore.d.ts
+index d5cd157..835a4d4 100644
+--- a/node_modules/expo-secure-store/build/SecureStore.d.ts
++++ b/node_modules/expo-secure-store/build/SecureStore.d.ts
+@@ -78,6 +78,16 @@ export type SecureStoreOptions = {
+      * @platform ios
+      */
+     accessGroup?: string;
++    /**
++     * This flag enables users to authenticate using Lock Screen Knowledge Factor (e.g. PIN, pattern or password).
++     * For sensitive apps, it is recommended not having biometric fall back to such factor.
++     * @see: https://developer.android.com/security/fraud-prevention/authentication
++     *
++     * @default false
++     * @platform android
++     * @platform ios
++     */
++    enableDeviceFallback?: boolean;
+ };
+ /**
+  * Returns whether the SecureStore API is enabled on the current device. This does not check the app
+@@ -148,4 +158,11 @@ export declare function getItem(key: string, options?: SecureStoreOptions): stri
+  * @platform ios
+  */
+ export declare function canUseBiometricAuthentication(): boolean;
++/**
++ * Checks whether any device credentials are configured on the device.
++ * @return `true` if the device has device credentials configured. Otherwise, returns `false`.
++ * @platform android
++ * @platform ios
++ */
++export declare function canUseDeviceCredentialsAuthentication(): boolean;
+ //# sourceMappingURL=SecureStore.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/expo-secure-store/build/SecureStore.js b/node_modules/expo-secure-store/build/SecureStore.js
+index 4d87b38..e11bd94 100644
+--- a/node_modules/expo-secure-store/build/SecureStore.js
++++ b/node_modules/expo-secure-store/build/SecureStore.js
+@@ -143,6 +143,15 @@ export function getItem(key, options = {}) {
+ export function canUseBiometricAuthentication() {
+     return ExpoSecureStore.canUseBiometricAuthentication();
+ }
++/**
++ * Checks whether any device credentials are configured on the device.
++ * @return `true` if the device has device credentials configured. Otherwise, returns `false`.
++ * @platform android
++ * @platform ios
++ */
++export function canUseDeviceCredentialsAuthentication() {
++    return ExpoSecureStore.canUseDeviceCredentialsAuthentication();
++}
+ function ensureValidKey(key) {
+     if (!isValidKey(key)) {
+         throw new Error(`Invalid key provided to SecureStore. Keys must not be empty and contain only alphanumeric characters, ".", "-", and "_".`);
+diff --git a/node_modules/expo-secure-store/ios/SecureStoreModule.swift b/node_modules/expo-secure-store/ios/SecureStoreModule.swift
+index 439b08d..1268979 100644
+--- a/node_modules/expo-secure-store/ios/SecureStoreModule.swift
++++ b/node_modules/expo-secure-store/ios/SecureStoreModule.swift
+@@ -66,6 +66,14 @@ public final class SecureStoreModule: Module {
+       return isBiometricsSupported
+       #endif
+     }
++
++    Function("canUseDeviceCredentialsAuthentication") { () -> Bool in
++      return areDeviceCredentialsEnabled()
++    }
++  }
++
++  private func areDeviceCredentialsEnabled() -> Bool {
++    return LAContext().canEvaluatePolicy(LAPolicy.deviceOwnerAuthentication, error: nil)
+   }
+
+   private func get(with key: String, options: SecureStoreOptions) throws -> String? {
+@@ -99,12 +107,17 @@ public final class SecureStoreModule: Module {
+     if !options.requireAuthentication {
+       setItemQuery[kSecAttrAccessible as String] = accessibility
+     } else {
+-      guard let _ = Bundle.main.infoDictionary?["NSFaceIDUsageDescription"] as? String else {
+-        throw MissingPlistKeyException()
++      if (!options.enableDeviceFallback) {
++        guard let _ = Bundle.main.infoDictionary?["NSFaceIDUsageDescription"] as? String else {
++          throw MissingPlistKeyException()
++        }
+       }
+
+       var error: Unmanaged<CFError>? = nil
+-      guard let accessOptions = SecAccessControlCreateWithFlags(kCFAllocatorDefault, accessibility, .biometryCurrentSet, &error) else {
++
++      let accessControlFlag: SecAccessControlCreateFlags = options.enableDeviceFallback ? .userPresence : .biometryCurrentSet
++
++      guard let accessOptions = SecAccessControlCreateWithFlags(kCFAllocatorDefault, accessibility, accessControlFlag, &error) else {
+         let errorCode = error.map { CFErrorGetCode($0.takeRetainedValue()) }
+         throw SecAccessControlError(errorCode)
+       }
+diff --git a/node_modules/expo-secure-store/ios/SecureStoreOptions.swift b/node_modules/expo-secure-store/ios/SecureStoreOptions.swift
+index 7e3fa4d..c9e843b 100644
+--- a/node_modules/expo-secure-store/ios/SecureStoreOptions.swift
++++ b/node_modules/expo-secure-store/ios/SecureStoreOptions.swift
+@@ -15,4 +15,7 @@ internal struct SecureStoreOptions: Record {
+
+   @Field
+   var accessGroup: String?
++
++  @Field
++  var enableDeviceFallback: Bool = false
+ }
+diff --git a/node_modules/expo-secure-store/src/SecureStore.ts b/node_modules/expo-secure-store/src/SecureStore.ts
+index ee43e04..4f253a1 100644
+--- a/node_modules/expo-secure-store/src/SecureStore.ts
++++ b/node_modules/expo-secure-store/src/SecureStore.ts
+@@ -102,6 +102,17 @@ export type SecureStoreOptions = {
+    * @platform ios
+    */
+   accessGroup?: string;
++
++  /**
++   * This flag enables users to authenticate using Lock Screen Knowledge Factor (e.g. PIN, pattern or password).
++   * For sensitive apps, it is recommended not having biometric fall back to such factor.
++   * @see: https://developer.android.com/security/fraud-prevention/authentication
++   *
++   * @default false
++   * @platform android
++   * @platform ios
++   */
++  enableDeviceFallback?: boolean;
+ };
+
+ // @needsAudit
+@@ -226,6 +237,16 @@ export function canUseBiometricAuthentication(): boolean {
+   return ExpoSecureStore.canUseBiometricAuthentication();
+ }
+
++/**
++ * Checks whether any device credentials are configured on the device.
++ * @return `true` if the device has device credentials configured. Otherwise, returns `false`.
++ * @platform android
++ * @platform ios
++ */
++export function canUseDeviceCredentialsAuthentication(): boolean {
++  return ExpoSecureStore.canUseDeviceCredentialsAuthentication();
++}
++
+ function ensureValidKey(key: string) {
+   if (!isValidKey(key)) {
+     throw new Error(
