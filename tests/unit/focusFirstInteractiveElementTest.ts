@@ -26,11 +26,11 @@ afterEach(() => {
 
 describe('focusFirstInteractiveElement', () => {
     describe('guard conditions', () => {
-        it('returns false when container is null', () => {
+        it('returns undefined when container is null', () => {
             expect(focusFirstInteractiveElement(null)).toBeUndefined();
         });
 
-        it('returns false when another element already has focus', () => {
+        it('returns undefined when another element already has focus', () => {
             const input = document.createElement('input');
             document.body.appendChild(input);
             input.focus();
@@ -42,7 +42,7 @@ describe('focusFirstInteractiveElement', () => {
             expect(spy).not.toHaveBeenCalled();
         });
 
-        it('returns false when container has no focusable elements', () => {
+        it('returns undefined when container has no focusable elements', () => {
             const container = createContainer(document.createElement('div'));
 
             expect(focusFirstInteractiveElement(container)).toBeUndefined();
@@ -198,7 +198,7 @@ describe('focusFirstInteractiveElement', () => {
             expect(visibleSpy).toHaveBeenCalledWith({preventScroll: true});
         });
 
-        it('returns false when all focusable elements are aria-hidden', () => {
+        it('returns undefined when all focusable elements are aria-hidden', () => {
             const hiddenDiv = document.createElement('div');
             hiddenDiv.setAttribute('aria-hidden', 'true');
             const hiddenButton = document.createElement('button');
