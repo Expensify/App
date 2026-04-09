@@ -80,6 +80,7 @@ import {
     getChatRoomSubtitle,
     getChildReportNotificationPreference,
     getDefaultWorkspaceAvatar,
+    getDeletedTransactionMessage,
     getDisplayNameForParticipant,
     getDisplayNamesWithTooltips,
     getHarvestOriginalReportID,
@@ -88,6 +89,8 @@ import {
     getIOUReportActionDisplayMessage,
     getLinkedIOUTransaction,
     getMostRecentlyVisitedReport,
+    getMovedActionMessage,
+    getMovedTransactionMessage,
     getOriginalReportID,
     getOutstandingChildRequest,
     getParentNavigationSubtitle,
@@ -15916,6 +15919,132 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('getDeletedTransactionMessage', () => {
+        it('should return a formatted deleted transaction message', () => {
+            const action = {
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION,
+                originalMessage: {
+                    amount: -5000,
+                    currency: 'USD',
+                    merchant: 'Starbucks',
+                },
+            } as unknown as ReportAction;
+
+            const result = getDeletedTransactionMessage(translateLocal, action);
+            expect(typeof result).toBe('string');
+            expect(result.length).toBeGreaterThan(0);
+        });
+
+        it('should handle missing amount and currency gracefully', () => {
+            const action = {
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION,
+                originalMessage: {},
+            } as unknown as ReportAction;
+
+            const result = getDeletedTransactionMessage(translateLocal, action);
+            expect(typeof result).toBe('string');
+        });
+    });
+
+    describe('getMovedTransactionMessage', () => {
+        it('should return movedTransactionTo message when fromReportID is undefined', async () => {
+            const toReport = LHNTestUtils.getFakeReport();
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${toReport.reportID}`, toReport);
+
+            const action = {
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+                originalMessage: {
+                    toReportID: toReport.reportID,
+                },
+            } as unknown as ReportAction;
+
+            const result = getMovedTransactionMessage(translateLocal, action, undefined);
+            expect(typeof result).toBe('string');
+            expect(result.length).toBeGreaterThan(0);
+        });
+
+        it('should return movedTransactionFrom message when fromReportID is defined', async () => {
+            const fromReport = LHNTestUtils.getFakeReport();
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fromReport.reportID}`, fromReport);
+
+            const action = {
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+                originalMessage: {
+                    fromReportID: fromReport.reportID,
+                    toReportID: '99999',
+                },
+            } as unknown as ReportAction;
+
+            const result = getMovedTransactionMessage(translateLocal, action, undefined);
+            expect(typeof result).toBe('string');
+            expect(result.length).toBeGreaterThan(0);
+        });
+
+        it('should handle conciergeReportID parameter', async () => {
+            const toReport = LHNTestUtils.getFakeReport();
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${toReport.reportID}`, toReport);
+
+            const action = {
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+                originalMessage: {
+                    toReportID: toReport.reportID,
+                },
+            } as unknown as ReportAction;
+
+            const result = getMovedTransactionMessage(translateLocal, action, '12345');
+            expect(typeof result).toBe('string');
+        });
+    });
+
+    describe('getMovedActionMessage', () => {
+        it('should return empty string for non-moved action', () => {
+            const action = {
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            } as unknown as ReportAction;
+
+            const report = LHNTestUtils.getFakeReport();
+            const result = getMovedActionMessage(translateLocal, action, report);
+            expect(result).toBe('');
+        });
+
+        it('should return empty string when original message is missing', () => {
+            const action = {
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED,
+                originalMessage: undefined,
+            } as unknown as ReportAction;
+
+            const report = LHNTestUtils.getFakeReport();
+            const result = getMovedActionMessage(translateLocal, action, report);
+            expect(result).toBe('');
+        });
+
+        it('should return moved action message with policy name', async () => {
+            const testPolicy = createRandomPolicy(0);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${testPolicy.id}`, testPolicy);
+
+            const action = {
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED,
+                originalMessage: {
+                    toPolicyID: testPolicy.id,
+                    newParentReportID: '11111',
+                    movedReportID: '22222',
+                },
+            } as unknown as ReportAction;
+
+            const report = LHNTestUtils.getFakeReport();
+            const result = getMovedActionMessage(translateLocal, action, report);
+            expect(typeof result).toBe('string');
+            expect(result.length).toBeGreaterThan(0);
+        });
+    });
     describe('getReportActionWithSmartscanError', () => {
         const chatReportID = '100';
         const expenseReportID = '200';
