@@ -4242,6 +4242,10 @@ ${amount} para ${merchant} - ${date}`,
             budgetTypeForNotificationMessage: {tag: 'etiqueta', category: 'categoria'},
             deepDiveExpensifyCard: `<muted-text-label>As transações do Cartão Expensify serão exportadas automaticamente para uma “Conta de Responsabilidade do Cartão Expensify” criada com <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">nossa integração</a>.</muted-text-label>`,
         },
+        createdForClient: {
+            title: 'Você criou um espaço de trabalho para seu cliente!',
+            description: 'Ótimas notícias 🎉. Entre em contato conosco se precisarem de ajuda com a configuração.',
+        },
         receiptPartners: {
             uber: {
                 subtitle: (organizationName: string) =>

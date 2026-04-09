@@ -4275,6 +4275,10 @@ ${amount} pour ${merchant} - ${date}`,
             policyExpenseChatName: (displayName: string) => `Dépenses de ${displayName}`,
             deepDiveExpensifyCard: `<muted-text-label>Les transactions de la Carte Expensify seront automatiquement exportées vers un « compte de passif Carte Expensify » créé avec <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">notre intégration</a>.</muted-text-label>`,
         },
+        createdForClient: {
+            title: 'Vous avez créé un espace de travail pour votre client !',
+            description: "Excellente nouvelle 🎉. Contactez-nous si votre client a besoin d'aide pour la configuration.",
+        },
         receiptPartners: {
             uber: {
                 subtitle: (organizationName: string) =>

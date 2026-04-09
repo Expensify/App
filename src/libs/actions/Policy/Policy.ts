@@ -2332,7 +2332,7 @@ function createDraftInitialWorkspace(
                 id: policyID,
                 type: type || CONST.POLICY.TYPE.TEAM,
                 name: workspaceName,
-                role: CONST.POLICY.ROLE.ADMIN,
+                role: makeMeAdmin || !policyOwnerEmail || policyOwnerEmail === deprecatedSessionEmail ? CONST.POLICY.ROLE.ADMIN : undefined,
                 owner: deprecatedSessionEmail,
                 ownerAccountID: deprecatedSessionAccountID,
                 isPolicyExpenseChatEnabled: true,
@@ -2494,7 +2494,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
                 id: policyID,
                 type: workspaceType,
                 name: workspaceName,
-                role: CONST.POLICY.ROLE.ADMIN,
+                role: makeMeAdmin || !policyOwnerEmail || policyOwnerEmail === currentUserEmailParam ? CONST.POLICY.ROLE.ADMIN : undefined,
                 owner: policyOwnerEmail || currentUserEmailParam,
                 ownerAccountID: policyOwnerEmail ? (PersonalDetailsUtils.getPersonalDetailByEmail(policyOwnerEmail)?.accountID ?? currentUserAccountIDParam) : currentUserAccountIDParam,
                 isPolicyExpenseChatEnabled: true,
@@ -2543,12 +2543,12 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
                               },
                           }
                         : {}),
-                    ...(policyOwnerEmail && policyOwnerEmail !== currentUserEmailParam
+                    ...(policyOwnerEmail && policyOwnerEmail !== currentUserEmailParam && makeMeAdmin
                         ? {
                               [currentUserEmailParam]: {
                                   submitsTo: policyOwnerEmail,
                                   email: currentUserEmailParam,
-                                  role: makeMeAdmin ? CONST.POLICY.ROLE.ADMIN : CONST.POLICY.ROLE.USER,
+                                  role: CONST.POLICY.ROLE.ADMIN,
                                   errors: {},
                               },
                           }
