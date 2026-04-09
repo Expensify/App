@@ -959,10 +959,10 @@ function getLastMessageTextForReport({
         if (scanningTransactions.length > 0) {
             lastMessageTextFromReport = translate('iou.receiptScanning', {count: scanningTransactions.length});
         } else if (report?.transactionCount && report?.transactionCount > 0 && report?.currency) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             const latestVisibleMoneyRequestAction = getLatestVisibleMoneyRequestAction(
                 reportID,
                 canUserPerformWrite,
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 deprecatedAllSortedReportActions[reportID],
                 visibleReportActionsDataParam,
             );
