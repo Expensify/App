@@ -285,10 +285,10 @@ const CONST = {
             STOP: 'stop',
         },
         OOO_DURATION_UNITS: {
-            HOUR: 'hour',
-            DAY: 'day',
-            WEEK: 'week',
-            MONTH: 'month',
+            HOUR: 'hours',
+            DAY: 'days',
+            WEEK: 'weeks',
+            MONTH: 'months',
         },
     },
 
