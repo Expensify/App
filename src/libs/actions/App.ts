@@ -560,7 +560,7 @@ type CreateWorkspaceWithPolicyDraftParams = {
     makeMeAdmin?: boolean;
     backTo?: string;
     policyID?: string;
-    currency?: string;
+    currency: string;
     file?: File;
     routeToNavigateAfterCreate?: Route;
     lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType;
@@ -752,6 +752,7 @@ function savePolicyDraftByNewWorkspace({
 function setUpPoliciesAndNavigate(
     session: OnyxEntry<OnyxTypes.Session>,
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
+    currency: string,
     activePolicyID: string | undefined,
     isSelfTourViewed: boolean | undefined,
     betas: OnyxEntry<OnyxTypes.Beta[]>,
@@ -781,6 +782,7 @@ function setUpPoliciesAndNavigate(
     if (shouldCreateFreePolicy) {
         createWorkspaceWithPolicyDraftAndNavigateToIt({
             introSelected,
+            currency,
             policyOwnerEmail,
             policyName: policyName || newGenerateDefaultWorkspaceName(policyOwnerEmail, lastWorkspaceNumber, translate),
             transitionFromOldDot: true,
