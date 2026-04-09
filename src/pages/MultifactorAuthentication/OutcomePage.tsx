@@ -10,7 +10,7 @@ import CONST from '@src/CONST';
  * TODO: This is a temporary solution until proper error handling is implemented (https://github.com/Expensify/App/issues/83036).
  */
 function isServerError(error: ErrorState): boolean {
-    const routineDeviceFailures: MultifactorAuthenticationReason[] = [CONST.MULTIFACTOR_AUTHENTICATION.REASON.EXPO.CANCELED, CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.CANCELED];
+    const routineDeviceFailures: MultifactorAuthenticationReason[] = [CONST.MULTIFACTOR_AUTHENTICATION.REASON.HSM.CANCELED, CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.CANCELED];
     if (routineDeviceFailures.includes(error.reason)) {
         return false;
     }

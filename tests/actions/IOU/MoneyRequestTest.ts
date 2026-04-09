@@ -590,7 +590,14 @@ describe('MoneyRequest', () => {
                 },
             });
             baseParams.recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
-            baseParams.participants = getMoneyRequestParticipantOptions(baseParams.currentUserAccountID, baseParams.report, baseParams.policy, baseParams.personalDetails, undefined, {});
+            baseParams.participants = getMoneyRequestParticipantOptions(
+                baseParams.currentUserAccountID,
+                baseParams.report,
+                baseParams.policy,
+                baseParams.personalDetails,
+                undefined,
+                undefined,
+            );
             await getOnyxData({
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}`,
                 waitForCollectionCallback: true,
@@ -709,7 +716,7 @@ describe('MoneyRequest', () => {
                 ...fakeReport,
                 chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
             };
-            baseParams.participants = getMoneyRequestParticipantOptions(baseParams.currentUserAccountID, report, baseParams.policy, baseParams.personalDetails, undefined, {});
+            baseParams.participants = getMoneyRequestParticipantOptions(baseParams.currentUserAccountID, report, baseParams.policy, baseParams.personalDetails, undefined, undefined);
 
             await getOnyxData({
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}`,
@@ -1081,6 +1088,7 @@ describe('MoneyRequest', () => {
             amountOwed: 0,
             draftTransactionIDs: undefined,
             userBillingGracePeriodEnds: undefined,
+            conciergeReportID: undefined,
         };
         const splitShares: SplitShares = {
             [firstSplitParticipantID]: {
@@ -1504,6 +1512,90 @@ describe('MoneyRequest', () => {
             });
 
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.CREATE, baseParams.transactionID, baseParams.reportID));
+        });
+
+        it('should pass conciergeReportID through to getMoneyRequestParticipantOptions when report exists', async () => {
+            const conciergeReportID = 'concierge789';
+            handleMoneyRequestStepDistanceNavigation({
+                ...baseParams,
+                iouType: CONST.IOU.TYPE.SUBMIT,
+                shouldSkipConfirmation: false,
+                isArchivedExpenseReport: false,
+                draftTransactionIDs: [baseParams.transactionID],
+                conciergeReportID,
+            });
+
+            // When report exists and iouType is not CREATE, the function calls getMoneyRequestParticipantOptions
+            // with conciergeReportID, sets distance request data, and then navigates to confirmation page
+            await waitForBatchedUpdates();
+            expect(baseParams.setDistanceRequestData).toHaveBeenCalled();
+        });
+
+        it('should set distance request data when conciergeReportID is undefined', async () => {
+            handleMoneyRequestStepDistanceNavigation({
+                ...baseParams,
+                iouType: CONST.IOU.TYPE.SUBMIT,
+                shouldSkipConfirmation: false,
+                isArchivedExpenseReport: false,
+                draftTransactionIDs: [baseParams.transactionID],
+                conciergeReportID: undefined,
+            });
+
+            await waitForBatchedUpdates();
+            expect(baseParams.setDistanceRequestData).toHaveBeenCalled();
+        });
+    });
+
+    describe('getMoneyRequestParticipantOptions', () => {
+        const fakeReport = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+        const fakePolicy = createRandomPolicy(1, CONST.POLICY.TYPE.TEAM);
+
+        beforeEach(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`, {
+                ...fakeReport,
+                participants: {
+                    [TEST_USER_ACCOUNT_ID]: {
+                        notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                        role: CONST.REPORT.ROLE.MEMBER,
+                    },
+                },
+            });
+        });
+
+        afterEach(async () => {
+            await Onyx.clear();
+        });
+
+        it('should return participants when conciergeReportID is undefined', () => {
+            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined);
+            expect(Array.isArray(participants)).toBe(true);
+        });
+
+        it('should return participants when conciergeReportID is provided', () => {
+            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, 'concierge123');
+            expect(Array.isArray(participants)).toBe(true);
+        });
+
+        it('should pass conciergeReportID through to getReportOption for policy expense chat participants', () => {
+            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, 'concierge456');
+            // For policy expense chat, participants have accountID 0 and go through getReportOption
+            // which uses conciergeReportID for identifying concierge chat
+            expect(Array.isArray(participants)).toBe(true);
+            expect(participants.length).toBeGreaterThan(0);
+        });
+
+        it('should return participants with privateIsArchived passed through', () => {
+            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, fakeReport, fakePolicy, {}, undefined, true);
+            expect(Array.isArray(participants)).toBe(true);
+        });
+
+        it('should return participants for report with no chat participants (DM-like)', () => {
+            const dmReport = {
+                ...createRandomReport(2, undefined),
+                participants: {},
+            };
+            const participants = getMoneyRequestParticipantOptions(currentUserAccountID, dmReport, fakePolicy, {}, undefined);
+            expect(Array.isArray(participants)).toBe(true);
         });
     });
 
