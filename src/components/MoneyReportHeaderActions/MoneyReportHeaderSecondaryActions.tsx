@@ -65,10 +65,7 @@ type MoneyReportHeaderSecondaryActionsProps = {
 
 function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInSearch, dropdownMenuRef}: MoneyReportHeaderSecondaryActionsProps) {
     const {startAnimation, startApprovedAnimation, startSubmittingAnimation} = usePaymentAnimationsContext();
-    const {openHoldMenu: openHoldMenuAsync, openPDFDownload, openHoldEducational, openRejectModal} = useMoneyReportHeaderModals();
-    const openHoldMenu = (params: Parameters<typeof openHoldMenuAsync>[0]) => {
-        openHoldMenuAsync(params);
-    };
+    const {openHoldMenu, openPDFDownload, openHoldEducational, openRejectModal} = useMoneyReportHeaderModals();
 
     const {translate, localeCompare} = useLocalize();
     const kycWallRef = useContext(KYCWallContext);
@@ -262,7 +259,9 @@ function MoneyReportHeaderSecondaryActions({reportID, primaryAction, isReportInS
         reportID,
         startApprovedAnimation,
         startSubmittingAnimation,
-        onHoldMenuOpen: (requestType) => openHoldMenu({requestType, onConfirm: () => startApprovedAnimation()}),
+        onHoldMenuOpen: (requestType) => {
+            openHoldMenu({requestType, onConfirm: () => startApprovedAnimation()});
+        },
     });
 
     const {actions: expenseActions, handleOptionsMenuHide} = useExpenseActions({reportID, isReportInSearch});
