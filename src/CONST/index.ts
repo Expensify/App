@@ -290,6 +290,10 @@ const CONST = {
             WEEK: 'weeks',
             MONTH: 'months',
         },
+        TIME_PERIOD: {
+            AM: 'AM',
+            PM: 'PM',
+        },
     },
 
     RECEIPT_CAMERA: {

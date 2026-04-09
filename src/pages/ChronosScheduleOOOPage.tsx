@@ -38,8 +38,8 @@ function ChronosScheduleOOOPage({route}: ChronosScheduleOOOPageProps) {
     const ancestors = useAncestors(report);
 
     const timePeriodItems = [
-        {value: 'AM', label: 'AM'},
-        {value: 'PM', label: 'PM'},
+        {value: CONST.CHRONOS.TIME_PERIOD.AM, label: CONST.CHRONOS.TIME_PERIOD.AM},
+        {value: CONST.CHRONOS.TIME_PERIOD.PM, label: CONST.CHRONOS.TIME_PERIOD.PM},
     ];
 
     const durationUnitItems = [
