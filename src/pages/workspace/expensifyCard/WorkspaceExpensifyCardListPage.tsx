@@ -174,12 +174,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     );
 
     const getHeaderButtons = () => {
-        const headerButtonsRowStyle = [
-            styles.flexRow,
-            styles.gap2,
-            !shouldShowSelector && shouldUseNarrowLayout && styles.mb3,
-            shouldShowSelector && shouldChangeLayout && styles.mt3,
-        ];
+        const headerButtonsRowStyle = [styles.flexRow, styles.gap2, !shouldShowSelector && shouldUseNarrowLayout && styles.mb3, shouldShowSelector && shouldChangeLayout && styles.mt3];
 
         if (selectedCardIDs.length > 0) {
             return (
@@ -246,13 +241,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                 >
                     <PressableWithFeedback
                         role={CONST.ROLE.BUTTON}
-                        style={[
-                            styles.mh5,
-                            styles.br3,
-                            styles.mb2,
-                            styles.highlightBG,
-                            shouldShowBulkSelection && isCardSelected && styles.activeComponentBG,
-                        ]}
+                        style={[styles.mh5, styles.br3, styles.mb2, styles.highlightBG, shouldShowBulkSelection && isCardSelected && styles.activeComponentBG]}
                         accessibilityLabel="row"
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE_EXPENSIFY_CARD.CARD_LIST_ROW}
                         hoverStyle={[styles.hoveredComponentBG]}
