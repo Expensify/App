@@ -355,9 +355,9 @@ function WorkspacesListPage() {
 
     const shouldCalculateBillNewDot: boolean = shouldCalculateBillNewDotFn(account?.canDowngrade, policies);
 
-    const resetLoadingSpinnerIconIndex = () => {
+    const resetLoadingSpinnerIconIndex = useCallback(() => {
         setLoadingSpinnerIconIndex(null);
-    };
+    }, []);
 
     useEffect(() => {
         // Handle showing error modal when offline and error occurs
