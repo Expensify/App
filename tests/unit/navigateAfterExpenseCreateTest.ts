@@ -44,6 +44,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
         getRootState: jest.fn(() => ({
             routes: [],
         })),
+        isReady: jest.fn(() => true),
     },
 }));
 
@@ -101,7 +102,7 @@ describe('navigateAfterExpenseCreate', () => {
         expect(Navigation.dismissModalWithReport).toHaveBeenCalledWith({reportID: 'report-123'});
     });
 
-    it('should navigate to search on narrow layout when from global create and not on inbox', async () => {
+    it('should navigate to search on narrow layout when from global create and not on inbox', () => {
         mockGetIsNarrowLayout.mockReturnValue(true);
 
         navigateAfterExpenseCreate({
@@ -111,14 +112,11 @@ describe('navigateAfterExpenseCreate', () => {
             hasMultipleTransactions: false,
         });
 
-        // Flush the Navigation.isNavigationReady().then() promise
-        await Promise.resolve();
-
         expect(mockSetPendingSubmitFollowUpAction).toHaveBeenCalledWith(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH);
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense'}), {forceReplace: true});
     });
 
-    it('should reveal route before dismissing modal on wide layout when from global create', async () => {
+    it('should reveal route before dismissing modal on wide layout when from global create', () => {
         mockGetIsNarrowLayout.mockReturnValue(false);
 
         navigateAfterExpenseCreate({
@@ -128,12 +126,10 @@ describe('navigateAfterExpenseCreate', () => {
             hasMultipleTransactions: false,
         });
 
-        await Promise.resolve();
-
         expect(Navigation.revealRouteBeforeDismissingModal).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense'}));
     });
 
-    it('should use invoice data type when isInvoice is true', async () => {
+    it('should use invoice data type when isInvoice is true', () => {
         mockGetIsNarrowLayout.mockReturnValue(true);
 
         navigateAfterExpenseCreate({
@@ -143,8 +139,6 @@ describe('navigateAfterExpenseCreate', () => {
             isInvoice: true,
             hasMultipleTransactions: false,
         });
-
-        await Promise.resolve();
 
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: 'type:invoice'}), {forceReplace: true});
     });

@@ -49,13 +49,19 @@ function navigateAfterExpenseCreate({activeReportID, transactionID, isFromGlobal
     );
 
     const queryString = buildCannedSearchQuery({type});
-    Navigation.isNavigationReady().then(() => {
+    const navigateToSearch = () => {
         if (getIsNarrowLayout()) {
             Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {forceReplace: true});
         } else {
             Navigation.revealRouteBeforeDismissingModal(ROUTES.SEARCH_ROOT.getRoute({query: queryString}));
         }
-    });
+    };
+
+    if (navigationRef.isReady()) {
+        navigateToSearch();
+    } else {
+        Navigation.isNavigationReady().then(navigateToSearch);
+    }
 }
 
 export default navigateAfterExpenseCreate;

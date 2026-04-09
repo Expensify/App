@@ -31,6 +31,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportAttributes from '@hooks/useReportAttributes';
+import useReportTransactions from '@hooks/useReportTransactions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {completeTestDriveTask} from '@libs/actions/Task';
@@ -61,7 +62,6 @@ import {
     findSelfDMReportID,
     generateReportID,
     getReportOrDraftReport,
-    getReportTransactions,
     hasViolations as hasViolationsReportUtils,
     isMoneyRequestReport,
     isProcessingReport,
@@ -254,6 +254,7 @@ function IOURequestStepConfirmation({
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
     const reportAttributesDerived = useReportAttributes();
+    const reportTransactions = useReportTransactions(report?.reportID);
     const [recentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${policyID}`);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const transactionViolationsRef = useRef(transactionViolations);
@@ -696,7 +697,7 @@ function IOURequestStepConfirmation({
                         activeReportID,
                         transactionID: transaction.transactionID,
                         isFromGlobalCreate: transaction.isFromFloatingActionButton ?? transaction.isFromGlobalCreate,
-                        hasMultipleTransactions: getReportTransactions(activeReportID).length > 0,
+                        hasMultipleTransactions: reportTransactions.length > 0,
                     });
                 }
             }
@@ -719,6 +720,7 @@ function IOURequestStepConfirmation({
             quickAction,
             betas,
             personalDetails,
+            reportTransactions.length,
         ],
     );
 
@@ -1262,7 +1264,7 @@ function IOURequestStepConfirmation({
             } else {
                 return;
             }
-            dismissModalAndOpenReportInInboxTabHelper(chatReportID, undefined, getReportTransactions(chatReportID).length > 0);
+            dismissModalAndOpenReportInInboxTabHelper(chatReportID, undefined, reportTransactions.length > 0);
         },
         [
             transaction?.currency,
@@ -1276,6 +1278,7 @@ function IOURequestStepConfirmation({
             currentUserPersonalDetails.accountID,
             receiptFiles,
             quickAction,
+            reportTransactions.length,
         ],
     );
 
